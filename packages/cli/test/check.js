@@ -28,16 +28,6 @@ for (const pkg_path of glob(resolve_path('../../../packages/*/package.json'))) {
 	overrides[name] = `file:${path.dirname(path.resolve(pkg_path))}`;
 }
 
-try {
-	const kit_dir = resolve_path('../../../packages/kit');
-	const ls_vite_result = execSync('pnpm ls --json vite', { cwd: kit_dir });
-	const vite_version = JSON.parse(ls_vite_result.toString())[0].devDependencies.vite.version;
-	overrides.vite = vite_version;
-} catch (e) {
-	console.error('failed to parse installed vite version from packages/kit');
-	throw e;
-}
-
 // prepare test pnpm workspace
 fs.rmSync(test_workspace_dir, { recursive: true, force: true });
 fs.mkdirSync(test_workspace_dir, { recursive: true });
