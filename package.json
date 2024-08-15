@@ -10,7 +10,8 @@
 		"format": "pnpm -r format",
 		"changeset:version": "changeset version && pnpm -r generate:version && git add --all",
 		"changeset:release": "changeset publish",
-		"build": "pnpm -r build"
+		"build": "pnpm -r build",
+		"test": "pnpm -r test"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.6",
