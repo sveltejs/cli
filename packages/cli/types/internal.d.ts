@@ -9,12 +9,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition =
-	| 'typescript'
-	| 'checkjs'
-	| 'skeleton'
-	| 'default'
-	| 'skeletonlib';
+export type Condition = 'typescript' | 'checkjs' | 'skeleton' | 'default' | 'skeletonlib';
 
 export type Common = {
 	files: Array<{
