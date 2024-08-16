@@ -1,0 +1,15 @@
+{
+	"name": "@svelte-cli/adders",
+	"private": true,
+	"version": "1.6.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./index.ts",
+			"default": "./index.ts"
+		}
+	},
+	"devDependencies": {
+		"@svelte-cli/core": "workspace:*"
+	}
+}

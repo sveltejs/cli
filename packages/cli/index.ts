@@ -23,8 +23,8 @@ function write_template_files(template, types, name, cwd) {
 	copy(`${dir}/package.json`, `${cwd}/package.json`);
 
 	const manifest = `${dir}/files.types=${types}.json`;
-	const files = /** @type {import('./types/internal.js').File[]} */ (
-		JSON.parse(fs.readFileSync(manifest, 'utf-8'))
+	const files = /** @type {import('./types/internal.js').File[]} */ JSON.parse(
+		fs.readFileSync(manifest, 'utf-8')
 	);
 
 	files.forEach((file) => {
@@ -43,12 +43,12 @@ function write_template_files(template, types, name, cwd) {
  */
 function write_common_files(cwd, options, name) {
 	const shared = dist('shared.json');
-	const { files } = /** @type {import('./types/internal.js').Common} */ (
-		JSON.parse(fs.readFileSync(shared, 'utf-8'))
+	const { files } = /** @type {import('./types/internal.js').Common} */ JSON.parse(
+		fs.readFileSync(shared, 'utf-8')
 	);
 
 	const pkg_file = path.join(cwd, 'package.json');
-	const pkg = /** @type {any} */ (JSON.parse(fs.readFileSync(pkg_file, 'utf-8')));
+	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
 
 	sort_files(files).forEach((file) => {
 		const include = file.include.every((condition) => matches_condition(condition, options));

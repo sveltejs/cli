@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import glob from 'tiny-glob/sync.js';
 import { beforeAll, describe, test } from 'vitest';
-import { create } from '../index.js';
+import { create } from '../dist/index.js';
 
 /**
  * Resolve the given path relative to the current file

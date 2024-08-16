@@ -1,0 +1,30 @@
+{
+	"name": "@svelte-cli/clack-prompts",
+	"private": true,
+	"version": "0.9.1",
+	"type": "module",
+	"module": "./build/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"types": "./dist/index.d.ts",
+	"bugs": "https://github.com/sveltejs/cli/issues",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/clack-prompts"
+	},
+	"files": [
+		"dist"
+	],
+	"license": "MIT",
+	"devDependencies": {
+		"@svelte-cli/clack-core": "workspace:*",
+		"is-unicode-supported": "^1.3.0",
+		"picocolors": "^1.0.1",
+		"sisteransi": "^1.0.5"
+	}
+}

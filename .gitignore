@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
 dist
+dist-templates
+temp/
 package-lock.json
 yarn.lock
 vite.config.js.timestamp-*

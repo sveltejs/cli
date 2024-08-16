@@ -47,7 +47,7 @@ export function copy(from, to, rename = identity) {
 
 /** @param {string} path */
 export function dist(path) {
-	return fileURLToPath(new URL(`./dist/${path}`, import.meta.url).href);
+	return fileURLToPath(new URL(`../dist-templates/${path}`, import.meta.url).href);
 }
 
 /** @type {string} */

@@ -51,7 +51,7 @@ async function generate_templates(shared) {
 	for (const template of templates) {
 		if (template[0] === '.') continue;
 
-		const dir = `dist/templates/${template}`;
+		const dir = `dist-templates/templates/${template}`;
 		const assets = `${dir}/assets`;
 		mkdirp(assets);
 
@@ -291,15 +291,15 @@ async function generate_shared() {
 
 	files.sort((a, b) => a.include.length + a.exclude.length - (b.include.length + b.exclude.length));
 
-	fs.writeFileSync('dist/shared.json', JSON.stringify({ files }, null, '\t'));
+	fs.writeFileSync('dist-templates/shared.json', JSON.stringify({ files }, null, '\t'));
 
 	shared.delete('package.json');
 	return shared;
 }
 
 async function main() {
-	rimraf('dist');
-	mkdirp('dist');
+	rimraf('dist-templates');
+	mkdirp('dist-templates');
 
 	const shared = await generate_shared();
 	await generate_templates(shared);

@@ -1,0 +1,29 @@
+{
+	"name": "@svelte-cli/ast-manipulation",
+	"private": true,
+	"version": "2.2.4",
+	"license": "MIT",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"@svelte-cli/ast-tooling": "workspace:*"
+	},
+	"devDependencies": {
+		"dedent": "^1.5.3",
+		"decircular": "^1.0.0"
+	},
+	"bugs": "https://github.com/sveltejs/cli/issues",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/ast-manipulation"
+	},
+	"keywords": []
+}
