@@ -16,12 +16,7 @@ fs.readdirSync(repo).forEach((file) => {
 await create(repo, {
 	name: 'kit-template-default',
 	template: 'default',
-	eslint: false,
-	types: 'checkjs',
-	prettier: true,
-	playwright: false,
-	vitest: false,
-	svelte5: false
+	types: 'checkjs'
 });
 
 // Remove the Sverdle from the template because it doesn't work within Stackblitz (cookies not set)

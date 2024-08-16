@@ -76,34 +76,6 @@ const options = await p.group(
 					},
 					{ label: 'No', value: null }
 				]
-			}),
-
-		features: () =>
-			p.multiselect({
-				message: 'Select additional options (use arrow keys/space bar)',
-				required: false,
-				options: [
-					{
-						value: 'eslint',
-						label: 'Add ESLint for code linting'
-					},
-					{
-						value: 'prettier',
-						label: 'Add Prettier for code formatting'
-					},
-					{
-						value: 'playwright',
-						label: 'Add Playwright for browser testing'
-					},
-					{
-						value: 'vitest',
-						label: 'Add Vitest for unit testing'
-					},
-					{
-						value: 'svelte5',
-						label: 'Try the Svelte 5 preview (unstable!)'
-					}
-				]
 			})
 	},
 	{ onCancel: () => process.exit(1) }
@@ -112,12 +84,7 @@ const options = await p.group(
 await create(cwd, {
 	name: path.basename(path.resolve(cwd)),
 	template: /** @type {'default' | 'skeleton' | 'skeletonlib'} */ (options.template),
-	types: /** @type {'checkjs' | 'typescript' | null} */ (options.types),
-	prettier: options.features.includes('prettier'),
-	eslint: options.features.includes('eslint'),
-	playwright: options.features.includes('playwright'),
-	vitest: options.features.includes('vitest'),
-	svelte5: options.features.includes('svelte5')
+	types: /** @type {'checkjs' | 'typescript' | null} */ (options.types)
 });
 
 p.outro('Your project is ready!');

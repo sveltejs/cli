@@ -102,12 +102,7 @@ for (const template of templates) {
 		create(cwd, {
 			name: `create-svelte-test-${template}-${types}`,
 			template,
-			types,
-			prettier: true,
-			eslint: true,
-			playwright: false,
-			vitest: false,
-			svelte5: false
+			types
 		});
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
