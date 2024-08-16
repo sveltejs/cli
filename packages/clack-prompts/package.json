@@ -3,7 +3,6 @@
 	"private": true,
 	"version": "0.9.1",
 	"type": "module",
-	"module": "./build/index.js",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",

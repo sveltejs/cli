@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
-import * as p from '@clack/prompts';
+import * as p from '@svelte-cli/clack-prompts';
 import * as colors from 'picocolors';
 import { create } from './index.js';
 import { dist, package_manager } from './utils.js';

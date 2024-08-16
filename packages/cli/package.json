@@ -22,11 +22,11 @@
 	"bin": "./dist/bin.js",
 	"main": "./dist/index.js",
 	"dependencies": {
-		"@svelte-cli/prompts": "^0.7.0",
 		"kleur": "^4.1.5"
 	},
 	"devDependencies": {
 		"@svelte-cli/adders": "workspace:*",
+		"@svelte-cli/clack-prompts": "workspace:*",
 		"@svelte-cli/config": "workspace:*",
 		"@svelte-cli/core": "workspace:*",
 		"@types/gitignore-parser": "^0.0.3",
