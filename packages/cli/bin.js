@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as p from '@clack/prompts';
-import { bold, cyan, grey, yellow } from 'kleur/colors';
+import { bold, cyan, gray, yellow } from 'picocolors';
 import { create } from './index.js';
 import { dist, package_manager } from './utils.js';
 
@@ -10,7 +10,7 @@ const { version } = JSON.parse(fs.readFileSync(new URL('package.json', import.me
 let cwd = process.argv[2] || '.';
 
 console.log(`
-${grey(`create-svelte version ${version}`)}
+${gray(`create-svelte version ${version}`)}
 `);
 
 p.intro('Welcome to SvelteKit!');
