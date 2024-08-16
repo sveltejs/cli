@@ -5,5 +5,5 @@ export const tests = defineAdderTests({
 	files: [],
 	options,
 	optionValues: [],
-	tests: [],
+	tests: []
 });

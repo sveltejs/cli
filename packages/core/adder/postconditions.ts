@@ -19,7 +19,7 @@ export async function checkPostconditions<Args extends OptionDefinition>(
 	config: AdderConfig<Args>,
 	checks: AdderCheckConfig<Args>,
 	workspace: Workspace<Args>,
-	multipleAdders: boolean,
+	multipleAdders: boolean
 ) {
 	const postconditions = checks.postconditions ?? [];
 	const unmetPostconditions: string[] = [];
@@ -29,7 +29,7 @@ export async function checkPostconditions<Args extends OptionDefinition>(
 			await postcondition.run({
 				workspace,
 				fileExists: (path) => fileExists(path, workspace),
-				fileContains: (path, expectedContent) => fileContains(path, workspace, expectedContent),
+				fileContains: (path, expectedContent) => fileContains(path, workspace, expectedContent)
 			});
 		} catch (error) {
 			const typedError = error as Error;
@@ -50,7 +50,7 @@ async function fileExists<Args extends OptionDefinition>(path: string, workspace
 async function fileContains<Args extends OptionDefinition>(
 	path: string,
 	workspace: Workspace<Args>,
-	expectedContent: string,
+	expectedContent: string
 ): Promise<void> {
 	await fileExists(path, workspace);
 

@@ -10,8 +10,8 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './routify.svg',
 			keywords: ['routify', 'svelte', 'router'],
-			documentation: 'https://routify.dev',
-		},
+			documentation: 'https://routify.dev'
+		}
 	},
 	options,
 	integrationType: 'inline',
@@ -26,7 +26,7 @@ export const adder = defineAdderConfig({
 
 				const { value: rootObject } = exports.defaultExport(
 					ast,
-					functions.call('defineConfig', []),
+					functions.call('defineConfig', [])
 				);
 				const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
 
@@ -36,7 +36,7 @@ export const adder = defineAdderConfig({
 				functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
 
 				array.push(pluginsArray, pluginFunctionCall);
-			},
+			}
 		},
 		{
 			name: () => 'src/App.svelte',
@@ -44,7 +44,7 @@ export const adder = defineAdderConfig({
 			content: ({ js, html }) => {
 				js.imports.addNamed(js.ast, '@roxi/routify', {
 					Router: 'Router',
-					createRouter: 'createRouter',
+					createRouter: 'createRouter'
 				});
 				js.imports.addDefault(js.ast, '../.routify/routes.default.js', 'routes');
 
@@ -57,13 +57,13 @@ export const adder = defineAdderConfig({
 					js.ast,
 					'const',
 					'router',
-					createRouterFunction,
+					createRouterFunction
 				);
 				js.exports.namedExport(js.ast, 'router', routerVariableDeclaration);
 
 				const router = html.element('Router', { '{router}': '' });
 				html.insertElement(html.ast.childNodes, router);
-			},
+			}
 		},
 		{
 			name: () => 'src/routes/index.svelte',
@@ -71,7 +71,7 @@ export const adder = defineAdderConfig({
 			content: ({ html }) => {
 				const htmlString = `${routifyDemoHtml}<p>On index</p>`;
 				html.addFromRawHtml(html.ast.childNodes, htmlString);
-			},
+			}
 		},
 		{
 			name: () => 'src/routes/demo.svelte',
@@ -79,9 +79,9 @@ export const adder = defineAdderConfig({
 			content: ({ html }) => {
 				const htmlString = `${routifyDemoHtml}<p>On demo</p>`;
 				html.addFromRawHtml(html.ast.childNodes, htmlString);
-			},
-		},
-	],
+			}
+		}
+	]
 });
 
 const routifyDemoHtml = `

@@ -52,7 +52,6 @@ export type SvelteFileType<Args extends OptionDefinition> = {
 };
 export type SvelteFile<Args extends OptionDefinition> = SvelteFileType<Args> & BaseFile<Args>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type JsonFileEditorArgs<Args extends OptionDefinition> = { data: any } & Workspace<Args>;
 export type JsonFileType<Args extends OptionDefinition> = {
 	contentType: 'json';
@@ -88,7 +87,7 @@ export type FileTypes<Args extends OptionDefinition> =
  * @returns a list of paths of changed or created files
  */
 export async function createOrUpdateFiles<Args extends OptionDefinition>(
-	files: FileTypes<Args>[],
+	files: Array<FileTypes<Args>>,
 	workspace: Workspace<Args>
 ): Promise<string[]> {
 	const changedFiles = [];

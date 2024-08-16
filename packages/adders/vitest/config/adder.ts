@@ -10,8 +10,8 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './vitest.svg',
 			keywords: ['test', 'testing', 'unit', 'unit-testing'],
-			documentation: 'https://vitest.dev/',
-		},
+			documentation: 'https://vitest.dev/'
+		}
 	},
 	options,
 	integrationType: 'inline',
@@ -29,7 +29,7 @@ export const adder = defineAdderConfig({
 				scripts['test:unit'] ??= TEST_CMD;
 				scripts['test'] ??= RUN_TEST;
 				if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
-			},
+			}
 		},
 		{
 			name: ({ typescript }) => `src/demo.spec.${typescript.installed ? 'ts' : 'js'}`,
@@ -46,7 +46,7 @@ export const adder = defineAdderConfig({
 						});
 					});
 					`;
-			},
+			}
 		},
 		{
 			name: ({ typescript }) => `vite.config.${typescript.installed ? 'ts' : 'js'}`,
@@ -60,8 +60,8 @@ export const adder = defineAdderConfig({
 						importDecl.importKind === 'value' &&
 						importDecl.specifiers?.some(
 							(specifier) =>
-								specifier.type === 'ImportSpecifier' && specifier.imported.name === 'defineConfig',
-						),
+								specifier.type === 'ImportSpecifier' && specifier.imported.name === 'defineConfig'
+						)
 				);
 
 				// we'll need to replace the "vite" import for a "vitest/config" import.
@@ -72,7 +72,7 @@ export const adder = defineAdderConfig({
 				} else {
 					// otherwise, just remove the `defineConfig` specifier
 					const idxToRemove = defineConfigImportDecl?.specifiers?.findIndex(
-						(s) => s.type === 'ImportSpecifier' && s.imported.name === 'defineConfig',
+						(s) => s.type === 'ImportSpecifier' && s.imported.name === 'defineConfig'
 					);
 					if (idxToRemove) defineConfigImportDecl?.specifiers?.splice(idxToRemove, 1);
 				}
@@ -81,7 +81,7 @@ export const adder = defineAdderConfig({
 				const defaultExport = exports.defaultExport(ast, config);
 
 				const test = object.create({
-					include: common.expressionFromString("['src/**/*.{test,spec}.{js,ts}']"),
+					include: common.expressionFromString("['src/**/*.{test,spec}.{js,ts}']")
 				});
 
 				// uses the `defineConfig` helper
@@ -91,7 +91,7 @@ export const adder = defineAdderConfig({
 				) {
 					// if the previous `defineConfig` was aliased, reuse the alias for the "vitest/config" import
 					const importSpecifier = defineConfigImportDecl?.specifiers?.find(
-						(sp) => sp.type === 'ImportSpecifier' && sp.imported.name === 'defineConfig',
+						(sp) => sp.type === 'ImportSpecifier' && sp.imported.name === 'defineConfig'
 					);
 					const defineConfigAlias = importSpecifier?.local?.name ?? 'defineConfig';
 					imports.addNamed(ast, 'vitest/config', { defineConfig: defineConfigAlias });
@@ -104,7 +104,7 @@ export const adder = defineAdderConfig({
 					// unexpected config shape
 					log.warn('Unexpected vite config for vitest adder. Could not update.');
 				}
-			},
-		},
-	],
+			}
+		}
+	]
 });

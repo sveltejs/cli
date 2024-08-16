@@ -1,7 +1,6 @@
-import type { Key, ReadLine } from 'node:readline';
+import readline, { type Key, type ReadLine } from 'node:readline';
 
 import { stdin, stdout } from 'node:process';
-import readline from 'node:readline';
 import { Readable, Writable } from 'node:stream';
 import { WriteStream } from 'node:tty';
 import { cursor, erase } from 'sisteransi';
@@ -34,7 +33,7 @@ const aliases = new Map([
 	['k', 'up'],
 	['j', 'down'],
 	['h', 'left'],
-	['l', 'right'],
+	['l', 'right']
 ]);
 const keys = new Set(['up', 'down', 'left', 'right', 'space', 'enter']);
 
@@ -65,7 +64,7 @@ export default class Prompt {
 
 	constructor(
 		{ render, input = stdin, output = stdout, ...opts }: PromptOptions<Prompt>,
-		trackValue: boolean = true,
+		trackValue: boolean = true
 	) {
 		this.opts = opts;
 		this.onKeypress = this.onKeypress.bind(this);
@@ -95,7 +94,7 @@ export default class Prompt {
 			output: sink,
 			tabSize: 2,
 			prompt: '',
-			escapeCodeTimeout: 50,
+			escapeCodeTimeout: 50
 		});
 		readline.emitKeypressEvents(this.input, this.rl);
 		this.rl.prompt();
@@ -109,7 +108,7 @@ export default class Prompt {
 
 		this.render();
 
-		return new Promise<string | symbol>((resolve, reject) => {
+		return new Promise<string | symbol>((resolve) => {
 			this.once('submit', () => {
 				this.output.write(cursor.show);
 				this.output.off('resize', this.render);
@@ -125,7 +124,7 @@ export default class Prompt {
 		});
 	}
 
-	private subscribers = new Map<string, { cb: (...args: any) => any; once?: boolean }[]>();
+	private subscribers = new Map<string, Array<{ cb: (...args: any) => any; once?: boolean }>>();
 	public on(event: string, cb: (...args: any) => any) {
 		const arr = this.subscribers.get(event) ?? [];
 		arr.push({ cb });
@@ -138,7 +137,7 @@ export default class Prompt {
 	}
 	public emit(event: string, ...data: any[]) {
 		const cbs = this.subscribers.get(event) ?? [];
-		const cleanup: (() => void)[] = [];
+		const cleanup: Array<() => void> = [];
 		for (const subscriber of cbs) {
 			subscriber.cb(...data);
 			if (subscriber.once) {

@@ -186,7 +186,9 @@ export const confirm = (opts: ConfirmOptions) => {
 				case 'submit':
 					return `${title}${color.gray(S_BAR)}  ${color.dim(value)}`;
 				case 'cancel':
-					return `${title}${color.gray(S_BAR)}  ${color.strikethrough(color.dim(value))}\n${color.gray(S_BAR)}`;
+					return `${title}${color.gray(S_BAR)}  ${color.strikethrough(
+						color.dim(value)
+					)}\n${color.gray(S_BAR)}`;
 				default: {
 					return `${title}${color.cyan(S_BAR)}  ${
 						this.value
@@ -211,7 +213,7 @@ type Option<Value> = Value extends Primitive
 
 export interface SelectOptions<Value> {
 	message: string;
-	options: Option<Value>[];
+	options: Array<Option<Value>>;
 	initialValue?: Value;
 	maxItems?: number;
 }
@@ -223,7 +225,9 @@ export const select = <Value>(opts: SelectOptions<Value>) => {
 			case 'selected':
 				return color.dim(label);
 			case 'active':
-				return `${color.green(S_RADIO_ACTIVE)} ${label} ${option.hint ? color.dim(`(${option.hint})`) : ''}`;
+				return `${color.green(S_RADIO_ACTIVE)} ${label} ${
+					option.hint ? color.dim(`(${option.hint})`) : ''
+				}`;
 			case 'cancelled':
 				return color.strikethrough(color.dim(label));
 			default:
@@ -241,7 +245,10 @@ export const select = <Value>(opts: SelectOptions<Value>) => {
 				case 'submit':
 					return `${title}${color.gray(S_BAR)}  ${opt(this.options[this.cursor], 'selected')}`;
 				case 'cancel':
-					return `${title}${color.gray(S_BAR)}  ${opt(this.options[this.cursor], 'cancelled')}\n${color.gray(S_BAR)}`;
+					return `${title}${color.gray(S_BAR)}  ${opt(
+						this.options[this.cursor],
+						'cancelled'
+					)}\n${color.gray(S_BAR)}`;
 				default: {
 					return `${title}${color.cyan(S_BAR)}  ${limitOptions({
 						cursor: this.cursor,
@@ -288,7 +295,9 @@ export const selectKey = <Value extends string>(opts: SelectOptions<Value>) => {
 						'selected'
 					)}`;
 				case 'cancel':
-					return `${title}${color.gray(S_BAR)}  ${opt(this.options[0], 'cancelled')}\n${color.gray(S_BAR)}`;
+					return `${title}${color.gray(S_BAR)}  ${opt(this.options[0], 'cancelled')}\n${color.gray(
+						S_BAR
+					)}`;
 				default: {
 					return `${title}${color.cyan(S_BAR)}  ${this.options
 						.map((option, i) => opt(option, i === this.cursor ? 'active' : 'inactive'))
@@ -301,7 +310,7 @@ export const selectKey = <Value extends string>(opts: SelectOptions<Value>) => {
 
 export interface MultiSelectOptions<Value> {
 	message: string;
-	options: Option<Value>[];
+	options: Array<Option<Value>>;
 	initialValues?: Value[];
 	maxItems?: number;
 	required?: boolean;
@@ -314,13 +323,17 @@ export const multiselect = <Value>(opts: MultiSelectOptions<Value>) => {
 	) => {
 		const label = option.label ?? String(option.value);
 		if (state === 'active') {
-			return `${color.cyan(S_CHECKBOX_ACTIVE)} ${label} ${option.hint ? color.dim(`(${option.hint})`) : ''}`;
+			return `${color.cyan(S_CHECKBOX_ACTIVE)} ${label} ${
+				option.hint ? color.dim(`(${option.hint})`) : ''
+			}`;
 		} else if (state === 'selected') {
 			return `${color.green(S_CHECKBOX_SELECTED)} ${color.dim(label)}`;
 		} else if (state === 'cancelled') {
 			return color.strikethrough(color.dim(label));
 		} else if (state === 'active-selected') {
-			return `${color.green(S_CHECKBOX_SELECTED)} ${label} ${option.hint ? color.dim(`(${option.hint})`) : ''}`;
+			return `${color.green(S_CHECKBOX_SELECTED)} ${label} ${
+				option.hint ? color.dim(`(${option.hint})`) : ''
+			}`;
 		} else if (state === 'submitted') {
 			return color.dim(label);
 		}
@@ -370,7 +383,9 @@ export const multiselect = <Value>(opts: MultiSelectOptions<Value>) => {
 						.filter(({ value }) => this.value.includes(value))
 						.map((option) => opt(option, 'cancelled'))
 						.join(color.dim(', '));
-					return `${title}${color.gray(S_BAR)}  ${label.trim() ? `${label}\n${color.gray(S_BAR)}` : ''}`;
+					return `${title}${color.gray(S_BAR)}  ${
+						label.trim() ? `${label}\n${color.gray(S_BAR)}` : ''
+					}`;
 				}
 				case 'error': {
 					const footer = this.error
@@ -409,7 +424,7 @@ export const multiselect = <Value>(opts: MultiSelectOptions<Value>) => {
 
 export interface GroupMultiSelectOptions<Value> {
 	message: string;
-	options: Record<string, Option<Value>[]>;
+	options: Record<string, Array<Option<Value>>>;
 	initialValues?: Value[];
 	required?: boolean;
 	cursorAt?: Value;
@@ -430,7 +445,7 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 			| 'group-active-selected'
 			| 'submitted'
 			| 'cancelled',
-		options: Option<Value>[] = []
+		options: Array<Option<Value>> = []
 	) => {
 		const label = option.label ?? String(option.value);
 		const isItem = typeof (option as any).group === 'string';
@@ -449,7 +464,9 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 		} else if (state === 'group-active-selected') {
 			return `${spacingPrefix}${prefix}${color.green(S_CHECKBOX_SELECTED)} ${color.dim(label)}`;
 		} else if (state === 'selected') {
-			return `${spacingPrefix}${color.dim(prefix)}${color.green(S_CHECKBOX_SELECTED)} ${color.dim(label)}`;
+			return `${spacingPrefix}${color.dim(prefix)}${color.green(S_CHECKBOX_SELECTED)} ${color.dim(
+				label
+			)}`;
 		} else if (state === 'cancelled') {
 			return color.strikethrough(color.dim(label));
 		} else if (state === 'active-selected') {
@@ -459,7 +476,9 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 		} else if (state === 'submitted') {
 			return color.dim(label);
 		}
-		return `${spacingPrefix}${color.dim(prefix)}${isItem || selectableGroups ? `${color.dim(S_CHECKBOX_INACTIVE)} ` : ''}${color.dim(label)}`;
+		return `${spacingPrefix}${color.dim(prefix)}${
+			isItem || selectableGroups ? `${color.dim(S_CHECKBOX_INACTIVE)} ` : ''
+		}${color.dim(label)}`;
 	};
 
 	return new GroupMultiSelectPrompt({
@@ -467,7 +486,7 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 		initialValues: opts.initialValues,
 		required: opts.required ?? true,
 		cursorAt: opts.cursorAt,
-		selectableGroups: selectableGroups,
+		selectableGroups,
 		validate(selected: Value[]) {
 			if (this.required && selected.length === 0)
 				return `Please select at least one option.\n${color.reset(
@@ -493,7 +512,9 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 						.filter(({ value }) => this.value.includes(value))
 						.map((option) => opt(option, 'cancelled'))
 						.join(color.dim(', '));
-					return `${title}${color.gray(S_BAR)}  ${label.trim() ? `${label}\n${color.gray(S_BAR)}` : ''}`;
+					return `${title}${color.gray(S_BAR)}  ${
+						label.trim() ? `${label}\n${color.gray(S_BAR)}` : ''
+					}`;
 				}
 				case 'error': {
 					const footer = this.error
@@ -569,7 +590,9 @@ export const note = (message = '', title = '') => {
 	const msg = lines
 		.map(
 			(ln) =>
-				`${color.gray(S_BAR)}  ${color.dim(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(S_BAR)}`
+				`${color.gray(S_BAR)}  ${color.dim(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
+					S_BAR
+				)}`
 		)
 		.join('\n');
 	process.stdout.write(

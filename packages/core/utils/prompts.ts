@@ -41,7 +41,7 @@ export async function booleanPrompt(question: string, initialValue: boolean) {
 export async function selectPrompt<T>(
 	question: string,
 	initialValue: T,
-	options: PromptOption<T>[]
+	options: Array<PromptOption<T>>
 ) {
 	const value = await select({
 		message: question,
@@ -67,7 +67,7 @@ export async function textPrompt(
 	return result;
 }
 
-export async function multiSelectPrompt<T>(question: string, options: PromptOption<T>[]) {
+export async function multiSelectPrompt<T>(question: string, options: Array<PromptOption<T>>) {
 	const value = await multiselect<T>({
 		message: question,
 		options,
@@ -79,7 +79,7 @@ export async function multiSelectPrompt<T>(question: string, options: PromptOpti
 
 export async function groupedMultiSelectPrompt<T>(
 	question: string,
-	options: Record<string, PromptOption<T>[]>
+	options: Record<string, Array<PromptOption<T>>>
 ) {
 	const value = await groupMultiselect<T>({
 		message: question,

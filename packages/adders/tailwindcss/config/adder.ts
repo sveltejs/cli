@@ -11,8 +11,8 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './tailwindcss.svg',
 			keywords: ['tailwind', 'postcss', 'autoprefixer'],
-			documentation: 'https://tailwindcss.com/docs',
-		},
+			documentation: 'https://tailwindcss.com/docs'
+		}
 	},
 	options,
 	integrationType: 'inline',
@@ -23,14 +23,14 @@ export const adder = defineAdderConfig({
 			name: '@tailwindcss/typography',
 			version: '^0.5.14',
 			dev: true,
-			condition: ({ options }) => options.typography,
+			condition: ({ options }) => options.typography
 		},
 		{
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
-			condition: ({ prettier }) => prettier.installed,
-		},
+			condition: ({ prettier }) => prettier.installed
+		}
 	],
 	files: [
 		{
@@ -45,7 +45,7 @@ export const adder = defineAdderConfig({
 				functions,
 				exports,
 				typescript,
-				imports,
+				imports
 			}) => {
 				let root;
 				const rootExport = object.createEmpty();
@@ -71,7 +71,7 @@ export const adder = defineAdderConfig({
 					const requireCall = functions.call('require', ['@tailwindcss/typography']);
 					array.push(pluginsArray, requireCall);
 				}
-			},
+			}
 		},
 		{
 			name: () => 'postcss.config.js',
@@ -82,14 +82,14 @@ export const adder = defineAdderConfig({
 
 				object.property(pluginsObject, 'tailwindcss', object.createEmpty());
 				object.property(pluginsObject, 'autoprefixer', object.createEmpty());
-			},
+			}
 		},
 		{
 			name: () => 'src/app.css',
 			contentType: 'css',
 			content: ({ ast, addImports }) => {
 				const layerImports = ['base', 'components', 'utilities'].map(
-					(layer) => `"tailwindcss/${layer}"`,
+					(layer) => `"tailwindcss/${layer}"`
 				);
 				const originalFirst = ast.first;
 
@@ -109,7 +109,7 @@ export const adder = defineAdderConfig({
 				// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
 				// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
 				nodes.forEach((n) => (n.raws.before = '\n'));
-			},
+			}
 		},
 		{
 			name: () => 'src/App.svelte',
@@ -117,7 +117,7 @@ export const adder = defineAdderConfig({
 			content: ({ js }) => {
 				js.imports.addEmpty(js.ast, './app.css');
 			},
-			condition: ({ kit }) => !kit.installed,
+			condition: ({ kit }) => !kit.installed
 		},
 		{
 			name: ({ kit }) => `${kit.routesDirectory}/+layout.svelte`,
@@ -129,7 +129,7 @@ export const adder = defineAdderConfig({
 					html.ast.childNodes.push(slot);
 				}
 			},
-			condition: ({ kit }) => kit.installed,
+			condition: ({ kit }) => kit.installed
 		},
 		{
 			name: () => '.prettierrc',
@@ -142,7 +142,7 @@ export const adder = defineAdderConfig({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 			},
-			condition: ({ prettier }) => prettier.installed,
-		},
-	],
+			condition: ({ prettier }) => prettier.installed
+		}
+	]
 });

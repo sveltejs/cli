@@ -13,8 +13,8 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './eslint.svg',
 			keywords: ['eslint', 'code', 'linter'],
-			documentation: 'https://eslint.org/',
-		},
+			documentation: 'https://eslint.org/'
+		}
 	},
 	options,
 	integrationType: 'inline',
@@ -26,15 +26,15 @@ export const adder = defineAdderConfig({
 			name: 'typescript-eslint',
 			version: '^8.0.0',
 			dev: true,
-			condition: ({ typescript }) => typescript.installed,
+			condition: ({ typescript }) => typescript.installed
 		},
 		{ name: 'eslint-plugin-svelte', version: '^2.36.0', dev: true },
 		{
 			name: 'eslint-config-prettier',
 			version: '^9.1.0',
 			dev: true,
-			condition: ({ prettier }) => prettier.installed,
-		},
+			condition: ({ prettier }) => prettier.installed
+		}
 	],
 	files: [
 		{
@@ -46,10 +46,10 @@ export const adder = defineAdderConfig({
 				const LINT_CMD = 'eslint .';
 				scripts['lint'] ??= LINT_CMD;
 				if (!scripts['lint'].includes(LINT_CMD)) scripts['lint'] += ` && ${LINT_CMD}`;
-			},
+			}
 		},
 		{
-			name: () => `.vscode/settings.json`,
+			name: () => '.vscode/settings.json',
 			contentType: 'json',
 			// we'll only want to run this step if the file exists
 			condition: ({ cwd }) => fs.existsSync(path.join(cwd, '.vscode', 'settings.json')),
@@ -58,7 +58,7 @@ export const adder = defineAdderConfig({
 				if (validate && !validate.includes('svelte')) {
 					validate.push('svelte');
 				}
-			},
+			}
 		},
 		{
 			name: () => 'eslint.config.js',
@@ -78,15 +78,15 @@ export const adder = defineAdderConfig({
 				array.push(eslintConfigs, common.createSpreadElement(svelteConfig));
 
 				const globalsBrowser = common.createSpreadElement(
-					common.expressionFromString('globals.browser'),
+					common.expressionFromString('globals.browser')
 				);
 				const globalsNode = common.createSpreadElement(common.expressionFromString('globals.node'));
 				const globalsObjLiteral = object.createEmpty();
 				globalsObjLiteral.properties = [globalsBrowser, globalsNode];
 				const globalsConfig = object.create({
 					languageOptions: object.create({
-						globals: globalsObjLiteral,
-					}),
+						globals: globalsObjLiteral
+					})
 				});
 				array.push(eslintConfigs, globalsConfig);
 
@@ -95,15 +95,15 @@ export const adder = defineAdderConfig({
 						files: common.expressionFromString('["**/*.svelte"]'),
 						languageOptions: object.create({
 							parserOptions: object.create({
-								parser: common.expressionFromString('ts.parser'),
-							}),
-						}),
+								parser: common.expressionFromString('ts.parser')
+							})
+						})
 					});
 					array.push(eslintConfigs, svelteTSParserConfig);
 				}
 
 				const ignoresConfig = object.create({
-					ignores: common.expressionFromString('["build/", ".svelte-kit/", "dist/"]'),
+					ignores: common.expressionFromString('["build/", ".svelte-kit/", "dist/"]')
 				});
 				array.push(eslintConfigs, ignoresConfig);
 
@@ -122,13 +122,13 @@ export const adder = defineAdderConfig({
 				imports.addDefault(ast, 'globals', 'globals');
 				imports.addDefault(ast, 'eslint-plugin-svelte', 'svelte');
 				imports.addDefault(ast, '@eslint/js', 'js');
-			},
+			}
 		},
 		{
 			name: () => 'eslint.config.js',
 			contentType: 'script',
 			condition: ({ prettier }) => prettier.installed,
-			content: addEslintConfigPrettier,
-		},
-	],
+			content: addEslintConfigPrettier
+		}
+	]
 });

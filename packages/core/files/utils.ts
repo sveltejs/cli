@@ -19,7 +19,7 @@ export async function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath
 export async function writeFile(
 	workspace: WorkspaceWithoutExplicitArgs,
 	filePath: string,
-	content: string,
+	content: string
 ) {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
@@ -35,7 +35,7 @@ export async function writeFile(
 
 export async function fileExistsWorkspace(
 	workspace: WorkspaceWithoutExplicitArgs,
-	filePath: string,
+	filePath: string
 ) {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 	return await fileExists(fullFilePath);
@@ -45,6 +45,7 @@ export async function fileExists(filePath: string) {
 	try {
 		await fs.access(filePath, fs.constants.F_OK);
 		return true;
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	} catch (error) {
 		return false;
 	}
@@ -60,13 +61,13 @@ export function getFilePath(cwd: string, fileName: string) {
 
 export async function format(workspace: WorkspaceWithoutExplicitArgs, paths: string[]) {
 	await executeCli('npx', ['prettier', '--write', '--ignore-unknown', ...paths], workspace.cwd, {
-		stdio: 'pipe',
+		stdio: 'pipe'
 	});
 }
 
 export const commonFilePaths = {
 	packageJsonFilePath: 'package.json',
-	svelteConfigFilePath: 'svelte.config.js',
+	svelteConfigFilePath: 'svelte.config.js'
 };
 
 export async function findUp(searchPath: string, fileName: string, maxDepth?: number) {

@@ -69,7 +69,7 @@ export async function executeAdder<Args extends OptionDefinition>(
 }
 
 export async function executeAdders<Args extends OptionDefinition>(
-	adderDetails: AdderDetails<Args>[],
+	adderDetails: Array<AdderDetails<Args>>,
 	executingAdder: ExecutingAdderInfo,
 	remoteControlOptions: RemoteControlOptions | undefined = undefined,
 	selectAddersToApply: AddersToApplySelector | undefined = undefined,
@@ -117,7 +117,7 @@ export async function executeAdders<Args extends OptionDefinition>(
 async function executePlan<Args extends OptionDefinition>(
 	executionPlan: AddersExecutionPlan,
 	executingAdder: ExecutingAdderInfo,
-	adderDetails: AdderDetails<Args>[],
+	adderDetails: Array<AdderDetails<Args>>,
 	remoteControlOptions: RemoteControlOptions | undefined
 ) {
 	const remoteControlled = remoteControlOptions !== undefined;
@@ -126,7 +126,7 @@ async function executePlan<Args extends OptionDefinition>(
 
 	if (!isTesting) {
 		console.log(pc.gray(`${executingAdder.name} version ${executingAdder.version}\n`));
-		startPrompts(`Welcome to Svelte Add!`);
+		startPrompts('Welcome to Svelte Add!');
 	}
 
 	// create project if required
@@ -207,8 +207,8 @@ async function executePlan<Args extends OptionDefinition>(
 		return a.config.runsAfter.includes(b.config.metadata.id)
 			? 1
 			: b.config.runsAfter.includes(a.config.metadata.id)
-			? -1
-			: 0;
+				? -1
+				: 0;
 	});
 
 	// apply the adders
@@ -233,7 +233,7 @@ async function executePlan<Args extends OptionDefinition>(
 		} else if (config.integrationType === 'external') {
 			await processExternalAdder(config, executionPlan.workingDirectory, isTesting);
 		} else {
-			throw new Error(`Unknown integration type`);
+			throw new Error('Unknown integration type');
 		}
 
 		const unmetAdderPostconditions = await checkPostconditions(
@@ -265,7 +265,7 @@ async function executePlan<Args extends OptionDefinition>(
 			await format(workspace, Array.from(filesToFormat));
 			formatSpinner.stop('Successfully formatted modified files');
 		} catch (e) {
-			formatSpinner.stop(`Failed to format files`);
+			formatSpinner.stop('Failed to format files');
 			if (e instanceof Error) log.error(e.message);
 		}
 	}

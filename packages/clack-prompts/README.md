@@ -37,8 +37,8 @@ import { isCancel, cancel, text } from '@clack/prompts';
 const value = await text(/* TODO */);
 
 if (isCancel(value)) {
-	cancel('Operation cancelled.');
-	process.exit(0);
+  cancel('Operation cancelled.');
+  process.exit(0);
 }
 ```
 
@@ -52,12 +52,12 @@ The text component accepts a single line of text.
 import { text } from '@clack/prompts';
 
 const meaning = await text({
-	message: 'What is the meaning of life?',
-	placeholder: 'Not sure',
-	initialValue: '42',
-	validate(value) {
-		if (value.length === 0) return `Value is required!`;
-	},
+  message: 'What is the meaning of life?',
+  placeholder: 'Not sure',
+  initialValue: '42',
+  validate(value) {
+    if (value.length === 0) return `Value is required!`;
+  }
 });
 ```
 
@@ -69,7 +69,7 @@ The confirm component accepts a yes or no answer. The result is a boolean value 
 import { confirm } from '@clack/prompts';
 
 const shouldContinue = await confirm({
-	message: 'Do you want to continue?',
+  message: 'Do you want to continue?'
 });
 ```
 
@@ -81,12 +81,12 @@ The select component allows a user to choose one value from a list of options. T
 import { select } from '@clack/prompts';
 
 const projectType = await select({
-	message: 'Pick a project type.',
-	options: [
-		{ value: 'ts', label: 'TypeScript' },
-		{ value: 'js', label: 'JavaScript' },
-		{ value: 'coffee', label: 'CoffeeScript', hint: 'oh no' },
-	],
+  message: 'Pick a project type.',
+  options: [
+    { value: 'ts', label: 'TypeScript' },
+    { value: 'js', label: 'JavaScript' },
+    { value: 'coffee', label: 'CoffeeScript', hint: 'oh no' }
+  ]
 });
 ```
 
@@ -98,13 +98,13 @@ The `multiselect` component allows a user to choose many values from a list of o
 import { multiselect } from '@clack/prompts';
 
 const additionalTools = await multiselect({
-	message: 'Select additional tools.',
-	options: [
-		{ value: 'eslint', label: 'ESLint', hint: 'recommended' },
-		{ value: 'prettier', label: 'Prettier' },
-		{ value: 'gh-action', label: 'GitHub Action' },
-	],
-	required: false,
+  message: 'Select additional tools.',
+  options: [
+    { value: 'eslint', label: 'ESLint', hint: 'recommended' },
+    { value: 'prettier', label: 'Prettier' },
+    { value: 'gh-action', label: 'GitHub Action' }
+  ],
+  required: false
 });
 ```
 
@@ -131,27 +131,27 @@ Grouping prompts together is a great way to keep your code organized. This accep
 import * as p from '@clack/prompts';
 
 const group = await p.group(
-	{
-		name: () => p.text({ message: 'What is your name?' }),
-		age: () => p.text({ message: 'What is your age?' }),
-		color: ({ results }) =>
-			p.multiselect({
-				message: `What is your favorite color ${results.name}?`,
-				options: [
-					{ value: 'red', label: 'Red' },
-					{ value: 'green', label: 'Green' },
-					{ value: 'blue', label: 'Blue' },
-				],
-			}),
-	},
-	{
-		// On Cancel callback that wraps the group
-		// So if the user cancels one of the prompts in the group this function will be called
-		onCancel: ({ results }) => {
-			p.cancel('Operation cancelled.');
-			process.exit(0);
-		},
-	},
+  {
+    name: () => p.text({ message: 'What is your name?' }),
+    age: () => p.text({ message: 'What is your age?' }),
+    color: ({ results }) =>
+      p.multiselect({
+        message: `What is your favorite color ${results.name}?`,
+        options: [
+          { value: 'red', label: 'Red' },
+          { value: 'green', label: 'Green' },
+          { value: 'blue', label: 'Blue' }
+        ]
+      })
+  },
+  {
+    // On Cancel callback that wraps the group
+    // So if the user cancels one of the prompts in the group this function will be called
+    onCancel: ({ results }) => {
+      p.cancel('Operation cancelled.');
+      process.exit(0);
+    }
+  }
 );
 
 console.log(group.name, group.age, group.color);
@@ -163,12 +163,12 @@ Execute multiple tasks in spinners.
 
 ```js
 await p.tasks([
-	{
-		title: 'Installing via npm',
-		task: async (message) => {
-			// Do installation here
-			return 'Installed via npm';
-		},
-	},
+  {
+    title: 'Installing via npm',
+    task: async (message) => {
+      // Do installation here
+      return 'Installed via npm';
+    }
+  }
 ]);
 ```

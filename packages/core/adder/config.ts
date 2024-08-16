@@ -53,8 +53,8 @@ export type BaseAdderConfig<Args extends OptionDefinition> = {
 
 export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
 	integrationType: 'inline';
-	packages: PackageDefinition<Args>[];
-	files: FileTypes<Args>[];
+	packages: Array<PackageDefinition<Args>>;
+	files: Array<FileTypes<Args>>;
 	nextSteps?: (data: {
 		options: OptionValues<Args>;
 		cwd: string;
@@ -111,12 +111,12 @@ export type TestDefinition<Args extends OptionDefinition> = {
 };
 
 export type AdderTestConfig<Args extends OptionDefinition> = {
-	files: FileTypes<Args>[];
+	files: Array<FileTypes<Args>>;
 	options: Args;
-	optionValues: OptionValues<Args>[];
+	optionValues: Array<OptionValues<Args>>;
 	runSynchronously?: boolean;
 	command?: string;
-	tests: TestDefinition<Args>[];
+	tests: Array<TestDefinition<Args>>;
 };
 
 export function defineAdderTests<Args extends OptionDefinition>(tests: AdderTestConfig<Args>) {
@@ -137,7 +137,7 @@ export type Precondition = {
 export type AdderCheckConfig<Args extends OptionDefinition> = {
 	options: Args;
 	preconditions?: Precondition[];
-	postconditions?: Postcondition<Args>[];
+	postconditions?: Array<Postcondition<Args>>;
 };
 
 export function defineAdderChecks<Args extends OptionDefinition>(checks: AdderCheckConfig<Args>) {

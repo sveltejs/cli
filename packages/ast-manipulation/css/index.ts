@@ -47,7 +47,7 @@ export function addDeclaration(ast: Rule | CssAst, property: string, value: stri
 	let declaration = declarations.find((x) => x.prop == property);
 
 	if (!declaration) {
-		declaration = new Declaration({ prop: property, value: value });
+		declaration = new Declaration({ prop: property, value });
 		ast.append(declaration);
 	} else {
 		declaration.value = value;

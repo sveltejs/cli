@@ -17,7 +17,7 @@ export const tests = defineAdderTests({
 
 				await click('.routify-demo .index', '/');
 				expectUrlPath('/');
-			},
-		},
-	],
+			}
+		}
+	]
 });

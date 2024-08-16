@@ -1,8 +1,5 @@
 {
-	"exclude": [
-		"**/dist/**",
-		"**/temp/**",
-	],
+	"exclude": ["**/dist/**", "**/temp/**"],
 	"compilerOptions": {
 		"checkJs": true,
 		"module": "es2022",

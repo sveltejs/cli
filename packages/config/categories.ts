@@ -13,26 +13,26 @@ export const categories: CategoryDetails = {
 	codeQuality: {
 		id: 'codeQuality',
 		name: 'Code Quality',
-		description: '',
+		description: ''
 	},
 	testing: {
 		id: 'testing',
 		name: 'Testing',
-		description: '',
+		description: ''
 	},
 	css: {
 		id: 'css',
 		name: 'CSS',
-		description: 'Can be used to style your components',
+		description: 'Can be used to style your components'
 	},
 	additional: {
 		id: 'additional',
 		name: 'Additional functionality',
-		description: '',
+		description: ''
 	},
 	db: {
 		id: 'db',
 		name: 'Database',
-		description: '',
-	},
+		description: ''
+	}
 };

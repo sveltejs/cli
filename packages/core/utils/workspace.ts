@@ -4,7 +4,7 @@ import { commonFilePaths, fileExists, findUp, readFile } from '../files/utils.js
 import { getJsAstEditor } from '@svelte-cli/ast-manipulation';
 import type { OptionDefinition, OptionValues, Question } from '../adder/options.js';
 import { remoteControl } from '../internal.js';
-import path from 'path';
+import path from 'node:path';
 
 export type PrettierData = {
 	installed: boolean;

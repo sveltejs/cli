@@ -10,15 +10,15 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './mdsvex.svg',
 			keywords: ['mdsvex', 'svelte', 'markdown'],
-			documentation: 'https://mdsvex.pngwn.io/docs',
-		},
+			documentation: 'https://mdsvex.pngwn.io/docs'
+		}
 	},
 	options,
 	integrationType: 'inline',
 	packages: [{ name: 'mdsvex', version: '^0.11.2', dev: true }],
 	files: [
 		{
-			name: () => `svelte.config.js`,
+			name: () => 'svelte.config.js',
 			contentType: 'script',
 			content: ({ ast, array, object, functions, imports, exports }) => {
 				imports.addNamed(ast, 'mdsvex', { mdsvex: 'mdsvex' });
@@ -43,7 +43,7 @@ export const adder = defineAdderConfig({
 				const extensionsArray = object.property(exportDefault, 'extensions', array.createEmpty());
 				array.push(extensionsArray, '.svelte');
 				array.push(extensionsArray, '.svx');
-			},
-		},
-	],
+			}
+		}
+	]
 });

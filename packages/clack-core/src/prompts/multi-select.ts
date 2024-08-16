@@ -2,7 +2,7 @@ import Prompt, { type PromptOptions } from './prompt.js';
 
 interface MultiSelectOptions<T extends { value: any }> extends PromptOptions<MultiSelectPrompt<T>> {
 	options: T[];
-	initialValues?: T['value'][];
+	initialValues?: Array<T['value']>;
 	required?: boolean;
 	cursorAt?: T['value'];
 }
@@ -33,7 +33,7 @@ export default class MultiSelectPrompt<T extends { value: any }> extends Prompt 
 		this.value = [...(opts.initialValues ?? [])];
 		this.cursor = Math.max(
 			this.options.findIndex(({ value }) => value === opts.cursorAt),
-			0,
+			0
 		);
 		this.on('key', (char) => {
 			if (char === 'a') {

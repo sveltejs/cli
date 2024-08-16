@@ -1,16 +1,14 @@
-import { spawn, type ChildProcess } from 'child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 
 export async function executeCli(
 	command: string,
 	commandArgs: string[],
 	cwd: string,
 	options?: {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		onData?: (data: string, program: ChildProcess, resolve: (value?: any) => any) => void;
 		stdio?: 'pipe' | 'inherit';
 		env?: Record<string, string>;
-	},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	}
 ): Promise<any> {
 	const stdio = options?.stdio ?? 'pipe';
 	const env = options?.env ?? process.env;

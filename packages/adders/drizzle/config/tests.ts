@@ -5,7 +5,7 @@ const defaultOptionValues = {
 	sqlite: options.sqlite.default,
 	mysql: options.mysql.default,
 	postgresql: options.postgresql.default,
-	docker: options.docker.default,
+	docker: options.docker.default
 };
 
 export const tests = defineAdderTests({
@@ -14,7 +14,7 @@ export const tests = defineAdderTests({
 		{ ...defaultOptionValues, database: 'sqlite', sqlite: 'better-sqlite3' },
 		{ ...defaultOptionValues, database: 'sqlite', sqlite: 'libsql' },
 		{ ...defaultOptionValues, database: 'mysql', mysql: 'mysql2', docker: true },
-		{ ...defaultOptionValues, database: 'postgresql', postgresql: 'postgres.js', docker: true },
+		{ ...defaultOptionValues, database: 'postgresql', postgresql: 'postgres.js', docker: true }
 	],
 	files: [
 		{
@@ -29,9 +29,9 @@ export const tests = defineAdderTests({
                     {#each data.users as user}
                         <span data-test-id="user-id-{user.id}">{user.id} {user.name}</span>
                     {/each}
-                    `,
+                    `
 				);
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -53,12 +53,14 @@ export const tests = defineAdderTests({
                         return { users };
                     };
 
-                    function insertUser(${typescript.installed ? 'value: typeof user.$inferInsert' : 'value'}) {
+                    function insertUser(${
+											typescript.installed ? 'value: typeof user.$inferInsert' : 'value'
+										}) {
                         return db.insert(user).values(value);
                     }
-                    `,
+                    `
 				);
-			},
+			}
 		},
 		{
 			// override the config so we can remove strict mode
@@ -67,7 +69,7 @@ export const tests = defineAdderTests({
 			condition: ({ kit }) => kit.installed,
 			content: ({ content }) => {
 				return content.replace('strict: true,', '');
-			},
+			}
 		},
 		{
 			name: () => 'package.json',
@@ -75,15 +77,15 @@ export const tests = defineAdderTests({
 			content: ({ data }) => {
 				// executes after pnpm install
 				data.scripts['postinstall'] ??= 'pnpm run db:push';
-			},
-		},
+			}
+		}
 	],
 	tests: [
 		{
 			name: 'queries database',
 			run: async ({ elementExists }) => {
 				await elementExists('[data-test-id]');
-			},
-		},
-	],
+			}
+		}
+	]
 });

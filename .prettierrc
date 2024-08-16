@@ -19,9 +19,7 @@
 			}
 		},
 		{
-			"files": [
-				"**/CHANGELOG.md"
-			],
+			"files": ["**/CHANGELOG.md"],
 			"options": {
 				"requirePragma": true
 			}

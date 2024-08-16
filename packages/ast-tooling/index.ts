@@ -10,9 +10,9 @@ import {
 	Rule,
 	AtRule,
 	Comment,
-	type ChildNode as CssChildNode,
+	parse as postcssParse,
+	type ChildNode as CssChildNode
 } from 'postcss';
-import { parse as postcssParse } from 'postcss';
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
 import type { namedTypes as AstTypes } from 'ast-types';
@@ -40,7 +40,7 @@ export {
 	Comment,
 
 	// ast walker
-	Walker,
+	Walker
 };
 
 export type {
@@ -52,14 +52,14 @@ export type {
 	AstKinds,
 
 	//css
-	CssChildNode,
+	CssChildNode
 };
 
 export function parseScript(content: string): AstTypes.Program {
 	const recastOutput: { program: AstTypes.Program } = recastParse(content, {
 		parser: {
-			parse: tsParse,
-		},
+			parse: tsParse
+		}
 	});
 
 	return recastOutput.program;
@@ -80,7 +80,7 @@ export function serializePostcss(ast: CssAst) {
 export function parseHtml(content: string) {
 	return parseDocument(content, {
 		recognizeSelfClosing: true,
-		lowerCaseTags: false,
+		lowerCaseTags: false
 	});
 }
 
@@ -178,7 +178,6 @@ export function parseJson(content: string) {
 	// node JSON.parse fails parsing those comments.
 	// use https://github.com/Rich-Harris/golden-fleece#fleecepatchstr-value instead
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return fleece.evaluate(content);
 }
 

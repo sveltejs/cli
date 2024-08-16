@@ -4,7 +4,7 @@ import { options as availableOptions } from './options';
 const PORTS = {
 	mysql: '3306',
 	postgresql: '5432',
-	sqlite: '',
+	sqlite: ''
 } as const;
 
 export const adder = defineAdderConfig({
@@ -16,8 +16,8 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './drizzle.svg',
 			keywords: ['drizzle', 'drizzle-orm', 'drizzle-kit', 'database', 'orm'],
-			documentation: 'https://orm.drizzle.team/docs/overview',
-		},
+			documentation: 'https://orm.drizzle.team/docs/overview'
+		}
 	},
 	options: availableOptions,
 	integrationType: 'inline',
@@ -29,60 +29,60 @@ export const adder = defineAdderConfig({
 			name: 'mysql2',
 			version: '^3.9.8',
 			dev: false,
-			condition: ({ options }) => options.mysql === 'mysql2',
+			condition: ({ options }) => options.mysql === 'mysql2'
 		},
 		{
 			name: '@planetscale/database',
 			version: '^1.18.0',
 			dev: false,
-			condition: ({ options }) => options.mysql === 'planetscale',
+			condition: ({ options }) => options.mysql === 'planetscale'
 		},
 		// PostgreSQL
 		{
 			name: '@neondatabase/serverless',
 			version: '^0.9.3',
 			dev: false,
-			condition: ({ options }) => options.postgresql === 'neon',
+			condition: ({ options }) => options.postgresql === 'neon'
 		},
 		{
 			name: 'postgres',
 			version: '^3.4.4',
 			dev: false,
-			condition: ({ options }) => options.postgresql === 'postgres.js',
+			condition: ({ options }) => options.postgresql === 'postgres.js'
 		},
 		// SQLite
 		{
 			name: 'better-sqlite3',
 			version: '^10.0.0',
 			dev: false,
-			condition: ({ options }) => options.sqlite === 'better-sqlite3',
+			condition: ({ options }) => options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@types/better-sqlite3',
 			version: '^7.6.10',
 			dev: true,
-			condition: ({ options }) => options.sqlite === 'better-sqlite3',
+			condition: ({ options }) => options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@libsql/client',
 			version: '^0.6.1',
 			dev: false,
-			condition: ({ options }) => options.sqlite === 'libsql' || options.sqlite === 'turso',
-		},
+			condition: ({ options }) => options.sqlite === 'libsql' || options.sqlite === 'turso'
+		}
 	],
 	files: [
 		{
-			name: () => `.env`,
+			name: () => '.env',
 			contentType: 'text',
-			content: generateEnvFileContent,
+			content: generateEnvFileContent
 		},
 		{
-			name: () => `.env.example`,
+			name: () => '.env.example',
 			contentType: 'text',
-			content: generateEnvFileContent,
+			content: generateEnvFileContent
 		},
 		{
-			name: () => `docker-compose.yml`,
+			name: () => 'docker-compose.yml',
 			contentType: 'text',
 			condition: ({ options }) =>
 				options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js'),
@@ -124,10 +124,10 @@ export const adder = defineAdderConfig({
                 `;
 
 				return content;
-			},
+			}
 		},
 		{
-			name: () => `package.json`,
+			name: () => 'package.json',
 			contentType: 'json',
 			content: ({ data, options }) => {
 				data.scripts ??= {};
@@ -136,11 +136,11 @@ export const adder = defineAdderConfig({
 				scripts['db:push'] ??= 'drizzle-kit push';
 				scripts['db:migrate'] ??= 'drizzle-kit migrate';
 				scripts['db:studio'] ??= 'drizzle-kit studio';
-			},
+			}
 		},
 		{
 			// Adds the db file to the gitignore if an ignore is present
-			name: () => `.gitignore`,
+			name: () => '.gitignore',
 			contentType: 'text',
 			condition: ({ options }) => options.database === 'sqlite',
 			content: ({ content }) => {
@@ -148,7 +148,7 @@ export const adder = defineAdderConfig({
 
 				if (!content.includes('\n*.db')) content = content.trimEnd() + '\n*.db';
 				return content;
-			},
+			}
 		},
 		{
 			name: ({ typescript }) => `drizzle.config.${typescript.installed ? 'ts' : 'js'}`,
@@ -157,7 +157,7 @@ export const adder = defineAdderConfig({
 				imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
 				const envCheckStatement = common.statementFromString(
-					`if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`,
+					`if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`
 				);
 				common.addStatement(ast, envCheckStatement);
 
@@ -176,25 +176,25 @@ export const adder = defineAdderConfig({
 
 				object.properties(objExpression, {
 					schema: common.createLiteral(
-						`./src/lib/server/db/schema.${typescript.installed ? 'ts' : 'js'}`,
+						`./src/lib/server/db/schema.${typescript.installed ? 'ts' : 'js'}`
 					),
 					dbCredentials: object.create({
 						url: common.expressionFromString('process.env.DATABASE_URL'),
-						authToken: authToken,
+						authToken
 					}),
 					verbose: { type: 'BooleanLiteral', value: true },
 					strict: { type: 'BooleanLiteral', value: true },
-					driver,
+					driver
 				});
 
 				object.overrideProperties(objExpression, {
-					dialect: common.createLiteral(options.database),
+					dialect: common.createLiteral(options.database)
 				});
 
 				// The `driver` property is only required for _some_ sqlite DBs.
 				// We'll need to remove it if it's anything but sqlite
 				if (options.database !== 'sqlite') object.removeProperty(objExpression, 'driver');
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -206,7 +206,7 @@ export const adder = defineAdderConfig({
 					imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
 						sqliteTable: 'sqliteTable',
 						text: 'text',
-						integer: 'integer',
+						integer: 'integer'
 					});
 
 					userSchemaExpression = common.expressionFromString(`sqliteTable('user', {
@@ -220,7 +220,7 @@ export const adder = defineAdderConfig({
 						mysqlTable: 'mysqlTable',
 						serial: 'serial',
 						text: 'text',
-						int: 'int',
+						int: 'int'
 					});
 
 					userSchemaExpression = common.expressionFromString(`mysqlTable('user', {
@@ -234,7 +234,7 @@ export const adder = defineAdderConfig({
 						pgTable: 'pgTable',
 						serial: 'serial',
 						text: 'text',
-						integer: 'integer',
+						integer: 'integer'
 					});
 
 					userSchemaExpression = common.expressionFromString(`pgTable('user', {
@@ -247,7 +247,7 @@ export const adder = defineAdderConfig({
 				if (!userSchemaExpression) throw new Error('unreachable state...');
 				const userIdentifier = variables.declaration(ast, 'const', 'user', userSchemaExpression);
 				exports.namedExport(ast, 'user', userIdentifier);
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -258,7 +258,7 @@ export const adder = defineAdderConfig({
 
 				// env var checks
 				const dbURLCheck = common.statementFromString(
-					`if (!env.DATABASE_URL) throw new Error("DATABASE_URL is not set");`,
+					'if (!env.DATABASE_URL) throw new Error("DATABASE_URL is not set");'
 				);
 				common.addStatement(ast, dbURLCheck);
 
@@ -278,16 +278,16 @@ export const adder = defineAdderConfig({
 						imports.addNamed(ast, '$app/environment', { dev: 'dev' });
 						// auth token check in prod
 						const authTokenCheck = common.statementFromString(
-							`if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error("DATABASE_AUTH_TOKEN is not set");`,
+							'if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error("DATABASE_AUTH_TOKEN is not set");'
 						);
 						common.addStatement(ast, authTokenCheck);
 
 						clientExpression = common.expressionFromString(
-							'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })',
+							'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
 						);
 					} else {
 						clientExpression = common.expressionFromString(
-							'createClient({ url: env.DATABASE_URL })',
+							'createClient({ url: env.DATABASE_URL })'
 						);
 					}
 				}
@@ -297,7 +297,7 @@ export const adder = defineAdderConfig({
 					imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
 					clientExpression = common.expressionFromString(
-						'await mysql.createConnection(env.DATABASE_URL)',
+						'await mysql.createConnection(env.DATABASE_URL)'
 					);
 				}
 				if (options.mysql === 'planetscale') {
@@ -327,14 +327,14 @@ export const adder = defineAdderConfig({
 				const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
 				const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 				exports.namedExport(ast, 'db', db);
-			},
-		},
+			}
+		}
 	],
 	nextSteps: () => {
 		const steps = ['You will need to set DATABASE_URL in your production environment'];
 
 		return steps;
-	},
+	}
 });
 
 function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof availableOptions>) {
@@ -346,7 +346,7 @@ function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof 
 		content = addEnvVar(
 			content,
 			DB_URL_KEY,
-			`"${protocol}://root:mysecretpassword@localhost:${port}/local"`,
+			`"${protocol}://root:mysecretpassword@localhost:${port}/local"`
 		);
 		return content;
 	}
@@ -358,16 +358,16 @@ function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof 
 
 	content = addEnvComment(content, 'Replace with your DB credentials!');
 	if (options.sqlite === 'turso') {
-		content = addEnvVar(content, DB_URL_KEY, `"libsql://db-name-user.turso.io"`);
-		content = addEnvVar(content, 'DATABASE_AUTH_TOKEN', `""`);
+		content = addEnvVar(content, DB_URL_KEY, '"libsql://db-name-user.turso.io"');
+		content = addEnvVar(content, 'DATABASE_AUTH_TOKEN', '""');
 		content = addEnvComment(content, 'A local DB can also be used in dev as well');
 		content = addEnvComment(content, `${DB_URL_KEY}="file:local.db"`);
 	}
 	if (options.database === 'mysql') {
-		content = addEnvVar(content, DB_URL_KEY, `"mysql://user:password@host:port/db-name"`);
+		content = addEnvVar(content, DB_URL_KEY, '"mysql://user:password@host:port/db-name"');
 	}
 	if (options.database === 'postgresql') {
-		content = addEnvVar(content, DB_URL_KEY, `"postgres://user:password@host:port/db-name"`);
+		content = addEnvVar(content, DB_URL_KEY, '"postgres://user:password@host:port/db-name"');
 	}
 	return content;
 }

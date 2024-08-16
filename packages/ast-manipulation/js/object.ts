@@ -27,7 +27,7 @@ export function property<T extends AstKinds.ExpressionKind | AstTypes.Identifier
 			shorthand: isShorthand,
 			key: {
 				type: 'Identifier',
-				name: name
+				name
 			},
 			value: propertyValue
 		};

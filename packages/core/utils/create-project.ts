@@ -66,7 +66,7 @@ export async function createProject(cwd: string, supportKit: boolean, supportSve
 		directory = relativePath;
 	}
 
-	const availableProjectTypes: PromptOption<string>[] = [];
+	const availableProjectTypes: Array<PromptOption<string>> = [];
 	if (supportKit) availableProjectTypes.push({ label: 'SvelteKit', value: 'kit' });
 	if (supportSvelte) availableProjectTypes.push({ label: 'Svelte', value: 'svelte' });
 

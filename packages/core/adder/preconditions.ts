@@ -9,8 +9,8 @@ import type { ProjectType } from '../utils/create-project.js';
 function getGlobalPreconditions<Args extends OptionDefinition>(
 	executingCli: string,
 	workingDirectory: string,
-	adderDetails: AdderDetails<Args>[],
-	projectType: ProjectType,
+	adderDetails: Array<AdderDetails<Args>>,
+	projectType: ProjectType
 ): { name: string; preconditions: Precondition[] | undefined } {
 	return {
 		name: executingCli,
@@ -30,7 +30,7 @@ function getGlobalPreconditions<Args extends OptionDefinition>(
 						await executeCli('git', ['status', '--short'], workingDirectory, {
 							onData: (data) => {
 								outputText += data;
-							},
+							}
 						});
 
 						if (outputText) {
@@ -38,10 +38,11 @@ function getGlobalPreconditions<Args extends OptionDefinition>(
 						}
 
 						return { success: true, message: undefined };
+						// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					} catch (error) {
 						return { success: true, message: 'Not a git repository' };
 					}
-				},
+				}
 			},
 			{
 				name: 'supported environments',
@@ -60,21 +61,21 @@ function getGlobalPreconditions<Args extends OptionDefinition>(
 
 					const messages = addersForInvalidEnvironment.map(
 						(adder) =>
-							`"${adder.config.metadata.name}" does not support "${projectType.toString()}"`,
+							`"${adder.config.metadata.name}" does not support "${projectType.toString()}"`
 					);
 					return { success: false, message: messages.join(' / ') };
-				},
-			},
-		],
+				}
+			}
+		]
 	};
 }
 
 export async function validatePreconditions<Args extends OptionDefinition>(
-	adderDetails: AdderDetails<Args>[],
+	adderDetails: Array<AdderDetails<Args>>,
 	executingCliName: string,
 	workingDirectory: string,
 	isTesting: boolean,
-	projectType: ProjectType,
+	projectType: ProjectType
 ) {
 	const multipleAdders = adderDetails.length > 1;
 	let allPreconditionsPassed = true;
@@ -83,14 +84,14 @@ export async function validatePreconditions<Args extends OptionDefinition>(
 	const adderPreconditions = adderDetails.map(({ config, checks }) => {
 		return {
 			name: config.metadata.name,
-			preconditions: checks.preconditions,
+			preconditions: checks.preconditions
 		};
 	});
 	const combinedPreconditions = isTesting
 		? adderPreconditions
 		: [
 				getGlobalPreconditions(executingCliName, workingDirectory, adderDetails, projectType),
-				...adderPreconditions,
+				...adderPreconditions
 			];
 
 	for (const { name, preconditions } of combinedPreconditions) {

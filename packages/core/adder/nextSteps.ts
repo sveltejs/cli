@@ -5,9 +5,9 @@ import type { OptionDefinition, OptionValues } from './options';
 import pc from 'picocolors';
 
 export function displayNextSteps<Args extends OptionDefinition>(
-	adderDetails: AdderDetails<Args>[],
+	adderDetails: Array<AdderDetails<Args>>,
 	multipleAdders: boolean,
-	executionPlan: AddersExecutionPlan,
+	executionPlan: AddersExecutionPlan
 ) {
 	const allAddersMessage = adderDetails
 		.filter((x) => x.config.integrationType == 'inline' && x.config.nextSteps)
@@ -27,7 +27,7 @@ export function displayNextSteps<Args extends OptionDefinition>(
 				options,
 				cwd: executionPlan.workingDirectory,
 				colors: pc,
-				docs: x.metadata.website?.documentation,
+				docs: x.metadata.website?.documentation
 			});
 			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
 			return adderMessage;

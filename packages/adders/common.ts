@@ -1,18 +1,19 @@
 import type { ScriptFileEditorArgs } from '@svelte-add/core';
+import type { Question } from '../core/internal';
 
 export function addEslintConfigPrettier({
 	ast,
 	imports,
 	exports,
-	common,
-}: ScriptFileEditorArgs<{}>) {
+	common
+}: ScriptFileEditorArgs<Record<string, Question>>) {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
 	const sveltePluginImport = importNodes.find(
 		(n) =>
 			n.type === 'ImportDeclaration' &&
 			n.source.value === 'eslint-plugin-svelte' &&
-			n.specifiers?.some((n) => n.type === 'ImportDefaultSpecifier'),
+			n.specifiers?.some((n) => n.type === 'ImportDefaultSpecifier')
 	);
 
 	let svelteImportName: string;
@@ -33,7 +34,7 @@ export function addEslintConfigPrettier({
 
 	const prettier = common.expressionFromString('prettier');
 	const sveltePrettierConfig = common.expressionFromString(
-		`${svelteImportName}.configs['flat/prettier']`,
+		`${svelteImportName}.configs['flat/prettier']`
 	);
 	const configSpread = common.createSpreadElement(sveltePrettierConfig);
 
@@ -50,7 +51,7 @@ export function addEslintConfigPrettier({
 			el.argument.object.property.type === 'Identifier' &&
 			el.argument.object.property.name === 'configs' &&
 			el.argument.object.object.type === 'Identifier' &&
-			el.argument.object.object.name === svelteImportName,
+			el.argument.object.object.name === svelteImportName
 	);
 
 	if (idx !== -1) {

@@ -41,10 +41,10 @@
 	},
 	"scripts": {
 		"build": "node scripts/build-templates",
-		"test": "pnpm build && vitest run",
-		"check": "tsc",
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"format": "pnpm lint --write",
+		"test": "pnpm build && vitest run",
+		"check": "tsc",
 		"prepublishOnly": "pnpm build",
 		"postpublish": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
 	},

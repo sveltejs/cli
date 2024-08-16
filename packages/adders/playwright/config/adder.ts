@@ -12,8 +12,8 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './playwright.svg',
 			keywords: ['test', 'testing', 'end-to-end', 'e2e', 'integration'],
-			documentation: 'https://playwright.dev/',
-		},
+			documentation: 'https://playwright.dev/'
+		}
 	},
 	options,
 	integrationType: 'inline',
@@ -30,7 +30,7 @@ export const adder = defineAdderConfig({
 				scripts['test:e2e'] ??= TEST_CMD;
 				scripts['test'] ??= RUN_TEST;
 				if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
-			},
+			}
 		},
 		{
 			name: () => '.gitignore',
@@ -39,7 +39,7 @@ export const adder = defineAdderConfig({
 			content: ({ content }) => {
 				if (content.includes('test-results')) return content;
 				return 'test-results\n' + content.trim();
-			},
+			}
 		},
 		{
 			name: ({ typescript }) => `e2e/demo.test.${typescript.installed ? 'ts' : 'js'}`,
@@ -55,7 +55,7 @@ export const adder = defineAdderConfig({
 						await expect(page.locator('h1')).toBeVisible();
 					});
 					`;
-			},
+			}
 		},
 		{
 			name: ({ typescript }) => `playwright.config.${typescript.installed ? 'ts' : 'js'}`,
@@ -67,9 +67,9 @@ export const adder = defineAdderConfig({
 				const config = {
 					webServer: object.create({
 						command: common.createLiteral('npm run build && npm run preview'),
-						port: common.expressionFromString('4173'),
+						port: common.expressionFromString('4173')
 					}),
-					testDir: common.createLiteral('e2e'),
+					testDir: common.createLiteral('e2e')
 				};
 
 				if (
@@ -86,7 +86,7 @@ export const adder = defineAdderConfig({
 					// unexpected config shape
 					log.warn('Unexpected playwright config for playwright adder. Could not update.');
 				}
-			},
-		},
-	],
+			}
+		}
+	]
 });

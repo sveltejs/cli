@@ -15,13 +15,13 @@ export const adder = defineAdderConfig({
 				'testing',
 				'documentation',
 				'storybook-svelte-csf',
-				'svelte-csf',
+				'svelte-csf'
 			],
-			documentation: 'https://storybook.js.org/docs/get-started',
-		},
+			documentation: 'https://storybook.js.org/docs/get-started'
+		}
 	},
 
 	options,
 	integrationType: 'external',
-	command: 'storybook@8.3.0-alpha.3 init --skip-install --no-dev',
+	command: 'storybook@8.3.0-alpha.3 init --skip-install --no-dev'
 });

@@ -2,8 +2,12 @@
 	"name": "@svelte-cli/core",
 	"private": true,
 	"version": "2.10.4",
-	"type": "module",
 	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"format": "pnpm lint --write"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",

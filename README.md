@@ -6,9 +6,9 @@ Web development, streamlined. Read the [documentation](https://kit.svelte.dev/do
 
 ### Packages
 
-| Package                                              | Changelog                                                     |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| [sv](packages/cli)                                   | [Changelog](packages/cli/CHANGELOG.md)                        |
+| Package            | Changelog                              |
+| ------------------ | -------------------------------------- |
+| [sv](packages/cli) | [Changelog](packages/cli/CHANGELOG.md) |
 
 [Additional adders](https://www.sveltesociety.dev/templates?category=svelte-add) are maintained by the community.
 

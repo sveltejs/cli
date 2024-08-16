@@ -10,13 +10,13 @@ export function block({
 	input = stdin,
 	output = stdout,
 	overwrite = true,
-	hideCursor = true,
+	hideCursor = true
 } = {}) {
 	const rl = readline.createInterface({
 		input,
 		output,
 		prompt: '',
-		tabSize: 1,
+		tabSize: 1
 	});
 	readline.emitKeypressEvents(input, rl);
 	if (input.isTTY) input.setRawMode(true);

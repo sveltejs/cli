@@ -8,5 +8,5 @@ export {
 	adderCategories,
 	communityAdders,
 	type CategoryKeys,
-	type CategoryInfo,
+	type CategoryInfo
 };

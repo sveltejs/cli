@@ -15,17 +15,17 @@ export const tests = defineAdderTests({
 				prepareCoreTest(editor);
 				if (editor.options.typography) prepareTypographyTest(editor);
 			},
-			condition: ({ kit }) => kit.installed,
+			condition: ({ kit }) => kit.installed
 		},
 		{
-			name: () => `src/App.svelte`,
+			name: () => 'src/App.svelte',
 			contentType: 'svelte',
 			content: (editor) => {
 				prepareCoreTest(editor);
 				if (editor.options.typography) prepareTypographyTest(editor);
 			},
-			condition: ({ kit }) => !kit.installed,
-		},
+			condition: ({ kit }) => !kit.installed
+		}
 	],
 	options,
 	optionValues: [{ typography: false }, { typography: true }],
@@ -38,7 +38,7 @@ export const tests = defineAdderTests({
 				await expectProperty(selector, 'border-color', 'rgb(249, 250, 251)');
 				await expectProperty(selector, 'border-width', '4px');
 				await expectProperty(selector, 'margin-top', '4px');
-			},
+			}
 		},
 		{
 			name: 'typography properties',
@@ -49,9 +49,9 @@ export const tests = defineAdderTests({
 				await expectProperty(selector, 'line-height', '28px');
 				await expectProperty(selector, 'text-align', 'right');
 				await expectProperty(selector, 'text-decoration-line', 'line-through');
-			},
-		},
-	],
+			}
+		}
+	]
 });
 
 function prepareCoreTest<Args extends OptionDefinition>({ html }: SvelteFileEditorArgs<Args>) {
@@ -60,7 +60,7 @@ function prepareCoreTest<Args extends OptionDefinition>({ html }: SvelteFileEdit
 }
 
 function prepareTypographyTest<Args extends OptionDefinition>({
-	html,
+	html
 }: SvelteFileEditorArgs<Args>) {
 	const div = html.element('p', { class: 'text-lg text-right line-through', id: typographyDivId });
 	html.appendElement(html.ast.childNodes, div);

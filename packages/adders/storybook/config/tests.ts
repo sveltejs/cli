@@ -7,7 +7,6 @@ export const tests = defineAdderTests({
 	options,
 	optionValues: [],
 	get command() {
-		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		return `storybook -p ${port++} --ci`;
 	},
 	files: [],
@@ -17,7 +16,7 @@ export const tests = defineAdderTests({
 			run: async ({ elementExists }) => {
 				await elementExists('main .sb-bar');
 				await elementExists('#storybook-preview-wrapper');
-			},
-		},
-	],
+			}
+		}
+	]
 });

@@ -8,7 +8,7 @@ export {
 	getJsAstEditor,
 	type CssAstEditor,
 	type HtmlAstEditor,
-	type JsAstEditor,
+	type JsAstEditor
 };
 
 export type SvelteAstEditor = {

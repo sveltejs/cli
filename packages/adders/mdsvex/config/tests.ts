@@ -2,7 +2,7 @@ import { defineAdderTests } from '@svelte-add/core';
 import { options } from './options';
 import type {
 	SvelteFileEditorArgs,
-	TextFileEditorArgs,
+	TextFileEditorArgs
 } from '@svelte-add/core/files/processors.js';
 import type { OptionDefinition } from '@svelte-add/core/adder/options.js';
 
@@ -12,26 +12,26 @@ export const tests = defineAdderTests({
 			name: ({ kit }) => `${kit.routesDirectory}/+page.svelte`,
 			contentType: 'svelte',
 			content: useMarkdownFile,
-			condition: ({ kit }) => kit.installed,
+			condition: ({ kit }) => kit.installed
 		},
 		{
-			name: () => `src/App.svelte`,
+			name: () => 'src/App.svelte',
 			contentType: 'svelte',
 			content: useMarkdownFile,
-			condition: ({ kit }) => !kit.installed,
+			condition: ({ kit }) => !kit.installed
 		},
 		{
 			name: ({ kit }) => `${kit.routesDirectory}/Demo.svx`,
 			contentType: 'text',
 			content: addMarkdownFile,
-			condition: ({ kit }) => kit.installed,
+			condition: ({ kit }) => kit.installed
 		},
 		{
-			name: () => `src/Demo.svx`,
+			name: () => 'src/Demo.svx',
 			contentType: 'text',
 			content: addMarkdownFile,
-			condition: ({ kit }) => !kit.installed,
-		},
+			condition: ({ kit }) => !kit.installed
+		}
 	],
 	options,
 	optionValues: [],
@@ -42,9 +42,9 @@ export const tests = defineAdderTests({
 				await elementExists('.mdsvex h1');
 				await elementExists('.mdsvex h2');
 				await elementExists('.mdsvex p');
-			},
-		},
-	],
+			}
+		}
+	]
 });
 
 function addMarkdownFile<Args extends OptionDefinition>(editor: TextFileEditorArgs<Args>) {
