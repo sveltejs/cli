@@ -20,8 +20,8 @@ export default [
 			'@typescript-eslint/require-await': 'error',
 		},
 		ignores: [
-			'packages/create-svelte/shared/**/*',
-			'packages/create-svelte/templates/**/*',
+			'packages/cli/shared/**/*',
+			'packages/cli/templates/**/*',
 		]
 	}
 ];
