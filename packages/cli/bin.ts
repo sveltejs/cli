@@ -16,7 +16,7 @@ async function run() {
 	let cwd = process.argv[2] || '.';
 
 	console.log(`
-${colors.grey(`create-svelte version ${version}`)}
+${colors.gray(`create-svelte version ${version}`)}
 `);
 
 	p.intro('Welcome to SvelteKit!');

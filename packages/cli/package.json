@@ -31,6 +31,7 @@
 		"@svelte-cli/core": "workspace:*",
 		"@types/gitignore-parser": "^0.0.3",
 		"gitignore-parser": "^0.0.2",
+		"picocolors": "^1.0.1",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
 		"sucrase": "^3.34.0",
