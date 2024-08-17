@@ -11,12 +11,7 @@ export async function create(cwd: string, options: Options) {
 	write_common_files(cwd, options, options.name);
 }
 
-function write_template_files(
-	template: string,
-	types: Types,
-	name: string,
-	cwd: string
-) {
+function write_template_files(template: string, types: Types, name: string, cwd: string) {
 	const dir = dist(`templates/${template}`);
 	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'));
 	copy(`${dir}/package.json`, `${cwd}/package.json`);

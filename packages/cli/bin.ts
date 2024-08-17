@@ -48,7 +48,7 @@ ${colors.grey(`create-svelte version ${version}`)}
 		}
 	}
 
-	type A = { template: string | symbol, types: string | symbol | null }
+	type A = { template: string | symbol; types: string | symbol | null };
 	const options = await p.group<A>(
 		{
 			template: (_) =>
