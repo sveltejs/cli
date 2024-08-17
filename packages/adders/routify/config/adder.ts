@@ -1,4 +1,4 @@
-import { defineAdderConfig } from '@svelte-add/core';
+import { defineAdderConfig } from '@svelte-cli/core';
 import { options } from './options';
 
 export const adder = defineAdderConfig({

@@ -1,4 +1,4 @@
-import type { ScriptFileEditorArgs } from '@svelte-add/core';
+import type { ScriptFileEditorArgs } from '@svelte-cli/core';
 import type { Question } from '../core/internal';
 
 export function addEslintConfigPrettier({

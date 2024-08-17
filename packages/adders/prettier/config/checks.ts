@@ -1,4 +1,4 @@
-import { defineAdderChecks } from '@svelte-add/core';
+import { defineAdderChecks } from '@svelte-cli/core';
 import { options } from './options';
 
 export const checks = defineAdderChecks({

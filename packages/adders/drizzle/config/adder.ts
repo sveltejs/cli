@@ -1,4 +1,4 @@
-import { defineAdderConfig, dedent, type TextFileEditorArgs } from '@svelte-add/core';
+import { defineAdderConfig, dedent, type TextFileEditorArgs } from '@svelte-cli/core';
 import { options as availableOptions } from './options';
 
 const PORTS = {

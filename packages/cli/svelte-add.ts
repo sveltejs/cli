@@ -18,7 +18,6 @@ export async function executeSvelteAdd(cwd: string) {
 
 	for (const adderName of adderIds) {
 		const adder = await getAdderDetails(adderName);
-		// @ts-expect-error
 		adderDetails.push({ config: adder.config, checks: adder.checks });
 	}
 

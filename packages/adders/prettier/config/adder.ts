@@ -1,4 +1,4 @@
-import { dedent, defineAdderConfig, log, colors } from '@svelte-add/core';
+import { dedent, defineAdderConfig, log, colors } from '@svelte-cli/core';
 import { options } from './options.js';
 import { addEslintConfigPrettier } from '../../common.js';
 
