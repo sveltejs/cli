@@ -4,7 +4,7 @@ import parser from 'gitignore-parser';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
-import { mkdirp, rimraf } from '../utils.js';
+import { mkdirp } from '../utils.js';
 
 /** @param {string} content */
 async function convert_typescript(content) {
@@ -51,7 +51,7 @@ async function generate_templates(shared) {
 	for (const template of templates) {
 		if (template[0] === '.') continue;
 
-		const dir = `dist-templates/templates/${template}`;
+		const dir = `dist/templates/${template}`;
 		const assets = `${dir}/assets`;
 		mkdirp(assets);
 
@@ -291,15 +291,14 @@ async function generate_shared() {
 
 	files.sort((a, b) => a.include.length + a.exclude.length - (b.include.length + b.exclude.length));
 
-	fs.writeFileSync('dist-templates/shared.json', JSON.stringify({ files }, null, '\t'));
+	fs.writeFileSync('dist/shared.json', JSON.stringify({ files }, null, '\t'));
 
 	shared.delete('package.json');
 	return shared;
 }
 
 async function main() {
-	rimraf('dist-templates');
-	mkdirp('dist-templates');
+	mkdirp('dist');
 
 	const shared = await generate_shared();
 	await generate_templates(shared);
