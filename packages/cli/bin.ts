@@ -7,6 +7,7 @@ import { create } from './index.js';
 import { dist, package_manager } from './utils.js';
 import { executeSvelteAdd } from './svelte-add.js';
 import pkg from './package.json';
+import type { TemplateTypes, Types } from './types/internal.js';
 
 run();
 
@@ -47,7 +48,8 @@ ${colors.grey(`create-svelte version ${version}`)}
 		}
 	}
 
-	const options = await p.group(
+	type A = { template: string | symbol, types: string | symbol | null }
+	const options = await p.group<A>(
 		{
 			template: (_) =>
 				p.select({
@@ -89,8 +91,8 @@ ${colors.grey(`create-svelte version ${version}`)}
 
 	await create(cwd, {
 		name: path.basename(path.resolve(cwd)),
-		template: /** @type {'default' | 'skeleton' | 'skeletonlib'} */ options.template,
-		types: /** @type {'checkjs' | 'typescript' | null} */ options.types
+		template: options.template as TemplateTypes,
+		types: options.types as Types
 	});
 
 	p.outro('Your project is ready!');

@@ -1,3 +1,4 @@
+// @ts-expect-error
 import svelte_config from '@sveltejs/eslint-config';
 
 /** @type {import('eslint').Linter.Config[]} */

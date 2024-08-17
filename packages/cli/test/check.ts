@@ -5,13 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import glob from 'tiny-glob/sync.js';
 import { beforeAll, describe, test } from 'vitest';
-import { create } from '../dist/index.js';
+import { create } from '../index.js';
+import type { TemplateTypes, Types } from '../types/internal.js';
 
-/**
- * Resolve the given path relative to the current file
- * @param {string} path
- */
-const resolve_path = (path) => fileURLToPath(new URL(path, import.meta.url));
+// Resolve the given path relative to the current file
+const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 // use a directory outside of packages to ensure it isn't added to the pnpm workspace
 const test_workspace_dir = resolve_path('../../../.test-tmp/create-svelte/');
@@ -57,8 +55,7 @@ beforeAll(async () => {
 	});
 }, 60000);
 
-/** @param {any} pkg */
-function patch_package_json(pkg) {
+function patch_package_json(pkg: any) {
 	Object.entries(overrides).forEach(([key, value]) => {
 		if (pkg.devDependencies?.[key]) {
 			pkg.devDependencies[key] = value;
@@ -88,14 +85,12 @@ function patch_package_json(pkg) {
  */
 const script_test_map = new Map();
 
-const templates = /** @type {Array<'default' | 'skeleton' | 'skeletonlib'>} */ (
-	fs.readdirSync('templates')
-);
+const templates = fs.readdirSync('templates') as TemplateTypes[];
 
 for (const template of templates) {
 	if (template[0] === '.') continue;
 
-	for (const types of /** @type {const} */ (['checkjs', 'typescript'])) {
+	for (const types of ['checkjs', 'typescript'] as Types[]) {
 		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 

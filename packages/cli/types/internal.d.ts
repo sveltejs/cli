@@ -1,7 +1,10 @@
+export type TemplateTypes = 'default' | 'skeleton' | 'skeletonlib'
+export type Types = 'typescript' | 'checkjs' | null
+
 export type Options = {
 	name: string;
-	template: 'default' | 'skeleton' | 'skeletonlib';
-	types: 'typescript' | 'checkjs' | null;
+	template: TemplateTypes;
+	types: Types;
 };
 
 export type File = {
@@ -9,7 +12,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = 'typescript' | 'checkjs' | 'skeleton' | 'default' | 'skeletonlib';
+export type Condition = Exclude<TemplateTypes | Types, null>;
 
 export type Common = {
 	files: Array<{

@@ -1,31 +1,28 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist } from './utils.js';
+import type { Common, Condition, File, Options, Types } from './types/internal.js';
 
-/** @type {import('./types/index.js').create} */
 // eslint-disable-next-line @typescript-eslint/require-await
-export async function create(cwd, options) {
+export async function create(cwd: string, options: Options) {
 	mkdirp(cwd);
 
 	write_template_files(options.template, options.types, options.name, cwd);
 	write_common_files(cwd, options, options.name);
 }
 
-/**
- * @param {string} template
- * @param {'typescript' | 'checkjs' | null} types
- * @param {string} name
- * @param {string} cwd
- */
-function write_template_files(template, types, name, cwd) {
+function write_template_files(
+	template: string,
+	types: Types,
+	name: string,
+	cwd: string
+) {
 	const dir = dist(`templates/${template}`);
-	copy(`${dir}/assets`, cwd, (name) => name.replace('DOT-', '.'));
+	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'));
 	copy(`${dir}/package.json`, `${cwd}/package.json`);
 
 	const manifest = `${dir}/files.types=${types}.json`;
-	const files = /** @type {import('./types/internal.js').File[]} */ JSON.parse(
-		fs.readFileSync(manifest, 'utf-8')
-	);
+	const files = JSON.parse(fs.readFileSync(manifest, 'utf-8')) as File[];
 
 	files.forEach((file) => {
 		const dest = path.join(cwd, file.name);
@@ -35,17 +32,9 @@ function write_template_files(template, types, name, cwd) {
 	});
 }
 
-/**
- *
- * @param {string} cwd
- * @param {import('./types/internal.js').Options} options
- * @param {string} name
- */
-function write_common_files(cwd, options, name) {
+function write_common_files(cwd: string, options: Options, name: string) {
 	const shared = dist('shared.json');
-	const { files } = /** @type {import('./types/internal.js').Common} */ JSON.parse(
-		fs.readFileSync(shared, 'utf-8')
-	);
+	const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
 
 	const pkg_file = path.join(cwd, 'package.json');
 	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
@@ -73,12 +62,7 @@ function write_common_files(cwd, options, name) {
 	fs.writeFileSync(pkg_file, JSON.stringify(pkg, null, '\t') + '\n');
 }
 
-/**
- * @param {import('./types/internal.js').Condition} condition
- * @param {import('./types/internal.js').Options} options
- * @returns {boolean}
- */
-function matches_condition(condition, options) {
+function matches_condition(condition: Condition, options: Options) {
 	if (condition === 'default' || condition === 'skeleton' || condition === 'skeletonlib') {
 		return options.template === condition;
 	}
@@ -88,11 +72,7 @@ function matches_condition(condition, options) {
 	return !!options[condition];
 }
 
-/**
- * @param {any} target
- * @param {any} source
- */
-function merge(target, source) {
+function merge(target: any, source: any) {
 	for (const key in source) {
 		if (key in target) {
 			const target_value = target[key];
@@ -116,12 +96,10 @@ function merge(target, source) {
 	}
 }
 
-/** @param {Record<string, any>} obj */
-function sort_keys(obj) {
+function sort_keys(obj: Record<string, any>) {
 	if (!obj) return;
 
-	/** @type {Record<string, any>} */
-	const sorted = {};
+	const sorted: Record<string, any> = {};
 	Object.keys(obj)
 		.sort()
 		.forEach((key) => {
@@ -137,7 +115,7 @@ function sort_keys(obj) {
  *
  * @param {import('./types/internal.js').Common['files']} files
  */
-function sort_files(files) {
+function sort_files(files: Common['files']) {
 	return files.sort((f1, f2) => {
 		const f1_more_generic =
 			f1.include.every((include) => f2.include.includes(include)) &&
@@ -151,8 +129,7 @@ function sort_files(files) {
 	});
 }
 
-/** @param {string} name */
-function to_valid_package_name(name) {
+function to_valid_package_name(name: string) {
 	return name
 		.trim()
 		.toLowerCase()

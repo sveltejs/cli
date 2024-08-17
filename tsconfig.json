@@ -1,5 +1,5 @@
 {
-	"exclude": ["**/dist/**", "**/temp/**"],
+	"exclude": [ "**/dist/**", "packages/cli/templates/**", "packages/cli/shared/**", "**/temp/**" ],
 	"compilerOptions": {
 		"checkJs": true,
 		"module": "es2022",
@@ -10,6 +10,6 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"verbatimModuleSyntax": true,
-		"isolatedModules": true
+		"isolatedModules": true,
 	}
 }

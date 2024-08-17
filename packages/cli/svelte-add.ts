@@ -1,27 +1,30 @@
 #!/usr/bin/env node
 
 import { remoteControl, executeAdders, prompts } from '@svelte-cli/core/internal';
-import { adderCategories, categories, adderIds } from '@svelte-cli/config';
+import pkg from './package.json';
+import type { Question } from '@svelte-cli/core/adder/options';
+import type {
+	AdderDetails,
+	AddersToApplySelectorParams,
+	ExecutingAdderInfo
+} from '@svelte-cli/core/adder/execute';
+import { adderCategories, categories, adderIds, type CategoryKeys } from '@svelte-cli/config';
 import { getAdderDetails } from '@svelte-cli/adders';
 
-/**
- * @param {string} cwd
- */
-export async function executeSvelteAdd(cwd) {
+export async function executeSvelteAdd(cwd: string) {
 	remoteControl.enable();
 
-	/** @type {import('@svelte-cli/core/internal').AdderDetails<Record<string, import('@svelte-cli/core/internal').Question>>[]} */
-	const adderDetails = [];
+	const adderDetails: Array<AdderDetails<Record<string, Question>>> = [];
 
 	for (const adderName of adderIds) {
 		const adder = await getAdderDetails(adderName);
+		// @ts-expect-error
 		adderDetails.push({ config: adder.config, checks: adder.checks });
 	}
 
-	/** @type {import('@svelte-cli/core/internal').ExecutingAdderInfo} */
-	const executingAdderInfo = {
-		name: 'todo-package-name-svelte-cli',
-		version: 'todo-version'
+	const executingAdderInfo: ExecutingAdderInfo = {
+		name: pkg.name,
+		version: pkg.version
 	};
 
 	await executeAdders(adderDetails, executingAdderInfo, undefined, selectAddersToApply, cwd);
@@ -29,26 +32,13 @@ export async function executeSvelteAdd(cwd) {
 	remoteControl.disable();
 }
 
-/**
- * @typedef AdderOption
- * @property {string} value
- * @property {string} label
- * @property {string} hint
- */
-
-/**
- * @param {import('@svelte-cli/core/internal').AddersToApplySelectorParams} param0
- * @returns {Promise<string[]>}
- */
-async function selectAddersToApply({ projectType, addersMetadata }) {
-	/** @type {Record<string, AdderOption[]>} */
-	const promptOptions = {};
+type AdderOption = { value: string; label: string; hint: string };
+async function selectAddersToApply({ projectType, addersMetadata }: AddersToApplySelectorParams) {
+	const promptOptions: Record<string, AdderOption[]> = {};
 
 	for (const [categoryId, adderIds] of Object.entries(adderCategories)) {
-		const typedCategoryId = /** @type {import('@svelte-cli/config').CategoryKeys} */ (categoryId);
-		const categoryDetails = categories[typedCategoryId];
-		/** @type {AdderOption[]} */
-		const options = [];
+		const categoryDetails = categories[categoryId as CategoryKeys];
+		const options: AdderOption[] = [];
 		const adders = addersMetadata.filter((x) => adderIds.includes(x.id));
 
 		for (const adder of adders) {
