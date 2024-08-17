@@ -7,6 +7,7 @@ import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import esbuild from 'rollup-plugin-esbuild';
 import dts from 'rollup-plugin-dts';
+import { execSync } from 'node:child_process';
 
 /** @type {import("rollup").RollupOptions[]} */
 const dtsConfigs = [];
@@ -36,6 +37,22 @@ function getConfig(project) {
 	// externalizes `sv` and `@svelte-cli/` deps while also bundling `/clack` and `/adders`
 	const external = [/^(sv|@svelte-cli\/(?!clack|adders)\w*)/g, ...externalDeps];
 
+	let buildCliTemplatesPlugin;
+	if (project == 'cli') {
+		// This custom rollup plugin is used to build the templates
+		// and place them inside the dist folder after every rollup build.
+		// This is necessary because rollup clears the output directory and
+		// thus also removes the template files
+		buildCliTemplatesPlugin = {
+			name: 'build-cli-templates',
+			writeBundle() {
+				console.log('building templates');
+				execSync('pnpm -r build');
+				console.log('finished building templates');
+			}
+		};
+	}
+
 	/** @type {import("rollup").RollupOptions} */
 	const config = {
 		input: inputs,
@@ -51,7 +68,8 @@ function getConfig(project) {
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),
 			json(),
-			dynamicImportVars()
+			dynamicImportVars(),
+			buildCliTemplatesPlugin
 		]
 	};
 
