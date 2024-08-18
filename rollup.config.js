@@ -47,7 +47,7 @@ function getConfig(project) {
 			name: 'build-cli-templates',
 			writeBundle() {
 				console.log('building templates');
-				execSync('pnpm -r build');
+				execSync('pnpm -F sv build:templates');
 				console.log('finished building templates');
 			}
 		};
