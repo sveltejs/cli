@@ -18,9 +18,9 @@ const repoPackages =
 		JSON.parse(json)
 	);
 
-const modifiedDirs = process.env.CHANGED_DIRS.split(' ')
-	.map((dir) => (dir.startsWith('packages/adders') ? 'packages/adders' : dir))
-	.filter((dir) => existsSync(join(dir, 'package.json')));
+const modifiedDirs = process.env.CHANGED_DIRS.split(' ').filter((dir) =>
+	existsSync(join(dir, 'package.json'))
+);
 const packagesToPublish = new Set(modifiedDirs);
 
 // keep looping until we've acquired all dependents
@@ -39,7 +39,10 @@ const paths = Array.from(packagesToPublish)
 	.filter((dir) => repoPackages.find((pkg) => pkg.path.endsWith(dir))?.private === false)
 	.join(' ');
 
-execSync(`pnpm dlx pkg-pr-new@0.0 publish --pnpm ${paths}`, { stdio: 'inherit' });
+if (paths) {
+	console.log(`publishing ${paths}`);
+	execSync(`pnpm dlx pkg-pr-new@0.0 publish --pnpm ${paths}`, { stdio: 'inherit' });
+}
 
 /**
  * Finds all dependents and returns their relative paths.
@@ -55,7 +58,7 @@ function getDependents(path) {
 			!dep.private &&
 			(dep.dependencies?.[pkg.name] ||
 				dep.devDependencies?.[pkg.name] ||
-				dep.peerDependencies?.[pkg.name]),
+				dep.peerDependencies?.[pkg.name])
 	);
 	return dependents.map((dep) => relative('.', dep.path));
 }
