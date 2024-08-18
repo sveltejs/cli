@@ -47,7 +47,7 @@ function getConfig(project) {
 			name: 'build-cli-templates',
 			writeBundle() {
 				console.log('building templates');
-				execSync('pnpm -F sv build:templates');
+				execSync('node scripts/build-templates.js', { cwd: path.resolve('packages', 'cli') });
 				console.log('finished building templates');
 			}
 		};
