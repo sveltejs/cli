@@ -25,7 +25,7 @@ jobs:
         with:
           separator: ' '
           dir_names: 'true'
-          dir_names_max_depth: '2' # truncates the path to adders/X
+          dir_names_max_depth: '2' # truncates the path to packages/package-name
           files: |
             packages/**
 
