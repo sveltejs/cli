@@ -9,30 +9,30 @@ import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { execSync } from 'node:child_process';
 
+/** @import { Package } from "./packages/core/utils/common.js" */
+/** @import { Plugin, RollupOptions } from "rollup" */
+/** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
+
 /**
  * @param {string} project
  */
 function getConfig(project) {
-	const inputs = [];
-	let outDir = '';
-
-	inputs.push(`./packages/${project}/index.ts`);
+	const inputs = [`./packages/${project}/index.ts`];
+	const outDir = `./packages/${project}/dist`;
 
 	if (project === 'core') inputs.push(`./packages/${project}/internal.ts`);
-
-	outDir = `./packages/${project}/dist`;
 
 	const projectRoot = path.resolve(path.join(outDir, '..'));
 	fs.rmSync(outDir, { force: true, recursive: true });
 
-	/** @type {import("./packages/core/utils/common.js").Package} */
+	/** @type {PackageJson} */
 	const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
-	// any dep under `dependencies` is considered external
-	const externalDeps = Object.keys(pkg.dependencies ?? {});
+	const externalDeps = getExternalDeps(pkg);
 
 	// externalizes `sv` and `@svelte-cli/` deps while also bundling `/clack` and `/adders`
 	const external = [/^(sv|@svelte-cli\/(?!clack|adders)\w*)/g, ...externalDeps];
 
+	/** @type {Plugin | undefined} */
 	let buildCliTemplatesPlugin;
 	if (project === 'create') {
 		// This custom rollup plugin is used to build the templates
@@ -49,7 +49,7 @@ function getConfig(project) {
 		};
 	}
 
-	/** @type {import("rollup").RollupOptions} */
+	/** @type {RollupOptions} */
 	const config = {
 		input: inputs,
 		output: {
@@ -83,3 +83,14 @@ export default [
 	getConfig('core'),
 	getConfig('cli')
 ];
+
+/**
+ * @param {PackageJson} pkg
+ * @returns {Set<string>}
+ */
+function getExternalDeps(pkg) {
+	return new Set([
+		...Object.keys(pkg.dependencies ?? {}),
+		...Object.keys(pkg.peerDependencies ?? {})
+	]);
+}
