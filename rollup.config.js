@@ -5,8 +5,8 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
+import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
-import dts from 'rollup-plugin-dts';
 import { execSync } from 'node:child_process';
 
 /** @type {import("rollup").RollupOptions[]} */
@@ -21,8 +21,8 @@ function getConfig(project) {
 
 	inputs.push(`./packages/${project}/index.ts`);
 
-	if (project == 'core') inputs.push(`./packages/${project}/internal.ts`);
-	if (project == 'cli') inputs.push(`./packages/${project}/bin.ts`);
+	if (project === 'core') inputs.push(`./packages/${project}/internal.ts`);
+	if (project === 'cli') inputs.push(`./packages/${project}/bin.ts`);
 
 	outDir = `./packages/${project}/dist`;
 
@@ -38,7 +38,7 @@ function getConfig(project) {
 	const external = [/^(sv|@svelte-cli\/(?!clack|adders)\w*)/g, ...externalDeps];
 
 	let buildCliTemplatesPlugin;
-	if (project == 'cli') {
+	if (project === 'cli') {
 		// This custom rollup plugin is used to build the templates
 		// and place them inside the dist folder after every rollup build.
 		// This is necessary because rollup clears the output directory and
@@ -64,6 +64,7 @@ function getConfig(project) {
 		external,
 		plugins: [
 			preserveShebangs(),
+			'exports' in pkg && dts(),
 			esbuild({ tsconfig: 'tsconfig.json', sourceRoot: projectRoot }),
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),
@@ -72,23 +73,6 @@ function getConfig(project) {
 			buildCliTemplatesPlugin
 		]
 	};
-
-	// only generate dts files for libs
-	if ('exports' in pkg) {
-		// entry points need to have their own individual configs,
-		// otherwise the `build` dir will generate unnecessary nested dirs
-		// e.g. `packages/cli/build/packages/cli/index.d.ts` as opposed to: `packages/cli/build/index.d.ts`
-		for (const input of inputs) {
-			dtsConfigs.push({
-				input,
-				output: {
-					dir: outDir
-				},
-				external,
-				plugins: [dts()]
-			});
-		}
-	}
 
 	return config;
 }
