@@ -5,7 +5,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"check": "tsc --noEmit",
+		"check": "pnpm -r check",
 		"lint": "pnpm -r lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"format": "pnpm -r format",
 		"changeset:version": "changeset version && pnpm -r generate:version && git add --all",

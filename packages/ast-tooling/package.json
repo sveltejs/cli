@@ -6,7 +6,8 @@
 	"type": "module",
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
-		"format": "pnpm lint --write"
+		"format": "pnpm lint --write",
+		"check": "tsc"
 	},
 	"exports": {
 		".": {
