@@ -2,30 +2,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** @param {string} dir */
-export function mkdirp(dir) {
+export function mkdirp(dir: string): void {
 	try {
 		fs.mkdirSync(dir, { recursive: true });
-	} catch (e) {
-		if (/** @type {any} */ (e).code === 'EEXIST') return;
+	} catch (err) {
+		const e: any = err;
+		if (e.code === 'EEXIST') return;
 		throw e;
 	}
 }
 
-/**
- * @template T
- * @param {T} x
- */
-function identity(x) {
+function identity<T>(x:T):T {
 	return x;
 }
 
-/**
- * @param {string} from
- * @param {string} to
- * @param {(basename: string) => string} rename
- */
-export function copy(from, to, rename = identity) {
+export function copy(from: string, to: string, rename: (basename: string) => string = identity): void {
 	if (!fs.existsSync(from)) return;
 
 	const stats = fs.statSync(from);
@@ -40,8 +31,7 @@ export function copy(from, to, rename = identity) {
 	}
 }
 
-/** @param {string} path */
-export function dist(path) {
+export function dist(path: string): string {
 	// we need to make this check, because vitest is making the package root the cwd,
 	// but executing the cli from the command line already makes the dist folder the cwd.
 	const insideDistFolder = import.meta.url.includes('dist');
@@ -51,8 +41,7 @@ export function dist(path) {
 	);
 }
 
-/** @type {string} */
-export const package_manager = get_package_manager() || 'npm';
+export const package_manager: string = get_package_manager() || 'npm';
 
 /**
  * Supports npm, pnpm, Yarn, cnpm, bun and any other package manager that sets the

@@ -1,7 +1,7 @@
 {
 	"name": "@svelte-cli/create",
 	"version": "0.0.1",
-	"description": "An API for creating and updating SvelteKit projects",
+	"description": "An API for creating SvelteKit projects",
 	"keywords": [
 		"create",
 		"new",
@@ -9,8 +9,7 @@
 		"starter",
 		"svelte",
 		"sveltekit",
-		"template",
-		"wizard"
+		"template"
 	],
 	"repository": {
 		"type": "git",
@@ -19,7 +18,6 @@
 	},
 	"license": "MIT",
 	"homepage": "https://kit.svelte.dev",
-	"bin": "./dist/bin.js",
 	"main": "./dist/index.js",
 	"types": "types/index.d.ts",
 	"exports": {
@@ -49,11 +47,7 @@
 		"postpublish": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
 	},
 	"files": [
-		"index.js",
-		"dist",
-		"bin.js",
-		"utils.js",
-		"types"
+		"dist"
 	],
 	"type": "module"
 }

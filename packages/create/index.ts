@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { mkdirp, copy, dist } from './utils.js';
+import { mkdirp, copy, dist } from './utils';
 
 export type TemplateType = 'default' | 'skeleton' | 'skeletonlib';
 export type LanguageType = 'typescript' | 'checkjs' | null;

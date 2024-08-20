@@ -4,7 +4,6 @@ import parser from 'gitignore-parser';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
-import { mkdirp } from '../utils.js';
 
 /** @param {string} content */
 async function convert_typescript(content) {
@@ -71,7 +70,7 @@ async function generate_templates(shared) {
 		const meta_file = path.join(cwd, '.meta.json');
 		if (!fs.existsSync(meta_file)) throw new Error('Template must have a .meta.json file');
 
-		/** @type {Record<string, import('../types/internal.js').File[]>} */
+		/** @type {Record<string, import('../index').File[]>} */
 		const types = {
 			typescript: [],
 			checkjs: [],
@@ -295,6 +294,16 @@ async function generate_shared() {
 
 	shared.delete('package.json');
 	return shared;
+}
+
+/** @param {string} dir */
+export function mkdirp(dir) {
+	try {
+		fs.mkdirSync(dir, { recursive: true });
+	} catch (e) {
+		if (/** @type {any} */ (e).code === 'EEXIST') return;
+		throw e;
+	}
 }
 
 async function main() {

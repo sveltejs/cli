@@ -4,11 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as p from '@svelte-cli/clack-prompts';
 import * as colors from 'picocolors';
-import { create } from './index';
-import { dist, package_manager } from './utils.js';
-import { executeSvelteAdd } from './svelte-add';
+import { create, type LanguageType, type TemplateType } from './index';
+import { dist, package_manager } from './utils';
 import pkg from './package.json';
-import type { TemplateTypes, Types } from './types/internal';
 
 run();
 
@@ -92,8 +90,8 @@ ${colors.gray(`create-svelte version ${version}`)}
 
 	create(cwd, {
 		name: path.basename(path.resolve(cwd)),
-		template: options.template as TemplateTypes,
-		types: options.types as Types
+		template: options.template as TemplateType,
+		types: options.types as LanguageType
 	});
 
 	p.outro('Your project is ready!');
@@ -104,8 +102,6 @@ ${colors.gray(`create-svelte version ${version}`)}
 			`${warning} You chose to not add type checking, but TypeScript will still be installed in order to generate type definitions when building the library\n`
 		);
 	}
-
-	await executeSvelteAdd(cwd);
 
 	console.log('\nNext steps:');
 	let i = 1;
