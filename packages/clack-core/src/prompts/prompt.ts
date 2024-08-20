@@ -77,7 +77,7 @@ export default class Prompt {
 		this.output = output;
 	}
 
-	public prompt() {
+	public prompt(): Promise<string | symbol> {
 		const sink = new WriteStream(0);
 		sink._write = (chunk, encoding, done) => {
 			if (this._track) {
@@ -125,17 +125,17 @@ export default class Prompt {
 	}
 
 	private subscribers = new Map<string, Array<{ cb: (...args: any) => any; once?: boolean }>>();
-	public on(event: string, cb: (...args: any) => any) {
+	public on(event: string, cb: (...args: any) => any): void {
 		const arr = this.subscribers.get(event) ?? [];
 		arr.push({ cb });
 		this.subscribers.set(event, arr);
 	}
-	public once(event: string, cb: (...args: any) => any) {
+	public once(event: string, cb: (...args: any) => any): void {
 		const arr = this.subscribers.get(event) ?? [];
 		arr.push({ cb, once: true });
 		this.subscribers.set(event, arr);
 	}
-	public emit(event: string, ...data: any[]) {
+	public emit(event: string, ...data: any[]): void {
 		const cbs = this.subscribers.get(event) ?? [];
 		const cleanup: Array<() => void> = [];
 		for (const subscriber of cbs) {
@@ -200,7 +200,7 @@ export default class Prompt {
 		}
 	}
 
-	protected close() {
+	protected close(): void {
 		this.input.unpipe();
 		this.input.removeListener('keypress', this.onKeypress);
 		this.output.write('\n');

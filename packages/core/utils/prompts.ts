@@ -23,15 +23,15 @@ export type PromptOption<Value> = Value extends Primitive
 			hint?: string;
 		};
 
-export function startPrompts(message: string) {
+export function startPrompts(message: string): void {
 	intro(message);
 }
 
-export function endPrompts(message: string) {
+export function endPrompts(message: string): void {
 	outro(message);
 }
 
-export async function booleanPrompt(question: string, initialValue: boolean) {
+export async function booleanPrompt(question: string, initialValue: boolean): Promise<boolean> {
 	return selectPrompt(question, initialValue, [
 		{ label: 'Yes', value: true },
 		{ label: 'No', value: false }
@@ -42,7 +42,7 @@ export async function selectPrompt<T>(
 	question: string,
 	initialValue: T,
 	options: Array<PromptOption<T>>
-) {
+): Promise<T extends symbol ? never : T> {
 	const value = await select({
 		message: question,
 		options,
@@ -56,7 +56,7 @@ export async function textPrompt(
 	question: string,
 	placeholder: string = '',
 	initialValue: string = ''
-) {
+): Promise<string> {
 	const value = await text({
 		message: question,
 		placeholder,
@@ -67,7 +67,10 @@ export async function textPrompt(
 	return result;
 }
 
-export async function multiSelectPrompt<T>(question: string, options: Array<PromptOption<T>>) {
+export async function multiSelectPrompt<T>(
+	question: string,
+	options: Array<PromptOption<T>>
+): Promise<T[]> {
 	const value = await multiselect<T>({
 		message: question,
 		options,
@@ -80,7 +83,7 @@ export async function multiSelectPrompt<T>(question: string, options: Array<Prom
 export async function groupedMultiSelectPrompt<T>(
 	question: string,
 	options: Record<string, Array<PromptOption<T>>>
-) {
+): Promise<T[]> {
 	const value = await groupMultiselect<T>({
 		message: question,
 		options,
@@ -92,7 +95,7 @@ export async function groupedMultiSelectPrompt<T>(
 	return cancelIfRequired(value);
 }
 
-export function messagePrompt(title: string, content: string) {
+export function messagePrompt(title: string, content: string): void {
 	note(content, title);
 }
 

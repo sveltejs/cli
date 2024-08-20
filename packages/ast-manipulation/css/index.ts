@@ -16,7 +16,7 @@ export type CssAstEditor = {
 	addImports: typeof addImports;
 };
 
-export function getCssAstEditor(ast: CssAst) {
+export function getCssAstEditor(ast: CssAst): CssAstEditor {
 	const editor: CssAstEditor = {
 		ast,
 		addRule,
@@ -42,7 +42,7 @@ export function addRule(ast: CssAst, selector: string): Rule {
 	return rule;
 }
 
-export function addDeclaration(ast: Rule | CssAst, property: string, value: string) {
+export function addDeclaration(ast: Rule | CssAst, property: string, value: string): void {
 	const declarations = ast.nodes.filter((x): x is Declaration => x.type == 'decl');
 	let declaration = declarations.find((x) => x.prop == property);
 
@@ -54,7 +54,7 @@ export function addDeclaration(ast: Rule | CssAst, property: string, value: stri
 	}
 }
 
-export function addImports(ast: Rule | CssAst, imports: string[]) {
+export function addImports(ast: Rule | CssAst, imports: string[]): CssChildNode[] {
 	let prev: CssChildNode | undefined;
 	const nodes = imports.map((param) => {
 		const found = ast.nodes.find(
@@ -91,7 +91,7 @@ export function addAtRule(ast: CssAst, name: string, params: string, append = fa
 	return atRule;
 }
 
-export function addComment(ast: CssAst, commentValue: string) {
+export function addComment(ast: CssAst, commentValue: string): void {
 	const comment = new Comment({ text: commentValue });
 	ast.append(comment);
 }

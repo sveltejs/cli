@@ -2,7 +2,7 @@ import { selectPrompt } from './prompts';
 import { detect } from 'package-manager-detector';
 import { COMMANDS } from 'package-manager-detector/agents';
 import { spinner } from '@svelte-cli/clack-prompts';
-import { executeCli } from './cli.js';
+import { executeCli } from './cli';
 
 type PackageManager = (typeof packageManagers)[number] | undefined;
 const packageManagers = ['npm', 'pnpm', 'yarn', 'bun'] as const;

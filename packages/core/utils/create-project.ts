@@ -1,16 +1,10 @@
 import path from 'node:path';
-import { commonFilePaths, directoryExists, fileExists } from '../files/utils.js';
-import {
-	type PromptOption,
-	booleanPrompt,
-	selectPrompt,
-	textPrompt,
-	endPrompts
-} from './prompts.js';
-import { getPackageJson } from './common.js';
-import { createEmptyWorkspace } from './workspace.js';
+import { commonFilePaths, directoryExists, fileExists } from '../files/utils';
+import { type PromptOption, booleanPrompt, selectPrompt, textPrompt, endPrompts } from './prompts';
+import { getPackageJson } from './common';
+import { createEmptyWorkspace } from './workspace';
 import { spinner } from '@svelte-cli/clack-prompts';
-import { executeCli } from './cli.js';
+import { executeCli } from './cli';
 
 export type ProjectType = 'svelte' | 'kit';
 
@@ -46,7 +40,14 @@ export async function detectSvelteDirectory(directoryPath: string): Promise<stri
 	return null;
 }
 
-export async function createProject(cwd: string, supportKit: boolean, supportSvelte: boolean) {
+export async function createProject(
+	cwd: string,
+	supportKit: boolean,
+	supportSvelte: boolean
+): Promise<{
+	projectCreated: boolean;
+	directory: string;
+}> {
 	const createNewProject = await booleanPrompt('Create new Project?', true);
 	if (!createNewProject) {
 		endPrompts('Exiting.');

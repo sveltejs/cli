@@ -1,5 +1,4 @@
-import type { AdderConfig, AdderWithoutExplicitArgs } from '@svelte-cli/core/adder/config';
-import type { Question } from '@svelte-cli/core/adder/options';
+import type { AdderConfig, AdderWithoutExplicitArgs, Question } from '@svelte-cli/core';
 
 export async function getAdderDetails(name: string) {
 	const adder: { default: AdderWithoutExplicitArgs } = await import(`./${name}/index.ts`);

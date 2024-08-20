@@ -1,6 +1,6 @@
 import type { AstKinds, AstTypes } from '@svelte-cli/ast-tooling';
 
-export function call(name: string, args: string[]) {
+export function call(name: string, args: string[]): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {
 		type: 'CallExpression',
 		callee: {
@@ -20,7 +20,7 @@ export function call(name: string, args: string[]) {
 	return callExpression;
 }
 
-export function callByIdentifier(name: string, args: string[]) {
+export function callByIdentifier(name: string, args: string[]): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {
 		type: 'CallExpression',
 		callee: {
@@ -44,7 +44,7 @@ export function callByIdentifier(name: string, args: string[]) {
 export function arrowFunction(
 	async: boolean,
 	body: AstKinds.ExpressionKind | AstTypes.BlockStatement
-) {
+): AstTypes.ArrowFunctionExpression {
 	const arrowFunction: AstTypes.ArrowFunctionExpression = {
 		type: 'ArrowFunctionExpression',
 		async,
@@ -59,7 +59,7 @@ export function argumentByIndex<T extends AstKinds.ExpressionKind>(
 	ast: AstTypes.CallExpression,
 	i: number,
 	fallback: T
-) {
+): T {
 	if (i < ast.arguments.length) {
 		return ast.arguments[i] as T;
 	}

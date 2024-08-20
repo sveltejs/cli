@@ -6,14 +6,14 @@ export type RemoteControlOptions = {
 	adderOptions: Record<string, Record<string, unknown>>;
 };
 
-export function enable() {
+export function enable(): void {
 	remoteControlled = true;
 }
 
-export function isRemoteControlled() {
+export function isRemoteControlled(): boolean {
 	return remoteControlled;
 }
 
-export function disable() {
+export function disable(): void {
 	remoteControlled = false;
 }

@@ -1,7 +1,7 @@
-import { areNodesEqual } from './common.js';
+import { areNodesEqual } from './common';
 import type { AstKinds, AstTypes } from '@svelte-cli/ast-tooling';
 
-export function createEmpty() {
+export function createEmpty(): AstTypes.ArrayExpression {
 	const arrayExpression: AstTypes.ArrayExpression = {
 		type: 'ArrayExpression',
 		elements: []
@@ -12,7 +12,7 @@ export function createEmpty() {
 export function push(
 	ast: AstTypes.ArrayExpression,
 	data: string | AstKinds.ExpressionKind | AstKinds.SpreadElementKind
-) {
+): void {
 	if (typeof data === 'string') {
 		const existingLiterals = ast.elements.filter(
 			(x): x is AstTypes.StringLiteral => x?.type == 'StringLiteral'

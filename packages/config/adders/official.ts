@@ -8,4 +8,4 @@ export const adderCategories: AdderCategories = {
 	additional: ['storybook', 'mdsvex', 'routify']
 };
 
-export const adderIds = Object.values(adderCategories).flatMap((x) => x);
+export const adderIds: string[] = Object.values(adderCategories).flatMap((x) => x);

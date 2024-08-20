@@ -75,7 +75,9 @@ export type AdderConfig<Args extends OptionDefinition> =
 	| InlineAdderConfig<Args>
 	| ExternalAdderConfig<Args>;
 
-export function defineAdderConfig<Args extends OptionDefinition>(config: AdderConfig<Args>) {
+export function defineAdderConfig<Args extends OptionDefinition>(
+	config: AdderConfig<Args>
+): AdderConfig<Args> {
 	return config;
 }
 
@@ -92,7 +94,7 @@ export function defineAdder<Args extends OptionDefinition>(
 	config: AdderConfig<Args>,
 	checks: AdderCheckConfig<Args>,
 	tests?: AdderTestConfig<Args>
-) {
+): Adder<Args> {
 	const adder: Adder<Args> = { config, checks, tests };
 	return adder;
 }
@@ -119,11 +121,13 @@ export type AdderTestConfig<Args extends OptionDefinition> = {
 	tests: Array<TestDefinition<Args>>;
 };
 
-export function defineAdderTests<Args extends OptionDefinition>(tests: AdderTestConfig<Args>) {
+export function defineAdderTests<Args extends OptionDefinition>(
+	tests: AdderTestConfig<Args>
+): AdderTestConfig<Args> {
 	return tests;
 }
 
-export function defineAdderOptions<const Args extends OptionDefinition>(options: Args) {
+export function defineAdderOptions<const Args extends OptionDefinition>(options: Args): Args {
 	return options;
 }
 
@@ -140,6 +144,8 @@ export type AdderCheckConfig<Args extends OptionDefinition> = {
 	postconditions?: Array<Postcondition<Args>>;
 };
 
-export function defineAdderChecks<Args extends OptionDefinition>(checks: AdderCheckConfig<Args>) {
+export function defineAdderChecks<Args extends OptionDefinition>(
+	checks: AdderCheckConfig<Args>
+): AdderCheckConfig<Args> {
 	return checks;
 }

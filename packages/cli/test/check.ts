@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import glob from 'tiny-glob/sync.js';
+import glob from 'tiny-glob/sync';
 import { beforeAll, describe, test } from 'vitest';
-import { create } from '../index.js';
-import type { TemplateTypes, Types } from '../types/internal.js';
+import { create } from '../index';
+import type { TemplateTypes, Types } from '../types/internal';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));

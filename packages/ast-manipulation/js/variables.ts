@@ -5,7 +5,7 @@ export function declaration(
 	kind: 'const' | 'let' | 'var',
 	name: string,
 	value: AstKinds.ExpressionKind
-) {
+): AstTypes.VariableDeclaration {
 	const declarations =
 		ast.type == 'Program'
 			? ast.body.filter((x): x is AstTypes.VariableDeclaration => x.type == 'VariableDeclaration')
@@ -36,7 +36,7 @@ export function declaration(
 	return declaration;
 }
 
-export function identifier(name: string) {
+export function identifier(name: string): AstTypes.Identifier {
 	const identifier: AstTypes.Identifier = {
 		type: 'Identifier',
 		name

@@ -1,6 +1,6 @@
 import { type OptionValues as CliOptionValues, program } from 'commander';
-import { booleanPrompt, selectPrompt, textPrompt, type PromptOption } from '../utils/prompts.js';
-import type { AdderDetails, AddersExecutionPlan } from './execute.js';
+import { booleanPrompt, selectPrompt, textPrompt, type PromptOption } from '../utils/prompts';
+import type { AdderDetails, AddersExecutionPlan } from './execute';
 
 export type BooleanQuestion = {
 	type: 'boolean';
@@ -103,7 +103,7 @@ export const availableCliOptions: AvailableCliOptions = {
 
 export function prepareAndParseCliOptions<Args extends OptionDefinition>(
 	adderDetails: Array<AdderDetails<Args>>
-) {
+): CliOptionValues {
 	const multipleAdders = adderDetails.length > 1;
 
 	for (const option of Object.values(availableCliOptions)) {
@@ -174,7 +174,7 @@ function validateAdders<Args extends OptionDefinition>(
 export function ensureCorrectOptionTypes<Args extends OptionDefinition>(
 	adderDetails: Array<AdderDetails<Args>>,
 	cliOptionsByAdderId: Record<string, Record<string, unknown>>
-) {
+): void {
 	let foundInvalidType = false;
 
 	for (const { config } of adderDetails) {
@@ -217,7 +217,7 @@ export function ensureCorrectOptionTypes<Args extends OptionDefinition>(
 	}
 }
 
-export function extractCommonCliOptions(cliOptions: CliOptionValues) {
+export function extractCommonCliOptions(cliOptions: CliOptionValues): AvailableCliOptionValues {
 	const typedOption = <T>(name: string) => cliOptions[name] as T;
 
 	const commonOptions: AvailableCliOptionValues = {
@@ -234,7 +234,7 @@ export function extractCommonCliOptions(cliOptions: CliOptionValues) {
 export function extractAdderCliOptions<Args extends OptionDefinition>(
 	cliOptions: CliOptionValues,
 	adderDetails: Array<AdderDetails<Args>>
-) {
+): Record<string, Record<string, unknown>> {
 	const multipleAdders = adderDetails.length > 1;
 
 	const options: Record<string, Record<string, unknown>> = {};
@@ -265,7 +265,7 @@ function upperCaseFirstLetter(string: string) {
 export async function requestMissingOptionsFromUser<Args extends OptionDefinition>(
 	adderDetails: Array<AdderDetails<Args>>,
 	executionPlan: AddersExecutionPlan
-) {
+): Promise<void> {
 	for (const { config } of adderDetails) {
 		const adderId = config.metadata.id;
 		const questionPrefix = adderDetails.length > 1 ? `${config.metadata.name}: ` : '';

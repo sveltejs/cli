@@ -9,7 +9,7 @@ import {
 import decircular from 'decircular';
 import dedent from 'dedent';
 
-export function addJsDocTypeComment(node: AstTypes.Node, type: string) {
+export function addJsDocTypeComment(node: AstTypes.Node, type: string): void {
 	const comment: AstTypes.CommentBlock = {
 		type: 'CommentBlock',
 		value: `* @type {${type}} `,
@@ -22,7 +22,10 @@ export function addJsDocTypeComment(node: AstTypes.Node, type: string) {
 	if (!found) node.comments.push(comment);
 }
 
-export function typeAnnotateExpression(node: AstKinds.ExpressionKind, type: string) {
+export function typeAnnotateExpression(
+	node: AstKinds.ExpressionKind,
+	type: string
+): AstTypes.TSAsExpression {
 	const expression: AstTypes.TSAsExpression = {
 		type: 'TSAsExpression',
 		expression: node,
@@ -39,7 +42,7 @@ export function createSpreadElement(expression: AstKinds.ExpressionKind): AstTyp
 	};
 }
 
-export function createLiteral(value: string | null = null) {
+export function createLiteral(value: string | null = null): AstTypes.Literal {
 	const literal: AstTypes.Literal = {
 		type: 'Literal',
 		value
@@ -48,7 +51,7 @@ export function createLiteral(value: string | null = null) {
 	return literal;
 }
 
-export function areNodesEqual(ast1: AstTypes.ASTNode, ast2: AstTypes.ASTNode) {
+export function areNodesEqual(ast1: AstTypes.ASTNode, ast2: AstTypes.ASTNode): boolean {
 	// We're deep cloning these trees so that we can strip the locations off of them for comparisons.
 	// Without this, we'd be getting false negatives due to slight differences in formatting style.
 	// These ASTs are also filled to the brim with circular references, which prevents
@@ -60,7 +63,7 @@ export function areNodesEqual(ast1: AstTypes.ASTNode, ast2: AstTypes.ASTNode) {
 	);
 }
 
-export function blockStatement() {
+export function blockStatement(): AstTypes.BlockStatement {
 	const statement: AstTypes.BlockStatement = {
 		type: 'BlockStatement',
 		body: []
@@ -68,7 +71,9 @@ export function blockStatement() {
 	return statement;
 }
 
-export function expressionStatement(expression: AstKinds.ExpressionKind) {
+export function expressionStatement(
+	expression: AstKinds.ExpressionKind
+): AstTypes.ExpressionStatement {
 	const statement: AstTypes.ExpressionStatement = {
 		type: 'ExpressionStatement',
 		expression
@@ -76,7 +81,10 @@ export function expressionStatement(expression: AstKinds.ExpressionKind) {
 	return statement;
 }
 
-export function addFromString(ast: AstTypes.BlockStatement | AstTypes.Program, value: string) {
+export function addFromString(
+	ast: AstTypes.BlockStatement | AstTypes.Program,
+	value: string
+): void {
 	const program = parseScript(dedent(value));
 
 	for (const childNode of program.body) {
@@ -105,7 +113,7 @@ export function statementFromString(value: string): AstKinds.StatementKind {
 export function addStatement(
 	ast: AstTypes.BlockStatement | AstTypes.Program,
 	statement: AstKinds.StatementKind
-) {
+): void {
 	if (!hasNode(ast, statement)) ast.body.push(statement);
 }
 

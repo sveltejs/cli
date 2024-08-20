@@ -1,10 +1,10 @@
-import { defineAdderTests } from '@svelte-cli/core';
+import {
+	defineAdderTests,
+	type SvelteFileEditorArgs,
+	type TextFileEditorArgs,
+	type OptionDefinition
+} from '@svelte-cli/core';
 import { options } from './options';
-import type {
-	SvelteFileEditorArgs,
-	TextFileEditorArgs
-} from '@svelte-cli/core/files/processors.js';
-import type { OptionDefinition } from '@svelte-cli/core/adder/options.js';
 
 export const tests = defineAdderTests({
 	files: [

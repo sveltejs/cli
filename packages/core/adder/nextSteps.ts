@@ -8,7 +8,7 @@ export function displayNextSteps<Args extends OptionDefinition>(
 	adderDetails: Array<AdderDetails<Args>>,
 	multipleAdders: boolean,
 	executionPlan: AddersExecutionPlan
-) {
+): void {
 	const allAddersMessage = adderDetails
 		.filter((x) => x.config.integrationType == 'inline' && x.config.nextSteps)
 		.map((x) => x.config as InlineAdderConfig<Args>)

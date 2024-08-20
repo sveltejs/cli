@@ -57,7 +57,7 @@ export function namedExport(
 	ast: AstTypes.Program,
 	name: string,
 	fallback: AstTypes.VariableDeclaration
-) {
+): AstTypes.ExportNamedDeclaration | undefined {
 	const namedExports = ast.body.filter(
 		(x): x is AstTypes.ExportNamedDeclaration => x.type == 'ExportNamedDeclaration'
 	);

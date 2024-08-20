@@ -1,4 +1,4 @@
-import * as remoteControl from './adder/remoteControl.js';
+import * as remoteControl from './adder/remoteControl';
 import {
 	executeAdder,
 	executeAdders,
@@ -6,12 +6,12 @@ import {
 	type AddersToApplySelectorParams,
 	type AdderDetails,
 	type ExecutingAdderInfo
-} from './adder/execute.js';
-import { createOrUpdateFiles } from './files/processors.js';
-import { createEmptyWorkspace, populateWorkspaceDetails } from './utils/workspace.js';
-import { suggestInstallingDependencies } from './utils/dependencies.js';
-import { availableCliOptions, type AvailableCliOptions, type Question } from './adder/options.js';
-import * as prompts from './utils/prompts.js';
+} from './adder/execute';
+import { createOrUpdateFiles } from './files/processors';
+import { createEmptyWorkspace, populateWorkspaceDetails } from './utils/workspace';
+import { suggestInstallingDependencies } from './utils/dependencies';
+import { availableCliOptions, type AvailableCliOptions, type Question } from './adder/options';
+import * as prompts from './utils/prompts';
 
 export {
 	remoteControl,

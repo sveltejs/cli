@@ -11,6 +11,19 @@ export function block({
 	output = stdout,
 	overwrite = true,
 	hideCursor = true
+}: {
+	input?:
+		| (NodeJS.ReadStream & {
+				fd: 0;
+		  })
+		| undefined;
+	output?:
+		| (NodeJS.WriteStream & {
+				fd: 1;
+		  })
+		| undefined;
+	overwrite?: boolean | undefined;
+	hideCursor?: boolean | undefined;
 } = {}) {
 	const rl = readline.createInterface({
 		input,
@@ -39,7 +52,7 @@ export function block({
 	if (hideCursor) process.stdout.write(cursor.hide);
 	input.once('keypress', clear);
 
-	return () => {
+	return (): void => {
 		input.off('keypress', clear);
 		if (hideCursor) process.stdout.write(cursor.show);
 

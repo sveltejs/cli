@@ -19,10 +19,10 @@ import {
 	serializeScript,
 	serializeSvelteFile
 } from '@svelte-cli/ast-tooling';
-import { fileExistsWorkspace, readFile, writeFile } from './utils.js';
-import type { ConditionDefinition } from '../adder/config.js';
-import type { OptionDefinition } from '../adder/options.js';
-import type { Workspace } from '../utils/workspace.js';
+import { fileExistsWorkspace, readFile, writeFile } from './utils';
+import type { ConditionDefinition } from '../adder/config';
+import type { OptionDefinition } from '../adder/options';
+import type { Workspace } from '../utils/workspace';
 
 export type BaseFile<Args extends OptionDefinition> = {
 	name: (options: Workspace<Args>) => string;
