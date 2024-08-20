@@ -4,8 +4,8 @@ import {
 	defineAdder,
 	defineAdderOptions,
 	defineAdderChecks
-} from './adder/config.js';
-import { executeCli } from './utils/cli.js';
+} from './adder/config';
+import { executeCli } from './utils/cli';
 import { log } from '@svelte-cli/clack-prompts';
 import * as colors from 'picocolors';
 import dedent from 'dedent';
@@ -22,4 +22,7 @@ export {
 	colors
 };
 
-export type * from './files/processors.js';
+export type * from './files/processors';
+export type * from './adder/execute';
+export type * from './adder/options';
+export type * from './adder/config';

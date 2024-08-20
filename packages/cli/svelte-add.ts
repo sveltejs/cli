@@ -1,13 +1,11 @@
-#!/usr/bin/env node
-
 import { remoteControl, executeAdders, prompts } from '@svelte-cli/core/internal';
 import pkg from './package.json';
-import type { Question } from '@svelte-cli/core/adder/options';
 import type {
 	AdderDetails,
 	AddersToApplySelectorParams,
-	ExecutingAdderInfo
-} from '@svelte-cli/core/adder/execute';
+	ExecutingAdderInfo,
+	Question
+} from '@svelte-cli/core';
 import { adderCategories, categories, adderIds, type CategoryKeys } from '@svelte-cli/config';
 import { getAdderDetails } from '@svelte-cli/adders';
 

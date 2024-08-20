@@ -5,7 +5,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"check": "tsc --noEmit",
+		"check": "pnpm -r check",
 		"lint": "pnpm -r lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"format": "pnpm -r format",
 		"changeset:version": "changeset version && pnpm -r generate:version && git add --all",
@@ -27,11 +27,11 @@
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.2.6",
 		"rollup": "^4.20.0",
-		"rollup-plugin-dts": "^6.1.1",
 		"rollup-plugin-esbuild": "^6.1.1",
 		"rollup-plugin-preserve-shebangs": "^0.2.0",
 		"typescript": "^5.3.3",
-		"typescript-eslint": "^8.0.0"
+		"typescript-eslint": "^8.0.0",
+		"unplugin-isolated-decl": "^0.4.5"
 	},
 	"packageManager": "pnpm@9.7.0",
 	"engines": {

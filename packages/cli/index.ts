@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist } from './utils.js';
-import type { Common, Condition, File, Options, Types } from './types/internal.js';
+import type { Common, Condition, File, Options, Types } from './types/internal';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function create(cwd: string, options: Options) {

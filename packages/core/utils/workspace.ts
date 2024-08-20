@@ -1,9 +1,9 @@
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
-import { getPackageJson } from './common.js';
-import { commonFilePaths, fileExists, findUp, readFile } from '../files/utils.js';
+import { getPackageJson } from './common';
+import { commonFilePaths, fileExists, findUp, readFile } from '../files/utils';
 import { getJsAstEditor } from '@svelte-cli/ast-manipulation';
-import type { OptionDefinition, OptionValues, Question } from '../adder/options.js';
-import { remoteControl } from '../internal.js';
+import type { OptionDefinition, OptionValues, Question } from '../adder/options';
+import { remoteControl } from '../internal';
 import path from 'node:path';
 
 export type PrettierData = {
@@ -53,7 +53,7 @@ export function addPropertyToWorkspaceOption(
 	workspace: WorkspaceWithoutExplicitArgs,
 	optionKey: string,
 	value: unknown
-) {
+): void {
 	if (value === 'true') {
 		value = true;
 	}
@@ -73,7 +73,7 @@ export function addPropertyToWorkspaceOption(
 export async function populateWorkspaceDetails(
 	workspace: WorkspaceWithoutExplicitArgs,
 	workingDirectory: string
-) {
+): Promise<void> {
 	workspace.cwd = workingDirectory;
 
 	const tsConfigFileName = 'tsconfig.json';
@@ -103,7 +103,9 @@ export async function populateWorkspaceDetails(
 	await parseSvelteConfigIntoWorkspace(workspace);
 }
 
-export async function parseSvelteConfigIntoWorkspace(workspace: WorkspaceWithoutExplicitArgs) {
+export async function parseSvelteConfigIntoWorkspace(
+	workspace: WorkspaceWithoutExplicitArgs
+): Promise<void> {
 	if (!workspace.kit.installed) return;
 	const configText = await readFile(workspace, commonFilePaths.svelteConfigFilePath);
 	const ast = parseScript(configText);

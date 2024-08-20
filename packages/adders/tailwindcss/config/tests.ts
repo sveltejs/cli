@@ -1,7 +1,9 @@
-import { defineAdderTests } from '@svelte-cli/core';
+import {
+	defineAdderTests,
+	type OptionDefinition,
+	type SvelteFileEditorArgs
+} from '@svelte-cli/core';
 import { options } from './options';
-import type { OptionDefinition } from '@svelte-cli/core/adder/options.js';
-import type { SvelteFileEditorArgs } from '@svelte-cli/core/files/processors.js';
 
 const divId = 'myDiv';
 const typographyDivId = 'myTypographyDiv';

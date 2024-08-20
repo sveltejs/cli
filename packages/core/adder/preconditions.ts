@@ -1,10 +1,10 @@
 import * as pc from 'picocolors';
-import { booleanPrompt, endPrompts, messagePrompt } from '../utils/prompts.js';
-import { executeCli } from '../utils/cli.js';
-import type { AdderDetails } from './execute.js';
-import type { Precondition } from './config.js';
-import type { OptionDefinition } from './options.js';
-import type { ProjectType } from '../utils/create-project.js';
+import { booleanPrompt, endPrompts, messagePrompt } from '../utils/prompts';
+import { executeCli } from '../utils/cli';
+import type { AdderDetails } from './execute';
+import type { Precondition } from './config';
+import type { OptionDefinition } from './options';
+import type { ProjectType } from '../utils/create-project';
 
 function getGlobalPreconditions<Args extends OptionDefinition>(
 	executingCli: string,
@@ -76,7 +76,7 @@ export async function validatePreconditions<Args extends OptionDefinition>(
 	workingDirectory: string,
 	isTesting: boolean,
 	projectType: ProjectType
-) {
+): Promise<void> {
 	const multipleAdders = adderDetails.length > 1;
 	let allPreconditionsPassed = true;
 	const preconditionLog: string[] = [];
@@ -144,7 +144,7 @@ export async function validatePreconditions<Args extends OptionDefinition>(
 	await askUserToContinueWithFailedPreconditions();
 }
 
-export async function askUserToContinueWithFailedPreconditions() {
+export async function askUserToContinueWithFailedPreconditions(): Promise<void> {
 	const result = await booleanPrompt('Preconditions failed. Do you wish to continue?', false);
 
 	if (!result) {

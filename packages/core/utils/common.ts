@@ -1,6 +1,6 @@
 import { parseJson } from '@svelte-cli/ast-tooling';
-import { commonFilePaths, readFile } from '../files/utils.js';
-import type { WorkspaceWithoutExplicitArgs } from './workspace.js';
+import { commonFilePaths, readFile } from '../files/utils';
+import type { WorkspaceWithoutExplicitArgs } from './workspace';
 
 export type Package = {
 	name: string;
@@ -12,7 +12,10 @@ export type Package = {
 	keywords?: string[];
 };
 
-export async function getPackageJson(workspace: WorkspaceWithoutExplicitArgs) {
+export async function getPackageJson(workspace: WorkspaceWithoutExplicitArgs): Promise<{
+	text: string;
+	data: Package;
+}> {
 	const packageText = await readFile(workspace, commonFilePaths.packageJsonFilePath);
 	if (!packageText) {
 		return {

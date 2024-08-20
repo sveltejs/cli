@@ -1,5 +1,5 @@
 import color from 'picocolors';
-import Prompt, { type PromptOptions } from './prompt.js';
+import Prompt, { type PromptOptions } from './prompt';
 
 export interface TextOptions extends PromptOptions<TextPrompt> {
 	placeholder?: string;
@@ -8,7 +8,7 @@ export interface TextOptions extends PromptOptions<TextPrompt> {
 
 export default class TextPrompt extends Prompt {
 	valueWithCursor = '';
-	get cursor() {
+	get cursor(): number {
 		return this._cursor;
 	}
 	constructor(opts: TextOptions) {

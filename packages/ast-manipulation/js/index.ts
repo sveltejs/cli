@@ -1,10 +1,10 @@
-import * as ArrayUtils from './array.js';
-import * as ObjectUtils from './object.js';
-import * as CommonUtils from './common.js';
-import * as FunctionUtils from './function.js';
-import * as ImportUtils from './imports.js';
-import * as VariableUtils from './variables.js';
-import * as ExportUtils from './exports.js';
+import * as ArrayUtils from './array';
+import * as ObjectUtils from './object';
+import * as CommonUtils from './common';
+import * as FunctionUtils from './function';
+import * as ImportUtils from './imports';
+import * as VariableUtils from './variables';
+import * as ExportUtils from './exports';
 import type { AstTypes } from '@svelte-cli/ast-tooling';
 
 export type JsAstEditor = {
@@ -18,7 +18,7 @@ export type JsAstEditor = {
 	exports: typeof ExportUtils;
 };
 
-export function getJsAstEditor(ast: AstTypes.Program) {
+export function getJsAstEditor(ast: AstTypes.Program): JsAstEditor {
 	const astEditor: JsAstEditor = {
 		ast,
 		object: ObjectUtils,

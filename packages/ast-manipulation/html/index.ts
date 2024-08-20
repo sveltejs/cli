@@ -15,7 +15,7 @@ export type HtmlAstEditor = {
 	appendElement: typeof appendElement;
 };
 
-export function getHtmlAstEditor(document: HtmlDocument) {
+export function getHtmlAstEditor(document: HtmlDocument): HtmlAstEditor {
 	const editor: HtmlAstEditor = {
 		ast: document,
 		div,
@@ -27,25 +27,25 @@ export function getHtmlAstEditor(document: HtmlDocument) {
 	return editor;
 }
 
-function div(attributes: Record<string, string> = {}) {
+function div(attributes: Record<string, string> = {}): HtmlElement {
 	return element('div', attributes);
 }
 
-function element(tagName: string, attributes: Record<string, string> = {}) {
+function element(tagName: string, attributes: Record<string, string> = {}): HtmlElement {
 	const element = new HtmlElement(tagName, {}, undefined, HtmlElementType.Tag);
 	element.attribs = attributes;
 	return element;
 }
 
-function insertElement(childNodes: HtmlChildNode[], elementToInsert: HtmlChildNode) {
+function insertElement(childNodes: HtmlChildNode[], elementToInsert: HtmlChildNode): void {
 	childNodes.splice(0, 0, elementToInsert);
 }
 
-function appendElement(childNodes: HtmlChildNode[], elementToAppend: HtmlChildNode) {
+function appendElement(childNodes: HtmlChildNode[], elementToAppend: HtmlChildNode): void {
 	childNodes.push(elementToAppend);
 }
 
-function addFromRawHtml(childNodes: HtmlChildNode[], html: string) {
+function addFromRawHtml(childNodes: HtmlChildNode[], html: string): void {
 	const document = parseHtml(html);
 	for (const childNode of document.childNodes) {
 		childNodes.push(childNode);

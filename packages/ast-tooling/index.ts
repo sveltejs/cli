@@ -65,26 +65,26 @@ export function parseScript(content: string): AstTypes.Program {
 	return recastOutput.program;
 }
 
-export function serializeScript(ast: AstTypes.ASTNode) {
+export function serializeScript(ast: AstTypes.ASTNode): string {
 	return recastPrint(ast).code;
 }
 
-export function parsePostcss(content: string) {
+export function parsePostcss(content: string): CssAst {
 	return postcssParse(content);
 }
 
-export function serializePostcss(ast: CssAst) {
+export function serializePostcss(ast: CssAst): string {
 	return ast.toString();
 }
 
-export function parseHtml(content: string) {
+export function parseHtml(content: string): Document {
 	return parseDocument(content, {
 		recognizeSelfClosing: true,
 		lowerCaseTags: false
 	});
 }
 
-export function serializeHtml(ast: Document) {
+export function serializeHtml(ast: Document): string {
 	return serializeDom(ast, { encodeEntities: 'utf8', selfClosingTags: true });
 }
 
@@ -143,7 +143,7 @@ export function parseSvelteFile(content: string): SvelteAst {
 	return { jsAst, htmlAst, cssAst };
 }
 
-export function serializeSvelteFile(asts: SvelteAst) {
+export function serializeSvelteFile(asts: SvelteAst): string {
 	const { jsAst, htmlAst, cssAst } = asts;
 
 	const css = serializePostcss(cssAst);
@@ -173,7 +173,7 @@ export function serializeSvelteFile(asts: SvelteAst) {
 	return content;
 }
 
-export function parseJson(content: string) {
+export function parseJson(content: string): any {
 	// some of the files we need to process contain comments. The default
 	// node JSON.parse fails parsing those comments.
 	// use https://github.com/Rich-Harris/golden-fleece#fleecepatchstr-value instead
@@ -181,7 +181,7 @@ export function parseJson(content: string) {
 	return fleece.evaluate(content);
 }
 
-export function serializeJson(originalInput: string, data: unknown) {
+export function serializeJson(originalInput: string, data: unknown): string {
 	// some of the files we need to process contain comments. The default
 	// node JSON.parse fails parsing those comments.
 	const spaces = guessIndentString(originalInput);

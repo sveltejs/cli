@@ -42,7 +42,7 @@ export function overrideProperty<T extends AstKinds.ExpressionKind>(
 	ast: AstTypes.ObjectExpression,
 	name: string,
 	value: T
-) {
+): T {
 	const objectExpression = ast;
 	const properties = objectExpression.properties.filter(
 		(x): x is AstTypes.ObjectProperty => x.type == 'ObjectProperty'
@@ -61,7 +61,7 @@ export function overrideProperty<T extends AstKinds.ExpressionKind>(
 export function overrideProperties<T extends AstKinds.ExpressionKind>(
 	ast: AstTypes.ObjectExpression,
 	obj: Record<string, T | undefined>
-) {
+): void {
 	for (const [prop, value] of Object.entries(obj)) {
 		if (value === undefined) continue;
 		overrideProperty(ast, prop, value);
@@ -71,14 +71,14 @@ export function overrideProperties<T extends AstKinds.ExpressionKind>(
 export function properties<T extends AstKinds.ExpressionKind>(
 	ast: AstTypes.ObjectExpression,
 	obj: Record<string, T | undefined>
-) {
+): void {
 	for (const [prop, value] of Object.entries(obj)) {
 		if (value === undefined) continue;
 		property(ast, prop, value);
 	}
 }
 
-export function removeProperty(ast: AstTypes.ObjectExpression, property: string) {
+export function removeProperty(ast: AstTypes.ObjectExpression, property: string): void {
 	const properties = ast.properties.filter(
 		(x): x is AstTypes.ObjectProperty => x.type === 'ObjectProperty'
 	);
@@ -102,7 +102,7 @@ export function create<T extends AstKinds.ExpressionKind>(
 	return objExpression;
 }
 
-export function createEmpty() {
+export function createEmpty(): AstTypes.ObjectExpression {
 	const objectExpression: AstTypes.ObjectExpression = {
 		type: 'ObjectExpression',
 		properties: []

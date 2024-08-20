@@ -1,4 +1,4 @@
-import Prompt, { type PromptOptions } from './prompt.js';
+import Prompt, { type PromptOptions } from './prompt';
 
 interface GroupMultiSelectOptions<T extends { value: any }>
 	extends PromptOptions<GroupMultiSelectPrompt<T>> {
@@ -17,7 +17,7 @@ export default class GroupMultiSelectPrompt<T extends { value: any }> extends Pr
 		return this.options.filter((o) => o.group === group);
 	}
 
-	isGroupSelected(group: string) {
+	isGroupSelected(group: string): boolean {
 		const items = this.getGroupItems(group);
 		return this.#selectableGroups && items.every((i) => this.value.includes(i.value));
 	}

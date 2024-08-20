@@ -20,7 +20,7 @@ export async function checkPostconditions<Args extends OptionDefinition>(
 	checks: AdderCheckConfig<Args>,
 	workspace: Workspace<Args>,
 	multipleAdders: boolean
-) {
+): Promise<string[]> {
 	const postconditions = checks.postconditions ?? [];
 	const unmetPostconditions: string[] = [];
 
@@ -60,7 +60,7 @@ async function fileContains<Args extends OptionDefinition>(
 	throw new Error(`File "${path}" does not contain "${expectedContent}"`);
 }
 
-export function printUnmetPostconditions(unmetPostconditions: string[]) {
+export function printUnmetPostconditions(unmetPostconditions: string[]): void {
 	const postconditionList = unmetPostconditions.map((x) => pc.yellow(`- ${x}`)).join('\n');
 	const additionalText = `Postconditions are not supposed to fail.
 Please open an issue providing the full console output:

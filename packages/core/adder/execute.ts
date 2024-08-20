@@ -1,16 +1,16 @@
 import path from 'node:path';
 import * as pc from 'picocolors';
 import { serializeJson } from '@svelte-cli/ast-tooling';
-import { commonFilePaths, format, writeFile } from '../files/utils.js';
-import { type ProjectType, createProject, detectSvelteDirectory } from '../utils/create-project.js';
-import { createOrUpdateFiles } from '../files/processors.js';
-import { getPackageJson } from '../utils/common.js';
+import { commonFilePaths, format, writeFile } from '../files/utils';
+import { type ProjectType, createProject, detectSvelteDirectory } from '../utils/create-project';
+import { createOrUpdateFiles } from '../files/processors';
+import { getPackageJson } from '../utils/common';
 import {
 	type Workspace,
 	createEmptyWorkspace,
 	populateWorkspaceDetails,
 	addPropertyToWorkspaceOption
-} from '../utils/workspace.js';
+} from '../utils/workspace';
 import {
 	type OptionDefinition,
 	ensureCorrectOptionTypes as validateOptionTypes,
@@ -19,22 +19,22 @@ import {
 	extractAdderCliOptions,
 	type AvailableCliOptionValues,
 	requestMissingOptionsFromUser
-} from './options.js';
+} from './options';
 import type {
 	AdderCheckConfig,
 	AdderConfig,
 	AdderConfigMetadata,
 	ExternalAdderConfig,
 	InlineAdderConfig
-} from './config.js';
-import type { RemoteControlOptions } from './remoteControl.js';
-import { suggestInstallingDependencies } from '../utils/dependencies.js';
-import { validatePreconditions } from './preconditions.js';
-import { endPrompts, startPrompts } from '../utils/prompts.js';
-import { checkPostconditions, printUnmetPostconditions } from './postconditions.js';
-import { displayNextSteps } from './nextSteps.js';
+} from './config';
+import type { RemoteControlOptions } from './remoteControl';
+import { suggestInstallingDependencies } from '../utils/dependencies';
+import { validatePreconditions } from './preconditions';
+import { endPrompts, startPrompts } from '../utils/prompts';
+import { checkPostconditions, printUnmetPostconditions } from './postconditions';
+import { displayNextSteps } from './nextSteps';
 import { spinner, log, cancel } from '@svelte-cli/clack-prompts';
-import { executeCli } from '../utils/cli.js';
+import { executeCli } from '../utils/cli';
 
 export type AdderDetails<Args extends OptionDefinition> = {
 	config: AdderConfig<Args>;
@@ -64,7 +64,7 @@ export async function executeAdder<Args extends OptionDefinition>(
 	adderDetails: AdderDetails<Args>,
 	executingAdderInfo: ExecutingAdderInfo,
 	remoteControlOptions: RemoteControlOptions | undefined = undefined
-) {
+): Promise<void> {
 	await executeAdders([adderDetails], executingAdderInfo, remoteControlOptions);
 }
 
@@ -74,7 +74,7 @@ export async function executeAdders<Args extends OptionDefinition>(
 	remoteControlOptions: RemoteControlOptions | undefined = undefined,
 	selectAddersToApply: AddersToApplySelector | undefined = undefined,
 	cwd: string | undefined = undefined
-) {
+): Promise<void> {
 	try {
 		const adderDetailsByAdderId: Map<string, AdderDetails<Args>> = new Map();
 		adderDetails.map((x) => adderDetailsByAdderId.set(x.config.metadata.id, x));
@@ -309,7 +309,7 @@ async function processExternalAdder<Args extends OptionDefinition>(
 	}
 }
 
-export function determineWorkingDirectory(directory: string | undefined) {
+export function determineWorkingDirectory(directory: string | undefined): string {
 	let cwd = directory ?? process.cwd();
 	if (!path.isAbsolute(cwd)) {
 		cwd = path.join(process.cwd(), cwd);
@@ -321,7 +321,7 @@ export function determineWorkingDirectory(directory: string | undefined) {
 export async function installPackages<Args extends OptionDefinition>(
 	config: InlineAdderConfig<Args>,
 	workspace: Workspace<Args>
-) {
+): Promise<string> {
 	const { text: originalText, data } = await getPackageJson(workspace);
 
 	for (const dependency of config.packages) {

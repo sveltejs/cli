@@ -1,9 +1,9 @@
 {
-	"exclude": [ "**/dist/**", "packages/cli/templates/**", "packages/cli/shared/**", "**/temp/**" ],
+	"exclude": ["**/dist/**", "packages/cli/templates/**", "packages/cli/shared/**", "**/temp/**"],
 	"compilerOptions": {
 		"checkJs": true,
+		"moduleResolution": "Bundler",
 		"module": "es2022",
-		"moduleResolution": "node",
 		"target": "es2022",
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
@@ -11,5 +11,6 @@
 		"esModuleInterop": true,
 		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
+		"noEmit": true
 	}
 }

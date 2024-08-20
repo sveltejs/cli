@@ -1,9 +1,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { executeCli } from '../utils/cli.js';
+import { executeCli } from '../utils/cli';
 import type { WorkspaceWithoutExplicitArgs } from '../utils/workspace';
 
-export async function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath: string) {
+export async function readFile(
+	workspace: WorkspaceWithoutExplicitArgs,
+	filePath: string
+): Promise<string> {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 
 	if (!(await fileExistsWorkspace(workspace, filePath))) {
@@ -20,7 +23,7 @@ export async function writeFile(
 	workspace: WorkspaceWithoutExplicitArgs,
 	filePath: string,
 	content: string
-) {
+): Promise<void> {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
@@ -36,12 +39,12 @@ export async function writeFile(
 export async function fileExistsWorkspace(
 	workspace: WorkspaceWithoutExplicitArgs,
 	filePath: string
-) {
+): Promise<boolean> {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 	return await fileExists(fullFilePath);
 }
 
-export async function fileExists(filePath: string) {
+export async function fileExists(filePath: string): Promise<boolean> {
 	try {
 		await fs.access(filePath, fs.constants.F_OK);
 		return true;
@@ -51,15 +54,18 @@ export async function fileExists(filePath: string) {
 	}
 }
 
-export async function directoryExists(directoryPath: string) {
+export async function directoryExists(directoryPath: string): Promise<boolean> {
 	return await fileExists(directoryPath);
 }
 
-export function getFilePath(cwd: string, fileName: string) {
+export function getFilePath(cwd: string, fileName: string): string {
 	return path.join(cwd, fileName);
 }
 
-export async function format(workspace: WorkspaceWithoutExplicitArgs, paths: string[]) {
+export async function format(
+	workspace: WorkspaceWithoutExplicitArgs,
+	paths: string[]
+): Promise<void> {
 	await executeCli('npx', ['prettier', '--write', '--ignore-unknown', ...paths], workspace.cwd, {
 		stdio: 'pipe'
 	});
@@ -70,7 +76,11 @@ export const commonFilePaths = {
 	svelteConfigFilePath: 'svelte.config.js'
 };
 
-export async function findUp(searchPath: string, fileName: string, maxDepth?: number) {
+export async function findUp(
+	searchPath: string,
+	fileName: string,
+	maxDepth?: number
+): Promise<boolean> {
 	// partially sourced from https://github.com/privatenumber/get-tsconfig/blob/9e78ec52d450d58743439358dd88e2066109743f/src/utils/find-up.ts#L5
 	let depth = 0;
 	while (!maxDepth || depth < maxDepth) {

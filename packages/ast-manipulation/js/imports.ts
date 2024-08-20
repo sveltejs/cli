@@ -1,7 +1,7 @@
 import type { AstTypes } from '@svelte-cli/ast-tooling';
-import { areNodesEqual } from './common.js';
+import { areNodesEqual } from './common';
 
-export function addEmpty(ast: AstTypes.Program, importFrom: string) {
+export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: {
@@ -14,7 +14,7 @@ export function addEmpty(ast: AstTypes.Program, importFrom: string) {
 	addImportIfNecessary(ast, expectedImportDeclaration);
 }
 
-export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: string) {
+export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: string): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: {
@@ -40,7 +40,7 @@ export function addNamed(
 	importFrom: string,
 	exportedAsImportAs: Record<string, string>,
 	isType = false
-) {
+): void {
 	const specifiers = Object.entries(exportedAsImportAs).map(([key, value]) => {
 		const specifier: AstTypes.ImportSpecifier = {
 			type: 'ImportSpecifier',
