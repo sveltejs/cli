@@ -90,7 +90,7 @@ ${colors.gray(`create-svelte version ${version}`)}
 		{ onCancel: () => process.exit(1) }
 	);
 
-	await create(cwd, {
+	create(cwd, {
 		name: path.basename(path.resolve(cwd)),
 		template: options.template as TemplateTypes,
 		types: options.types as Types

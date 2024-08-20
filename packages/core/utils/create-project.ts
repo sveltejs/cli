@@ -1,12 +1,10 @@
 import path from 'node:path';
 import { commonFilePaths, directoryExists, fileExists } from '../files/utils';
-import { type PromptOption, booleanPrompt, selectPrompt, textPrompt, endPrompts } from './prompts';
+import { booleanPrompt, selectPrompt, textPrompt, endPrompts } from './prompts';
 import { getPackageJson } from './common';
 import { createEmptyWorkspace } from './workspace';
 import { spinner } from '@svelte-cli/clack-prompts';
-import { executeCli } from './cli';
-
-export type ProjectType = 'svelte' | 'kit';
+import { create, type TemplateType, type LanguageType } from '@svelte-cli/create';
 
 export async function detectSvelteDirectory(directoryPath: string): Promise<string | null> {
 	if (!directoryPath) return null;
@@ -40,11 +38,7 @@ export async function detectSvelteDirectory(directoryPath: string): Promise<stri
 	return null;
 }
 
-export async function createProject(
-	cwd: string,
-	supportKit: boolean,
-	supportSvelte: boolean
-): Promise<{
+export async function createProject(cwd: string): Promise<{
 	projectCreated: boolean;
 	directory: string;
 }> {
@@ -67,47 +61,43 @@ export async function createProject(
 		directory = relativePath;
 	}
 
-	const availableProjectTypes: Array<PromptOption<string>> = [];
-	if (supportKit) availableProjectTypes.push({ label: 'SvelteKit', value: 'kit' });
-	if (supportSvelte) availableProjectTypes.push({ label: 'Svelte', value: 'svelte' });
+	const template = await selectPrompt<TemplateType>('Which Svelte app template', 'default', [
+		{
+			label: 'SvelteKit demo app',
+			value: 'default',
+			hint: 'A demo app showcasing some of the features of SvelteKit - play a word guessing game that works without JavaScript!'
+		},
+		{
+			label: 'Skeleton project',
+			value: 'skeleton',
+			hint: 'Barebones scaffolding for your new SvelteKit app'
+		},
+		{
+			label: 'Library project',
+			value: 'skeletonlib',
+			hint: '(Barebones scaffolding for your new Svelte library'
+		}
+	]);
 
-	let projectType: string;
-
-	if (availableProjectTypes.length == 0)
-		throw new Error('Failed to identify possible project types');
-	if (availableProjectTypes.length == 1) projectType = availableProjectTypes[0].value;
-	else
-		projectType = await selectPrompt(
-			'Which project type do you want to create?',
-			'kit',
-			availableProjectTypes
-		);
-
-	let language = 'js';
-	if (projectType == 'svelte') {
-		language = await selectPrompt('Choose language', language, [
-			{ label: 'JavaScript', value: 'js' },
-			{ label: 'TypeScript', value: 'ts' }
-		]);
-	}
-
-	let args = [];
-	if (projectType == 'kit') {
-		args = ['init', 'svelte@latest', directory];
-	} else {
-		const template = language == 'ts' ? 'svelte-ts' : 'svelte';
-		args = ['init', 'vite@latest', directory, '--', '--template', template];
-	}
+	const language: LanguageType = await selectPrompt(
+		'Add type checking with Typescript?',
+		'typescript',
+		[
+			{ label: 'Yes, using Typescript syntax', value: 'typescript' },
+			{ label: 'Yes, using Javascript with JSDoc comments', value: 'checkjs' },
+			{ label: 'No', value: null }
+		]
+	);
 
 	const loadingSpinner = spinner();
-	loadingSpinner.start('Initializing template...');
+	loadingSpinner.start('Initializing template');
 
 	try {
-		loadingSpinner.stop('Downloading initializer cli...');
-
-		await executeCli('npm', args, process.cwd(), { stdio: 'inherit' });
-
-		console.clear();
+		create(directory, {
+			name: path.basename(path.resolve(directory)),
+			template,
+			types: language
+		});
 	} catch (error) {
 		loadingSpinner.stop('Failed initializing template!');
 		const typedError = error as Error;
@@ -115,7 +105,7 @@ export async function createProject(
 		return { projectCreated: false, directory: '' };
 	}
 
-	loadingSpinner.stop('Template initialized');
+	loadingSpinner.stop('Project created');
 
 	return {
 		projectCreated: true,

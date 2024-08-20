@@ -1,0 +1,59 @@
+{
+	"name": "@svelte-cli/create",
+	"version": "0.0.1",
+	"description": "An API for creating and updating SvelteKit projects",
+	"keywords": [
+		"create",
+		"new",
+		"project",
+		"starter",
+		"svelte",
+		"sveltekit",
+		"template",
+		"wizard"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli",
+		"directory": "packages/create"
+	},
+	"license": "MIT",
+	"homepage": "https://kit.svelte.dev",
+	"bin": "./dist/bin.js",
+	"main": "./dist/index.js",
+	"types": "types/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"devDependencies": {
+		"@svelte-cli/clack-prompts": "workspace:*",
+		"@types/gitignore-parser": "^0.0.3",
+		"gitignore-parser": "^0.0.2",
+		"picocolors": "^1.0.1",
+		"sucrase": "^3.34.0",
+		"svelte": "^4.2.10",
+		"tiny-glob": "^0.2.9",
+		"vitest": "^2.0.1"
+	},
+	"scripts": {
+		"build": "pnpm build:templates",
+		"build:templates": "node scripts/build-templates",
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"format": "pnpm lint --write",
+		"test": "pnpm build && vitest run",
+		"check": "tsc",
+		"prepublishOnly": "pnpm build",
+		"postpublish": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
+	},
+	"files": [
+		"index.js",
+		"dist",
+		"bin.js",
+		"utils.js",
+		"types"
+	],
+	"type": "module"
+}

@@ -19,7 +19,6 @@ function getConfig(project) {
 	inputs.push(`./packages/${project}/index.ts`);
 
 	if (project === 'core') inputs.push(`./packages/${project}/internal.ts`);
-	if (project === 'cli') inputs.push(`./packages/${project}/bin.ts`);
 
 	outDir = `./packages/${project}/dist`;
 
@@ -35,7 +34,7 @@ function getConfig(project) {
 	const external = [/^(sv|@svelte-cli\/(?!clack|adders)\w*)/g, ...externalDeps];
 
 	let buildCliTemplatesPlugin;
-	if (project === 'cli') {
+	if (project === 'create') {
 		// This custom rollup plugin is used to build the templates
 		// and place them inside the dist folder after every rollup build.
 		// This is necessary because rollup clears the output directory and
@@ -44,7 +43,7 @@ function getConfig(project) {
 			name: 'build-cli-templates',
 			writeBundle() {
 				console.log('building templates');
-				execSync('node scripts/build-templates.js', { cwd: path.resolve('packages', 'cli') });
+				execSync('node scripts/build-templates.js', { cwd: path.resolve('packages', 'create') });
 				console.log('finished building templates');
 			}
 		};
@@ -80,6 +79,7 @@ export default [
 	getConfig('ast-tooling'),
 	getConfig('ast-manipulation'),
 	getConfig('config'),
+	getConfig('create'),
 	getConfig('core'),
 	getConfig('cli')
 ];
