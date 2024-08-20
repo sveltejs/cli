@@ -12,11 +12,6 @@ export function mkdirp(dir) {
 	}
 }
 
-/** @param {string} path */
-export function rimraf(path) {
-	(fs.rmSync || fs.rmdirSync)(path, { recursive: true, force: true });
-}
-
 /**
  * @template T
  * @param {T} x
@@ -47,7 +42,13 @@ export function copy(from, to, rename = identity) {
 
 /** @param {string} path */
 export function dist(path) {
-	return fileURLToPath(new URL(`./dist/${path}`, import.meta.url).href);
+	// we need to make this check, because vitest is making the package root the cwd,
+	// but executing the cli from the command line already makes the dist folder the cwd.
+	const insideDistFolder = import.meta.url.includes('dist');
+
+	return fileURLToPath(
+		new URL(`./${!insideDistFolder ? 'dist/' : ''}${path}`, import.meta.url).href
+	);
 }
 
 /** @type {string} */

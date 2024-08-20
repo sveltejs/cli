@@ -4,7 +4,7 @@ import parser from 'gitignore-parser';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
-import { mkdirp, rimraf } from '../utils.js';
+import { mkdirp } from '../utils.js';
 
 /** @param {string} content */
 async function convert_typescript(content) {
@@ -298,7 +298,6 @@ async function generate_shared() {
 }
 
 async function main() {
-	rimraf('dist');
 	mkdirp('dist');
 
 	const shared = await generate_shared();

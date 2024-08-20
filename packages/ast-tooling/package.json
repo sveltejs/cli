@@ -1,0 +1,38 @@
+{
+	"name": "@svelte-cli/ast-tooling",
+	"private": true,
+	"version": "2.1.7",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"format": "pnpm lint --write"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"devDependencies": {
+		"@babel/parser": "^7.24.7",
+		"ast-types": "^0.14.2",
+		"dom-serializer": "^2.0.0",
+		"domhandler": "^5.0.3",
+		"domutils": "^3.1.0",
+		"htmlparser2": "^9.1.0",
+		"postcss": "^8.4.38",
+		"recast": "^0.23.7",
+		"silver-fleece": "^1.1.0",
+		"zimmerframe": "^1.1.2"
+	},
+	"bugs": "https://github.com/sveltejs/cli/issues",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/ast-tooling"
+	},
+	"keywords": []
+}

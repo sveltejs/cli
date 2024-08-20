@@ -1,0 +1,19 @@
+{
+	"name": "@svelte-cli/adders",
+	"private": true,
+	"version": "1.6.0",
+	"type": "module",
+	"scripts": {
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"format": "pnpm lint --write"
+	},
+	"exports": {
+		".": {
+			"types": "./index.ts",
+			"default": "./index.ts"
+		}
+	},
+	"devDependencies": {
+		"@svelte-cli/core": "workspace:*"
+	}
+}

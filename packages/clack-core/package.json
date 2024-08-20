@@ -1,0 +1,33 @@
+{
+	"name": "@svelte-cli/clack-core",
+	"private": true,
+	"version": "0.4.2",
+	"type": "module",
+	"module": "./dist/index.mjs",
+	"scripts": {
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"format": "pnpm lint --write"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"types": "./dist/index.d.ts",
+	"bugs": "https://github.com/sveltejs/cli/issues",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/clack-prompts"
+	},
+	"files": [
+		"dist"
+	],
+	"license": "MIT",
+	"devDependencies": {
+		"sisteransi": "^1.0.5",
+		"picocolors": "^1.0.1",
+		"wrap-ansi": "^8.1.0"
+	}
+}
