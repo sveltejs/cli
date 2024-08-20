@@ -161,13 +161,13 @@ importers:
       '@svelte-cli/ast-tooling':
         specifier: workspace:*
         version: link:../ast-tooling
+      '@svelte-cli/create':
+        specifier: workspace:*
+        version: link:../create
     devDependencies:
       '@svelte-cli/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
-      '@svelte-cli/create':
-        specifier: workspace:*
-        version: link:../create
       commander:
         specifier: ^12.1.0
         version: 12.1.0

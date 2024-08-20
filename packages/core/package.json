@@ -24,7 +24,6 @@
 	],
 	"devDependencies": {
 		"@svelte-cli/clack-prompts": "workspace:*",
-		"@svelte-cli/create": "workspace:*",
 		"commander": "^12.1.0",
 		"dedent": "^1.5.3",
 		"package-manager-detector": "^0.1.0",
@@ -32,7 +31,8 @@
 	},
 	"dependencies": {
 		"@svelte-cli/ast-manipulation": "workspace:*",
-		"@svelte-cli/ast-tooling": "workspace:*"
+		"@svelte-cli/ast-tooling": "workspace:*",
+		"@svelte-cli/create": "workspace:*"
 	},
 	"bugs": "https://github.com/sveltejs/cli/issues",
 	"repository": {
