@@ -12,9 +12,9 @@ import { existsSync } from 'node:fs';
 
 if (!process.env.CHANGED_DIRS) throw new Error('CHANGED_DIRS is missing');
 
-const json = execSync(`pnpm -r list --only-projects --json`).toString('utf8');
+const json = execSync('pnpm -r list --only-projects --json').toString('utf8');
 const repoPackages =
-	/** @type {Array<import("../packages/core/utils/common.ts").Package & { path: string, private: boolean, peerDependencies?: Record<string, string> }>} */ (
+	/** @type {Array<import('../packages/core/utils/common.ts').Package & { path: string, private: boolean, peerDependencies?: Record<string, string> }>} */ (
 		JSON.parse(json)
 	);
 
