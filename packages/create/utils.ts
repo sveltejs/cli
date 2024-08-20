@@ -12,11 +12,15 @@ export function mkdirp(dir: string): void {
 	}
 }
 
-function identity<T>(x:T):T {
+function identity<T>(x: T): T {
 	return x;
 }
 
-export function copy(from: string, to: string, rename: (basename: string) => string = identity): void {
+export function copy(
+	from: string,
+	to: string,
+	rename: (basename: string) => string = identity
+): void {
 	if (!fs.existsSync(from)) return;
 
 	const stats = fs.statSync(from);

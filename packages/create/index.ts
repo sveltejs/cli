@@ -27,7 +27,6 @@ export type Common = {
 	}>;
 };
 
-
 export function create(cwd: string, options: Options): void {
 	mkdirp(cwd);
 
