@@ -6,25 +6,19 @@ import { cursor } from 'sisteransi';
 
 const isWindows = globalThis.process.platform.startsWith('win');
 
+export type BlockOptions = {
+	input?: NodeJS.ReadStream | undefined;
+	output?: NodeJS.WriteStream | undefined;
+	overwrite?: boolean | undefined;
+	hideCursor?: boolean | undefined;
+};
+
 export function block({
 	input = stdin,
 	output = stdout,
 	overwrite = true,
 	hideCursor = true
-}: {
-	input?:
-		| (NodeJS.ReadStream & {
-				fd: 0;
-		  })
-		| undefined;
-	output?:
-		| (NodeJS.WriteStream & {
-				fd: 1;
-		  })
-		| undefined;
-	overwrite?: boolean | undefined;
-	hideCursor?: boolean | undefined;
-} = {}) {
+}: BlockOptions = {}) {
 	const rl = readline.createInterface({
 		input,
 		output,

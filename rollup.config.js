@@ -9,9 +9,6 @@ import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { execSync } from 'node:child_process';
 
-/** @type {import("rollup").RollupOptions[]} */
-const dtsConfigs = [];
-
 /**
  * @param {string} project
  */
@@ -84,6 +81,5 @@ export default [
 	getConfig('ast-manipulation'),
 	getConfig('config'),
 	getConfig('core'),
-	getConfig('cli'),
-	...dtsConfigs
+	getConfig('cli')
 ];
