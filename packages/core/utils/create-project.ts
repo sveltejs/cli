@@ -5,7 +5,7 @@ import { commonFilePaths, directoryExists, fileExists } from '../files/utils';
 import { getPackageJson } from './common';
 import { createEmptyWorkspace } from './workspace';
 import { spinner } from '@svelte-cli/clack-prompts';
-import { create, type TemplateType, type LanguageType, templates } from '@svelte-cli/create';
+import { create, type LanguageType, templates } from '@svelte-cli/create';
 
 export async function detectSvelteDirectory(directoryPath: string): Promise<string | null> {
 	if (!directoryPath) return null;
@@ -71,11 +71,7 @@ export async function createProject(cwd: string): Promise<{
 	}
 
 	const options = templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }));
-	const template = (await p.selectPrompt(
-		'Which Svelte app template',
-		'default',
-		options
-	)) as TemplateType;
+	const template = await p.selectPrompt('Which Svelte app template', 'default', options);
 
 	const language = await p.selectPrompt<LanguageType>(
 		'Add type checking with Typescript?',

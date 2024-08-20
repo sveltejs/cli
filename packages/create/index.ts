@@ -34,13 +34,13 @@ export function create(cwd: string, options: Options): void {
 	write_common_files(cwd, options, options.name);
 }
 
-export type TemplateMetadata = { name: string; title: string; description: string };
+export type TemplateMetadata = { name: TemplateType; title: string; description: string };
 export const templates: TemplateMetadata[] = fs.readdirSync(dist('templates')).map((dir) => {
 	const meta_file = dist(`templates/${dir}/meta.json`);
 	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
 
 	return {
-		name: dir,
+		name: dir as TemplateType,
 		title,
 		description
 	};
