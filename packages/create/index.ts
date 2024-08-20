@@ -34,6 +34,18 @@ export function create(cwd: string, options: Options): void {
 	write_common_files(cwd, options, options.name);
 }
 
+export type TemplateMetadata = { name: string; title: string; description: string };
+export const templates: TemplateMetadata[] = fs.readdirSync(dist('templates')).map((dir) => {
+	const meta_file = dist(`templates/${dir}/meta.json`);
+	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
+
+	return {
+		name: dir,
+		title,
+		description
+	};
+});
+
 function write_template_files(template: string, types: LanguageType, name: string, cwd: string) {
 	const dir = dist(`templates/${template}`);
 	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'));
