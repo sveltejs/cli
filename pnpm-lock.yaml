@@ -183,18 +183,12 @@ importers:
 
   packages/create:
     devDependencies:
-      '@svelte-cli/clack-prompts':
-        specifier: workspace:*
-        version: link:../clack-prompts
       '@types/gitignore-parser':
         specifier: ^0.0.3
         version: 0.0.3
       gitignore-parser:
         specifier: ^0.0.2
         version: 0.0.2
-      picocolors:
-        specifier: ^1.0.1
-        version: 1.0.1
       sucrase:
         specifier: ^3.34.0
         version: 3.35.0
