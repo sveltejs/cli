@@ -140,16 +140,17 @@ importers:
         version: 1.0.5
 
   packages/cli:
-    devDependencies:
-      '@svelte-cli/adders':
-        specifier: workspace:*
-        version: link:../adders
+    dependencies:
       '@svelte-cli/config':
         specifier: workspace:*
         version: link:../config
       '@svelte-cli/core':
         specifier: workspace:*
         version: link:../core
+    devDependencies:
+      '@svelte-cli/adders':
+        specifier: workspace:*
+        version: link:../adders
 
   packages/config: {}
 

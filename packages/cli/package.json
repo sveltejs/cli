@@ -21,10 +21,12 @@
 	"homepage": "https://kit.svelte.dev",
 	"bin": "./dist/index.js",
 	"main": "./dist/index.js",
-	"devDependencies": {
-		"@svelte-cli/adders": "workspace:*",
+	"dependencies": {
 		"@svelte-cli/config": "workspace:*",
 		"@svelte-cli/core": "workspace:*"
+	},
+	"devDependencies": {
+		"@svelte-cli/adders": "workspace:*"
 	},
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
