@@ -1,7 +1,9 @@
 {
 	"name": "@svelte-cli/create",
+	"private": true,
 	"version": "0.0.1",
 	"description": "An API for creating SvelteKit projects",
+	"type": "module",
 	"keywords": [
 		"create",
 		"new",
@@ -30,7 +32,6 @@
 		"@types/gitignore-parser": "^0.0.3",
 		"gitignore-parser": "^0.0.2",
 		"sucrase": "^3.34.0",
-		"svelte": "^4.2.10",
 		"tiny-glob": "^0.2.9",
 		"vitest": "^2.0.1"
 	},
@@ -46,6 +47,5 @@
 	},
 	"files": [
 		"dist"
-	],
-	"type": "module"
+	]
 }
