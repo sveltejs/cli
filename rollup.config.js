@@ -30,8 +30,8 @@ function getConfig(project) {
 	const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
 	const externalDeps = getExternalDeps(pkg);
 
-	// externalizes `sv` and `@svelte-cli/` deps while also bundling `/clack` and `/adders`
-	const external = [/^(sv|@svelte-cli\/(?!clack|adders|create)\w*)/g, ...externalDeps];
+	// always externalizes `@svelte-cli/core` and any deps that are `dependencies` or `peerDependencies`
+	const external = [/@svelte-cli\/core\w*/g, ...externalDeps];
 
 	/** @type {Plugin | undefined} */
 	let buildCliTemplatesPlugin;
