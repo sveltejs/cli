@@ -1,6 +1,5 @@
 {
 	"name": "@svelte-cli/ast-manipulation",
-	"private": true,
 	"version": "2.2.4",
 	"license": "MIT",
 	"type": "module",

@@ -61,7 +61,7 @@ importers:
         version: 0.4.5(rollup@4.21.0)(typescript@5.5.4)
 
   packages/adders:
-    devDependencies:
+    dependencies:
       '@svelte-cli/core':
         specifier: workspace:*
         version: link:../core
@@ -141,9 +141,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@svelte-cli/config':
-        specifier: workspace:*
-        version: link:../config
       '@svelte-cli/core':
         specifier: workspace:*
         version: link:../core
@@ -151,6 +148,9 @@ importers:
       '@svelte-cli/adders':
         specifier: workspace:*
         version: link:../adders
+      '@svelte-cli/config':
+        specifier: workspace:*
+        version: link:../config
 
   packages/config: {}
 

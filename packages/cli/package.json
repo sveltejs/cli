@@ -22,11 +22,11 @@
 	"bin": "./dist/index.js",
 	"main": "./dist/index.js",
 	"dependencies": {
-		"@svelte-cli/config": "workspace:*",
 		"@svelte-cli/core": "workspace:*"
 	},
 	"devDependencies": {
-		"@svelte-cli/adders": "workspace:*"
+		"@svelte-cli/adders": "workspace:*",
+		"@svelte-cli/config": "workspace:*"
 	},
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",

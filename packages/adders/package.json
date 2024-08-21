@@ -14,7 +14,7 @@
 			"default": "./index.ts"
 		}
 	},
-	"devDependencies": {
+	"dependencies": {
 		"@svelte-cli/core": "workspace:*"
 	}
 }

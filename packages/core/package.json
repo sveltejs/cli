@@ -1,6 +1,5 @@
 {
 	"name": "@svelte-cli/core",
-	"private": true,
 	"version": "2.10.4",
 	"license": "MIT",
 	"type": "module",
