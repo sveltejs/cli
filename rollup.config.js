@@ -30,7 +30,7 @@ function getConfig(project) {
 	const externalDeps = getExternalDeps(pkg);
 
 	// externalizes `sv` and `@svelte-cli/` deps while also bundling `/clack` and `/adders`
-	const external = [/^(sv|@svelte-cli\/(?!clack|adders)\w*)/g, ...externalDeps];
+	const external = [/^(sv|@svelte-cli\/(?!clack|adders|create)\w*)/g, ...externalDeps];
 
 	/** @type {Plugin | undefined} */
 	let buildCliTemplatesPlugin;

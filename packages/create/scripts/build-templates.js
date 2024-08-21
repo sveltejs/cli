@@ -324,4 +324,4 @@ async function main(dist) {
 	await generate_templates(shared, dist);
 }
 
-main('dist');
+main(path.resolve('..', 'core', 'dist'));
