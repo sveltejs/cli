@@ -31,7 +31,8 @@
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"format": "pnpm lint --write",
-		"check": "tsc"
+		"check": "tsc",
+		"postpublish": "pnpm -F @svelte-cli/create update-template-repo"
 	},
 	"files": [
 		"dist"
