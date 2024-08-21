@@ -15,6 +15,7 @@ import { execSync } from 'node:child_process';
 
 /**
  * @param {string} project
+ * @returns {RollupOptions}
  */
 function getConfig(project) {
 	const inputs = [`./packages/${project}/index.ts`];
@@ -49,8 +50,7 @@ function getConfig(project) {
 		};
 	}
 
-	/** @type {RollupOptions} */
-	const config = {
+	return {
 		input: inputs,
 		output: {
 			dir: outDir,
@@ -69,8 +69,6 @@ function getConfig(project) {
 			buildCliTemplatesPlugin
 		]
 	};
-
-	return config;
 }
 
 export default [
