@@ -5,8 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import glob from 'tiny-glob/sync';
 import { beforeAll, describe, test } from 'vitest';
-import { create } from '../index';
-import type { TemplateTypes, Types } from '../types/internal';
+import { create, type LanguageType, type TemplateType } from '../index';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
@@ -85,12 +84,12 @@ function patch_package_json(pkg: any) {
  */
 const script_test_map = new Map();
 
-const templates = fs.readdirSync('templates') as TemplateTypes[];
+const templates = fs.readdirSync('templates') as TemplateType[];
 
 for (const template of templates) {
 	if (template[0] === '.') continue;
 
-	for (const types of ['checkjs', 'typescript'] as Types[]) {
+	for (const types of ['checkjs', 'typescript'] as LanguageType[]) {
 		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 

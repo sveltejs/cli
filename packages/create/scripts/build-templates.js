@@ -324,4 +324,6 @@ async function main(dist) {
 	await generate_templates(shared, dist);
 }
 
+main('dist');
+// also generates the templates in the package where `@svelte-cli/create` will be bundled
 main(path.resolve('..', 'core', 'dist'));
