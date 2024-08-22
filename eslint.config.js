@@ -23,8 +23,9 @@ export default [
 	},
 	{
 		ignores: [
-			'packages/cli/shared/**/*',
-			'packages/cli/templates/**/*',
+			'packages/create/shared/**/*',
+			'packages/create/scripts/**/*',
+			'packages/create/templates/**/*',
 			'temp/**/*',
 			'.test-tmp/**/*',
 			'**/dist/*'

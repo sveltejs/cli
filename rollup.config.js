@@ -9,33 +9,33 @@ import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { execSync } from 'node:child_process';
 
+/** @import { Package } from "./packages/core/utils/common.js" */
+/** @import { Plugin, RollupOptions } from "rollup" */
+/** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
+
 /**
  * @param {string} project
+ * @returns {RollupOptions}
  */
 function getConfig(project) {
-	const inputs = [];
-	let outDir = '';
-
-	inputs.push(`./packages/${project}/index.ts`);
+	const inputs = [`./packages/${project}/index.ts`];
+	const outDir = `./packages/${project}/dist`;
 
 	if (project === 'core') inputs.push(`./packages/${project}/internal.ts`);
-	if (project === 'cli') inputs.push(`./packages/${project}/bin.ts`);
-
-	outDir = `./packages/${project}/dist`;
 
 	const projectRoot = path.resolve(path.join(outDir, '..'));
 	fs.rmSync(outDir, { force: true, recursive: true });
 
-	/** @type {import("./packages/core/utils/common.js").Package} */
+	/** @type {PackageJson} */
 	const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
-	// any dep under `dependencies` is considered external
-	const externalDeps = Object.keys(pkg.dependencies ?? {});
+	const externalDeps = getExternalDeps(pkg);
 
-	// externalizes `sv` and `@svelte-cli/` deps while also bundling `/clack` and `/adders`
-	const external = [/^(sv|@svelte-cli\/(?!clack|adders)\w*)/g, ...externalDeps];
+	// always externalizes `@svelte-cli/core` and any deps that are `dependencies` or `peerDependencies`
+	const external = [/@svelte-cli\/core\w*/g, ...externalDeps];
 
+	/** @type {Plugin | undefined} */
 	let buildCliTemplatesPlugin;
-	if (project === 'cli') {
+	if (project === 'create') {
 		// This custom rollup plugin is used to build the templates
 		// and place them inside the dist folder after every rollup build.
 		// This is necessary because rollup clears the output directory and
@@ -44,14 +44,13 @@ function getConfig(project) {
 			name: 'build-cli-templates',
 			writeBundle() {
 				console.log('building templates');
-				execSync('node scripts/build-templates.js', { cwd: path.resolve('packages', 'cli') });
+				execSync('node scripts/build-templates.js', { cwd: path.resolve('packages', 'create') });
 				console.log('finished building templates');
 			}
 		};
 	}
 
-	/** @type {import("rollup").RollupOptions} */
-	const config = {
+	return {
 		input: inputs,
 		output: {
 			dir: outDir,
@@ -70,8 +69,6 @@ function getConfig(project) {
 			buildCliTemplatesPlugin
 		]
 	};
-
-	return config;
 }
 
 export default [
@@ -80,6 +77,18 @@ export default [
 	getConfig('ast-tooling'),
 	getConfig('ast-manipulation'),
 	getConfig('config'),
+	getConfig('create'),
 	getConfig('core'),
 	getConfig('cli')
 ];
+
+/**
+ * @param {PackageJson} pkg
+ * @returns {Set<string>}
+ */
+function getExternalDeps(pkg) {
+	return new Set([
+		...Object.keys(pkg.dependencies ?? {}),
+		...Object.keys(pkg.peerDependencies ?? {})
+	]);
+}

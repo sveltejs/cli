@@ -1,0 +1,50 @@
+{
+	"name": "@svelte-cli/create",
+	"private": true,
+	"version": "0.0.1",
+	"description": "An API for creating SvelteKit projects",
+	"type": "module",
+	"keywords": [
+		"create",
+		"new",
+		"project",
+		"starter",
+		"svelte",
+		"sveltekit",
+		"template"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli",
+		"directory": "packages/create"
+	},
+	"license": "MIT",
+	"homepage": "https://kit.svelte.dev",
+	"main": "./dist/index.js",
+	"types": "types/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"devDependencies": {
+		"@types/gitignore-parser": "^0.0.3",
+		"gitignore-parser": "^0.0.2",
+		"sucrase": "^3.34.0",
+		"tiny-glob": "^0.2.9",
+		"vitest": "^2.0.1"
+	},
+	"scripts": {
+		"build": "pnpm build:templates",
+		"build:templates": "node scripts/build-templates",
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"format": "pnpm lint --write",
+		"test": "pnpm build && vitest run",
+		"check": "tsc",
+		"update-template-repo": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
+	},
+	"files": [
+		"dist"
+	]
+}

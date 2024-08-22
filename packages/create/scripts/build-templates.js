@@ -4,7 +4,6 @@ import parser from 'gitignore-parser';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
-import { mkdirp } from '../utils.js';
 
 /** @param {string} content */
 async function convert_typescript(content) {
@@ -44,15 +43,18 @@ function strip_jsdoc(content) {
 		);
 }
 
-/** @param {Set<string>} shared */
-async function generate_templates(shared) {
+/**
+ * @param {Set<string>} shared
+ * @param {string} dist
+ */
+async function generate_templates(shared, dist) {
 	const templates = fs.readdirSync('templates');
 
 	for (const template of templates) {
 		if (template[0] === '.') continue;
 
-		const dir = `dist/templates/${template}`;
-		const assets = `${dir}/assets`;
+		const dir = path.join(dist, 'templates', template);
+		const assets = path.join(dir, 'assets');
 		mkdirp(assets);
 
 		const cwd = path.resolve('templates', template);
@@ -71,7 +73,7 @@ async function generate_templates(shared) {
 		const meta_file = path.join(cwd, '.meta.json');
 		if (!fs.existsSync(meta_file)) throw new Error('Template must have a .meta.json file');
 
-		/** @type {Record<string, import('../types/internal.js').File[]>} */
+		/** @type {Record<string, import('../index').File[]>} */
 		const types = {
 			typescript: [],
 			checkjs: [],
@@ -87,7 +89,7 @@ async function generate_templates(shared) {
 				let contents = fs.readFileSync(path.join(cwd, name), 'utf8');
 				// TODO package-specific versions
 				contents = contents.replace(/workspace:\*/g, 'next');
-				fs.writeFileSync(`${dir}/package.json`, contents);
+				fs.writeFileSync(path.join(dir, 'package.json'), contents);
 				continue;
 			}
 
@@ -193,13 +195,19 @@ async function generate_templates(shared) {
 			}
 		}
 
-		fs.copyFileSync(meta_file, `${dir}/meta.json`);
+		fs.copyFileSync(meta_file, path.join(dir, 'meta.json'));
 		fs.writeFileSync(
-			`${dir}/files.types=typescript.json`,
+			path.join(dir, 'files.types=typescript.json'),
 			JSON.stringify(types.typescript, null, '\t')
 		);
-		fs.writeFileSync(`${dir}/files.types=checkjs.json`, JSON.stringify(types.checkjs, null, '\t'));
-		fs.writeFileSync(`${dir}/files.types=null.json`, JSON.stringify(types.null, null, '\t'));
+		fs.writeFileSync(
+			path.join(dir, 'files.types=checkjs.json'),
+			JSON.stringify(types.checkjs, null, '\t')
+		);
+		fs.writeFileSync(
+			path.join(dir, 'files.types=null.json'),
+			JSON.stringify(types.null, null, '\t')
+		);
 	}
 }
 
@@ -217,7 +225,8 @@ async function replace_async(string, regexp, replacer) {
 	return string.replace(regexp, () => replacements[i++]);
 }
 
-async function generate_shared() {
+/** @param {string} dist  */
+async function generate_shared(dist) {
 	const cwd = path.resolve('shared');
 
 	/** @type {Set<string>} */
@@ -291,17 +300,30 @@ async function generate_shared() {
 
 	files.sort((a, b) => a.include.length + a.exclude.length - (b.include.length + b.exclude.length));
 
-	fs.writeFileSync('dist/shared.json', JSON.stringify({ files }, null, '\t'));
+	fs.writeFileSync(path.join(dist, 'shared.json'), JSON.stringify({ files }, null, '\t'));
 
 	shared.delete('package.json');
 	return shared;
 }
 
-async function main() {
-	mkdirp('dist');
-
-	const shared = await generate_shared();
-	await generate_templates(shared);
+/** @param {string} dir */
+export function mkdirp(dir) {
+	try {
+		fs.mkdirSync(dir, { recursive: true });
+	} catch (e) {
+		if (/** @type {any} */ (e).code === 'EEXIST') return;
+		throw e;
+	}
 }
 
-main();
+/** @param {string} dist */
+async function main(dist) {
+	mkdirp(dist);
+
+	const shared = await generate_shared(dist);
+	await generate_templates(shared, dist);
+}
+
+main('dist');
+// also generates the templates in the package where `@svelte-cli/create` will be bundled
+main(path.resolve('..', 'core', 'dist'));

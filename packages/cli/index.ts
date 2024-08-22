@@ -1,134 +1,68 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { mkdirp, copy, dist } from './utils.js';
-import type { Common, Condition, File, Options, Types } from './types/internal';
+#!/usr/bin/env node
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export async function create(cwd: string, options: Options) {
-	mkdirp(cwd);
+import { remoteControl, executeAdders, prompts } from '@svelte-cli/core/internal';
+import pkg from './package.json';
+import type {
+	AdderDetails,
+	AddersToApplySelectorParams,
+	ExecutingAdderInfo,
+	Question
+} from '@svelte-cli/core';
+import { adderCategories, categories, adderIds, type CategoryKeys } from '@svelte-cli/config';
+import { getAdderDetails } from '@svelte-cli/adders';
 
-	write_template_files(options.template, options.types, options.name, cwd);
-	write_common_files(cwd, options, options.name);
+void executeCli();
+
+async function executeCli() {
+	remoteControl.enable();
+
+	const adderDetails: Array<AdderDetails<Record<string, Question>>> = [];
+
+	for (const adderName of adderIds) {
+		const adder = await getAdderDetails(adderName);
+		adderDetails.push({ config: adder.config, checks: adder.checks });
+	}
+
+	const executingAdderInfo: ExecutingAdderInfo = {
+		name: pkg.name,
+		version: pkg.version
+	};
+
+	await executeAdders(adderDetails, executingAdderInfo, undefined, selectAddersToApply);
+
+	remoteControl.disable();
 }
 
-function write_template_files(template: string, types: Types, name: string, cwd: string) {
-	const dir = dist(`templates/${template}`);
-	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'));
-	copy(`${dir}/package.json`, `${cwd}/package.json`);
+type AdderOption = { value: string; label: string; hint: string };
+async function selectAddersToApply({ projectType, addersMetadata }: AddersToApplySelectorParams) {
+	const promptOptions: Record<string, AdderOption[]> = {};
 
-	const manifest = `${dir}/files.types=${types}.json`;
-	const files = JSON.parse(fs.readFileSync(manifest, 'utf-8')) as File[];
+	for (const [categoryId, adderIds] of Object.entries(adderCategories)) {
+		const categoryDetails = categories[categoryId as CategoryKeys];
+		const options: AdderOption[] = [];
+		const adders = addersMetadata.filter((x) => adderIds.includes(x.id));
 
-	files.forEach((file) => {
-		const dest = path.join(cwd, file.name);
-		mkdirp(path.dirname(dest));
+		for (const adder of adders) {
+			// if we detected a kit project, and the adder is not available for kit, ignore it.
+			if (projectType === 'kit' && !adder.environments.kit) continue;
+			// if we detected a svelte project, and the adder is not available for svelte, ignore it.
+			if (projectType === 'svelte' && !adder.environments.svelte) continue;
 
-		fs.writeFileSync(dest, file.contents.replace(/~TODO~/g, name));
-	});
-}
-
-function write_common_files(cwd: string, options: Options, name: string) {
-	const shared = dist('shared.json');
-	const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
-
-	const pkg_file = path.join(cwd, 'package.json');
-	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
-
-	sort_files(files).forEach((file) => {
-		const include = file.include.every((condition) => matches_condition(condition, options));
-		const exclude = file.exclude.some((condition) => matches_condition(condition, options));
-
-		if (exclude || !include) return;
-
-		if (file.name === 'package.json') {
-			const new_pkg = JSON.parse(file.contents);
-			merge(pkg, new_pkg);
-		} else {
-			const dest = path.join(cwd, file.name);
-			mkdirp(path.dirname(dest));
-			fs.writeFileSync(dest, file.contents);
+			options.push({
+				label: adder.name,
+				value: adder.id,
+				hint: adder.website?.documentation || ''
+			});
 		}
-	});
 
-	pkg.dependencies = sort_keys(pkg.dependencies);
-	pkg.devDependencies = sort_keys(pkg.devDependencies);
-	pkg.name = to_valid_package_name(name);
-
-	fs.writeFileSync(pkg_file, JSON.stringify(pkg, null, '\t') + '\n');
-}
-
-function matches_condition(condition: Condition, options: Options) {
-	if (condition === 'default' || condition === 'skeleton' || condition === 'skeletonlib') {
-		return options.template === condition;
-	}
-	if (condition === 'typescript' || condition === 'checkjs') {
-		return options.types === condition;
-	}
-	return !!options[condition];
-}
-
-function merge(target: any, source: any) {
-	for (const key in source) {
-		if (key in target) {
-			const target_value = target[key];
-			const source_value = source[key];
-
-			if (
-				typeof source_value !== typeof target_value ||
-				Array.isArray(source_value) !== Array.isArray(target_value)
-			) {
-				throw new Error('Mismatched values');
-			}
-
-			if (typeof source_value === 'object') {
-				merge(target_value, source_value);
-			} else {
-				target[key] = source_value;
-			}
-		} else {
-			target[key] = source[key];
+		if (options.length > 0) {
+			promptOptions[categoryDetails.name] = options;
 		}
 	}
-}
+	const selectedAdders = await prompts.groupedMultiSelectPrompt(
+		'What would you like to add to your project?',
+		promptOptions
+	);
 
-function sort_keys(obj: Record<string, any>) {
-	if (!obj) return;
-
-	const sorted: Record<string, any> = {};
-	Object.keys(obj)
-		.sort()
-		.forEach((key) => {
-			sorted[key] = obj[key];
-		});
-
-	return sorted;
-}
-
-/**
- * Sort files so that those which apply more generically come first so they
- * can be overwritten by files for more precise cases later.
- *
- * @param {import('./types/internal.js').Common['files']} files
- */
-function sort_files(files: Common['files']) {
-	return files.sort((f1, f2) => {
-		const f1_more_generic =
-			f1.include.every((include) => f2.include.includes(include)) &&
-			f1.exclude.every((exclude) => f2.exclude.includes(exclude));
-		const f2_more_generic =
-			f2.include.every((include) => f1.include.includes(include)) &&
-			f2.exclude.every((exclude) => f1.exclude.includes(exclude));
-		const same = f1_more_generic && f2_more_generic;
-		const different = !f1_more_generic && !f2_more_generic;
-		return same || different ? 0 : f1_more_generic ? -1 : 1;
-	});
-}
-
-function to_valid_package_name(name: string) {
-	return name
-		.trim()
-		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/^[._]/, '')
-		.replace(/[^a-z0-9~.-]+/g, '-');
+	return selectedAdders;
 }

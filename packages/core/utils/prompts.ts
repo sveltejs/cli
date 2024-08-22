@@ -7,7 +7,8 @@ import {
 	text,
 	multiselect,
 	note,
-	groupMultiselect
+	groupMultiselect,
+	confirm
 } from '@svelte-cli/clack-prompts';
 
 type Primitive = Readonly<string | boolean | number>;
@@ -29,6 +30,14 @@ export function startPrompts(message: string): void {
 
 export function endPrompts(message: string): void {
 	outro(message);
+}
+
+export async function confirmPrompt(message: string, initialValue: boolean): Promise<boolean> {
+	const value = await confirm({
+		message,
+		initialValue
+	});
+	return cancelIfRequired(value);
 }
 
 export async function booleanPrompt(question: string, initialValue: boolean): Promise<boolean> {

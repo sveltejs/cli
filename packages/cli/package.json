@@ -19,38 +19,23 @@
 	},
 	"license": "MIT",
 	"homepage": "https://kit.svelte.dev",
-	"bin": "./dist/bin.js",
+	"bin": "./dist/index.js",
 	"main": "./dist/index.js",
+	"dependencies": {
+		"@svelte-cli/core": "workspace:*"
+	},
 	"devDependencies": {
 		"@svelte-cli/adders": "workspace:*",
-		"@svelte-cli/clack-prompts": "workspace:*",
-		"@svelte-cli/config": "workspace:*",
-		"@svelte-cli/core": "workspace:*",
-		"@types/gitignore-parser": "^0.0.3",
-		"gitignore-parser": "^0.0.2",
-		"picocolors": "^1.0.1",
-		"sucrase": "^3.34.0",
-		"svelte": "^4.2.10",
-		"tiny-glob": "^0.2.9",
-		"vitest": "^2.0.1"
+		"@svelte-cli/config": "workspace:*"
 	},
 	"scripts": {
-		"build": "pnpm build:templates",
-		"build:templates": "node scripts/build-templates",
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"format": "pnpm lint --write",
-		"test": "pnpm build && vitest run",
 		"check": "tsc",
-		"prepublishOnly": "pnpm build",
-		"postpublish": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
+		"postpublish": "pnpm -F @svelte-cli/create update-template-repo"
 	},
 	"files": [
-		"index.js",
-		"dist",
-		"bin.js",
-		"utils.js",
-		"types"
+		"dist"
 	],
-	"types": "types/index.d.ts",
 	"type": "module"
 }

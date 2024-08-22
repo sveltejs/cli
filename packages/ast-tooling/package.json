@@ -1,6 +1,5 @@
 {
 	"name": "@svelte-cli/ast-tooling",
-	"private": true,
 	"version": "2.1.7",
 	"license": "MIT",
 	"type": "module",

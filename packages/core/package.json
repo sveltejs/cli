@@ -1,6 +1,5 @@
 {
 	"name": "@svelte-cli/core",
-	"private": true,
 	"version": "2.10.4",
 	"license": "MIT",
 	"type": "module",
@@ -24,6 +23,7 @@
 	],
 	"devDependencies": {
 		"@svelte-cli/clack-prompts": "workspace:*",
+		"@svelte-cli/create": "workspace:*",
 		"commander": "^12.1.0",
 		"dedent": "^1.5.3",
 		"package-manager-detector": "^0.1.0",
@@ -39,10 +39,17 @@
 		"url": "https://github.com/sveltejs/cli/tree/main/packages/core"
 	},
 	"keywords": [
-		"add",
-		"adder",
+		"create",
+		"new",
+		"project",
+		"starter",
 		"svelte",
+		"sveltekit",
 		"kit",
-		"svelte-kit"
+		"svelte-kit",
+		"template",
+		"wizard",
+		"add",
+		"adder"
 	]
 }

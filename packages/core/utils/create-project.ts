@@ -1,12 +1,11 @@
+import fs from 'node:fs';
 import path from 'node:path';
+import * as p from './prompts';
 import { commonFilePaths, directoryExists, fileExists } from '../files/utils';
-import { type PromptOption, booleanPrompt, selectPrompt, textPrompt, endPrompts } from './prompts';
 import { getPackageJson } from './common';
 import { createEmptyWorkspace } from './workspace';
 import { spinner } from '@svelte-cli/clack-prompts';
-import { executeCli } from './cli';
-
-export type ProjectType = 'svelte' | 'kit';
+import { create, type LanguageType, templates } from '@svelte-cli/create';
 
 export async function detectSvelteDirectory(directoryPath: string): Promise<string | null> {
 	if (!directoryPath) return null;
@@ -40,17 +39,13 @@ export async function detectSvelteDirectory(directoryPath: string): Promise<stri
 	return null;
 }
 
-export async function createProject(
-	cwd: string,
-	supportKit: boolean,
-	supportSvelte: boolean
-): Promise<{
+export async function createProject(cwd: string): Promise<{
 	projectCreated: boolean;
 	directory: string;
 }> {
-	const createNewProject = await booleanPrompt('Create new Project?', true);
+	const createNewProject = await p.booleanPrompt('Create new Project?', true);
 	if (!createNewProject) {
-		endPrompts('Exiting.');
+		p.endPrompts('Exiting.');
 		process.exit(0);
 	}
 
@@ -59,7 +54,7 @@ export async function createProject(
 		relativePath = './';
 	}
 
-	let directory = await textPrompt(
+	let directory = await p.textPrompt(
 		'Where should we create your project?',
 		`  (hit Enter to use '${relativePath}')`
 	);
@@ -67,47 +62,36 @@ export async function createProject(
 		directory = relativePath;
 	}
 
-	const availableProjectTypes: Array<PromptOption<string>> = [];
-	if (supportKit) availableProjectTypes.push({ label: 'SvelteKit', value: 'kit' });
-	if (supportSvelte) availableProjectTypes.push({ label: 'Svelte', value: 'svelte' });
-
-	let projectType: string;
-
-	if (availableProjectTypes.length == 0)
-		throw new Error('Failed to identify possible project types');
-	if (availableProjectTypes.length == 1) projectType = availableProjectTypes[0].value;
-	else
-		projectType = await selectPrompt(
-			'Which project type do you want to create?',
-			'kit',
-			availableProjectTypes
-		);
-
-	let language = 'js';
-	if (projectType == 'svelte') {
-		language = await selectPrompt('Choose language', language, [
-			{ label: 'JavaScript', value: 'js' },
-			{ label: 'TypeScript', value: 'ts' }
-		]);
+	if (fs.existsSync(directory) && fs.readdirSync(directory).length > 0) {
+		const force = await p.confirmPrompt('Directory not empty. Continue?', false);
+		if (!force) {
+			p.endPrompts('Exiting.');
+			process.exit(0);
+		}
 	}
 
-	let args = [];
-	if (projectType == 'kit') {
-		args = ['init', 'svelte@latest', directory];
-	} else {
-		const template = language == 'ts' ? 'svelte-ts' : 'svelte';
-		args = ['init', 'vite@latest', directory, '--', '--template', template];
-	}
+	const options = templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }));
+	const template = await p.selectPrompt('Which Svelte app template', 'default', options);
+
+	const language = await p.selectPrompt<LanguageType>(
+		'Add type checking with Typescript?',
+		'typescript',
+		[
+			{ label: 'Yes, using Typescript syntax', value: 'typescript' },
+			{ label: 'Yes, using Javascript with JSDoc comments', value: 'checkjs' },
+			{ label: 'No', value: null }
+		]
+	);
 
 	const loadingSpinner = spinner();
-	loadingSpinner.start('Initializing template...');
+	loadingSpinner.start('Initializing template');
 
 	try {
-		loadingSpinner.stop('Downloading initializer cli...');
-
-		await executeCli('npm', args, process.cwd(), { stdio: 'inherit' });
-
-		console.clear();
+		create(directory, {
+			name: path.basename(path.resolve(directory)),
+			template,
+			types: language
+		});
 	} catch (error) {
 		loadingSpinner.stop('Failed initializing template!');
 		const typedError = error as Error;
@@ -115,7 +99,7 @@ export async function createProject(
 		return { projectCreated: false, directory: '' };
 	}
 
-	loadingSpinner.stop('Template initialized');
+	loadingSpinner.stop('Project created');
 
 	return {
 		projectCreated: true,

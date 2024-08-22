@@ -61,7 +61,7 @@ importers:
         version: 0.4.5(rollup@4.21.0)(typescript@5.5.4)
 
   packages/adders:
-    devDependencies:
+    dependencies:
       '@svelte-cli/core':
         specifier: workspace:*
         version: link:../core
@@ -140,40 +140,17 @@ importers:
         version: 1.0.5
 
   packages/cli:
+    dependencies:
+      '@svelte-cli/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@svelte-cli/adders':
         specifier: workspace:*
         version: link:../adders
-      '@svelte-cli/clack-prompts':
-        specifier: workspace:*
-        version: link:../clack-prompts
       '@svelte-cli/config':
         specifier: workspace:*
         version: link:../config
-      '@svelte-cli/core':
-        specifier: workspace:*
-        version: link:../core
-      '@types/gitignore-parser':
-        specifier: ^0.0.3
-        version: 0.0.3
-      gitignore-parser:
-        specifier: ^0.0.2
-        version: 0.0.2
-      picocolors:
-        specifier: ^1.0.1
-        version: 1.0.1
-      sucrase:
-        specifier: ^3.34.0
-        version: 3.35.0
-      svelte:
-        specifier: ^4.2.10
-        version: 4.2.18
-      tiny-glob:
-        specifier: ^0.2.9
-        version: 0.2.9
-      vitest:
-        specifier: ^2.0.1
-        version: 2.0.5(@types/node@22.4.1)
 
   packages/config: {}
 
@@ -189,6 +166,9 @@ importers:
       '@svelte-cli/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
+      '@svelte-cli/create':
+        specifier: workspace:*
+        version: link:../create
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -201,6 +181,24 @@ importers:
       picocolors:
         specifier: ^1.0.1
         version: 1.0.1
+
+  packages/create:
+    devDependencies:
+      '@types/gitignore-parser':
+        specifier: ^0.0.3
+        version: 0.0.3
+      gitignore-parser:
+        specifier: ^0.0.2
+        version: 0.0.2
+      sucrase:
+        specifier: ^3.34.0
+        version: 3.35.0
+      tiny-glob:
+        specifier: ^0.2.9
+        version: 0.2.9
+      vitest:
+        specifier: ^2.0.1
+        version: 2.0.5(@types/node@22.4.1)
 
 packages:
 
