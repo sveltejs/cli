@@ -1,21 +1,37 @@
-import type { AdderConfig, AdderWithoutExplicitArgs, Question } from '@svelte-cli/core';
-
+// Rolldown doesn't support dynamic import vars yet.
 export async function getAdderDetails(name: string) {
-	const adder: { default: AdderWithoutExplicitArgs } = await import(`./${name}/index.ts`);
+	let adder;
+	switch (name) {
+		case 'drizzle':
+			adder = await import('./drizzle/index');
+			break;
+		case 'eslint':
+			adder = await import('./eslint/index');
+			break;
+		case 'mdsvex':
+			adder = await import('./mdsvex/index');
+			break;
+		case 'playwright':
+			adder = await import('./playwright/index');
+			break;
+		case 'prettier':
+			adder = await import('./prettier/index');
+			break;
+		case 'routify':
+			adder = await import('./routify/index');
+			break;
+		case 'storybook':
+			adder = await import('./storybook/index');
+			break;
+		case 'tailwindcss':
+			adder = await import('./tailwindcss/index');
+			break;
+		case 'vitest':
+			adder = await import('./vitest/index');
+			break;
+		default:
+			throw new Error(`invalid adder name: ${name}`);
+	}
 
 	return adder.default;
-}
-
-export async function getAdderConfig(name: string) {
-	// Mainly used by the website
-	// Either vite / rollup or esbuild are not able to process the shebangs
-	// present on the `index.js` file. That's why we directly import the configuration
-	// for the website here, as this is the only important part.
-
-	const adder: Promise<{ adder: AdderConfig<Record<string, Question>> }> = await import(
-		`./${name}/config/adder.ts`
-	);
-	const { adder: adderConfig } = await adder;
-
-	return adderConfig;
 }
