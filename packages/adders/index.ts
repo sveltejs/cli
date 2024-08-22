@@ -1,5 +1,7 @@
+import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
+
 // Rolldown doesn't support dynamic import vars yet.
-export async function getAdderDetails(name: string) {
+export async function getAdderDetails(name: string): Promise<AdderWithoutExplicitArgs> {
 	let adder;
 	switch (name) {
 		case 'drizzle':
@@ -33,5 +35,5 @@ export async function getAdderDetails(name: string) {
 			throw new Error(`invalid adder name: ${name}`);
 	}
 
-	return adder.default;
+	return adder.default as AdderWithoutExplicitArgs;
 }
