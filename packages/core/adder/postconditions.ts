@@ -1,4 +1,4 @@
-import * as pc from 'picocolors';
+import pc from 'picocolors';
 import { messagePrompt } from '../utils/prompts';
 import { fileExistsWorkspace, readFile } from '../files/utils';
 import type { Workspace } from '../utils/workspace';

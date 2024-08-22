@@ -7,7 +7,7 @@ import {
 } from './adder/config';
 import { executeCli } from './utils/cli';
 import { log } from '@svelte-cli/clack-prompts';
-import * as colors from 'picocolors';
+import colors from 'picocolors';
 import dedent from 'dedent';
 
 export {

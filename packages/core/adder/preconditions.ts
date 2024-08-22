@@ -1,4 +1,4 @@
-import * as pc from 'picocolors';
+import pc from 'picocolors';
 import { booleanPrompt, endPrompts, messagePrompt } from '../utils/prompts';
 import { executeCli } from '../utils/cli';
 import type { AdderDetails } from './execute';

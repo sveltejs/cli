@@ -1,5 +1,5 @@
 import path from 'node:path';
-import * as pc from 'picocolors';
+import pc from 'picocolors';
 import { serializeJson } from '@svelte-cli/ast-tooling';
 import { commonFilePaths, format, writeFile } from '../files/utils';
 import { type ProjectType, createProject, detectSvelteDirectory } from '../utils/create-project';
