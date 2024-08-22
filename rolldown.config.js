@@ -28,13 +28,13 @@ function getConfig(project) {
 	const external = [
 		// As of now, Rolldown doesn't transform cjs `require` calls into esm imports, so we need to
 		// manually externalize packages that use cjs.
-		/^commander\w*/g,
-		/^picocolors\w*/g,
-		/^postcss\w*/g,
-		/^recast\w*/g,
+		/commander/,
+		/picocolors/,
+		/postcss/,
+		/recast/,
 		// TODO: investigate why Rolldown is transforming dedent into malformed code
-		/^dedent\w*/g,
-		/^@svelte-cli\/core\w*/g
+		/dedent/,
+		/@svelte-cli\/core/
 	];
 
 	/** @type {Plugin[]} */
