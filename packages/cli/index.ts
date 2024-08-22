@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { remoteControl, executeAdders, prompts } from '@svelte-cli/core/internal';
 import pkg from './package.json';
 import type {
