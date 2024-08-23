@@ -330,3 +330,8 @@ export async function buildTemplates(dist) {
 	const shared = await generate_shared(dist);
 	await generate_templates(dist, shared);
 }
+
+const dist = process.argv[2];
+if (dist !== undefined) {
+	buildTemplates(dist);
+}

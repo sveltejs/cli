@@ -11,7 +11,7 @@
 		"changeset:version": "changeset version && pnpm -r generate:version && git add --all",
 		"changeset:release": "changeset publish",
 		"dev": "rollup --config --watch",
-		"build": "pnpm -r build && rollup -c",
+		"build": "rollup -c",
 		"test": "pnpm -r test"
 	},
 	"devDependencies": {
