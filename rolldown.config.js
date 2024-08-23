@@ -19,19 +19,13 @@ function getConfig(project) {
 	if (project === 'core') inputs.push(`./packages/${project}/internal.ts`);
 
 	const projectRoot = path.resolve(path.join(outDir, '..'));
-	// fs.rmSync(outDir, { force: true, recursive: true });
+	fs.rmSync(outDir, { force: true, recursive: true });
 
 	/** @type {PackageJson} */
 	const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
 	const externalDeps = getExternalDeps(pkg);
 
 	const external = [
-		// As of now, Rolldown doesn't transform cjs `require` calls into esm imports, so we need to
-		// manually externalize packages that use cjs.
-		/commander/,
-		/picocolors/,
-		/postcss/,
-		/recast/,
 		// TODO: investigate why Rolldown is transforming dedent into malformed code
 		/dedent/,
 		/@svelte-cli\/core/
@@ -67,6 +61,7 @@ function getConfig(project) {
 		});
 	}
 
+	const shim = ['core', 'ast-tooling'];
 	return {
 		input: inputs,
 		platform: 'node',
@@ -75,8 +70,15 @@ function getConfig(project) {
 			sourcemap: true,
 			format: 'esm',
 			// adds the shebang to the top of the bundle
-			banner: project === 'cli' ? '#!/usr/bin/env node' : undefined
+			banner: [
+				project === 'cli' && '#!/usr/bin/env node',
+				shim.includes(project) && `import __node_module__ from 'node:module';`,
+				shim.includes(project) && 'const require = __node_module__.createRequire(import.meta.url);'
+			]
+				.filter(Boolean)
+				.join('\n')
 		},
+
 		external,
 		plugins
 	};
