@@ -1,9 +1,9 @@
 import type { JsAstEditor } from '@svelte-cli/ast-manipulation';
 
-export function run(editor: JsAstEditor): void {
-	const emptyArray = editor.array.createEmpty();
+export function run({ ast, array, variables }: JsAstEditor): void {
+	const emptyArray = array.createEmpty();
 
 	// create declaration so that we serialize everything
-	const declaration = editor.variables.declaration(editor.ast, 'const', 'array', emptyArray);
-	editor.ast.body.push(declaration);
+	const declaration = variables.declaration(ast, 'const', 'array', emptyArray);
+	ast.body.push(declaration);
 }

@@ -1,11 +1,11 @@
 import type { JsAstEditor } from '@svelte-cli/ast-manipulation';
 
-export function run(editor: JsAstEditor): void {
-	const object = editor.object.create({
-		test: editor.common.createLiteral('string')
+export function run({ ast, object, common, variables, exports }: JsAstEditor): void {
+	const object1 = object.create({
+		test: common.createLiteral('string')
 	});
-	const variable = editor.variables.declaration(editor.ast, 'const', 'object', object);
-	editor.ast.body.push(variable);
+	const variable = variables.declaration(ast, 'const', 'object', object1);
+	ast.body.push(variable);
 
-	editor.exports.defaultExport(editor.ast, editor.variables.identifier('object'));
+	exports.defaultExport(ast, variables.identifier('object'));
 }

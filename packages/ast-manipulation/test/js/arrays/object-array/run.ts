@@ -1,15 +1,15 @@
 import type { JsAstEditor } from '@svelte-cli/ast-manipulation';
 
-export function run(editor: JsAstEditor): void {
-	const array = editor.array.createEmpty();
+export function run({ ast, array, object, common, variables }: JsAstEditor): void {
+	const array1 = array.createEmpty();
 
-	const object = editor.object.create({ test: editor.common.expressionFromString('true') });
-	const object2 = editor.object.create({ test2: editor.common.createLiteral('string') });
-	editor.array.push(array, object);
-	editor.array.push(array, object2);
-	editor.array.push(array, object2); // avoid duplication
+	const object1 = object.create({ test: common.expressionFromString('true') });
+	const object2 = object.create({ test2: common.createLiteral('string') });
+	array.push(array1, object1);
+	array.push(array1, object2);
+	array.push(array1, object2); // avoid duplication
 
 	// create declaration so that we serialize everything
-	const declaration = editor.variables.declaration(editor.ast, 'const', 'array', array);
-	editor.ast.body.push(declaration);
+	const declaration = variables.declaration(ast, 'const', 'array', array1);
+	ast.body.push(declaration);
 }

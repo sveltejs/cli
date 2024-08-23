@@ -1,5 +1,5 @@
 import type { JsAstEditor } from '@svelte-cli/ast-manipulation';
 
-export function run(editor: JsAstEditor): void {
-	editor.imports.addDefault(editor.ast, 'package', 'MyPackage');
+export function run({ ast, imports }: JsAstEditor): void {
+	imports.addDefault(ast, 'package', 'MyPackage');
 }
