@@ -26,6 +26,9 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
+		},
+		"./build": {
+			"default": "./scripts/build-templates.js"
 		}
 	},
 	"devDependencies": {
@@ -36,11 +39,9 @@
 		"vitest": "^2.0.1"
 	},
 	"scripts": {
-		"build": "pnpm build:templates",
-		"build:templates": "node scripts/build-templates",
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"format": "pnpm lint --write",
-		"test": "pnpm build && vitest run",
+		"test": "node scripts/build-templates dist && vitest run",
 		"check": "tsc",
 		"update-template-repo": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
 	},

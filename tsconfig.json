@@ -1,5 +1,10 @@
 {
-	"exclude": ["**/dist/**", "packages/cli/templates/**", "packages/cli/shared/**", "**/temp/**"],
+	"exclude": [
+		"**/dist/**",
+		"packages/create/templates/**",
+		"packages/create/shared/**",
+		"**/temp/**"
+	],
 	"compilerOptions": {
 		"checkJs": true,
 		"moduleResolution": "Bundler",

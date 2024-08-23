@@ -4,6 +4,9 @@ import parser from 'gitignore-parser';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
+import { fileURLToPath } from 'node:url';
+
+const pkgRoot = path.resolve(fileURLToPath(import.meta.url), '..', '..');
 
 /** @param {string} content */
 async function convert_typescript(content) {
@@ -44,11 +47,11 @@ function strip_jsdoc(content) {
 }
 
 /**
- * @param {Set<string>} shared
  * @param {string} dist
+ * @param {Set<string>} shared
  */
-async function generate_templates(shared, dist) {
-	const templates = fs.readdirSync('templates');
+async function generate_templates(dist, shared) {
+	const templates = fs.readdirSync(path.resolve(pkgRoot, 'templates'));
 
 	for (const template of templates) {
 		if (template[0] === '.') continue;
@@ -57,7 +60,7 @@ async function generate_templates(shared, dist) {
 		const assets = path.join(dir, 'assets');
 		mkdirp(assets);
 
-		const cwd = path.resolve('templates', template);
+		const cwd = path.resolve(pkgRoot, 'templates', template);
 
 		const gitignore_file = path.join(cwd, '.gitignore');
 		if (!fs.existsSync(gitignore_file)) {
@@ -225,9 +228,11 @@ async function replace_async(string, regexp, replacer) {
 	return string.replace(regexp, () => replacements[i++]);
 }
 
-/** @param {string} dist  */
+/**
+ * @param {string} dist
+ */
 async function generate_shared(dist) {
-	const cwd = path.resolve('shared');
+	const cwd = path.resolve(pkgRoot, 'shared');
 
 	/** @type {Set<string>} */
 	const shared = new Set();
@@ -316,14 +321,17 @@ export function mkdirp(dir) {
 	}
 }
 
-/** @param {string} dist */
-async function main(dist) {
+/**
+ * @param {string} dist
+ */
+export async function buildTemplates(dist) {
 	mkdirp(dist);
 
 	const shared = await generate_shared(dist);
-	await generate_templates(shared, dist);
+	await generate_templates(dist, shared);
 }
 
-main('dist');
-// also generates the templates in the package where `@svelte-cli/create` will be bundled
-main(path.resolve('..', 'core', 'dist'));
+const dist = process.argv[2];
+if (dist === 'dist') {
+	buildTemplates(dist);
+}
