@@ -66,7 +66,7 @@ export function parseScript(content: string): AstTypes.Program {
 }
 
 export function serializeScript(ast: AstTypes.ASTNode): string {
-	return recastPrint(ast).code;
+	return recastPrint(ast, { quote: 'single', tabWidth: 4 }).code;
 }
 
 export function parsePostcss(content: string): CssAst {

@@ -6,7 +6,9 @@
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
 		"format": "pnpm lint --write",
-		"check": "tsc"
+		"check": "tsc",
+		"test": "vitest run",
+		"test:ui": "vitest --ui"
 	},
 	"exports": {
 		".": {
@@ -29,5 +31,5 @@
 		"type": "git",
 		"url": "https://github.com/sveltejs/cli/tree/main/packages/ast-manipulation"
 	},
-	"keywords": []
+	"keywords": [ ]
 }

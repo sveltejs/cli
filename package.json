@@ -24,6 +24,7 @@
 		"@svelte-cli/create": "workspace:*",
 		"@svitejs/changesets-changelog-github-compact": "^1.1.0",
 		"@types/node": "^22.3.0",
+		"@vitest/ui": "^2.0.5",
 		"eslint": "^9.6.0",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.2.6",
@@ -32,7 +33,8 @@
 		"rollup-plugin-preserve-shebangs": "^0.2.0",
 		"typescript": "^5.3.3",
 		"typescript-eslint": "^8.0.0",
-		"unplugin-isolated-decl": "^0.4.7"
+		"unplugin-isolated-decl": "^0.4.7",
+		"vitest": "^2.0.5"
 	},
 	"packageManager": "pnpm@9.7.0",
 	"engines": {
