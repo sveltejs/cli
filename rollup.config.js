@@ -42,7 +42,7 @@ function getConfig(project) {
 		// thus also removes the template files
 		buildCliTemplatesPlugin = {
 			name: 'build-cli-templates',
-			async buildEnd() {
+			async writeBundle() {
 				console.log('building templates');
 				const start = performance.now();
 				await buildTemplates(path.resolve('packages', 'create', 'dist'));
