@@ -7,7 +7,7 @@ import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
-import { execSync } from 'node:child_process';
+import { buildTemplates } from '@svelte-cli/create/build';
 
 /** @import { Package } from "./packages/core/utils/common.js" */
 /** @import { Plugin, RollupOptions } from "rollup" */
@@ -42,10 +42,15 @@ function getConfig(project) {
 		// thus also removes the template files
 		buildCliTemplatesPlugin = {
 			name: 'build-cli-templates',
-			writeBundle() {
+			async buildEnd() {
 				console.log('building templates');
-				execSync('node scripts/build-templates.js', { cwd: path.resolve('packages', 'create') });
-				console.log('finished building templates');
+				const start = performance.now();
+				await buildTemplates(
+					path.resolve('packages', 'core', 'dist'),
+					path.resolve('packages', 'create')
+				);
+				const end = performance.now();
+				console.log(`finished building templates: ${Math.round(end - start)}ms`);
 			}
 		};
 	}

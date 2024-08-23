@@ -44,11 +44,12 @@ function strip_jsdoc(content) {
 }
 
 /**
- * @param {Set<string>} shared
  * @param {string} dist
+ * @param {Set<string>} shared
+ * @param {string} _cwd
  */
-async function generate_templates(shared, dist) {
-	const templates = fs.readdirSync('templates');
+async function generate_templates(dist, shared, _cwd) {
+	const templates = fs.readdirSync(path.resolve(_cwd, 'templates'));
 
 	for (const template of templates) {
 		if (template[0] === '.') continue;
@@ -57,7 +58,7 @@ async function generate_templates(shared, dist) {
 		const assets = path.join(dir, 'assets');
 		mkdirp(assets);
 
-		const cwd = path.resolve('templates', template);
+		const cwd = path.resolve(_cwd, 'templates', template);
 
 		const gitignore_file = path.join(cwd, '.gitignore');
 		if (!fs.existsSync(gitignore_file)) {
@@ -225,9 +226,12 @@ async function replace_async(string, regexp, replacer) {
 	return string.replace(regexp, () => replacements[i++]);
 }
 
-/** @param {string} dist  */
-async function generate_shared(dist) {
-	const cwd = path.resolve('shared');
+/**
+ * @param {string} dist
+ * @param {string} _cwd
+ */
+async function generate_shared(dist, _cwd) {
+	const cwd = path.resolve(_cwd, 'shared');
 
 	/** @type {Set<string>} */
 	const shared = new Set();
@@ -316,14 +320,13 @@ export function mkdirp(dir) {
 	}
 }
 
-/** @param {string} dist */
-async function main(dist) {
+/**
+ * @param {string} dist
+ * @param {string} cwd
+ */
+export async function buildTemplates(dist, cwd = process.cwd()) {
 	mkdirp(dist);
 
-	const shared = await generate_shared(dist);
-	await generate_templates(shared, dist);
+	const shared = await generate_shared(dist, cwd);
+	await generate_templates(dist, shared, cwd);
 }
-
-main('dist');
-// also generates the templates in the package where `@svelte-cli/create` will be bundled
-main(path.resolve('..', 'core', 'dist'));

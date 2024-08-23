@@ -21,6 +21,7 @@
 		"@rollup/plugin-json": "^6.1.0",
 		"@rollup/plugin-node-resolve": "^15.2.3",
 		"@sveltejs/eslint-config": "^8.0.1",
+		"@svelte-cli/create": "workspace:*",
 		"@svitejs/changesets-changelog-github-compact": "^1.1.0",
 		"@types/node": "^22.3.0",
 		"eslint": "^9.6.0",

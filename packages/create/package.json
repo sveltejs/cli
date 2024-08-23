@@ -26,6 +26,9 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
+		},
+		"./build": {
+			"default": "./scripts/build-templates.js"
 		}
 	},
 	"devDependencies": {
