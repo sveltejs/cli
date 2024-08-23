@@ -4,6 +4,9 @@ import parser from 'gitignore-parser';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
+import { fileURLToPath } from 'node:url';
+
+const pkgRoot = path.resolve(fileURLToPath(import.meta.url), '..', '..');
 
 /** @param {string} content */
 async function convert_typescript(content) {
@@ -46,10 +49,9 @@ function strip_jsdoc(content) {
 /**
  * @param {string} dist
  * @param {Set<string>} shared
- * @param {string} _cwd
  */
-async function generate_templates(dist, shared, _cwd) {
-	const templates = fs.readdirSync(path.resolve(_cwd, 'templates'));
+async function generate_templates(dist, shared) {
+	const templates = fs.readdirSync(path.resolve(pkgRoot, 'templates'));
 
 	for (const template of templates) {
 		if (template[0] === '.') continue;
@@ -58,7 +60,7 @@ async function generate_templates(dist, shared, _cwd) {
 		const assets = path.join(dir, 'assets');
 		mkdirp(assets);
 
-		const cwd = path.resolve(_cwd, 'templates', template);
+		const cwd = path.resolve(pkgRoot, 'templates', template);
 
 		const gitignore_file = path.join(cwd, '.gitignore');
 		if (!fs.existsSync(gitignore_file)) {
@@ -228,10 +230,9 @@ async function replace_async(string, regexp, replacer) {
 
 /**
  * @param {string} dist
- * @param {string} _cwd
  */
-async function generate_shared(dist, _cwd) {
-	const cwd = path.resolve(_cwd, 'shared');
+async function generate_shared(dist) {
+	const cwd = path.resolve(pkgRoot, 'shared');
 
 	/** @type {Set<string>} */
 	const shared = new Set();
@@ -322,11 +323,10 @@ export function mkdirp(dir) {
 
 /**
  * @param {string} dist
- * @param {string} cwd
  */
-export async function buildTemplates(dist, cwd = process.cwd()) {
+export async function buildTemplates(dist) {
 	mkdirp(dist);
 
-	const shared = await generate_shared(dist, cwd);
-	await generate_templates(dist, shared, cwd);
+	const shared = await generate_shared(dist);
+	await generate_templates(dist, shared);
 }
