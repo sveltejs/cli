@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as p from './prompts';
-import { commonFilePaths, directoryExists, fileExists } from '../files/utils';
+import { commonFilePaths } from '../files/utils';
 import { getPackageJson } from './common';
 import { createEmptyWorkspace } from './workspace';
 import { spinner } from '@svelte-cli/clack-prompts';
@@ -14,21 +14,21 @@ export async function detectSvelteDirectory(directoryPath: string): Promise<stri
 	const parentDirectoryPath = path.normalize(path.join(directoryPath, '..'));
 	const isRoot = parentDirectoryPath == directoryPath;
 
-	if (!isRoot && !(await directoryExists(directoryPath))) {
+	if (!isRoot && !fs.existsSync(directoryPath)) {
 		return await detectSvelteDirectory(parentDirectoryPath);
 	}
 
-	if (!isRoot && !(await fileExists(packageJsonPath))) {
+	if (!isRoot && !fs.existsSync(packageJsonPath)) {
 		return await detectSvelteDirectory(parentDirectoryPath);
 	}
 
-	if (isRoot && !(await fileExists(packageJsonPath))) {
+	if (isRoot && !fs.existsSync(packageJsonPath)) {
 		return null;
 	}
 
 	const emptyWorkspace = createEmptyWorkspace();
 	emptyWorkspace.cwd = directoryPath;
-	const { data: packageJson } = await getPackageJson(emptyWorkspace);
+	const { data: packageJson } = getPackageJson(emptyWorkspace);
 
 	if (packageJson.devDependencies && 'svelte' in packageJson.devDependencies) {
 		return directoryPath;

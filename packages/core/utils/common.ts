@@ -12,11 +12,11 @@ export type Package = {
 	keywords?: string[];
 };
 
-export async function getPackageJson(workspace: WorkspaceWithoutExplicitArgs): Promise<{
+export function getPackageJson(workspace: WorkspaceWithoutExplicitArgs): {
 	text: string;
 	data: Package;
-}> {
-	const packageText = await readFile(workspace, commonFilePaths.packageJsonFilePath);
+} {
+	const packageText = readFile(workspace, commonFilePaths.packageJsonFilePath);
 	if (!packageText) {
 		return {
 			text: '',

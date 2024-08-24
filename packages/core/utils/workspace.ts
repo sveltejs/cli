@@ -1,10 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { getPackageJson } from './common';
-import { commonFilePaths, fileExists, findUp, readFile } from '../files/utils';
+import { commonFilePaths, findUp, readFile } from '../files/utils';
 import { getJsAstEditor } from '@svelte-cli/ast-manipulation';
 import type { OptionDefinition, OptionValues, Question } from '../adder/options';
 import { remoteControl } from '../internal';
-import path from 'node:path';
 
 export type PrettierData = {
 	installed: boolean;
@@ -70,25 +71,25 @@ export function addPropertyToWorkspaceOption(
 	});
 }
 
-export async function populateWorkspaceDetails(
+export function populateWorkspaceDetails(
 	workspace: WorkspaceWithoutExplicitArgs,
 	workingDirectory: string
-): Promise<void> {
+): void {
 	workspace.cwd = workingDirectory;
 
 	const tsConfigFileName = 'tsconfig.json';
 	const viteConfigFileName = 'vite.config.ts';
-	let usesTypescript = await fileExists(path.join(workingDirectory, viteConfigFileName));
+	let usesTypescript = fs.existsSync(path.join(workingDirectory, viteConfigFileName));
 
 	if (remoteControl.isRemoteControlled()) {
 		// while executing tests, we only look into the direct `workingDirectory`
 		// as we might detect the monorepo `tsconfig.json` otherwise.
-		usesTypescript ||= await fileExists(path.join(workingDirectory, tsConfigFileName));
+		usesTypescript ||= fs.existsSync(path.join(workingDirectory, tsConfigFileName));
 	} else {
-		usesTypescript ||= await findUp(workingDirectory, tsConfigFileName);
+		usesTypescript ||= findUp(workingDirectory, tsConfigFileName);
 	}
 
-	const { data: packageJson } = await getPackageJson(workspace);
+	const { data: packageJson } = getPackageJson(workspace);
 	if (packageJson.devDependencies) {
 		workspace.typescript.installed = usesTypescript;
 		workspace.prettier.installed = 'prettier' in packageJson.devDependencies;
@@ -100,14 +101,12 @@ export async function populateWorkspaceDetails(
 		}
 	}
 
-	await parseSvelteConfigIntoWorkspace(workspace);
+	parseSvelteConfigIntoWorkspace(workspace);
 }
 
-export async function parseSvelteConfigIntoWorkspace(
-	workspace: WorkspaceWithoutExplicitArgs
-): Promise<void> {
+export function parseSvelteConfigIntoWorkspace(workspace: WorkspaceWithoutExplicitArgs): void {
 	if (!workspace.kit.installed) return;
-	const configText = await readFile(workspace, commonFilePaths.svelteConfigFilePath);
+	const configText = readFile(workspace, commonFilePaths.svelteConfigFilePath);
 	const ast = parseScript(configText);
 	const editor = getJsAstEditor(ast);
 
