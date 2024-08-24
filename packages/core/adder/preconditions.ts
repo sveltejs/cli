@@ -1,10 +1,9 @@
 import * as pc from 'picocolors';
 import { booleanPrompt, endPrompts, messagePrompt } from '../utils/prompts';
 import { executeCli } from '../utils/cli';
-import type { AdderDetails } from './execute';
+import type { AdderDetails, ProjectType } from './execute';
 import type { Precondition } from './config';
 import type { OptionDefinition } from './options';
-import type { ProjectType } from '../utils/create-project';
 
 function getGlobalPreconditions<Args extends OptionDefinition>(
 	executingCli: string,

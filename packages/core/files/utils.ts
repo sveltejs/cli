@@ -1,61 +1,43 @@
-import fs from 'node:fs/promises';
+import fs from 'node:fs';
 import path from 'node:path';
 import { executeCli } from '../utils/cli';
 import type { WorkspaceWithoutExplicitArgs } from '../utils/workspace';
 
-export async function readFile(
-	workspace: WorkspaceWithoutExplicitArgs,
-	filePath: string
-): Promise<string> {
+export function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath: string): string {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 
-	if (!(await fileExistsWorkspace(workspace, filePath))) {
+	if (!fileExistsWorkspace(workspace, filePath)) {
 		return '';
 	}
 
-	const buffer = await fs.readFile(fullFilePath);
-	const text = buffer.toString();
+	const text = fs.readFileSync(fullFilePath, 'utf8');
 
 	return text;
 }
 
-export async function writeFile(
+export function writeFile(
 	workspace: WorkspaceWithoutExplicitArgs,
 	filePath: string,
 	content: string
-): Promise<void> {
+): void {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
 	if (content && !content.endsWith('\n')) content += '\n';
 
-	if (!(await directoryExists(fullDirectoryPath))) {
-		await fs.mkdir(fullDirectoryPath, { recursive: true });
+	if (!fs.existsSync(fullDirectoryPath)) {
+		fs.mkdirSync(fullDirectoryPath, { recursive: true });
 	}
 
-	await fs.writeFile(fullFilePath, content);
+	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
-export async function fileExistsWorkspace(
+export function fileExistsWorkspace(
 	workspace: WorkspaceWithoutExplicitArgs,
 	filePath: string
-): Promise<boolean> {
+): boolean {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
-	return await fileExists(fullFilePath);
-}
-
-export async function fileExists(filePath: string): Promise<boolean> {
-	try {
-		await fs.access(filePath, fs.constants.F_OK);
-		return true;
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	} catch (error) {
-		return false;
-	}
-}
-
-export async function directoryExists(directoryPath: string): Promise<boolean> {
-	return await fileExists(directoryPath);
+	return fs.existsSync(fullFilePath);
 }
 
 export function getFilePath(cwd: string, fileName: string): string {
@@ -76,11 +58,7 @@ export const commonFilePaths = {
 	svelteConfigFilePath: 'svelte.config.js'
 };
 
-export async function findUp(
-	searchPath: string,
-	fileName: string,
-	maxDepth?: number
-): Promise<boolean> {
+export function findUp(searchPath: string, fileName: string, maxDepth?: number): boolean {
 	// partially sourced from https://github.com/privatenumber/get-tsconfig/blob/9e78ec52d450d58743439358dd88e2066109743f/src/utils/find-up.ts#L5
 	let depth = 0;
 	while (!maxDepth || depth < maxDepth) {
@@ -88,7 +66,7 @@ export async function findUp(
 
 		try {
 			// `access` throws an exception if the file could not be found
-			await fs.access(configPath);
+			fs.accessSync(configPath);
 			return true;
 		} catch {
 			const parentPath = path.dirname(searchPath);

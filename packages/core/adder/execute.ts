@@ -2,7 +2,7 @@ import path from 'node:path';
 import * as pc from 'picocolors';
 import { serializeJson } from '@svelte-cli/ast-tooling';
 import { commonFilePaths, format, writeFile } from '../files/utils';
-import { type ProjectType, createProject, detectSvelteDirectory } from '../utils/create-project';
+import { createProject, detectSvelteDirectory } from '../utils/create-project';
 import { createOrUpdateFiles } from '../files/processors';
 import { getPackageJson } from '../utils/common';
 import {
@@ -35,6 +35,8 @@ import { checkPostconditions, printUnmetPostconditions } from './postconditions'
 import { displayNextSteps } from './nextSteps';
 import { spinner, log, cancel } from '@svelte-cli/clack-prompts';
 import { executeCli } from '../utils/cli';
+
+export type ProjectType = 'svelte' | 'kit';
 
 export type AdderDetails<Args extends OptionDefinition> = {
 	config: AdderConfig<Args>;
@@ -132,15 +134,13 @@ async function executePlan<Args extends OptionDefinition>(
 	// create project if required
 	if (executionPlan.createProject) {
 		const cwd = executionPlan.commonCliOptions.path ?? executionPlan.workingDirectory;
-		const supportKit = adderDetails.some((x) => x.config.metadata.environments.kit);
-		const supportSvelte = adderDetails.some((x) => x.config.metadata.environments.svelte);
-		const { projectCreated, directory } = await createProject(cwd, supportKit, supportSvelte);
+		const { projectCreated, directory } = await createProject(cwd);
 		if (!projectCreated) return;
 		executionPlan.workingDirectory = directory;
 	}
 
 	const workspace = createEmptyWorkspace();
-	await populateWorkspaceDetails(workspace, executionPlan.workingDirectory);
+	populateWorkspaceDetails(workspace, executionPlan.workingDirectory);
 	const projectType: ProjectType = workspace.kit.installed ? 'kit' : 'svelte';
 
 	// select appropriate adders
@@ -218,7 +218,7 @@ async function executePlan<Args extends OptionDefinition>(
 		const adderId = config.metadata.id;
 
 		const adderWorkspace = createEmptyWorkspace<Args>();
-		await populateWorkspaceDetails(adderWorkspace, executionPlan.workingDirectory);
+		populateWorkspaceDetails(adderWorkspace, executionPlan.workingDirectory);
 		if (executionPlan.cliOptionsByAdderId) {
 			for (const [key, value] of Object.entries(executionPlan.cliOptionsByAdderId[adderId])) {
 				addPropertyToWorkspaceOption(adderWorkspace, key, value);
@@ -252,7 +252,7 @@ async function executePlan<Args extends OptionDefinition>(
 	}
 
 	// reload workspace as adders might have changed i.e. dependencies
-	await populateWorkspaceDetails(workspace, executionPlan.workingDirectory);
+	populateWorkspaceDetails(workspace, executionPlan.workingDirectory);
 
 	let installStatus;
 	if (!remoteControlled && !executionPlan.commonCliOptions.skipInstall)
@@ -281,8 +281,8 @@ async function processInlineAdder<Args extends OptionDefinition>(
 	workspace: Workspace<Args>,
 	isInstall: boolean
 ) {
-	const pkgPath = await installPackages(config, workspace);
-	const updatedOrCreatedFiles = await createOrUpdateFiles(config.files, workspace);
+	const pkgPath = installPackages(config, workspace);
+	const updatedOrCreatedFiles = createOrUpdateFiles(config.files, workspace);
 	await runHooks(config, workspace, isInstall);
 
 	const changedFiles = [pkgPath, ...updatedOrCreatedFiles];
@@ -318,11 +318,11 @@ export function determineWorkingDirectory(directory: string | undefined): string
 	return cwd;
 }
 
-export async function installPackages<Args extends OptionDefinition>(
+export function installPackages<Args extends OptionDefinition>(
 	config: InlineAdderConfig<Args>,
 	workspace: Workspace<Args>
-): Promise<string> {
-	const { text: originalText, data } = await getPackageJson(workspace);
+): string {
+	const { text: originalText, data } = getPackageJson(workspace);
 
 	for (const dependency of config.packages) {
 		if (dependency.condition && !dependency.condition(workspace)) {
@@ -347,11 +347,7 @@ export async function installPackages<Args extends OptionDefinition>(
 	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
 	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
 
-	await writeFile(
-		workspace,
-		commonFilePaths.packageJsonFilePath,
-		serializeJson(originalText, data)
-	);
+	writeFile(workspace, commonFilePaths.packageJsonFilePath, serializeJson(originalText, data));
 	return commonFilePaths.packageJsonFilePath;
 }
 

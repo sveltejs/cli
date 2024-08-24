@@ -86,10 +86,10 @@ export type FileTypes<Args extends OptionDefinition> =
  * @param workspace
  * @returns a list of paths of changed or created files
  */
-export async function createOrUpdateFiles<Args extends OptionDefinition>(
+export function createOrUpdateFiles<Args extends OptionDefinition>(
 	files: Array<FileTypes<Args>>,
 	workspace: Workspace<Args>
-): Promise<string[]> {
+): string[] {
 	const changedFiles = [];
 	for (const fileDetails of files) {
 		try {
@@ -97,13 +97,13 @@ export async function createOrUpdateFiles<Args extends OptionDefinition>(
 				continue;
 			}
 
-			const exists = await fileExistsWorkspace(workspace, fileDetails.name(workspace));
+			const exists = fileExistsWorkspace(workspace, fileDetails.name(workspace));
 
 			let content = '';
 			if (!exists) {
 				content = '';
 			} else {
-				content = await readFile(workspace, fileDetails.name(workspace));
+				content = readFile(workspace, fileDetails.name(workspace));
 			}
 
 			if (fileDetails.contentType == 'script') {
@@ -120,7 +120,7 @@ export async function createOrUpdateFiles<Args extends OptionDefinition>(
 				content = handleHtmlFile(content, fileDetails, workspace);
 			}
 
-			await writeFile(workspace, fileDetails.name(workspace), content);
+			writeFile(workspace, fileDetails.name(workspace), content);
 			changedFiles.push(fileDetails.name(workspace));
 		} catch (e) {
 			if (e instanceof Error)

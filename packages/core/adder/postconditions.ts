@@ -1,3 +1,4 @@
+import dedent from 'dedent';
 import * as pc from 'picocolors';
 import { messagePrompt } from '../utils/prompts';
 import { fileExistsWorkspace, readFile } from '../files/utils';
@@ -7,12 +8,12 @@ import type { OptionDefinition } from './options';
 
 export type PreconditionParameters<Args extends OptionDefinition> = {
 	workspace: Workspace<Args>;
-	fileExists: (path: string) => Promise<void>;
-	fileContains: (path: string, expectedContent: string) => Promise<void>;
+	fileExists: (path: string) => void;
+	fileContains: (path: string, expectedContent: string) => void;
 };
 export type Postcondition<Args extends OptionDefinition> = {
 	name: string;
-	run: (params: PreconditionParameters<Args>) => Promise<void>;
+	run: (params: PreconditionParameters<Args>) => Promise<void> | void;
 };
 
 export async function checkPostconditions<Args extends OptionDefinition>(
@@ -41,20 +42,20 @@ export async function checkPostconditions<Args extends OptionDefinition>(
 	return unmetPostconditions;
 }
 
-async function fileExists<Args extends OptionDefinition>(path: string, workspace: Workspace<Args>) {
-	if (await fileExistsWorkspace(workspace, path)) return;
+function fileExists<Args extends OptionDefinition>(path: string, workspace: Workspace<Args>) {
+	if (fileExistsWorkspace(workspace, path)) return;
 
 	throw new Error(`File "${path}" does not exists`);
 }
 
-async function fileContains<Args extends OptionDefinition>(
+function fileContains<Args extends OptionDefinition>(
 	path: string,
 	workspace: Workspace<Args>,
 	expectedContent: string
-): Promise<void> {
-	await fileExists(path, workspace);
+): void {
+	fileExists(path, workspace);
 
-	const content = await readFile(workspace, path);
+	const content = readFile(workspace, path);
 	if (content && content.includes(expectedContent)) return;
 
 	throw new Error(`File "${path}" does not contain "${expectedContent}"`);
@@ -62,8 +63,11 @@ async function fileContains<Args extends OptionDefinition>(
 
 export function printUnmetPostconditions(unmetPostconditions: string[]): void {
 	const postconditionList = unmetPostconditions.map((x) => pc.yellow(`- ${x}`)).join('\n');
-	const additionalText = `Postconditions are not supposed to fail.
-Please open an issue providing the full console output:
-https://github.com/sveltejs/cli/issues/new/choose`;
+	const additionalText = dedent`
+		Postconditions are not supposed to fail.
+		Please open an issue providing the full console output:
+		https://github.com/sveltejs/cli/issues/new/choose
+	`;
+
 	messagePrompt('Postconditions not met', `${postconditionList}\n\n${additionalText}`);
 }
