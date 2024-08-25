@@ -32,7 +32,7 @@
 		"rollup-plugin-preserve-shebangs": "^0.2.0",
 		"typescript": "^5.3.3",
 		"typescript-eslint": "^8.0.0",
-		"unplugin-isolated-decl": "^0.4.5"
+		"unplugin-isolated-decl": "^0.4.7"
 	},
 	"packageManager": "pnpm@9.7.0",
 	"engines": {
