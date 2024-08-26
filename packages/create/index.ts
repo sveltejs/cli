@@ -3,7 +3,7 @@ import path from 'node:path';
 import { mkdirp, copy, dist } from './utils';
 
 export type TemplateType = 'default' | 'skeleton' | 'skeletonlib';
-export type LanguageType = 'typescript' | 'checkjs' | null;
+export type LanguageType = 'typescript' | 'checkjs' | 'none';
 
 export type Options = {
 	name: string;
@@ -16,7 +16,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = Exclude<TemplateType | LanguageType, null>;
+export type Condition = Exclude<TemplateType | LanguageType, 'none'>;
 
 export type Common = {
 	files: Array<{
