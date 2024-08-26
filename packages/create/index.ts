@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist } from './utils';
 
-export type TemplateType = 'default' | 'skeleton' | 'skeletonlib';
+export type TemplateType = 'demo' | 'skeleton' | 'skeletonlib';
 export type LanguageType = 'typescript' | 'checkjs' | 'none';
 
 export type Options = {
@@ -93,7 +93,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 }
 
 function matches_condition(condition: Condition, options: Options) {
-	if (condition === 'default' || condition === 'skeleton' || condition === 'skeletonlib') {
+	if (condition === 'demo' || condition === 'skeleton' || condition === 'skeletonlib') {
 		return options.template === condition;
 	}
 	if (condition === 'typescript' || condition === 'checkjs') {
