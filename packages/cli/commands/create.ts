@@ -1,0 +1,113 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import * as v from 'valibot';
+import { Command, Option } from 'commander';
+import * as p from '@svelte-cli/clack-prompts';
+import {
+	create as createKit,
+	templates,
+	type LanguageType,
+	type TemplateType
+} from '@svelte-cli/create';
+import { wrap } from '../common.js';
+
+const langs = ['typescript', 'checkjs', 'none'] as const;
+const templateChoices = templates.map((t) => t.name);
+const langOption = new Option('--check-types <lang>', 'add type checking').choices(langs);
+const templateOption = new Option('--template <type>', 'template to scaffold').choices(
+	templateChoices
+);
+
+const OptionsSchema = v.strictObject({
+	checkTypes: v.optional(v.picklist(langs)),
+	adders: v.boolean(),
+	template: v.optional(v.picklist(templateChoices))
+});
+type Options = v.InferOutput<typeof OptionsSchema>;
+
+export const create = new Command('create')
+	.description('scaffolds a new SvelteKit project')
+	.argument('[path]', 'where the project will be created', process.cwd())
+	.addOption(langOption)
+	.addOption(templateOption)
+	.option('--no-adders', 'skips interactive adder installer')
+	.action((projectPath: string, opts) => {
+		const options = v.parse(OptionsSchema, opts);
+		wrap(async () => {
+			await createProject(projectPath, options);
+		});
+	});
+
+async function createProject(cwd: string, options: Options) {
+	const relativePath = path.relative(process.cwd(), cwd) || './';
+
+	const { directory, template, language } = await p.group(
+		{
+			directory: async () => {
+				if (relativePath !== './') return relativePath;
+				return p.text({
+					message: 'Where should we create your project?',
+					placeholder: `  (hit Enter to use '${relativePath}')`,
+					defaultValue: relativePath
+				});
+			},
+			force: async ({ results: { directory } }) => {
+				if (fs.existsSync(directory!) && fs.readdirSync(directory!).length > 0) {
+					const force = await p.confirm({
+						message: 'Directory not empty. Continue?',
+						initialValue: false
+					});
+					if (p.isCancel(force) || !force) {
+						p.cancel('Exiting.');
+						process.exit(0);
+					}
+				}
+			},
+			template: async () => {
+				if (options.template) return options.template;
+				return p.select<TemplateType>({
+					message: 'Which Svelte app template',
+					initialValue: 'demo',
+					options: templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }))
+				});
+			},
+			language: async () => {
+				if (options.checkTypes) return options.checkTypes;
+				return p.select<LanguageType>({
+					message: 'Add type checking with Typescript?',
+					initialValue: 'typescript',
+					options: [
+						{ label: 'Yes, using Typescript syntax', value: 'typescript' },
+						{ label: 'Yes, using Javascript with JSDoc comments', value: 'checkjs' },
+						{ label: 'No', value: 'none' }
+					]
+				});
+			}
+		},
+		{
+			onCancel: () => {
+				p.cancel('Exiting.');
+				process.exit(0);
+			}
+		}
+	);
+
+	const initSpinner = p.spinner();
+	initSpinner.start('Initializing template');
+
+	createKit(directory, {
+		name: path.basename(path.resolve(directory)),
+		template,
+		types: language
+	});
+
+	initSpinner.stop('Project created');
+
+	if (options.adders) {
+		// TODO: ask about adders
+	}
+
+	return {
+		directory: path.join(process.cwd(), directory)
+	};
+}
