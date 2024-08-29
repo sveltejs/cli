@@ -10,6 +10,7 @@ import {
 	type TemplateType
 } from '@svelte-cli/create';
 import { wrap } from '../common.js';
+import { runAddCommand } from './add.js';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
 const templateChoices = templates.map((t) => t.name);
@@ -18,6 +19,7 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 	templateChoices
 );
 
+const ProjectPathSchema = v.string();
 const OptionsSchema = v.strictObject({
 	checkTypes: v.optional(v.picklist(langs)),
 	adders: v.boolean(),
@@ -31,20 +33,19 @@ export const create = new Command('create')
 	.addOption(langOption)
 	.addOption(templateOption)
 	.option('--no-adders', 'skips interactive adder installer')
-	.action((projectPath: string, opts) => {
+	.action((projectPath, opts) => {
+		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		wrap(async () => {
-			await createProject(projectPath, options);
+			await createProject(cwd, options);
 		});
 	});
 
 async function createProject(cwd: string, options: Options) {
-	const relativePath = path.relative(process.cwd(), cwd) || './';
-
 	const { directory, template, language } = await p.group(
 		{
 			directory: async () => {
-				if (relativePath !== './') return relativePath;
+				const relativePath = path.relative(process.cwd(), cwd) || './';
 				return p.text({
 					message: 'Where should we create your project?',
 					placeholder: `  (hit Enter to use '${relativePath}')`,
@@ -86,7 +87,7 @@ async function createProject(cwd: string, options: Options) {
 		},
 		{
 			onCancel: () => {
-				p.cancel('Exiting.');
+				p.cancel('Operation cancelled.');
 				process.exit(0);
 			}
 		}
@@ -95,8 +96,9 @@ async function createProject(cwd: string, options: Options) {
 	const initSpinner = p.spinner();
 	initSpinner.start('Initializing template');
 
-	createKit(directory, {
-		name: path.basename(path.resolve(directory)),
+	const projectPath = path.resolve(directory);
+	createKit(projectPath, {
+		name: path.basename(projectPath),
 		template,
 		types: language
 	});
@@ -104,10 +106,11 @@ async function createProject(cwd: string, options: Options) {
 	initSpinner.stop('Project created');
 
 	if (options.adders) {
-		// TODO: ask about adders
+		const config = { cwd: projectPath, default: false, install: true, preconditions: true };
+		await runAddCommand(config, []);
 	}
 
 	return {
-		directory: path.join(process.cwd(), directory)
+		directory: projectPath
 	};
 }
