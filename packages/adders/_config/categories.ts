@@ -1,10 +1,11 @@
+export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
+
 export type CategoryInfo = {
-	id: string;
+	id: CategoryKeys;
 	name: string;
 	description: string;
 };
 
-export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
 export type CategoryDetails = Record<CategoryKeys, CategoryInfo>;
 
 export type AdderCategories = Record<CategoryKeys, string[]>;
