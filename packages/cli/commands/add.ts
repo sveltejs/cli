@@ -349,7 +349,7 @@ function transformAliases(ids: string[]): string[] {
 	return Array.from(set);
 }
 
-// other possivel variations
+// other possible variations
 // npx sv add drizzle tailwindcss --options postgresql,postgres.js,no-docker no-typography
 // npx sv add drizzle=postgresql,postgres.js,no-docker tailwindcss=no-typography
 // `sv add drizzle tailwindcss --drizzle db:postgresql client:postgres.js docker:false --tailwindcss typography:false`
