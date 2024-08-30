@@ -208,6 +208,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		p.log.success('Successfully installed adders');
 	}
 
+	// TODO: apply community adders
+
 	// install dependencies
 	let depsInstalled;
 	if (options.install) {
