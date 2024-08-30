@@ -1,16 +1,14 @@
-import type {
+import type { OptionDefinition, OptionValues, Question } from './options.js';
+import type { FileType } from '../files/processors.js';
+import type { Workspace } from '../files/workspace.js';
+import type { Colors } from 'picocolors/types.js';
+
+export type {
 	CssAstEditor,
 	HtmlAstEditor,
 	JsAstEditor,
 	SvelteAstEditor
 } from '@svelte-cli/ast-manipulation';
-import type { OptionDefinition, OptionValues, Question } from './options.js';
-import type { FileTypes } from '../files/processors.js';
-import type { Workspace } from '../utils/workspace.js';
-import type { Postcondition } from './postconditions.js';
-import type { Colors } from 'picocolors/types.js';
-
-export type { CssAstEditor, HtmlAstEditor, JsAstEditor, SvelteAstEditor };
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
@@ -54,15 +52,13 @@ export type BaseAdderConfig<Args extends OptionDefinition> = {
 export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
 	integrationType: 'inline';
 	packages: Array<PackageDefinition<Args>>;
-	files: Array<FileTypes<Args>>;
+	files: Array<FileType<Args>>;
 	nextSteps?: (data: {
 		options: OptionValues<Args>;
 		cwd: string;
 		colors: Colors;
 		docs: string | undefined;
 	}) => string[];
-	installHook?: (workspace: Workspace<Args>) => Promise<void>;
-	uninstallHook?: (workspace: Workspace<Args>) => Promise<void>;
 };
 
 export type ExternalAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
@@ -113,7 +109,7 @@ export type TestDefinition<Args extends OptionDefinition> = {
 };
 
 export type AdderTestConfig<Args extends OptionDefinition> = {
-	files: Array<FileTypes<Args>>;
+	files: Array<FileType<Args>>;
 	options: Args;
 	optionValues: Array<OptionValues<Args>>;
 	runSynchronously?: boolean;
@@ -141,7 +137,6 @@ export type Precondition = {
 export type AdderCheckConfig<Args extends OptionDefinition> = {
 	options: Args;
 	preconditions?: Precondition[];
-	postconditions?: Array<Postcondition<Args>>;
 };
 
 export function defineAdderChecks<Args extends OptionDefinition>(

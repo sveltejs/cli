@@ -1,7 +1,43 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { executeCli } from '../utils/cli';
-import type { WorkspaceWithoutExplicitArgs } from '../utils/workspace';
+import { parseJson, serializeJson } from '@svelte-cli/ast-tooling';
+import type { InlineAdderConfig } from '../adder/config.js';
+import type { OptionDefinition } from '../adder/options.js';
+import type { Workspace, WorkspaceWithoutExplicitArgs } from './workspace.js';
+
+export type Package = {
+	name: string;
+	version: string;
+	dependencies?: Record<string, string>;
+	devDependencies?: Record<string, string>;
+	bugs?: string;
+	repository?: { type: string; url: string };
+	keywords?: string[];
+};
+
+export function getPackageJson(workspace: WorkspaceWithoutExplicitArgs): {
+	text: string;
+	data: Package;
+} {
+	const packageText = readFile(workspace, commonFilePaths.packageJsonFilePath);
+	if (!packageText) {
+		return {
+			text: '',
+			data: {
+				dependencies: {},
+				devDependencies: {},
+				name: '',
+				version: ''
+			}
+		};
+	}
+
+	const packageJson = parseJson(packageText) as Package;
+	return {
+		text: packageText,
+		data: packageJson
+	};
+}
 
 export function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath: string): string {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
@@ -13,6 +49,48 @@ export function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath: stri
 	const text = fs.readFileSync(fullFilePath, 'utf8');
 
 	return text;
+}
+
+export function installPackages<Args extends OptionDefinition>(
+	config: InlineAdderConfig<Args>,
+	workspace: Workspace<Args>
+): string {
+	const { text: originalText, data } = getPackageJson(workspace);
+
+	for (const dependency of config.packages) {
+		if (dependency.condition && !dependency.condition(workspace)) {
+			continue;
+		}
+
+		if (dependency.dev) {
+			if (!data.devDependencies) {
+				data.devDependencies = {};
+			}
+
+			data.devDependencies[dependency.name] = dependency.version;
+		} else {
+			if (!data.dependencies) {
+				data.dependencies = {};
+			}
+
+			data.dependencies[dependency.name] = dependency.version;
+		}
+	}
+
+	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
+	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
+
+	writeFile(workspace, commonFilePaths.packageJsonFilePath, serializeJson(originalText, data));
+	return commonFilePaths.packageJsonFilePath;
+}
+
+function alphabetizeProperties(obj: Record<string, string>) {
+	const orderedObj: Record<string, string> = {};
+	const sortedEntries = Object.entries(obj).sort(([a], [b]) => a.localeCompare(b));
+	for (const [key, value] of sortedEntries) {
+		orderedObj[key] = value;
+	}
+	return orderedObj;
 }
 
 export function writeFile(
@@ -42,15 +120,6 @@ export function fileExistsWorkspace(
 
 export function getFilePath(cwd: string, fileName: string): string {
 	return path.join(cwd, fileName);
-}
-
-export async function format(
-	workspace: WorkspaceWithoutExplicitArgs,
-	paths: string[]
-): Promise<void> {
-	await executeCli('npx', ['prettier', '--write', '--ignore-unknown', ...paths], workspace.cwd, {
-		stdio: 'pipe'
-	});
 }
 
 export const commonFilePaths = {

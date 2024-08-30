@@ -1,35 +1,6 @@
-import * as remoteControl from './adder/remoteControl';
-import {
-	executeAdder,
-	executeAdders,
-	determineWorkingDirectory,
-	type AddersToApplySelectorParams,
-	type AdderDetails,
-	type ExecutingAdderInfo
-} from './adder/execute';
-import { createOrUpdateFiles } from './files/processors';
-import { createEmptyWorkspace, populateWorkspaceDetails } from './utils/workspace';
-import { suggestInstallingDependencies } from './utils/dependencies';
-import { availableCliOptions, type AvailableCliOptions, type Question } from './adder/options';
-import * as prompts from './utils/prompts';
-
-export {
-	remoteControl,
-	createOrUpdateFiles,
-	createEmptyWorkspace,
-	executeAdder,
-	executeAdders,
-	populateWorkspaceDetails,
-	determineWorkingDirectory,
-	prompts,
-	suggestInstallingDependencies,
-	availableCliOptions
-};
-
-export type {
-	AvailableCliOptions,
-	AddersToApplySelectorParams,
-	AdderDetails,
-	Question,
-	ExecutingAdderInfo
-};
+export { installPackages } from './files/utils';
+export { createOrUpdateFiles } from './files/processors';
+export { createWorkspace, type Workspace } from './files/workspace';
+export { detectSvelteDirectory } from './utils/create-project.js';
+export { TESTING } from './env';
+export type { Question } from './adder/options';

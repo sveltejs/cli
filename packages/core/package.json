@@ -23,10 +23,7 @@
 	],
 	"devDependencies": {
 		"@svelte-cli/clack-prompts": "workspace:*",
-		"@svelte-cli/create": "workspace:*",
-		"commander": "^12.1.0",
 		"dedent": "^1.5.3",
-		"package-manager-detector": "^0.1.0",
 		"picocolors": "^1.0.1"
 	},
 	"dependencies": {
