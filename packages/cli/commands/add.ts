@@ -31,16 +31,13 @@ const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
-	default: v.boolean()
-	// community: AddersSchema
+	default: v.boolean(),
+	community: AddersSchema
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 const adderDetails = adderIds.map((id) => getAdderDetails(id));
 const aliases = adderDetails.map((c) => c.config.metadata.alias).filter((v) => v !== undefined);
-
-// const communityOptions = new Option('--community [adder...]', 'community adders to install')
-//.choices(communityAdders.map((a) => a.id));
 
 const adderArg = new Argument('[adder...]', 'adders to install');
 
@@ -51,8 +48,7 @@ export const add = new Command('add')
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
 	.option('--default', 'applies default adder options for unspecified options', false)
-	// TODO: community adders
-	// .addOption(communityOptions)
+	.option('--community [adder...]', 'community adders to install')
 	.action((adderArgs, opts) => {
 		const adders = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
@@ -71,9 +67,9 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const adderIds = transformAliases(adders);
+		const dedupedIds = transformAliases(adders);
 		runCommand(async () => {
-			await runAddCommand(options, adderIds);
+			await runAddCommand(options, dedupedIds);
 		});
 	});
 
