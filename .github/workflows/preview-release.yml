@@ -39,5 +39,6 @@ jobs:
         if: ${{ steps.changed-files.outputs.all_changed_files_count > 0 }}
         env:
           CHANGED_DIRS: ${{ steps.changed-files.outputs.all_changed_files }}
-        run: |
-          node scripts/get-deps-to-publish.js
+        # run: |
+        #   node scripts/get-deps-to-publish.js
+        run: pnpm dlx pkg-pr-new@0.0 publish --pnpm './packages/*'
