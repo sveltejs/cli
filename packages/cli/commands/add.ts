@@ -15,7 +15,7 @@ import {
 	createOrUpdateFiles,
 	createWorkspace,
 	installPackages,
-	remoteControl
+	TESTING
 } from '@svelte-cli/core/internal';
 import {
 	type ExternalAdderConfig,
@@ -127,10 +127,12 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			const message = fails
 				.map(({ name, message }) => pc.yellow(`${name} (${message})`))
 				.join('\n- ');
+
 			p.note(`- ${message}`, 'Preconditions not met');
 
 			const force = await p.confirm({
-				message: 'Preconditions failed. Do you wish to continue?'
+				message: 'Preconditions failed. Do you wish to continue?',
+				initialValue: false
 			});
 			if (p.isCancel(force) || !force) {
 				p.cancel('Operation cancelled.');
@@ -194,10 +196,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// apply adders
 	let filesToFormat: string[] = [];
 	if (Object.keys({ ...official, ...community }).length > 0) {
-		const adderSpinner = p.spinner();
-		adderSpinner.start('Applying adders');
 		filesToFormat = await installAdders({ cwd: options.cwd, official, community });
-		adderSpinner.stop('Successfully installed adders');
+		p.log.success('Successfully installed adders');
 	}
 
 	// TODO: run postconditions?
@@ -310,12 +310,12 @@ async function processExternalAdder<Args extends OptionDefinition>(
 	config: ExternalAdderConfig<Args>,
 	cwd: string
 ) {
-	if (!remoteControl) console.log('Executing external command');
+	if (!TESTING) p.log.message('Executing external command');
 
 	try {
 		await executeCli('npx', config.command.split(' '), cwd, {
 			env: Object.assign(process.env, config.environment ?? {}),
-			stdio: remoteControl ? 'pipe' : 'inherit'
+			stdio: TESTING ? 'pipe' : 'inherit'
 		});
 	} catch (error) {
 		const typedError = error as Error;
