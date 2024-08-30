@@ -45,7 +45,7 @@ function getConfig(project) {
 			async writeBundle() {
 				console.log('building templates');
 				const start = performance.now();
-				await buildTemplates(path.resolve('packages', 'core', 'dist'));
+				await buildTemplates(path.resolve('packages', 'cli', 'dist'));
 				const end = performance.now();
 				console.log(`finished building templates: ${Math.round(end - start)}ms`);
 			}
@@ -78,7 +78,6 @@ export default [
 	getConfig('clack-prompts'),
 	getConfig('ast-tooling'),
 	getConfig('ast-manipulation'),
-	getConfig('config'),
 	getConfig('create'),
 	getConfig('core'),
 	getConfig('cli')
