@@ -9,7 +9,7 @@ import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { buildTemplates } from '@svelte-cli/create/build';
 
-/** @import { Package } from "./packages/core/utils/common.js" */
+/** @import { Package } from "./packages/core/files/utils.js" */
 /** @import { Plugin, RollupOptions } from "rollup" */
 /** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
 
