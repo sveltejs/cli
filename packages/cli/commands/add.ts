@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as v from 'valibot';
-import { Argument, Command, Option } from 'commander';
+import { Argument, Command } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import pc from 'picocolors';
 import {
@@ -11,7 +11,7 @@ import {
 	suggestInstallingDependencies,
 	runCommand
 } from '../common.js';
-import { adderCategories, categories, adderIds, communityAdders } from '@svelte-cli/adders';
+import { adderCategories, categories, adderIds } from '@svelte-cli/adders';
 import { getAdderConfig, getAdderDetails } from '../../adders/index.js';
 import {
 	createOrUpdateFiles,
