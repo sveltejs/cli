@@ -9,7 +9,7 @@ import {
 	type LanguageType,
 	type TemplateType
 } from '@svelte-cli/create';
-import { wrap } from '../common.js';
+import { runCommand } from '../common.js';
 import { runAddCommand } from './add.js';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
@@ -36,7 +36,7 @@ export const create = new Command('create')
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
-		wrap(async () => {
+		runCommand(async () => {
 			await createProject(cwd, options);
 		});
 	});

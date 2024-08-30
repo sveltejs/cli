@@ -9,7 +9,7 @@ import {
 	formatFiles,
 	getGlobalPreconditions,
 	suggestInstallingDependencies,
-	wrap
+	runCommand
 } from '../common.js';
 import { adderCategories, categories, adderIds, communityAdders } from '@svelte-cli/adders';
 import { getAdderConfig, getAdderDetails } from '../../adders/index.js';
@@ -51,8 +51,9 @@ export const add = new Command('add')
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
 	.option('--default', 'applies default adder options for unspecified options', false)
+	// TODO: community adders
 	// .addOption(communityOptions)
-	.action(async (adderArgs, opts) => {
+	.action((adderArgs, opts) => {
 		const adders = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
 
@@ -70,9 +71,10 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const deduped = transformAliases(adders);
-
-		await wrap(async () => await runAddCommand(options, deduped));
+		const adderIds = transformAliases(adders);
+		runCommand(async () => {
+			await runAddCommand(options, adderIds);
+		});
 	});
 
 export async function runAddCommand(options: Options, adders: string[]): Promise<void> {

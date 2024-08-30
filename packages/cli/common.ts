@@ -8,10 +8,16 @@ import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 
 type MaybePromise = () => Promise<void> | void;
 
-export async function wrap(action: MaybePromise) {
-	p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
-	await action();
-	p.outro("You're all set!");
+export async function runCommand(action: MaybePromise) {
+	try {
+		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
+		await action();
+		p.outro("You're all set!");
+	} catch (e) {
+		if (e instanceof Error) {
+			p.cancel(e.message);
+		}
+	}
 }
 
 export async function executeCli(
