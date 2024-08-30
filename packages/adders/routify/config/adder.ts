@@ -18,7 +18,7 @@ export const adder = defineAdderConfig({
 	packages: [{ name: '@roxi/routify', version: 'next', dev: true }],
 	files: [
 		{
-			name: ({ typescript }) => `vite.config.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			content: ({ ast, array, object, functions, imports, exports }) => {
 				const vitePluginName = 'routify';
