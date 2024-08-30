@@ -106,8 +106,10 @@ async function createProject(cwd: string, options: Options) {
 	initSpinner.stop('Project created');
 
 	if (options.adders) {
-		const config = { cwd: projectPath, default: false, install: true, preconditions: true };
-		await runAddCommand(config, []);
+		await runAddCommand(
+			{ cwd: projectPath, default: false, install: true, preconditions: true, community: [] },
+			[]
+		);
 	}
 
 	return {
