@@ -2,7 +2,13 @@ import * as v from 'valibot';
 import { Argument, Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import pc from 'picocolors';
-import { executeCli, formatFiles, suggestInstallingDependencies, wrap } from '../common.js';
+import {
+	executeCli,
+	formatFiles,
+	getGlobalPreconditions,
+	suggestInstallingDependencies,
+	wrap
+} from '../common.js';
 import { adderCategories, categories, adderIds, communityAdders } from '@svelte-cli/adders';
 import { getAdderConfig, getAdderDetails } from '../../adders/index.js';
 import {
@@ -101,11 +107,17 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// run precondition checks
 	if (options.preconditions) {
-		// TODO: add global checks
-		const fails: Array<{ name: string; message?: string }> = [];
 		const preconditions = selectedAdders
 			.flatMap((c) => c.checks.preconditions)
 			.filter((p) => p !== undefined);
+
+		// add global checks
+		const { kit } = createWorkspace(options.cwd);
+		const projectType = kit ? 'kit' : 'svelte';
+		const globalPreconditions = getGlobalPreconditions(options.cwd, projectType, selectedAdders);
+		preconditions.unshift(...globalPreconditions.preconditions);
+
+		const fails: Array<{ name: string; message?: string }> = [];
 		for (const condition of preconditions) {
 			const { message, success } = await condition.run();
 			if (!success) fails.push({ name: condition.name, message });
