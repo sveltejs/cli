@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import * as v from 'valibot';
 import { Argument, Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
@@ -53,6 +55,14 @@ export const add = new Command('add')
 	.action(async (adderArgs, opts) => {
 		const adders = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
+
+		// TODO: maybe use `detectSvelteDirectory`?
+		// validate workspace
+		const pkgPath = path.join(options.cwd, 'package.json');
+		if (!fs.existsSync(pkgPath)) {
+			console.error(`Invalid workspace: '${pkgPath}' does not exist`);
+			process.exit(1);
+		}
 
 		const invalidAdders = adders.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
 		if (invalidAdders.length > 0) {
@@ -199,8 +209,6 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		filesToFormat = await installAdders({ cwd: options.cwd, official, community });
 		p.log.success('Successfully installed adders');
 	}
-
-	// TODO: run postconditions?
 
 	// install dependencies
 	let depsInstalled;

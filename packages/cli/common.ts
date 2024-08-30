@@ -149,8 +149,8 @@ export function getGlobalPreconditions(
 				run: () => {
 					const addersForInvalidEnvironment = adders.filter((a) => {
 						const supportedEnvironments = a.config.metadata.environments;
-						if (projectType == 'kit' && !supportedEnvironments.kit) return true;
-						if (projectType == 'svelte' && !supportedEnvironments.svelte) return true;
+						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
+						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
 
 						return false;
 					});
