@@ -213,14 +213,14 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// TODO: apply community adders
 
 	// install dependencies
-	let depsInstalled;
+	let depsStatus;
 	if (options.install) {
-		depsInstalled = await suggestInstallingDependencies(options.cwd);
+		depsStatus = await suggestInstallingDependencies(options.cwd);
 	}
 
 	// format modified/created files with prettier (if available)
 	const workspace = createWorkspace(options.cwd);
-	if (depsInstalled === 'installed' && workspace.prettier) {
+	if (filesToFormat.length > 0 && depsStatus === 'installed' && workspace.prettier) {
 		const formatSpinner = p.spinner();
 		formatSpinner.start('Formatting modified files');
 		try {
@@ -320,7 +320,7 @@ async function processExternalAdder<Args extends OptionDefinition>(
 	config: ExternalAdderConfig<Args>,
 	cwd: string
 ) {
-	if (!TESTING) p.log.message('Executing external command');
+	if (!TESTING) p.log.message(`Executing external command ${pc.gray(`(${config.metadata.id})`)}`);
 
 	try {
 		await executeCli('npx', config.command.split(' '), cwd, {
