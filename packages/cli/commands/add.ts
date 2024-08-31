@@ -1,7 +1,6 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import * as v from 'valibot';
-import { Argument, Command } from 'commander';
+import { Command } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import pc from 'picocolors';
 import {
@@ -16,6 +15,7 @@ import { getAdderConfig, getAdderDetails } from '../../adders/index.js';
 import {
 	createOrUpdateFiles,
 	createWorkspace,
+	findUp,
 	installPackages,
 	TESTING
 } from '@svelte-cli/core/internal';
@@ -39,27 +39,29 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 const adderDetails = adderIds.map((id) => getAdderDetails(id));
 const aliases = adderDetails.map((c) => c.config.metadata.alias).filter((v) => v !== undefined);
 
-const adderArg = new Argument('[adder...]', 'adders to install');
+// infers the workspace cwd if a `package.json` resides in a parent directory
+const defaultPkgPath = findUp(process.cwd(), 'package.json');
+const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 
 export const add = new Command('add')
 	.description('Applies specified adders into a project')
-	.addArgument(adderArg)
-	.option('--cwd <path>', 'path to working directory', process.cwd())
+	.argument('[adder...]', 'adders to install')
+	.option('--cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
 	.option('--default', 'applies default adder options for unspecified options', false)
-	.option('--community [adder...]', 'community adders to install')
+	.option('--community <adder...>', 'community adders to install', [])
 	.action((adderArgs, opts) => {
-		const adders = v.parse(AddersSchema, adderArgs);
-		const options = v.parse(OptionsSchema, opts);
-
-		// TODO: maybe use `detectSvelteDirectory`?
 		// validate workspace
-		const pkgPath = path.join(options.cwd, 'package.json');
-		if (!fs.existsSync(pkgPath)) {
-			console.error(`Invalid workspace: '${pkgPath}' does not exist`);
+		if (opts.cwd === undefined) {
+			console.error(
+				'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
+			);
 			process.exit(1);
 		}
+
+		const adders = v.parse(AddersSchema, adderArgs);
+		const options = v.parse(OptionsSchema, opts);
 
 		const invalidAdders = adders.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
 		if (invalidAdders.length > 0) {
