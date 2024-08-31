@@ -19,7 +19,7 @@ export function getPackageJson(workspace: WorkspaceWithoutExplicitArgs): {
 	text: string;
 	data: Package;
 } {
-	const packageText = readFile(workspace, commonFilePaths.packageJsonFilePath);
+	const packageText = readFile(workspace, commonFilePaths.packageJson);
 	if (!packageText) {
 		return {
 			text: '',
@@ -80,8 +80,8 @@ export function installPackages<Args extends OptionDefinition>(
 	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
 	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
 
-	writeFile(workspace, commonFilePaths.packageJsonFilePath, serializeJson(originalText, data));
-	return commonFilePaths.packageJsonFilePath;
+	writeFile(workspace, commonFilePaths.packageJson, serializeJson(originalText, data));
+	return commonFilePaths.packageJson;
 }
 
 function alphabetizeProperties(obj: Record<string, string>) {
@@ -123,25 +123,27 @@ export function getFilePath(cwd: string, fileName: string): string {
 }
 
 export const commonFilePaths = {
-	packageJsonFilePath: 'package.json',
-	svelteConfigFilePath: 'svelte.config.js'
-};
+	packageJson: 'package.json',
+	svelteConfig: 'svelte.config.js',
+	tsconfig: 'tsconfig.json',
+	viteConfigTS: 'vite.config.ts'
+} as const;
 
-export function findUp(searchPath: string, fileName: string, maxDepth?: number): boolean {
+export function findUp(searchPath: string, fileName: string, maxDepth = -1): string | undefined {
 	// partially sourced from https://github.com/privatenumber/get-tsconfig/blob/9e78ec52d450d58743439358dd88e2066109743f/src/utils/find-up.ts#L5
 	let depth = 0;
-	while (!maxDepth || depth < maxDepth) {
+	while (maxDepth < 0 || depth < maxDepth) {
 		const configPath = path.posix.join(searchPath, fileName);
 
 		try {
 			// `access` throws an exception if the file could not be found
 			fs.accessSync(configPath);
-			return true;
+			return configPath;
 		} catch {
 			const parentPath = path.dirname(searchPath);
 			if (parentPath === searchPath) {
 				// root directory
-				return false;
+				return;
 			}
 
 			searchPath = parentPath;
@@ -149,6 +151,4 @@ export function findUp(searchPath: string, fileName: string, maxDepth?: number):
 
 		depth++;
 	}
-
-	return false;
 }

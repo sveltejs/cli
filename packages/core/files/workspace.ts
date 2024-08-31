@@ -31,16 +31,14 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 	const workspace = createEmptyWorkspace<Args>();
 	workspace.cwd = cwd;
 
-	const tsConfigFileName = 'tsconfig.json';
-	const viteConfigFileName = 'vite.config.ts';
-	let usesTypescript = fs.existsSync(path.join(cwd, viteConfigFileName));
+	let usesTypescript = fs.existsSync(path.join(cwd, commonFilePaths.viteConfigTS));
 
 	if (TESTING) {
 		// while executing tests, we only look into the direct `cwd`
 		// as we might detect the monorepo `tsconfig.json` otherwise.
-		usesTypescript ||= fs.existsSync(path.join(cwd, tsConfigFileName));
+		usesTypescript ||= fs.existsSync(path.join(cwd, commonFilePaths.tsconfig));
 	} else {
-		usesTypescript ||= findUp(cwd, tsConfigFileName);
+		usesTypescript ||= findUp(cwd, commonFilePaths.tsconfig) !== undefined;
 	}
 
 	const { data: packageJson } = getPackageJson(workspace);
@@ -58,7 +56,7 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 }
 
 function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
-	const configText = readFile(workspace, commonFilePaths.svelteConfigFilePath);
+	const configText = readFile(workspace, commonFilePaths.svelteConfig);
 	const ast = parseScript(configText);
 	const editor = getJsAstEditor(ast);
 
