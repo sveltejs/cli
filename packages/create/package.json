@@ -39,7 +39,7 @@
 		"vitest": "^2.0.1"
 	},
 	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"format": "pnpm lint --write",
 		"test": "node scripts/build-templates dist && vitest run",
 		"check": "tsc",

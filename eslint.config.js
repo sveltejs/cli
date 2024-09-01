@@ -28,7 +28,9 @@ export default [
 			'packages/create/templates/**/*',
 			'temp/**/*',
 			'.test-tmp/**/*',
-			'**/dist/*'
+			'**/dist/*',
+			'packages/ast-manipulation/test/**/input.ts',
+			'packages/ast-manipulation/test/**/output.ts'
 		]
 	}
 ];
