@@ -42,7 +42,7 @@ export function createSpreadElement(expression: AstKinds.ExpressionKind): AstTyp
 	};
 }
 
-export function createLiteral(value: string | null = null): AstTypes.Literal {
+export function createLiteral(value: string | number | boolean | null = null): AstTypes.Literal {
 	const literal: AstTypes.Literal = {
 		type: 'Literal',
 		value
