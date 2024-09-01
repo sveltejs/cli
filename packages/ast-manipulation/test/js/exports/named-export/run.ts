@@ -11,10 +11,10 @@ export function run({ ast, common, variables, object, exports }: JsAstEditor): v
 	});
 	const variable2 = variables.declaration(ast, 'const', 'variable2', object2);
 
-	exports.namedExport(ast, 'named', variable);
-	exports.namedExport(ast, 'named2', variable2);
+	exports.namedExport(ast, 'variable', variable);
+	exports.namedExport(ast, 'variable2', variable2);
 
 	// overriding should work
-	exports.namedExport(ast, 'named3', variable);
-	exports.namedExport(ast, 'named3', variable2);
+	exports.namedExport(ast, 'variable', variable);
+	exports.namedExport(ast, 'variable2', variable2);
 }
