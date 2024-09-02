@@ -32,20 +32,13 @@ function getCategoriesById(): AdderCategories {
 
 export const adderIds: string[] = Object.values(adderCategories).flatMap((x) => x);
 
-const adderDetails = {
-	drizzle,
-	eslint,
-	mdsvex,
-	playwright,
-	prettier,
-	routify,
-	storybook,
-	tailwindcss,
-	vitest
-};
+const adderDetails = Object.values(categories).flat();
 
 export function getAdderDetails(name: string): AdderWithoutExplicitArgs {
-	const details = (adderDetails as any)[name];
-	if (!details) throw new Error(`invalid adder name: ${name}`);
-	return details;
+	const details = adderDetails.find((a) => a.config.metadata.id === name);
+	if (!details) {
+		throw new Error(`invalid adder name: ${name}`);
+	}
+
+	return details as AdderWithoutExplicitArgs;
 }
