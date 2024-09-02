@@ -44,7 +44,7 @@ export const create = new Command('create')
 async function createProject(cwd: string, options: Options) {
 	const { directory, template, language } = await p.group(
 		{
-			directory: async () => {
+			directory: () => {
 				const relativePath = path.relative(process.cwd(), cwd) || './';
 				return p.text({
 					message: 'Where should the project be created?',
@@ -64,7 +64,7 @@ async function createProject(cwd: string, options: Options) {
 					}
 				}
 			},
-			template: async () => {
+			template: () => {
 				if (options.template) return options.template;
 				return p.select<TemplateType>({
 					message: 'Which Svelte app template',
@@ -72,7 +72,7 @@ async function createProject(cwd: string, options: Options) {
 					options: templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }))
 				});
 			},
-			language: async () => {
+			language: () => {
 				if (options.checkTypes) return options.checkTypes;
 				return p.select<LanguageType>({
 					message: 'Add type checking with Typescript?',

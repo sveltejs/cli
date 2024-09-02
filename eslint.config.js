@@ -17,8 +17,8 @@ export default [
 		},
 		rules: {
 			'@typescript-eslint/await-thenable': 'error',
-			'@typescript-eslint/no-unused-expressions': 'off'
-			// '@typescript-eslint/require-await': 'error'
+			'@typescript-eslint/no-unused-expressions': 'off',
+			'@typescript-eslint/require-await': 'error'
 		}
 	},
 	{
