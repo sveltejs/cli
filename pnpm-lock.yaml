@@ -53,6 +53,9 @@ importers:
       rollup-plugin-preserve-shebangs:
         specifier: ^0.2.0
         version: 0.2.0(rollup@4.21.0)
+      sv:
+        specifier: workspace:*
+        version: link:packages/cli
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
