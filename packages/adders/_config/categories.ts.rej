@@ -1,0 +1,11 @@
+diff a/packages/config/categories.ts b/packages/config/categories.ts	(rejected hunks)
+@@ -35,4 +35,9 @@ export const categories: CategoryDetails = {
+ 		name: 'Database',
+ 		description: '',
+ 	},
++	baas: {
++		id: 'baas',
++		name: 'Backend as a Service',
++		description: 'Services that provide database, Auth, storage, etc.',
++	},
+ };

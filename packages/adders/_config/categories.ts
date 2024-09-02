@@ -6,6 +6,10 @@ export type CategoryInfo = {
 	description: string;
 };
 
+<<<<<<< HEAD:packages/adders/_config/categories.ts
+=======
+export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional' | 'baas';
+>>>>>>> a19c799 (add baas category):packages/config/categories.ts
 export type CategoryDetails = Record<CategoryKeys, CategoryInfo>;
 
 export type AdderCategories = Record<CategoryKeys, string[]>;
