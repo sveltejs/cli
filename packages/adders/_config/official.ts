@@ -12,42 +12,40 @@ import storybook from '../storybook';
 import tailwindcss from '../tailwindcss';
 import vitest from '../vitest';
 
-export const adderCategories: AdderCategories = {
-	codeQuality: ['prettier', 'eslint'],
-	testing: ['vitest', 'playwright'],
-	css: ['tailwindcss'],
-	db: ['drizzle'],
-	additional: ['storybook', 'mdsvex', 'routify']
+const categories = {
+	codeQuality: [prettier, eslint],
+	testing: [vitest, playwright],
+	css: [tailwindcss],
+	db: [drizzle],
+	additional: [storybook, mdsvex, routify]
 };
+
+export const adderCategories: AdderCategories = getCategoriesById();
+
+function getCategoriesById(): AdderCategories {
+	const adderCategories: any = {};
+	for (const [key, adders] of Object.entries(categories)) {
+		adderCategories[key] = adders.map((a) => a.config.metadata.id);
+	}
+	return adderCategories;
+}
 
 export const adderIds: string[] = Object.values(adderCategories).flatMap((x) => x);
 
-export function getAdderDetails(name: string): AdderWithoutExplicitArgs {
-	switch (name) {
-		case 'drizzle':
-			return drizzle as AdderWithoutExplicitArgs;
-		case 'eslint':
-			return eslint;
-		case 'mdsvex':
-			return mdsvex;
-		case 'playwright':
-			return playwright;
-		case 'prettier':
-			return prettier;
-		case 'routify':
-			return routify;
-		case 'storybook':
-			return storybook;
-		case 'tailwindcss':
-			return tailwindcss as AdderWithoutExplicitArgs;
-		case 'vitest':
-			return vitest;
-		default:
-			throw new Error(`invalid adder name: ${name}`);
-	}
-}
+const adderDetails = {
+	drizzle,
+	eslint,
+	mdsvex,
+	playwright,
+	prettier,
+	routify,
+	storybook,
+	tailwindcss,
+	vitest
+};
 
-export function getAdderConfig(name: string) {
-	const adder = getAdderDetails(name);
-	return adder.config;
+export function getAdderDetails(name: string): AdderWithoutExplicitArgs {
+	const details = (adderDetails as any)[name];
+	if (!details) throw new Error(`invalid adder name: ${name}`);
+	return details;
 }

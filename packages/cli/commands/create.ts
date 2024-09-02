@@ -47,7 +47,7 @@ async function createProject(cwd: string, options: Options) {
 			directory: async () => {
 				const relativePath = path.relative(process.cwd(), cwd) || './';
 				return p.text({
-					message: 'Where should we create your project?',
+					message: 'Where should the project be created?',
 					placeholder: `  (hit Enter to use '${relativePath}')`,
 					defaultValue: relativePath
 				});

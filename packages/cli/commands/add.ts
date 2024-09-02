@@ -11,7 +11,7 @@ import {
 	runCommand
 } from '../common.js';
 import { adderCategories, categories, adderIds } from '@svelte-cli/adders';
-import { getAdderConfig, getAdderDetails } from '../../adders/index.js';
+import { getAdderDetails } from '../../adders/index.js';
 import {
 	createOrUpdateFiles,
 	createWorkspace,
@@ -86,7 +86,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			const category = adderCategories[id];
 			const categoryOptions = category
 				.map((id) => {
-					const config = getAdderConfig(id);
+					const config = getAdderDetails(id).config;
 					// we'll only display adders within their respective project types
 					if (projectType === 'kit' && !config.metadata.environments.kit) return;
 					if (projectType === 'svelte' && !config.metadata.environments.svelte) return;
