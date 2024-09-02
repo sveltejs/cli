@@ -120,7 +120,7 @@ async function createProject(cwd: string, options: Options) {
 			},
 			[]
 		);
-	} else {
+	} else if (options.install) {
 		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
 		// then we'll prompt to install dependencies here
 		await suggestInstallingDependencies(projectPath);
