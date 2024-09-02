@@ -65,7 +65,7 @@ async function createProject(cwd: string, options: Options) {
 				}
 			},
 			template: () => {
-				if (options.template) return options.template;
+				if (options.template) return Promise.resolve(options.template);
 				return p.select<TemplateType>({
 					message: 'Which Svelte app template',
 					initialValue: 'demo',
@@ -73,7 +73,7 @@ async function createProject(cwd: string, options: Options) {
 				});
 			},
 			language: () => {
-				if (options.checkTypes) return options.checkTypes;
+				if (options.checkTypes) return Promise.resolve(options.checkTypes);
 				return p.select<LanguageType>({
 					message: 'Add type checking with Typescript?',
 					initialValue: 'typescript',
