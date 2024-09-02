@@ -45,11 +45,13 @@ async function createProject(cwd: string, options: Options) {
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
-				const relativePath = path.relative(process.cwd(), cwd) || './';
+				const relativePath = path.relative(process.cwd(), cwd);
+				if (relativePath) return Promise.resolve(relativePath);
+				const defaultPath = './';
 				return p.text({
 					message: 'Where should the project be created?',
-					placeholder: `  (hit Enter to use '${relativePath}')`,
-					defaultValue: relativePath
+					placeholder: `  (hit Enter to use '${defaultPath}')`,
+					defaultValue: defaultPath
 				});
 			},
 			force: async ({ results: { directory } }) => {
