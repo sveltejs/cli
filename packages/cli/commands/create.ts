@@ -9,7 +9,7 @@ import {
 	type LanguageType,
 	type TemplateType
 } from '@svelte-cli/create';
-import { runCommand } from '../common.js';
+import { runCommand, suggestInstallingDependencies } from '../common.js';
 import { runAddCommand } from './add.js';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
@@ -23,6 +23,7 @@ const ProjectPathSchema = v.string();
 const OptionsSchema = v.strictObject({
 	checkTypes: v.optional(v.picklist(langs)),
 	adders: v.boolean(),
+	install: v.boolean(),
 	template: v.optional(v.picklist(templateChoices))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
@@ -33,6 +34,7 @@ export const create = new Command('create')
 	.addOption(langOption)
 	.addOption(templateOption)
 	.option('--no-adders', 'skips interactive adder installer')
+	.option('--no-install', 'skips installing dependencies')
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
@@ -109,9 +111,19 @@ async function createProject(cwd: string, options: Options) {
 
 	if (options.adders) {
 		await runAddCommand(
-			{ cwd: projectPath, default: false, install: true, preconditions: true, community: [] },
+			{
+				cwd: projectPath,
+				default: false,
+				install: options.install,
+				preconditions: true,
+				community: []
+			},
 			[]
 		);
+	} else {
+		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
+		// then we'll prompt to install dependencies here
+		await suggestInstallingDependencies(projectPath);
 	}
 
 	return {
