@@ -49,7 +49,7 @@ async function createProject(cwd: string, options: Options) {
 				if (relativePath) return Promise.resolve(relativePath);
 				const defaultPath = './';
 				return p.text({
-					message: 'Where should the project be created?',
+					message: 'Where would you like your project to be created?',
 					placeholder: `  (hit Enter to use '${defaultPath}')`,
 					defaultValue: defaultPath
 				});
