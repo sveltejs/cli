@@ -14,8 +14,9 @@ export async function runCommand(action: MaybePromise) {
 		await action();
 		p.outro("You're all set!");
 	} catch (e) {
+		p.cancel('Operation failed.');
 		if (e instanceof Error) {
-			p.cancel(e.message);
+			console.error(e.message);
 		}
 	}
 }

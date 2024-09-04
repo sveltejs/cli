@@ -116,7 +116,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			if (!optionEntry) {
 				const choices = getOptionChoices(adderId).join(', ');
 				throw new Error(
-					`Operation failed.\n\nInvalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices}`
+					`Invalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices}`
 				);
 			}
 
