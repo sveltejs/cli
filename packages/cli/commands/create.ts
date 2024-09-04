@@ -51,12 +51,11 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = packageManager ?? 'npm';
+			const pm = getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
 			}
 			if (!packageManager) {
-				const pm = getUserAgent() ?? 'npm';
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 
