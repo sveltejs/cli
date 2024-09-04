@@ -10,7 +10,12 @@ import {
 	type LanguageType,
 	type TemplateType
 } from '@svelte-cli/create';
-import { packageManager, runCommand, suggestInstallingDependencies } from '../common.js';
+import {
+	getUserAgent,
+	packageManager,
+	runCommand,
+	suggestInstallingDependencies
+} from '../common.js';
 import { runAddCommand } from './add.js';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
@@ -51,6 +56,7 @@ export const create = new Command('create')
 				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
 			}
 			if (!packageManager) {
+				const pm = getUserAgent() ?? 'npm';
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 

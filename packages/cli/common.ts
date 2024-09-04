@@ -8,7 +8,7 @@ import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 
 type MaybePromise = () => Promise<void> | void;
 
-export let packageManager: string | undefined = getUserAgent();
+export let packageManager: string | undefined;
 
 export async function runCommand(action: MaybePromise) {
 	try {
@@ -108,7 +108,7 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 	return 'installed';
 }
 
-function getUserAgent(): Agent | undefined {
+export function getUserAgent(): Agent | undefined {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;
 	const pmSpec = userAgent.split(' ')[0];
