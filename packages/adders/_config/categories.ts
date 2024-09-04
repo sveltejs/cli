@@ -26,14 +26,14 @@ export const categories: CategoryDetails = {
 		name: 'CSS',
 		description: 'Can be used to style your components'
 	},
-	additional: {
-		id: 'additional',
-		name: 'Additional functionality',
-		description: ''
-	},
 	db: {
 		id: 'db',
 		name: 'Database',
+		description: ''
+	},
+	additional: {
+		id: 'additional',
+		name: 'Additional functionality',
 		description: ''
 	}
 };
