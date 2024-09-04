@@ -420,9 +420,10 @@ function getAdderOptionFlags(): Option[] {
 		const details = getAdderDetails(id);
 		if (Object.values(details.config.options).length === 0) continue;
 
-		const option = new Option(`--${id} <options...>`).argParser((value) => value.split(','));
-		// .choices(getChoices(id));
-		option.hideHelp();
+		const choices = getOptionChoices(id).join(', ');
+		const option = new Option(`--${id} <options...>`, `(choices: ${choices})`).argParser((value) =>
+			value.split(',')
+		);
 		options.push(option);
 	}
 	return options;
