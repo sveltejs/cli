@@ -52,6 +52,12 @@ export type PackageDefinition<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
+export type Scripts<Args extends OptionDefinition> = {
+	description: string;
+	args: string[];
+	condition?: ConditionDefinition<Args>;
+};
+
 export type BaseAdderConfig<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
