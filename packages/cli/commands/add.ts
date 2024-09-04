@@ -1,6 +1,6 @@
 import path from 'node:path';
 import * as v from 'valibot';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import pc from 'picocolors';
 import {
@@ -27,17 +27,23 @@ import {
 } from '@svelte-cli/core';
 
 const AddersSchema = v.array(v.string());
+const AdderOptionFlagsSchema = v.object({
+	tailwindcss: v.optional(v.array(v.string())),
+	drizzle: v.optional(v.array(v.string()))
+});
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
 	default: v.boolean(),
-	community: AddersSchema
+	community: AddersSchema,
+	...AdderOptionFlagsSchema.entries
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 const adderDetails = adderIds.map((id) => getAdderDetails(id));
 const aliases = adderDetails.map((c) => c.config.metadata.alias).filter((v) => v !== undefined);
+const addersOptions = getAdderOptionFlags();
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = findUp(process.cwd(), 'package.json');
@@ -46,7 +52,7 @@ const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 export const add = new Command('add')
 	.description('Applies specified adders into a project')
 	.argument('[adder...]', 'adders to install')
-	.option('--cwd <path>', 'path to working directory', defaultCwd)
+	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
 	.option('--default', 'applies default adder options for unspecified options', false)
@@ -69,14 +75,71 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const dedupedIds = transformAliases(adders);
+		const selectedAdders = transformAliases(adders);
 		runCommand(async () => {
-			await runAddCommand(options, dedupedIds);
+			await runAddCommand(options, selectedAdders);
 		});
 	});
 
+// adds adder specific option flags to the `add` command
+for (const option of addersOptions) {
+	add.addOption(option);
+}
+
 export async function runAddCommand(options: Options, adders: string[]): Promise<void> {
 	const selectedAdders = adders.map((id) => getAdderDetails(id));
+	const official: AdderOption = {};
+	const community: AdderOption = {};
+
+	// apply specified options from flags
+	for (const adderOption of addersOptions) {
+		const adderId = adderOption.attributeName() as keyof Options;
+		const specifiedOptions = options[adderId] as string[] | undefined;
+		if (!specifiedOptions) continue;
+
+		const details = getAdderDetails(adderId);
+		if (!selectedAdders.includes(details)) {
+			selectedAdders.push(details);
+		}
+
+		const optionEntries = Object.entries(details.config.options);
+		for (const specifiedOption of specifiedOptions) {
+			// figure out which option it belongs to
+			const optionEntry = optionEntries.find(([id, question]) => {
+				if (question.type === 'boolean') {
+					return id === specifiedOption || `no-${id}` === specifiedOption;
+				}
+				if (question.type === 'select') {
+					return question.options.some((o) => o.value === specifiedOption);
+				}
+			});
+			if (!optionEntry) {
+				const choices = getOptionChoices(adderId).join(', ');
+				throw new Error(
+					`Operation failed.\n\nInvalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices}`
+				);
+			}
+
+			official[adderId] ??= {};
+			const [questionId, question] = optionEntry;
+
+			// validate that there are no conflicts
+			let existingOption = official[adderId][questionId];
+			if (existingOption !== undefined) {
+				if (typeof existingOption === 'boolean') {
+					// need to transform the boolean back to `no-{id}` or `{id}`
+					existingOption = existingOption ? questionId : `no-${questionId}`;
+				}
+				throw new Error(
+					`Conflicting '--${adderId}' option: '${specifiedOption}' conflicts with '${existingOption}'`
+				);
+			}
+
+			official[adderId][questionId] =
+				question.type === 'boolean' ? !specifiedOption.startsWith('no-') : specifiedOption;
+		}
+	}
+
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
 		const adderOptions: Record<string, Array<{ value: string; label: string }>> = {};
@@ -150,11 +213,6 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			}
 		}
 	}
-
-	const official: AdderOption = {};
-	const community = {};
-
-	// TODO: apply specified options from flags
 
 	// apply defaults to unspecified options
 	if (options.default) {
@@ -349,33 +407,32 @@ function transformAliases(ids: string[]): string[] {
 	return Array.from(set);
 }
 
-// other possible variations
-// npx sv add drizzle tailwindcss --options postgresql,postgres.js,no-docker no-typography
-// npx sv add drizzle=postgresql,postgres.js,no-docker tailwindcss=no-typography
-// `sv add drizzle tailwindcss --drizzle db:postgresql client:postgres.js docker:false --tailwindcss typography:false`
+function getAdderOptionFlags(): Option[] {
+	const options: Option[] = [];
+	for (const id of adderIds) {
+		const details = getAdderDetails(id);
+		if (Object.values(details.config.options).length === 0) continue;
 
-// TODO: PoC for `sv add --drizzle=postgresql,postgres.js,no-docker --tailwindcss=no-typography`
-// const addersOptions: Option[] = [];
-// for (const id of adderIds) {
-// 	const details = getAdderDetails(id);
-// 	if (Object.values(details.config.options).length === 0) continue;
+		const option = new Option(`--${id} <options...>`).argParser((value) => value.split(','));
+		// .choices(getChoices(id));
+		option.hideHelp();
+		options.push(option);
+	}
+	return options;
+}
 
-// 	const option = new Option(`--${id} <options>`).argParser((value) => value.split(','));
-// 	const choices: string[] = [];
-// 	for (const [key, question] of Object.entries(details.config.options)) {
-// 		if (question.type === 'boolean') {
-// 			const values = [key, `no-${key}`];
-// 			choices.push(...values);
-// 		}
-// 		if (question.type === 'select') {
-// 			const values = question.options.map((o) => o.value);
-// 			choices.push(...values);
-// 		}
-// 	}
-// 	option.choices(choices);
-// 	addersOptions.push(option);
-// }
-
-// for (const option of addersOptions) {
-// 	add.addOption(option);
-// }
+function getOptionChoices(adderId: string): string[] {
+	const details = getAdderDetails(adderId);
+	const choices: string[] = [];
+	for (const [key, question] of Object.entries(details.config.options)) {
+		if (question.type === 'boolean') {
+			const values = [key, `no-${key}`];
+			choices.push(...values);
+		}
+		if (question.type === 'select') {
+			const values = question.options.map((o) => o.value);
+			choices.push(...values);
+		}
+	}
+	return choices;
+}
