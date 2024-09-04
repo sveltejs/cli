@@ -79,7 +79,7 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 		const pm = await p.select({
 			message: 'Which package manager do you want to install dependencies with?',
 			options,
-			initialValue: undefined
+			initialValue: process.env.npm_config_user_agent as Agent | undefined
 		});
 		if (p.isCancel(pm)) {
 			p.cancel('Operation cancelled.');
