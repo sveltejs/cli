@@ -2,8 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist } from './utils';
 
-export type TemplateType = 'demo' | 'skeleton' | 'skeletonlib';
+export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = 'typescript' | 'checkjs' | 'none';
+
+const templateTypes = ['skeleton', 'skeletonlib', 'demo'] as const;
 
 export type Options = {
 	name: string;
@@ -35,7 +37,7 @@ export function create(cwd: string, options: Options): void {
 }
 
 export type TemplateMetadata = { name: TemplateType; title: string; description: string };
-export const templates: TemplateMetadata[] = fs.readdirSync(dist('templates')).map((dir) => {
+export const templates: TemplateMetadata[] = templateTypes.map((dir) => {
 	const meta_file = dist(`templates/${dir}/meta.json`);
 	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
 

@@ -72,7 +72,7 @@ async function createProject(cwd: string, options: Options) {
 				if (options.template) return Promise.resolve(options.template);
 				return p.select<TemplateType>({
 					message: 'Which Svelte app template',
-					initialValue: 'demo',
+					initialValue: 'skeleton',
 					options: templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }))
 				});
 			},
