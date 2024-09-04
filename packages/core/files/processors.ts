@@ -77,6 +77,12 @@ export async function executeScripts<Args extends OptionDefinition>(
 ): Promise<string[]> {
 	const scriptsExecuted = [];
 
+	if (scripts.length === 0) return [];
+	if (!workspace.packageManager) return [];
+
+	const installCommand = COMMANDS[workspace.packageManager].install;
+	await installDependencies(workspace.packageManager, [installCommand], workspace.cwd);
+
 	for (const script of scripts) {
 		if (script.condition && !script.condition(workspace)) {
 			continue;

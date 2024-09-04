@@ -1,19 +1,18 @@
 diff a/packages/core/adder/execute.ts b/packages/core/adder/execute.ts	(rejected hunks)
-@@ -281,11 +281,15 @@ async function processInlineAdder<Args extends OptionDefinition>(
- 	isInstall: boolean,
- ) {
- 	const pkgPath = await installPackages(config, workspace);
--	const scriptsExecuted = await executeScripts(config.scripts, workspace);
-+
-+	if (config.scripts && config.scripts.length > 0) {
-+		await executeScripts(config.scripts, workspace);
-+	}
-+
- 	const updatedOrCreatedFiles = await createOrUpdateFiles(config.files, workspace);
- 	await runHooks(config, workspace, isInstall);
+@@ -28,7 +28,7 @@ import type {
+ 	InlineAdderConfig,
+ } from './config.js';
+ import type { RemoteControlOptions } from './remoteControl.js';
+-import { suggestInstallingDependencies } from '../utils/dependencies.js';
++import { suggestInstallingDependencies, type PackageManager } from '../utils/dependencies.js';
+ import { validatePreconditions } from './preconditions.js';
+ import { endPrompts, startPrompts } from '../utils/prompts.js';
+ import { checkPostconditions, printUnmetPostconditions } from './postconditions.js';
+@@ -102,6 +103,7 @@ export async function executeAdders<Args extends OptionDefinition>(
+ 			commonCliOptions,
+ 			cliOptionsByAdderId,
+ 			selectAddersToApply,
++			packageManager: undefined,
+ 		};
  
--	const changedFiles = [pkgPath, ...scriptsExecuted, ...updatedOrCreatedFiles];
-+	const changedFiles = [pkgPath, ...updatedOrCreatedFiles];
- 	return changedFiles;
- }
- 
+ 		await executePlan(executionPlan, executingAdder, adderDetails, remoteControlOptions);

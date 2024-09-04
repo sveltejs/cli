@@ -1,64 +1,60 @@
 diff a/packages/core/utils/dependencies.ts b/packages/core/utils/dependencies.ts	(rejected hunks)
-@@ -4,9 +4,21 @@ import { COMMANDS } from 'package-manager-detector/agents';
- import { spinner } from '@svelte-add/clack-prompts';
- import { executeCli } from './cli.js';
+@@ -11,25 +11,14 @@ const packageManagers = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+  * @param workingDirectory
+  * @returns the package manager
+  */
+-export async function detectPackageManager(
++export async function selectPackageManager(
+ 	workingDirectory: string,
+ ): Promise<PackageManager | undefined> {
+ 	const detectedPm = await detect({ cwd: workingDirectory });
+-	const pm = normalizePackageManager(detectedPm.agent);
+-	return pm;
+-}
++	let pm = normalizePackageManager(detectedPm.agent);
  
--type PackageManager = (typeof packageManagers)[number] | undefined;
-+export type PackageManager = (typeof packageManagers)[number];
- const packageManagers = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+-/**
+- * @param workingDirectory
+- * @returns the install status of dependencies
+- */
+-export async function suggestInstallingDependencies(
+-	workingDirectory: string,
+-): Promise<'installed' | 'skipped'> {
+-	let selectedPm = await detectPackageManager(workingDirectory);
+-
+-	if (!selectedPm) {
+-		selectedPm = await selectPrompt(
++	if (!pm) {
++		pm = await selectPrompt(
+ 			'Which package manager do you want to install dependencies with?',
+ 			undefined,
+ 			[
+@@ -44,14 +33,26 @@ export async function suggestInstallingDependencies(
+ 		);
+ 	}
  
-+/**
-+ * @param workingDirectory
-+ * @returns the package manager
-+ */
-+export async function detectPackageManager(
-+	workingDirectory: string,
-+): Promise<PackageManager | undefined> {
-+	const detectedPm = await detect({ cwd: workingDirectory });
-+	const pm = normalizePackageManager(detectedPm.agent);
+-	if (!selectedPm || !COMMANDS[selectedPm]) {
 +	return pm;
 +}
 +
- /**
-  * @param workingDirectory
-  * @returns the install status of dependencies
-@@ -14,22 +26,23 @@ const packageManagers = ['npm', 'pnpm', 'yarn', 'bun'] as const;
- export async function suggestInstallingDependencies(
- 	workingDirectory: string,
- ): Promise<'installed' | 'skipped'> {
--	const detectedPm = await detect({ cwd: workingDirectory });
--	let selectedPm = detectedPm.agent;
--
--	selectedPm ??= await selectPrompt(
--		'Which package manager do you want to install dependencies with?',
--		undefined,
--		[
--			{
--				label: 'None',
--				value: undefined,
--			},
--			...packageManagers.map((x) => {
--				return { label: x, value: x as PackageManager };
--			}),
--		],
--	);
-+	let selectedPm = await detectPackageManager(workingDirectory);
-+
-+	if (!selectedPm) {
-+		selectedPm = await selectPrompt(
-+			'Which package manager do you want to install dependencies with?',
-+			undefined,
-+			[
-+				{
-+					label: 'None',
-+					value: undefined,
-+				},
-+				...packageManagers.map((x) => {
-+					return { label: x, value: x };
-+				}),
-+			],
-+		);
-+	}
- 
- 	if (!selectedPm || !COMMANDS[selectedPm]) {
++/**
++ * @param packageManager
++ * @param workingDirectory
++ * @returns the install status of dependencies
++ */
++export async function suggestInstallingDependencies(
++	packageManager: PackageManager | undefined,
++	workingDirectory: string,
++): Promise<'installed' | 'skipped'> {
++	if (!packageManager || !COMMANDS[packageManager]) {
  		return 'skipped';
+ 	}
+ 
+ 	const loadingSpinner = spinner();
+ 	loadingSpinner.start('Installing dependencies...');
+ 
+-	const installCommand = COMMANDS[selectedPm].install;
++	const installCommand = COMMANDS[packageManager].install;
+ 	const [pm, install] = installCommand.split(' ');
+ 	await installDependencies(pm, [install], workingDirectory);
+ 
