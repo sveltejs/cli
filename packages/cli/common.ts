@@ -8,6 +8,8 @@ import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 
 type MaybePromise = () => Promise<void> | void;
 
+export let packageManager: string | undefined = getUserAgent();
+
 export async function runCommand(action: MaybePromise) {
 	try {
 		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
@@ -99,6 +101,8 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 	const installCommand = COMMANDS[selectedPm].install;
 	const [pm, install] = installCommand.split(' ');
 	await installDependencies(pm, [install], cwd);
+
+	packageManager = pm;
 
 	loadingSpinner.stop('Successfully installed dependencies');
 	return 'installed';

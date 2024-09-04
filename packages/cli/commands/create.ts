@@ -3,13 +3,14 @@ import path from 'node:path';
 import * as v from 'valibot';
 import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
+import pc from 'picocolors';
 import {
 	create as createKit,
 	templates,
 	type LanguageType,
 	type TemplateType
 } from '@svelte-cli/create';
-import { runCommand, suggestInstallingDependencies } from '../common.js';
+import { packageManager, runCommand, suggestInstallingDependencies } from '../common.js';
 import { runAddCommand } from './add.js';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
@@ -39,7 +40,31 @@ export const create = new Command('create')
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		runCommand(async () => {
-			await createProject(cwd, options);
+			const { directory } = await createProject(cwd, options);
+			const highlight = (str: string) => pc.bold(pc.cyan(str));
+
+			let i = 1;
+			const initialSteps = [];
+			const relative = path.relative(process.cwd(), directory);
+			const pm = packageManager ?? 'npm';
+			if (relative !== '') {
+				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
+			}
+			if (!packageManager) {
+				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
+			}
+
+			const steps = [
+				...initialSteps,
+				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
+				`${i++}: ${highlight(`${pm} run dev -- --open`)}`,
+				'',
+				`To close the dev server, hit ${highlight('Ctrl-C')}`,
+				'',
+				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
+			].map((msg) => pc.reset(msg));
+
+			p.note(steps.join('\n'), 'Project next steps');
 		});
 	});
 
