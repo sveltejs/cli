@@ -79,7 +79,7 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 		const pm = await p.select({
 			message: 'Which package manager do you want to install dependencies with?',
 			options,
-			initialValue: process.env.npm_config_user_agent as Agent | undefined
+			initialValue: getUserAgent()
 		});
 		if (p.isCancel(pm)) {
 			p.cancel('Operation cancelled.');
@@ -102,6 +102,15 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 
 	loadingSpinner.stop('Successfully installed dependencies');
 	return 'installed';
+}
+
+function getUserAgent(): Agent | undefined {
+	const userAgent = process.env.npm_config_user_agent;
+	if (!userAgent) return undefined;
+	const pmSpec = userAgent.split(' ')[0];
+	const separatorPos = pmSpec.lastIndexOf('/');
+	const name = pmSpec.substring(0, separatorPos);
+	return name as Agent;
 }
 
 async function installDependencies(command: string, args: string[], workingDirectory: string) {
