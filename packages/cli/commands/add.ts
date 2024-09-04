@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import * as v from 'valibot';
 import { Command, Option } from 'commander';
@@ -62,6 +63,12 @@ export const add = new Command('add')
 		if (opts.cwd === undefined) {
 			console.error(
 				'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
+			);
+			process.exit(1);
+		} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
+			// when `--cwd` is specified, we'll validate that it's a valid workspace
+			console.error(
+				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
 			);
 			process.exit(1);
 		}
