@@ -1,30 +1,9 @@
 diff a/packages/core/adder/nextSteps.ts b/packages/core/adder/nextSteps.ts	(rejected hunks)
-@@ -1,18 +1,14 @@
--import { detectPackageManager } from '../utils/dependencies';
- import { messagePrompt } from '../utils/prompts';
- import type { InlineAdderConfig } from './config';
- import type { AdderDetails, AddersExecutionPlan } from './execute';
- import type { OptionDefinition, OptionValues } from './options';
- import pc from 'picocolors';
- 
--export async function displayNextSteps<Args extends OptionDefinition>(
-+export function displayNextSteps<Args extends OptionDefinition>(
- 	adderDetails: AdderDetails<Args>[],
- 	multipleAdders: boolean,
- 	executionPlan: AddersExecutionPlan,
- ) {
--	const packageManager = await detectPackageManager(executionPlan.workingDirectory);
--	if (!packageManager) throw new Error('Unable to detect package manager');
--
- 	const allAddersMessage = adderDetails
- 		.filter((x) => x.config.integrationType == 'inline' && x.config.nextSteps)
- 		.map((x) => x.config as InlineAdderConfig<Args>)
-@@ -32,7 +28,7 @@ export async function displayNextSteps<Args extends OptionDefinition>(
+@@ -28,7 +28,6 @@ export function displayNextSteps<Args extends OptionDefinition>(
  				cwd: executionPlan.workingDirectory,
  				colors: pc,
  				docs: x.metadata.website?.documentation,
--				packageManager,
-+				packageManager: executionPlan.packageManager ?? 'pnpm',
+-				packageManager: executionPlan.packageManager ?? 'pnpm',
  			});
  			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
  			return adderMessage;

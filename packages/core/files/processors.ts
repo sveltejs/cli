@@ -71,34 +71,6 @@ type BaseFile<Args extends OptionDefinition> = {
 
 export type FileType<Args extends OptionDefinition> = BaseFile<Args> & ParsedFile<Args>;
 
-export async function executeScripts<Args extends OptionDefinition>(
-	scripts: Scripts<Args>[],
-	workspace: Workspace<Args>,
-): Promise<string[]> {
-	const scriptsExecuted = [];
-
-	if (scripts.length === 0) return [];
-	if (!workspace.packageManager) return [];
-
-	const installCommand = COMMANDS[workspace.packageManager].install;
-	await installDependencies(workspace.packageManager, [installCommand], workspace.cwd);
-
-	for (const script of scripts) {
-		if (script.condition && !script.condition(workspace)) {
-			continue;
-		}
-		try {
-			await executeCli(workspace.packageManager, script.args, workspace.cwd);
-		} catch (error) {
-			const typedError = error as Error;
-			throw new Error('Failed to execute package scripts: ' + typedError.message);
-		}
-		scriptsExecuted.push(script.description);
-	}
-
-	return scriptsExecuted;
-}
-
 /**
  * @param files
  * @param workspace

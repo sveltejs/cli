@@ -1,10 +1,15 @@
 diff a/packages/core/files/processors.ts b/packages/core/files/processors.ts	(rejected hunks)
-@@ -24,6 +24,8 @@ import type { ConditionDefinition, Scripts } from '../adder/config.js';
+@@ -20,12 +20,9 @@ import {
+ 	serializeSvelteFile,
+ } from '@svelte-add/ast-tooling';
+ import { fileExistsWorkspace, readFile, writeFile } from './utils.js';
+-import type { ConditionDefinition, Scripts } from '../adder/config.js';
++import type { ConditionDefinition } from '../adder/config.js';
  import type { OptionDefinition } from '../adder/options.js';
  import type { Workspace } from '../utils/workspace.js';
- import { executeCli } from '../utils/cli.js';
-+import { COMMANDS } from 'package-manager-detector/agents';
-+import { installDependencies } from '../utils/dependencies.js';
+-import { executeCli } from '../utils/cli.js';
+-import { COMMANDS } from 'package-manager-detector/agents';
+-import { installDependencies } from '../utils/dependencies.js';
  
  export type BaseFile<Args extends OptionDefinition> = {
  	name: (options: Workspace<Args>) => string;
