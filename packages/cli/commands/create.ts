@@ -51,7 +51,7 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = getUserAgent() ?? 'npm';
+			const pm = packageManager ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
 			}
