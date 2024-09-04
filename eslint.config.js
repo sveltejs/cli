@@ -29,8 +29,8 @@ export default [
 			'temp/**/*',
 			'.test-tmp/**/*',
 			'**/dist/*',
-			'packages/ast-manipulation/test/**/input.ts',
-			'packages/ast-manipulation/test/**/output.ts'
+			'packages/ast-manipulation/test/**/input.*',
+			'packages/ast-manipulation/test/**/output.*'
 		]
 	}
 ];
