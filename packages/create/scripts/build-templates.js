@@ -80,7 +80,7 @@ async function generate_templates(dist, shared) {
 		const types = {
 			typescript: [],
 			checkjs: [],
-			null: []
+			none: []
 		};
 
 		const files = glob('**/*', { cwd, filesOnly: true, dot: true });
@@ -121,7 +121,7 @@ async function generate_templates(dist, shared) {
 						contents: js
 					});
 
-					types.null.push({
+					types.none.push({
 						name: name.replace(/\.ts$/, '.js'),
 						contents: strip_jsdoc(js)
 					});
@@ -186,7 +186,7 @@ async function generate_templates(dist, shared) {
 						contents: js_contents
 					});
 
-					types.null.push({
+					types.none.push({
 						name,
 						contents: strip_jsdoc(js_contents)
 					});
@@ -208,8 +208,8 @@ async function generate_templates(dist, shared) {
 			JSON.stringify(types.checkjs, null, '\t')
 		);
 		fs.writeFileSync(
-			path.join(dir, 'files.types=null.json'),
-			JSON.stringify(types.null, null, '\t')
+			path.join(dir, 'files.types=none.json'),
+			JSON.stringify(types.none, null, '\t')
 		);
 	}
 }

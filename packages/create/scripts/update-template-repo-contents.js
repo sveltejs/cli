@@ -15,7 +15,7 @@ fs.readdirSync(repo).forEach((file) => {
 
 create(repo, {
 	name: 'kit-template-default',
-	template: 'default',
+	template: 'demo',
 	types: 'checkjs'
 });
 

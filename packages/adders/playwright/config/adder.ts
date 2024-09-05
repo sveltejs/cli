@@ -42,7 +42,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: ({ typescript }) => `e2e/demo.test.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `e2e/demo.test.${typescript ? 'ts' : 'js'}`,
 			contentType: 'text',
 			content: ({ content }) => {
 				if (content) return content;
@@ -58,7 +58,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: ({ typescript }) => `playwright.config.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `playwright.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			content: ({ ast, imports, exports, common, object }) => {
 				const defineConfig = common.expressionFromString('defineConfig({})');

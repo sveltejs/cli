@@ -1,8 +1,4 @@
-import {
-	defineAdderTests,
-	type OptionDefinition,
-	type SvelteFileEditorArgs
-} from '@svelte-cli/core';
+import { defineAdderTests, type OptionDefinition, type SvelteFileEditor } from '@svelte-cli/core';
 import { options } from './options';
 
 const divId = 'myDiv';
@@ -11,13 +7,13 @@ const typographyDivId = 'myTypographyDiv';
 export const tests = defineAdderTests({
 	files: [
 		{
-			name: ({ kit }) => `${kit.routesDirectory}/+page.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
 			contentType: 'svelte',
 			content: (editor) => {
 				prepareCoreTest(editor);
 				if (editor.options.typography) prepareTypographyTest(editor);
 			},
-			condition: ({ kit }) => kit.installed
+			condition: ({ kit }) => Boolean(kit)
 		},
 		{
 			name: () => 'src/App.svelte',
@@ -26,7 +22,7 @@ export const tests = defineAdderTests({
 				prepareCoreTest(editor);
 				if (editor.options.typography) prepareTypographyTest(editor);
 			},
-			condition: ({ kit }) => !kit.installed
+			condition: ({ kit }) => !kit
 		}
 	],
 	options,
@@ -56,14 +52,12 @@ export const tests = defineAdderTests({
 	]
 });
 
-function prepareCoreTest<Args extends OptionDefinition>({ html }: SvelteFileEditorArgs<Args>) {
+function prepareCoreTest<Args extends OptionDefinition>({ html }: SvelteFileEditor<Args>) {
 	const div = html.div({ class: 'bg-slate-600 border-gray-50 border-4 mt-1', id: divId });
 	html.appendElement(html.ast.childNodes, div);
 }
 
-function prepareTypographyTest<Args extends OptionDefinition>({
-	html
-}: SvelteFileEditorArgs<Args>) {
+function prepareTypographyTest<Args extends OptionDefinition>({ html }: SvelteFileEditor<Args>) {
 	const div = html.element('p', { class: 'text-lg text-right line-through', id: typographyDivId });
 	html.appendElement(html.ast.childNodes, div);
 }

@@ -9,7 +9,7 @@ import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { buildTemplates } from '@svelte-cli/create/build';
 
-/** @import { Package } from "./packages/core/utils/common.js" */
+/** @import { Package } from "./packages/core/files/utils.js" */
 /** @import { Plugin, RollupOptions } from "rollup" */
 /** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
 
@@ -45,7 +45,7 @@ function getConfig(project) {
 			async writeBundle() {
 				console.log('building templates');
 				const start = performance.now();
-				await buildTemplates(path.resolve('packages', 'core', 'dist'));
+				await buildTemplates(path.resolve('packages', 'cli', 'dist'));
 				const end = performance.now();
 				console.log(`finished building templates: ${Math.round(end - start)}ms`);
 			}
@@ -78,7 +78,6 @@ export default [
 	getConfig('clack-prompts'),
 	getConfig('ast-tooling'),
 	getConfig('ast-manipulation'),
-	getConfig('config'),
 	getConfig('create'),
 	getConfig('core'),
 	getConfig('cli')

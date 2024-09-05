@@ -32,7 +32,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: ({ typescript }) => `src/demo.spec.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `src/demo.spec.${typescript ? 'ts' : 'js'}`,
 			contentType: 'text',
 			content: ({ content }) => {
 				if (content) return content;
@@ -49,7 +49,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: ({ typescript }) => `vite.config.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			content: ({ ast, imports, exports, common, object }) => {
 				// find `defineConfig` import declaration for "vite"

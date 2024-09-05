@@ -29,12 +29,12 @@ export const adder = defineAdderConfig({
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
-			condition: ({ prettier }) => prettier.installed
+			condition: ({ prettier }) => prettier
 		}
 	],
 	files: [
 		{
-			name: ({ typescript }) => `tailwind.config.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `tailwind.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			content: ({
 				options,
@@ -49,14 +49,14 @@ export const adder = defineAdderConfig({
 			}) => {
 				let root;
 				const rootExport = object.createEmpty();
-				if (typescript.installed) {
+				if (typescript) {
 					imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
 					root = common.typeAnnotateExpression(rootExport, 'Config');
 				}
 
 				const { astNode: exportDeclaration } = exports.defaultExport(ast, root ?? rootExport);
 
-				if (!typescript.installed)
+				if (!typescript)
 					common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
 
 				const contentArray = object.property(rootExport, 'content', array.createEmpty());
@@ -117,10 +117,10 @@ export const adder = defineAdderConfig({
 			content: ({ js }) => {
 				js.imports.addEmpty(js.ast, './app.css');
 			},
-			condition: ({ kit }) => !kit.installed
+			condition: ({ kit }) => !kit
 		},
 		{
-			name: ({ kit }) => `${kit.routesDirectory}/+layout.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			contentType: 'svelte',
 			content: ({ js, html }) => {
 				js.imports.addEmpty(js.ast, '../app.css');
@@ -129,7 +129,7 @@ export const adder = defineAdderConfig({
 					html.ast.childNodes.push(slot);
 				}
 			},
-			condition: ({ kit }) => kit.installed
+			condition: ({ kit }) => Boolean(kit)
 		},
 		{
 			name: () => '.prettierrc',
@@ -142,7 +142,7 @@ export const adder = defineAdderConfig({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 			},
-			condition: ({ prettier }) => prettier.installed
+			condition: ({ prettier }) => prettier
 		}
 	]
 });

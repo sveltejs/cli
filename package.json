@@ -31,7 +31,8 @@
 		"rollup": "^4.20.0",
 		"rollup-plugin-esbuild": "^6.1.1",
 		"rollup-plugin-preserve-shebangs": "^0.2.0",
-		"typescript": "^5.3.3",
+		"sv": "workspace:*",
+		"typescript": "^5.5.4",
 		"typescript-eslint": "^8.0.0",
 		"unplugin-isolated-decl": "^0.4.7",
 		"vitest": "^2.0.5"

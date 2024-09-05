@@ -26,14 +26,14 @@ export const adder = defineAdderConfig({
 			name: 'typescript-eslint',
 			version: '^8.0.0',
 			dev: true,
-			condition: ({ typescript }) => typescript.installed
+			condition: ({ typescript }) => typescript
 		},
 		{ name: 'eslint-plugin-svelte', version: '^2.36.0', dev: true },
 		{
 			name: 'eslint-config-prettier',
 			version: '^9.1.0',
 			dev: true,
-			condition: ({ prettier }) => prettier.installed
+			condition: ({ prettier }) => prettier
 		}
 	],
 	files: [
@@ -69,7 +69,7 @@ export const adder = defineAdderConfig({
 				const jsConfig = common.expressionFromString('js.configs.recommended');
 				array.push(eslintConfigs, jsConfig);
 
-				if (typescript.installed) {
+				if (typescript) {
 					const tsConfig = common.expressionFromString('ts.configs.recommended');
 					array.push(eslintConfigs, common.createSpreadElement(tsConfig));
 				}
@@ -90,7 +90,7 @@ export const adder = defineAdderConfig({
 				});
 				array.push(eslintConfigs, globalsConfig);
 
-				if (typescript.installed) {
+				if (typescript) {
 					const svelteTSParserConfig = object.create({
 						files: common.expressionFromString('["**/*.svelte"]'),
 						languageOptions: object.create({
@@ -118,7 +118,7 @@ export const adder = defineAdderConfig({
 				common.addJsDocTypeComment(defaultExport.astNode, "import('eslint').Linter.Config[]");
 
 				// imports
-				if (typescript.installed) imports.addDefault(ast, 'typescript-eslint', 'ts');
+				if (typescript) imports.addDefault(ast, 'typescript-eslint', 'ts');
 				imports.addDefault(ast, 'globals', 'globals');
 				imports.addDefault(ast, 'eslint-plugin-svelte', 'svelte');
 				imports.addDefault(ast, '@eslint/js', 'js');
@@ -127,7 +127,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'eslint.config.js',
 			contentType: 'script',
-			condition: ({ prettier }) => prettier.installed,
+			condition: ({ prettier }) => prettier,
 			content: addEslintConfigPrettier
 		}
 	]
