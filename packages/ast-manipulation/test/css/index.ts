@@ -15,7 +15,8 @@ for (const categoryDirectory of categoryDirectories) {
 			test(testName, async () => {
 				const testDirectoryPath = join(baseDir, categoryDirectory, testName);
 
-				const input = fs.readFileSync(join(testDirectoryPath, 'input.css'));
+				const inputFilePath = join(testDirectoryPath, 'input.css');
+				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath) : '';
 				const ast = parsePostcss(input.toString());
 				const editor = getCssAstEditor(ast);
 

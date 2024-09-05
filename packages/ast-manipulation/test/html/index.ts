@@ -15,7 +15,8 @@ for (const categoryDirectory of categoryDirectories) {
 			test(testName, async () => {
 				const testDirectoryPath = join(baseDir, categoryDirectory, testName);
 
-				const input = fs.readFileSync(join(testDirectoryPath, 'input.html'));
+				const inputFilePath = join(testDirectoryPath, 'input.html');
+				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath) : '';
 				const ast = parseHtml(input.toString());
 				const editor = getHtmlAstEditor(ast);
 
