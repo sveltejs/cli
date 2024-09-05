@@ -1,1 +1,1 @@
-const array = ['test', 'test2'];
+const array = ["test", "test2"];
