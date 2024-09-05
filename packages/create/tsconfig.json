@@ -4,5 +4,7 @@
 		"checkJs": false,
 		"isolatedDeclarations": true,
 		"declaration": true
-	}
+	},
+	// overrides the root tsconfig `exclude` field so we're not ignoring the `test` dir
+	"exclude": []
 }
