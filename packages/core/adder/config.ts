@@ -15,6 +15,7 @@ import type { FileTypes } from '../files/processors.js';
 import type { Workspace } from '../utils/workspace.js';
 import type { Postcondition } from './postconditions.js';
 import type { Colors } from 'picocolors/types.js';
+import type { PackageManager } from '../utils/dependencies.js';
 
 export type { CssAstEditor, HtmlAstEditor, JsAstEditor, SvelteAstEditor };
 >>>>>>> e647284 (add packageManager to nextSteps data object)
@@ -48,6 +49,13 @@ export type PackageDefinition<Args extends OptionDefinition> = {
 	name: string;
 	version: string;
 	dev: boolean;
+	condition?: ConditionDefinition<Args>;
+};
+
+export type Scripts<Args extends OptionDefinition> = {
+	description: string;
+	args: string[];
+	type: 'dependency' | 'external';
 	condition?: ConditionDefinition<Args>;
 };
 
