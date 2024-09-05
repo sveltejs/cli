@@ -7,17 +7,17 @@ export type ExportDefaultReturn<T> = {
 
 export function defaultExport<T extends AstKinds.ExpressionKind>(
 	ast: AstTypes.Program,
-	declaration: T
+	fallbackDeclaration: T
 ): ExportDefaultReturn<T> {
 	const existingNode = ast.body.find((x) => x.type === 'ExportDefaultDeclaration');
 	if (!existingNode) {
 		const node: AstTypes.ExportDefaultDeclaration = {
 			type: 'ExportDefaultDeclaration',
-			declaration
+			declaration: fallbackDeclaration
 		};
 
 		ast.body.push(node);
-		return { astNode: node, value: declaration };
+		return { astNode: node, value: fallbackDeclaration };
 	}
 
 	const exportDefaultDeclaration = existingNode;
@@ -47,12 +47,9 @@ export function defaultExport<T extends AstKinds.ExpressionKind>(
 		const value = variableDeclarator.init as T;
 
 		return { astNode: exportDefaultDeclaration, value };
-	} else {
-		// overrite the previous value
-		exportDefaultDeclaration.declaration = declaration;
 	}
 
-	declaration = exportDefaultDeclaration.declaration as T;
+	const declaration = exportDefaultDeclaration.declaration as T;
 	return { astNode: exportDefaultDeclaration, value: declaration };
 }
 
