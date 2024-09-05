@@ -1,12 +1,13 @@
 {
-	"extends": "../tsconfig.json",
+	"extends": "../../tsconfig.json",
 	"compilerOptions": {
 		"checkJs": true,
 		"isolatedDeclarations": false,
 		"declaration": false,
 		// setting the module to `NodeNext` allows us to have standalone modules without having to
 		// specify `export {}` in those modules (fixes the `Cannot redeclare block scoped variable` error)
-		"module": "NodeNext"
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext"
 	},
 	// overrides the root tsconfig `exclude` field so we're not ignoring the `test` dir
 	"exclude": []
