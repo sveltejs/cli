@@ -4,9 +4,11 @@
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"format": "pnpm lint --write",
-		"check": "tsc"
+		"check": "tsc",
+		"test": "vitest run",
+		"test:ui": "vitest --ui"
 	},
 	"exports": {
 		".": {

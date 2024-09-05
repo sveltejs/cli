@@ -34,7 +34,7 @@
 		"valibot": "^0.39.0"
 	},
 	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"format": "pnpm lint --write",
 		"check": "tsc",
 		"postpublish": "pnpm -F @svelte-cli/create update-template-repo"

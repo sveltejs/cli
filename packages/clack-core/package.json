@@ -5,7 +5,7 @@
 	"type": "module",
 	"module": "./dist/index.mjs",
 	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"format": "pnpm lint --write",
 		"check": "tsc"
 	},

@@ -1,0 +1,2 @@
+packages/ast-manipulation/test/**/input.*
+packages/ast-manipulation/test/**/output.*

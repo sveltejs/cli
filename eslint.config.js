@@ -28,7 +28,8 @@ export default [
 			'packages/create/templates/**/*',
 			'temp/**/*',
 			'.test-tmp/**/*',
-			'**/dist/*'
+			'**/dist/*',
+			'packages/**/test/**/{output,input}.ts'
 		]
 	}
 ];
