@@ -1,4 +1,4 @@
-import { defineAdderConfig, dedent, type TextFileEditorArgs } from '@svelte-cli/core';
+import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
 import { options as availableOptions } from './options';
 
 const PORTS = {
@@ -151,7 +151,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: ({ typescript }) => `drizzle.config.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			content: ({ options, ast, common, exports, typescript, imports, object }) => {
 				imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
@@ -175,9 +175,7 @@ export const adder = defineAdderConfig({
 						: undefined;
 
 				object.properties(objExpression, {
-					schema: common.createLiteral(
-						`./src/lib/server/db/schema.${typescript.installed ? 'ts' : 'js'}`
-					),
+					schema: common.createLiteral(`./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}`),
 					dbCredentials: object.create({
 						url: common.expressionFromString('process.env.DATABASE_URL'),
 						authToken
@@ -198,7 +196,7 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ kit, typescript }) =>
-				`${kit.libDirectory}/server/db/schema.${typescript.installed ? 'ts' : 'js'}`,
+				`${kit?.libDirectory}/server/db/schema.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			content: ({ ast, exports, imports, options, common, variables }) => {
 				let userSchemaExpression;
@@ -251,7 +249,7 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ kit, typescript }) =>
-				`${kit.libDirectory}/server/db/index.${typescript.installed ? 'ts' : 'js'}`,
+				`${kit?.libDirectory}/server/db/index.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			content: ({ ast, exports, imports, options, common, functions, variables }) => {
 				imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
@@ -337,7 +335,7 @@ export const adder = defineAdderConfig({
 	}
 });
 
-function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof availableOptions>) {
+function generateEnvFileContent({ content, options }: TextFileEditor<typeof availableOptions>) {
 	const DB_URL_KEY = 'DATABASE_URL';
 	if (options.docker) {
 		// we'll prefill with the default docker db credentials

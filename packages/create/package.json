@@ -20,8 +20,6 @@
 	},
 	"license": "MIT",
 	"homepage": "https://kit.svelte.dev",
-	"main": "./dist/index.js",
-	"types": "types/index.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",

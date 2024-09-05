@@ -26,7 +26,12 @@
 	},
 	"devDependencies": {
 		"@svelte-cli/adders": "workspace:*",
-		"@svelte-cli/config": "workspace:*"
+		"@svelte-cli/clack-prompts": "workspace:*",
+		"@svelte-cli/create": "workspace:*",
+		"commander": "^12.1.0",
+		"package-manager-detector": "^0.1.0",
+		"picocolors": "^1.0.1",
+		"valibot": "^0.39.0"
 	},
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore",

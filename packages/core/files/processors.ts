@@ -22,64 +22,54 @@ import {
 import { fileExistsWorkspace, readFile, writeFile } from './utils';
 import type { ConditionDefinition } from '../adder/config';
 import type { OptionDefinition } from '../adder/options';
-import type { Workspace } from '../utils/workspace';
+import type { Workspace } from './workspace';
 
-export type BaseFile<Args extends OptionDefinition> = {
+export type CssFileEditor<Args extends OptionDefinition> = Workspace<Args> & CssAstEditor;
+export type HtmlFileEditor<Args extends OptionDefinition> = Workspace<Args> & HtmlAstEditor;
+export type JsonFileEditor<Args extends OptionDefinition> = Workspace<Args> & { data: any };
+export type ScriptFileEditor<Args extends OptionDefinition> = Workspace<Args> & JsAstEditor;
+export type SvelteFileEditor<Args extends OptionDefinition> = Workspace<Args> & SvelteAstEditor;
+export type TextFileEditor<Args extends OptionDefinition> = Workspace<Args> & { content: string };
+
+type CssFile<Args extends OptionDefinition> = {
+	contentType: 'css';
+	content: (editor: CssFileEditor<Args>) => void;
+};
+type HtmlFile<Args extends OptionDefinition> = {
+	contentType: 'html';
+	content: (editor: HtmlFileEditor<Args>) => void;
+};
+type JsonFile<Args extends OptionDefinition> = {
+	contentType: 'json';
+	content: (editor: JsonFileEditor<Args>) => void;
+};
+type ScriptFile<Args extends OptionDefinition> = {
+	contentType: 'script';
+	content: (editor: ScriptFileEditor<Args>) => void;
+};
+type SvelteFile<Args extends OptionDefinition> = {
+	contentType: 'svelte';
+	content: (editor: SvelteFileEditor<Args>) => void;
+};
+type TextFile<Args extends OptionDefinition> = {
+	contentType: 'text';
+	content: (editor: TextFileEditor<Args>) => string;
+};
+
+type ParsedFile<Args extends OptionDefinition> =
+	| CssFile<Args>
+	| HtmlFile<Args>
+	| JsonFile<Args>
+	| ScriptFile<Args>
+	| SvelteFile<Args>
+	| TextFile<Args>;
+
+type BaseFile<Args extends OptionDefinition> = {
 	name: (options: Workspace<Args>) => string;
 	condition?: ConditionDefinition<Args>;
 };
 
-export type ScriptFileEditorArgs<Args extends OptionDefinition> = JsAstEditor & Workspace<Args>;
-export type ScriptFileType<Args extends OptionDefinition> = {
-	contentType: 'script';
-	content: (editor: ScriptFileEditorArgs<Args>) => void;
-};
-export type ScriptFile<Args extends OptionDefinition> = ScriptFileType<Args> & BaseFile<Args>;
-
-export type TextFileEditorArgs<Args extends OptionDefinition> = {
-	content: string;
-} & Workspace<Args>;
-export type TextFileType<Args extends OptionDefinition> = {
-	contentType: 'text';
-	content: (editor: TextFileEditorArgs<Args>) => string;
-};
-export type TextFile<Args extends OptionDefinition> = TextFileType<Args> & BaseFile<Args>;
-
-export type SvelteFileEditorArgs<Args extends OptionDefinition> = SvelteAstEditor & Workspace<Args>;
-export type SvelteFileType<Args extends OptionDefinition> = {
-	contentType: 'svelte';
-	content: (editor: SvelteFileEditorArgs<Args>) => void;
-};
-export type SvelteFile<Args extends OptionDefinition> = SvelteFileType<Args> & BaseFile<Args>;
-
-export type JsonFileEditorArgs<Args extends OptionDefinition> = { data: any } & Workspace<Args>;
-export type JsonFileType<Args extends OptionDefinition> = {
-	contentType: 'json';
-	content: (editor: JsonFileEditorArgs<Args>) => void;
-};
-export type JsonFile<Args extends OptionDefinition> = JsonFileType<Args> & BaseFile<Args>;
-
-export type HtmlFileEditorArgs<Args extends OptionDefinition> = HtmlAstEditor & Workspace<Args>;
-export type HtmlFileType<Args extends OptionDefinition> = {
-	contentType: 'html';
-	content: (editor: HtmlFileEditorArgs<Args>) => void;
-};
-export type HtmlFile<Args extends OptionDefinition> = HtmlFileType<Args> & BaseFile<Args>;
-
-export type CssFileEditorArgs<Args extends OptionDefinition> = CssAstEditor & Workspace<Args>;
-export type CssFileType<Args extends OptionDefinition> = {
-	contentType: 'css';
-	content: (editor: CssFileEditorArgs<Args>) => void;
-};
-export type CssFile<Args extends OptionDefinition> = CssFileType<Args> & BaseFile<Args>;
-
-export type FileTypes<Args extends OptionDefinition> =
-	| ScriptFile<Args>
-	| TextFile<Args>
-	| SvelteFile<Args>
-	| JsonFile<Args>
-	| HtmlFile<Args>
-	| CssFile<Args>;
+export type FileType<Args extends OptionDefinition> = BaseFile<Args> & ParsedFile<Args>;
 
 /**
  * @param files
@@ -87,7 +77,7 @@ export type FileTypes<Args extends OptionDefinition> =
  * @returns a list of paths of changed or created files
  */
 export function createOrUpdateFiles<Args extends OptionDefinition>(
-	files: Array<FileTypes<Args>>,
+	files: Array<FileType<Args>>,
 	workspace: Workspace<Args>
 ): string[] {
 	const changedFiles = [];
@@ -98,26 +88,25 @@ export function createOrUpdateFiles<Args extends OptionDefinition>(
 			}
 
 			const exists = fileExistsWorkspace(workspace, fileDetails.name(workspace));
+			let content = exists ? readFile(workspace, fileDetails.name(workspace)) : '';
 
-			let content = '';
-			if (!exists) {
-				content = '';
-			} else {
-				content = readFile(workspace, fileDetails.name(workspace));
-			}
-
-			if (fileDetails.contentType == 'script') {
-				content = handleScriptFile(content, fileDetails, workspace);
-			} else if (fileDetails.contentType == 'text') {
-				content = handleTextFile(content, fileDetails, workspace);
-			} else if (fileDetails.contentType == 'svelte') {
-				content = handleSvelteFile(content, fileDetails, workspace);
-			} else if (fileDetails.contentType == 'json') {
-				content = handleJsonFile(content, fileDetails, workspace);
-			} else if (fileDetails.contentType == 'css') {
+			if (fileDetails.contentType === 'css') {
 				content = handleCssFile(content, fileDetails, workspace);
-			} else if (fileDetails.contentType == 'html') {
+			}
+			if (fileDetails.contentType === 'html') {
 				content = handleHtmlFile(content, fileDetails, workspace);
+			}
+			if (fileDetails.contentType === 'json') {
+				content = handleJsonFile(content, fileDetails, workspace);
+			}
+			if (fileDetails.contentType === 'script') {
+				content = handleScriptFile(content, fileDetails, workspace);
+			}
+			if (fileDetails.contentType === 'svelte') {
+				content = handleSvelteFile(content, fileDetails, workspace);
+			}
+			if (fileDetails.contentType === 'text') {
+				content = handleTextFile(content, fileDetails, workspace);
 			}
 
 			writeFile(workspace, fileDetails.name(workspace), content);
@@ -131,78 +120,87 @@ export function createOrUpdateFiles<Args extends OptionDefinition>(
 	return changedFiles;
 }
 
-function handleHtmlFile<Args extends OptionDefinition>(
-	content: string,
-	fileDetails: HtmlFileType<Args>,
-	workspace: Workspace<Args>
-) {
-	const ast = parseHtml(content);
-	fileDetails.content({ ...getHtmlAstEditor(ast), ...workspace });
-	content = serializeHtml(ast);
-	return content;
-}
-
 function handleCssFile<Args extends OptionDefinition>(
 	content: string,
-	fileDetails: CssFileType<Args>,
+	fileDetails: CssFile<Args>,
 	workspace: Workspace<Args>
 ) {
 	const ast = parsePostcss(content);
 	ast.raws.semicolon = true; // always add the optional semicolon
-	fileDetails.content({ ...getCssAstEditor(ast), ...workspace });
+	const editor = getCssAstEditor(ast);
+
+	fileDetails.content({ ...editor, ...workspace });
 	content = serializePostcss(ast);
+	return content;
+}
+
+function handleHtmlFile<Args extends OptionDefinition>(
+	content: string,
+	fileDetails: HtmlFile<Args>,
+	workspace: Workspace<Args>
+) {
+	const ast = parseHtml(content);
+	const editor = getHtmlAstEditor(ast);
+
+	fileDetails.content({ ...editor, ...workspace });
+	content = serializeHtml(ast);
 	return content;
 }
 
 function handleJsonFile<Args extends OptionDefinition>(
 	content: string,
-	fileDetails: JsonFileType<Args>,
+	fileDetails: JsonFile<Args>,
 	workspace: Workspace<Args>
 ) {
 	if (!content) content = '{}';
-	const data: unknown = parseJson(content);
+	const data = parseJson(content);
+
 	fileDetails.content({ data, ...workspace });
 	content = serializeJson(content, data);
 	return content;
 }
 
-function handleSvelteFile<Args extends OptionDefinition>(
+function handleScriptFile<Args extends OptionDefinition>(
 	content: string,
-	fileDetails: SvelteFileType<Args>,
+	fileDetails: ScriptFile<Args>,
 	workspace: Workspace<Args>
 ) {
-	const { jsAst, htmlAst, cssAst } = parseSvelteFile(content);
+	const ast = parseScript(content);
+	const editor = getJsAstEditor(ast);
 
 	fileDetails.content({
-		js: getJsAstEditor(jsAst),
-		html: getHtmlAstEditor(htmlAst),
-		css: getCssAstEditor(cssAst),
+		...editor,
+		...workspace
+	});
+	content = serializeScript(ast);
+	return content;
+}
+
+function handleSvelteFile<Args extends OptionDefinition>(
+	content: string,
+	fileDetails: SvelteFile<Args>,
+	workspace: Workspace<Args>
+) {
+	const { cssAst, htmlAst, jsAst } = parseSvelteFile(content);
+	const css = getCssAstEditor(cssAst);
+	const html = getHtmlAstEditor(htmlAst);
+	const js = getJsAstEditor(jsAst);
+
+	fileDetails.content({
+		css,
+		html,
+		js,
 		...workspace
 	});
 
-	return serializeSvelteFile({ jsAst, htmlAst, cssAst });
+	return serializeSvelteFile({ cssAst, htmlAst, jsAst });
 }
 
 function handleTextFile<Args extends OptionDefinition>(
 	content: string,
-	fileDetails: TextFileType<Args>,
+	fileDetails: TextFile<Args>,
 	workspace: Workspace<Args>
 ) {
 	content = fileDetails.content({ content, ...workspace });
-	return content;
-}
-
-function handleScriptFile<Args extends OptionDefinition>(
-	content: string,
-	fileDetails: ScriptFileType<Args>,
-	workspace: Workspace<Args>
-) {
-	const ast = parseScript(content);
-
-	fileDetails.content({
-		...getJsAstEditor(ast),
-		...workspace
-	});
-	content = serializeScript(ast);
 	return content;
 }

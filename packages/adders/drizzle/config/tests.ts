@@ -18,9 +18,9 @@ export const tests = defineAdderTests({
 	],
 	files: [
 		{
-			name: ({ kit }) => `${kit.routesDirectory}/+page.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
 			contentType: 'svelte',
-			condition: ({ kit }) => kit.installed,
+			condition: ({ kit }) => Boolean(kit),
 			content: ({ html, js }) => {
 				js.common.addFromString(js.ast, 'export let data;');
 				html.addFromRawHtml(
@@ -35,9 +35,9 @@ export const tests = defineAdderTests({
 		},
 		{
 			name: ({ kit, typescript }) =>
-				`${kit.routesDirectory}/+page.server.${typescript.installed ? 'ts' : 'js'}`,
+				`${kit?.routesDirectory}/+page.server.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			condition: ({ kit }) => kit.installed,
+			condition: ({ kit }) => Boolean(kit),
 			content: ({ ast, common, typescript }) => {
 				common.addFromString(
 					ast,
@@ -53,9 +53,7 @@ export const tests = defineAdderTests({
                         return { users };
                     };
 
-                    function insertUser(${
-											typescript.installed ? 'value: typeof user.$inferInsert' : 'value'
-										}) {
+                    function insertUser(${typescript ? 'value: typeof user.$inferInsert' : 'value'}) {
                         return db.insert(user).values(value);
                     }
                     `
@@ -64,9 +62,9 @@ export const tests = defineAdderTests({
 		},
 		{
 			// override the config so we can remove strict mode
-			name: ({ typescript }) => `drizzle.config.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'text',
-			condition: ({ kit }) => kit.installed,
+			condition: ({ kit }) => Boolean(kit),
 			content: ({ content }) => {
 				return content.replace('strict: true,', '');
 			}

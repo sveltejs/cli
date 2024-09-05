@@ -2,8 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist } from './utils';
 
-export type TemplateType = 'default' | 'skeleton' | 'skeletonlib';
-export type LanguageType = 'typescript' | 'checkjs' | null;
+export type TemplateType = (typeof templateTypes)[number];
+export type LanguageType = 'typescript' | 'checkjs' | 'none';
+
+const templateTypes = ['skeleton', 'skeletonlib', 'demo'] as const;
 
 export type Options = {
 	name: string;
@@ -16,7 +18,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = Exclude<TemplateType | LanguageType, null>;
+export type Condition = Exclude<TemplateType | LanguageType, 'none'>;
 
 export type Common = {
 	files: Array<{
@@ -35,7 +37,7 @@ export function create(cwd: string, options: Options): void {
 }
 
 export type TemplateMetadata = { name: TemplateType; title: string; description: string };
-export const templates: TemplateMetadata[] = fs.readdirSync(dist('templates')).map((dir) => {
+export const templates: TemplateMetadata[] = templateTypes.map((dir) => {
 	const meta_file = dist(`templates/${dir}/meta.json`);
 	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
 
@@ -93,7 +95,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 }
 
 function matches_condition(condition: Condition, options: Options) {
-	if (condition === 'default' || condition === 'skeleton' || condition === 'skeletonlib') {
+	if (condition === 'demo' || condition === 'skeleton' || condition === 'skeletonlib') {
 		return options.template === condition;
 	}
 	if (condition === 'typescript' || condition === 'checkjs') {

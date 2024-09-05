@@ -1,10 +1,11 @@
+export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
+
 export type CategoryInfo = {
-	id: string;
+	id: CategoryKeys;
 	name: string;
 	description: string;
 };
 
-export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
 export type CategoryDetails = Record<CategoryKeys, CategoryInfo>;
 
 export type AdderCategories = Record<CategoryKeys, string[]>;
@@ -25,14 +26,14 @@ export const categories: CategoryDetails = {
 		name: 'CSS',
 		description: 'Can be used to style your components'
 	},
-	additional: {
-		id: 'additional',
-		name: 'Additional functionality',
-		description: ''
-	},
 	db: {
 		id: 'db',
 		name: 'Database',
+		description: ''
+	},
+	additional: {
+		id: 'additional',
+		name: 'Additional functionality',
 		description: ''
 	}
 };

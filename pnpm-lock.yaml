@@ -53,8 +53,11 @@ importers:
       rollup-plugin-preserve-shebangs:
         specifier: ^0.2.0
         version: 0.2.0(rollup@4.21.0)
+      sv:
+        specifier: workspace:*
+        version: link:packages/cli
       typescript:
-        specifier: ^5.3.3
+        specifier: ^5.5.4
         version: 5.5.4
       typescript-eslint:
         specifier: ^8.0.0
@@ -151,11 +154,24 @@ importers:
       '@svelte-cli/adders':
         specifier: workspace:*
         version: link:../adders
-      '@svelte-cli/config':
+      '@svelte-cli/clack-prompts':
         specifier: workspace:*
-        version: link:../config
-
-  packages/config: {}
+        version: link:../clack-prompts
+      '@svelte-cli/create':
+        specifier: workspace:*
+        version: link:../create
+      commander:
+        specifier: ^12.1.0
+        version: 12.1.0
+      package-manager-detector:
+        specifier: ^0.1.0
+        version: 0.1.2
+      picocolors:
+        specifier: ^1.0.1
+        version: 1.0.1
+      valibot:
+        specifier: ^0.39.0
+        version: 0.39.0(typescript@5.5.4)
 
   packages/core:
     dependencies:
@@ -169,18 +185,9 @@ importers:
       '@svelte-cli/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
-      '@svelte-cli/create':
-        specifier: workspace:*
-        version: link:../create
-      commander:
-        specifier: ^12.1.0
-        version: 12.1.0
       dedent:
         specifier: ^1.5.3
         version: 1.5.3
-      package-manager-detector:
-        specifier: ^0.1.0
-        version: 0.1.2
       picocolors:
         specifier: ^1.0.1
         version: 1.0.1
@@ -2042,6 +2049,14 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  valibot@0.39.0:
+    resolution: {integrity: sha512-d+vE8SDRNy9zKg6No5MHz2tdz8H6CW8X3OdqYdmlhnoqQmEoM6Hu0hJUrZv3tPSVrzZkIIMCtdCQtMzcM6NCWw==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   vite-node@2.0.5:
     resolution: {integrity: sha512-LdsW4pxj0Ot69FAoXZ1yTnA9bjGohr2yNBU7QKRxpz8ITSkhuDl6h3zS/tvgz4qrNjeRnvrWeXQ8ZF7Um4W00Q==}
@@ -4005,6 +4020,10 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  valibot@0.39.0(typescript@5.5.4):
+    optionalDependencies:
+      typescript: 5.5.4
 
   vite-node@2.0.5(@types/node@22.4.1):
     dependencies:
