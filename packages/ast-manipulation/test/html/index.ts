@@ -1,21 +1,21 @@
 import { describe, expect, test } from 'vitest';
 import { parseHtml, serializeHtml } from '@svelte-cli/ast-tooling';
 import { getHtmlAstEditor } from '@svelte-cli/ast-manipulation';
-import { readdir, readFile } from 'node:fs/promises';
+import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
-const categoryDirectories = await getDirectoryNames(baseDir);
+const categoryDirectories = getDirectoryNames(baseDir);
 
 for (const categoryDirectory of categoryDirectories) {
-	describe(categoryDirectory, async () => {
-		const testNames = await getDirectoryNames(join(baseDir, categoryDirectory));
+	describe(categoryDirectory, () => {
+		const testNames = getDirectoryNames(join(baseDir, categoryDirectory));
 		for (const testName of testNames) {
 			test(testName, async () => {
 				const testDirectoryPath = join(baseDir, categoryDirectory, testName);
 
-				const input = await readFile(join(testDirectoryPath, 'input.html'));
+				const input = fs.readFileSync(join(testDirectoryPath, 'input.html'));
 				const ast = parseHtml(input.toString());
 				const editor = getHtmlAstEditor(ast);
 
@@ -30,8 +30,9 @@ for (const categoryDirectory of categoryDirectories) {
 	});
 }
 
-async function getDirectoryNames(dir: string) {
-	return (await readdir(dir, { withFileTypes: true }))
+function getDirectoryNames(dir: string) {
+	return fs
+		.readdirSync(dir, { withFileTypes: true })
 		.filter((dirent) => dirent.isDirectory())
 		.map((dirent) => dirent.name);
 }
