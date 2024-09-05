@@ -1,10 +1,10 @@
 {
 	"exclude": [
 		"**/dist/**",
-		"packages/create/templates/**",
-		"packages/create/shared/**",
 		"**/temp/**",
-		"**/test/**"
+		"**/test/**",
+		"packages/create/templates/**",
+		"packages/create/shared/**"
 	],
 	"compilerOptions": {
 		"checkJs": true,
