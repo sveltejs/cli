@@ -22,10 +22,21 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: 18
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run lint
+      - run: pnpm lint
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
   test:
     runs-on: ubuntu-latest
     steps:
