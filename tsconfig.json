@@ -3,7 +3,8 @@
 		"**/dist/**",
 		"packages/create/templates/**",
 		"packages/create/shared/**",
-		"**/temp/**"
+		"**/temp/**",
+		"**/test/**"
 	],
 	"compilerOptions": {
 		"checkJs": true,
