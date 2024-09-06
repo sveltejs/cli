@@ -19,6 +19,12 @@ export type SelectQuestion<Value = any> = {
 	options: Array<{ value: Value; label?: string; hint?: string }>;
 };
 
+export type MultiSelectQuestion<Value = any> = {
+	type: 'multiselect';
+	default: Value[];
+	options: Array<{ value: Value; label?: string; hint?: string }>;
+};
+
 export type BaseQuestion = {
 	question: string;
 	// TODO: we want this to be akin to OptionValues<Args> so that the options can be inferred
@@ -26,7 +32,7 @@ export type BaseQuestion = {
 };
 
 export type Question = BaseQuestion &
-	(BooleanQuestion | StringQuestion | NumberQuestion | SelectQuestion);
+	(BooleanQuestion | StringQuestion | NumberQuestion | SelectQuestion | MultiSelectQuestion);
 
 export type OptionDefinition = Record<string, Question>;
 export type OptionValues<Args extends OptionDefinition> = {
@@ -38,5 +44,7 @@ export type OptionValues<Args extends OptionDefinition> = {
 				? number
 				: Args[K] extends SelectQuestion<infer Value>
 					? Value
-					: never;
+					: Args[K] extends MultiSelectQuestion<infer Value>
+						? Value[]
+						: never;
 };
