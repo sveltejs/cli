@@ -58,6 +58,15 @@ export const add = new Command('add')
 	.option('--no-preconditions', 'skips validating preconditions')
 	.option('--default', 'applies default adder options for unspecified options', false)
 	.option('--community <adder...>', 'community adders to install', [])
+	.configureHelp({
+		optionDescription(option) {
+			let output = option.description;
+			if (option.defaultValue !== undefined && String(option.defaultValue)) {
+				output += pc.dim(` (default: ${option.defaultValue})`);
+			}
+			return output;
+		}
+	})
 	.action((adderArgs, opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
@@ -113,8 +122,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 		const optionEntries = Object.entries(details.config.options);
 		for (const specifiedOption of specifiedOptions) {
-			// we'll skip `none` options so that default values can be applied later
-			if (specifiedOption === 'none') continue;
+			// we'll skip empty string and `none` options so that default values can be applied later
+			if (!specifiedOption || specifiedOption === 'none') continue;
 
 			// figure out which option it belongs to
 			const optionEntry = optionEntries.find(([id, question]) => {
@@ -437,10 +446,17 @@ function getAdderOptionFlags(): Option[] {
 		const details = getAdderDetails(id);
 		if (Object.values(details.config.options).length === 0) continue;
 
-		const { choices, defaults } = getOptionChoices(id);
-		const option = new Option(`--${id} [options...]`, `(options: ${choices.join(', ')})`)
+		const { defaults, groups } = getOptionChoices(id);
+		const choices = Object.entries(groups)
+			.map(([group, choices]) => `${pc.dim(`${group}:`)} ${choices.join(', ')}`)
+			.join('\n');
+		const preset = defaults.join(', ') || 'none';
+		const option = new Option(
+			`--${id} [options...]`,
+			`${id} adder options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
+		)
 			// presets are applied when `--adder` is specified with no options
-			.preset(defaults.join(',') || 'none')
+			.preset(preset)
 			.argParser((value, prev: string[]) => {
 				prev ??= [];
 				prev = prev.concat(value.split(/\s|,/));
@@ -456,22 +472,38 @@ function getOptionChoices(adderId: string) {
 	const details = getAdderDetails(adderId);
 	const choices: string[] = [];
 	const defaults: string[] = [];
-	for (const [key, question] of Object.entries(details.config.options)) {
+	const groups: Record<string, string[]> = {};
+	const options: Record<string, unknown> = {};
+	for (const [id, question] of Object.entries(details.config.options)) {
+		let values = [];
 		if (question.type === 'boolean') {
-			const values = [key, `no-${key}`];
-			choices.push(...values);
-			defaults.push(question.default ? values[0] : values[1]);
+			values = [id, `no-${id}`];
+			if (question.condition?.(options) !== false) {
+				options[id] = question.default;
+				defaults.push(question.default ? values[0] : values[1]);
+			}
 		}
 		if (question.type === 'select') {
-			const values = question.options.map((o) => o.value);
-			choices.push(...values);
-			defaults.push(question.default ?? values[0]);
+			values = question.options.map((o) => o.value);
+			if (question.condition?.(options) !== false) {
+				options[id] = question.default;
+				defaults.push(question.default);
+			}
 		}
 		if (question.type === 'multiselect') {
-			const values = question.options.map((o) => o.value);
-			choices.push(...values);
-			defaults.push(...question.default);
+			values = question.options.map((o) => o.value);
+			if (question.condition?.(options) !== false) {
+				options[id] = question.default;
+				defaults.push(...question.default);
+			}
 		}
+
+		choices.push(...values);
+
+		// we'll fallback to the question's id
+		const groupId = question.group ?? id;
+		groups[groupId] ??= [];
+		groups[groupId].push(...values);
 	}
-	return { choices, defaults };
+	return { choices, defaults, groups };
 }
