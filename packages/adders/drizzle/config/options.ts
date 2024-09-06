@@ -28,7 +28,7 @@ export const options = defineAdderOptions({
 		group: 'client',
 		default: 'mysql2',
 		options: [
-			{ value: 'mysql2', label: 'mysql2', hint: 'recommended for most users' },
+			{ value: 'mysql2', hint: 'recommended for most users' },
 			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
 		],
 		condition: ({ database }) => database === 'mysql'
@@ -39,11 +39,7 @@ export const options = defineAdderOptions({
 		group: 'client',
 		default: 'libsql',
 		options: [
-			{
-				value: 'better-sqlite3',
-				label: 'better-sqlite3',
-				hint: 'for traditional Node environments'
-			},
+			{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
 			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
 		],
