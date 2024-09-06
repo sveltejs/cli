@@ -27,6 +27,7 @@ export type MultiSelectQuestion<Value = any> = {
 
 export type BaseQuestion = {
 	question: string;
+	group?: string;
 	// TODO: we want this to be akin to OptionValues<Args> so that the options can be inferred
 	condition?: (options: OptionValues<any>) => boolean;
 };
