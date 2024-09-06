@@ -456,23 +456,24 @@ function getOptionChoices(adderId: string) {
 	const options: Record<string, unknown> = {};
 	for (const [id, question] of Object.entries(details.config.options)) {
 		let values = [];
+		const applyDefault = question.condition?.(options) !== false;
 		if (question.type === 'boolean') {
 			values = [id, `no-${id}`];
-			if (question.condition?.(options) !== false) {
+			if (applyDefault) {
 				options[id] = question.default;
 				defaults.push(question.default ? values[0] : values[1]);
 			}
 		}
 		if (question.type === 'select') {
 			values = question.options.map((o) => o.value);
-			if (question.condition?.(options) !== false) {
+			if (applyDefault) {
 				options[id] = question.default;
 				defaults.push(question.default);
 			}
 		}
 		if (question.type === 'multiselect') {
 			values = question.options.map((o) => o.value);
-			if (question.condition?.(options) !== false) {
+			if (applyDefault) {
 				options[id] = question.default;
 				defaults.push(...question.default);
 			}
