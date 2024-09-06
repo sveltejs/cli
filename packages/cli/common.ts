@@ -1,10 +1,24 @@
-import { spawn, type ChildProcess } from 'node:child_process';
 import pc from 'picocolors';
+import pkg from './package.json';
 import * as p from '@svelte-cli/clack-prompts';
 import { detect } from 'package-manager-detector';
 import { COMMANDS, AGENTS, type Agent } from 'package-manager-detector/agents';
-import pkg from './package.json';
 import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
+import type { Argument, HelpConfiguration, Option } from 'commander';
+import { spawn, type ChildProcess } from 'node:child_process';
+
+export const helpConfig: HelpConfiguration = {
+	argumentDescription: formatDescription,
+	optionDescription: formatDescription
+};
+
+function formatDescription(arg: Option | Argument): string {
+	let output = arg.description;
+	if (arg.defaultValue !== undefined && String(arg.defaultValue)) {
+		output += pc.dim(` (default: ${JSON.stringify(arg.defaultValue)})`);
+	}
+	return output;
+}
 
 type MaybePromise = () => Promise<void> | void;
 

@@ -9,7 +9,8 @@ import {
 	formatFiles,
 	getGlobalPreconditions,
 	suggestInstallingDependencies,
-	runCommand
+	runCommand,
+	helpConfig
 } from '../common.js';
 import { adderCategories, categories, adderIds } from '@svelte-cli/adders';
 import { getAdderDetails } from '../../adders/index.js';
@@ -56,15 +57,7 @@ export const add = new Command('add')
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
 	.option('--community <adder...>', 'community adders to install', [])
-	.configureHelp({
-		optionDescription(option) {
-			let output = option.description;
-			if (option.defaultValue !== undefined && String(option.defaultValue)) {
-				output += pc.dim(` (default: ${option.defaultValue})`);
-			}
-			return output;
-		}
-	})
+	.configureHelp(helpConfig)
 	.action((adderArgs, opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {

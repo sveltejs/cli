@@ -12,6 +12,7 @@ import {
 } from '@svelte-cli/create';
 import {
 	getUserAgent,
+	helpConfig,
 	packageManager,
 	runCommand,
 	suggestInstallingDependencies
@@ -41,6 +42,7 @@ export const create = new Command('create')
 	.addOption(templateOption)
 	.option('--no-adders', 'skips interactive adder installer')
 	.option('--no-install', 'skips installing dependencies')
+	.configureHelp(helpConfig)
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
