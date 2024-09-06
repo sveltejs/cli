@@ -36,7 +36,6 @@ const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
-	default: v.boolean(),
 	community: AddersSchema,
 	...AdderOptionFlagsSchema.entries
 });
@@ -56,7 +55,6 @@ export const add = new Command('add')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
-	.option('--default', 'applies default adder options for unspecified options', false)
 	.option('--community <adder...>', 'community adders to install', [])
 	.configureHelp({
 		optionDescription(option) {
@@ -235,17 +233,6 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			if (p.isCancel(force) || !force) {
 				p.cancel('Operation cancelled.');
 				process.exit(1);
-			}
-		}
-	}
-
-	// apply defaults to unspecified options
-	if (options.default) {
-		for (const adder of selectedAdders) {
-			const adderId = adder.config.metadata.id;
-			official[adderId] ??= {};
-			for (const [id, question] of Object.entries(adder.config.options)) {
-				official[adderId][id] ??= question.default;
 			}
 		}
 	}

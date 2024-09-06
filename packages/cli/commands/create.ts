@@ -141,13 +141,7 @@ async function createProject(cwd: string, options: Options) {
 
 	if (options.adders) {
 		await runAddCommand(
-			{
-				cwd: projectPath,
-				default: false,
-				install: options.install,
-				preconditions: true,
-				community: []
-			},
+			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
 			[]
 		);
 	} else if (options.install) {
