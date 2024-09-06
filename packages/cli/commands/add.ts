@@ -109,25 +109,29 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			selectedAdders.push(details);
 		}
 
+		official[adderId] ??= {};
+
 		const optionEntries = Object.entries(details.config.options);
 		for (const specifiedOption of specifiedOptions) {
+			// we'll skip `none` options so that default values can be applied later
+			if (specifiedOption === 'none') continue;
+
 			// figure out which option it belongs to
 			const optionEntry = optionEntries.find(([id, question]) => {
 				if (question.type === 'boolean') {
 					return id === specifiedOption || `no-${id}` === specifiedOption;
 				}
-				if (question.type === 'select') {
+				if (question.type === 'select' || question.type === 'multiselect') {
 					return question.options.some((o) => o.value === specifiedOption);
 				}
 			});
 			if (!optionEntry) {
-				const choices = getOptionChoices(adderId).join(', ');
+				const { choices } = getOptionChoices(adderId);
 				throw new Error(
-					`Invalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices}`
+					`Invalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
 				);
 			}
 
-			official[adderId] ??= {};
 			const [questionId, question] = optionEntry;
 
 			// validate that there are no conflicts
@@ -144,6 +148,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 			official[adderId][questionId] =
 				question.type === 'boolean' ? !specifiedOption.startsWith('no-') : specifiedOption;
+		}
+
+		// apply defaults to unspecified options
+		for (const [id, question] of Object.entries(details.config.options)) {
+			official[adderId][id] ??= question.default;
 		}
 	}
 
@@ -250,6 +259,14 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				answer = await p.select({
 					message,
 					initialValue: question.default,
+					options: question.options
+				});
+			}
+			if (question.type === 'multiselect') {
+				answer = await p.multiselect({
+					message,
+					initialValues: question.default,
+					required: false,
 					options: question.options
 				});
 			}
@@ -420,31 +437,41 @@ function getAdderOptionFlags(): Option[] {
 		const details = getAdderDetails(id);
 		if (Object.values(details.config.options).length === 0) continue;
 
-		const choices = getOptionChoices(id).join(', ');
-		const option = new Option(`--${id} <options...>`, `(choices: ${choices})`).argParser(
-			(value, prev: string[]) => {
+		const { choices, defaults } = getOptionChoices(id);
+		const option = new Option(`--${id} [options...]`, `(options: ${choices.join(', ')})`)
+			// presets are applied when `--adder` is specified with no options
+			.preset(defaults.join(',') || 'none')
+			.argParser((value, prev: string[]) => {
 				prev ??= [];
 				prev = prev.concat(value.split(/\s|,/));
 				return prev;
-			}
-		);
+			});
+
 		options.push(option);
 	}
 	return options;
 }
 
-function getOptionChoices(adderId: string): string[] {
+function getOptionChoices(adderId: string) {
 	const details = getAdderDetails(adderId);
 	const choices: string[] = [];
+	const defaults: string[] = [];
 	for (const [key, question] of Object.entries(details.config.options)) {
 		if (question.type === 'boolean') {
 			const values = [key, `no-${key}`];
 			choices.push(...values);
+			defaults.push(question.default ? values[0] : values[1]);
 		}
 		if (question.type === 'select') {
 			const values = question.options.map((o) => o.value);
 			choices.push(...values);
+			defaults.push(question.default ?? values[0]);
+		}
+		if (question.type === 'multiselect') {
+			const values = question.options.map((o) => o.value);
+			choices.push(...values);
+			defaults.push(...question.default);
 		}
 	}
-	return choices;
+	return { choices, defaults };
 }
