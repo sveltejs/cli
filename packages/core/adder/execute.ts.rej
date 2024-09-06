@@ -1,41 +1,17 @@
 diff a/packages/core/adder/execute.ts b/packages/core/adder/execute.ts	(rejected hunks)
-@@ -26,9 +26,15 @@ import type {
- 	AdderConfigMetadata,
- 	ExternalAdderConfig,
- 	InlineAdderConfig,
-+	Scripts,
- } from './config.js';
+@@ -31,7 +31,6 @@ import type {
  import type { RemoteControlOptions } from './remoteControl.js';
--import { suggestInstallingDependencies } from '../utils/dependencies.js';
-+import {
-+	getPackageManager,
-+	installDependencies,
-+	suggestInstallingDependencies,
-+	type PackageManager,
-+} from '../utils/dependencies.js';
- import { validatePreconditions } from './preconditions.js';
- import { endPrompts, startPrompts } from '../utils/prompts.js';
- import { checkPostconditions, printUnmetPostconditions } from './postconditions.js';
-@@ -95,12 +102,14 @@ export async function executeAdders<Args extends OptionDefinition>(
- 		workingDirectory = await detectSvelteDirectory(workingDirectory);
- 		const createProject = workingDirectory == null;
- 		if (!workingDirectory) workingDirectory = process.cwd();
-+		const packageManager = getPackageManager();
+ import {
+ 	getPackageManager,
+-	installDependencies,
+ 	suggestInstallingDependencies,
+ 	type PackageManager,
+ } from '../utils/dependencies.js';
+@@ -41,6 +40,7 @@ import { checkPostconditions, printUnmetPostconditions } from './postconditions.
+ import { displayNextSteps } from './nextSteps.js';
+ import { spinner, log, cancel } from '@svelte-add/clack-prompts';
+ import { executeCli } from '../utils/cli.js';
++import { COMMANDS } from 'package-manager-detector/agents';
  
- 		const executionPlan: AddersExecutionPlan = {
- 			workingDirectory,
- 			createProject,
- 			commonCliOptions,
- 			cliOptionsByAdderId,
-+			packageManager,
- 			selectAddersToApply,
- 		};
- 
-@@ -281,6 +305,7 @@ async function processInlineAdder<Args extends OptionDefinition>(
- 	isInstall: boolean,
- ) {
- 	const pkgPath = await installPackages(config, workspace);
-+	if (config.scripts) await runScripts(config.scripts, workspace);
- 	const updatedOrCreatedFiles = await createOrUpdateFiles(config.files, workspace);
- 	await runHooks(config, workspace, isInstall);
- 
+ export type AdderDetails<Args extends OptionDefinition> = {
+ 	config: AdderConfig<Args>;
