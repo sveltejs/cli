@@ -11,7 +11,7 @@ export const tests = defineAdderTests({
 			contentType: 'svelte',
 			content: (editor) => {
 				prepareCoreTest(editor);
-				if (editor.options.typography) prepareTypographyTest(editor);
+				if (editor.options.plugins.includes('typography')) prepareTypographyTest(editor);
 			},
 			condition: ({ kit }) => Boolean(kit)
 		},
@@ -20,13 +20,13 @@ export const tests = defineAdderTests({
 			contentType: 'svelte',
 			content: (editor) => {
 				prepareCoreTest(editor);
-				if (editor.options.typography) prepareTypographyTest(editor);
+				if (editor.options.plugins.includes('typography')) prepareTypographyTest(editor);
 			},
 			condition: ({ kit }) => !kit
 		}
 	],
 	options,
-	optionValues: [{ typography: false }, { typography: true }],
+	optionValues: [{ plugins: [] }, { plugins: ['typography'] }],
 	tests: [
 		{
 			name: 'core properties',
@@ -40,7 +40,7 @@ export const tests = defineAdderTests({
 		},
 		{
 			name: 'typography properties',
-			condition: ({ typography }) => typography,
+			condition: ({ plugins }) => plugins.includes('typography'),
 			run: async ({ expectProperty }) => {
 				const selector = '#' + typographyDivId;
 				await expectProperty(selector, 'font-size', '18px');
