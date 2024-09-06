@@ -421,8 +421,12 @@ function getAdderOptionFlags(): Option[] {
 		if (Object.values(details.config.options).length === 0) continue;
 
 		const choices = getOptionChoices(id).join(', ');
-		const option = new Option(`--${id} <options...>`, `(choices: ${choices})`).argParser((value) =>
-			value.split(',')
+		const option = new Option(`--${id} <options...>`, `(choices: ${choices})`).argParser(
+			(value, prev: string[]) => {
+				prev ??= [];
+				prev = prev.concat(value.split(/\s|,/));
+				return prev;
+			}
 		);
 		options.push(option);
 	}
