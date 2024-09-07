@@ -29,49 +29,45 @@ export const adder = defineAdderConfig({
 			name: 'mysql2',
 			version: '^3.9.8',
 			dev: false,
-			condition: ({ options }) => options.database === 'mysql' && options.mysql === 'mysql2'
+			condition: ({ options }) => options.mysql === 'mysql2'
 		},
 		{
 			name: '@planetscale/database',
 			version: '^1.18.0',
 			dev: false,
-			condition: ({ options }) => options.database === 'mysql' && options.mysql === 'planetscale'
+			condition: ({ options }) => options.mysql === 'planetscale'
 		},
 		// PostgreSQL
 		{
 			name: '@neondatabase/serverless',
 			version: '^0.9.3',
 			dev: false,
-			condition: ({ options }) => options.database === 'postgresql' && options.postgresql === 'neon'
+			condition: ({ options }) => options.postgresql === 'neon'
 		},
 		{
 			name: 'postgres',
 			version: '^3.4.4',
 			dev: false,
-			condition: ({ options }) =>
-				options.database === 'postgresql' && options.postgresql === 'postgres.js'
+			condition: ({ options }) => options.postgresql === 'postgres.js'
 		},
 		// SQLite
 		{
 			name: 'better-sqlite3',
 			version: '^10.0.0',
 			dev: false,
-			condition: ({ options }) =>
-				options.database === 'sqlite' && options.sqlite === 'better-sqlite3'
+			condition: ({ options }) => options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@types/better-sqlite3',
 			version: '^7.6.10',
 			dev: true,
-			condition: ({ options }) =>
-				options.database === 'sqlite' && options.sqlite === 'better-sqlite3'
+			condition: ({ options }) => options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@libsql/client',
 			version: '^0.6.1',
 			dev: false,
-			condition: ({ options }) =>
-				options.database === 'sqlite' && (options.sqlite === 'libsql' || options.sqlite === 'turso')
+			condition: ({ options }) => options.sqlite === 'libsql' || options.sqlite === 'turso'
 		}
 	],
 	files: [
@@ -89,9 +85,7 @@ export const adder = defineAdderConfig({
 			name: () => 'docker-compose.yml',
 			contentType: 'text',
 			condition: ({ options }) =>
-				options.docker &&
-				(options.database === 'mysql' || options.database === 'postgresql') &&
-				(options.mysql === 'mysql2' || options.postgresql === 'postgres.js'),
+				options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js'),
 			content: ({ content, options }) => {
 				// if the file already exists, don't modify it
 				// (in the future, we could add some tooling for modifying yaml)
@@ -105,13 +99,13 @@ export const adder = defineAdderConfig({
 				const DB_NAME = 'local';
 
 				let dbSpecificContent = '';
-				if (options.database === 'mysql' && options.mysql === 'mysql2') {
+				if (options.mysql === 'mysql2') {
 					dbSpecificContent = `
                       MYSQL_ROOT_PASSWORD: ${PASSWORD}
                       MYSQL_DATABASE: ${DB_NAME}
                 `;
 				}
-				if (options.database === 'postgresql' && options.postgresql === 'postgres.js') {
+				if (options.postgresql === 'postgres.js') {
 					dbSpecificContent = `
                       POSTGRES_USER: ${USER}
                       POSTGRES_PASSWORD: ${PASSWORD}
@@ -268,66 +262,60 @@ export const adder = defineAdderConfig({
 
 				let clientExpression;
 				// SQLite
-				if (options.database === 'sqlite') {
-					if (options.sqlite === 'better-sqlite3') {
-						imports.addDefault(ast, 'better-sqlite3', 'Database');
-						imports.addNamed(ast, 'drizzle-orm/better-sqlite3', { drizzle: 'drizzle' });
+				if (options.sqlite === 'better-sqlite3') {
+					imports.addDefault(ast, 'better-sqlite3', 'Database');
+					imports.addNamed(ast, 'drizzle-orm/better-sqlite3', { drizzle: 'drizzle' });
 
-						clientExpression = common.expressionFromString('new Database(env.DATABASE_URL)');
-					}
-					if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
-						imports.addNamed(ast, '@libsql/client', { createClient: 'createClient' });
-						imports.addNamed(ast, 'drizzle-orm/libsql', { drizzle: 'drizzle' });
+					clientExpression = common.expressionFromString('new Database(env.DATABASE_URL)');
+				}
+				if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
+					imports.addNamed(ast, '@libsql/client', { createClient: 'createClient' });
+					imports.addNamed(ast, 'drizzle-orm/libsql', { drizzle: 'drizzle' });
 
-						if (options.sqlite === 'turso') {
-							imports.addNamed(ast, '$app/environment', { dev: 'dev' });
-							// auth token check in prod
-							const authTokenCheck = common.statementFromString(
-								'if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error("DATABASE_AUTH_TOKEN is not set");'
-							);
-							common.addStatement(ast, authTokenCheck);
+					if (options.sqlite === 'turso') {
+						imports.addNamed(ast, '$app/environment', { dev: 'dev' });
+						// auth token check in prod
+						const authTokenCheck = common.statementFromString(
+							'if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error("DATABASE_AUTH_TOKEN is not set");'
+						);
+						common.addStatement(ast, authTokenCheck);
 
-							clientExpression = common.expressionFromString(
-								'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
-							);
-						} else {
-							clientExpression = common.expressionFromString(
-								'createClient({ url: env.DATABASE_URL })'
-							);
-						}
+						clientExpression = common.expressionFromString(
+							'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
+						);
+					} else {
+						clientExpression = common.expressionFromString(
+							'createClient({ url: env.DATABASE_URL })'
+						);
 					}
 				}
 				// MySQL
-				if (options.database === 'mysql') {
-					if (options.mysql === 'mysql2') {
-						imports.addDefault(ast, 'mysql2/promise', 'mysql');
-						imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
+				if (options.mysql === 'mysql2') {
+					imports.addDefault(ast, 'mysql2/promise', 'mysql');
+					imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
-						clientExpression = common.expressionFromString(
-							'await mysql.createConnection(env.DATABASE_URL)'
-						);
-					}
-					if (options.mysql === 'planetscale') {
-						imports.addNamed(ast, '@planetscale/database', { Client: 'Client' });
-						imports.addNamed(ast, 'drizzle-orm/planetscale-serverless', { drizzle: 'drizzle' });
+					clientExpression = common.expressionFromString(
+						'await mysql.createConnection(env.DATABASE_URL)'
+					);
+				}
+				if (options.mysql === 'planetscale') {
+					imports.addNamed(ast, '@planetscale/database', { Client: 'Client' });
+					imports.addNamed(ast, 'drizzle-orm/planetscale-serverless', { drizzle: 'drizzle' });
 
-						clientExpression = common.expressionFromString('new Client({ url: env.DATABASE_URL })');
-					}
+					clientExpression = common.expressionFromString('new Client({ url: env.DATABASE_URL })');
 				}
 				// PostgreSQL
-				if (options.database === 'postgresql') {
-					if (options.postgresql === 'neon') {
-						imports.addNamed(ast, '@neondatabase/serverless', { neon: 'neon' });
-						imports.addNamed(ast, 'drizzle-orm/neon-http', { drizzle: 'drizzle' });
+				if (options.postgresql === 'neon') {
+					imports.addNamed(ast, '@neondatabase/serverless', { neon: 'neon' });
+					imports.addNamed(ast, 'drizzle-orm/neon-http', { drizzle: 'drizzle' });
 
-						clientExpression = common.expressionFromString('neon(env.DATABASE_URL)');
-					}
-					if (options.postgresql === 'postgres.js') {
-						imports.addDefault(ast, 'postgres', 'postgres');
-						imports.addNamed(ast, 'drizzle-orm/postgres-js', { drizzle: 'drizzle' });
+					clientExpression = common.expressionFromString('neon(env.DATABASE_URL)');
+				}
+				if (options.postgresql === 'postgres.js') {
+					imports.addDefault(ast, 'postgres', 'postgres');
+					imports.addNamed(ast, 'drizzle-orm/postgres-js', { drizzle: 'drizzle' });
 
-						clientExpression = common.expressionFromString('postgres(env.DATABASE_URL)');
-					}
+					clientExpression = common.expressionFromString('postgres(env.DATABASE_URL)');
 				}
 
 				if (!clientExpression) throw new Error('unreachable state...');
@@ -360,17 +348,14 @@ function generateEnvFileContent({ content, options }: TextFileEditor<typeof avai
 		);
 		return content;
 	}
-	if (
-		options.database === 'sqlite' &&
-		(options.sqlite === 'better-sqlite3' || options.sqlite === 'libsql')
-	) {
+	if (options.sqlite === 'better-sqlite3' || options.sqlite === 'libsql') {
 		const dbFile = options.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
 		content = addEnvVar(content, DB_URL_KEY, dbFile);
 		return content;
 	}
 
 	content = addEnvComment(content, 'Replace with your DB credentials!');
-	if (options.database === 'sqlite' && options.sqlite === 'turso') {
+	if (options.sqlite === 'turso') {
 		content = addEnvVar(content, DB_URL_KEY, '"libsql://db-name-user.turso.io"');
 		content = addEnvVar(content, 'DATABASE_AUTH_TOKEN', '""');
 		content = addEnvComment(content, 'A local DB can also be used in dev as well');
