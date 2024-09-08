@@ -17,6 +17,9 @@ function formatDescription(arg: Option | Argument): string {
 	if (arg.defaultValue !== undefined && String(arg.defaultValue)) {
 		output += pc.dim(` (default: ${JSON.stringify(arg.defaultValue)})`);
 	}
+	if (arg.argChoices !== undefined && String(arg.argChoices)) {
+		output += pc.dim(` (choices: ${arg.argChoices.join(', ')})`);
+	}
 	return output;
 }
 
