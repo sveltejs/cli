@@ -152,7 +152,10 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 		// apply defaults to unspecified options
 		for (const [id, question] of Object.entries(details.config.options)) {
-			official[adderId][id] ??= question.default;
+			// only apply defaults to options that don't explicitly fail their conditions
+			if (question.condition?.(official[adderId]) !== false) {
+				official[adderId][id] ??= question.default;
+			}
 		}
 	}
 

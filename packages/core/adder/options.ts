@@ -28,8 +28,12 @@ export type MultiSelectQuestion<Value = any> = {
 export type BaseQuestion = {
 	question: string;
 	group?: string;
-	// TODO: we want this to be akin to OptionValues<Args> so that the options can be inferred
+	/**
+	 * When this condition explicitly returns `false`, the question's value will
+	 * always be `undefined` and will not fallback to the specified `default` value.
+	 */
 	condition?: (options: OptionValues<any>) => boolean;
+	// TODO: we want to type `options` similar to OptionValues<Args> so that its option values can be inferred
 };
 
 export type Question = BaseQuestion &
