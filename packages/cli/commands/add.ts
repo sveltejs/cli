@@ -152,9 +152,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 		// apply defaults to unspecified options
 		for (const [id, question] of Object.entries(details.config.options)) {
-			// only apply defaults to options that don't explicitly fail their conditions
+			// we'll only apply defaults to options that don't explicitly fail their conditions
 			if (question.condition?.(official[adderId]) !== false) {
 				official[adderId][id] ??= question.default;
+			} else {
+				// if they do fail, we want to ensure that their values remain `undefined`
+				// (e.g. if they specified options that aren't compatible: `--drizzle=sqlite,mysql2`)
+				official[adderId][id] = undefined;
 			}
 		}
 	}
