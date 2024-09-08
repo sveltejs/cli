@@ -156,9 +156,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			if (question.condition?.(official[adderId]) !== false) {
 				official[adderId][id] ??= question.default;
 			} else {
-				// if they do fail, we want to ensure that their values remain `undefined`
-				// (e.g. if they specified options that aren't compatible: `--drizzle=sqlite,mysql2`)
-				official[adderId][id] = undefined;
+				// we'll also error out if they specified an option that is incompatible with other options.
+				// (e.g. the client isn't available for a given database `--drizzle sqlite mysql2`)
+				if (official[adderId][id] !== undefined) {
+					throw new Error(
+						`Incompatible '--${adderId}' option specified: '${official[adderId][id]}'`
+					);
+				}
 			}
 		}
 	}
