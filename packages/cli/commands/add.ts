@@ -9,7 +9,8 @@ import {
 	formatFiles,
 	getGlobalPreconditions,
 	suggestInstallingDependencies,
-	runCommand
+	runCommand,
+	helpConfig
 } from '../common.js';
 import { adderCategories, categories, adderIds } from '@svelte-cli/adders';
 import { getAdderDetails } from '../../adders/index.js';
@@ -36,7 +37,6 @@ const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
-	default: v.boolean(),
 	community: AddersSchema,
 	...AdderOptionFlagsSchema.entries
 });
@@ -56,8 +56,8 @@ export const add = new Command('add')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
-	.option('--default', 'applies default adder options for unspecified options', false)
 	.option('--community <adder...>', 'community adders to install', [])
+	.configureHelp(helpConfig)
 	.action((adderArgs, opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
@@ -109,25 +109,29 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			selectedAdders.push(details);
 		}
 
+		official[adderId] ??= {};
+
 		const optionEntries = Object.entries(details.config.options);
 		for (const specifiedOption of specifiedOptions) {
+			// we'll skip empty string and `none` options so that default values can be applied later
+			if (!specifiedOption || specifiedOption === 'none') continue;
+
 			// figure out which option it belongs to
 			const optionEntry = optionEntries.find(([id, question]) => {
 				if (question.type === 'boolean') {
 					return id === specifiedOption || `no-${id}` === specifiedOption;
 				}
-				if (question.type === 'select') {
+				if (question.type === 'select' || question.type === 'multiselect') {
 					return question.options.some((o) => o.value === specifiedOption);
 				}
 			});
 			if (!optionEntry) {
-				const choices = getOptionChoices(adderId).join(', ');
+				const { choices } = getOptionChoices(adderId);
 				throw new Error(
-					`Invalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices}`
+					`Invalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
 				);
 			}
 
-			official[adderId] ??= {};
 			const [questionId, question] = optionEntry;
 
 			// validate that there are no conflicts
@@ -144,6 +148,22 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 			official[adderId][questionId] =
 				question.type === 'boolean' ? !specifiedOption.startsWith('no-') : specifiedOption;
+		}
+
+		// apply defaults to unspecified options
+		for (const [id, question] of Object.entries(details.config.options)) {
+			// we'll only apply defaults to options that don't explicitly fail their conditions
+			if (question.condition?.(official[adderId]) !== false) {
+				official[adderId][id] ??= question.default;
+			} else {
+				// we'll also error out if they specified an option that is incompatible with other options.
+				// (e.g. the client isn't available for a given database `--drizzle sqlite mysql2`)
+				if (official[adderId][id] !== undefined) {
+					throw new Error(
+						`Incompatible '--${adderId}' option specified: '${official[adderId][id]}'`
+					);
+				}
+			}
 		}
 	}
 
@@ -221,17 +241,6 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
-	// apply defaults to unspecified options
-	if (options.default) {
-		for (const adder of selectedAdders) {
-			const adderId = adder.config.metadata.id;
-			official[adderId] ??= {};
-			for (const [id, question] of Object.entries(adder.config.options)) {
-				official[adderId][id] ??= question.default;
-			}
-		}
-	}
-
 	// ask remaining questions
 	for (const adder of selectedAdders) {
 		const adderId = adder.config.metadata.id;
@@ -250,6 +259,14 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				answer = await p.select({
 					message,
 					initialValue: question.default,
+					options: question.options
+				});
+			}
+			if (question.type === 'multiselect') {
+				answer = await p.multiselect({
+					message,
+					initialValues: question.default,
+					required: false,
 					options: question.options
 				});
 			}
@@ -420,31 +437,65 @@ function getAdderOptionFlags(): Option[] {
 		const details = getAdderDetails(id);
 		if (Object.values(details.config.options).length === 0) continue;
 
-		const choices = getOptionChoices(id).join(', ');
-		const option = new Option(`--${id} <options...>`, `(choices: ${choices})`).argParser(
-			(value, prev: string[]) => {
+		const { defaults, groups } = getOptionChoices(id);
+		const choices = Object.entries(groups)
+			.map(([group, choices]) => `${pc.dim(`${group}:`)} ${choices.join(', ')}`)
+			.join('\n');
+		const preset = defaults.join(', ') || 'none';
+		const option = new Option(
+			`--${id} [options...]`,
+			`${id} adder options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
+		)
+			// presets are applied when `--adder` is specified with no options
+			.preset(preset)
+			.argParser((value, prev: string[]) => {
 				prev ??= [];
 				prev = prev.concat(value.split(/\s|,/));
 				return prev;
-			}
-		);
+			});
+
 		options.push(option);
 	}
 	return options;
 }
 
-function getOptionChoices(adderId: string): string[] {
+function getOptionChoices(adderId: string) {
 	const details = getAdderDetails(adderId);
 	const choices: string[] = [];
-	for (const [key, question] of Object.entries(details.config.options)) {
+	const defaults: string[] = [];
+	const groups: Record<string, string[]> = {};
+	const options: Record<string, unknown> = {};
+	for (const [id, question] of Object.entries(details.config.options)) {
+		let values = [];
+		const applyDefault = question.condition?.(options) !== false;
 		if (question.type === 'boolean') {
-			const values = [key, `no-${key}`];
-			choices.push(...values);
+			values = [id, `no-${id}`];
+			if (applyDefault) {
+				options[id] = question.default;
+				defaults.push(question.default ? values[0] : values[1]);
+			}
 		}
 		if (question.type === 'select') {
-			const values = question.options.map((o) => o.value);
-			choices.push(...values);
+			values = question.options.map((o) => o.value);
+			if (applyDefault) {
+				options[id] = question.default;
+				defaults.push(question.default);
+			}
 		}
+		if (question.type === 'multiselect') {
+			values = question.options.map((o) => o.value);
+			if (applyDefault) {
+				options[id] = question.default;
+				defaults.push(...question.default);
+			}
+		}
+
+		choices.push(...values);
+
+		// we'll fallback to the question's id
+		const groupId = question.group ?? id;
+		groups[groupId] ??= [];
+		groups[groupId].push(...values);
 	}
-	return choices;
+	return { choices, defaults, groups };
 }

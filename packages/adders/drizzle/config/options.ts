@@ -14,7 +14,8 @@ export const options = defineAdderOptions({
 	postgresql: {
 		question: 'Which PostgreSQL client would you like to use?',
 		type: 'select',
-		default: undefined,
+		group: 'client',
+		default: 'postgres.js',
 		options: [
 			{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
 			{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
@@ -24,9 +25,10 @@ export const options = defineAdderOptions({
 	mysql: {
 		question: 'Which MySQL client would you like to use?',
 		type: 'select',
-		default: undefined,
+		group: 'client',
+		default: 'mysql2',
 		options: [
-			{ value: 'mysql2', label: 'mysql2', hint: 'recommended for most users' },
+			{ value: 'mysql2', hint: 'recommended for most users' },
 			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
 		],
 		condition: ({ database }) => database === 'mysql'
@@ -34,13 +36,10 @@ export const options = defineAdderOptions({
 	sqlite: {
 		question: 'Which SQLite client would you like to use?',
 		type: 'select',
-		default: undefined,
+		group: 'client',
+		default: 'libsql',
 		options: [
-			{
-				value: 'better-sqlite3',
-				label: 'better-sqlite3',
-				hint: 'for traditional Node environments'
-			},
+			{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
 			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
 		],

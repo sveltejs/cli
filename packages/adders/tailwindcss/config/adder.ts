@@ -23,7 +23,7 @@ export const adder = defineAdderConfig({
 			name: '@tailwindcss/typography',
 			version: '^0.5.14',
 			dev: true,
-			condition: ({ options }) => options.typography
+			condition: ({ options }) => options.plugins.includes('typography')
 		},
 		{
 			name: 'prettier-plugin-tailwindcss',
@@ -67,7 +67,7 @@ export const adder = defineAdderConfig({
 
 				const pluginsArray = object.property(rootExport, 'plugins', array.createEmpty());
 
-				if (options.typography) {
+				if (options.plugins.includes('typography')) {
 					const requireCall = functions.call('require', ['@tailwindcss/typography']);
 					array.push(pluginsArray, requireCall);
 				}
