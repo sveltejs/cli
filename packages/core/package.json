@@ -24,7 +24,7 @@
 	"devDependencies": {
 		"@svelte-cli/clack-prompts": "workspace:*",
 		"dedent": "^1.5.3",
-		"picocolors": "^1.0.1"
+		"picocolors": "^1.1.0"
 	},
 	"dependencies": {
 		"@svelte-cli/ast-manipulation": "workspace:*",
