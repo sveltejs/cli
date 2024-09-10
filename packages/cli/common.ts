@@ -1,8 +1,8 @@
 import pc from 'picocolors';
 import pkg from './package.json';
 import * as p from '@svelte-cli/clack-prompts';
-import { detect } from 'package-manager-detector';
-import { COMMANDS, AGENTS, type Agent } from 'package-manager-detector/agents';
+import { detect, AGENTS, type Agent, type AgentName } from 'package-manager-detector';
+import { COMMANDS, constructCommand } from 'package-manager-detector/commands';
 import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { spawn, type ChildProcess } from 'node:child_process';
@@ -83,16 +83,17 @@ export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
 	});
 }
 
-type PMOptions = Array<{ value: Agent | undefined; label: Agent | 'None' }>;
+type PackageManagerOptions = Array<{ value: AgentName | null; label: AgentName | 'None' }>;
 export async function suggestInstallingDependencies(cwd: string): Promise<'installed' | 'skipped'> {
 	const detectedPm = await detect({ cwd });
-	let selectedPm = detectedPm.agent;
+	let selectedPm = detectedPm?.agent ?? null;
 
-	const options: PMOptions = AGENTS.filter((agent) => !agent.includes('@')).map((pm) => ({
+	const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
+	const options: PackageManagerOptions = agents.map((pm) => ({
 		value: pm,
 		label: pm
 	}));
-	options.unshift({ label: 'None', value: undefined });
+	options.unshift({ label: 'None', value: null });
 
 	if (!selectedPm) {
 		const pm = await p.select({
@@ -112,14 +113,14 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 		return 'skipped';
 	}
 
+	const { command, args } = constructCommand(COMMANDS[selectedPm]['install'], [])!;
+
 	const loadingSpinner = p.spinner();
 	loadingSpinner.start('Installing dependencies...');
 
-	const installCommand = COMMANDS[selectedPm].install;
-	const [pm, install] = installCommand.split(' ');
-	await installDependencies(pm, [install], cwd);
+	await installDependencies(command, args, cwd);
 
-	packageManager = pm;
+	packageManager = command;
 
 	loadingSpinner.stop('Successfully installed dependencies');
 	return 'installed';
