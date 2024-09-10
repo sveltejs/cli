@@ -113,7 +113,7 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 		return 'skipped';
 	}
 
-	const { command, args } = constructCommand(COMMANDS[selectedPm]['install'], [])!;
+	const { command, args } = constructCommand(COMMANDS[selectedPm].install, [])!;
 
 	const loadingSpinner = p.spinner();
 	loadingSpinner.start('Installing dependencies...');
