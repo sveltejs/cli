@@ -10,7 +10,11 @@ Web development, streamlined. Read the [documentation](https://kit.svelte.dev/do
 | ------------------ | -------------------------------------- |
 | [sv](packages/cli) | [Changelog](packages/cli/CHANGELOG.md) |
 
-[Additional adders](https://www.sveltesociety.dev/templates?category=svelte-add) are maintained by the community.
+[Additional adders](https://www.sveltesociety.dev/packages?category=svelte-add) are maintained by the community.
+
+## Contributing
+
+Please file an issue for discussion before sending a PR for a new adder. Most new adders will likely be recommended to be implemented as community adders. This repository will only hold a very limited number of adders at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
 
 ## Supporting Svelte
 
