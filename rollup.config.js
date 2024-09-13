@@ -8,6 +8,7 @@ import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { buildTemplates } from '@svelte-cli/create/build';
+import { bundleCommunityAdders } from './scripts/bundle-community.js';
 
 /** @import { Package } from "./packages/core/files/utils.js" */
 /** @import { Plugin, RollupOptions } from "rollup" */
@@ -36,18 +37,47 @@ function getConfig(project) {
 	/** @type {Plugin | undefined} */
 	let buildCliTemplatesPlugin;
 	if (project === 'create') {
-		// This custom rollup plugin is used to build the templates
-		// and place them inside the dist folder after every rollup build.
-		// This is necessary because rollup clears the output directory and
-		// thus also removes the template files
+		// This plugin is used to build the templates and place them inside the
+		// `dist` folder after every rollup build. This is necessary as we're
+		// clearing the output directory and thus also removes the template files
 		buildCliTemplatesPlugin = {
 			name: 'build-cli-templates',
+			buildStart() {
+				const templates = getFilePaths('packages', 'create', 'templates');
+				const shared = getFilePaths('packages', 'create', 'shared');
+				for (const file of shared.concat(templates)) {
+					this.addWatchFile(file);
+				}
+			},
 			async writeBundle() {
 				console.log('building templates');
 				const start = performance.now();
 				await buildTemplates(path.resolve('packages', 'cli', 'dist'));
 				const end = performance.now();
 				console.log(`finished building templates: ${Math.round(end - start)}ms`);
+			}
+		};
+	}
+
+	/** @type {Plugin | undefined} */
+	let buildCommunityAddersPlugin;
+	if (project === 'core') {
+		// This plugin bundles the JSON files found in `/community` and builds them into a single
+		// TS module in `packages/adders/_config/community.ts`
+		buildCommunityAddersPlugin = {
+			name: 'build-community-adders-metadata',
+			buildStart() {
+				const files = getFilePaths('community');
+				for (const file of files) {
+					this.addWatchFile(file);
+				}
+			},
+			async writeBundle() {
+				console.log('building community adders');
+				const start = performance.now();
+				await bundleCommunityAdders();
+				const end = performance.now();
+				console.log(`finished building community adders: ${Math.round(end - start)}ms`);
 			}
 		};
 	}
@@ -67,12 +97,14 @@ function getConfig(project) {
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),
 			json(),
-			dynamicImportVars(),
-			buildCliTemplatesPlugin
+			dynamicImportVars({ exclude: ['packages/cli/utils/fetch-packages.ts'] }),
+			buildCliTemplatesPlugin,
+			buildCommunityAddersPlugin
 		]
 	};
 }
 
+/** @type {RollupOptions[]} */
 export default [
 	getConfig('clack-core'),
 	getConfig('clack-prompts'),
@@ -92,4 +124,13 @@ function getExternalDeps(pkg) {
 		...Object.keys(pkg.dependencies ?? {}),
 		...Object.keys(pkg.peerDependencies ?? {})
 	]);
+}
+
+/**
+ * @param {string[]} paths
+ * @returns {string[]}
+ */
+function getFilePaths(...paths) {
+	const dir = path.resolve(...paths);
+	return fs.readdirSync(dir, { withFileTypes: true }).map((f) => path.join(f.parentPath, f.name));
 }

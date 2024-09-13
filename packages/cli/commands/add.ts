@@ -1,19 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as v from 'valibot';
+import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import pc from 'picocolors';
-import {
-	executeCli,
-	formatFiles,
-	getGlobalPreconditions,
-	suggestInstallingDependencies,
-	runCommand,
-	helpConfig
-} from '../common.js';
-import { adderCategories, categories, adderIds } from '@svelte-cli/adders';
-import { getAdderDetails } from '../../adders/index.js';
+import { adderCategories, categories, adderIds, getAdderDetails } from '@svelte-cli/adders';
 import {
 	createOrUpdateFiles,
 	createWorkspace,
@@ -21,12 +13,15 @@ import {
 	installPackages,
 	TESTING
 } from '@svelte-cli/core/internal';
-import {
-	type ExternalAdderConfig,
-	type InlineAdderConfig,
-	type OptionDefinition,
-	type OptionValues
+import type {
+	AdderWithoutExplicitArgs,
+	ExternalAdderConfig,
+	InlineAdderConfig,
+	OptionDefinition,
+	OptionValues
 } from '@svelte-cli/core';
+import * as common from '../common.js';
+import { Directive, downloadPackage } from '../utils/fetch-packages.js';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -45,6 +40,7 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 const adderDetails = adderIds.map((id) => getAdderDetails(id));
 const aliases = adderDetails.map((c) => c.config.metadata.alias).filter((v) => v !== undefined);
 const addersOptions = getAdderOptionFlags();
+const communityDetails: AdderWithoutExplicitArgs[] = [];
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = findUp(process.cwd(), 'package.json');
@@ -57,7 +53,7 @@ export const add = new Command('add')
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
 	.option('--community <adder...>', 'community adders to install', [])
-	.configureHelp(helpConfig)
+	.configureHelp(common.helpConfig)
 	.action((adderArgs, opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
@@ -83,7 +79,7 @@ export const add = new Command('add')
 		}
 
 		const selectedAdders = transformAliases(adders);
-		runCommand(async () => {
+		common.runCommand(async () => {
 			await runAddCommand(options, selectedAdders);
 		});
 	});
@@ -93,8 +89,12 @@ for (const option of addersOptions) {
 	add.addOption(option);
 }
 
+type SelectedAdder = { type: 'official' | 'unofficial'; adder: AdderWithoutExplicitArgs };
 export async function runAddCommand(options: Options, adders: string[]): Promise<void> {
-	const selectedAdders = adders.map((id) => getAdderDetails(id));
+	const selectedAdders: SelectedAdder[] = adders.map((id) => ({
+		type: 'official',
+		adder: getAdderDetails(id)
+	}));
 	const official: AdderOption = {};
 	const community: AdderOption = {};
 
@@ -105,8 +105,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		if (!specifiedOptions) continue;
 
 		const details = getAdderDetails(adderId);
-		if (!selectedAdders.includes(details)) {
-			selectedAdders.push(details);
+		if (!selectedAdders.find((d) => d.adder === details)) {
+			selectedAdders.push({ type: 'official', adder: details });
 		}
 
 		official[adderId] ??= {};
@@ -126,7 +126,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				}
 			});
 			if (!optionEntry) {
-				const { choices } = getOptionChoices(adderId);
+				const { choices } = getOptionChoices(details);
 				throw new Error(
 					`Invalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
 				);
@@ -167,6 +167,56 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
+	// validate and download community adders
+	if (options.community.length > 0) {
+		const { communityAdders } = await import('@svelte-cli/adders');
+		const adderIds = communityAdders.map((c) => c.id);
+		const adders: string[] = [];
+
+		// validate adders
+		for (const id of options.community) {
+			// ids with directives are passed unmodified so they can be processed during downloads
+			const hasDirective = Object.values(Directive).some((directive) => id.startsWith(directive));
+			if (hasDirective) {
+				adders.push(id);
+				continue;
+			}
+			const validAdder = communityAdders.some((c) => c.id === id);
+			if (!validAdder) {
+				throw new Error(
+					`Invalid community adder specified: '${id}'\nAvailable options: ${adderIds.join(', ')}`
+				);
+			}
+			adders.push(id);
+		}
+
+		// get adder details from remote adders
+		const { start, stop } = p.spinner();
+		const ids = [];
+		try {
+			start('Resolving community adder packages');
+			const downloads = adders.map((id) => {
+				const packageName = communityAdders.find((a) => a.id === id)?.npm ?? id;
+				return downloadPackage({ cwd: options.cwd, packageName });
+			});
+			const details = await Promise.all(downloads);
+			for (const adder of details) {
+				const id = adder.config.metadata.id;
+				community[id] ??= {};
+				ids.push(pc.bold(id));
+				communityDetails.push(adder);
+				selectedAdders.push({ type: 'unofficial', adder });
+			}
+			stop('Resolved community adder packages');
+		} catch (err) {
+			stop('Failed to resolve community adder packages', 1);
+			throw err;
+		}
+
+		p.log.warn(`The following packages are ${pc.underline('not')} official Svelte integrations:`);
+		p.log.message(ids.join(', '));
+	}
+
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
 		const adderOptions: Record<string, Array<{ value: string; label: string }>> = {};
@@ -202,19 +252,20 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			process.exit(1);
 		}
 
-		selected.forEach((id) => selectedAdders.push(getAdderDetails(id)));
+		selected.forEach((id) => selectedAdders.push({ type: 'official', adder: getAdderDetails(id) }));
 	}
 
 	// run precondition checks
 	if (options.preconditions) {
 		const preconditions = selectedAdders
-			.flatMap((c) => c.checks.preconditions)
+			.flatMap(({ adder }) => adder.checks.preconditions)
 			.filter((p) => p !== undefined);
 
 		// add global checks
 		const { kit } = createWorkspace(options.cwd);
 		const projectType = kit ? 'kit' : 'svelte';
-		const globalPreconditions = getGlobalPreconditions(options.cwd, projectType, selectedAdders);
+		const adders = selectedAdders.map(({ adder }) => adder);
+		const globalPreconditions = common.getGlobalPreconditions(options.cwd, projectType, adders);
 		preconditions.unshift(...globalPreconditions.preconditions);
 
 		const fails: Array<{ name: string; message?: string }> = [];
@@ -242,13 +293,23 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	}
 
 	// ask remaining questions
-	for (const adder of selectedAdders) {
+	for (const { adder, type } of selectedAdders) {
 		const adderId = adder.config.metadata.id;
 		const questionPrefix = selectedAdders.length > 1 ? `${adder.config.metadata.name}: ` : '';
-		official[adderId] ??= {};
+
+		let values: QuestionValues = {};
+		if (type === 'official') {
+			official[adderId] ??= {};
+			values = official[adderId];
+		}
+		if (type === 'unofficial') {
+			community[adderId] ??= {};
+			values = community[adderId];
+		}
+
 		for (const [questionId, question] of Object.entries(adder.config.options)) {
-			const shouldAsk = question.condition?.(official[adderId]);
-			if (shouldAsk === false || official[adderId][questionId] !== undefined) continue;
+			const shouldAsk = question.condition?.(values);
+			if (shouldAsk === false || values[questionId] !== undefined) continue;
 
 			let answer;
 			const message = questionPrefix + question.question;
@@ -281,7 +342,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				process.exit(1);
 			}
 
-			official[adderId][questionId] = answer;
+			values[questionId] = answer;
 		}
 	}
 
@@ -292,12 +353,10 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		p.log.success('Successfully installed adders');
 	}
 
-	// TODO: apply community adders
-
 	// install dependencies
 	let depsStatus;
 	if (options.install) {
-		depsStatus = await suggestInstallingDependencies(options.cwd);
+		depsStatus = await common.suggestInstallingDependencies(options.cwd);
 	}
 
 	// format modified/created files with prettier (if available)
@@ -306,7 +365,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		const formatSpinner = p.spinner();
 		formatSpinner.start('Formatting modified files');
 		try {
-			await formatFiles(options.cwd, filesToFormat);
+			await common.formatFiles(options.cwd, filesToFormat);
 			formatSpinner.stop('Successfully formatted modified files');
 		} catch (e) {
 			formatSpinner.stop('Failed to format files');
@@ -316,8 +375,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// print next steps
 	const nextStepsMsg = selectedAdders
-		.filter((a) => a.config.integrationType === 'inline' && a.config.nextSteps)
-		.map((a) => a.config as InlineAdderConfig<any>)
+		.filter(({ adder }) => adder.config.integrationType === 'inline' && adder.config.nextSteps)
+		.map(({ adder }) => adder.config as InlineAdderConfig<any>)
 		.map((config) => {
 			const metadata = config.metadata;
 			let adderMessage = '';
@@ -355,15 +414,20 @@ export type InstallAdderOptions = {
  */
 export async function installAdders({
 	cwd,
-	official = {}
+	official = {},
+	community = {}
 }: InstallAdderOptions): Promise<string[]> {
 	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
+	const commDetails = Object.keys(community).map(
+		(id) => communityDetails.find((x) => x.config.metadata.id === id)!
+	);
+	const details = adderDetails.concat(commDetails);
 
 	// adders might specify that they should be executed after another adder.
 	// this orders the adders to (ideally) have adders without dependencies run first
 	// and adders with dependencies runs later on, based on the adders they depend on.
 	// based on https://stackoverflow.com/a/72030336/16075084
-	adderDetails.sort((a, b) => {
+	details.sort((a, b) => {
 		if (!a.config.runsAfter) return -1;
 		if (!b.config.runsAfter) return 1;
 
@@ -376,7 +440,7 @@ export async function installAdders({
 
 	// apply adders
 	const filesToFormat = new Set<string>();
-	for (const { config } of adderDetails) {
+	for (const { config } of details) {
 		const adderId = config.metadata.id;
 		const workspace = createWorkspace(cwd);
 
@@ -405,9 +469,12 @@ async function processExternalAdder<Args extends OptionDefinition>(
 	if (!TESTING) p.log.message(`Executing external command ${pc.gray(`(${config.metadata.id})`)}`);
 
 	try {
-		await executeCli('npx', config.command.split(' '), cwd, {
-			env: Object.assign(process.env, config.environment ?? {}),
-			stdio: TESTING ? 'pipe' : 'inherit'
+		await exec('npx', config.command.split(' '), {
+			nodeOptions: {
+				cwd,
+				env: Object.assign(process.env, config.environment ?? {}),
+				stdio: TESTING ? 'pipe' : 'inherit'
+			}
 		});
 	} catch (error) {
 		const typedError = error as Error;
@@ -437,7 +504,7 @@ function getAdderOptionFlags(): Option[] {
 		const details = getAdderDetails(id);
 		if (Object.values(details.config.options).length === 0) continue;
 
-		const { defaults, groups } = getOptionChoices(id);
+		const { defaults, groups } = getOptionChoices(details);
 		const choices = Object.entries(groups)
 			.map(([group, choices]) => `${pc.dim(`${group}:`)} ${choices.join(', ')}`)
 			.join('\n');
@@ -459,8 +526,7 @@ function getAdderOptionFlags(): Option[] {
 	return options;
 }
 
-function getOptionChoices(adderId: string) {
-	const details = getAdderDetails(adderId);
+function getOptionChoices(details: AdderWithoutExplicitArgs) {
 	const choices: string[] = [];
 	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
