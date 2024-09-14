@@ -8,7 +8,7 @@ import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
 import { buildTemplates } from '@svelte-cli/create/build';
-import { bundleCommunityAdders } from './scripts/bundle-community.js';
+import MagicString from 'magic-string';
 
 /** @import { Package } from "./packages/core/files/utils.js" */
 /** @import { Plugin, RollupOptions } from "rollup" */
@@ -60,24 +60,24 @@ function getConfig(project) {
 	}
 
 	/** @type {Plugin | undefined} */
-	let buildCommunityAddersPlugin;
-	if (project === 'core') {
-		// This plugin bundles the JSON files found in `/community` and builds them into a single
-		// TS module in `packages/adders/_config/community.ts`
-		buildCommunityAddersPlugin = {
-			name: 'build-community-adders-metadata',
-			buildStart() {
-				const files = getFilePaths('community');
-				for (const file of files) {
-					this.addWatchFile(file);
+	let communityAdderIdsPlugin;
+	if (project === 'cli') {
+		// Evaluates the ids of available community adders at build time
+		communityAdderIdsPlugin = {
+			name: 'evaluate-community-adder-ids',
+			transform(code, id) {
+				if (id.endsWith('_config/community.ts')) {
+					const ms = new MagicString(code, { filename: id });
+					const start = code.indexOf('export const communityAdderIds');
+					const end = code.indexOf(';', start);
+					const ids = fs.readdirSync('community').map((p) => path.parse(p).name);
+					const generated = `export const communityAdderIds = ${JSON.stringify(ids)};`;
+					ms.overwrite(start, end, generated);
+					return {
+						code: ms.toString(),
+						map: ms.generateMap()
+					};
 				}
-			},
-			async writeBundle() {
-				console.log('building community adders');
-				const start = performance.now();
-				await bundleCommunityAdders();
-				const end = performance.now();
-				console.log(`finished building community adders: ${Math.round(end - start)}ms`);
 			}
 		};
 	}
@@ -97,9 +97,13 @@ function getConfig(project) {
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),
 			json(),
-			dynamicImportVars({ exclude: ['packages/cli/utils/fetch-packages.ts'] }),
+			dynamicImportVars({
+				// since we're relying on the usage of standard dynamic imports for community adders, we need to
+				// prevent this plugin from transforming these cases
+				exclude: ['packages/cli/utils/fetch-packages.ts']
+			}),
 			buildCliTemplatesPlugin,
-			buildCommunityAddersPlugin
+			communityAdderIdsPlugin
 		]
 	};
 }

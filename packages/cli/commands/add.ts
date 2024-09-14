@@ -89,7 +89,7 @@ for (const option of addersOptions) {
 	add.addOption(option);
 }
 
-type SelectedAdder = { type: 'official' | 'unofficial'; adder: AdderWithoutExplicitArgs };
+type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
 export async function runAddCommand(options: Options, adders: string[]): Promise<void> {
 	const selectedAdders: SelectedAdder[] = adders.map((id) => ({
 		type: 'official',
@@ -169,8 +169,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// validate and download community adders
 	if (options.community.length > 0) {
-		const { communityAdders } = await import('@svelte-cli/adders');
-		const adderIds = communityAdders.map((c) => c.id);
+		const { getCommunityAdders, communityAdderIds } = await import('@svelte-cli/adders');
 		const adders: string[] = [];
 
 		// validate adders
@@ -181,10 +180,10 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				adders.push(id);
 				continue;
 			}
-			const validAdder = communityAdders.some((c) => c.id === id);
+			const validAdder = communityAdderIds.includes(id);
 			if (!validAdder) {
 				throw new Error(
-					`Invalid community adder specified: '${id}'\nAvailable options: ${adderIds.join(', ')}`
+					`Invalid community adder specified: '${id}'\nAvailable options: ${communityAdderIds.join(', ')}`
 				);
 			}
 			adders.push(id);
@@ -195,8 +194,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		const ids = [];
 		try {
 			start('Resolving community adder packages');
-			const downloads = adders.map((id) => {
-				const packageName = communityAdders.find((a) => a.id === id)?.npm ?? id;
+			const downloads = adders.map(async (id) => {
+				const pkg = await getCommunityAdders(id).catch(() => undefined);
+				const packageName = pkg?.npm ?? id;
 				return downloadPackage({ cwd: options.cwd, packageName });
 			});
 			const details = await Promise.all(downloads);
@@ -205,7 +205,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				community[id] ??= {};
 				ids.push(pc.bold(id));
 				communityDetails.push(adder);
-				selectedAdders.push({ type: 'unofficial', adder });
+				selectedAdders.push({ type: 'community', adder });
 			}
 			stop('Resolved community adder packages');
 		} catch (err) {
@@ -302,7 +302,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			official[adderId] ??= {};
 			values = official[adderId];
 		}
-		if (type === 'unofficial') {
+		if (type === 'community') {
 			community[adderId] ??= {};
 			values = community[adderId];
 		}

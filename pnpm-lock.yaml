@@ -41,6 +41,9 @@ importers:
       eslint:
         specifier: ^9.10.0
         version: 9.10.0
+      magic-string:
+        specifier: ^0.30.11
+        version: 0.30.11
       prettier:
         specifier: ^3.1.1
         version: 3.3.3
