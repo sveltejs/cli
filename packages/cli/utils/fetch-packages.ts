@@ -48,16 +48,20 @@ export async function downloadPackage({
 		verifyPackage(pkg, packageName);
 
 		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
-		const dest = path.join(NODE_MODULES, pkg.name);
-		if (!fs.existsSync(dest)) {
-			// `symlinkSync` doesn't recursively create directories to the `destination` path,
-			// so we'll need to create them before creating the symlink
-			const dir = path.dirname(dest);
-			if (!fs.existsSync(dir)) {
-				fs.mkdirSync(dir, { recursive: true });
-			}
-			fs.symlinkSync(pkgPath, dest);
+		const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
+
+		// ensures that a new symlink is always created
+		if (fs.existsSync(dest)) {
+			fs.rmSync(dest);
 		}
+
+		// `symlinkSync` doesn't recursively create directories to the `destination` path,
+		// so we'll need to create them before creating the symlink
+		const dir = path.dirname(dest);
+		if (!fs.existsSync(dir)) {
+			fs.mkdirSync(dir, { recursive: true });
+		}
+		fs.symlinkSync(pkgPath, dest);
 
 		const { default: details } = await import(pkg.name);
 		return details;
@@ -76,14 +80,14 @@ export async function downloadPackage({
 
 	// extracts the package's contents from the tarball and writes the files to `sv/node_modules/pkg-name`
 	// so that we can dynamically import the package via `import(pkg-name)`
-	const pkgPath = path.join(NODE_MODULES, pkg.name);
 	await pipeline(
 		data.body,
 		createGunzip(),
-		extract(pkgPath, {
+		extract(NODE_MODULES, {
 			map: (header) => {
-				// file paths from the tarball will always have `package/` prefix, so we'll want to remove it
-				header.name = header.name.slice('package/'.length);
+				// file paths from the tarball will always have a `package/` prefix,
+				// so we'll need to replace it with the name of the package
+				header.name = header.name.replace('package', pkg.name);
 				return header;
 			}
 		})
@@ -97,7 +101,7 @@ async function fetchPackageJSON(packageName: string): Promise<Record<string, any
 	let pkgName = packageName;
 	let scope = '';
 	if (packageName.startsWith('@')) {
-		const [org, name] = pkgName.split('/');
+		const [org, name] = pkgName.split('/', 2);
 		scope = `${org}/`;
 		pkgName = name;
 	}
