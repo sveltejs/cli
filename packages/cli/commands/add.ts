@@ -5,7 +5,14 @@ import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import pc from 'picocolors';
-import { adderCategories, categories, adderIds, getAdderDetails } from '@svelte-cli/adders';
+import {
+	adderCategories,
+	categories,
+	adderIds,
+	getAdderDetails,
+	communityAdderIds,
+	getCommunityAdders
+} from '@svelte-cli/adders';
 import {
 	createOrUpdateFiles,
 	createWorkspace,
@@ -32,7 +39,7 @@ const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
-	community: AddersSchema,
+	community: v.optional(AddersSchema),
 	...AdderOptionFlagsSchema.entries
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
@@ -52,7 +59,7 @@ export const add = new Command('add')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
-	.option('--community <adder...>', 'community adders to install', [])
+	.option('--community [adder...]', 'community adders to install')
 	.configureHelp(common.helpConfig)
 	.action((adderArgs, opts) => {
 		// validate workspace
@@ -67,6 +74,17 @@ export const add = new Command('add')
 				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
 			);
 			process.exit(1);
+		}
+
+		// we'll print a list of available options when `--community` is specified with no args
+		if (opts.community === true) {
+			console.log('Usage: sv add --community [adder...]\n');
+			console.log('Applies community made adders\n');
+			console.log(`Available options: ${communityAdderIds.join(', ')}\n`);
+			console.warn(
+				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
+			);
+			process.exit(0);
 		}
 
 		const adders = v.parse(AddersSchema, adderArgs);
@@ -168,8 +186,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	}
 
 	// validate and download community adders
-	if (options.community.length > 0) {
-		const { getCommunityAdders, communityAdderIds } = await import('@svelte-cli/adders');
+	if (options.community && options.community?.length > 0) {
 		const adders: string[] = [];
 
 		// validate adders
