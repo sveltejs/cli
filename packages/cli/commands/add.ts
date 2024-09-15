@@ -187,24 +187,20 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// validate and download community adders
 	if (options.community && options.community?.length > 0) {
-		const adders: string[] = [];
-
 		// validate adders
-		for (const id of options.community) {
+		const adders = options.community.map((id) => {
 			// ids with directives are passed unmodified so they can be processed during downloads
 			const hasDirective = Object.values(Directive).some((directive) => id.startsWith(directive));
-			if (hasDirective) {
-				adders.push(id);
-				continue;
-			}
+			if (hasDirective) return id;
+
 			const validAdder = communityAdderIds.includes(id);
 			if (!validAdder) {
 				throw new Error(
 					`Invalid community adder specified: '${id}'\nAvailable options: ${communityAdderIds.join(', ')}`
 				);
 			}
-			adders.push(id);
-		}
+			return id;
+		});
 
 		// get adder details from remote adders
 		const { start, stop } = p.spinner();
