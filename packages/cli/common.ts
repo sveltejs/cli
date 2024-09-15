@@ -1,11 +1,11 @@
 import pc from 'picocolors';
 import pkg from './package.json';
+import { exec } from 'tinyexec';
 import * as p from '@svelte-cli/clack-prompts';
-import { detect, AGENTS, type Agent, type AgentName } from 'package-manager-detector';
+import { detect, AGENTS, type AgentName } from 'package-manager-detector';
 import { COMMANDS, constructCommand } from 'package-manager-detector/commands';
 import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import { spawn, type ChildProcess } from 'node:child_process';
 
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
@@ -25,7 +25,7 @@ function formatDescription(arg: Option | Argument): string {
 
 type MaybePromise = () => Promise<void> | void;
 
-export let packageManager: string | undefined;
+export let packageManager: AgentName | undefined;
 
 export async function runCommand(action: MaybePromise) {
 	try {
@@ -40,46 +40,9 @@ export async function runCommand(action: MaybePromise) {
 	}
 }
 
-export async function executeCli(
-	command: string,
-	commandArgs: string[],
-	cwd: string,
-	options?: {
-		onData?: (data: string, program: ChildProcess, resolve: (value?: any) => any) => void;
-		stdio?: 'pipe' | 'inherit';
-		env?: Record<string, string>;
-	}
-): Promise<any> {
-	const stdio = options?.stdio ?? 'pipe';
-	const env = options?.env ?? process.env;
-
-	const program = spawn(command, commandArgs, { stdio, shell: true, cwd, env });
-
-	return await new Promise((resolve, reject) => {
-		let errorText = '';
-		program.stderr?.on('data', (data: Buffer) => {
-			const value = data.toString();
-			errorText += value;
-		});
-
-		program.stdout?.on('data', (data: Buffer) => {
-			const value = data.toString();
-			options?.onData?.(value, program, resolve);
-		});
-
-		program.on('exit', (code) => {
-			if (code == 0) {
-				resolve(undefined);
-			} else {
-				reject(new Error(errorText));
-			}
-		});
-	});
-}
-
 export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	await executeCli('npx', ['prettier', '--write', '--ignore-unknown', ...paths], cwd, {
-		stdio: 'pipe'
+	await exec('npx', ['prettier', '--write', '--ignore-unknown', ...paths], {
+		nodeOptions: { cwd, stdio: 'pipe' }
 	});
 }
 
@@ -89,10 +52,7 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 	let selectedPm = detectedPm?.agent ?? null;
 
 	const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
-	const options: PackageManagerOptions = agents.map((pm) => ({
-		value: pm,
-		label: pm
-	}));
+	const options: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
 	options.unshift({ label: 'None', value: null });
 
 	if (!selectedPm) {
@@ -120,35 +80,43 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 
 	await installDependencies(command, args, cwd);
 
-	packageManager = command;
+	packageManager = command as AgentName;
 
 	loadingSpinner.stop('Successfully installed dependencies');
 	return 'installed';
 }
 
-export function getUserAgent(): Agent | undefined {
+/**
+ * Guesses the package manager based on the detected lockfile or user-agent.
+ * If neither of those return valid package managers, it falls back to `npm`.
+ */
+export async function guessPackageManager(cwd: string): Promise<AgentName> {
+	if (packageManager) return packageManager;
+	const pm = await detect({ cwd });
+	return pm?.name ?? getUserAgent() ?? 'npm';
+}
+
+function getUserAgent() {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;
 	const pmSpec = userAgent.split(' ')[0];
 	const separatorPos = pmSpec.lastIndexOf('/');
-	const name = pmSpec.substring(0, separatorPos);
-	return name as Agent;
+	const name = pmSpec.substring(0, separatorPos) as AgentName;
+	return AGENTS.includes(name) ? name : undefined;
 }
 
-async function installDependencies(command: string, args: string[], workingDirectory: string) {
+async function installDependencies(command: string, args: string[], cwd: string) {
 	try {
-		await executeCli(command, args, workingDirectory);
+		await exec(command, args, { nodeOptions: { cwd } });
 	} catch (error) {
 		const typedError = error as Error;
-		throw new Error('unable to install dependencies: ' + typedError.message);
+		throw new Error(`Unable to install dependencies: ${typedError.message}`);
 	}
 }
 
-export type ProjectType = 'svelte' | 'kit';
-
 export function getGlobalPreconditions(
 	cwd: string,
-	projectType: ProjectType,
+	projectType: 'svelte' | 'kit',
 	adders: AdderWithoutExplicitArgs[]
 ) {
 	return {
@@ -157,8 +125,6 @@ export function getGlobalPreconditions(
 			{
 				name: 'clean working directory',
 				run: async () => {
-					let outputText = '';
-
 					try {
 						// If a user has pending git changes the output of the following command will list
 						// all files that have been added/modified/deleted and thus the output will not be empty.
@@ -166,13 +132,9 @@ export function getGlobalPreconditions(
 						// there are no pending changes. If the below command is run outside of a git repository,
 						// git will exit with a failing exit code, which will trigger the catch statement.
 						// also see https://remarkablemark.org/blog/2017/10/12/check-git-dirty/#git-status
-						await executeCli('git', ['status', '--short'], cwd, {
-							onData: (data) => {
-								outputText += data;
-							}
-						});
+						const { stdout } = await exec('git', ['status', '--short'], { nodeOptions: { cwd } });
 
-						if (outputText) {
+						if (stdout) {
 							return { success: false, message: 'Found modified files' };
 						}
 

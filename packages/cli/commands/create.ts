@@ -10,13 +10,7 @@ import {
 	type LanguageType,
 	type TemplateType
 } from '@svelte-cli/create';
-import {
-	getUserAgent,
-	helpConfig,
-	packageManager,
-	runCommand,
-	suggestInstallingDependencies
-} from '../common.js';
+import * as common from '../common.js';
 import { runAddCommand } from './add.js';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
@@ -42,22 +36,22 @@ export const create = new Command('create')
 	.addOption(templateOption)
 	.option('--no-adders', 'skips interactive adder installer')
 	.option('--no-install', 'skips installing dependencies')
-	.configureHelp(helpConfig)
+	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
-		runCommand(async () => {
+		common.runCommand(async () => {
 			const { directory } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
 			const initialSteps = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = packageManager ?? getUserAgent() ?? 'npm';
+			const pm = await common.guessPackageManager(cwd);
 			if (relative !== '') {
 				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
 			}
-			if (!packageManager) {
+			if (!common.packageManager) {
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 
@@ -149,7 +143,7 @@ async function createProject(cwd: string, options: Options) {
 	} else if (options.install) {
 		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
 		// then we'll prompt to install dependencies here
-		await suggestInstallingDependencies(projectPath);
+		await common.suggestInstallingDependencies(projectPath);
 	}
 
 	return {

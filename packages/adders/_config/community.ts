@@ -1,10 +1,17 @@
 export type CommunityAdder = {
-	id: string;
-	displayName: string;
+	name: string;
 	description: string;
-	package: string;
+	category: string;
+	npm: string;
+	repo: string;
+	website: string;
+	logo: string;
 };
 
-export type CommunityAdders = CommunityAdder[];
+/** EVALUATED AT BUILD TIME */
+export const communityAdderIds: string[] = [];
 
-export const communityAdders: CommunityAdders = [];
+export async function getCommunityAdders(name: string): Promise<CommunityAdder> {
+	const { default: details } = await import(`../../../community/${name}.ts`);
+	return details;
+}

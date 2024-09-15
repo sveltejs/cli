@@ -37,7 +37,7 @@ const adderDetails = Object.values(categories).flat();
 export function getAdderDetails(name: string): AdderWithoutExplicitArgs {
 	const details = adderDetails.find((a) => a.config.metadata.id === name);
 	if (!details) {
-		throw new Error(`invalid adder name: ${name}`);
+		throw new Error(`Invalid adder name: ${name}`);
 	}
 
 	return details as AdderWithoutExplicitArgs;
