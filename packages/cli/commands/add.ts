@@ -28,7 +28,7 @@ import type {
 	OptionValues
 } from '@svelte-cli/core';
 import * as common from '../common.js';
-import { Directive, downloadPackage } from '../utils/fetch-packages.js';
+import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -208,30 +208,39 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 		// get adder details from remote adders
 		const { start, stop } = p.spinner();
-		const ids = [];
 		try {
 			start('Resolving community adder packages');
-			const downloads = adders.map(async (id) => {
-				const pkg = await getCommunityAdders(id).catch(() => undefined);
-				const packageName = pkg?.npm ?? id;
-				return downloadPackage({ cwd: options.cwd, packageName });
-			});
-			const details = await Promise.all(downloads);
+			const pkgs = await Promise.all(
+				adders.map(async (id) => {
+					const pkg = await getCommunityAdders(id).catch(() => undefined);
+					const packageName = pkg?.npm ?? id;
+					return getPackageJSON({ cwd: options.cwd, packageName });
+				})
+			);
+			stop('Resolved community adder packages');
+
+			const ids = pkgs.map(({ pkg }) => pc.yellowBright(pkg.name) + pc.dim(` (v${pkg.version})`));
+			p.log.warn('The following packages have not been reviewed for malicious code:');
+			p.log.message(ids.join(', '));
+			const confirm = await p.confirm({ message: 'Continue?' });
+			if (confirm !== true) {
+				p.cancel('Operation cancelled.');
+				process.exit(1);
+			}
+
+			start('Downloading community adder packages');
+			const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
 			for (const adder of details) {
 				const id = adder.config.metadata.id;
 				community[id] ??= {};
-				ids.push(pc.bold(id));
 				communityDetails.push(adder);
 				selectedAdders.push({ type: 'community', adder });
 			}
-			stop('Resolved community adder packages');
+			stop('Downloaded community adder packages');
 		} catch (err) {
 			stop('Failed to resolve community adder packages', 1);
 			throw err;
 		}
-
-		p.log.warn(`The following packages are ${pc.underline('not')} official Svelte integrations:`);
-		p.log.message(ids.join(', '));
 	}
 
 	// prompt which adders to apply
@@ -379,13 +388,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// format modified/created files with prettier (if available)
 	const workspace = createWorkspace(options.cwd);
 	if (filesToFormat.length > 0 && depsStatus === 'installed' && workspace.prettier) {
-		const formatSpinner = p.spinner();
-		formatSpinner.start('Formatting modified files');
+		const { start, stop } = p.spinner();
+		start('Formatting modified files');
 		try {
 			await common.formatFiles(options.cwd, filesToFormat);
-			formatSpinner.stop('Successfully formatted modified files');
+			stop('Successfully formatted modified files');
 		} catch (e) {
-			formatSpinner.stop('Failed to format files');
+			stop('Failed to format files');
 			if (e instanceof Error) p.log.error(e.message);
 		}
 	}

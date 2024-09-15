@@ -29,24 +29,14 @@ function verifyPackage(pkg: Record<string, any>, specifier: string) {
 	}
 }
 
-type DownloadOptions = { packageName: string; cwd: string };
-
+type DownloadOptions = { path?: string; pkg: any };
 /**
  * Downloads and installs the package into the `node_modules` of `sv`.
  * @returns the details of the downloaded adder
  */
-export async function downloadPackage({
-	cwd,
-	packageName
-}: DownloadOptions): Promise<AdderWithoutExplicitArgs> {
-	let npm = packageName;
-	if (packageName.startsWith(Directive.file)) {
-		const pkgPath = path.resolve(cwd, packageName.slice(Directive.file.length));
-		const pkgJSONPath = path.resolve(pkgPath, 'package.json');
-		const json = fs.readFileSync(pkgJSONPath, 'utf8');
-		const pkg = JSON.parse(json);
-		verifyPackage(pkg, packageName);
-
+export async function downloadPackage(options: DownloadOptions): Promise<AdderWithoutExplicitArgs> {
+	const { pkg } = options;
+	if (options.path) {
 		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
 		const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
 
@@ -61,22 +51,15 @@ export async function downloadPackage({
 		if (!fs.existsSync(dir)) {
 			fs.mkdirSync(dir, { recursive: true });
 		}
-		fs.symlinkSync(pkgPath, dest);
+		fs.symlinkSync(options.path, dest);
 
 		const { default: details } = await import(pkg.name);
 		return details;
 	}
-	if (packageName.startsWith(Directive.npm)) {
-		npm = packageName.slice(Directive.npm.length);
-	}
-
-	const pkg = await fetchPackageJSON(npm);
-	verifyPackage(pkg, packageName);
 
 	const tarballUrl: string = pkg.dist.tarball;
 	const data = await fetch(tarballUrl);
-	if (!data.body)
-		throw new Error(`Unexpected response: Tarball request for '${npm}' responded with no body`);
+	if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
 
 	// extracts the package's contents from the tarball and writes the files to `sv/node_modules/pkg-name`
 	// so that we can dynamically import the package via `import(pkg-name)`
@@ -95,6 +78,27 @@ export async function downloadPackage({
 
 	const { default: details } = await import(pkg.name);
 	return details;
+}
+
+export async function getPackageJSON({ cwd, packageName }: { packageName: string; cwd: string }) {
+	let npm = packageName;
+	if (packageName.startsWith(Directive.file)) {
+		const pkgPath = path.resolve(cwd, packageName.slice(Directive.file.length));
+		const pkgJSONPath = path.resolve(pkgPath, 'package.json');
+		const json = fs.readFileSync(pkgJSONPath, 'utf8');
+		const pkg = JSON.parse(json);
+		verifyPackage(pkg, packageName);
+
+		return { path: pkgPath, pkg };
+	}
+	if (packageName.startsWith(Directive.npm)) {
+		npm = packageName.slice(Directive.npm.length);
+	}
+
+	const pkg = await fetchPackageJSON(npm);
+	verifyPackage(pkg, packageName);
+
+	return { pkg };
 }
 
 async function fetchPackageJSON(packageName: string): Promise<Record<string, any>> {
@@ -116,5 +120,5 @@ async function fetchPackageJSON(packageName: string): Promise<Record<string, any
 		throw new Error(`Specified package '${packageName}' doesn't exist in the registry: ${pkgUrl}`);
 	}
 
-	throw new Error(`Failed to fetch ${pkgUrl} - GET ${resp.status}`);
+	throw new Error(`Failed to fetch '${pkgUrl}' - GET ${resp.status}`);
 }
