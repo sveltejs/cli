@@ -220,9 +220,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			stop('Resolved community adder packages');
 
 			const ids = pkgs.map(({ pkg }) => pc.yellowBright(pkg.name) + pc.dim(` (v${pkg.version})`));
-			p.log.warn('The following packages have not been reviewed for malicious code:');
+			p.log.warn('Community packages are not reviewed for malicious code:');
 			p.log.message(ids.join(', '));
-			const confirm = await p.confirm({ message: 'Continue?' });
+			const confirm = await p.confirm({ message: 'Would you like to continue?' });
 			if (confirm !== true) {
 				p.cancel('Operation cancelled.');
 				process.exit(1);
