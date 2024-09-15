@@ -6,8 +6,7 @@ export default {
 	description: 'Access thousands of icons as components on-demand universally',
 	category: 'Icons',
 	npm: 'unplugin-icons-svelte-integration',
-	repo: 'owner-name/repo-name',
-	github: 'https://github.com/.../...',
+	repo: 'https://github.com/owner-name/repo-name',
 	website: 'https://www.npmjs.com/package/unplugin-icons',
 	logo: 'unplugin-icons.svg'
 } satisfies CommunityAdder;

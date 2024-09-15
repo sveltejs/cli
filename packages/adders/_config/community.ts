@@ -5,7 +5,6 @@ export type CommunityAdder = {
 	category: string;
 	npm: string;
 	repo: string;
-	github: string;
 	website: string;
 	logo: string;
 };

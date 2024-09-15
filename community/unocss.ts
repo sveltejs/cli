@@ -6,8 +6,7 @@ export default {
 	description: 'The instant on-demand Atomic CSS engine',
 	category: 'CSS',
 	npm: 'unocss-svelte-integration',
-	repo: 'owner-name/repo-name',
-	github: 'https://github.com/.../...',
+	repo: 'https://github.com/owner-name/repo-name',
 	website: 'https://unocss.dev',
 	logo: 'unocss.svg'
 } satisfies CommunityAdder;
