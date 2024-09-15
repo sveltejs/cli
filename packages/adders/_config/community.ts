@@ -1,6 +1,5 @@
 export type CommunityAdder = {
 	name: string;
-	id: string;
 	description: string;
 	category: string;
 	npm: string;

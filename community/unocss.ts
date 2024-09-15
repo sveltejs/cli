@@ -2,7 +2,6 @@ import type { CommunityAdder } from '../packages/adders/_config/community';
 
 export default {
 	name: 'UnoCSS',
-	id: 'unocss',
 	description: 'The instant on-demand Atomic CSS engine',
 	category: 'CSS',
 	npm: 'unocss-svelte-integration',
