@@ -101,7 +101,7 @@ export async function getPackageJSON({ cwd, packageName }: { packageName: string
 	return { pkg };
 }
 
-async function fetchPackageJSON(packageName: string): Promise<Record<string, any>> {
+async function fetchPackageJSON(packageName: string) {
 	let pkgName = packageName;
 	let scope = '';
 	if (packageName.startsWith('@')) {
@@ -113,12 +113,12 @@ async function fetchPackageJSON(packageName: string): Promise<Record<string, any
 	const [name, tag = 'latest'] = pkgName.split('@');
 	const pkgUrl = `${REGISTRY}/${scope + name}/${tag}`;
 	const resp = await fetch(pkgUrl);
-	if (resp.status >= 200 && resp.status < 300) {
-		return await resp.json();
-	}
 	if (resp.status === 404) {
-		throw new Error(`Specified package '${packageName}' doesn't exist in the registry: ${pkgUrl}`);
+		throw new Error(`Package '${packageName}' doesn't exist in the registry: '${pkgUrl}'`);
+	}
+	if (resp.status < 200 && resp.status >= 300) {
+		throw new Error(`Failed to fetch '${pkgUrl}' - GET ${resp.status}`);
 	}
 
-	throw new Error(`Failed to fetch '${pkgUrl}' - GET ${resp.status}`);
+	return await resp.json();
 }
