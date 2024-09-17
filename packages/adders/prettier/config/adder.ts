@@ -18,7 +18,7 @@ export const adder = defineAdderConfig({
 	integrationType: 'inline',
 	packages: [
 		{ name: 'prettier', version: '^3.3.2', dev: true },
-		{ name: 'prettier-plugin-svelte', version: '^3.2.5', dev: true },
+		{ name: 'prettier-plugin-svelte', version: '^3.2.6', dev: true },
 		{
 			name: 'eslint-config-prettier',
 			version: '^9.1.0',
