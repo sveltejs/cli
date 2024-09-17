@@ -95,8 +95,14 @@ function getConfig(project) {
 			'exports' in pkg && dts(),
 			esbuild({ tsconfig: 'tsconfig.json', sourceRoot: projectRoot }),
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
+			// The types don't seem to be resolving correctly for the default imports of these 3 plugins.
+			// This is likely an upstream issue with the `package.json` configuration when
+			// `moduleResolution` is set to `Node16` or `NodeNext`.
+			// @ts-ignore
 			commonjs(),
+			// @ts-ignore
 			json(),
+			// @ts-ignore
 			dynamicImportVars({
 				// since we're relying on the usage of standard dynamic imports for community adders, we need to
 				// prevent this plugin from transforming these cases
