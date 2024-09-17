@@ -1,6 +1,6 @@
-import { getCssAstEditor, type CssAstEditor } from './css/index';
-import { getHtmlAstEditor, type HtmlAstEditor } from './html/index';
-import { getJsAstEditor, type JsAstEditor } from './js/index';
+import { getCssAstEditor, type CssAstEditor } from './css/index.ts';
+import { getHtmlAstEditor, type HtmlAstEditor } from './html/index.ts';
+import { getJsAstEditor, type JsAstEditor } from './js/index.ts';
 
 export {
 	getCssAstEditor,

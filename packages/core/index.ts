@@ -4,11 +4,11 @@ export {
 	defineAdder,
 	defineAdderOptions,
 	defineAdderChecks
-} from './adder/config';
+} from './adder/config.ts';
 export { log } from '@svelte-cli/clack-prompts';
 export { default as colors } from 'picocolors';
 export { default as dedent } from 'dedent';
 
-export type * from './files/processors';
-export type * from './adder/options';
-export type * from './adder/config';
+export type * from './files/processors.ts';
+export type * from './adder/options.ts';
+export type * from './adder/config.ts';

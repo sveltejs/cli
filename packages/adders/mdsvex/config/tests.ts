@@ -4,7 +4,7 @@ import {
 	type TextFileEditor,
 	type OptionDefinition
 } from '@svelte-cli/core';
-import { options } from './options';
+import { options } from './options.ts';
 
 export const tests = defineAdderTests({
 	files: [

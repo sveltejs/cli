@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getJsAstEditor } from '@svelte-cli/ast-manipulation';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
-import { TESTING } from '../env';
-import { commonFilePaths, findUp, getPackageJson, readFile } from './utils';
-import type { OptionDefinition, OptionValues, Question } from '../adder/options';
+import { TESTING } from '../env.ts';
+import { commonFilePaths, findUp, getPackageJson, readFile } from './utils.ts';
+import type { OptionDefinition, OptionValues, Question } from '../adder/options.ts';
 
 export type Workspace<Args extends OptionDefinition> = {
 	options: OptionValues<Args>;

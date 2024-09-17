@@ -1,5 +1,5 @@
-export { installPackages, findUp } from './files/utils';
-export { createOrUpdateFiles } from './files/processors';
-export { createWorkspace, type Workspace } from './files/workspace';
-export { TESTING } from './env';
-export type { Question } from './adder/options';
+export { installPackages, findUp } from './files/utils.ts';
+export { createOrUpdateFiles } from './files/processors.ts';
+export { createWorkspace, type Workspace } from './files/workspace.ts';
+export { TESTING } from './env.ts';
+export type { Question } from './adder/options.ts';

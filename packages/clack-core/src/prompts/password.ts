@@ -1,5 +1,5 @@
 import color from 'picocolors';
-import Prompt, { type PromptOptions } from './prompt';
+import Prompt, { type PromptOptions } from './prompt.ts';
 
 interface PasswordOptions extends PromptOptions<PasswordPrompt> {
 	mask?: string;

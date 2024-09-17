@@ -19,10 +19,10 @@ import {
 	serializeScript,
 	serializeSvelteFile
 } from '@svelte-cli/ast-tooling';
-import { fileExistsWorkspace, readFile, writeFile } from './utils';
-import type { ConditionDefinition } from '../adder/config';
-import type { OptionDefinition } from '../adder/options';
-import type { Workspace } from './workspace';
+import { fileExistsWorkspace, readFile, writeFile } from './utils.ts';
+import type { ConditionDefinition } from '../adder/config.ts';
+import type { OptionDefinition } from '../adder/options.ts';
+import type { Workspace } from './workspace.ts';
 
 export type CssFileEditor<Args extends OptionDefinition> = Workspace<Args> & CssAstEditor;
 export type HtmlFileEditor<Args extends OptionDefinition> = Workspace<Args> & HtmlAstEditor;

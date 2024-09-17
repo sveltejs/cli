@@ -1,5 +1,5 @@
 import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
-import { options as availableOptions } from './options';
+import { options as availableOptions } from './options.ts';
 
 const PORTS = {
 	mysql: '3306',
