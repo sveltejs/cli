@@ -1,6 +1,6 @@
 [![Chat](https://img.shields.io/discord/457912077277855764?label=chat&logo=discord)](https://svelte.dev/chat)
 
-# sv - a scaffolding CLI for Svelte
+# sv - the Svelte scaffolding CLI
 
 Read the [SvelteKit documentation](https://kit.svelte.dev/docs) for more details about getting started with a newly created app.
 
