@@ -1,3 +1,4 @@
+// @ts-check
 import fs from 'node:fs';
 import path from 'node:path';
 import parser from 'gitignore-parser';
@@ -76,7 +77,7 @@ async function generate_templates(dist, shared) {
 		const meta_file = path.join(cwd, '.meta.json');
 		if (!fs.existsSync(meta_file)) throw new Error('Template must have a .meta.json file');
 
-		/** @type {Record<string, import('../index').File[]>} */
+		/** @type {Record<string, import('../index.ts').File[]>} */
 		const types = {
 			typescript: [],
 			checkjs: [],

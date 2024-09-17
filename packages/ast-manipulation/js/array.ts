@@ -1,4 +1,4 @@
-import { areNodesEqual } from './common';
+import { areNodesEqual } from './common.ts';
 import type { AstKinds, AstTypes } from '@svelte-cli/ast-tooling';
 
 export function createEmpty(): AstTypes.ArrayExpression {

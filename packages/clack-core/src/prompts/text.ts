@@ -1,5 +1,5 @@
 import color from 'picocolors';
-import Prompt, { type PromptOptions } from './prompt';
+import Prompt, { type PromptOptions } from './prompt.ts';
 
 export interface TextOptions extends PromptOptions<TextPrompt> {
 	placeholder?: string;

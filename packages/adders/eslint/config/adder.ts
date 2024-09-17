@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineAdderConfig, log } from '@svelte-cli/core';
-import { options } from './options.js';
-import { addEslintConfigPrettier } from '../../common.js';
+import { options } from './options.ts';
+import { addEslintConfigPrettier } from '../../common.ts';
 
 export const adder = defineAdderConfig({
 	metadata: {

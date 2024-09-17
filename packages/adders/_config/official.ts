@@ -1,16 +1,16 @@
-import type { AdderCategories } from './categories';
+import type { AdderCategories } from './categories.ts';
 import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 
 // adders
-import drizzle from '../drizzle';
-import eslint from '../eslint';
-import mdsvex from '../mdsvex';
-import playwright from '../playwright';
-import prettier from '../prettier';
-import routify from '../routify';
-import storybook from '../storybook';
-import tailwindcss from '../tailwindcss';
-import vitest from '../vitest';
+import drizzle from '../drizzle/index.ts';
+import eslint from '../eslint/index.ts';
+import mdsvex from '../mdsvex/index.ts';
+import playwright from '../playwright/index.ts';
+import prettier from '../prettier/index.ts';
+import routify from '../routify/index.ts';
+import storybook from '../storybook/index.ts';
+import tailwindcss from '../tailwindcss/index.ts';
+import vitest from '../vitest/index.ts';
 
 const categories = {
 	codeQuality: [prettier, eslint],

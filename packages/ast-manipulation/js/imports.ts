@@ -1,5 +1,5 @@
 import { Walker, type AstTypes } from '@svelte-cli/ast-tooling';
-import { areNodesEqual } from './common';
+import { areNodesEqual } from './common.ts';
 
 export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {

@@ -1,4 +1,4 @@
-import type { CommunityAdder } from '../packages/adders/_config/community';
+import type { CommunityAdder } from '../packages/adders/_config/community.ts';
 
 export default {
 	name: 'UnoCSS',

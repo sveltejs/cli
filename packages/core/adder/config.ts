@@ -1,7 +1,7 @@
-import type { OptionDefinition, OptionValues, Question } from './options.js';
-import type { FileType } from '../files/processors.js';
-import type { Workspace } from '../files/workspace.js';
-import type { Colors } from 'picocolors/types.js';
+import type { OptionDefinition, OptionValues, Question } from './options.ts';
+import type { FileType } from '../files/processors.ts';
+import type { Workspace } from '../files/workspace.ts';
+import type { Colors } from 'picocolors/types.ts';
 
 export type {
 	CssAstEditor,

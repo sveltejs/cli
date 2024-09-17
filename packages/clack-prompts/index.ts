@@ -11,7 +11,7 @@ import {
 	TextPrompt
 } from '@svelte-cli/clack-core';
 import isUnicodeSupported from 'is-unicode-supported';
-import * as color from 'picocolors';
+import color from 'picocolors';
 import { cursor, erase } from 'sisteransi';
 
 export { isCancel } from '@svelte-cli/clack-core';

@@ -3,9 +3,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import glob from 'tiny-glob/sync';
+import glob from 'tiny-glob/sync.js';
 import { beforeAll, describe, test } from 'vitest';
-import { create, type LanguageType, type TemplateType } from '../index';
+import { create, type LanguageType, type TemplateType } from '../index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));

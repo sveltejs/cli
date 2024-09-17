@@ -1,10 +1,10 @@
-import * as ArrayUtils from './array';
-import * as ObjectUtils from './object';
-import * as CommonUtils from './common';
-import * as FunctionUtils from './function';
-import * as ImportUtils from './imports';
-import * as VariableUtils from './variables';
-import * as ExportUtils from './exports';
+import * as ArrayUtils from './array.ts';
+import * as ObjectUtils from './object.ts';
+import * as CommonUtils from './common.ts';
+import * as FunctionUtils from './function.ts';
+import * as ImportUtils from './imports.ts';
+import * as VariableUtils from './variables.ts';
+import * as ExportUtils from './exports.ts';
 import type { AstTypes } from '@svelte-cli/ast-tooling';
 
 export type JsAstEditor = {

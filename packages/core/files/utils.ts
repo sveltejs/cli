@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseJson, serializeJson } from '@svelte-cli/ast-tooling';
-import type { InlineAdderConfig } from '../adder/config.js';
-import type { OptionDefinition } from '../adder/options.js';
-import type { Workspace, WorkspaceWithoutExplicitArgs } from './workspace.js';
+import type { InlineAdderConfig } from '../adder/config.ts';
+import type { OptionDefinition } from '../adder/options.ts';
+import type { Workspace, WorkspaceWithoutExplicitArgs } from './workspace.ts';
 
 export type Package = {
 	name: string;
