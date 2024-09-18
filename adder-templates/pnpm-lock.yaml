@@ -1,0 +1,41 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  js:
+    dependencies:
+      '@svelte-cli/core':
+        specifier: link:../../packages/core
+        version: link:../../packages/core
+    devDependencies:
+      sv:
+        specifier: link:../../packages/cli
+        version: link:../../packages/cli
+
+  ts:
+    dependencies:
+      '@svelte-cli/core':
+        specifier: link:../../packages/core
+        version: link:../../packages/core
+    devDependencies:
+      sv:
+        specifier: link:../../packages/cli
+        version: link:../../packages/cli
+      typescript:
+        specifier: ^5.6.2
+        version: 5.6.2
+
+packages:
+
+  typescript@5.6.2:
+    resolution: {integrity: sha512-NW8ByodCSNCwZeghjN3o+JX5OFH0Ojg6sadjEKY4huZ52TqbJTJnDo5+Tw98lSy63NZvi4n+ez5m2u5d4PkZyw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+snapshots:
+
+  typescript@5.6.2: {}

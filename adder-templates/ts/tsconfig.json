@@ -1,0 +1,10 @@
+{
+	"exclude": ["**/temp/**"],
+	"compilerOptions": {
+		"strict": true,
+		"skipLibCheck": true,
+		"module": "Node16",
+		"moduleResolution": "Node16",
+		"outDir": "dist"
+	}
+}
