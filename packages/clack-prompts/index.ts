@@ -576,7 +576,7 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 };
 
 const strip = (str: string) => str.replace(ansiRegex(), '');
-export const note = (message = '', title = ''): void => {
+function buildBox(message = '', title = '', dimmed = true) {
 	const lines = `\n${message}\n`.split('\n');
 	const titleLen = strip(title).length;
 	const len =
@@ -590,9 +590,7 @@ export const note = (message = '', title = ''): void => {
 	const msg = lines
 		.map(
 			(ln) =>
-				`${color.gray(S_BAR)}  ${color.dim(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
-					S_BAR
-				)}`
+				`${color.gray(S_BAR)}  ${dimmed ? color.dim(ln) : ln}${' '.repeat(len - strip(ln).length)}${color.gray(S_BAR)}`
 		)
 		.join('\n');
 	process.stdout.write(
@@ -600,30 +598,10 @@ export const note = (message = '', title = ''): void => {
 			S_BAR_H.repeat(Math.max(len - titleLen - 1, 1)) + S_CORNER_TOP_RIGHT
 		)}\n${msg}\n${color.gray(S_CONNECT_LEFT + S_BAR_H.repeat(len + 2) + S_CORNER_BOTTOM_RIGHT)}\n`
 	);
-};
+}
 
-export const box = (message = '', title = ''): void => {
-	const lines = `\n${message}\n`.split('\n');
-	const titleLen = strip(title).length;
-	const len =
-		Math.max(
-			lines.reduce((sum, ln) => {
-				ln = strip(ln);
-				return ln.length > sum ? ln.length : sum;
-			}, 0),
-			titleLen
-		) + 2;
-	const msg = lines
-		.map(
-			(ln) => `${color.gray(S_BAR)}  ${ln}${' '.repeat(len - strip(ln).length)}${color.gray(S_BAR)}`
-		)
-		.join('\n');
-	process.stdout.write(
-		`${color.gray(S_BAR)}\n${color.green(S_STEP_SUBMIT)}  ${color.reset(title)} ${color.gray(
-			S_BAR_H.repeat(Math.max(len - titleLen - 1, 1)) + S_CORNER_TOP_RIGHT
-		)}\n${msg}\n${color.gray(S_CONNECT_LEFT + S_BAR_H.repeat(len + 2) + S_CORNER_BOTTOM_RIGHT)}\n`
-	);
-};
+export const note = (message = '', title = ''): void => buildBox(message, title, true);
+export const box = (message = '', title = ''): void => buildBox(message, title, false);
 
 export const cancel = (message = ''): void => {
 	process.stdout.write(`${color.gray(S_BAR_END)}  ${color.red(message)}\n\n`);
