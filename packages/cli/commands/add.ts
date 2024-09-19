@@ -285,11 +285,22 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				(dep) => !selectedAdders.some((a) => a.adder.config.metadata.id === dep)
 			) ?? [];
 
+		const workspace = createWorkspace(options.cwd);
 		for (const depId of dependents) {
 			const dependent = adderDetails.find((a) => a.config.metadata.id === depId);
 			if (!dependent) throw new Error(`Adder '${name}' depends on an invalid '${depId}'`);
 
-			// TODO: tweak wording and colors
+			// check if the dependent adder has already been installed
+			let installed = false;
+			if (dependent.config.integrationType === 'inline') {
+				installed = dependent.config.packages.every(
+					// we'll skip the conditions since we don't have any options to supply it
+					(p) => p.condition !== undefined || !!workspace.dependencies[p.name]
+				);
+			}
+			if (installed) continue;
+
+			// prompt to install the dependent
 			const install = await p.confirm({
 				message: `The ${pc.bold(pc.cyan(name))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
 			});
