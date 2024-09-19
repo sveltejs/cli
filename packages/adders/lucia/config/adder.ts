@@ -240,7 +240,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: () => `src/app.d.ts`,
+			name: () => 'src/app.d.ts',
 			condition: ({ typescript }) => typescript,
 			contentType: 'script',
 			content: ({ ast, common }) => {
@@ -453,7 +453,6 @@ export const adder = defineAdderConfig({
 				}
 				// rename `export function handle`
 				if (originalHandleDecl && isFunctionDeclaration(originalHandleDecl, handleName)) {
-					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					originalHandleDecl.id!.name = NEW_HANDLE_NAME;
 				}
 
