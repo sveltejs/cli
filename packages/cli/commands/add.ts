@@ -441,7 +441,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			return adderMessage;
 		})
 		.join('\n\n');
-	if (nextStepsMsg) p.note(nextStepsMsg, 'Next steps');
+	if (nextStepsMsg) p.box(nextStepsMsg, 'Next steps');
 }
 
 type AdderId = string;
