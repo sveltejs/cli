@@ -731,8 +731,10 @@ export const adder = defineAdderConfig({
 		}
 	],
 	nextSteps: ({ colors, options }) => {
-		const steps = [`Run ${colors.cyan('npm run db:push')} to update your database`];
-		if (options.demo) steps.push(`Visit ${colors.white('/demo')} route to view the demo`);
+		const steps = [`Run ${colors.bold(colors.cyan('npm run db:push'))} to update your database`];
+		if (options.demo) {
+			steps.push(`Visit ${colors.bold('/demo')} route to view the demo`);
+		}
 
 		return steps;
 	}
