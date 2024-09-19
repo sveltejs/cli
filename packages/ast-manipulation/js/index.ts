@@ -9,6 +9,7 @@ import type { AstTypes } from '@svelte-cli/ast-tooling';
 
 export type JsAstEditor = {
 	ast: AstTypes.Program;
+	source: string;
 	common: typeof CommonUtils;
 	array: typeof ArrayUtils;
 	object: typeof ObjectUtils;
@@ -18,9 +19,10 @@ export type JsAstEditor = {
 	exports: typeof ExportUtils;
 };
 
-export function getJsAstEditor(ast: AstTypes.Program): JsAstEditor {
+export function getJsAstEditor(ast: AstTypes.Program, source: string): JsAstEditor {
 	const astEditor: JsAstEditor = {
 		ast,
+		source,
 		object: ObjectUtils,
 		common: CommonUtils,
 		array: ArrayUtils,

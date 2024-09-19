@@ -277,6 +277,31 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		selected.forEach((id) => selectedAdders.push({ type: 'official', adder: getAdderDetails(id) }));
 	}
 
+	// add inter-adder dependencies
+	for (const { adder } of selectedAdders) {
+		const name = adder.config.metadata.name;
+		const dependents =
+			adder.config.dependsOn?.filter(
+				(dep) => !selectedAdders.some((a) => a.adder.config.metadata.id === dep)
+			) ?? [];
+
+		for (const depId of dependents) {
+			const dependent = adderDetails.find((a) => a.config.metadata.id === depId);
+			if (!dependent) throw new Error(`Adder '${name}' depends on an invalid '${depId}'`);
+
+			// TODO: tweak wording and colors
+			const install = await p.confirm({
+				message: `The ${pc.bold(pc.cyan(name))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
+			});
+			if (install !== true) {
+				// TODO: should we exit? or should we remove the selected adder from the list?
+				p.cancel('Operation cancelled.');
+				process.exit(1);
+			}
+			selectedAdders.push({ type: 'official', adder: dependent });
+		}
+	}
+
 	// run precondition checks
 	if (options.preconditions) {
 		const preconditions = selectedAdders

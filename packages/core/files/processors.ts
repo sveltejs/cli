@@ -166,7 +166,7 @@ function handleScriptFile<Args extends OptionDefinition>(
 	workspace: Workspace<Args>
 ) {
 	const ast = parseScript(content);
-	const editor = getJsAstEditor(ast);
+	const editor = getJsAstEditor(ast, content);
 
 	fileDetails.content({
 		...editor,
@@ -184,7 +184,7 @@ function handleSvelteFile<Args extends OptionDefinition>(
 	const { cssAst, htmlAst, jsAst } = parseSvelteFile(content);
 	const css = getCssAstEditor(cssAst);
 	const html = getHtmlAstEditor(htmlAst);
-	const js = getJsAstEditor(jsAst);
+	const js = getJsAstEditor(jsAst, content);
 
 	fileDetails.content({
 		css,

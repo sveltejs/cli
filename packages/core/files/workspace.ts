@@ -56,9 +56,9 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 }
 
 function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
-	const configText = readFile(workspace, commonFilePaths.svelteConfig);
-	const ast = parseScript(configText);
-	const editor = getJsAstEditor(ast);
+	const configSource = readFile(workspace, commonFilePaths.svelteConfig);
+	const ast = parseScript(configSource);
+	const editor = getJsAstEditor(ast, configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
 	if (!defaultExport) throw Error('Missing default export in `svelte.config.js`');
