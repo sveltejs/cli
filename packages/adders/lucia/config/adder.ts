@@ -1,4 +1,5 @@
 import {
+	colors,
 	dedent,
 	defineAdderConfig,
 	log,
@@ -74,10 +75,10 @@ export const adder = defineAdderConfig({
 				})
 
 				if (!drizzleDialect) {
-					throw new Error('Failed to detect DB dialect in your `drizzle.config.js/ts` file');
+					throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
 				}
 				if (!schemaPath) {
-					throw new Error('Failed to find schema path in your `drizzle.config.js/ts` file');
+					throw new Error('Failed to find schema path in your `drizzle.config.[js|ts]` file');
 				}
 			}
 		},
@@ -484,7 +485,9 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
-					log.warn('Existing `/demo/login/+page.server.js/ts` file. Could not update.');
+					log.warn(
+						`Existing ${colors.yellow('/demo/login/+page.server.[js|ts]')} file. Could not update.`
+					);
 					return content;
 				}
 
@@ -628,7 +631,7 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
-					log.warn('Existing `/demo/login/+page.svelte` file. Could not update.');
+					log.warn(`Existing ${colors.yellow('/demo/login/+page.svelte')} file. Could not update.`);
 					return content;
 				}
 
@@ -666,7 +669,9 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
-					log.warn('Existing `/demo/+page.server.js/ts` file. Could not update.');
+					log.warn(
+						`Existing ${colors.yellow('/demo/+page.server.[js|ts]')} file. Could not update.`
+					);
 					return content;
 				}
 
@@ -708,7 +713,7 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
-					log.warn('Existing `/demo/+page.svelte` file. Could not update.');
+					log.warn(`Existing ${colors.yellow('/demo/+page.svelte')} file. Could not update.`);
 					return content;
 				}
 
