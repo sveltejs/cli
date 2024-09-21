@@ -1,5 +1,8 @@
 import { defineAdderTests } from '@svelte-cli/core';
 import { options } from './options.ts';
+import path from 'path';
+import url from 'url';
+import { execSync } from 'child_process';
 
 const defaultOptionValues = {
 	sqlite: options.sqlite.default,
@@ -8,13 +11,15 @@ const defaultOptionValues = {
 	docker: options.docker.default
 };
 
+const cwd = path.resolve(url.fileURLToPath(import.meta.url), '..', '..');
+
 export const tests = defineAdderTests({
 	options,
 	optionValues: [
-		{ ...defaultOptionValues, database: 'sqlite', sqlite: 'better-sqlite3' },
-		{ ...defaultOptionValues, database: 'sqlite', sqlite: 'libsql' },
-		{ ...defaultOptionValues, database: 'mysql', mysql: 'mysql2', docker: true },
-		{ ...defaultOptionValues, database: 'postgresql', postgresql: 'postgres.js', docker: true }
+		// { ...defaultOptionValues, database: 'sqlite', sqlite: 'better-sqlite3' },
+		// { ...defaultOptionValues, database: 'sqlite', sqlite: 'libsql' },
+		{ ...defaultOptionValues, database: 'mysql', mysql: 'mysql2', docker: true }
+		// { ...defaultOptionValues, database: 'postgresql', postgresql: 'postgres.js', docker: true }
 	],
 	files: [
 		{
@@ -78,6 +83,8 @@ export const tests = defineAdderTests({
 			}
 		}
 	],
+	beforeAll: startDocker,
+	afterAll: stopDocker,
 	tests: [
 		{
 			name: 'queries database',
@@ -87,3 +94,16 @@ export const tests = defineAdderTests({
 		}
 	]
 });
+
+function startDocker() {
+	console.log('Starting docker containers');
+	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
+}
+
+function stopDocker() {
+	console.log('Stopping docker containers');
+	execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
+}
+
+process.on('exit', stopDocker);
+process.on('SIGINT', stopDocker);

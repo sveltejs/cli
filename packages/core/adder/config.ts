@@ -112,9 +112,10 @@ export type AdderTestConfig<Args extends OptionDefinition> = {
 	files: Array<FileType<Args>>;
 	options: Args;
 	optionValues: Array<OptionValues<Args>>;
-	runSynchronously?: boolean;
 	command?: string;
 	tests: Array<TestDefinition<Args>>;
+	beforeAll?: () => void;
+	afterAll?: () => void;
 };
 
 export function defineAdderTests<Args extends OptionDefinition>(

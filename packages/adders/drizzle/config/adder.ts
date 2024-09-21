@@ -262,13 +262,16 @@ export const adder = defineAdderConfig({
 
 				let clientExpression;
 				// SQLite
-				if (options.sqlite === 'better-sqlite3') {
+				if (options.database == 'sqlite' && options.sqlite === 'better-sqlite3') {
 					imports.addDefault(ast, 'better-sqlite3', 'Database');
 					imports.addNamed(ast, 'drizzle-orm/better-sqlite3', { drizzle: 'drizzle' });
 
 					clientExpression = common.expressionFromString('new Database(env.DATABASE_URL)');
 				}
-				if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
+				if (
+					options.database == 'sqlite' &&
+					(options.sqlite === 'libsql' || options.sqlite === 'turso')
+				) {
 					imports.addNamed(ast, '@libsql/client', { createClient: 'createClient' });
 					imports.addNamed(ast, 'drizzle-orm/libsql', { drizzle: 'drizzle' });
 
@@ -290,7 +293,7 @@ export const adder = defineAdderConfig({
 					}
 				}
 				// MySQL
-				if (options.mysql === 'mysql2') {
+				if (options.database == 'mysql' && options.mysql === 'mysql2') {
 					imports.addDefault(ast, 'mysql2/promise', 'mysql');
 					imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
@@ -298,20 +301,20 @@ export const adder = defineAdderConfig({
 						'await mysql.createConnection(env.DATABASE_URL)'
 					);
 				}
-				if (options.mysql === 'planetscale') {
+				if (options.database == 'mysql' && options.mysql === 'planetscale') {
 					imports.addNamed(ast, '@planetscale/database', { Client: 'Client' });
 					imports.addNamed(ast, 'drizzle-orm/planetscale-serverless', { drizzle: 'drizzle' });
 
 					clientExpression = common.expressionFromString('new Client({ url: env.DATABASE_URL })');
 				}
 				// PostgreSQL
-				if (options.postgresql === 'neon') {
+				if (options.database == 'postgresql' && options.postgresql === 'neon') {
 					imports.addNamed(ast, '@neondatabase/serverless', { neon: 'neon' });
 					imports.addNamed(ast, 'drizzle-orm/neon-http', { drizzle: 'drizzle' });
 
 					clientExpression = common.expressionFromString('neon(env.DATABASE_URL)');
 				}
-				if (options.postgresql === 'postgres.js') {
+				if (options.database == 'postgresql' && options.postgresql === 'postgres.js') {
 					imports.addDefault(ast, 'postgres', 'postgres');
 					imports.addNamed(ast, 'drizzle-orm/postgres-js', { drizzle: 'drizzle' });
 

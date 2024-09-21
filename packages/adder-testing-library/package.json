@@ -1,0 +1,21 @@
+{
+	"name": "@svelte-cli/adder-testing-library",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"format": "pnpm lint --write",
+		"check": "tsc",
+		"postinstall": "pnpm exec playwright install chromium"
+	},
+	"dependencies": {
+		"@svelte-cli/core": "workspace:*",
+		"degit": "^2.8.4",
+		"playwright": "^1.44.1",
+		"sv": "workspace:*",
+		"terminate": "^2.8.0"
+	},
+	"devDependencies": {
+		"@types/degit": "^2.8.6"
+	}
+}
