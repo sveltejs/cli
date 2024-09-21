@@ -28,7 +28,7 @@ const ProjectTypes = {
 	Kit_TS: 'kit-ts'
 };
 export const ProjectTypesList = Object.values(ProjectTypes);
-const headless = false;
+const headless = true;
 let browser: Browser;
 
 export function runEndToEndTests(
