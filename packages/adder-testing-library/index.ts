@@ -1,4 +1,11 @@
-import type { AdderWithoutExplicitArgs, OptionValues, Question, Tests } from '@svelte-cli/core';
+import type {
+	AdderWithoutExplicitArgs,
+	ExternalAdderConfig,
+	OptionDefinition,
+	OptionValues,
+	Question,
+	Tests
+} from '@svelte-cli/core';
 import path from 'node:path';
 import fs from 'node:fs';
 import { create } from 'sv';
@@ -225,8 +232,7 @@ async function runAdder(
 		const changedFiles = createOrUpdateFiles(config.files, workspace);
 		changedFiles.forEach((file) => filesToFormat.add(file));
 	} else if (config.integrationType === 'external') {
-		// TODO was moved to cli and is thus not accessible anymore
-		// await processExternalAdder(config, cwd);
+		processExternalAdder(config, cwd);
 	} else {
 		throw new Error('Unknown integration type');
 	}
@@ -275,7 +281,6 @@ export async function executeAdderTests(
 		// 	await prompts.textPrompt('Browser opened! Press any key to continue!');
 		// }
 
-		console.log('run tests now for ' + workingDirectory);
 		await runTests(page, adder, options);
 	} finally {
 		await page.close();
@@ -462,4 +467,21 @@ async function expectProperty(
 	}
 
 	return computedStyle;
+}
+
+// TODO: copied from `add.ts` with minor adjustments
+function processExternalAdder<Args extends OptionDefinition>(
+	config: ExternalAdderConfig<Args>,
+	cwd: string
+) {
+	try {
+		execSync('npx ' + config.command, {
+			cwd,
+			env: Object.assign(process.env, config.environment ?? {}),
+			stdio: 'pipe'
+		});
+	} catch (error) {
+		const typedError = error as Error;
+		throw new Error('Failed executing external command: ' + typedError.message);
+	}
 }
