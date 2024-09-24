@@ -12,7 +12,7 @@ Web development, streamlined. Read the [documentation](https://kit.svelte.dev/do
 
 ## Community adders
 
-Get started on [creating your own community adder](/adder-templates/README.md).
+Get started on [creating your own community adder](/adder-template/README.md).
 
 [Additional adders](https://www.sveltesociety.dev/packages?category=svelte-add) are maintained by the community.
 
