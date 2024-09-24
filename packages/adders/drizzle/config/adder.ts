@@ -23,7 +23,7 @@ export const adder = defineAdderConfig({
 	integrationType: 'inline',
 	packages: [
 		{ name: 'drizzle-orm', version: '^0.33.0', dev: false },
-		{ name: 'drizzle-kit', version: '^0.24.0', dev: true },
+		{ name: 'drizzle-kit', version: '^0.22.0', dev: true },
 		// MySQL
 		{
 			name: 'mysql2',
