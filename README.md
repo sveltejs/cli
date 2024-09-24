@@ -10,6 +10,10 @@ Web development, streamlined. Read the [documentation](https://kit.svelte.dev/do
 | ------------------ | -------------------------------------- |
 | [sv](packages/cli) | [Changelog](packages/cli/CHANGELOG.md) |
 
+## Community adders
+
+Get started on [creating your own community adder](/adder-templates/README.md).
+
 [Additional adders](https://www.sveltesociety.dev/packages?category=svelte-add) are maintained by the community.
 
 ## Contributing
