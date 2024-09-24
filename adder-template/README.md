@@ -11,7 +11,7 @@ The adder template for community adders for [`sv`](https://github.com/sveltejs/c
 Use [`degit`](https://github.com/Rich-Harris/degit) to clone the template:
 
 ```shell
-npx degit sveltejs/cli/adder-template
+npx degit sveltejs/cli/adder-template adder-name
 ```
 
 ## Using the adder
