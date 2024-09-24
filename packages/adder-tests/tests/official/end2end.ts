@@ -5,4 +5,4 @@ import { runEndToEndTests } from '@svelte-cli/adder-testing-library';
 const adders = adderIds.flatMap((x) => getAdderDetails(x));
 // const filteredAdders = adders.filter((x) => x.config.metadata.id == 'drizzle');
 
-runEndToEndTests('.outputs', adders, describe, test, beforeAll, afterAll);
+runEndToEndTests('.outputs', adders, describe, test.concurrent, beforeAll, afterAll);
