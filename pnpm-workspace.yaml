@@ -1,4 +1,4 @@
 packages:
   - 'packages/*'
-  - 'adder-templates/*'
+  - 'adder-template'
   - '!.test-tmp/**'
