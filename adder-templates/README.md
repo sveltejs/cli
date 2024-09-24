@@ -6,6 +6,14 @@
 
 The adder template for community adders for [`sv`](https://github.com/sveltejs/cli).
 
+## Cloning the template
+
+Use [`degit`](https://github.com/Rich-Harris/degit) to clone the template:
+
+```shell
+npx degit sveltejs/cli/adder-template
+```
+
 ## Using the adder
 
 To run the adder, we'll first need a project to apply it to.
