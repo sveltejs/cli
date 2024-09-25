@@ -4,7 +4,7 @@ import { options } from './options.js';
 export const tests = defineAdderTests({
 	files: [],
 	options,
-	optionValues: [{ demoOption: true }],
+	optionValues: [{ demo: true }],
 	tests: [
 		{
 			name: 'demo test',
