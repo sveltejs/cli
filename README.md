@@ -10,6 +10,10 @@ Read the [SvelteKit documentation](https://kit.svelte.dev/docs) for more details
 | ------------------ | -------------------------------------- |
 | [sv](packages/cli) | [Changelog](packages/cli/CHANGELOG.md) |
 
+## Community adders
+
+Get started on [creating your own community adder](/adder-template/README.md).
+
 [Additional adders](https://www.sveltesociety.dev/packages?category=svelte-add) are maintained by the community.
 
 ## Contributing

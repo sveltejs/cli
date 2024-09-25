@@ -466,7 +466,7 @@ export async function installAdders({
 		const adderId = config.metadata.id;
 		const workspace = createWorkspace(cwd);
 
-		workspace.options = official[adderId];
+		workspace.options = official[adderId] ?? community[adderId];
 
 		// execute adders
 		if (config.integrationType === 'inline') {
