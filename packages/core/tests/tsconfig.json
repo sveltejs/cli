@@ -4,7 +4,8 @@
 		// setting the module to `NodeNext` allows us to have standalone modules without having to
 		// specify `export {}` in those modules (fixes the `Cannot redeclare block scoped variable` error)
 		"module": "NodeNext",
-		"moduleResolution": "NodeNext"
+		"moduleResolution": "NodeNext",
+		"rootDir": "../"
 	},
 	// overrides the root tsconfig `exclude` field so we're not ignoring the `test` dir
 	"exclude": []
