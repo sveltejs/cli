@@ -1,1 +1,0 @@
-import MyPackage from "package";

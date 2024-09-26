@@ -1,1 +1,0 @@
-import { namedOne } from "package";
