@@ -1,5 +1,6 @@
-import { defineAdderConfig } from '@svelte-cli/core';
 import { options } from './options.js';
+import { defineAdderConfig } from '@svelte-cli/core';
+import { imports } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -25,8 +26,8 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'src/DemoComponent.svelte',
 			contentType: 'svelte',
-			content: ({ js }) => {
-				js.imports.addDefault(js.ast, '../adder-template-demo.txt?raw', 'Demo');
+			content: ({ jsAst }) => {
+				imports.addDefault(jsAst, '../adder-template-demo.txt?raw', 'Demo');
 			}
 		}
 	]
