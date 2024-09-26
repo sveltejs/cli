@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { options } from './options.ts';
 import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
-import { common, imports, object } from '@svelte-cli/core/js';
+import { common, exports, imports, object } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {

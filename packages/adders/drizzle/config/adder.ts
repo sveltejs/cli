@@ -1,5 +1,5 @@
 import { options as availableOptions } from './options.ts';
-import { common, functions, imports, object, variables } from '@svelte-cli/core/js';
+import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
 import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
 
 const PORTS = {
