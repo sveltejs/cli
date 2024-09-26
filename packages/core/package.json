@@ -6,16 +6,30 @@
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"format": "pnpm lint --write",
-		"check": "tsc"
+		"check": "tsc",
+		"test": "vitest run",
+		"test:ui": "vitest --ui"
 	},
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
+			"types": "./dist/packages/core/index.d.ts",
 			"default": "./dist/index.js"
 		},
 		"./internal": {
-			"types": "./dist/internal.d.ts",
+			"types": "./dist/packages/core/internal.d.ts",
 			"default": "./dist/internal.js"
+		},
+		"./css": {
+			"types": "./dist/packages/core/tooling/css/index.d.ts",
+			"default": "./dist/css.js"
+		},
+		"./html": {
+			"types": "./dist/packages/core/tooling/html/index.d.ts",
+			"default": "./dist/html.js"
+		},
+		"./js": {
+			"types": "./dist/packages/core/tooling/js/index.d.ts",
+			"default": "./dist/js.js"
 		}
 	},
 	"files": [
@@ -23,11 +37,11 @@
 	],
 	"devDependencies": {
 		"@svelte-cli/clack-prompts": "workspace:*",
+		"decircular": "^1.0.0",
 		"dedent": "^1.5.3",
 		"picocolors": "^1.1.0"
 	},
 	"dependencies": {
-		"@svelte-cli/ast-manipulation": "workspace:*",
 		"@svelte-cli/ast-tooling": "workspace:*"
 	},
 	"bugs": "https://github.com/sveltejs/cli/issues",
