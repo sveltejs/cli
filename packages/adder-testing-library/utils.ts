@@ -1,8 +1,20 @@
 import degit from 'degit';
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { execSync, spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import path from 'node:path';
+import fs from 'node:fs';
 import terminate from 'terminate';
 import { create } from 'sv';
+import { type AdderWithoutExplicitArgs, type OptionValues, type Question } from '@svelte-cli/core';
+import { createWorkspace, installPackages, createOrUpdateFiles } from '@svelte-cli/core/internal';
+import { startBrowser } from './browser.ts';
+
+type TestCase = {
+	testName: string;
+	template: string;
+	adder: AdderWithoutExplicitArgs;
+	options: OptionValues<Record<string, Question>>;
+	cwd: string;
+};
 
 export const ProjectTypes = {
 	Svelte_JS: 'svelte-js',
@@ -92,4 +104,182 @@ export async function stopDevServer(devServer: ChildProcessWithoutNullStreams) {
 	if (!devServer.pid) return;
 
 	await forceKill(devServer);
+}
+
+export function generateTestCases(adders: AdderWithoutExplicitArgs[], addersOutputPath: string) {
+	const testCases = new Map<string, TestCase[]>();
+	for (const adder of adders) {
+		const adderId = adder.config.metadata.id;
+		const adderTestCases: TestCase[] = [];
+		const testData = adder.tests;
+		if (!testData || !testData.tests || testData.tests.length == 0) continue;
+
+		for (const template of ProjectTypesList) {
+			const environments = adder.config.metadata.environments;
+			if (
+				(!environments.kit && template.includes('kit')) ||
+				(!environments.svelte && template.includes('svelte'))
+			) {
+				continue;
+			}
+
+			const optionsCombinations = testData.optionValues;
+			// if list if empty, add empty options so that one testcase gets run
+			if (optionsCombinations.length == 0) optionsCombinations.push({});
+
+			for (const options of optionsCombinations) {
+				let optionDirectoryName = Object.entries(options)
+					.map(([key, value]) => `${key}=${value}`)
+					.join('+');
+				if (!optionDirectoryName) optionDirectoryName = 'default';
+				const cwd = path.join(addersOutputPath, adderId, template, optionDirectoryName);
+				const testName = `${adder.config.metadata.id} / ${template} / ${JSON.stringify(options)}`;
+
+				const testCase: TestCase = {
+					testName,
+					adder,
+					options,
+					template,
+					cwd
+				};
+
+				adderTestCases.push(testCase);
+			}
+		}
+
+		testCases.set(adderId, adderTestCases);
+	}
+	return testCases;
+}
+
+export async function prepareEndToEndTests(
+	outputPath: string,
+	templatesPath: string,
+	addersPath: string,
+	adders: AdderWithoutExplicitArgs[],
+	testCases: Map<string, TestCase[]>
+) {
+	console.log('deleting old files');
+	// only delete adders and templates directory. Trying to delete `node_modules`
+	// typically fails because some `esbuild` binary is locked
+	fs.rmSync(addersPath, { recursive: true, force: true });
+	fs.rmSync(templatesPath, { recursive: true, force: true });
+
+	fs.mkdirSync(outputPath, { recursive: true });
+
+	console.log('downloading project templates');
+	await downloadProjectTemplates(templatesPath);
+
+	const dirs: string[] = [];
+	for (const type of Object.values(ProjectTypes)) {
+		dirs.push(...adders.map((a) => `  - 'adders/${a.config.metadata.id}/${type}/*'`));
+	}
+
+	const pnpmWorkspace = `packages:\n${dirs.join('\n')}\n`;
+	fs.writeFileSync(path.join(outputPath, 'pnpm-workspace.yaml'), pnpmWorkspace, {
+		encoding: 'utf8'
+	});
+
+	const testRootPkgJson = JSON.stringify({ name: 'test-root', version: '0.0.0', type: 'module' });
+	fs.writeFileSync(path.join(outputPath, 'package.json'), testRootPkgJson, {
+		encoding: 'utf8'
+	});
+
+	console.log('executing adders');
+	for (const adderTestCases of testCases.values()) {
+		const applyAdderTasks = [];
+		for (const testCase of adderTestCases) {
+			fs.mkdirSync(testCase.cwd, { recursive: true });
+
+			// copy template into working directory
+			const templatePath = path.join(templatesPath, testCase.template);
+			fs.cpSync(templatePath, testCase.cwd, { recursive: true });
+
+			applyAdderTasks.push(runAdder(testCase.adder, testCase.cwd, testCase.options));
+		}
+
+		await Promise.all(applyAdderTasks);
+	}
+
+	console.log('preparing test files');
+	for (const adderTestCases of testCases.values()) {
+		for (const testCase of adderTestCases) {
+			const workspace = createWorkspace(testCase.cwd);
+			workspace.options = testCase.options;
+			createOrUpdateFiles(testCase.adder.tests?.files ?? [], workspace);
+		}
+	}
+
+	console.log('installing dependencies');
+	execSync('pnpm install', { cwd: outputPath, stdio: 'pipe' });
+
+	await startBrowser();
+
+	console.log('start testing');
+}
+
+export async function prepareSnaphotTests(
+	outputPath: string,
+	templatesPath: string,
+	addersPath: string,
+	adders: AdderWithoutExplicitArgs[],
+	testCases: Map<string, TestCase[]>
+) {
+	console.log('deleting old files');
+	// only delete adders and templates directory. Trying to delete `node_modules`
+	// typically fails because some `esbuild` binary is locked
+	fs.rmSync(addersPath, { recursive: true, force: true });
+	fs.rmSync(templatesPath, { recursive: true, force: true });
+
+	fs.mkdirSync(outputPath, { recursive: true });
+
+	console.log('downloading project templates');
+	await downloadProjectTemplates(templatesPath);
+
+	console.log('preparing adder templates');
+	// create all relevant directories with the templates
+	for (const adderTestCases of testCases.values()) {
+		for (const testCase of adderTestCases) {
+			fs.mkdirSync(testCase.cwd, { recursive: true });
+
+			// copy template into working directory
+			const templatePath = path.join(templatesPath, testCase.template);
+			fs.cpSync(templatePath, testCase.cwd, { recursive: true });
+		}
+	}
+}
+
+function runAdder(
+	adder: AdderWithoutExplicitArgs,
+	cwd: string,
+	options: OptionValues<Record<string, Question>>
+) {
+	const { config } = adder;
+	const workspace = createWorkspace(cwd);
+
+	workspace.options = options;
+
+	const filesToFormat = new Set<string>();
+
+	// execute adders
+	if (config.integrationType === 'inline') {
+		const pkgPath = installPackages(config, workspace);
+		filesToFormat.add(pkgPath);
+		const changedFiles = createOrUpdateFiles(config.files, workspace);
+		changedFiles.forEach((file) => filesToFormat.add(file));
+	} else if (config.integrationType === 'external') {
+		try {
+			console.log('execute external adder');
+			execSync('npx ' + config.command, {
+				cwd,
+				env: Object.assign(process.env, config.environment ?? {}),
+				stdio: 'pipe'
+			});
+		} catch (error) {
+			const typedError = error as Error;
+			throw new Error('Failed executing external command: ' + typedError.message);
+		}
+	} else {
+		throw new Error('Unknown integration type');
+	}
 }
