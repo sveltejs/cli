@@ -1,5 +1,7 @@
 import { defineAdderConfig } from '@svelte-cli/core';
 import { options } from './options.ts';
+import { array, functions, imports, object, variables } from '@svelte-cli/core/js';
+import * as html from '@svelte-cli/core/html';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -20,7 +22,7 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, array, object, functions, imports, exports }) => {
+			content: ({ ast }) => {
 				const vitePluginName = 'routify';
 				imports.addDefault(ast, '@roxi/routify/vite-plugin', vitePluginName);
 
@@ -41,44 +43,44 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'src/App.svelte',
 			contentType: 'svelte',
-			content: ({ js, html }) => {
-				js.imports.addNamed(js.ast, '@roxi/routify', {
+			content: ({ jsAst, htmlAst }) => {
+				imports.addNamed(jsAst, '@roxi/routify', {
 					Router: 'Router',
 					createRouter: 'createRouter'
 				});
-				js.imports.addDefault(js.ast, '../.routify/routes.default.js', 'routes');
+				imports.addDefault(jsAst, '../.routify/routes.default.js', 'routes');
 
-				const routesObject = js.object.createEmpty();
-				const routesIdentifier = js.variables.identifier('routes');
-				js.object.property(routesObject, 'routes', routesIdentifier);
-				const createRouterFunction = js.functions.call('createRouter', []);
+				const routesObject = object.createEmpty();
+				const routesIdentifier = variables.identifier('routes');
+				object.property(routesObject, 'routes', routesIdentifier);
+				const createRouterFunction = functions.call('createRouter', []);
 				createRouterFunction.arguments.push(routesObject);
-				const routerVariableDeclaration = js.variables.declaration(
-					js.ast,
+				const routerVariableDeclaration = variables.declaration(
+					jsAst,
 					'const',
 					'router',
 					createRouterFunction
 				);
-				js.exports.namedExport(js.ast, 'router', routerVariableDeclaration);
+				exports.namedExport(jsAst, 'router', routerVariableDeclaration);
 
 				const router = html.element('Router', { '{router}': '' });
-				html.insertElement(html.ast.childNodes, router);
+				html.insertElement(htmlAst.childNodes, router);
 			}
 		},
 		{
 			name: () => 'src/routes/index.svelte',
 			contentType: 'svelte',
-			content: ({ html }) => {
+			content: ({ htmlAst }) => {
 				const htmlString = `${routifyDemoHtml}<p>On index</p>`;
-				html.addFromRawHtml(html.ast.childNodes, htmlString);
+				html.addFromRawHtml(htmlAst.childNodes, htmlString);
 			}
 		},
 		{
 			name: () => 'src/routes/demo.svelte',
 			contentType: 'svelte',
-			content: ({ html }) => {
+			content: ({ htmlAst }) => {
 				const htmlString = `${routifyDemoHtml}<p>On demo</p>`;
-				html.addFromRawHtml(html.ast.childNodes, htmlString);
+				html.addFromRawHtml(htmlAst.childNodes, htmlString);
 			}
 		}
 	]

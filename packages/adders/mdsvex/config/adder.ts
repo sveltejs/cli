@@ -1,5 +1,6 @@
-import { defineAdderConfig } from '@svelte-cli/core';
 import { options } from './options.ts';
+import { defineAdderConfig } from '@svelte-cli/core';
+import { array, functions, imports, object } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -20,7 +21,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'svelte.config.js',
 			contentType: 'script',
-			content: ({ ast, array, object, functions, imports, exports }) => {
+			content: ({ ast }) => {
 				imports.addNamed(ast, 'mdsvex', { mdsvex: 'mdsvex' });
 
 				const { value: exportDefault } = exports.defaultExport(ast, object.createEmpty());

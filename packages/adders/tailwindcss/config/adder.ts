@@ -1,5 +1,8 @@
-import { defineAdderConfig } from '@svelte-cli/core';
 import { options } from './options.ts';
+import { defineAdderConfig } from '@svelte-cli/core';
+import { array, common, functions, imports, object } from '@svelte-cli/core/js';
+import { addImports } from '@svelte-cli/core/css';
+import { element } from '@svelte-cli/core/html';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -36,17 +39,7 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ typescript }) => `tailwind.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({
-				options,
-				ast,
-				array,
-				object,
-				common,
-				functions,
-				exports,
-				typescript,
-				imports
-			}) => {
+			content: ({ options, ast, typescript }) => {
 				let root;
 				const rootExport = object.createEmpty();
 				if (typescript) {
@@ -76,7 +69,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'postcss.config.js',
 			contentType: 'script',
-			content: ({ ast, object, exports }) => {
+			content: ({ ast }) => {
 				const { value: rootObject } = exports.defaultExport(ast, object.createEmpty());
 				const pluginsObject = object.property(rootObject, 'plugins', object.createEmpty());
 
@@ -87,7 +80,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'src/app.css',
 			contentType: 'css',
-			content: ({ ast, addImports }) => {
+			content: ({ ast }) => {
 				const layerImports = ['base', 'components', 'utilities'].map(
 					(layer) => `"tailwindcss/${layer}"`
 				);
@@ -114,19 +107,19 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'src/App.svelte',
 			contentType: 'svelte',
-			content: ({ js }) => {
-				js.imports.addEmpty(js.ast, './app.css');
+			content: ({ jsAst }) => {
+				imports.addEmpty(jsAst, './app.css');
 			},
 			condition: ({ kit }) => !kit
 		},
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			contentType: 'svelte',
-			content: ({ js, html }) => {
-				js.imports.addEmpty(js.ast, '../app.css');
-				if (html.ast.childNodes.length === 0) {
-					const slot = html.element('slot');
-					html.ast.childNodes.push(slot);
+			content: ({ jsAst, htmlAst }) => {
+				imports.addEmpty(jsAst, '../app.css');
+				if (htmlAst.childNodes.length === 0) {
+					const slot = element('slot');
+					htmlAst.childNodes.push(slot);
 				}
 			},
 			condition: ({ kit }) => Boolean(kit)

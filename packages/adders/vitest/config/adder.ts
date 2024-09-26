@@ -1,5 +1,6 @@
-import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
 import { options } from './options.ts';
+import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
+import { common, imports, object } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -51,7 +52,7 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, imports, exports, common, object }) => {
+			content: ({ ast }) => {
 				// find `defineConfig` import declaration for "vite"
 				const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
 				const defineConfigImportDecl = importDecls.find(

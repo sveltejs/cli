@@ -1,5 +1,6 @@
-import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
 import { options as availableOptions } from './options.ts';
+import { common, functions, imports, object, variables } from '@svelte-cli/core/js';
+import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
 
 const PORTS = {
 	mysql: '3306',
@@ -153,7 +154,7 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ options, ast, common, exports, typescript, imports, object }) => {
+			content: ({ options, ast, typescript }) => {
 				imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
 				const envCheckStatement = common.statementFromString(
@@ -198,7 +199,7 @@ export const adder = defineAdderConfig({
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/schema.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, exports, imports, options, common, variables }) => {
+			content: ({ ast, options }) => {
 				let userSchemaExpression;
 				if (options.database === 'sqlite') {
 					imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
@@ -251,7 +252,7 @@ export const adder = defineAdderConfig({
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/index.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, exports, imports, options, common, functions, variables }) => {
+			content: ({ ast, options }) => {
 				imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
 
 				// env var checks
