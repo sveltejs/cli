@@ -91,19 +91,6 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  packages/ast-manipulation:
-    dependencies:
-      '@svelte-cli/ast-tooling':
-        specifier: workspace:*
-        version: link:../ast-tooling
-    devDependencies:
-      decircular:
-        specifier: ^1.0.0
-        version: 1.0.0
-      dedent:
-        specifier: ^1.5.3
-        version: 1.5.3
-
   packages/ast-tooling:
     devDependencies:
       '@babel/parser':
@@ -203,9 +190,6 @@ importers:
 
   packages/core:
     dependencies:
-      '@svelte-cli/ast-manipulation':
-        specifier: workspace:*
-        version: link:../ast-manipulation
       '@svelte-cli/ast-tooling':
         specifier: workspace:*
         version: link:../ast-tooling
@@ -213,6 +197,9 @@ importers:
       '@svelte-cli/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
+      decircular:
+        specifier: ^1.0.0
+        version: 1.0.0
       dedent:
         specifier: ^1.5.3
         version: 1.5.3
