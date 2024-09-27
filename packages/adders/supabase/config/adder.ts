@@ -1,5 +1,5 @@
-import { defineAdderConfig, dedent, type TextFileEditorArgs, colors } from '@svelte-add/core';
-import { options as availableOptions } from './options';
+import { defineAdderConfig, dedent, type TextFileEditorArgs, colors } from '@svelte-cli/core';
+import { options as availableOptions } from './options.ts';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -11,8 +11,8 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 		website: {
 			logo: './supabase.svg',
 			keywords: ['supabase', 'database', 'postgres', 'auth'],
-			documentation: 'https://supabase.com/docs',
-		},
+			documentation: 'https://supabase.com/docs'
+		}
 	},
 	options: availableOptions,
 	integrationType: 'inline',
@@ -22,34 +22,34 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 			name: '@supabase/ssr',
 			version: '^0.5.1',
 			dev: false,
-			condition: ({ options }) => options.auth.length > 0,
+			condition: ({ options }) => options.auth.length > 0
 		},
 		// Local development CLI
 		{
 			name: 'supabase',
 			version: '^1.191.3',
 			dev: true,
-			condition: ({ options }) => options.cli,
-		},
+			condition: ({ options }) => options.cli
+		}
 	],
 	scripts: [
 		{
 			description: 'Supabase CLI initialization',
 			args: ['supabase', 'init', '--with-intellij-settings=false', '--with-vscode-settings=false'],
 			type: 'dependency',
-			condition: ({ options }) => options.cli,
-		},
+			condition: ({ options }) => options.cli
+		}
 	],
 	files: [
 		{
 			name: () => `.env`,
 			contentType: 'text',
-			content: generateEnvFileContent,
+			content: generateEnvFileContent
 		},
 		{
 			name: () => `.env.example`,
 			contentType: 'text',
-			content: generateEnvFileContent,
+			content: generateEnvFileContent
 		},
 		// Common to all Auth options
 		{
@@ -131,7 +131,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 
 					export const handle${isTs ? ': Handle' : ''} = sequence(supabase, authGuard)
 					`;
-			},
+			}
 		},
 		{
 			name: () => './src/app.d.ts',
@@ -162,7 +162,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 
 					export {}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -203,7 +203,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						return { session, supabase, user }
 					}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -222,7 +222,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						}
 					}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit }) => `${kit.routesDirectory}/+layout.svelte`,
@@ -250,7 +250,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 
 					<slot />
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -359,7 +359,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 					}
 					}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit }) => `${kit.routesDirectory}/auth/+page.svelte`,
@@ -427,7 +427,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						<p>{form.message}</p>
 					{/if}
 					`;
-			},
+			}
 		},
 		// Basic auth specific
 		{
@@ -458,7 +458,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						<p>{form.message}</p>
 					{/if}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -490,7 +490,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 							},
 						}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -518,7 +518,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						},
 					}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit }) => `${kit.routesDirectory}/auth/reset-password/+page.svelte`,
@@ -548,7 +548,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						<p>{form.message}</p>
 					{/if}
 					`;
-			},
+			}
 		},
 		// Basic auth and/or magic link
 		{
@@ -588,7 +588,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						redirect(303, redirectTo)
 					}
 					`;
-			},
+			}
 		},
 		// OAuth only
 		{
@@ -618,7 +618,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						throw redirect(303, \`/\${next.slice(1)}\`)
 					}
 					`;
-			},
+			}
 		},
 		// Admin client helper
 		{
@@ -647,7 +647,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						},
 					);
 					`;
-			},
+			}
 		},
 		// Helper scripts
 		{
@@ -664,7 +664,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 					scripts['db:types'] ??=
 						'supabase gen types typescript --local > src/lib/supabase-types.ts';
 				}
-			},
+			}
 		},
 		// CLI local development configuration
 		{
@@ -693,7 +693,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 							[auth.email.template.recovery]
 							subject = "Reset Your Password"
 							content_path = "./supabase/templates/recovery.html"
-							`,
+							`
 					);
 				}
 				if (isMagicLink) {
@@ -704,7 +704,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 							[auth.email.template.magic_link]
 							subject = "Your Magic Link"
 							content_path = "./supabase/templates/magic_link.html"
-							`,
+							`
 					);
 				}
 				if (isOAuth) {
@@ -718,12 +718,12 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 							secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 							redirect_uri = "http://127.0.0.1:54321/auth/v1/callback"
 							skip_nonce_check = true
-							`,
+							`
 					);
 				}
 
 				return content;
-			},
+			}
 		},
 		{
 			name: () => './supabase/templates/confirmation.html',
@@ -742,7 +742,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						</body>
 					</html>
 					`;
-			},
+			}
 		},
 		{
 			name: () => './supabase/templates/magic_link.html',
@@ -760,7 +760,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						</body>
 					</html>
 					`;
-			},
+			}
 		},
 		{
 			name: () => './supabase/templates/recovery.html',
@@ -779,7 +779,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						</body>
 					</html>
 					`;
-			},
+			}
 		},
 		// Demo routes when user has selected Basic Auth and/or Magic Link
 		{
@@ -811,7 +811,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						User: {JSON.stringify($page.data.user, null, 2)}
 					</pre>
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -826,7 +826,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 					* send a server request, and thus trigger \`hooks.server.ts\`.
 					**/
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit }) => `${kit.routesDirectory}/private/+layout.svelte`,
@@ -856,7 +856,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						<slot />
 					</main>
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit }) => `${kit.routesDirectory}/private/+page.svelte`,
@@ -918,7 +918,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 							: ''
 					}
 					`;
-			},
+			}
 		},
 		{
 			name: ({ kit, typescript }) =>
@@ -936,7 +936,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 						return { notes: notes ?? [] }
 					}
 					`;
-			},
+			}
 		},
 		{
 			name: () => './supabase/migrations/00000000000000_demo.sql',
@@ -966,8 +966,8 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 					to authenticated
 					using ((select auth.uid()) = user_id);
 					`;
-			},
-		},
+			}
+		}
 	],
 	nextSteps: ({ options, packageManager }) => {
 		let command: string;
@@ -1023,7 +1023,7 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 		}
 
 		return steps;
-	},
+	}
 });
 
 function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof availableOptions>) {
@@ -1035,7 +1035,7 @@ function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof 
 		content,
 		'PUBLIC_SUPABASE_URL',
 		// Local development env always has the same credentials, prepopulate the local dev env file
-		isCli ? '"http://127.0.0.1:54321"' : '"<your_supabase_project_url>"',
+		isCli ? '"http://127.0.0.1:54321"' : '"<your_supabase_project_url>"'
 	);
 	content = addEnvVar(
 		content,
@@ -1043,7 +1043,7 @@ function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof 
 		// Local development env always has the same credentials, prepopulate the local dev env file
 		isCli
 			? '"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"'
-			: '"<your_supabase_anon_key>"',
+			: '"<your_supabase_anon_key>"'
 	);
 
 	content = options.admin
@@ -1053,7 +1053,7 @@ function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof 
 				// Local development env always has the same credentials, prepopulate the local dev env file
 				isCli
 					? '"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"'
-					: '"<your_supabase_service_role_key>"',
+					: '"<your_supabase_service_role_key>"'
 			)
 		: content;
 
@@ -1061,12 +1061,12 @@ function generateEnvFileContent({ content, options }: TextFileEditorArgs<typeof 
 		content = addEnvVar(
 			content,
 			'SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID',
-			'"<your_google_oauth_client_id"',
+			'"<your_google_oauth_client_id"'
 		);
 		content = addEnvVar(
 			content,
 			'SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET',
-			'"<your_google_oauth_secret"',
+			'"<your_google_oauth_secret"'
 		);
 	}
 
