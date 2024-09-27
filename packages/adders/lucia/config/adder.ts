@@ -122,16 +122,16 @@ export const adder = defineAdderConfig({
 					});
 					if (options.demo) {
 						object.overrideProperties(userAttributes, {
-							username: common.expressionFromString('text("username").notNull().unique()'),
-							passwordHash: common.expressionFromString('text("password_hash").notNull()')
+							username: common.expressionFromString(`text('username').notNull().unique()`),
+							passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
 						});
 					}
 					object.overrideProperties(sessionAttributes, {
 						id: common.expressionFromString(`text('id').primaryKey()`),
 						userId: common.expressionFromString(
-							'text("user_id").notNull().references(() => user.id)'
+							`text('user_id').notNull().references(() => user.id)`
 						),
-						expiresAt: common.expressionFromString('integer("expires_at").notNull()')
+						expiresAt: common.expressionFromString(`integer('expires_at').notNull()`)
 					});
 				}
 				if (drizzleDialect === 'mysql') {
@@ -158,7 +158,7 @@ export const adder = defineAdderConfig({
 						userId: common.expressionFromString(
 							`varchar('user_id', { length: 255 }).notNull().references(() => user.id)`
 						),
-						expiresAt: common.expressionFromString('datetime("expires_at").notNull()')
+						expiresAt: common.expressionFromString(`datetime('expires_at').notNull()`)
 					});
 				}
 				if (drizzleDialect === 'postgresql') {
@@ -172,17 +172,17 @@ export const adder = defineAdderConfig({
 					});
 					if (options.demo) {
 						object.overrideProperties(userAttributes, {
-							username: common.expressionFromString('text("username").notNull().unique()'),
-							passwordHash: common.expressionFromString('text("password_hash").notNull()')
+							username: common.expressionFromString(`text('username').notNull().unique()`),
+							passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
 						});
 					}
 					object.overrideProperties(sessionAttributes, {
 						id: common.expressionFromString(`text('id').primaryKey()`),
 						userId: common.expressionFromString(
-							'text("user_id").notNull().references(() => user.id)'
+							`text('user_id').notNull().references(() => user.id)`
 						),
 						expiresAt: common.expressionFromString(
-							'timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull()'
+							`timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()`
 						)
 					});
 				}
@@ -222,12 +222,12 @@ export const adder = defineAdderConfig({
 				// module declaration
 				if (typescript && !/declare module ["']lucia["']/.test(source)) {
 					const moduleDecl = common.statementFromString(`
-						declare module "lucia" {
+						declare module 'lucia' {
 							interface Register {
 								Lucia: typeof lucia;
 								// attributes that are already included are omitted
-								DatabaseUserAttributes: Omit<typeof user.$inferSelect, "id">;
-								DatabaseSessionAttributes: Omit<typeof session.$inferSelect, "id" | "userId" | "expiresAt">;
+								DatabaseUserAttributes: Omit<typeof user.$inferSelect, 'id'>;
+								DatabaseSessionAttributes: Omit<typeof session.$inferSelect, 'id' | 'userId' | 'expiresAt'>;
 							}
 						}`);
 					common.addStatement(ast, moduleDecl);
@@ -487,18 +487,18 @@ export const adder = defineAdderConfig({
 
 				const ts = (str: string, opt = '') => (typescript ? str : opt);
 				return dedent`
-					import { fail, redirect } from "@sveltejs/kit";
-					import { hash, verify } from "@node-rs/argon2";
-					import { eq } from "drizzle-orm";
-					import { generateId } from "lucia";
-					import { lucia } from "$lib/server/auth";
-					import { db } from "$lib/server/db";
-					import { user } from "$lib/server/db/schema.js";
-					${ts('import type { Actions, PageServerLoad } from "./$types";')}
+					import { fail, redirect } from '@sveltejs/kit';
+					import { hash, verify } from '@node-rs/argon2';
+					import { eq } from 'drizzle-orm';
+					import { generateId } from 'lucia';
+					import { lucia } from '$lib/server/auth';
+					import { db } from '$lib/server/db';
+					import { user } from '$lib/server/db/schema.js';
+					${ts(`import type { Actions, PageServerLoad } from './$types';`)}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
-							return redirect(302, "/demo");
+							return redirect(302, '/demo');
 						}
 						return {};
 					};
@@ -506,17 +506,17 @@ export const adder = defineAdderConfig({
 					export const actions${ts(': Actions')} = {
 						login: async (event) => {
 							const formData = await event.request.formData();
-							const username = formData.get("username");
-							const password = formData.get("password");
+							const username = formData.get('username');
+							const password = formData.get('password');
 
 							if (!validateUsername(username)) {
 								return fail(400, {
-									message: "Invalid username",
+									message: 'Invalid username',
 								});
 							}
 							if (!validatePassword(password)) {
 								return fail(400, {
-									message: "Invalid password",
+									message: 'Invalid password',
 								});
 							}
 
@@ -528,7 +528,7 @@ export const adder = defineAdderConfig({
 							const existingUser = results.at(0);
 							if (!existingUser) {
 								return fail(400, {
-									message: "Incorrect username or password",
+									message: 'Incorrect username or password',
 								});
 							}
 
@@ -540,32 +540,32 @@ export const adder = defineAdderConfig({
 							});
 							if (!validPassword) {
 								return fail(400, {
-									message: "Incorrect username or password",
+									message: 'Incorrect username or password',
 								});
 							}
 
 							const session = await lucia.createSession(existingUser.id, {});
 							const sessionCookie = lucia.createSessionCookie(session.id);
 							event.cookies.set(sessionCookie.name, sessionCookie.value, {
-								path: ".",
+								path: '.',
 								...sessionCookie.attributes,
 							});
 
-							return redirect(302, "/demo");
+							return redirect(302, '/demo');
 						},
 						register: async (event) => {
 							const formData = await event.request.formData();
-							const username = formData.get("username");
-							const password = formData.get("password");
+							const username = formData.get('username');
+							const password = formData.get('password');
 
 							if (!validateUsername(username)) {
 								return fail(400, {
-									message: "Invalid username",
+									message: 'Invalid username',
 								});
 							}
 							if (!validatePassword(password)) {
 								return fail(400, {
-									message: "Invalid password",
+									message: 'Invalid password',
 								});
 							}
 
@@ -588,21 +588,21 @@ export const adder = defineAdderConfig({
 								const session = await lucia.createSession(userId, {});
 								const sessionCookie = lucia.createSessionCookie(session.id);
 								event.cookies.set(sessionCookie.name, sessionCookie.value, {
-									path: ".",
+									path: '.',
 									...sessionCookie.attributes,
 								});
 							} catch (e) {
 								return fail(500, {
-									message: "An error has occurred",
+									message: 'An error has occurred',
 								});
 							}
-							return redirect(302, "/demo");
+							return redirect(302, '/demo');
 						},
 					};
 
 					function validateUsername(username${ts(': unknown): username is string', ')')} {
 						return (
-							typeof username === "string" &&
+							typeof username === 'string' &&
 							username.length >= 3 &&
 							username.length <= 31 &&
 							/^[a-z0-9_-]+$/.test(username)
@@ -611,7 +611,7 @@ export const adder = defineAdderConfig({
 
 					function validatePassword(password${ts(': unknown): password is string', ')')} {
 						return (
-							typeof password === "string" &&
+							typeof password === 'string' &&
 							password.length >= 6 &&
 							password.length <= 255
 						);
@@ -631,27 +631,27 @@ export const adder = defineAdderConfig({
 
 				const ts = (str: string) => (typescript ? str : '');
 				return dedent`
-					<script ${ts('lang="ts"')}>
-						import { enhance } from "$app/forms";
-						${ts('import type { ActionData } from "./$types";')}
+					<script ${ts(`lang='ts'`)}>
+						import { enhance } from '$app/forms';
+						${ts(`import type { ActionData } from './$types';`)}
 
 						export let form${ts(': ActionData')};
 					</script>
 
 					<h1>Login/Register</h1>
-					<form method="post" action="?/login" use:enhance>
+					<form method='post' action='?/login' use:enhance>
 						<label>
 							Username
-							<input name="username" />
+							<input name='username' />
 						</label>
 						<label>
 							Password
-							<input type="password" name="password" />
+							<input type='password' name='password' />
 						</label>
 						<button>Login</button>
-						<button formaction="?/register">Register</button>
+						<button formaction='?/register'>Register</button>
 					</form>
-					<p style="color: red">{form?.message ?? ""}</p>
+					<p style='color: red'>{form?.message ?? ''}</p>
 				`;
 			}
 		},
@@ -671,13 +671,13 @@ export const adder = defineAdderConfig({
 
 				const ts = (str: string) => (typescript ? str : '');
 				return dedent`
-					import { lucia } from "$lib/server/auth";
-					import { fail, redirect } from "@sveltejs/kit";
-					${ts('import type { Actions, PageServerLoad } from "./$types";')}
+					import { lucia } from '$lib/server/auth';
+					import { fail, redirect } from '@sveltejs/kit';
+					${ts(`import type { Actions, PageServerLoad } from './$types';`)}
 					
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {
-							return redirect(302, "/demo/login");
+							return redirect(302, '/demo/login');
 						}
 						return {
 							user: event.locals.user,
@@ -692,10 +692,10 @@ export const adder = defineAdderConfig({
 							await lucia.invalidateSession(event.locals.session.id);
 							const sessionCookie = lucia.createBlankSessionCookie();
 							event.cookies.set(sessionCookie.name, sessionCookie.value, {
-								path: ".",
+								path: '.',
 								...sessionCookie.attributes,
 							});
-							return redirect(302, "/demo/login");
+							return redirect(302, '/demo/login');
 						},
 					};
 				`;
@@ -713,16 +713,16 @@ export const adder = defineAdderConfig({
 
 				const ts = (str: string) => (typescript ? str : '');
 				return dedent`
-					<script ${ts('lang="ts"')}>
-						import { enhance } from "$app/forms";
-						${ts('import type { PageServerData } from "./$types";')}
+					<script ${ts(`lang='ts'`)}>
+						import { enhance } from '$app/forms';
+						${ts(`import type { PageServerData } from './$types';`)}
 
 						export let data${ts(': PageServerData')};
 					</script>
 
 					<h1>Hi, {data.user.username}!</h1>
 					<p>Your user ID is {data.user.id}.</p>
-					<form method="post" action="?/logout" use:enhance>
+					<form method='post' action='?/logout' use:enhance>
 						<button>Sign out</button>
 					</form>
 				`;
@@ -827,7 +827,7 @@ function getAuthHandleContent() {
 					: lucia.createSessionCookie(session.id);
 
 				event.cookies.set(sessionCookie.name, sessionCookie.value, {
-					path: ".",
+					path: '.',
 					...sessionCookie.attributes,
 				});
 			}

@@ -222,7 +222,7 @@ export const adder = defineAdderConfig({
 					});
 
 					userSchemaExpression = common.expressionFromString(`mysqlTable('user', {
-                        id: serial("id").primaryKey(),
+                        id: serial('id').primaryKey(),
                         age: int('age'),
                     })`);
 				}
@@ -254,7 +254,7 @@ export const adder = defineAdderConfig({
 
 				// env var checks
 				const dbURLCheck = common.statementFromString(
-					'if (!env.DATABASE_URL) throw new Error("DATABASE_URL is not set");'
+					`if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`
 				);
 				common.addStatement(ast, dbURLCheck);
 
@@ -274,7 +274,7 @@ export const adder = defineAdderConfig({
 						imports.addNamed(ast, '$app/environment', { dev: 'dev' });
 						// auth token check in prod
 						const authTokenCheck = common.statementFromString(
-							'if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error("DATABASE_AUTH_TOKEN is not set");'
+							`if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');`
 						);
 						common.addStatement(ast, authTokenCheck);
 
