@@ -22,7 +22,7 @@ export const migrate = new Command('migrate')
 			if (!selectedPm) throw new Error('Unable to detect package manage');
 
 			const { command, args } = constructCommand(COMMANDS[selectedPm].execute, [
-				'svelte-migrate',
+				'svelte-migrate@latest',
 				migration
 			])!;
 
