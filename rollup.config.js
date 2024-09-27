@@ -27,8 +27,6 @@ function getConfig(project) {
 	let inputs;
 
 	if (project === 'core') {
-		// TODO this makes the dts plugin bug out and scope the source to the wrong directory.
-		// Waiting on https://github.com/unplugin/unplugin-isolated-decl/pull/20 to merge
 		inputs = {
 			index: `${projectRoot}/index.ts`,
 			internal: `${projectRoot}/internal.ts`,
