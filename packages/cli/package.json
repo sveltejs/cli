@@ -19,7 +19,7 @@
 	},
 	"license": "MIT",
 	"homepage": "https://kit.svelte.dev",
-	"bin": "./dist/index.js",
+	"bin": "./dist/bin.js",
 	"main": "./dist/index.js",
 	"dependencies": {
 		"@svelte-cli/core": "workspace:*"
