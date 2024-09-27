@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
 import { options } from './options.ts';
+import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
+import { common, exports, imports, object } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -60,7 +61,7 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ typescript }) => `playwright.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, imports, exports, common, object }) => {
+			content: ({ ast }) => {
 				const defineConfig = common.expressionFromString('defineConfig({})');
 				const defaultExport = exports.defaultExport(ast, defineConfig);
 

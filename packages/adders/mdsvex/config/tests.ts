@@ -5,6 +5,8 @@ import {
 	type OptionDefinition
 } from '@svelte-cli/core';
 import { options } from './options.ts';
+import { imports } from '@svelte-cli/core/js';
+import * as html from '@svelte-cli/core/html';
 
 export const tests = defineAdderTests({
 	files: [
@@ -65,11 +67,14 @@ Markdown is pretty good but sometimes you just need more.
 	);
 }
 
-function useMarkdownFile<Args extends OptionDefinition>({ js, html }: SvelteFileEditor<Args>) {
-	js.imports.addDefault(js.ast, './Demo.svx', 'Demo');
+function useMarkdownFile<Args extends OptionDefinition>({
+	jsAst,
+	htmlAst
+}: SvelteFileEditor<Args>) {
+	imports.addDefault(jsAst, './Demo.svx', 'Demo');
 
 	const div = html.div({ class: 'mdsvex' });
-	html.appendElement(html.ast.childNodes, div);
+	html.appendElement(htmlAst.childNodes, div);
 	const mdsvexNode = html.element('Demo');
 	html.appendElement(div.childNodes, mdsvexNode);
 }

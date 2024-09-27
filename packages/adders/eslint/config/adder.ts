@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineAdderConfig, log } from '@svelte-cli/core';
 import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
+import { defineAdderConfig, log } from '@svelte-cli/core';
+import { array, common, exports, imports, object } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -63,7 +64,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'eslint.config.js',
 			contentType: 'script',
-			content: ({ ast, imports, exports, common, typescript, array, object }) => {
+			content: ({ ast, typescript }) => {
 				const eslintConfigs = array.createEmpty();
 
 				const jsConfig = common.expressionFromString('js.configs.recommended');

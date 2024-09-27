@@ -1,2 +1,2 @@
-packages/ast-manipulation/test/**/input.*
-packages/ast-manipulation/test/**/output.*
+packages/core/tests/**/input.*
+packages/core/tests/**/output.*

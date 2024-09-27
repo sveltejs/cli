@@ -29,7 +29,8 @@ export default [
 			'temp/**/*',
 			'.test-tmp/**/*',
 			'**/dist/*',
-			'packages/**/test/**/{output,input}.ts'
+			'packages/**/tests/**/{output,input}.ts',
+			'rollup.config.js'
 		]
 	}
 ];
