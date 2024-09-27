@@ -147,7 +147,9 @@ export const adder = defineAdderConfig({
 			content: ({ content }) => {
 				if (content.length === 0) return content;
 
-				if (!content.includes('\n*.db')) content = content.trimEnd() + '\n*.db';
+				if (!content.includes('\n*.db')) {
+					content = content.trimEnd() + '\n\n# SQLite\n*.db';
+				}
 				return content;
 			}
 		},
