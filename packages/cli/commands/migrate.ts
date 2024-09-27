@@ -1,4 +1,3 @@
-import * as v from 'valibot';
 import { Argument, Command } from 'commander';
 import * as common from '../common.js';
 import { COMMANDS, constructCommand, detect } from 'package-manager-detector';
