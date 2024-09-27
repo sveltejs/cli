@@ -1,2 +1,3 @@
 packages/ast-manipulation/test/**/input.*
 packages/ast-manipulation/test/**/output.*
+packages/adder-tests/_snapshots

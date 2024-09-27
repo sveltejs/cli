@@ -4,7 +4,8 @@
 		"**/temp/**",
 		"**/test/**",
 		"packages/create/templates/**",
-		"packages/create/shared/**"
+		"packages/create/shared/**",
+		"packages/adder-tests/_snapshots/**"
 	],
 	"compilerOptions": {
 		"checkJs": true,
