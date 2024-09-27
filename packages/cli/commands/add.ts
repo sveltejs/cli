@@ -305,7 +305,6 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				message: `The ${pc.bold(pc.cyan(name))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
 			});
 			if (install !== true) {
-				// TODO: should we exit? or should we remove the selected adder from the list?
 				p.cancel('Operation cancelled.');
 				process.exit(1);
 			}
