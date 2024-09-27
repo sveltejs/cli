@@ -3,13 +3,6 @@ import type { FileType } from '../files/processors.ts';
 import type { Workspace } from '../files/workspace.ts';
 import type { Colors } from 'picocolors/types.ts';
 
-export type {
-	CssAstEditor,
-	HtmlAstEditor,
-	JsAstEditor,
-	SvelteAstEditor
-} from '@svelte-cli/ast-manipulation';
-
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;

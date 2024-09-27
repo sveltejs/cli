@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { getJsAstEditor } from '@svelte-cli/ast-manipulation';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
+import { common, object } from '../tooling/js/index.ts';
 import { commonFilePaths, findUp, getPackageJson, readFile } from './utils.ts';
 import type { OptionDefinition, OptionValues, Question } from '../adder/options.ts';
 
@@ -58,7 +58,6 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
 	const configText = readFile(workspace, commonFilePaths.svelteConfig);
 	const ast = parseScript(configText);
-	const editor = getJsAstEditor(ast);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
 	if (!defaultExport) throw Error('Missing default export in `svelte.config.js`');
@@ -91,10 +90,10 @@ function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
 	// We'll error out since we can't safely determine the config object
 	if (!objectExpression) throw new Error('Unexpected svelte config shape from `svelte.config.js`');
 
-	const kit = editor.object.property(objectExpression, 'kit', editor.object.createEmpty());
-	const files = editor.object.property(kit, 'files', editor.object.createEmpty());
-	const routes = editor.object.property(files, 'routes', editor.common.createLiteral());
-	const lib = editor.object.property(files, 'lib', editor.common.createLiteral());
+	const kit = object.property(objectExpression, 'kit', object.createEmpty());
+	const files = object.property(kit, 'files', object.createEmpty());
+	const routes = object.property(files, 'routes', common.createLiteral());
+	const lib = object.property(files, 'lib', common.createLiteral());
 
 	const routesDirectory = (routes.value as string) || 'src/routes';
 	const libDirectory = (lib.value as string) || 'src/lib';
