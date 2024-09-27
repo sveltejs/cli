@@ -23,6 +23,7 @@ function getConfig(project) {
 	const outDir = `./packages/${project}/dist`;
 
 	if (project === 'core') inputs.push(`./packages/${project}/internal.ts`);
+	if (project === 'cli') inputs.push(`./packages/${project}/bin.ts`);
 
 	const projectRoot = path.resolve(path.join(outDir, '..'));
 	fs.rmSync(outDir, { force: true, recursive: true });
