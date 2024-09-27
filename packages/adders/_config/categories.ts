@@ -1,4 +1,4 @@
-export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
+export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'auth' | 'additional';
 
 export type CategoryInfo = {
 	id: CategoryKeys;
@@ -29,6 +29,11 @@ export const categories: CategoryDetails = {
 	db: {
 		id: 'db',
 		name: 'Database',
+		description: ''
+	},
+	auth: {
+		id: 'auth',
+		name: 'Auth',
 		description: ''
 	},
 	additional: {

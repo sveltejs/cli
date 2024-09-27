@@ -18,7 +18,8 @@ const categories = {
 	testing: [vitest, playwright],
 	css: [tailwindcss],
 	db: [drizzle],
-	additional: [storybook, mdsvex, routify, lucia]
+	auth: [lucia],
+	additional: [storybook, mdsvex, routify]
 };
 
 export const adderCategories: AdderCategories = getCategoriesById();
