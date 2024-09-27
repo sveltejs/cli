@@ -547,7 +547,7 @@ export const adder = defineAdderConfig({
 							const session = await lucia.createSession(existingUser.id, {});
 							const sessionCookie = lucia.createSessionCookie(session.id);
 							event.cookies.set(sessionCookie.name, sessionCookie.value, {
-								path: '.',
+								path: '/',
 								...sessionCookie.attributes,
 							});
 
@@ -588,7 +588,7 @@ export const adder = defineAdderConfig({
 								const session = await lucia.createSession(userId, {});
 								const sessionCookie = lucia.createSessionCookie(session.id);
 								event.cookies.set(sessionCookie.name, sessionCookie.value, {
-									path: '.',
+									path: '/',
 									...sessionCookie.attributes,
 								});
 							} catch (e) {
@@ -692,7 +692,7 @@ export const adder = defineAdderConfig({
 							await lucia.invalidateSession(event.locals.session.id);
 							const sessionCookie = lucia.createBlankSessionCookie();
 							event.cookies.set(sessionCookie.name, sessionCookie.value, {
-								path: '.',
+								path: '/',
 								...sessionCookie.attributes,
 							});
 							return redirect(302, '/demo/login');
@@ -827,7 +827,7 @@ function getAuthHandleContent() {
 					: lucia.createSessionCookie(session.id);
 
 				event.cookies.set(sessionCookie.name, sessionCookie.value, {
-					path: '.',
+					path: '/',
 					...sessionCookie.attributes,
 				});
 			}
