@@ -39,7 +39,6 @@ export const adder = defineAdderConfig({
 		{ name: 'lucia', version: '^3.2.0', dev: false },
 		{ name: '@lucia-auth/adapter-drizzle', version: '^1.1.0', dev: false },
 		// password hashing for demo
-		// TODO: review if we really need this for a demo
 		{
 			name: '@node-rs/argon2',
 			version: '^1.1.0',
