@@ -1,6 +1,7 @@
 import { options } from './options.ts';
 import { colors, dedent, defineAdderConfig, log, Walker } from '@svelte-cli/core';
 import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
+// eslint-disable-next-line no-duplicate-imports
 import type { AstKinds, AstTypes } from '@svelte-cli/core/js';
 
 const LUCIA_ADAPTER = {
