@@ -1,14 +1,18 @@
 [![Chat](https://img.shields.io/discord/457912077277855764?label=chat&logo=discord)](https://svelte.dev/chat)
 
-# sv - the Svelte CLI
+# sv - the Svelte scaffolding CLI
 
-Web development, streamlined. Read the [documentation](https://kit.svelte.dev/docs) to get started.
+Read the [SvelteKit documentation](https://kit.svelte.dev/docs) for more details about getting started with a newly created app.
 
 ### Packages
 
 | Package            | Changelog                              |
 | ------------------ | -------------------------------------- |
 | [sv](packages/cli) | [Changelog](packages/cli/CHANGELOG.md) |
+
+## Community adders
+
+Get started on [creating your own community adder](/adder-template/README.md).
 
 [Additional adders](https://www.sveltesociety.dev/packages?category=svelte-add) are maintained by the community.
 

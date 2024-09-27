@@ -106,6 +106,16 @@ importers:
         specifier: workspace:*
         version: link:../adders
 
+  adder-template:
+    dependencies:
+      '@svelte-cli/core':
+        specifier: workspace:*
+        version: link:../packages/core
+    devDependencies:
+      sv:
+        specifier: workspace:*
+        version: link:../packages/cli
+
   packages/adders:
     dependencies:
       '@svelte-cli/core':
