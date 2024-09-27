@@ -1,13 +1,7 @@
-import {
-	colors,
-	dedent,
-	defineAdderConfig,
-	log,
-	Walker,
-	type AstKinds,
-	type AstTypes
-} from '@svelte-cli/core';
 import { options } from './options.ts';
+import { colors, dedent, defineAdderConfig, log, Walker } from '@svelte-cli/core';
+import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
+import type { AstKinds, AstTypes } from '@svelte-cli/core/js';
 
 const LUCIA_ADAPTER = {
 	mysql: 'DrizzleMySQLAdapter',
@@ -85,7 +79,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => schemaPath,
 			contentType: 'script',
-			content: ({ ast, common, exports, imports, variables, object, functions, options }) => {
+			content: ({ ast, options }) => {
 				const createTable = (name: string) => functions.call(TABLE_TYPE[drizzleDialect], [name]);
 
 				const userDecl = variables.declaration(ast, 'const', 'user', createTable('user'));
@@ -197,7 +191,7 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ kit, typescript }) => `${kit?.libDirectory}/server/auth.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, imports, common, exports, source, typescript, variables, options }) => {
+			content: ({ ast, source, typescript, options }) => {
 				const adapter = LUCIA_ADAPTER[drizzleDialect];
 
 				imports.addNamed(ast, '$lib/server/db/schema.js', { user: 'user', session: 'session' });
@@ -244,7 +238,7 @@ export const adder = defineAdderConfig({
 			name: () => 'src/app.d.ts',
 			condition: ({ typescript }) => typescript,
 			contentType: 'script',
-			content: ({ ast, common }) => {
+			content: ({ ast }) => {
 				const globalDecl = ast.body
 					.filter((n) => n.type === 'TSModuleDeclaration')
 					.find((m) => m.global && m.declare);
@@ -323,7 +317,7 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, imports, exports, common, typescript, variables, functions }) => {
+			content: ({ ast, typescript }) => {
 				imports.addNamed(ast, '$lib/server/auth.js', { lucia: 'lucia' });
 
 				if (typescript) {
