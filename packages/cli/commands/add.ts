@@ -18,17 +18,20 @@ import {
 	createWorkspace,
 	findUp,
 	installPackages,
-	TESTING
+	TESTING,
+	type Workspace
 } from '@svelte-cli/core/internal';
 import type {
 	AdderWithoutExplicitArgs,
 	ExternalAdderConfig,
 	InlineAdderConfig,
 	OptionDefinition,
-	OptionValues
+	OptionValues,
+	Scripts
 } from '@svelte-cli/core';
 import * as common from '../common.js';
 import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
+import { COMMANDS, constructCommand } from 'package-manager-detector';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -242,7 +245,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
 		const adderOptions: Record<string, Array<{ value: string; label: string }>> = {};
-		const workspace = createWorkspace(options.cwd);
+		const workspace = await createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
 		for (const { id, name } of Object.values(categories)) {
 			const category = adderCategories[id];
@@ -284,7 +287,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			.filter((p) => p !== undefined);
 
 		// add global checks
-		const { kit } = createWorkspace(options.cwd);
+		const { kit } = await createWorkspace(options.cwd);
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
 		const globalPreconditions = common.getGlobalPreconditions(options.cwd, projectType, adders);
@@ -382,7 +385,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	}
 
 	// format modified/created files with prettier (if available)
-	const workspace = createWorkspace(options.cwd);
+	const workspace = await createWorkspace(options.cwd);
 	if (filesToFormat.length > 0 && depsStatus === 'installed' && workspace.prettier) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
@@ -410,7 +413,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				options: official[metadata.id],
 				cwd: options.cwd,
 				colors: pc,
-				docs: metadata.website?.documentation
+				docs: metadata.website?.documentation,
+				packageManager: workspace.packageManager
 			});
 			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
 			return adderMessage;
@@ -464,7 +468,7 @@ export async function installAdders({
 	const filesToFormat = new Set<string>();
 	for (const { config } of details) {
 		const adderId = config.metadata.id;
-		const workspace = createWorkspace(cwd);
+		const workspace = await createWorkspace(cwd);
 
 		workspace.options = official[adderId] ?? community[adderId];
 
@@ -473,6 +477,7 @@ export async function installAdders({
 			const pkgPath = installPackages(config, workspace);
 			filesToFormat.add(pkgPath);
 			const changedFiles = createOrUpdateFiles(config.files, workspace);
+			if (config.scripts) await runScripts(config.scripts, workspace);
 			changedFiles.forEach((file) => filesToFormat.add(file));
 		} else if (config.integrationType === 'external') {
 			await processExternalAdder(config, cwd);
@@ -586,4 +591,34 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 		groups[groupId].push(...values);
 	}
 	return { choices, defaults, groups };
+}
+
+export async function runScripts<Args extends OptionDefinition>(
+	scripts: Array<Scripts<Args>>,
+	workspace: Workspace<Args>
+) {
+	if (scripts.length < 1) return;
+	if (!workspace.packageManager) return;
+
+	const loadingSpinner = p.spinner();
+	loadingSpinner.start('Running scripts...');
+
+	for (const script of scripts) {
+		if (script.condition && !script.condition(workspace)) {
+			continue;
+		}
+		try {
+			const executeCommand = COMMANDS[workspace.packageManager].execute;
+			const { command, args } = constructCommand(executeCommand, script.args)!;
+
+			await exec(command, args, {
+				nodeOptions: { cwd: workspace.cwd }
+			});
+		} catch (error) {
+			const typedError = error as Error;
+			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
+		}
+	}
+
+	loadingSpinner.stop('Successfully executed scripts');
 }

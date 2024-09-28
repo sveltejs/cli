@@ -9,6 +9,7 @@ import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
 import routify from '../routify/index.ts';
 import storybook from '../storybook/index.ts';
+import supabase from '../supabase/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest/index.ts';
 
@@ -17,7 +18,7 @@ const categories = {
 	testing: [vitest, playwright],
 	css: [tailwindcss],
 	db: [drizzle],
-	additional: [storybook, mdsvex, routify]
+	additional: [storybook, supabase, mdsvex, routify]
 };
 
 export const adderCategories: AdderCategories = getCategoriesById();

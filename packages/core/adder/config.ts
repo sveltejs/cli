@@ -2,6 +2,7 @@ import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { FileType } from '../files/processors.ts';
 import type { Workspace } from '../files/workspace.ts';
 import type { Colors } from 'picocolors/types.ts';
+import type { AgentName } from 'package-manager-detector';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
@@ -38,7 +39,6 @@ export type PackageDefinition<Args extends OptionDefinition> = {
 export type Scripts<Args extends OptionDefinition> = {
 	description: string;
 	args: string[];
-	type: 'dependency' | 'external';
 	condition?: ConditionDefinition<Args>;
 };
 
@@ -52,13 +52,14 @@ export type BaseAdderConfig<Args extends OptionDefinition> = {
 export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
 	integrationType: 'inline';
 	packages: Array<PackageDefinition<Args>>;
+	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
 	nextSteps?: (data: {
 		options: OptionValues<Args>;
 		cwd: string;
 		colors: Colors;
 		docs: string | undefined;
-		packageManager: PackageManager;
+		packageManager: AgentName;
 	}) => string[];
 };
 

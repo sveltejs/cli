@@ -6,6 +6,7 @@ import { detect, AGENTS, type AgentName } from 'package-manager-detector';
 import { COMMANDS, constructCommand } from 'package-manager-detector/commands';
 import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
+import { getUserAgent } from '@svelte-cli/core/internal';
 
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
@@ -84,25 +85,6 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 
 	loadingSpinner.stop('Successfully installed dependencies');
 	return 'installed';
-}
-
-/**
- * Guesses the package manager based on the detected lockfile or user-agent.
- * If neither of those return valid package managers, it falls back to `npm`.
- */
-export async function guessPackageManager(cwd: string): Promise<AgentName> {
-	if (packageManager) return packageManager;
-	const pm = await detect({ cwd });
-	return pm?.name ?? getUserAgent() ?? 'npm';
-}
-
-function getUserAgent() {
-	const userAgent = process.env.npm_config_user_agent;
-	if (!userAgent) return undefined;
-	const pmSpec = userAgent.split(' ')[0];
-	const separatorPos = pmSpec.lastIndexOf('/');
-	const name = pmSpec.substring(0, separatorPos) as AgentName;
-	return AGENTS.includes(name) ? name : undefined;
 }
 
 async function installDependencies(command: string, args: string[], cwd: string) {

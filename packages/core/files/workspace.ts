@@ -5,6 +5,7 @@ import { TESTING } from '../env.ts';
 import { common, object } from '../tooling/js/index.ts';
 import { commonFilePaths, findUp, getPackageJson, readFile } from './utils.ts';
 import type { OptionDefinition, OptionValues, Question } from '../adder/options.ts';
+import { AGENTS, detect, type AgentName } from 'package-manager-detector';
 
 export type Workspace<Args extends OptionDefinition> = {
 	options: OptionValues<Args>;
@@ -13,6 +14,7 @@ export type Workspace<Args extends OptionDefinition> = {
 	prettier: boolean;
 	typescript: boolean;
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
+	packageManager: AgentName;
 };
 
 export type WorkspaceWithoutExplicitArgs = Workspace<Record<string, Question>>;
@@ -27,7 +29,9 @@ export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	} as Workspace<Args>;
 }
 
-export function createWorkspace<Args extends OptionDefinition>(cwd: string): Workspace<Args> {
+export async function createWorkspace<Args extends OptionDefinition>(
+	cwd: string
+): Promise<Workspace<Args>> {
 	const workspace = createEmptyWorkspace<Args>();
 	workspace.cwd = cwd;
 
@@ -46,6 +50,7 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 	workspace.typescript = usesTypescript;
 	workspace.prettier = 'prettier' in workspace.dependencies;
+	workspace.packageManager = await guessPackageManager(cwd);
 	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
 	for (const [key, value] of Object.entries(workspace.dependencies)) {
 		// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
@@ -99,4 +104,23 @@ function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
 	const libDirectory = (lib.value as string) || 'src/lib';
 
 	return { routesDirectory, libDirectory };
+}
+
+/**
+ * Guesses the package manager based on the detected lockfile or user-agent.
+ * If neither of those return valid package managers, it falls back to `npm`.
+ */
+export async function guessPackageManager(cwd: string): Promise<AgentName> {
+	const pm = await detect({ cwd });
+	return pm?.name ?? getUserAgent() ?? 'npm';
+}
+
+export function getUserAgent(): AgentName | undefined {
+	const userAgent = process.env.npm_config_user_agent;
+	if (!userAgent) return undefined;
+
+	const pmSpec = userAgent.split(' ')[0];
+	const separatorPos = pmSpec.lastIndexOf('/');
+	const name = pmSpec.substring(0, separatorPos) as AgentName;
+	return AGENTS.includes(name) ? name : undefined;
 }

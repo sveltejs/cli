@@ -5,8 +5,8 @@ export const adder = defineAdderConfig({
 	metadata: {
 		id: 'supabase',
 		name: 'Supabase',
-		description: `Supabase is an open source Firebase alternative.
-Start your project with a Postgres database, Authentication, instant APIs, Edge Functions, Realtime subscriptions, Storage, and Vector embeddings.`,
+		description:
+			'Supabase is an open source Firebase alternative. Start your project with a Postgres database, Authentication, instant APIs, Edge Functions, Realtime subscriptions, Storage, and Vector embeddings.',
 		environments: { svelte: false, kit: true },
 		website: {
 			logo: './supabase.svg',
@@ -32,14 +32,13 @@ Start your project with a Postgres database, Authentication, instant APIs, Edge 
 			condition: ({ options }) => options.cli
 		}
 	],
-	// scripts: [
-	// 	{
-	// 		description: 'Supabase CLI initialization',
-	// 		args: ['supabase', 'init', '--with-intellij-settings=false', '--with-vscode-settings=false'],
-	// 		type: 'dependency',
-	// 		condition: ({ options }) => options.cli
-	// 	}
-	// ],
+	scripts: [
+		{
+			description: 'Supabase CLI initialization',
+			args: ['supabase', 'init', '--with-intellij-settings=false', '--with-vscode-settings=false'],
+			condition: ({ options }) => options.cli
+		}
+	],
 	files: [
 		{
 			name: () => '.env',
