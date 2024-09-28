@@ -1,24 +1,7 @@
-<<<<<<< HEAD
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { FileType } from '../files/processors.ts';
 import type { Workspace } from '../files/workspace.ts';
 import type { Colors } from 'picocolors/types.ts';
-=======
-import type {
-	CssAstEditor,
-	HtmlAstEditor,
-	JsAstEditor,
-	SvelteAstEditor
-} from '@svelte-cli/ast-manipulation';
-import type { OptionDefinition, OptionValues, Question } from './options.js';
-import type { FileTypes } from '../files/processors.js';
-import type { Workspace } from '../utils/workspace.js';
-import type { Postcondition } from './postconditions.js';
-import type { Colors } from 'picocolors/types.js';
-import type { PackageManager } from '../utils/dependencies.js';
-
-export type { CssAstEditor, HtmlAstEditor, JsAstEditor, SvelteAstEditor };
->>>>>>> e647284 (add packageManager to nextSteps data object)
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
