@@ -9,7 +9,8 @@ export const migrate = new Command('migrate')
 	.argument('<migration>', 'migration to run')
 	.configureHelp({
 		formatHelp() {
-			execSync('npx svelte-migrate@latest --help', { stdio: 'inherit', encoding: 'utf8' });
+			// we'll pass the responsibility of presenting the help menu over to `svelte-migrate`
+			execSync('npx svelte-migrate@latest --help', { stdio: 'inherit' });
 			return '';
 		}
 	})
