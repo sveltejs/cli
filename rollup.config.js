@@ -79,7 +79,7 @@ function getConfig(project) {
 		communityAdderIdsPlugin = {
 			name: 'evaluate-community-adder-ids',
 			transform(code, id) {
-				if (id.endsWith('_config/community.ts')) {
+				if (id.endsWith(`_config${path.sep}community.ts`)) {
 					const ms = new MagicString(code, { filename: id });
 					const start = code.indexOf('export const communityAdderIds');
 					const end = code.indexOf(';', start);
