@@ -34,7 +34,7 @@ export const options = defineAdderOptions({
 		default: false
 	},
 	helpers: {
-		question: `Do you want to add Supabase helper scripts to your package.json? E.g., ${colors.yellow('db:reset')} and ${colors.yellow('db:migration "description"')}`,
+		question: `Do you want to add Supabase helper scripts to your package.json? E.g., ${colors.yellow('db:reset')} and ${colors.yellow('db:migration')}`,
 		type: 'boolean',
 		default: false,
 		condition: ({ cli }) => cli === true

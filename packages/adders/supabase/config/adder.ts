@@ -223,7 +223,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: ({ kit }) => `${kit}/+layout.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			contentType: 'text',
 			condition: ({ options }) => options.auth.length > 0,
 			content: ({ typescript }) => {
@@ -360,7 +360,7 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			name: ({ kit }) => `${kit}/auth/+page.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/auth/+page.svelte`,
 			contentType: 'text',
 			condition: ({ options }) => options.auth.length > 0,
 			content: ({ options, typescript }) => {

@@ -598,7 +598,6 @@ export async function runScripts<Args extends OptionDefinition>(
 	workspace: Workspace<Args>
 ) {
 	if (scripts.length < 1) return;
-	if (!workspace.packageManager) return;
 
 	const loadingSpinner = p.spinner();
 	loadingSpinner.start('Running scripts...');
@@ -612,7 +611,7 @@ export async function runScripts<Args extends OptionDefinition>(
 			const { command, args } = constructCommand(executeCommand, script.args)!;
 
 			await exec(command, args, {
-				nodeOptions: { cwd: workspace.cwd }
+				nodeOptions: { cwd: workspace.cwd, stdio: 'inherit' }
 			});
 		} catch (error) {
 			const typedError = error as Error;
