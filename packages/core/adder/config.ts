@@ -39,18 +39,14 @@ export type PackageDefinition<Args extends OptionDefinition> = {
 export type Scripts<Args extends OptionDefinition> = {
 	description: string;
 	args: string[];
+	stdio: 'inherit' | 'pipe';
 	condition?: ConditionDefinition<Args>;
 };
 
-export type BaseAdderConfig<Args extends OptionDefinition> = {
+export type AdderConfig<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
 	runsAfter?: string[];
-	integrationType: string;
-};
-
-export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
-	integrationType: 'inline';
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
@@ -62,16 +58,6 @@ export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<A
 		packageManager: AgentName;
 	}) => string[];
 };
-
-export type ExternalAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
-	integrationType: 'external';
-	command: string;
-	environment?: Record<string, string>;
-};
-
-export type AdderConfig<Args extends OptionDefinition> =
-	| InlineAdderConfig<Args>
-	| ExternalAdderConfig<Args>;
 
 export function defineAdderConfig<Args extends OptionDefinition>(
 	config: AdderConfig<Args>

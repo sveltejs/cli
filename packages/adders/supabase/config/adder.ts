@@ -15,7 +15,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options: availableOptions,
-	integrationType: 'inline',
 	packages: [
 		{ name: '@supabase/supabase-js', version: '^2.45.3', dev: false },
 		{
@@ -36,6 +35,7 @@ export const adder = defineAdderConfig({
 		{
 			description: 'Supabase CLI initialization',
 			args: ['supabase', 'init', '--with-intellij-settings=false', '--with-vscode-settings=false'],
+			stdio: 'pipe',
 			condition: ({ options }) => options.cli
 		}
 	],

@@ -18,13 +18,10 @@ import {
 	createWorkspace,
 	findUp,
 	installPackages,
-	TESTING,
 	type Workspace
 } from '@svelte-cli/core/internal';
 import type {
 	AdderWithoutExplicitArgs,
-	ExternalAdderConfig,
-	InlineAdderConfig,
 	OptionDefinition,
 	OptionValues,
 	Scripts
@@ -400,8 +397,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// print next steps
 	const nextStepsMsg = selectedAdders
-		.filter(({ adder }) => adder.config.integrationType === 'inline' && adder.config.nextSteps)
-		.map(({ adder }) => adder.config as InlineAdderConfig<any>)
+		.filter(({ adder }) => adder.config.nextSteps)
+		.map(({ adder }) => adder.config)
 		.map((config) => {
 			const metadata = config.metadata;
 			let adderMessage = '';
@@ -473,40 +470,14 @@ export async function installAdders({
 		workspace.options = official[adderId] ?? community[adderId];
 
 		// execute adders
-		if (config.integrationType === 'inline') {
-			const pkgPath = installPackages(config, workspace);
-			filesToFormat.add(pkgPath);
-			const changedFiles = createOrUpdateFiles(config.files, workspace);
-			if (config.scripts) await runScripts(config.scripts, workspace);
-			changedFiles.forEach((file) => filesToFormat.add(file));
-		} else if (config.integrationType === 'external') {
-			await processExternalAdder(config, cwd);
-		} else {
-			throw new Error('Unknown integration type');
-		}
+		const pkgPath = installPackages(config, workspace);
+		filesToFormat.add(pkgPath);
+		const changedFiles = createOrUpdateFiles(config.files, workspace);
+		if (config.scripts) await runScripts(config.scripts, workspace);
+		changedFiles.forEach((file) => filesToFormat.add(file));
 	}
 
 	return Array.from(filesToFormat);
-}
-
-async function processExternalAdder<Args extends OptionDefinition>(
-	config: ExternalAdderConfig<Args>,
-	cwd: string
-) {
-	if (!TESTING) p.log.message(`Executing external command ${pc.gray(`(${config.metadata.id})`)}`);
-
-	try {
-		await exec('npx', config.command.split(' '), {
-			nodeOptions: {
-				cwd,
-				env: Object.assign(process.env, config.environment ?? {}),
-				stdio: TESTING ? 'pipe' : 'inherit'
-			}
-		});
-	} catch (error) {
-		const typedError = error as Error;
-		throw new Error('Failed executing external command: ' + typedError.message);
-	}
 }
 
 /**
@@ -600,22 +571,34 @@ export async function runScripts<Args extends OptionDefinition>(
 	if (scripts.length < 1) return;
 
 	const loadingSpinner = p.spinner();
-	loadingSpinner.start('Running scripts...');
+	const runningScriptsText = 'Running scripts...';
+	loadingSpinner.start(runningScriptsText);
 
 	for (const script of scripts) {
 		if (script.condition && !script.condition(workspace)) {
 			continue;
 		}
+
+		if (script.stdio == 'inherit') {
+			// stop spinner as it will interfere with the script output
+			loadingSpinner.stop(runningScriptsText);
+		}
+
 		try {
 			const executeCommand = COMMANDS[workspace.packageManager].execute;
 			const { command, args } = constructCommand(executeCommand, script.args)!;
 
 			await exec(command, args, {
-				nodeOptions: { cwd: workspace.cwd, stdio: 'inherit' }
+				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
 			});
 		} catch (error) {
 			const typedError = error as Error;
 			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
+		}
+
+		if (script.stdio == 'inherit') {
+			// resume spinner as it will no longer interfere with the script output
+			loadingSpinner.start(runningScriptsText);
 		}
 	}
 

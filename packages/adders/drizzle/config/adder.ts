@@ -21,7 +21,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options: availableOptions,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'drizzle-orm', version: '^0.31.2', dev: false },
 		{ name: 'drizzle-kit', version: '^0.22.0', dev: true },
