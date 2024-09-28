@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseJson, serializeJson } from '@svelte-cli/ast-tooling';
-import type { InlineAdderConfig } from '../adder/config.ts';
+import type { AdderConfig } from '../adder/config.ts';
 import type { OptionDefinition } from '../adder/options.ts';
 import type { Workspace, WorkspaceWithoutExplicitArgs } from './workspace.ts';
 
@@ -52,7 +52,7 @@ export function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath: stri
 }
 
 export function installPackages<Args extends OptionDefinition>(
-	config: InlineAdderConfig<Args>,
+	config: AdderConfig<Args>,
 	workspace: Workspace<Args>
 ): string {
 	const { text: originalText, data } = getPackageJson(workspace);
