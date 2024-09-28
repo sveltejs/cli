@@ -1,9 +1,8 @@
 import { Argument, Command } from 'commander';
-import * as common from '../common.js';
 import { COMMANDS, constructCommand, detect } from 'package-manager-detector';
 import { exec } from 'tinyexec';
+import * as common from '../common.js';
 
-// TODO: `svelte-5` migration is still unreleased: https://github.com/sveltejs/kit/pull/12519
 const migrationChoices = ['sveltekit-2', 'svelte-4', 'svelte-5', 'package', 'routes'];
 const migrationOption = new Argument('<migration>', 'migration to run').choices(migrationChoices);
 
