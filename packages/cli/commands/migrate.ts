@@ -1,29 +1,25 @@
-import { Argument, Command } from 'commander';
-import { COMMANDS, constructCommand, detect } from 'package-manager-detector';
+import { execSync } from 'node:child_process';
 import { exec } from 'tinyexec';
+import { Command } from 'commander';
+import { COMMANDS, constructCommand } from 'package-manager-detector';
 import * as common from '../common.js';
 
-const migrationChoices = ['sveltekit-2', 'svelte-4', 'svelte-5', 'package', 'routes'];
-const migrationOption = new Argument('<migration>', 'migration to run').choices(migrationChoices);
-
 export const migrate = new Command('migrate')
-	.description('A CLI for migrating Svelte(Kit) codebases.')
-	.addArgument(migrationOption)
-	.configureHelp(common.helpConfig)
-	.action((migration) => {
-		common.runCommand(async () => {
-			const cwd = process.cwd();
+	.description('A CLI for migrating Svelte(Kit) codebases')
+	.argument('<migration>', 'migration to run')
+	.configureHelp({
+		formatHelp() {
+			execSync('npx svelte-migrate@latest --help', { stdio: 'inherit', encoding: 'utf8' });
+			return '';
+		}
+	})
+	.action(async (migration) => {
+		const cwd = process.cwd();
+		const pm = await common.guessPackageManager(cwd);
+		const { command, args } = constructCommand(COMMANDS[pm].execute, [
+			'svelte-migrate@latest',
+			migration
+		])!;
 
-			const detectedPm = await detect({ cwd });
-			const selectedPm = detectedPm?.agent ?? null;
-
-			if (!selectedPm) throw new Error('Unable to detect package manage');
-
-			const { command, args } = constructCommand(COMMANDS[selectedPm].execute, [
-				'svelte-migrate@latest',
-				migration
-			])!;
-
-			await exec(command, args, { nodeOptions: { cwd, stdio: 'inherit' } });
-		});
+		await exec(command, args, { nodeOptions: { cwd, stdio: 'inherit' } });
 	});
