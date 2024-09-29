@@ -12,7 +12,8 @@ export default [
 	{
 		languageOptions: {
 			parserOptions: {
-				project: true
+				project: true,
+				tsconfigRootDir: import.meta.dirname
 			}
 		},
 		rules: {
