@@ -11,7 +11,8 @@ import {
 	adderIds,
 	getAdderDetails,
 	communityAdderIds,
-	getCommunityAdders
+	getCommunityAdder,
+	type CategoryKeys
 } from '@svelte-cli/adders';
 import {
 	createOrUpdateFiles,
@@ -39,7 +40,7 @@ const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
-	community: v.optional(AddersSchema),
+	community: v.optional(v.union([AddersSchema, v.boolean()])),
 	...AdderOptionFlagsSchema.entries
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
@@ -74,17 +75,6 @@ export const add = new Command('add')
 				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
 			);
 			process.exit(1);
-		}
-
-		// we'll print a list of available options when `--community` is specified with no args
-		if (opts.community === true) {
-			console.log('Usage: sv add --community [adder...]\n');
-			console.log('Applies community made adders\n');
-			console.log(`Available options: ${communityAdderIds.join(', ')}\n`);
-			console.warn(
-				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
-			);
-			process.exit(0);
 		}
 
 		const adders = v.parse(AddersSchema, adderArgs);
@@ -185,6 +175,45 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
+	// we'll let the user choose community adders when `--community` is specified without args
+	if (options.community === true) {
+		const communityAdderOptions: Record<
+			string,
+			Array<{ value: string; label: string; hint: string }>
+		> = {};
+		const communityAdders = await Promise.all(
+			communityAdderIds.map(async (x) => ({ id: x, adder: await getCommunityAdder(x) }))
+		);
+		const communityAdderCategoryKeys = communityAdders.map((x) => x.adder.category);
+
+		// only get categories that are used by community adders
+		const communityAdderCategories = Object.entries(categories)
+			.filter(([key]) => communityAdderCategoryKeys.includes(key as CategoryKeys))
+			.map(([, value]) => value);
+
+		for (const category of communityAdderCategories) {
+			communityAdderOptions[category.name] = communityAdders
+				.filter((x) => x.adder.category == category.id)
+				.map((x) => ({
+					value: x.id,
+					label: x.adder.name,
+					hint: pc.blueBright(x.adder.website)
+				}));
+		}
+
+		const selected = await p.groupMultiselect({
+			message: 'Which community tools would you like to add to your project?',
+			options: communityAdderOptions,
+			spacedGroups: true,
+			selectableGroups: false,
+			required: false
+		});
+
+		if (typeof selected === 'symbol') return;
+
+		options.community = selected;
+	}
+
 	// validate and download community adders
 	if (options.community && options.community?.length > 0) {
 		// validate adders
@@ -216,7 +245,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			stop('Resolved community adder packages');
 
 			const ids = pkgs.map(({ pkg }) => pc.yellowBright(pkg.name) + pc.dim(` (v${pkg.version})`));
-			p.log.warn('Community packages are not reviewed for malicious code:');
+			p.log.warn(
+				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
+			);
 			p.log.message(ids.join(', '));
 			const confirm = await p.confirm({ message: 'Would you like to continue?' });
 			if (confirm !== true) {
