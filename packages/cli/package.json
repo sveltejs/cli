@@ -20,7 +20,12 @@
 	"license": "MIT",
 	"homepage": "https://kit.svelte.dev",
 	"bin": "./dist/bin.js",
-	"main": "./dist/index.js",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
 	"dependencies": {
 		"@svelte-cli/core": "workspace:*"
 	},
