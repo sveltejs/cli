@@ -1,17 +1,18 @@
+import type { CategoryKeys } from './categories.ts';
+
 export type CommunityAdder = {
 	name: string;
 	description: string;
-	category: string;
+	category: CategoryKeys;
 	npm: string;
 	repo: string;
 	website: string;
-	logo: string;
 };
 
 /** EVALUATED AT BUILD TIME */
 export const communityAdderIds: string[] = [];
 
-export async function getCommunityAdders(name: string): Promise<CommunityAdder> {
+export async function getCommunityAdder(name: string): Promise<CommunityAdder> {
 	const { default: details } = await import(`../../../community/${name}.ts`);
 	return details;
 }

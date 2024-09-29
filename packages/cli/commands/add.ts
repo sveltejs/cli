@@ -208,7 +208,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			start('Resolving community adder packages');
 			const pkgs = await Promise.all(
 				adders.map(async (id) => {
-					const pkg = await getCommunityAdders(id).catch(() => undefined);
+					const pkg = await getCommunityAdder(id).catch(() => undefined);
 					const packageName = pkg?.npm ?? id;
 					return getPackageJSON({ cwd: options.cwd, packageName });
 				})
