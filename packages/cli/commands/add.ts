@@ -588,6 +588,9 @@ export async function runScripts<Args extends OptionDefinition>(
 			const executeCommand = COMMANDS[workspace.packageManager].execute;
 			const { command, args } = constructCommand(executeCommand, script.args)!;
 
+			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
+			if (workspace.packageManager == 'npm') args.unshift('--yes');
+
 			await exec(command, args, {
 				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
 			});
