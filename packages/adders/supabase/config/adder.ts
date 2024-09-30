@@ -5,8 +5,7 @@ export const adder = defineAdderConfig({
 	metadata: {
 		id: 'supabase',
 		name: 'Supabase',
-		description:
-			'Supabase is an open source Firebase alternative. Start your project with a Postgres database, Authentication, instant APIs, Edge Functions, Realtime subscriptions, Storage, and Vector embeddings.',
+		description: 'Supabase is an open source Firebase alternative.',
 		environments: { svelte: false, kit: true },
 		website: {
 			logo: './supabase.svg',
@@ -967,7 +966,7 @@ export const adder = defineAdderConfig({
 			}
 		}
 	],
-	nextSteps: ({ options, packageManager }) => {
+	nextSteps: ({ options, packageManager, workspace }) => {
 		let command: string;
 		if (!packageManager || packageManager === 'npm') {
 			command = 'npx';
@@ -995,7 +994,7 @@ export const adder = defineAdderConfig({
 
 		if (isBasic || isMagicLink || isOAuth) {
 			steps.push(dedent`
-				Update authGuard in ${colors.green('./src/hooks.server.js/ts')} with your protected routes`);
+				Update authGuard in ${colors.green(`./src/hooks.server.${workspace.typescript ? 'ts' : 'js'}`)} with your protected routes`);
 		}
 
 		if (isBasic || isMagicLink) {

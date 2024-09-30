@@ -2,7 +2,7 @@ export { installPackages, findUp } from './files/utils.ts';
 export { createOrUpdateFiles } from './files/processors.ts';
 export {
 	createWorkspace,
-	guessPackageManager,
+	detectPackageManager,
 	getUserAgent,
 	type Workspace
 } from './files/workspace.ts';

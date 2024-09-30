@@ -50,7 +50,7 @@ export async function createWorkspace<Args extends OptionDefinition>(
 	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 	workspace.typescript = usesTypescript;
 	workspace.prettier = 'prettier' in workspace.dependencies;
-	workspace.packageManager = await guessPackageManager(cwd);
+	workspace.packageManager = await detectPackageManager(cwd);
 	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
 	for (const [key, value] of Object.entries(workspace.dependencies)) {
 		// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
@@ -110,7 +110,7 @@ function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
  * Guesses the package manager based on the detected lockfile or user-agent.
  * If neither of those return valid package managers, it falls back to `npm`.
  */
-export async function guessPackageManager(cwd: string): Promise<AgentName> {
+export async function detectPackageManager(cwd: string): Promise<AgentName> {
 	const pm = await detect({ cwd });
 	return pm?.name ?? getUserAgent() ?? 'npm';
 }

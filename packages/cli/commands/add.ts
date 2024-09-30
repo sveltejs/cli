@@ -411,7 +411,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				cwd: options.cwd,
 				colors: pc,
 				docs: metadata.website?.documentation,
-				packageManager: workspace.packageManager
+				packageManager: workspace.packageManager,
+				workspace
 			});
 			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
 			return adderMessage;

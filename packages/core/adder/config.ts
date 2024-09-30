@@ -56,6 +56,7 @@ export type AdderConfig<Args extends OptionDefinition> = {
 		colors: Colors;
 		docs: string | undefined;
 		packageManager: AgentName;
+		workspace: Workspace<Args>;
 	}) => string[];
 };
 
