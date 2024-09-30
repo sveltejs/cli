@@ -4,7 +4,7 @@ import { exec } from 'tinyexec';
 import * as p from '@svelte-cli/clack-prompts';
 import { detect, AGENTS, type AgentName } from 'package-manager-detector';
 import { COMMANDS, constructCommand } from 'package-manager-detector/commands';
-import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 
 export const helpConfig: HelpConfiguration = {
@@ -114,11 +114,12 @@ async function installDependencies(command: string, args: string[], cwd: string)
 	}
 }
 
+type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
 	cwd: string,
 	projectType: 'svelte' | 'kit',
 	adders: AdderWithoutExplicitArgs[]
-) {
+): PreconditionCheck {
 	return {
 		name: 'global checks',
 		preconditions: [
