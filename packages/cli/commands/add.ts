@@ -237,18 +237,25 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			start('Resolving community adder packages');
 			const pkgs = await Promise.all(
 				adders.map(async (id) => {
-					const pkg = await getCommunityAdder(id).catch(() => undefined);
-					const packageName = pkg?.npm ?? id;
-					return getPackageJSON({ cwd: options.cwd, packageName });
+					const communityAdder = await getCommunityAdder(id).catch(() => undefined);
+					const packageName = communityAdder?.npm ?? id;
+					const packageDetails = await getPackageJSON({ cwd: options.cwd, packageName });
+					return {
+						...packageDetails,
+						repo: communityAdder?.repo ?? (packageDetails.pkg.repository.url as string)
+					};
 				})
 			);
 			stop('Resolved community adder packages');
 
-			const ids = pkgs.map(({ pkg }) => pc.yellowBright(pkg.name) + pc.dim(` (v${pkg.version})`));
 			p.log.warn(
 				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
 			);
-			p.log.message(ids.join(', '));
+			const packageInfos = pkgs.map(
+				({ pkg, repo }) => pc.yellowBright(pkg.name) + pc.dim(` (v${pkg.version}) (${repo})`)
+			);
+			p.log.message(packageInfos.join('\n'));
+
 			const confirm = await p.confirm({ message: 'Would you like to continue?' });
 			if (confirm !== true) {
 				p.cancel('Operation cancelled.');
