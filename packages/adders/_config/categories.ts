@@ -1,14 +1,14 @@
-export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
+export type Category = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
 
 export type CategoryInfo = {
-	id: CategoryKeys;
+	id: Category;
 	name: string;
 	description: string;
 };
 
-export type CategoryDetails = Record<CategoryKeys, CategoryInfo>;
+export type CategoryDetails = Record<Category, CategoryInfo>;
 
-export type AdderCategories = Record<CategoryKeys, string[]>;
+export type AdderCategories = Record<Category, string[]>;
 
 export const categories: CategoryDetails = {
 	codeQuality: {

@@ -1,9 +1,9 @@
-import type { CategoryKeys } from './categories.ts';
+import type { Category } from './categories.ts';
 
 export type CommunityAdder = {
 	name: string;
 	description: string;
-	category: CategoryKeys;
+	category: Category;
 	npm: string;
 	repo: string;
 	website: string;
