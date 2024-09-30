@@ -1,39 +1,42 @@
 export type Category = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
+export type CommunityCategory = 'community-category';
 
 export type CategoryInfo = {
-	id: Category;
 	name: string;
 	description: string;
 };
 
 export type CategoryDetails = Record<Category, CategoryInfo>;
+export type CommunityCategoryDetails = Record<CommunityCategory, CategoryInfo>;
 
 export type AdderCategories = Record<Category, string[]>;
 
 export const categories: CategoryDetails = {
 	codeQuality: {
-		id: 'codeQuality',
 		name: 'Code Quality',
 		description: ''
 	},
 	testing: {
-		id: 'testing',
 		name: 'Testing',
 		description: ''
 	},
 	css: {
-		id: 'css',
 		name: 'CSS',
 		description: 'Can be used to style your components'
 	},
 	db: {
-		id: 'db',
 		name: 'Database',
 		description: ''
 	},
 	additional: {
-		id: 'additional',
 		name: 'Additional functionality',
+		description: ''
+	}
+};
+
+export const communityCategories: CommunityCategoryDetails = {
+	'community-category': {
+		name: 'Community category',
 		description: ''
 	}
 };

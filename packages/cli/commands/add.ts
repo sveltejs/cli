@@ -8,11 +8,13 @@ import pc from 'picocolors';
 import {
 	adderCategories,
 	categories,
+	communityCategories,
 	adderIds,
 	getAdderDetails,
 	communityAdderIds,
 	getCommunityAdder,
-	type CategoryKeys
+	type Category,
+	type CommunityCategory
 } from '@svelte-cli/adders';
 import {
 	createOrUpdateFiles,
@@ -187,13 +189,14 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		const communityAdderCategoryKeys = communityAdders.map((x) => x.adder.category);
 
 		// only get categories that are used by community adders
-		const communityAdderCategories = Object.entries(categories)
-			.filter(([key]) => communityAdderCategoryKeys.includes(key as CategoryKeys))
-			.map(([, value]) => value);
+		const allCategories = { ...categories, ...communityCategories };
+		const communityAdderCategories = Object.entries(allCategories).filter(([key]) =>
+			communityAdderCategoryKeys.includes(key as Category | CommunityCategory)
+		);
 
-		for (const category of communityAdderCategories) {
+		for (const [categoryId, category] of communityAdderCategories) {
 			communityAdderOptions[category.name] = communityAdders
-				.filter((x) => x.adder.category == category.id)
+				.filter((x) => x.adder.category == categoryId)
 				.map((x) => ({
 					value: x.id,
 					label: x.adder.name,
@@ -282,8 +285,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		const adderOptions: Record<string, Array<{ value: string; label: string }>> = {};
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		for (const { id, name } of Object.values(categories)) {
-			const category = adderCategories[id];
+		for (const [id, { name }] of Object.entries(categories)) {
+			const category = adderCategories[id as Category];
 			const categoryOptions = category
 				.map((id) => {
 					const config = getAdderDetails(id).config;
