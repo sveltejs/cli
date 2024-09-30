@@ -254,8 +254,12 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			p.log.warn(
 				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
 			);
+
+			const padding = getPadding(pkgs.map(({ pkg }) => pkg.name));
 			const packageInfos = pkgs.map(
-				({ pkg, repo }) => pc.yellowBright(pkg.name) + pc.dim(` (v${pkg.version}) (${repo})`)
+				({ pkg, repo }) =>
+					pc.yellowBright((pkg.name as string).padEnd(padding)) +
+					pc.dim(` (v${pkg.version}) (${repo})`)
 			);
 			p.log.message(packageInfos.join('\n'));
 
@@ -627,4 +631,9 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 		groups[groupId].push(...values);
 	}
 	return { choices, defaults, groups };
+}
+
+function getPadding(strs: string[]) {
+	const lengths = strs.map((s) => s.length);
+	return Math.max(...lengths);
 }
