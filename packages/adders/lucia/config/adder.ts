@@ -821,7 +821,7 @@ function getAuthHandleContent() {
 			}
 
 			const { session, user } = await lucia.validateSession(sessionId);
-			if (session === null) {
+			if (!session) {
 				event.cookies.delete(lucia.sessionCookieName, { path: '/' });
 			}
 
