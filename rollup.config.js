@@ -85,7 +85,7 @@ function getConfig(project) {
 					const ms = new MagicString(code, { filename: id });
 					const start = code.indexOf('export const communityAdderIds');
 					const end = code.indexOf(';', start);
-					const ids = fs.readdirSync('packages/adders/_community').map((p) => path.parse(p).name);
+					const ids = fs.readdirSync('community').map((p) => path.parse(p).name);
 					const generated = `export const communityAdderIds = ${JSON.stringify(ids)};`;
 					ms.overwrite(start, end, generated);
 					return {
