@@ -4,6 +4,7 @@ import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
 // adders
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
+import lucia from '../lucia/index.ts';
 import mdsvex from '../mdsvex/index.ts';
 import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
@@ -18,6 +19,7 @@ const categories = {
 	testing: [vitest, playwright],
 	css: [tailwindcss],
 	db: [drizzle, supabase],
+	auth: [lucia],
 	additional: [storybook, mdsvex, routify]
 };
 

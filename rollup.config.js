@@ -34,6 +34,8 @@ function getConfig(project) {
 			html: `${projectRoot}/tooling/html/index.ts`,
 			js: `${projectRoot}/tooling/js/index.ts`
 		};
+	} else if (project === 'cli') {
+		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/bin.ts`];
 	} else {
 		inputs = [`${projectRoot}/index.ts`];
 	}
@@ -79,7 +81,7 @@ function getConfig(project) {
 		communityAdderIdsPlugin = {
 			name: 'evaluate-community-adder-ids',
 			transform(code, id) {
-				if (id.endsWith('_config/community.ts')) {
+				if (id.endsWith(`_config${path.sep}community.ts`)) {
 					const ms = new MagicString(code, { filename: id });
 					const start = code.indexOf('export const communityAdderIds');
 					const end = code.indexOf(';', start);
@@ -105,7 +107,7 @@ function getConfig(project) {
 		external,
 		plugins: [
 			preserveShebangs(),
-			'exports' in pkg && dts(),
+			'exports' in pkg && dts({ include: project === 'cli' ? [inputs[0]] : undefined }),
 			esbuild(),
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),

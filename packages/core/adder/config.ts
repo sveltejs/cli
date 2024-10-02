@@ -47,6 +47,7 @@ export type AdderConfig<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
 	runsAfter?: string[];
+	dependsOn?: string[];
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;

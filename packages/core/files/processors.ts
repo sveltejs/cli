@@ -23,11 +23,13 @@ export type HtmlFileEditor<Args extends OptionDefinition> = Workspace<Args> & { 
 export type JsonFileEditor<Args extends OptionDefinition> = Workspace<Args> & { data: any };
 export type ScriptFileEditor<Args extends OptionDefinition> = Workspace<Args> & {
 	ast: AstTypes.Program;
+	source: string;
 };
 export type SvelteFileEditor<Args extends OptionDefinition> = Workspace<Args> & {
 	jsAst: AstTypes.Program;
 	htmlAst: HtmlDocument;
 	cssAst: CssAst;
+	source: string;
 };
 export type TextFileEditor<Args extends OptionDefinition> = Workspace<Args> & { content: string };
 
@@ -167,6 +169,7 @@ function handleScriptFile<Args extends OptionDefinition>(
 
 	fileDetails.content({
 		ast,
+		source: content,
 		...workspace
 	});
 	content = serializeScript(ast);
@@ -182,6 +185,7 @@ function handleSvelteFile<Args extends OptionDefinition>(
 
 	fileDetails.content({
 		...asts,
+		source: content,
 		...workspace
 	});
 

@@ -64,9 +64,9 @@ export const create = new Command('create')
 				`To close the dev server, hit ${highlight('Ctrl-C')}`,
 				'',
 				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
-			].map((msg) => pc.reset(msg));
+			];
 
-			p.note(steps.join('\n'), 'Project next steps');
+			p.box(steps.join('\n'), 'Project next steps');
 		});
 	});
 

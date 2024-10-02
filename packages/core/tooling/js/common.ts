@@ -56,11 +56,9 @@ export function areNodesEqual(ast1: AstTypes.ASTNode, ast2: AstTypes.ASTNode): b
 	// Without this, we'd be getting false negatives due to slight differences in formatting style.
 	// These ASTs are also filled to the brim with circular references, which prevents
 	// us from using `structuredCloned` directly
-	const ast1Clone = decircular(ast1);
-	const ast2Clone = decircular(ast2);
-	return (
-		serializeScript(stripAst(ast1Clone, 'loc')) === serializeScript(stripAst(ast2Clone, 'loc'))
-	);
+	const ast1Clone = stripAst(decircular(ast1), 'loc');
+	const ast2Clone = stripAst(decircular(ast2), 'loc');
+	return serializeScript(ast1Clone) === serializeScript(ast2Clone);
 }
 
 export function blockStatement(): AstTypes.BlockStatement {
@@ -117,19 +115,20 @@ export function addStatement(
 	if (!hasNode(ast, statement)) ast.body.push(statement);
 }
 
-/** Returns `true` of the provided node exists in the AST */
+/** Returns `true` if the provided node exists in the AST */
 export function hasNode(ast: AstTypes.ASTNode, nodeToMatch: AstTypes.ASTNode): boolean {
 	let found = false;
 	// prettier-ignore
 	// this gets needlessly butchered by prettier
 	Walker.walk(ast, {}, {
-        _(node, { next, stop }) {
-            if (node.type === nodeToMatch.type) {
-                found = areNodesEqual(node, nodeToMatch);
-                if (found) stop();
-            }
-            next();
-        },
-    });
+		_(node, { next, stop }) {
+			if (node.type === nodeToMatch.type) {
+				found = areNodesEqual(node, nodeToMatch);
+				if (found) stop();
+			}
+			next();
+		}
+	});
+
 	return found;
 }

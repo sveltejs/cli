@@ -12,7 +12,8 @@ export default [
 	{
 		languageOptions: {
 			parserOptions: {
-				project: true
+				// use the nearest tsconfig from the source or fallback to the root
+				project: ['packages/**/tsconfig.json', 'tsconfig.json']
 			}
 		},
 		rules: {
@@ -26,7 +27,7 @@ export default [
 			'packages/create/shared/**/*',
 			'packages/create/scripts/**/*',
 			'packages/create/templates/**/*',
-			'temp/**/*',
+			'**/temp/*',
 			'.test-tmp/**/*',
 			'**/dist/*',
 			'packages/**/tests/**/{output,input}.ts',
