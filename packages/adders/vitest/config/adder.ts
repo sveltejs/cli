@@ -11,7 +11,7 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './vitest.svg',
 			keywords: ['test', 'testing', 'unit', 'unit-testing'],
-			documentation: 'https://vitest.dev/'
+			documentation: 'https://vitest.dev'
 		}
 	},
 	options,

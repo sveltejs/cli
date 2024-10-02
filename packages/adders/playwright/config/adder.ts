@@ -13,7 +13,7 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './playwright.svg',
 			keywords: ['test', 'testing', 'end-to-end', 'e2e', 'integration'],
-			documentation: 'https://playwright.dev/'
+			documentation: 'https://playwright.dev'
 		}
 	},
 	options,

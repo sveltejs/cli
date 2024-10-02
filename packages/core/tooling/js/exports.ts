@@ -57,7 +57,7 @@ export function namedExport(
 	ast: AstTypes.Program,
 	name: string,
 	fallback: AstTypes.VariableDeclaration
-): AstTypes.ExportNamedDeclaration | undefined {
+): AstTypes.ExportNamedDeclaration {
 	const namedExports = ast.body.filter(
 		(x): x is AstTypes.ExportNamedDeclaration => x.type == 'ExportNamedDeclaration'
 	);
@@ -75,4 +75,5 @@ export function namedExport(
 		declaration: fallback
 	};
 	ast.body.push(namedExport);
+	return namedExport;
 }
