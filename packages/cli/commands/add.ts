@@ -255,11 +255,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
 			);
 
-			const padding = getPadding(pkgs.map(({ pkg }) => pkg.name));
+			const paddingName = getPadding(pkgs.map(({ pkg }) => pkg.name));
+			const paddingVersion = getPadding(pkgs.map(({ pkg }) => ` (v${pkg.version})`));
+
 			const packageInfos = pkgs.map(
 				({ pkg, repo }) =>
-					pc.yellowBright((pkg.name as string).padEnd(padding)) +
-					pc.dim(` (v${pkg.version}) (${repo})`)
+					pc.yellowBright((pkg.name as string).padEnd(paddingName)) +
+					pc.dim(` (v${pkg.version})`.padEnd(paddingVersion) + ` (${repo})`)
 			);
 			p.log.message(packageInfos.join('\n'));
 
