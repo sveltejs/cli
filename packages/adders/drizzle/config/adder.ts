@@ -23,12 +23,12 @@ export const adder = defineAdderConfig({
 	options: availableOptions,
 	integrationType: 'inline',
 	packages: [
-		{ name: 'drizzle-orm', version: '^0.31.2', dev: false },
+		{ name: 'drizzle-orm', version: '^0.33.0', dev: false },
 		{ name: 'drizzle-kit', version: '^0.22.0', dev: true },
 		// MySQL
 		{
 			name: 'mysql2',
-			version: '^3.9.8',
+			version: '^3.11.0',
 			dev: false,
 			condition: ({ options }) => options.mysql === 'mysql2'
 		},
@@ -41,7 +41,7 @@ export const adder = defineAdderConfig({
 		// PostgreSQL
 		{
 			name: '@neondatabase/serverless',
-			version: '^0.9.3',
+			version: '^0.9.4',
 			dev: false,
 			condition: ({ options }) => options.postgresql === 'neon'
 		},
@@ -54,19 +54,19 @@ export const adder = defineAdderConfig({
 		// SQLite
 		{
 			name: 'better-sqlite3',
-			version: '^10.0.0',
+			version: '^11.1.2',
 			dev: false,
 			condition: ({ options }) => options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@types/better-sqlite3',
-			version: '^7.6.10',
+			version: '^7.6.11',
 			dev: true,
 			condition: ({ options }) => options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@libsql/client',
-			version: '^0.6.1',
+			version: '^0.9.0',
 			dev: false,
 			condition: ({ options }) => options.sqlite === 'libsql' || options.sqlite === 'turso'
 		}
@@ -147,7 +147,9 @@ export const adder = defineAdderConfig({
 			content: ({ content }) => {
 				if (content.length === 0) return content;
 
-				if (!content.includes('\n*.db')) content = content.trimEnd() + '\n*.db';
+				if (!content.includes('\n*.db')) {
+					content = content.trimEnd() + '\n\n# SQLite\n*.db';
+				}
 				return content;
 			}
 		},
@@ -210,7 +212,6 @@ export const adder = defineAdderConfig({
 
 					userSchemaExpression = common.expressionFromString(`sqliteTable('user', {
                         id: integer('id').primaryKey(),
-                        name: text('name').notNull(),
                         age: integer('age')
                     })`);
 				}
@@ -223,8 +224,7 @@ export const adder = defineAdderConfig({
 					});
 
 					userSchemaExpression = common.expressionFromString(`mysqlTable('user', {
-                        id: serial("id").primaryKey(),
-                        name: text('name').notNull(),
+                        id: serial('id').primaryKey(),
                         age: int('age'),
                     })`);
 				}
@@ -238,7 +238,6 @@ export const adder = defineAdderConfig({
 
 					userSchemaExpression = common.expressionFromString(`pgTable('user', {
                         id: serial('id').primaryKey(),
-                        name: text('name').notNull(),
                         age: integer('age'),
                     })`);
 				}
@@ -257,7 +256,7 @@ export const adder = defineAdderConfig({
 
 				// env var checks
 				const dbURLCheck = common.statementFromString(
-					'if (!env.DATABASE_URL) throw new Error("DATABASE_URL is not set");'
+					`if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`
 				);
 				common.addStatement(ast, dbURLCheck);
 
@@ -277,7 +276,7 @@ export const adder = defineAdderConfig({
 						imports.addNamed(ast, '$app/environment', { dev: 'dev' });
 						// auth token check in prod
 						const authTokenCheck = common.statementFromString(
-							'if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error("DATABASE_AUTH_TOKEN is not set");'
+							`if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');`
 						);
 						common.addStatement(ast, authTokenCheck);
 
@@ -329,8 +328,15 @@ export const adder = defineAdderConfig({
 			}
 		}
 	],
-	nextSteps: () => {
-		const steps = ['You will need to set DATABASE_URL in your production environment'];
+	nextSteps: ({ options, colors }) => {
+		const highlight = (str: string) => colors.bold(colors.cyan(str));
+		const steps = [
+			`You will need to set ${colors.yellow('DATABASE_URL')} in your production environment`
+		];
+		if (options.docker) {
+			steps.push(`Run ${highlight('npm run db:start')} to start the docker container`);
+		}
+		steps.push(`To update your DB schema, run ${highlight('npm run db:push')}`);
 
 		return steps;
 	}

@@ -1,4 +1,4 @@
-export type Category = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
+export type Category = 'codeQuality' | 'css' | 'db' | 'testing' | 'auth' | 'additional';
 export type CommunityCategory = 'community-category';
 
 export type CategoryInfo = {
@@ -26,6 +26,11 @@ export const categories: CategoryDetails = {
 	},
 	db: {
 		name: 'Database',
+		description: ''
+	},
+	auth: {
+		id: 'auth',
+		name: 'Auth',
 		description: ''
 	},
 	additional: {
