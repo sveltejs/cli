@@ -575,12 +575,9 @@ async function processExternalAdder<Args extends OptionDefinition>(
 	if (!TESTING) p.log.message(`Executing external command ${pc.gray(`(${config.metadata.id})`)}`);
 
 	try {
+		const env = { ...process.env, ...config.environment };
 		await exec('npx', config.command.split(' '), {
-			nodeOptions: {
-				cwd,
-				env: Object.assign(process.env, config.environment ?? {}),
-				stdio: TESTING ? 'pipe' : 'inherit'
-			}
+			nodeOptions: { cwd, env, stdio: TESTING ? 'pipe' : 'inherit' }
 		});
 	} catch (error) {
 		const typedError = error as Error;
