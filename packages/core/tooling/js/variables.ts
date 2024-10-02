@@ -43,3 +43,23 @@ export function identifier(name: string): AstTypes.Identifier {
 	};
 	return identifier;
 }
+
+export function typeAnnotateDeclarator(
+	node: AstTypes.VariableDeclarator,
+	typeName: string
+): AstTypes.VariableDeclarator {
+	if (node.id.type === 'Identifier') {
+		node.id.typeAnnotation = {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSTypeReference',
+				typeName: {
+					type: 'Identifier',
+					name: typeName
+				}
+			}
+		};
+	}
+
+	return node;
+}
