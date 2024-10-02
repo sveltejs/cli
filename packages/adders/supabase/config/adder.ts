@@ -153,8 +153,8 @@ export const adder = defineAdderConfig({
 							interface PageData {
 								session: Session | null
 							}
-						// interface PageState {}
-						// interface Platform {}
+							// interface PageState {}
+							// interface Platform {}
 						}
 					}
 
@@ -178,16 +178,16 @@ export const adder = defineAdderConfig({
 
 						const supabase = isBrowser()
 							? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-									global: { fetch },
+									global: { fetch }
 								})
 							: createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 									global: { fetch },
-								cookies: {
-									getAll() {
-										return data.cookies
-									},
-								},
-							})
+									cookies: {
+										getAll() {
+											return data.cookies;
+										}
+									}
+								});						
 
 						const {
 							data: { session },
