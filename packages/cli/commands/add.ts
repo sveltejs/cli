@@ -240,10 +240,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				adders.map(async (id) => {
 					const communityAdder = await getCommunityAdder(id).catch(() => undefined);
 					const packageName = communityAdder?.npm ?? id;
-					const packageDetails = await getPackageJSON({ cwd: options.cwd, packageName });
+					const details = await getPackageJSON({ cwd: options.cwd, packageName });
 					return {
-						...packageDetails,
-						repo: communityAdder?.repo ?? (packageDetails.pkg.repository.url as string)
+						...details,
+						// prioritize community adder defined repo urls
+						repo: communityAdder?.repo ?? details.repo
 					};
 				})
 			);
@@ -254,13 +255,14 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			);
 
 			const paddingName = getPadding(pkgs.map(({ pkg }) => pkg.name));
-			const paddingVersion = getPadding(pkgs.map(({ pkg }) => ` (v${pkg.version})`));
+			const paddingVersion = getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
 
-			const packageInfos = pkgs.map(
-				({ pkg, repo }) =>
-					pc.yellowBright((pkg.name as string).padEnd(paddingName)) +
-					pc.dim(` (v${pkg.version})`.padEnd(paddingVersion) + ` (${repo})`)
-			);
+			const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
+				const name = pc.yellowBright(pkg.name.padEnd(paddingName));
+				const version = pc.dim(`(v${pkg.version})`.padEnd(paddingVersion));
+				const repo = pc.dim(`(${_repo})`);
+				return `${name} ${version} ${repo}`;
+			});
 			p.log.message(packageInfos.join('\n'));
 
 			const confirm = await p.confirm({ message: 'Would you like to continue?' });
