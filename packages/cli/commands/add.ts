@@ -194,8 +194,6 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				}));
 		}
 
-		// TODO: add the community warning here too?
-
 		const selected = await p.groupMultiselect({
 			message: 'Which community tools would you like to add to your project?',
 			options: promptOptions,
