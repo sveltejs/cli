@@ -33,7 +33,13 @@ export const adder = defineAdderConfig({
 	scripts: [
 		{
 			description: 'Supabase CLI initialization',
-			args: ['supabase', 'init', '--with-intellij-settings=false', '--with-vscode-settings=false'],
+			args: [
+				'supabase',
+				'init',
+				'--force',
+				'--with-intellij-settings=false',
+				'--with-vscode-settings=false'
+			],
 			stdio: 'pipe',
 			condition: ({ options }) => options.cli
 		}
@@ -231,8 +237,9 @@ export const adder = defineAdderConfig({
 						import { invalidate } from '$app/navigation';
 						import { onMount } from 'svelte';
 
-						export let data;
-						$: ({ session, supabase } = data);
+						/** @type {{data: any}} */
+						let { children, data } = $props();
+						let { session, supabase } = $derived(data);
 
 						onMount(() => {
 							const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
@@ -245,7 +252,7 @@ export const adder = defineAdderConfig({
 						});
 					</script>
 
-					<slot />
+					{@render children?.()}
 					`;
 			}
 		},
@@ -295,7 +302,7 @@ export const adder = defineAdderConfig({
 								${
 									isDemo
 										? `// Redirect to local Inbucket for demo purposes
-								redirect(303, \`http://localhost:54324/m/\${email}\`)`
+											redirect(303, \`http://localhost:54324/m/\${email}\`)`
 										: `return { message: 'Sign up succeeded! Please check your email inbox.' }`
 								}
 							}
@@ -788,7 +795,7 @@ export const adder = defineAdderConfig({
 					<script${typescript ? ' lang="ts"' : ''}>
 						import { page } from "$app/stores";
 
-						$: logout = async () => {
+						async function logout()  {
 							const { error } = await $page.data.supabase.auth.signOut();
 							if (error) {
 								console.error(error);
@@ -832,10 +839,10 @@ export const adder = defineAdderConfig({
 			content: () => {
 				return dedent`
 					<script>
-						export let data;
-						$: ({ supabase } = data);
+						let { children, data } = $props();
+						let { supabase } = $derived(data);
 
-						$: logout = async () => {
+						async function logout() {
 							const { error } = await supabase.auth.signOut();
 							if (error) {
 								console.error(error);
@@ -847,10 +854,10 @@ export const adder = defineAdderConfig({
 						<nav>
 							<a href="/">Home</a>
 						</nav>
-						<a href="/" on:click={logout} data-sveltekit-reload>Logout</a>
+						<a href="/" onclick={logout} data-sveltekit-reload>Logout</a>
 					</header>
 					<main>
-						<slot />
+						{@render children?.()}
 					</main>
 					`;
 			}
@@ -866,16 +873,14 @@ export const adder = defineAdderConfig({
 				return dedent`
 					<script${isTs ? ' lang="ts"' : ''}>
 						import { invalidate } from '$app/navigation'
-						${isTs ? `import type { EventHandler } from 'svelte/elements'\n` : ''}
-						${isTs ? `import type { PageData } from './$types'\n` : ''}
-						export let data${isTs ? ': PageData' : ''}
 
-						$: ({ ${isCli ? 'notes, supabase, user' : 'user'} } = data)
+						let { data } = $props();
+						let { ${isCli ? 'notes, supabase, user' : 'user'} } = $derived(data);
+
 						${
 							isCli
 								? `
-						let handleSubmit${isTs ? ': EventHandler<SubmitEvent, HTMLFormElement>' : ''}
-						$: handleSubmit = async (evt) => {
+						async function handleSubmit(evt${isTs ? ': SubmitEvent' : ''}) {
 							evt.preventDefault();
 							if (!evt.target) return;
 
@@ -905,7 +910,7 @@ export const adder = defineAdderConfig({
 							<li>{note.note}</li>
 						{/each}
 					</ul>
-					<form on:submit={handleSubmit}>
+					<form onsubmit={handleSubmit}>
 						<label>
 							Add a note
 							<input name="note" type="text" />
