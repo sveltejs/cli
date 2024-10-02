@@ -298,7 +298,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 					if (projectType === 'kit' && !config.metadata.environments.kit) return;
 					if (projectType === 'svelte' && !config.metadata.environments.svelte) return;
 
-					return { label: config.metadata.name, value: config.metadata.id };
+					return {
+						label: config.metadata.name,
+						value: config.metadata.id,
+						hint: config.metadata.website?.documentation
+					};
 				})
 				.filter((c) => !!c);
 
