@@ -268,13 +268,11 @@ export const adder = defineAdderConfig({
 
 				const isBasic = auth.includes('basic');
 				const isMagicLink = auth.includes('magicLink');
-				const isOAuth = auth.includes('oauth');
 
 				return dedent`
-					${isBasic || isOAuth ? `import { redirect } from '@sveltejs/kit'` : ''}
-					${isDemo || isOAuth ? `import { PUBLIC_BASE_URL } from '$env/static/public'` : ''}
+					${isBasic ? `import { redirect } from '@sveltejs/kit'` : ''}
+					${isDemo ? `import { PUBLIC_BASE_URL } from '$env/static/public'` : ''}
 					${isTs ? `import type { Actions } from './$types'` : ''}
-					${isTs && isOAuth ? `import type { Provider } from '@supabase/supabase-js'` : ''}
 					
 					export const actions${isTs ? ': Actions' : ''} = {${
 						isBasic
@@ -339,28 +337,6 @@ export const adder = defineAdderConfig({
 						},`
 							: ''
 					}
-					${
-						isOAuth
-							? `
-						oauth: async ({ request, locals: { supabase } }) => {
-							const formData = await request.formData()
-							const provider = formData.get('provider')${isTs ? ' as Provider' : ''}
-
-							const { data, error } = await supabase.auth.signInWithOAuth({
-								provider,
-								options: {
-									redirectTo: \`\${PUBLIC_BASE_URL}/auth/callback\`,
-								}
-							})
-							if (error) {
-								console.error(error)
-								return { message: 'Something went wrong, please try again.' }
-							}
-							
-							redirect(303, data.url)
-						},`
-							: ''
-					}
 					}
 					`;
 			}
@@ -375,21 +351,13 @@ export const adder = defineAdderConfig({
 
 				const isBasic = auth.includes('basic');
 				const isMagicLink = auth.includes('magicLink');
-				const isOAuth = auth.includes('oauth');
 
 				return dedent`
 					<script${isTs ? ' lang="ts"' : ''}>
 						${isBasic || isMagicLink ? `import { enhance } from '$app/forms'` : ''}
-						${
-							isOAuth
-								? `import { page } from '$app/stores'
-						import { PUBLIC_BASE_URL } from '$env/static/public'`
-								: ''
-						}
 						${(isBasic || isMagicLink) && isTs ? `import type { ActionData } from './$types'` : ''}
 
 						${isBasic || isMagicLink ? `export let form${isTs ? ': ActionData' : ''}` : ''}
-						${isOAuth ? `let provider = ''` : ''}
 					</script>
 
 					<form method="POST" use:enhance>
@@ -416,14 +384,6 @@ export const adder = defineAdderConfig({
 							: ''
 					}
 					${isMagicLink ? '<button formaction="?/magic">Send Magic Link</button>' : ''}
-					${
-						isOAuth
-							? `
-							<input type="hidden" name="provider" id="provider" bind:value={provider} />
-							<button formaction="?/oauth" id="google" on:click={() => (provider = 'google')}>Sign in with Google</button>
-							`
-							: ''
-					}
 					</form>
 					
 					
@@ -594,36 +554,6 @@ export const adder = defineAdderConfig({
 					`;
 			}
 		},
-		// OAuth only
-		{
-			name: ({ kit, typescript }) =>
-				`${kit?.routesDirectory}/auth/callback/+server.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
-			condition: ({ options }) => options.auth.includes('oauth'),
-			content: ({ typescript }) => {
-				const isTs = typescript;
-
-				return dedent`
-					import { error, redirect } from '@sveltejs/kit'
-					${isTs ? `import type { RequestHandler } from './$types'` : ''}
-
-					export const GET${isTs ? ': RequestHandler' : ''} = async ({ url, locals: { supabase } }) => {
-						const code = url.searchParams.get('code')${isTs ? ' as string' : ''}
-						const next = url.searchParams.get('next') ?? '/'
-
-						if (code) {
-							const { error: authError } = await supabase.auth.exchangeCodeForSession(code)
-							if (authError) {
-								console.error(authError)
-								error(500, 'Something went wrong, please try again.')
-							}
-						}
-
-						throw redirect(303, \`/\${next.slice(1)}\`)
-					}
-					`;
-			}
-		},
 		// Admin client helper
 		{
 			name: ({ kit, typescript }) =>
@@ -678,7 +608,6 @@ export const adder = defineAdderConfig({
 			content: ({ content, options }) => {
 				const isBasic = options.auth.includes('basic');
 				const isMagicLink = options.auth.includes('magicLink');
-				const isOAuth = options.auth.includes('oauth');
 
 				content = content.replace('"http://127.0.0.1:3000"', '"http://localhost:5173"');
 				content = content.replace('"https://127.0.0.1:3000"', '"https://localhost:5173/*"');
@@ -708,20 +637,6 @@ export const adder = defineAdderConfig({
 							[auth.email.template.magic_link]
 							subject = "Your Magic Link"
 							content_path = "./supabase/templates/magic_link.html"
-							`
-					);
-				}
-				if (isOAuth) {
-					content = appendContent(
-						content,
-						dedent`
-							\n# Local Google auth configuration
-							[auth.external.google]
-							enabled = true
-							client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
-							secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
-							redirect_uri = "http://127.0.0.1:54321/auth/v1/callback"
-							skip_nonce_check = true
 							`
 					);
 				}
@@ -982,7 +897,6 @@ export const adder = defineAdderConfig({
 		const { auth, cli: isCli, helpers: isHelpers } = options;
 		const isBasic = auth.includes('basic');
 		const isMagicLink = auth.includes('magicLink');
-		const isOAuth = auth.includes('oauth');
 
 		const steps = ['Visit the Supabase docs: https://supabase.com/docs'];
 
@@ -997,7 +911,7 @@ export const adder = defineAdderConfig({
 				Check out ${colors.green('package.json')} for the helper scripts. Remember to generate your database types`);
 		}
 
-		if (isBasic || isMagicLink || isOAuth) {
+		if (isBasic || isMagicLink) {
 			steps.push(dedent`
 				Update authGuard in ${colors.green(`./src/hooks.server.${workspace.typescript ? 'ts' : 'js'}`)} with your protected routes`);
 		}
@@ -1010,27 +924,12 @@ export const adder = defineAdderConfig({
 			}
 		}
 
-		if (isOAuth) {
-			steps.push(dedent`
-				${colors.bold('OAuth:')} Refer to the docs for other OAuth providers: https://supabase.com/docs/guides/auth/social-login`);
-			steps.push(dedent`
-				${colors.bold('OAuth:')} Enable Google in your hosted project dashboard and populate with your application's Google OAuth credentials. Create them via: https://console.cloud.google.com/apis/credentials/consent`);
-
-			if (isCli) {
-				steps.push(dedent`
-					${colors.bold('OAuth (Local Dev):')} Add your application's Google OAuth credentials to ${colors.green('.env')}. Create them via: https://console.cloud.google.com/apis/credentials/consent`);
-				steps.push(dedent`
-					${colors.bold('OAuth (Local Dev):')} To enable other local providers (or disable Google) update ${colors.green('./supabase/config.toml')} and restart the local Supabase services`);
-			}
-		}
-
 		return steps;
 	}
 });
 
 function generateEnvFileContent({ content, options }: TextFileEditor<typeof availableOptions>) {
 	const isCli = options.cli;
-	const isOAuth = options.auth.includes('oauth');
 
 	content = addEnvVar(content, 'PUBLIC_BASE_URL', '"http://localhost:5173"');
 	content = addEnvVar(
@@ -1058,19 +957,6 @@ function generateEnvFileContent({ content, options }: TextFileEditor<typeof avai
 					: '"<your_supabase_service_role_key>"'
 			)
 		: content;
-
-	if (isOAuth) {
-		content = addEnvVar(
-			content,
-			'SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID',
-			'"<your_google_oauth_client_id"'
-		);
-		content = addEnvVar(
-			content,
-			'SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET',
-			'"<your_google_oauth_secret"'
-		);
-	}
 
 	return content;
 }

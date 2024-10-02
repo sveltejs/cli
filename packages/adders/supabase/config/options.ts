@@ -15,11 +15,6 @@ export const options = defineAdderOptions({
 				hint: 'Magic link',
 				label: 'Magic link',
 				value: 'magicLink'
-			},
-			{
-				hint: `Adds 'Login with Google'`,
-				label: 'Social Login (OAuth)',
-				value: 'oauth'
 			}
 		]
 	},
