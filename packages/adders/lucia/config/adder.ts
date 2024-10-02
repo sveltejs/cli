@@ -34,7 +34,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'lucia', version: '^3.2.0', dev: false },
 		{ name: '@lucia-auth/adapter-drizzle', version: '^1.1.0', dev: false },
