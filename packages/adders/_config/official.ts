@@ -17,8 +17,8 @@ const categories = {
 	codeQuality: [prettier, eslint],
 	testing: [vitest, playwright],
 	css: [tailwindcss],
-	db: [drizzle, storybook],
-	additional: [supabase, mdsvex, routify]
+	db: [drizzle, supabase],
+	additional: [storybook, mdsvex, routify]
 };
 
 export const adderCategories: AdderCategories = getCategoriesById();
