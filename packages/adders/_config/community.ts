@@ -13,6 +13,6 @@ export type CommunityAdder = {
 export const communityAdderIds: string[] = [];
 
 export async function getCommunityAdder(name: string): Promise<CommunityAdder> {
-	const { default: details } = await import(`../_community/${name}.ts`);
+	const { default: details } = await import(`../../../community/${name}.ts`);
 	return details;
 }
