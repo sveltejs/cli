@@ -8,13 +8,10 @@ import pc from 'picocolors';
 import {
 	adderCategories,
 	categories,
-	communityCategories,
 	adderIds,
 	getAdderDetails,
 	communityAdderIds,
-	getCommunityAdder,
-	type Category,
-	type CommunityCategory
+	getCommunityAdder
 } from '@svelte-cli/adders';
 import {
 	createOrUpdateFiles,
@@ -177,48 +174,49 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
+	type AdderChoices = Record<string, Array<{ value: string; label: string }>>;
+
 	// we'll let the user choose community adders when `--community` is specified without args
 	if (options.community === true) {
-		const communityAdderOptions: Record<
-			string,
-			Array<{ value: string; label: string; hint: string }>
-		> = {};
+		const promptOptions: AdderChoices = {};
 		const communityAdders = await Promise.all(
-			communityAdderIds.map(async (x) => ({ id: x, adder: await getCommunityAdder(x) }))
+			communityAdderIds.map(async (id) => ({ id, ...(await getCommunityAdder(id)) }))
 		);
-		const communityAdderCategoryKeys = communityAdders.map((x) => x.adder.category);
+		const categories = new Set(communityAdders.map((adder) => adder.category));
 
-		// only get categories that are used by community adders
-		const allCategories = { ...categories, ...communityCategories };
-		const communityAdderCategories = Object.entries(allCategories).filter(([key]) =>
-			communityAdderCategoryKeys.includes(key as Category | CommunityCategory)
-		);
-
-		for (const [categoryId, category] of communityAdderCategories) {
-			communityAdderOptions[category.name] = communityAdders
-				.filter((x) => x.adder.category == categoryId)
-				.map((x) => ({
-					value: x.id,
-					label: x.adder.name,
-					hint: pc.blueBright(x.adder.website)
+		for (const category of categories) {
+			promptOptions[category] = communityAdders
+				.filter((adder) => adder.category === category)
+				.map((adder) => ({
+					value: adder.id,
+					label: adder.name,
+					hint: adder.repo
 				}));
 		}
 
+		// TODO: add the community warning here too?
+
 		const selected = await p.groupMultiselect({
 			message: 'Which community tools would you like to add to your project?',
-			options: communityAdderOptions,
+			options: promptOptions,
 			spacedGroups: true,
 			selectableGroups: false,
 			required: false
 		});
 
-		if (typeof selected === 'symbol') return;
+		if (p.isCancel(selected)) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
+		} else if (selected.length === 0) {
+			p.cancel('No adders selected. Exiting.');
+			process.exit(1);
+		}
 
 		options.community = selected;
 	}
 
 	// validate and download community adders
-	if (options.community && options.community?.length > 0) {
+	if (Array.isArray(options.community) && options.community.length > 0) {
 		// validate adders
 		const adders = options.community.map((id) => {
 			// ids with directives are passed unmodified so they can be processed during downloads
@@ -288,11 +286,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
-		const adderOptions: Record<string, Array<{ value: string; label: string }>> = {};
+		const adderOptions: AdderChoices = {};
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		for (const [id, { name }] of Object.entries(categories)) {
-			const category = adderCategories[id as Category];
+		for (const name of categories) {
+			const category = adderCategories[name];
 			const categoryOptions = category
 				.map((id) => {
 					const config = getAdderDetails(id).config;
