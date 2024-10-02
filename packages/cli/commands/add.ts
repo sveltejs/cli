@@ -236,13 +236,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			start('Resolving community adder packages');
 			const pkgs = await Promise.all(
 				adders.map(async (id) => {
-					const communityAdder = await getCommunityAdder(id).catch(() => undefined);
-					const packageName = communityAdder?.npm ?? id;
+					const adder = await getCommunityAdder(id).catch(() => undefined);
+					const packageName = adder?.npm ?? id;
 					const details = await getPackageJSON({ cwd: options.cwd, packageName });
 					return {
 						...details,
 						// prioritize community adder defined repo urls
-						repo: communityAdder?.repo ?? details.repo
+						repo: adder?.repo ?? details.repo
 					};
 				})
 			);
@@ -289,9 +289,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		const adderOptions: AdderChoices = {};
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		for (const name of categories) {
-			const category = adderCategories[name];
-			const categoryOptions = category
+		for (const category of categories) {
+			const adderIds = adderCategories[category];
+			const categoryOptions = adderIds
 				.map((id) => {
 					const config = getAdderDetails(id).config;
 					// we'll only display adders within their respective project types
@@ -307,7 +307,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				.filter((c) => !!c);
 
 			if (categoryOptions.length > 0) {
-				adderOptions[name] = categoryOptions;
+				adderOptions[category] = categoryOptions;
 			}
 		}
 
@@ -669,7 +669,7 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 	return { choices, defaults, groups };
 }
 
-function getPadding(strs: string[]) {
-	const lengths = strs.map((s) => s.length);
+function getPadding(lines: string[]) {
+	const lengths = lines.map((s) => s.length);
 	return Math.max(...lengths);
 }
