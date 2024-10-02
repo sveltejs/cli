@@ -3,6 +3,7 @@ export type CommunityCategory = (typeof communityCategories)[number];
 
 export type AdderCategories = Record<Category, string[]>;
 
+// the order defined here is how it'll be shown in the prompt
 export const categories = [
 	'Code Quality',
 	'Testing',
