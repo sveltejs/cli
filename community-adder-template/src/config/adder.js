@@ -4,8 +4,8 @@ import { imports } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
-		id: 'adder-template',
-		name: 'Adder Template',
+		id: 'community-adder-template',
+		name: 'Community Adder Template',
 		description: 'An adder template demo',
 		environments: { kit: true, svelte: true }
 	},
@@ -18,7 +18,7 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			content: ({ content, options }) => {
 				if (options.demo) {
-					return 'This is a text file made by the Adder Template demo!';
+					return 'This is a text file made by the Community Adder Template demo!';
 				}
 				return content;
 			}
