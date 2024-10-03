@@ -4,7 +4,6 @@
 	import type { ActionData, PageData } from './$types';
 	import { reduced_motion } from './reduced-motion';
 	import { untrack } from 'svelte';
-	import { browser } from '$app/environment';
 
 	interface Props {
 		data: PageData;
@@ -38,23 +37,19 @@
 	/** Whether the current guess can be submitted */
 	let submittable = $derived(currentGuess.length === 5);
 
-	/**
-	 * A map of classnames for all letters that have been guessed,
-	 * used for styling the keyboard
-	 * @type {Record<string, 'exact' | 'close' | 'missing'>}
-	 */
-	let classnames: Record<string, 'exact' | 'close' | 'missing'> = $state({});
-
-	/**
-	 * A map of descriptions for all letters that have been guessed,
-	 * used for adding text for assistive technology (e.g. screen readers)
-	 * @type {Record<string, string>}
-	 */
-	let description: Record<string, string> = $state({});
-
-	function setClassnamesAndDescription() {
-		classnames = {};
-		description = {};
+	const { classnames, description } = $derived.by(() => {
+		/**
+		 * A map of classnames for all letters that have been guessed,
+		 * used for styling the keyboard
+		 * @type {Record<string, 'exact' | 'close' | 'missing'>}
+		 */
+		let classnames: Record<string, 'exact' | 'close' | 'missing'> = {};
+		/**
+		 * A map of descriptions for all letters that have been guessed,
+		 * used for adding text for assistive technology (e.g. screen readers)
+		 * @type {Record<string, string>}
+		 */
+		let description: Record<string, string> = {};
 		data.answers.forEach((answer, i) => {
 			const guess = data.guesses[i];
 			untrack(() => {
@@ -70,13 +65,8 @@
 				}
 			});
 		});
-	}
-
-	if (!browser) {
-		setClassnamesAndDescription();
-	}
-
-	$effect(setClassnamesAndDescription);
+		return { classnames, description };
+	});
 
 	/**
 	 * Modify the game state without making a trip to the server,
