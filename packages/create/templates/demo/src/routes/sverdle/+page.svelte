@@ -9,10 +9,9 @@
 		form: ActionData;
 	}
 	/**
-	 * @typedef {{
-	 * 	data: import('./$types').PageData,
-	 * 	form: import('./$types').ActionData
-	 * }} Props
+	 * @typedef {Object} Props
+	 * @property {import('./$types').PageData} data
+	 * @property {import('./$types').ActionData} form
 	 */
 
 	/**
