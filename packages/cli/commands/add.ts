@@ -11,7 +11,7 @@ import {
 	adderIds,
 	getAdderDetails,
 	communityAdderIds,
-	getCommunityAdders
+	getCommunityAdder
 } from '@svelte-cli/adders';
 import {
 	createOrUpdateFiles,
@@ -39,7 +39,7 @@ const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
-	community: v.optional(AddersSchema),
+	community: v.optional(v.union([AddersSchema, v.boolean()])),
 	...AdderOptionFlagsSchema.entries
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
@@ -74,17 +74,6 @@ export const add = new Command('add')
 				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
 			);
 			process.exit(1);
-		}
-
-		// we'll print a list of available options when `--community` is specified with no args
-		if (opts.community === true) {
-			console.log('Usage: sv add --community [adder...]\n');
-			console.log('Applies community made adders\n');
-			console.log(`Available options: ${communityAdderIds.join(', ')}\n`);
-			console.warn(
-				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
-			);
-			process.exit(0);
 		}
 
 		const adders = v.parse(AddersSchema, adderArgs);
@@ -185,8 +174,47 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
+	type AdderChoices = Record<string, Array<{ value: string; label: string }>>;
+
+	// we'll let the user choose community adders when `--community` is specified without args
+	if (options.community === true) {
+		const promptOptions: AdderChoices = {};
+		const communityAdders = await Promise.all(
+			communityAdderIds.map(async (id) => ({ id, ...(await getCommunityAdder(id)) }))
+		);
+		const categories = new Set(communityAdders.map((adder) => adder.category));
+
+		for (const category of categories) {
+			promptOptions[category] = communityAdders
+				.filter((adder) => adder.category === category)
+				.map((adder) => ({
+					value: adder.id,
+					label: adder.name,
+					hint: adder.repo
+				}));
+		}
+
+		const selected = await p.groupMultiselect({
+			message: 'Which community tools would you like to add to your project?',
+			options: promptOptions,
+			spacedGroups: true,
+			selectableGroups: false,
+			required: false
+		});
+
+		if (p.isCancel(selected)) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
+		} else if (selected.length === 0) {
+			p.cancel('No adders selected. Exiting.');
+			process.exit(1);
+		}
+
+		options.community = selected;
+	}
+
 	// validate and download community adders
-	if (options.community && options.community?.length > 0) {
+	if (Array.isArray(options.community) && options.community.length > 0) {
 		// validate adders
 		const adders = options.community.map((id) => {
 			// ids with directives are passed unmodified so they can be processed during downloads
@@ -208,16 +236,33 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			start('Resolving community adder packages');
 			const pkgs = await Promise.all(
 				adders.map(async (id) => {
-					const pkg = await getCommunityAdders(id).catch(() => undefined);
-					const packageName = pkg?.npm ?? id;
-					return getPackageJSON({ cwd: options.cwd, packageName });
+					const adder = await getCommunityAdder(id).catch(() => undefined);
+					const packageName = adder?.npm ?? id;
+					const details = await getPackageJSON({ cwd: options.cwd, packageName });
+					return {
+						...details,
+						// prioritize community adder defined repo urls
+						repo: adder?.repo ?? details.repo
+					};
 				})
 			);
 			stop('Resolved community adder packages');
 
-			const ids = pkgs.map(({ pkg }) => pc.yellowBright(pkg.name) + pc.dim(` (v${pkg.version})`));
-			p.log.warn('Community packages are not reviewed for malicious code:');
-			p.log.message(ids.join(', '));
+			p.log.warn(
+				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
+			);
+
+			const paddingName = getPadding(pkgs.map(({ pkg }) => pkg.name));
+			const paddingVersion = getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
+
+			const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
+				const name = pc.yellowBright(pkg.name.padEnd(paddingName));
+				const version = pc.dim(`(v${pkg.version})`.padEnd(paddingVersion));
+				const repo = pc.dim(`(${_repo})`);
+				return `${name} ${version} ${repo}`;
+			});
+			p.log.message(packageInfos.join('\n'));
+
 			const confirm = await p.confirm({ message: 'Would you like to continue?' });
 			if (confirm !== true) {
 				p.cancel('Operation cancelled.');
@@ -241,24 +286,28 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
-		const adderOptions: Record<string, Array<{ value: string; label: string }>> = {};
+		const adderOptions: AdderChoices = {};
 		const workspace = await createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		for (const { id, name } of Object.values(categories)) {
-			const category = adderCategories[id];
-			const categoryOptions = category
+		for (const category of categories) {
+			const adderIds = adderCategories[category];
+			const categoryOptions = adderIds
 				.map((id) => {
 					const config = getAdderDetails(id).config;
 					// we'll only display adders within their respective project types
 					if (projectType === 'kit' && !config.metadata.environments.kit) return;
 					if (projectType === 'svelte' && !config.metadata.environments.svelte) return;
 
-					return { label: config.metadata.name, value: config.metadata.id };
+					return {
+						label: config.metadata.name,
+						value: config.metadata.id,
+						hint: config.metadata.website?.documentation
+					};
 				})
 				.filter((c) => !!c);
 
 			if (categoryOptions.length > 0) {
-				adderOptions[name] = categoryOptions;
+				adderOptions[category] = categoryOptions;
 			}
 		}
 
@@ -597,6 +646,11 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 		groups[groupId].push(...values);
 	}
 	return { choices, defaults, groups };
+}
+
+function getPadding(lines: string[]) {
+	const lengths = lines.map((s) => s.length);
+	return Math.max(...lengths);
 }
 
 export async function runScripts<Args extends OptionDefinition>(

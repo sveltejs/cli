@@ -14,7 +14,7 @@ export const adder = defineAdderConfig({
 		website: {
 			logo: './eslint.svg',
 			keywords: ['eslint', 'code', 'linter'],
-			documentation: 'https://eslint.org/'
+			documentation: 'https://eslint.org'
 		}
 	},
 	options,

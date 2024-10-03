@@ -80,7 +80,17 @@ export async function downloadPackage(options: DownloadOptions): Promise<AdderWi
 	return details;
 }
 
-export async function getPackageJSON({ cwd, packageName }: { packageName: string; cwd: string }) {
+type PackageJSON = {
+	name: string;
+	version: string;
+	[key: string]: string | number | boolean;
+};
+type GetPackageJSONOptions = { packageName: string; cwd: string };
+export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions): Promise<{
+	pkg: PackageJSON;
+	repo: string;
+	path?: string;
+}> {
 	let npm = packageName;
 	if (packageName.startsWith(Directive.file)) {
 		const pkgPath = path.resolve(cwd, packageName.slice(Directive.file.length));
@@ -89,7 +99,7 @@ export async function getPackageJSON({ cwd, packageName }: { packageName: string
 		const pkg = JSON.parse(json);
 		verifyPackage(pkg, packageName);
 
-		return { path: pkgPath, pkg };
+		return { path: pkgPath, pkg, repo: pkgPath };
 	}
 	if (packageName.startsWith(Directive.npm)) {
 		npm = packageName.slice(Directive.npm.length);
@@ -98,7 +108,11 @@ export async function getPackageJSON({ cwd, packageName }: { packageName: string
 	const pkg = await fetchPackageJSON(npm);
 	verifyPackage(pkg, packageName);
 
-	return { pkg };
+	return {
+		pkg,
+		// fallback to providing the NPM package URL
+		repo: pkg.repository?.url ?? `https://www.npmjs.com/package/${npm}`
+	};
 }
 
 async function fetchPackageJSON(packageName: string) {
