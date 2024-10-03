@@ -3,7 +3,8 @@
 
 	let count = $state(0);
 
-	const displayed_count = spring();
+	// svelte-ignore state_referenced_locally
+	const displayed_count = spring(count);
 
 	$effect(() => {
 		displayed_count.set(count);
