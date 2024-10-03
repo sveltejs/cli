@@ -7,7 +7,7 @@ import {
 } from '@svelte-cli/core';
 import { options as availableOptions } from './options.ts';
 import { getOrCreateAppInterface, hasTypeProp } from '../../common.ts';
-import { imports } from '@svelte-cli/core/js';
+import { common, imports } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -191,16 +191,28 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ kit, typescript }) => `${kit?.routesDirectory}/+layout.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
+			contentType: 'script',
 			condition: ({ options }) => options.auth.length > 0,
-			content: ({ typescript }) => {
-				const isTs = typescript;
+			content: ({ ast, typescript }) => {
+				imports.addNamed(ast, '@supabase/ssr', {
+					createBrowserClient: 'createBrowserClient',
+					createServerClient: 'createServerClient',
+					isBrowser: 'isBrowser'
+				});
 
-				return dedent`
-					import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr'
-					import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public'
-					${isTs ? `import type { LayoutLoad } from './$types'\n` : ''}
-					export const load${isTs ? ': LayoutLoad' : ''} = async ({ data, depends, fetch }) => {
+				imports.addNamed(ast, '$env/static/public', {
+					PUBLIC_SUPABASE_ANON_KEY: 'PUBLIC_SUPABASE_ANON_KEY',
+					PUBLIC_SUPABASE_URL: 'PUBLIC_SUPABASE_URL'
+				});
+
+				if (typescript) {
+					imports.addNamed(ast, './$types', { LayoutLoad: 'LayoutLoad' }, true);
+				}
+
+				common.addFromString(
+					ast,
+					dedent`
+					export const load${typescript ? ': LayoutLoad' : ''} = async ({ data, depends, fetch }) => {
 						depends('supabase:auth')
 
 						const supabase = isBrowser()
@@ -226,7 +238,8 @@ export const adder = defineAdderConfig({
 
 						return { session, supabase, user }
 					}
-					`;
+					`
+				);
 			}
 		},
 		{
