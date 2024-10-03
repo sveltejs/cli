@@ -45,7 +45,7 @@ export const create = new Command('create')
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
-			const initialSteps = [];
+			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
 			const pm = await common.guessPackageManager(cwd);
 			if (relative !== '') {
