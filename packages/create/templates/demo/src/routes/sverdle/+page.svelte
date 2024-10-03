@@ -7,7 +7,9 @@
 	import { browser } from '$app/environment';
 
 	interface Props {
+		/** @type {import('./$types').PageData} */
 		data: PageData;
+		/** @type {import('./$types').ActionData} */
 		form: ActionData;
 	}
 
@@ -33,12 +35,14 @@
 	/**
 	 * A map of classnames for all letters that have been guessed,
 	 * used for styling the keyboard
+	 * @type {Record<string, 'exact' | 'close' | 'missing'>}
 	 */
 	let classnames: Record<string, 'exact' | 'close' | 'missing'> = $state({});
 
 	/**
 	 * A map of descriptions for all letters that have been guessed,
 	 * used for adding text for assistive technology (e.g. screen readers)
+	 * @type {Record<string, string>}
 	 */
 	let description: Record<string, string> = $state({});
 
@@ -71,10 +75,13 @@
 	/**
 	 * Modify the game state without making a trip to the server,
 	 * if client-side JavaScript is enabled
+	 * @param {MouseEvent} event
 	 */
 	function update(event: MouseEvent) {
 		event.preventDefault();
-		const key = (event.target as HTMLButtonElement).getAttribute('data-key');
+		const key = /** @type {HTMLButtonElement} */ (event.target as HTMLButtonElement).getAttribute(
+			'data-key'
+		);
 
 		if (key === 'backspace') {
 			currentGuess = currentGuess.slice(0, -1);
@@ -87,6 +94,7 @@
 	/**
 	 * Trigger form logic in response to a keydown event, so that
 	 * desktop users can use the keyboard to play the game
+	 * @param {KeyboardEvent} event
 	 */
 	function keydown(event: KeyboardEvent) {
 		if (event.metaKey) return;
