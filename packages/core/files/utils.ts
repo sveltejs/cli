@@ -130,6 +130,8 @@ export const commonFilePaths = {
 } as const;
 
 export function findUp(searchPath: string, fileName: string, maxDepth = -1): string | undefined {
+	searchPath = path.join(process.cwd(), searchPath);
+
 	// partially sourced from https://github.com/privatenumber/get-tsconfig/blob/9e78ec52d450d58743439358dd88e2066109743f/src/utils/find-up.ts#L5
 	let depth = 0;
 	while (maxDepth < 0 || depth < maxDepth) {
