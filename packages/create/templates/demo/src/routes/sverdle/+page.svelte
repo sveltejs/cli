@@ -7,12 +7,18 @@
 	import { browser } from '$app/environment';
 
 	interface Props {
-		/** @type {import('./$types').PageData} */
 		data: PageData;
-		/** @type {import('./$types').ActionData} */
 		form: ActionData;
 	}
+	/**
+	 * @typedef Props
+	 * @property {import('./$types').PageData} data
+	 * @property {import('./$types').ActionData} form
+	 */
 
+	/**
+	 * @type {Props}
+	 */
 	let { data, form = $bindable() }: Props = $props();
 
 	/** Whether or not the user has won */
