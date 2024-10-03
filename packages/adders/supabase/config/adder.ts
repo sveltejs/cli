@@ -6,7 +6,7 @@ import {
 	type AstTypes
 } from '@svelte-cli/core';
 import { options as availableOptions } from './options.ts';
-import { getOrCreateAppInterface, hasTypeProp } from '../../common.ts';
+import { addHooksHandle, getOrCreateAppInterface, hasTypeProp } from '../../common.ts';
 import { common, imports } from '@svelte-cli/core/js';
 import { addFromRawHtml } from '@svelte-cli/core/html';
 
@@ -79,80 +79,14 @@ export const adder = defineAdderConfig({
 				if (isTs && isDemo) {
 					imports.addNamed(ast, '@sveltejs/kit', { redirect: 'redirect' });
 				}
-				if (isTs) imports.addNamed(ast, '@sveltejs/kit', { Handle: 'Handle' }, true);
 
-				imports.addNamed(ast, '@sveltejs/kit/hooks', { sequence: 'sequence' });
 				imports.addNamed(ast, '$env/static/public', {
 					PUBLIC_SUPABASE_URL: 'PUBLIC_SUPABASE_URL',
 					PUBLIC_SUPABASE_ANON_KEY: 'PUBLIC_SUPABASE_ANON_KEY'
 				});
 
-				common.addFromString(
-					ast,
-					`
-					const supabase${isTs ? ': Handle' : ''} = async ({ event, resolve }) => {
-						event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-							cookies: {
-								getAll: () => event.cookies.getAll(),
-								setAll: (cookiesToSet) => {
-									cookiesToSet.forEach(({ name, value, options }) => {
-										event.cookies.set(name, value, { ...options, path: '/' })
-									})
-								},
-							},
-						})
-
-						event.locals.safeGetSession = async () => {
-							const {
-								data: { session },
-							} = await event.locals.supabase.auth.getSession()
-							if (!session) {
-								return { session: null, user: null }
-							}
-
-							const {
-								data: { user },
-								error,
-							} = await event.locals.supabase.auth.getUser()
-							if (error) {
-								return { session: null, user: null }
-							}
-
-							return { session, user }
-						}
-
-						return resolve(event, {
-							filterSerializedResponseHeaders(name) {
-								return name === 'content-range' || name === 'x-supabase-api-version'
-							},
-						})
-					}
-
-					const authGuard${isTs ? ': Handle' : ''} = async ({ event, resolve }) => {
-						const { session, user } = await event.locals.safeGetSession()
-						event.locals.session = session
-						event.locals.user = user
-						${
-							isDemo
-								? `
-						if (!event.locals.session && event.url.pathname.startsWith('/private')) {
-							redirect(303, '/auth')
-						}
-
-						if (event.locals.session && event.url.pathname === '/auth') {
-							redirect(303, '/private')
-						}
-						`
-								: `
-						// Add authentication guards here
-						`
-						}
-						return resolve(event)
-					}
-
-					export const handle${isTs ? ': Handle' : ''} = sequence(supabase, authGuard)
-					`
-				);
+				addHooksHandle(ast, typescript, 'supabase', getSupabaseHandleContent(), true);
+				addHooksHandle(ast, typescript, 'authGuard', getAuthGuardHandleContent(isDemo));
 			}
 		},
 		{
@@ -1155,4 +1089,70 @@ function createUserType(name: string): AstTypes.TSPropertySignature {
 			}
 		}
 	};
+}
+
+function getSupabaseHandleContent() {
+	return `
+		async ({ event, resolve }) => {
+			event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+			cookies: {
+				getAll: () => event.cookies.getAll(),
+				setAll: (cookiesToSet) => {
+					cookiesToSet.forEach(({ name, value, options }) => {
+						event.cookies.set(name, value, { ...options, path: '/' })
+					})
+				},
+			},
+		})
+
+		event.locals.safeGetSession = async () => {
+			const {
+				data: { session },
+			} = await event.locals.supabase.auth.getSession()
+			if (!session) {
+				return { session: null, user: null }
+			}
+
+			const {
+				data: { user },
+				error,
+			} = await event.locals.supabase.auth.getUser()
+			if (error) {
+				return { session: null, user: null }
+			}
+
+			return { session, user }
+		}
+
+		return resolve(event, {
+			filterSerializedResponseHeaders(name) {
+				return name === 'content-range' || name === 'x-supabase-api-version'
+			},
+		});
+	};`;
+}
+
+function getAuthGuardHandleContent(isDemo: boolean) {
+	return `
+		async ({ event, resolve }) => {
+			const { session, user } = await event.locals.safeGetSession()
+			event.locals.session = session
+			event.locals.user = user
+			${
+				isDemo
+					? `
+			if (!event.locals.session && event.url.pathname.startsWith('/private')) {
+				redirect(303, '/auth')
+			}
+
+			if (event.locals.session && event.url.pathname === '/auth') {
+				redirect(303, '/private')
+			}
+			`
+					: `
+			// Add authentication guards here
+			`
+			}
+			return resolve(event);
+		}`;
 }
