@@ -4,6 +4,7 @@
 	import type { ActionData, PageData } from './$types';
 	import { reduced_motion } from './reduced-motion';
 	import { untrack } from 'svelte';
+	import { browser } from '$app/environment';
 
 	interface Props {
 		data: PageData;
@@ -19,7 +20,9 @@
 	let i = $derived(won ? -1 : data.answers.length);
 
 	/** The current guess */
-	let currentGuess = $state('');
+	// svelte-ignore state_referenced_locally
+	let currentGuess = $state(data.guesses[i] || '');
+
 	$effect(() => {
 		currentGuess = data.guesses[i] || '';
 	});
@@ -39,7 +42,7 @@
 	 */
 	let description: Record<string, string> = $state({});
 
-	$effect(() => {
+	function setClassnamesAndDescription() {
 		classnames = {};
 		description = {};
 		data.answers.forEach((answer, i) => {
@@ -57,7 +60,13 @@
 				}
 			});
 		});
-	});
+	}
+
+	if (!browser) {
+		setClassnamesAndDescription();
+	}
+
+	$effect(setClassnamesAndDescription);
 
 	/**
 	 * Modify the game state without making a trip to the server,
