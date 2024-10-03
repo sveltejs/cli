@@ -211,6 +211,10 @@ export function addHooksHandle(
 				handleName,
 				common.expressionFromString(newHandleName)
 			);
+			if (typescript) {
+				const declarator = handleDecl.declarations[0] as AstTypes.VariableDeclarator;
+				variables.typeAnnotateDeclarator(declarator, 'Handle');
+			}
 			exports.namedExport(ast, handleName, handleDecl);
 		}
 
@@ -307,6 +311,10 @@ export function addHooksHandle(
 			newHandleName
 		]);
 		const newHandleDecl = variables.declaration(ast, 'const', handleName, sequenceCall);
+		if (typescript) {
+			const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
+			variables.typeAnnotateDeclarator(declarator, 'Handle');
+		}
 		ast.body.push(newDecl);
 		exports.namedExport(ast, handleName, newHandleDecl);
 	}
