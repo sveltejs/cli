@@ -245,20 +245,24 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.routesDirectory}/+layout.server.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
+			contentType: 'script',
 			condition: ({ options }) => options.auth.length > 0,
-			content: ({ typescript }) => {
-				const isTs = typescript;
+			content: ({ ast, typescript }) => {
+				if (typescript) {
+					imports.addNamed(ast, './$types', { LayoutServerLoad: 'LayoutServerLoad' }, true);
+				}
 
-				return dedent`
-					${isTs ? `import type { LayoutServerLoad } from './$types'\n` : ''}
-					export const load${isTs ? ': LayoutServerLoad' : ''} = async ({ locals: { session }, cookies }) => {
+				common.addFromString(
+					ast,
+					dedent`
+					export const load${typescript ? ': LayoutServerLoad' : ''} = async ({ locals: { session }, cookies }) => {
 						return {
 							session,
 							cookies: cookies.getAll(),
 						}
 					}
-					`;
+					`
+				);
 			}
 		},
 		{
