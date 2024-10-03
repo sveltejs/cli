@@ -1,14 +1,12 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-	import { confetti } from '@neoconfetti/svelte';
 	import { enhance } from '$app/forms';
-	import type { PageData, ActionData } from './$types';
+	import { confetti } from '@neoconfetti/svelte';
+	import type { ActionData, PageData } from './$types';
 	import { reduced_motion } from './reduced-motion';
+	import { untrack } from 'svelte';
 
 	interface Props {
-		/** @type {import('./$types').PageData} */
 		data: PageData;
-		/** @type {import('./$types').ActionData} */
 		form: ActionData;
 	}
 
@@ -22,7 +20,7 @@
 
 	/** The current guess */
 	let currentGuess = $state('');
-	run(() => {
+	$effect(() => {
 		currentGuess = data.guesses[i] || '';
 	});
 
@@ -32,48 +30,42 @@
 	/**
 	 * A map of classnames for all letters that have been guessed,
 	 * used for styling the keyboard
-	 * @type {Record<string, 'exact' | 'close' | 'missing'>}
 	 */
 	let classnames: Record<string, 'exact' | 'close' | 'missing'> = $state({});
 
 	/**
 	 * A map of descriptions for all letters that have been guessed,
 	 * used for adding text for assistive technology (e.g. screen readers)
-	 * @type {Record<string, string>}
 	 */
 	let description: Record<string, string> = $state({});
 
-	run(() => {
+	$effect(() => {
 		classnames = {};
 		description = {};
-
 		data.answers.forEach((answer, i) => {
 			const guess = data.guesses[i];
-
-			for (let i = 0; i < 5; i += 1) {
-				const letter = guess[i];
-
-				if (answer[i] === 'x') {
-					classnames[letter] = 'exact';
-					description[letter] = 'correct';
-				} else if (!classnames[letter]) {
-					classnames[letter] = answer[i] === 'c' ? 'close' : 'missing';
-					description[letter] = answer[i] === 'c' ? 'present' : 'absent';
+			untrack(() => {
+				for (let i = 0; i < 5; i += 1) {
+					const letter = guess[i];
+					if (answer[i] === 'x') {
+						classnames[letter] = 'exact';
+						description[letter] = 'correct';
+					} else if (!classnames[letter]) {
+						classnames[letter] = answer[i] === 'c' ? 'close' : 'missing';
+						description[letter] = answer[i] === 'c' ? 'present' : 'absent';
+					}
 				}
-			}
+			});
 		});
 	});
 
 	/**
 	 * Modify the game state without making a trip to the server,
 	 * if client-side JavaScript is enabled
-	 * @param {MouseEvent} event
 	 */
 	function update(event: MouseEvent) {
 		event.preventDefault();
-		const key = /** @type {HTMLButtonElement} */ (event.target as HTMLButtonElement).getAttribute(
-			'data-key'
-		);
+		const key = (event.target as HTMLButtonElement).getAttribute('data-key');
 
 		if (key === 'backspace') {
 			currentGuess = currentGuess.slice(0, -1);
@@ -86,7 +78,6 @@
 	/**
 	 * Trigger form logic in response to a keydown event, so that
 	 * desktop users can use the keyboard to play the game
-	 * @param {KeyboardEvent} event
 	 */
 	function keydown(event: KeyboardEvent) {
 		if (event.metaKey) return;
