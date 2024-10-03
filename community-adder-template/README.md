@@ -1,4 +1,4 @@
-# adder-template-js
+# community-adder-template
 
 > [!IMPORTANT]
 > This template's dependencies may not be up-to-date; be sure to update them to the latest!
