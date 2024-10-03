@@ -1,4 +1,4 @@
 packages:
   - 'packages/*'
-  - 'adder-template'
+  - 'community-adder-template'
   - '!.test-tmp/**'
