@@ -8,6 +8,7 @@ import {
 import { options as availableOptions } from './options.ts';
 import { getOrCreateAppInterface, hasTypeProp } from '../../common.ts';
 import { common, imports } from '@svelte-cli/core/js';
+import { addFromRawHtml } from '@svelte-cli/core/html';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -66,20 +67,29 @@ export const adder = defineAdderConfig({
 		// Common to all Auth options
 		{
 			name: ({ typescript }) => `./src/hooks.server.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
+			contentType: 'script',
 			condition: ({ options }) => options.auth.length > 0,
-			content: ({ options, typescript }) => {
+			content: ({ ast, options, typescript }) => {
 				const isTs = typescript;
 				const { demo: isDemo } = options;
 
-				return dedent`
-					import { createServerClient } from '@supabase/ssr'
-					${!isTs && isDemo ? `import { redirect } from '@sveltejs/kit'` : ''}
-					${isTs && isDemo ? `import { type Handle, redirect } from '@sveltejs/kit'` : ''}
-					${isTs && !isDemo ? `import type { Handle } from '@sveltejs/kit'` : ''}
-					import { sequence } from '@sveltejs/kit/hooks'
-					import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public'
+				imports.addNamed(ast, '@supabase/ssr', { createServerClient: 'createServerClient' });
 
+				if (!isTs && isDemo) imports.addNamed(ast, '@sveltejs/kit', { redirect: 'redirect' });
+				if (isTs && isDemo) {
+					imports.addNamed(ast, '@sveltejs/kit', { redirect: 'redirect' });
+				}
+				if (isTs) imports.addNamed(ast, '@sveltejs/kit', { Handle: 'Handle' }, true);
+
+				imports.addNamed(ast, '@sveltejs/kit/hooks', { sequence: 'sequence' });
+				imports.addNamed(ast, '$env/static/public', {
+					PUBLIC_SUPABASE_URL: 'PUBLIC_SUPABASE_URL',
+					PUBLIC_SUPABASE_ANON_KEY: 'PUBLIC_SUPABASE_ANON_KEY'
+				});
+
+				common.addFromString(
+					ast,
+					`
 					const supabase${isTs ? ': Handle' : ''} = async ({ event, resolve }) => {
 						event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 							cookies: {
@@ -141,7 +151,8 @@ export const adder = defineAdderConfig({
 					}
 
 					export const handle${isTs ? ': Handle' : ''} = sequence(supabase, authGuard)
-					`;
+					`
+				);
 			}
 		},
 		{
@@ -211,7 +222,7 @@ export const adder = defineAdderConfig({
 
 				common.addFromString(
 					ast,
-					dedent`
+					`
 					export const load${typescript ? ': LayoutLoad' : ''} = async ({ data, depends, fetch }) => {
 						depends('supabase:auth')
 
@@ -254,7 +265,7 @@ export const adder = defineAdderConfig({
 
 				common.addFromString(
 					ast,
-					dedent`
+					`
 					export const load${typescript ? ': LayoutServerLoad' : ''} = async ({ locals: { session }, cookies }) => {
 						return {
 							session,
@@ -267,31 +278,31 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			contentType: 'text',
+			contentType: 'svelte',
 			condition: ({ options }) => options.auth.length > 0,
-			content: ({ typescript }) => {
-				return dedent`
-					<script${typescript ? ' lang="ts"' : ''}>
-						import { invalidate } from '$app/navigation';
-						import { onMount } from 'svelte';
+			content: ({ jsAst, htmlAst }) => {
+				imports.addNamed(jsAst, '$app/navigation', { invalidate: 'invalidate' });
+				imports.addNamed(jsAst, 'svelte', { onMount: 'onMount' });
 
-						/** @type {{data: any}} */
-						let { children, data } = $props();
-						let { session, supabase } = $derived(data);
+				common.addFromString(
+					jsAst,
+					`
+					let { children, data } = $props();
+					let { session, supabase } = $derived(data);
 
-						onMount(() => {
-							const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
-								if (newSession?.expires_at !== session?.expires_at) {
-									invalidate('supabase:auth');
-								}
-							});
-
-							return () => data.subscription.unsubscribe();
+					onMount(() => {
+						const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+							if (newSession?.expires_at !== session?.expires_at) {
+								invalidate('supabase:auth');
+							}
 						});
-					</script>
 
-					{@render children?.()}
-					`;
+						return () => data.subscription.unsubscribe();
+					});
+					`
+				);
+
+				addFromRawHtml(htmlAst.childNodes, '{@render children?.()}');
 			}
 		},
 		{
@@ -741,33 +752,39 @@ export const adder = defineAdderConfig({
 		// Demo routes when user has selected Basic Auth and/or Magic Link
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
-			contentType: 'text',
+			contentType: 'svelte',
 			condition: ({ options }) => options.demo,
-			content: ({ typescript }) => {
-				return dedent`
-					<script${typescript ? ' lang="ts"' : ''}>
-						import { page } from "$app/stores";
+			content: ({ jsAst, htmlAst }) => {
+				imports.addNamed(jsAst, '$app/stores', { page: 'page' });
 
+				common.addFromString(
+					jsAst,
+					`
 						async function logout()  {
 							const { error } = await $page.data.supabase.auth.signOut();
 							if (error) {
 								console.error(error);
 							}
 						};
-					</script>
+					`
+				);
 
-					<h1>Welcome to SvelteKit with Supabase</h1>
-					<ul>
-					  <li><a href="/auth">Login</a></li>
-					  <li><a href="/private">Protected page</a></li>
-					</ul>
-					{#if $page.data.user}
-						<a href="/" on:click={logout} data-sveltekit-reload>Logout</a>
-					{/if}
-					<pre>
-						User: {JSON.stringify($page.data.user, null, 2)}
-					</pre>
-					`;
+				addFromRawHtml(
+					htmlAst.childNodes,
+					`
+						<h1>Welcome to SvelteKit with Supabase</h1>
+						<ul>
+						<li><a href="/auth">Login</a></li>
+						<li><a href="/private">Protected page</a></li>
+						</ul>
+						{#if $page.data.user}
+							<a href="/" on:click={logout} data-sveltekit-reload>Logout</a>
+						{/if}
+						<pre>
+							User: {JSON.stringify($page.data.user, null, 2)}
+						</pre>
+					`
+				);
 			}
 		},
 		{
