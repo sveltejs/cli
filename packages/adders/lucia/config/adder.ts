@@ -3,6 +3,7 @@ import { colors, dedent, defineAdderConfig, log, Walker } from '@svelte-cli/core
 import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstKinds, AstTypes } from '@svelte-cli/core/js';
+import { getOrCreateAppLocalsInterface, hasTypeProp } from '../../common.ts';
 
 const LUCIA_ADAPTER = {
 	mysql: 'DrizzleMySQLAdapter',
@@ -238,68 +239,10 @@ export const adder = defineAdderConfig({
 			condition: ({ typescript }) => typescript,
 			contentType: 'script',
 			content: ({ ast }) => {
-				const globalDecl = ast.body
-					.filter((n) => n.type === 'TSModuleDeclaration')
-					.find((m) => m.global && m.declare);
-
-				if (globalDecl?.body?.type !== 'TSModuleBlock') {
-					throw new Error('Unexpected body type of `declare global` in `src/app.d.ts`');
-				}
-
-				if (!globalDecl) {
-					const decl = common.statementFromString(`
-						declare global {
-							namespace App {
-								interface Locals {
-									user: import('lucia').User | null;
-									session: import('lucia').Session | null;
-								}
-							}
-						}`);
-					ast.body.push(decl);
-					return;
-				}
-
-				let app: AstTypes.TSModuleDeclaration | undefined;
-				let locals: AstTypes.TSInterfaceDeclaration | undefined;
-
-				// prettier-ignore
-				Walker.walk(globalDecl as AstTypes.ASTNode, {}, {
-					TSModuleDeclaration(node, { next }) {
-						if (node.id.type === 'Identifier' && node.id.name === 'App') {
-							app = node;
-						}
-						next();
-					},
-					TSInterfaceDeclaration(node) {
-						if (node.id.type === 'Identifier' && node.id.name === 'Locals') {
-							locals = node;
-						}
-					},
-				});
-
-				if (!app) {
-					app ??= common.statementFromString(`
-						namespace App {
-							interface Locals {
-								user: import('lucia').User | null;
-								session: import('lucia').Session | null;
-							}
-						}`) as AstTypes.TSModuleDeclaration;
-					globalDecl.body.body.push(app);
-					return;
-				}
-
-				if (app.body?.type !== 'TSModuleBlock') {
-					throw new Error('Unexpected body type of `namespace App` in `src/app.d.ts`');
-				}
+				const locals = getOrCreateAppLocalsInterface(ast);
 
 				if (!locals) {
-					// add Locals interface it if it's missing
-					locals = common.statementFromString(
-						'interface Locals {}'
-					) as AstTypes.TSInterfaceDeclaration;
-					app.body.body.push(locals);
+					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
 
 				const user = locals.body.body.find((prop) => hasTypeProp('user', prop));
@@ -766,12 +709,6 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 			}
 		}
 	};
-}
-
-function hasTypeProp(name: string, node: AstTypes.TSInterfaceDeclaration['body']['body'][number]) {
-	return (
-		node.type === 'TSPropertySignature' && node.key.type === 'Identifier' && node.key.name === name
-	);
 }
 
 function usingSequence(node: AstTypes.VariableDeclarator, handleName: string) {

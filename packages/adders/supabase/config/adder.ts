@@ -1,5 +1,13 @@
-import { defineAdderConfig, dedent, type TextFileEditor, colors } from '@svelte-cli/core';
+import {
+	defineAdderConfig,
+	dedent,
+	type TextFileEditor,
+	colors,
+	type AstTypes
+} from '@svelte-cli/core';
 import { options as availableOptions } from './options.ts';
+import { getOrCreateAppLocalsInterface, hasTypeProp } from '../../common.ts';
+import { imports } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -70,7 +78,6 @@ export const adder = defineAdderConfig({
 					${isTs && isDemo ? `import { type Handle, redirect } from '@sveltejs/kit'` : ''}
 					${isTs && !isDemo ? `import type { Handle } from '@sveltejs/kit'` : ''}
 					import { sequence } from '@sveltejs/kit/hooks'
-
 					import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public'
 
 					const supabase${isTs ? ': Handle' : ''} = async ({ event, resolve }) => {
@@ -139,33 +146,58 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => './src/app.d.ts',
-			contentType: 'text',
+			contentType: 'script',
 			condition: ({ options, typescript }) => typescript && options.auth.length > 0,
-			content: ({ options }) => {
+			content: ({ ast, options, typescript }) => {
 				const { cli: isCli, helpers: isHelpers } = options;
 
-				return dedent`
-					import type { Session, SupabaseClient, User } from '@supabase/supabase-js'
-					${isCli && isHelpers ? `import type { Database } from '$lib/supabase-types'\n` : ''}
-					declare global {
-						namespace App {
-							// interface Error {}
-							interface Locals {
-								supabase: SupabaseClient${isCli && isHelpers ? '<Database>' : ''}
-								safeGetSession: () => Promise<{ session: Session | null; user: User | null }>
-								session: Session | null
-								user: User | null
-							}
-							interface PageData {
-								session: Session | null
-							}
-							// interface PageState {}
-							// interface Platform {}
-						}
-					}
+				imports.addNamed(
+					ast,
+					'@supabase/supabase-js',
+					{
+						Session: 'Session',
+						SupabaseClient: 'SupabaseClient',
+						User: 'User'
+					},
+					true
+				);
 
-					export {}
-					`;
+				if (isCli && isHelpers)
+					imports.addNamed(ast, '$lib/supabase-types', { Database: 'Database' }, true);
+
+				const locals = getOrCreateAppLocalsInterface(ast);
+				if (!locals) {
+					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
+				}
+
+				const supabase = locals.body.body.find((prop) => hasTypeProp('supabase', prop));
+
+				if (!supabase) {
+					locals.body.body.push(createSupabaseType('supabase', typescript));
+				}
+
+				// return dedent`
+				// 	import type { Session, SupabaseClient, User } from '@supabase/supabase-js'
+				// 	${isCli && isHelpers ? `import type { Database } from '$lib/supabase-types'\n` : ''}
+				// 	declare global {
+				// 		namespace App {
+				// 			// interface Error {}
+				// 			interface Locals {
+				// 				supabase: SupabaseClient${isCli && isHelpers ? '<Database>' : ''}
+				// 				safeGetSession: () => Promise<{ session: Session | null; user: User | null }>
+				// 				session: Session | null
+				// 				user: User | null
+				// 			}
+				// 			interface PageData {
+				// 				session: Session | null
+				// 			}
+				// 			// interface PageState {}
+				// 			// interface Platform {}
+				// 		}
+				// 	}
+
+				// 	export {}
+				// 	`;
 			}
 		},
 		{
@@ -971,4 +1003,41 @@ function addEnvVar(content: string, key: string, value: string) {
 function appendContent(existing: string, content: string) {
 	const withNewLine = !existing.length || existing.endsWith('\n') ? existing : existing + '\n';
 	return withNewLine + content + '\n';
+}
+
+function createSupabaseType(
+	name: string,
+	typescript: boolean
+): AstTypes.TSInterfaceBody['body'][number] {
+	return {
+		type: 'TSPropertySignature',
+		key: {
+			type: 'Identifier',
+			name
+		},
+		typeAnnotation: {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSTypeReference',
+				typeName: {
+					type: 'Identifier',
+					name: 'SupabaseClient'
+				},
+				typeParameters: typescript
+					? {
+							type: 'TSTypeParameterInstantiation',
+							params: [
+								{
+									type: 'TSTypeReference',
+									typeName: {
+										type: 'Identifier',
+										name: 'Database'
+									}
+								}
+							]
+						}
+					: undefined
+			}
+		}
+	};
 }
