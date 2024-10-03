@@ -6,7 +6,7 @@ import {
 	type AstTypes
 } from '@svelte-cli/core';
 import { options as availableOptions } from './options.ts';
-import { getOrCreateAppLocalsInterface, hasTypeProp } from '../../common.ts';
+import { getOrCreateAppInterface, hasTypeProp } from '../../common.ts';
 import { imports } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
@@ -165,39 +165,28 @@ export const adder = defineAdderConfig({
 				if (isCli && isHelpers)
 					imports.addNamed(ast, '$lib/supabase-types', { Database: 'Database' }, true);
 
-				const locals = getOrCreateAppLocalsInterface(ast);
+				const locals = getOrCreateAppInterface(ast, 'Locals');
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
 
 				const supabase = locals.body.body.find((prop) => hasTypeProp('supabase', prop));
+				const safeGetSession = locals.body.body.find((prop) => hasTypeProp('safeGetSession', prop));
+				const session = locals.body.body.find((prop) => hasTypeProp('session', prop));
+				const user = locals.body.body.find((prop) => hasTypeProp('user', prop));
 
-				if (!supabase) {
-					locals.body.body.push(createSupabaseType('supabase', typescript));
+				if (!supabase) locals.body.body.push(createSupabaseType('supabase', typescript));
+				if (!safeGetSession) locals.body.body.push(createSafeGetSessionType('safeGetSession'));
+				if (!session) locals.body.body.push(createSessionType('session'));
+				if (!user) locals.body.body.push(createUserType('user'));
+
+				const pageData = getOrCreateAppInterface(ast, 'PageData');
+				if (!pageData) {
+					throw new Error('Failed detecting `pageData` interface in `src/app.d.ts`');
 				}
 
-				// return dedent`
-				// 	import type { Session, SupabaseClient, User } from '@supabase/supabase-js'
-				// 	${isCli && isHelpers ? `import type { Database } from '$lib/supabase-types'\n` : ''}
-				// 	declare global {
-				// 		namespace App {
-				// 			// interface Error {}
-				// 			interface Locals {
-				// 				supabase: SupabaseClient${isCli && isHelpers ? '<Database>' : ''}
-				// 				safeGetSession: () => Promise<{ session: Session | null; user: User | null }>
-				// 				session: Session | null
-				// 				user: User | null
-				// 			}
-				// 			interface PageData {
-				// 				session: Session | null
-				// 			}
-				// 			// interface PageState {}
-				// 			// interface Platform {}
-				// 		}
-				// 	}
-
-				// 	export {}
-				// 	`;
+				const pageDataSession = pageData.body.body.find((prop) => hasTypeProp('session', prop));
+				if (!pageDataSession) pageData.body.body.push(createSessionType('session'));
 			}
 		},
 		{
@@ -1037,6 +1026,98 @@ function createSupabaseType(
 							]
 						}
 					: undefined
+			}
+		}
+	};
+}
+
+function createSafeGetSessionType(name: string): AstTypes.TSInterfaceBody['body'][number] {
+	return {
+		type: 'TSPropertySignature',
+		key: {
+			type: 'Identifier',
+			name
+		},
+		typeAnnotation: {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSFunctionType',
+				typeAnnotation: {
+					type: 'TSTypeAnnotation',
+					typeAnnotation: {
+						type: 'TSTypeReference',
+						typeName: {
+							type: 'Identifier',
+							name: 'Promise'
+						},
+						typeParameters: {
+							type: 'TSTypeParameterInstantiation',
+							params: [
+								{
+									type: 'TSTypeLiteral',
+									members: [createSessionType('session'), createUserType('user')]
+								}
+							]
+						}
+					}
+				},
+				parameters: []
+			}
+		}
+	};
+}
+
+function createSessionType(name: string): AstTypes.TSPropertySignature {
+	return {
+		type: 'TSPropertySignature',
+		key: {
+			type: 'Identifier',
+			name
+		},
+		typeAnnotation: {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSUnionType',
+				types: [
+					{
+						type: 'TSTypeReference',
+						typeName: {
+							type: 'Identifier',
+							name: 'Session'
+						}
+					},
+					{
+						type: 'TSNullKeyword'
+					}
+				]
+			}
+		}
+	};
+}
+
+function createUserType(name: string): AstTypes.TSPropertySignature {
+	return {
+		type: 'TSPropertySignature',
+		key: {
+			type: 'Identifier',
+			name
+		},
+		typeAnnotation: {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSUnionType',
+				types: [
+					{
+						type: 'TSTypeReference',
+						typeName: {
+							type: 'Identifier',
+							name: 'User'
+						}
+					},
+					{
+						type: 'TSNullKeyword'
+					}
+				]
 			}
 		}
 	};

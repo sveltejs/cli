@@ -58,70 +58,65 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 	}
 }
 
-export function getOrCreateAppLocalsInterface(ast: AstTypes.Program) {
-	const globalDecl = ast.body
+export function getOrCreateAppInterface(
+	ast: AstTypes.Program,
+	name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform'
+) {
+	let globalDecl = ast.body
 		.filter((n) => n.type === 'TSModuleDeclaration')
 		.find((m) => m.global && m.declare);
 
-	if (globalDecl?.body?.type !== 'TSModuleBlock') {
+	if (globalDecl && globalDecl?.body?.type !== 'TSModuleBlock') {
 		throw new Error('Unexpected body type of `declare global` in `src/app.d.ts`');
 	}
 
 	if (!globalDecl) {
 		const decl = common.statementFromString(`
-						declare global {
-							namespace App {
-								interface Locals {
-									user: import('lucia').User | null;
-									session: import('lucia').Session | null;
-								}
-							}
-						}`);
+			declare global {}`) as AstTypes.TSModuleDeclaration;
 		ast.body.push(decl);
-		return;
+		globalDecl = decl;
+	}
+
+	if (!globalDecl || !globalDecl.body || !globalDecl.body.body) {
+		throw new Error('Failed processing global declaration');
 	}
 
 	let app: AstTypes.TSModuleDeclaration | undefined;
-	let locals: AstTypes.TSInterfaceDeclaration | undefined;
+	let interfaceNode: AstTypes.TSInterfaceDeclaration | undefined;
 
 	// prettier-ignore
 	Walker.walk(globalDecl as AstTypes.ASTNode, {}, {
-					TSModuleDeclaration(node, { next }) {
-						if (node.id.type === 'Identifier' && node.id.name === 'App') {
-							app = node;
-						}
-						next();
-					},
-					TSInterfaceDeclaration(node) {
-						if (node.id.type === 'Identifier' && node.id.name === 'Locals') {
-							locals = node;
-						}
-					},
-				});
+		TSModuleDeclaration(node, { next }) {
+			if (node.id.type === 'Identifier' && node.id.name === 'App') {
+				app = node;
+			}
+			next();
+		},
+		TSInterfaceDeclaration(node) {
+			if (node.id.type === 'Identifier' && node.id.name === name) {
+				interfaceNode = node;
+			}
+		},
+	});
 
 	if (!app) {
-		app ??= common.statementFromString(`
-						namespace App {
-							interface Locals {
-								user: import('lucia').User | null;
-								session: import('lucia').Session | null;
-							}
-						}`) as AstTypes.TSModuleDeclaration;
-		globalDecl.body.body.push(app);
-		return;
+		app ??= common.statementFromString('namespace App {}') as AstTypes.TSModuleDeclaration;
+		(globalDecl.body as AstTypes.TSModuleBlock).body.push(app);
 	}
 
 	if (app.body?.type !== 'TSModuleBlock') {
 		throw new Error('Unexpected body type of `namespace App` in `src/app.d.ts`');
 	}
 
-	if (!locals) {
-		// add Locals interface it if it's missing
-		locals = common.statementFromString('interface Locals {}') as AstTypes.TSInterfaceDeclaration;
-		app.body.body.push(locals);
+	if (!interfaceNode) {
+		// add interface it if it's missing
+		interfaceNode = common.statementFromString(
+			`interface ${name} {}`
+		) as AstTypes.TSInterfaceDeclaration;
+		app.body.body.push(interfaceNode);
 	}
 
-	return locals;
+	return interfaceNode;
 }
 
 export function hasTypeProp(

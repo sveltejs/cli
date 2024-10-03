@@ -3,7 +3,7 @@ import { colors, dedent, defineAdderConfig, log, Walker } from '@svelte-cli/core
 import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstKinds, AstTypes } from '@svelte-cli/core/js';
-import { getOrCreateAppLocalsInterface, hasTypeProp } from '../../common.ts';
+import { getOrCreateAppInterface, hasTypeProp } from '../../common.ts';
 
 const LUCIA_ADAPTER = {
 	mysql: 'DrizzleMySQLAdapter',
@@ -239,7 +239,7 @@ export const adder = defineAdderConfig({
 			condition: ({ typescript }) => typescript,
 			contentType: 'script',
 			content: ({ ast }) => {
-				const locals = getOrCreateAppLocalsInterface(ast);
+				const locals = getOrCreateAppInterface(ast, 'Locals');
 
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
