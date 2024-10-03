@@ -3,7 +3,6 @@
 	import { confetti } from '@neoconfetti/svelte';
 	import type { ActionData, PageData } from './$types';
 	import { reduced_motion } from './reduced-motion';
-	import { untrack } from 'svelte';
 
 	interface Props {
 		data: PageData;
@@ -52,18 +51,16 @@
 		let description: Record<string, string> = {};
 		data.answers.forEach((answer, i) => {
 			const guess = data.guesses[i];
-			untrack(() => {
-				for (let i = 0; i < 5; i += 1) {
-					const letter = guess[i];
-					if (answer[i] === 'x') {
-						classnames[letter] = 'exact';
-						description[letter] = 'correct';
-					} else if (!classnames[letter]) {
-						classnames[letter] = answer[i] === 'c' ? 'close' : 'missing';
-						description[letter] = answer[i] === 'c' ? 'present' : 'absent';
-					}
+			for (let i = 0; i < 5; i += 1) {
+				const letter = guess[i];
+				if (answer[i] === 'x') {
+					classnames[letter] = 'exact';
+					description[letter] = 'correct';
+				} else if (!classnames[letter]) {
+					classnames[letter] = answer[i] === 'c' ? 'close' : 'missing';
+					description[letter] = answer[i] === 'c' ? 'present' : 'absent';
 				}
-			});
+			}
 		});
 		return { classnames, description };
 	});
