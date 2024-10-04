@@ -16,7 +16,7 @@
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
-		"@types/better-sqlite3": "^7.6.10",
+		"@types/better-sqlite3": "^7.6.11",
 		"drizzle-kit": "^0.22.0",
 		"svelte": "^5.0.0-next.1",
 		"svelte-check": "^4.0.0",
@@ -25,9 +25,9 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"better-sqlite3": "^10.0.0",
-		"drizzle-orm": "^0.31.2",
-		"mysql2": "^3.9.8",
+		"better-sqlite3": "^11.1.2",
+		"drizzle-orm": "^0.33.0",
+		"mysql2": "^3.11.0",
 		"postgres": "^3.4.4"
 	}
 }

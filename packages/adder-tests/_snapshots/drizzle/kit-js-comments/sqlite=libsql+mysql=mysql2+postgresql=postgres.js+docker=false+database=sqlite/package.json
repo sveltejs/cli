@@ -24,9 +24,9 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@libsql/client": "^0.6.1",
-		"drizzle-orm": "^0.31.2",
-		"mysql2": "^3.9.8",
+		"@libsql/client": "^0.9.0",
+		"drizzle-orm": "^0.33.0",
+		"mysql2": "^3.11.0",
 		"postgres": "^3.4.4"
 	}
 }
