@@ -77,6 +77,7 @@ export async function startDevServer(
 		return await new Promise((resolve) => {
 			program.stdout?.on('data', (data: Buffer) => {
 				const value = data.toString();
+				console.log('dev ' + value);
 
 				// extract dev server url from console output
 				const regexUnicode = /[^\x20-\xaf]+/g;
@@ -106,13 +107,18 @@ export async function stopDevServer(devServer: ChildProcessWithoutNullStreams) {
 	await forceKill(devServer);
 }
 
-export function generateTestCases(adders: AdderWithoutExplicitArgs[], addersOutputPath: string) {
+export function generateTestCases(
+	adders: AdderWithoutExplicitArgs[],
+	addersOutputPath: string,
+	options: { ignoreEmptyTests: boolean }
+) {
 	const testCases = new Map<string, TestCase[]>();
 	for (const adder of adders) {
 		const adderId = adder.config.metadata.id;
 		const adderTestCases: TestCase[] = [];
 		const testData = adder.tests;
-		if (!testData || !testData.tests || testData.tests.length == 0) continue;
+		if (!testData || !testData.tests || (options.ignoreEmptyTests && testData.tests.length == 0))
+			continue;
 
 		for (const template of ProjectTypesList) {
 			const environments = adder.config.metadata.environments;

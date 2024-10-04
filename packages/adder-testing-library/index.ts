@@ -28,7 +28,7 @@ export function runEndToEndTests(
 	const outputPath = path.join(process.cwd(), outputDirectory);
 	const templatesPath = path.join(outputPath, templatesDirectoryName);
 	const addersOutputPath = path.join(outputPath, addersDirectoryName);
-	const testCases = generateTestCases(adders, addersOutputPath);
+	const testCases = generateTestCases(adders, addersOutputPath, { ignoreEmptyTests: true });
 
 	beforeAll(async () => {
 		await prepareEndToEndTests(outputPath, templatesPath, addersOutputPath, adders, testCases);
@@ -87,7 +87,7 @@ export function runSnaphsotTests(
 	const outputPath = path.join(process.cwd(), outputDirectory);
 	const templatesPath = path.join(outputPath, templatesDirectoryName);
 	const addersOutputPath = path.join(outputPath, addersDirectoryName);
-	const testCases = generateTestCases(adders, addersOutputPath);
+	const testCases = generateTestCases(adders, addersOutputPath, { ignoreEmptyTests: false });
 
 	// only process inline adders, as we don't know which files external adders will modify
 	adders = adders.filter((x) => x.config.integrationType == 'inline');
