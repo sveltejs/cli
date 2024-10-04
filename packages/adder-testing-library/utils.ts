@@ -1,4 +1,4 @@
-import degit from 'degit';
+import tiged from 'tiged';
 import { execSync, spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -54,9 +54,9 @@ export async function downloadProjectTemplates(outputPath: string) {
 			});
 		} else {
 			const templateName =
-				templateType == ProjectTypes.Svelte_TS ? 'template-svelte-ts' : 'template-svelte-ts';
+				templateType == ProjectTypes.Svelte_TS ? 'template-svelte-ts' : 'template-svelte';
 
-			const emitter = degit(`vitejs/vite/packages/create-vite/${templateName}`, {
+			const emitter = tiged(`vitejs/vite/packages/create-vite/${templateName}`, {
 				cache: false,
 				force: true,
 				verbose: false
