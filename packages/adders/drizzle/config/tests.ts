@@ -1,5 +1,7 @@
-import { defineAdderTests } from '@svelte-cli/core';
 import { options } from './options.ts';
+import { defineAdderTests } from '@svelte-cli/core';
+import { common } from '@svelte-cli/core/js';
+import { addFromRawHtml } from '@svelte-cli/core/html';
 import path from 'path';
 import url from 'url';
 import { execSync } from 'child_process';
@@ -26,10 +28,10 @@ export const tests = defineAdderTests({
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
 			contentType: 'svelte',
 			condition: ({ kit }) => Boolean(kit),
-			content: ({ html, js }) => {
-				js.common.addFromString(js.ast, 'export let data;');
-				html.addFromRawHtml(
-					html.ast.childNodes,
+			content: ({ htmlAst, jsAst }) => {
+				common.addFromString(jsAst, 'export let data;');
+				addFromRawHtml(
+					htmlAst.childNodes,
 					`
                     {#each data.users as user}
                         <span data-test-id="user-id-{user.id}">{user.id} {user.name}</span>
@@ -43,7 +45,7 @@ export const tests = defineAdderTests({
 				`${kit?.routesDirectory}/+page.server.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
 			condition: ({ kit }) => Boolean(kit),
-			content: ({ ast, common, typescript }) => {
+			content: ({ ast, typescript }) => {
 				common.addFromString(
 					ast,
 					`

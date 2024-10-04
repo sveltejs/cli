@@ -1,39 +1,16 @@
-export type CategoryKeys = 'codeQuality' | 'css' | 'db' | 'testing' | 'additional';
+export type Category = (typeof categories)[number];
+export type CommunityCategory = (typeof communityCategories)[number];
 
-export type CategoryInfo = {
-	id: CategoryKeys;
-	name: string;
-	description: string;
-};
+export type AdderCategories = Record<Category, string[]>;
 
-export type CategoryDetails = Record<CategoryKeys, CategoryInfo>;
+// the order defined here is how it'll be shown in the prompt
+export const categories = [
+	'Code Quality',
+	'Testing',
+	'CSS',
+	'Database',
+	'Auth',
+	'Additional Functionality'
+] as const;
 
-export type AdderCategories = Record<CategoryKeys, string[]>;
-
-export const categories: CategoryDetails = {
-	codeQuality: {
-		id: 'codeQuality',
-		name: 'Code Quality',
-		description: ''
-	},
-	testing: {
-		id: 'testing',
-		name: 'Testing',
-		description: ''
-	},
-	css: {
-		id: 'css',
-		name: 'CSS',
-		description: 'Can be used to style your components'
-	},
-	db: {
-		id: 'db',
-		name: 'Database',
-		description: ''
-	},
-	additional: {
-		id: 'additional',
-		name: 'Additional functionality',
-		description: ''
-	}
-};
+export const communityCategories = ['Icon'] as const;

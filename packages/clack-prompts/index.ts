@@ -576,7 +576,7 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 };
 
 const strip = (str: string) => str.replace(ansiRegex(), '');
-export const note = (message = '', title = ''): void => {
+function buildBox(message = '', title = '', dimmed = true) {
 	const lines = `\n${message}\n`.split('\n');
 	const titleLen = strip(title).length;
 	const len =
@@ -590,9 +590,7 @@ export const note = (message = '', title = ''): void => {
 	const msg = lines
 		.map(
 			(ln) =>
-				`${color.gray(S_BAR)}  ${color.dim(ln)}${' '.repeat(len - strip(ln).length)}${color.gray(
-					S_BAR
-				)}`
+				`${color.gray(S_BAR)}  ${dimmed ? color.dim(ln) : ln}${' '.repeat(len - strip(ln).length)}${color.gray(S_BAR)}`
 		)
 		.join('\n');
 	process.stdout.write(
@@ -600,7 +598,10 @@ export const note = (message = '', title = ''): void => {
 			S_BAR_H.repeat(Math.max(len - titleLen - 1, 1)) + S_CORNER_TOP_RIGHT
 		)}\n${msg}\n${color.gray(S_CONNECT_LEFT + S_BAR_H.repeat(len + 2) + S_CORNER_BOTTOM_RIGHT)}\n`
 	);
-};
+}
+
+export const note = (message = '', title = ''): void => buildBox(message, title, true);
+export const box = (message = '', title = ''): void => buildBox(message, title, false);
 
 export const cancel = (message = ''): void => {
 	process.stdout.write(`${color.gray(S_BAR_END)}  ${color.red(message)}\n\n`);

@@ -1,13 +1,4 @@
 import {
-	type CssAstEditor,
-	type HtmlAstEditor,
-	type JsAstEditor,
-	type SvelteAstEditor,
-	getCssAstEditor,
-	getHtmlAstEditor,
-	getJsAstEditor
-} from '@svelte-cli/ast-manipulation';
-import {
 	parseHtml,
 	parseJson,
 	parsePostcss,
@@ -17,18 +8,29 @@ import {
 	serializeJson,
 	serializePostcss,
 	serializeScript,
-	serializeSvelteFile
+	serializeSvelteFile,
+	type AstTypes,
+	type CssAst,
+	type HtmlDocument
 } from '@svelte-cli/ast-tooling';
 import { fileExistsWorkspace, readFile, writeFile } from './utils.ts';
 import type { ConditionDefinition } from '../adder/config.ts';
 import type { OptionDefinition } from '../adder/options.ts';
 import type { Workspace } from './workspace.ts';
 
-export type CssFileEditor<Args extends OptionDefinition> = Workspace<Args> & CssAstEditor;
-export type HtmlFileEditor<Args extends OptionDefinition> = Workspace<Args> & HtmlAstEditor;
+export type CssFileEditor<Args extends OptionDefinition> = Workspace<Args> & { ast: CssAst };
+export type HtmlFileEditor<Args extends OptionDefinition> = Workspace<Args> & { ast: HtmlDocument };
 export type JsonFileEditor<Args extends OptionDefinition> = Workspace<Args> & { data: any };
-export type ScriptFileEditor<Args extends OptionDefinition> = Workspace<Args> & JsAstEditor;
-export type SvelteFileEditor<Args extends OptionDefinition> = Workspace<Args> & SvelteAstEditor;
+export type ScriptFileEditor<Args extends OptionDefinition> = Workspace<Args> & {
+	ast: AstTypes.Program;
+	source: string;
+};
+export type SvelteFileEditor<Args extends OptionDefinition> = Workspace<Args> & {
+	jsAst: AstTypes.Program;
+	htmlAst: HtmlDocument;
+	cssAst: CssAst;
+	source: string;
+};
 export type TextFileEditor<Args extends OptionDefinition> = Workspace<Args> & { content: string };
 
 type CssFile<Args extends OptionDefinition> = {
@@ -127,9 +129,8 @@ function handleCssFile<Args extends OptionDefinition>(
 ) {
 	const ast = parsePostcss(content);
 	ast.raws.semicolon = true; // always add the optional semicolon
-	const editor = getCssAstEditor(ast);
 
-	fileDetails.content({ ...editor, ...workspace });
+	fileDetails.content({ ast, ...workspace });
 	content = serializePostcss(ast);
 	return content;
 }
@@ -140,9 +141,8 @@ function handleHtmlFile<Args extends OptionDefinition>(
 	workspace: Workspace<Args>
 ) {
 	const ast = parseHtml(content);
-	const editor = getHtmlAstEditor(ast);
 
-	fileDetails.content({ ...editor, ...workspace });
+	fileDetails.content({ ast, ...workspace });
 	content = serializeHtml(ast);
 	return content;
 }
@@ -166,10 +166,10 @@ function handleScriptFile<Args extends OptionDefinition>(
 	workspace: Workspace<Args>
 ) {
 	const ast = parseScript(content);
-	const editor = getJsAstEditor(ast);
 
 	fileDetails.content({
-		...editor,
+		ast,
+		source: content,
 		...workspace
 	});
 	content = serializeScript(ast);
@@ -181,19 +181,15 @@ function handleSvelteFile<Args extends OptionDefinition>(
 	fileDetails: SvelteFile<Args>,
 	workspace: Workspace<Args>
 ) {
-	const { cssAst, htmlAst, jsAst } = parseSvelteFile(content);
-	const css = getCssAstEditor(cssAst);
-	const html = getHtmlAstEditor(htmlAst);
-	const js = getJsAstEditor(jsAst);
+	const asts = parseSvelteFile(content);
 
 	fileDetails.content({
-		css,
-		html,
-		js,
+		...asts,
+		source: content,
 		...workspace
 	});
 
-	return serializeSvelteFile({ cssAst, htmlAst, jsAst });
+	return serializeSvelteFile(asts);
 }
 
 function handleTextFile<Args extends OptionDefinition>(

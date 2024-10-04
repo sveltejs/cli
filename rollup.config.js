@@ -1,3 +1,4 @@
+// @ts-check
 import fs from 'node:fs';
 import path from 'node:path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
@@ -19,12 +20,26 @@ import MagicString from 'magic-string';
  * @returns {RollupOptions}
  */
 function getConfig(project) {
-	const inputs = [`./packages/${project}/index.ts`];
-	const outDir = `./packages/${project}/dist`;
+	const projectRoot = `./packages/${project}`;
+	const outDir = `${projectRoot}/dist`;
 
-	if (project === 'core') inputs.push(`./packages/${project}/internal.ts`);
+	/** @type {RollupOptions["input"]} */
+	let inputs;
 
-	const projectRoot = path.resolve(path.join(outDir, '..'));
+	if (project === 'core') {
+		inputs = {
+			index: `${projectRoot}/index.ts`,
+			internal: `${projectRoot}/internal.ts`,
+			css: `${projectRoot}/tooling/css/index.ts`,
+			html: `${projectRoot}/tooling/html/index.ts`,
+			js: `${projectRoot}/tooling/js/index.ts`
+		};
+	} else if (project === 'cli') {
+		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/bin.ts`];
+	} else {
+		inputs = [`${projectRoot}/index.ts`];
+	}
+
 	fs.rmSync(outDir, { force: true, recursive: true });
 
 	/** @type {PackageJson} */
@@ -66,11 +81,11 @@ function getConfig(project) {
 		communityAdderIdsPlugin = {
 			name: 'evaluate-community-adder-ids',
 			transform(code, id) {
-				if (id.endsWith('_config/community.ts')) {
+				if (id.endsWith(`_config${path.sep}community.ts`)) {
 					const ms = new MagicString(code, { filename: id });
 					const start = code.indexOf('export const communityAdderIds');
 					const end = code.indexOf(';', start);
-					const ids = fs.readdirSync('community').map((p) => path.parse(p).name);
+					const ids = fs.readdirSync('community-adders').map((p) => path.parse(p).name);
 					const generated = `export const communityAdderIds = ${JSON.stringify(ids)};`;
 					ms.overwrite(start, end, generated);
 					return {
@@ -92,17 +107,11 @@ function getConfig(project) {
 		external,
 		plugins: [
 			preserveShebangs(),
-			'exports' in pkg && dts(),
-			esbuild({ tsconfig: 'tsconfig.json', sourceRoot: projectRoot }),
+			'exports' in pkg && dts({ include: project === 'cli' ? [inputs[0]] : undefined }),
+			esbuild(),
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
-			// The types don't seem to be resolving correctly for the default imports of these 3 plugins.
-			// This is likely an upstream issue with the `package.json` configuration when
-			// `moduleResolution` is set to `Node16` or `NodeNext`.
-			// @ts-ignore
 			commonjs(),
-			// @ts-ignore
 			json(),
-			// @ts-ignore
 			dynamicImportVars({
 				// since we're relying on the usage of standard dynamic imports for community adders, we need to
 				// prevent this plugin from transforming these cases
@@ -119,7 +128,6 @@ export default [
 	getConfig('clack-core'),
 	getConfig('clack-prompts'),
 	getConfig('ast-tooling'),
-	getConfig('ast-manipulation'),
 	getConfig('create'),
 	getConfig('core'),
 	getConfig('cli')

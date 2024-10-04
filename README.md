@@ -12,7 +12,7 @@ Read the [SvelteKit documentation](https://kit.svelte.dev/docs) for more details
 
 ## Community adders
 
-Get started on [creating your own community adder](/adder-template/README.md).
+Get started on [creating your own community adder](/community-adder-template/README.md).
 
 [Additional adders](https://www.sveltesociety.dev/packages?category=svelte-add) are maintained by the community.
 

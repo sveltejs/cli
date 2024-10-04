@@ -1,12 +1,8 @@
+import { imports, exports, common } from '@svelte-cli/core/js';
 import type { ScriptFileEditor } from '@svelte-cli/core';
-import type { Question } from '../core/internal.ts';
+import type { Question } from '@svelte-cli/core/internal';
 
-export function addEslintConfigPrettier({
-	ast,
-	imports,
-	exports,
-	common
-}: ScriptFileEditor<Record<string, Question>>) {
+export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string, Question>>) {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
 	const sveltePluginImport = importNodes.find(
