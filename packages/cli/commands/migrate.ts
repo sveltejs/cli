@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import { Command } from 'commander';
 
 export const migrate = new Command('migrate')
-	.description('A CLI for migrating Svelte(Kit) codebases')
+	.description('a CLI for migrating Svelte(Kit) codebases')
 	.argument('<migration>', 'migration to run')
 	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
 	.configureHelp({

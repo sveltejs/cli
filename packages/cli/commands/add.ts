@@ -54,7 +54,7 @@ const defaultPkgPath = findUp(process.cwd(), 'package.json');
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 
 export const add = new Command('add')
-	.description('Applies specified adders into a project')
+	.description('applies specified adders into a project')
 	.argument('[adder...]', 'adders to install')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
