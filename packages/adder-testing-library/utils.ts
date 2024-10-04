@@ -77,7 +77,6 @@ export async function startDevServer(
 		return await new Promise((resolve) => {
 			program.stdout?.on('data', (data: Buffer) => {
 				const value = data.toString();
-				console.log('dev ' + value);
 
 				// extract dev server url from console output
 				const regexUnicode = /[^\x20-\xaf]+/g;
