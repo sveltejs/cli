@@ -128,27 +128,3 @@ export const commonFilePaths = {
 	tsconfig: 'tsconfig.json',
 	viteConfigTS: 'vite.config.ts'
 } as const;
-
-export function findUp(searchPath: string, fileName: string, maxDepth = -1): string | undefined {
-	// partially sourced from https://github.com/privatenumber/get-tsconfig/blob/9e78ec52d450d58743439358dd88e2066109743f/src/utils/find-up.ts#L5
-	let depth = 0;
-	while (maxDepth < 0 || depth < maxDepth) {
-		const configPath = path.posix.join(searchPath, fileName);
-
-		try {
-			// `access` throws an exception if the file could not be found
-			fs.accessSync(configPath);
-			return configPath;
-		} catch {
-			const parentPath = path.dirname(searchPath);
-			if (parentPath === searchPath) {
-				// root directory
-				return;
-			}
-
-			searchPath = parentPath;
-		}
-
-		depth++;
-	}
-}

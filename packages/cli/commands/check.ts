@@ -1,11 +1,9 @@
-import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import pc from 'picocolors';
+import * as resolve from 'empathic/resolve';
 import { Command } from 'commander';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getUserAgent } from '../common.ts';
-
-const require = createRequire(import.meta.url);
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
@@ -30,9 +28,8 @@ function runCheck(cwd: string, args: string[]) {
 	const pm = getUserAgent() ?? 'npm';
 
 	// validates that `svelte-check` is locally installed
-	try {
-		require.resolve('svelte-check', { paths: [cwd] });
-	} catch {
+	const resolved = resolve.from(cwd, 'svelte-check', true);
+	if (!resolved) {
 		const cmd = resolveCommand(pm, 'add', ['-D', 'svelte-check'])!;
 		console.error(
 			`'svelte-check' is not installed locally. Install it with: ${pc.bold(`${cmd.command} ${cmd.args.join(' ')}`)}`
