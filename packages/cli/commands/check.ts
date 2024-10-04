@@ -33,7 +33,7 @@ function runCheck(cwd: string, args: string[]) {
 	try {
 		require.resolve('svelte-check', { paths: [cwd] });
 	} catch {
-		const cmd = resolveCommand(pm, 'add', ['svelte-check'])!;
+		const cmd = resolveCommand(pm, 'add', ['-D', 'svelte-check'])!;
 		console.error(
 			`'svelte-check' is not installed locally. Install it with: ${pc.bold(`${cmd.command} ${cmd.args.join(' ')}`)}`
 		);
