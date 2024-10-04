@@ -62,6 +62,9 @@ importers:
       sv:
         specifier: workspace:*
         version: link:packages/cli
+      svelte:
+        specifier: ^5.0.0-next.1
+        version: 5.0.0-next.262
       typescript:
         specifier: ^5.6.2
         version: 5.6.2
@@ -218,9 +221,6 @@ importers:
       sucrase:
         specifier: ^3.34.0
         version: 3.35.0
-      svelte:
-        specifier: ^5.0.0-next.1
-        version: 5.0.0-next.262
       tiny-glob:
         specifier: ^0.2.9
         version: 0.2.9

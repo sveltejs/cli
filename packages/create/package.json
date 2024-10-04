@@ -33,8 +33,7 @@
 		"@types/gitignore-parser": "^0.0.3",
 		"gitignore-parser": "^0.0.2",
 		"sucrase": "^3.34.0",
-		"tiny-glob": "^0.2.9",
-		"svelte": "^5.0.0-next.1"
+		"tiny-glob": "^0.2.9"
 	},
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
