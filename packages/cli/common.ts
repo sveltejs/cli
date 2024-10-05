@@ -96,7 +96,7 @@ export async function guessPackageManager(cwd: string): Promise<AgentName> {
 	return pm?.name ?? getUserAgent() ?? 'npm';
 }
 
-function getUserAgent() {
+export function getUserAgent() {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;
 	const pmSpec = userAgent.split(' ')[0];

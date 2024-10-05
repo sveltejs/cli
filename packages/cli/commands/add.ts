@@ -4,6 +4,7 @@ import * as v from 'valibot';
 import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
+import * as pkg from 'empathic/package';
 import pc from 'picocolors';
 import {
 	adderCategories,
@@ -16,7 +17,6 @@ import {
 import {
 	createOrUpdateFiles,
 	createWorkspace,
-	findUp,
 	installPackages,
 	TESTING
 } from '@svelte-cli/core/internal';
@@ -50,11 +50,11 @@ const addersOptions = getAdderOptionFlags();
 const communityDetails: AdderWithoutExplicitArgs[] = [];
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
-const defaultPkgPath = findUp(process.cwd(), 'package.json');
+const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 
 export const add = new Command('add')
-	.description('Applies specified adders into a project')
+	.description('applies specified adders into a project')
 	.argument('[adder...]', 'adders to install')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
@@ -460,8 +460,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	}
 
 	// install dependencies
-	let depsStatus;
-	if (options.install) {
+	let depsStatus: 'installed' | 'skipped' | undefined;
+	if (options.install && selectedAdders.length > 0) {
 		depsStatus = await common.suggestInstallingDependencies(options.cwd);
 	}
 
@@ -635,7 +635,7 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 	const groups: Record<string, string[]> = {};
 	const options: Record<string, unknown> = {};
 	for (const [id, question] of Object.entries(details.config.options)) {
-		let values = [];
+		let values: string[] = [];
 		const applyDefault = question.condition?.(options) !== false;
 		if (question.type === 'boolean') {
 			values = [id, `no-${id}`];
