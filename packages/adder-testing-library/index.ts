@@ -6,13 +6,12 @@ import {
 	generateTestCases,
 	prepareEndToEndTests,
 	prepareSnaphotTests,
+	runAdder,
 	startDevServer,
 	stopDevServer,
 	type TestCase
 } from './utils.ts';
 import { startTests } from './tests.ts';
-import { installPackages } from '../core/internal.ts';
-import { createOrUpdateFiles, createWorkspace } from '@svelte-cli/core/internal';
 
 const templatesDirectoryName = 'templates';
 const addersDirectoryName = 'adders';
@@ -90,15 +89,9 @@ export function runSnaphsotTests(
 			const { config } = testCase.adder;
 			if (config.integrationType !== 'inline') return;
 
-			const filesToFormat = new Set<string>();
-			const workspace = createWorkspace(testCase.cwd);
-			workspace.options = testCase.options;
-			const pkgPath = installPackages(config, workspace);
-			filesToFormat.add(pkgPath);
-			const changedFiles = createOrUpdateFiles(config.files, workspace);
-			changedFiles.forEach((file) => filesToFormat.add(file));
+			const filesToFormat = runAdder(testCase.adder, testCase.cwd, testCase.options, adders);
 
-			for (const changedFile of changedFiles) {
+			for (const changedFile of filesToFormat) {
 				const fullFilePath = path.join(testCase.cwd, changedFile);
 				const content = fs.readFileSync(fullFilePath).toString();
 

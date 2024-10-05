@@ -200,7 +200,7 @@ export async function prepareEndToEndTests(
 			const templatePath = path.join(templatesPath, testCase.template);
 			fs.cpSync(templatePath, testCase.cwd, { recursive: true });
 
-			applyAdderTasks.push(runAdder(testCase.adder, testCase.cwd, testCase.options));
+			applyAdderTasks.push(runAdder(testCase.adder, testCase.cwd, testCase.options, adders));
 		}
 
 		await Promise.all(applyAdderTasks);
@@ -254,10 +254,11 @@ export async function prepareSnaphotTests(
 	}
 }
 
-function runAdder(
+export function runAdder(
 	adder: AdderWithoutExplicitArgs,
 	cwd: string,
-	options: OptionValues<Record<string, Question>>
+	options: OptionValues<Record<string, Question>>,
+	adders: AdderWithoutExplicitArgs[]
 ) {
 	const { config } = adder;
 	const workspace = createWorkspace(cwd);
@@ -268,6 +269,25 @@ function runAdder(
 
 	// execute adders
 	if (config.integrationType === 'inline') {
+		if (config.dependsOn) {
+			for (const dependencyAdderId of config.dependsOn) {
+				const dependencyAdder = adders.find((x) => x.config.metadata.id == dependencyAdderId);
+
+				if (!dependencyAdder)
+					throw new Error(
+						`failed to find required dependency '${dependencyAdderId}' of adder ${adder.config.metadata.id}`
+					);
+
+				// apply default adder options
+				const options: Record<string, any> = {};
+				for (const [key, question] of Object.entries(dependencyAdder.config.options)) {
+					options[key] = question.default;
+				}
+
+				runAdder(dependencyAdder, cwd, options as OptionValues<Record<string, Question>>, adders);
+			}
+		}
+
 		const pkgPath = installPackages(config, workspace);
 		filesToFormat.add(pkgPath);
 		const changedFiles = createOrUpdateFiles(config.files, workspace);
@@ -287,4 +307,6 @@ function runAdder(
 	} else {
 		throw new Error('Unknown integration type');
 	}
+
+	return filesToFormat;
 }
