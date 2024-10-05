@@ -5,6 +5,7 @@ import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import * as pkg from 'empathic/package';
+import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
 	adderCategories,
@@ -575,8 +576,10 @@ async function processExternalAdder<Args extends OptionDefinition>(
 	if (!TESTING) p.log.message(`Executing external command ${pc.gray(`(${config.metadata.id})`)}`);
 
 	try {
+		const pm = await common.guessPackageManager(cwd);
+		const cmd = resolveCommand(pm, 'execute', config.command.split(' '))!;
 		const env = { ...process.env, ...config.environment };
-		await exec('npx', config.command.split(' '), {
+		await exec(cmd.command, cmd.args, {
 			nodeOptions: { cwd, env, stdio: TESTING ? 'pipe' : 'inherit' }
 		});
 	} catch (error) {

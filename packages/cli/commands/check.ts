@@ -39,6 +39,7 @@ function runCheck(cwd: string, args: string[]) {
 
 	// avoids printing the stack trace for `sv` when `svelte-check` exits with an error code
 	try {
-		execSync(`npx svelte-check ${args.join(' ')}`, { stdio: 'inherit', cwd });
+		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
+		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
 	} catch {}
 }
