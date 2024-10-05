@@ -14,15 +14,13 @@
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
-		"drizzle-kit": "^0.22.0",
+		"drizzle-kit": "^0.24.2",
 		"svelte": "^5.0.0-next.1",
 		"vite": "^5.0.3"
 	},
 	"type": "module",
 	"dependencies": {
 		"@libsql/client": "^0.9.0",
-		"drizzle-orm": "^0.33.0",
-		"mysql2": "^3.11.0",
-		"postgres": "^3.4.4"
+		"drizzle-orm": "^0.33.0"
 	}
 }
