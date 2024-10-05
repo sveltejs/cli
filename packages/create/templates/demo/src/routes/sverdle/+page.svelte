@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { confetti } from '@neoconfetti/svelte';
 	import type { ActionData, PageData } from './$types';
-	import { reduced_motion } from './reduced-motion';
+	import { reducedMotion } from './reduced-motion';
 
 	interface Props {
 		data: PageData;
@@ -203,7 +203,7 @@
 	<div
 		style="position: absolute; left: 50%; top: 30%"
 		use:confetti={{
-			particleCount: $reduced_motion ? 0 : undefined,
+			particleCount: $reducedMotion ? 0 : undefined,
 			force: 0.7,
 			stageWidth: window.innerWidth,
 			stageHeight: window.innerHeight,

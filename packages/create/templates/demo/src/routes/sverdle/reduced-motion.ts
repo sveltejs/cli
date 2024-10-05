@@ -8,7 +8,7 @@ const getInitialMotionPreference = () => {
 	return window.matchMedia(reducedMotionQuery).matches;
 };
 
-export const reduced_motion = readable(getInitialMotionPreference(), (set) => {
+export const reducedMotion = readable(getInitialMotionPreference(), (set) => {
 	if (browser) {
 		/**
 		 * @param {MediaQueryListEvent} event
