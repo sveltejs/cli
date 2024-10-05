@@ -77,7 +77,9 @@ export const tests = defineAdderTests({
 			}
 		}
 	],
-	beforeAll: async () => {
+	beforeAll: async (testType) => {
+		if (testType == 'snapshot') return;
+
 		console.log('Starting docker containers');
 		execSync('docker compose up --detach', { cwd: dockerComposeCwd, stdio: 'pipe' });
 
@@ -87,11 +89,15 @@ export const tests = defineAdderTests({
 		// we are waiting for them to startup
 		await new Promise((x) => setTimeout(x, 15000));
 	},
-	afterAll: () => {
+	afterAll: (testType) => {
+		if (testType == 'snapshot') return;
+
 		console.log('Stopping docker containers');
 		execSync('docker compose down --volumes', { cwd: dockerComposeCwd, stdio: 'pipe' });
 	},
-	beforeEach: (cwd) => {
+	beforeEach: (cwd, testType) => {
+		if (testType == 'snapshot') return;
+
 		execSync('pnpm db:push', { cwd, stdio: 'pipe' });
 	},
 	tests: [

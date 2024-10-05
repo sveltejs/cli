@@ -1,7 +1,7 @@
 import type { AdderWithoutExplicitArgs, OptionValues, Question, Tests } from '@svelte-cli/core';
 import type { Page } from 'playwright';
 
-export async function runTests(
+export async function startTests(
 	page: Page,
 	adder: AdderWithoutExplicitArgs,
 	options: OptionValues<Record<string, Question>>
@@ -21,11 +21,10 @@ export async function runTests(
 		}
 	};
 
-	await executeAdderRealTests(adder, tests, options);
+	await executeAdderTests(adder, tests, options);
 }
 
-// TODO naming of the function
-async function executeAdderRealTests(
+async function executeAdderTests(
 	adder: AdderWithoutExplicitArgs,
 	testMethods: Tests,
 	options: OptionValues<Record<string, Question>>

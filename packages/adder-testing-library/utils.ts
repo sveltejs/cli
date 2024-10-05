@@ -8,7 +8,7 @@ import { type AdderWithoutExplicitArgs, type OptionValues, type Question } from 
 import { createWorkspace, installPackages, createOrUpdateFiles } from '@svelte-cli/core/internal';
 import { startBrowser } from './browser.ts';
 
-type TestCase = {
+export type TestCase = {
 	testName: string;
 	template: string;
 	adder: AdderWithoutExplicitArgs;

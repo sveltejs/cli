@@ -102,16 +102,18 @@ export type TestDefinition<Args extends OptionDefinition> = {
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 
+export type TestType = 'snapshot' | 'end2end';
+
 export type AdderTestConfig<Args extends OptionDefinition> = {
 	files: Array<FileType<Args>>;
 	options: Args;
 	optionValues: Array<OptionValues<Args>>;
 	command?: string;
 	tests: Array<TestDefinition<Args>>;
-	beforeAll?: () => MaybePromise<void>;
-	afterAll?: () => MaybePromise<void>;
-	beforeEach?: (cwd: string) => MaybePromise<void>;
-	afterEach?: (cwd: string) => MaybePromise<void>;
+	beforeAll?: (testType: TestType) => MaybePromise<void>;
+	afterAll?: (testType: TestType) => MaybePromise<void>;
+	beforeEach?: (cwd: string, testType: TestType) => MaybePromise<void>;
+	afterEach?: (cwd: string, testType: TestType) => MaybePromise<void>;
 };
 
 export function defineAdderTests<Args extends OptionDefinition>(
