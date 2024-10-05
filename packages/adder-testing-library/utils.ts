@@ -254,7 +254,7 @@ export async function prepareSnaphotTests(
 	}
 }
 
-async function runAdder(
+function runAdder(
 	adder: AdderWithoutExplicitArgs,
 	cwd: string,
 	options: OptionValues<Record<string, Question>>
@@ -274,25 +274,15 @@ async function runAdder(
 		changedFiles.forEach((file) => filesToFormat.add(file));
 	} else if (config.integrationType === 'external') {
 		try {
-			const program = spawn('npx', config.command.split(' '), {
-				stdio: 'pipe',
-				shell: true,
+			console.log('execute external adder');
+			execSync('npx ' + config.command, {
 				cwd,
-				env: Object.assign(process.env, config.environment ?? {})
-			});
-
-			await new Promise((resolve, reject) => {
-				program.on('exit', (code) => {
-					if (code == 0) {
-						resolve(undefined);
-					} else {
-						reject();
-					}
-				});
+				env: Object.assign(process.env, config.environment ?? {}),
+				stdio: 'pipe'
 			});
 		} catch (error) {
 			const typedError = error as Error;
-			throw new Error('Failed executing external command: ' + typedError);
+			throw new Error('Failed executing external command: ' + typedError.message);
 		}
 	} else {
 		throw new Error('Unknown integration type');
