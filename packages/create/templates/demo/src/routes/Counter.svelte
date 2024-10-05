@@ -4,12 +4,12 @@
 	let count = $state(0);
 
 	// svelte-ignore state_referenced_locally
-	const displayed_count = spring(count);
+	const displayedCount = spring(count);
 
 	$effect(() => {
-		displayed_count.set(count);
+		displayedCount.set(count);
 	});
-	let offset = $derived(modulo($displayed_count, 1));
+	let offset = $derived(modulo($displayedCount, 1));
 
 	/**
 	 * @param {number} n
@@ -30,8 +30,8 @@
 
 	<div class="counter-viewport">
 		<div class="counter-digits" style="transform: translate(0, {100 * offset}%)">
-			<strong class="hidden" aria-hidden="true">{Math.floor($displayed_count + 1)}</strong>
-			<strong>{Math.floor($displayed_count)}</strong>
+			<strong class="hidden" aria-hidden="true">{Math.floor($displayedCount + 1)}</strong>
+			<strong>{Math.floor($displayedCount)}</strong>
 		</div>
 	</div>
 
