@@ -31,6 +31,8 @@ export default [
 			'.test-tmp/**/*',
 			'**/dist/*',
 			'packages/**/tests/**/{output,input}.ts',
+			'packages/**/.outputs-*/**/*',
+			'packages/**/_snapshots/**/*',
 			'rollup.config.js'
 		]
 	}
