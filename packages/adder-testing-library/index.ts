@@ -60,7 +60,9 @@ export function runEndToEndTests(
 }
 
 type TestArguments = {
-	expect: (content: string) => { toMatchFileSnapshot: (filePath: string) => void };
+	expect: (content: string) => {
+		toMatchFileSnapshot: (filePath: string, message?: string) => void;
+	};
 };
 
 export function runSnaphsotTests(
@@ -103,7 +105,7 @@ export function runSnaphsotTests(
 					changedFile
 				);
 
-				expect(content).toMatchFileSnapshot(snapshotPath);
+				expect(content).toMatchFileSnapshot(snapshotPath, changedFile);
 			}
 		},
 		tearDown: async () => {}
