@@ -7,5 +7,5 @@ yarn.lock
 vite.config.js.timestamp-*
 /packages/create-svelte/template/CHANGELOG.md
 .test-tmp
-/packages/adder-tests/.outputs-e2e
-/packages/adder-tests/.outputs-snapshots
+.outputs-e2e
+.outputs-snapshots

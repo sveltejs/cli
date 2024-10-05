@@ -130,6 +130,7 @@ export default [
 	getConfig('ast-tooling'),
 	getConfig('create'),
 	getConfig('core'),
+	getConfig('adder-testing-library'),
 	getConfig('cli')
 ];
 

@@ -5,7 +5,7 @@ export async function startTests(
 	page: Page,
 	adder: AdderWithoutExplicitArgs,
 	options: OptionValues<Record<string, Question>>
-) {
+): Promise<void> {
 	const tests: Tests = {
 		expectProperty: async (selector, property, expectedValue) => {
 			await expectProperty(page, selector, property, expectedValue);

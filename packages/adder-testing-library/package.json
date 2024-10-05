@@ -14,5 +14,14 @@
 		"sv": "workspace:*",
 		"terminate": "^2.8.0",
 		"tiged": "3.0.0-rc.0"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
 	}
 }

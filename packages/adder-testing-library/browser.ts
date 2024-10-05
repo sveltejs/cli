@@ -1,14 +1,14 @@
-import { chromium, type Browser } from 'playwright';
+import { chromium, type Browser, type Page } from 'playwright';
 
 let browser: Browser;
 const headless = true;
 
-export async function startBrowser() {
+export async function startBrowser(): Promise<void> {
 	browser = await chromium.launch({ headless });
 	console.log('browser started');
 }
 
-export async function openPage(url: string) {
+export async function openPage(url: string): Promise<Page> {
 	const page = await browser.newPage();
 
 	await page.goto(url, { timeout: 60_000 });
@@ -21,7 +21,7 @@ export async function openPage(url: string) {
 	return page;
 }
 
-export async function stopBrowser() {
+export async function stopBrowser(): Promise<void> {
 	if (!browser) return;
 	await browser.close();
 }

@@ -23,7 +23,7 @@ export const ProjectTypes = {
 	Kit_JS_Comments: 'kit-js-comments',
 	Kit_TS: 'kit-ts'
 };
-export const ProjectTypesList = Object.values(ProjectTypes);
+export const ProjectTypesList: string[] = Object.values(ProjectTypes);
 
 export async function forceKill(devServer: ChildProcessWithoutNullStreams): Promise<void> {
 	return new Promise((resolve) => {
@@ -37,7 +37,7 @@ export async function forceKill(devServer: ChildProcessWithoutNullStreams): Prom
 	});
 }
 
-export async function downloadProjectTemplates(outputPath: string) {
+export async function downloadProjectTemplates(outputPath: string): Promise<void> {
 	for (const templateType of ProjectTypesList) {
 		const templateOutputPath = path.join(outputPath, templateType);
 
@@ -100,7 +100,7 @@ export async function startDevServer(
 	}
 }
 
-export async function stopDevServer(devServer: ChildProcessWithoutNullStreams) {
+export async function stopDevServer(devServer: ChildProcessWithoutNullStreams): Promise<void> {
 	if (!devServer.pid) return;
 
 	await forceKill(devServer);
@@ -110,7 +110,7 @@ export function generateTestCases(
 	adders: AdderWithoutExplicitArgs[],
 	addersOutputPath: string,
 	options: { ignoreEmptyTests: boolean }
-) {
+): Map<string, TestCase[]> {
 	const testCases = new Map<string, TestCase[]>();
 	for (const adder of adders) {
 		const adderId = adder.config.metadata.id;
@@ -163,7 +163,7 @@ export async function prepareEndToEndTests(
 	addersPath: string,
 	adders: AdderWithoutExplicitArgs[],
 	testCases: Map<string, TestCase[]>
-) {
+): Promise<void> {
 	console.log('deleting old files');
 	// only delete adders and templates directory. Trying to delete `node_modules`
 	// typically fails because some `esbuild` binary is locked
@@ -227,9 +227,8 @@ export async function prepareSnaphotTests(
 	outputPath: string,
 	templatesPath: string,
 	addersPath: string,
-	adders: AdderWithoutExplicitArgs[],
 	testCases: Map<string, TestCase[]>
-) {
+): Promise<void> {
 	console.log('deleting old files');
 	// only delete adders and templates directory. Trying to delete `node_modules`
 	// typically fails because some `esbuild` binary is locked
@@ -259,7 +258,7 @@ export function runAdder(
 	cwd: string,
 	options: OptionValues<Record<string, Question>>,
 	adders: AdderWithoutExplicitArgs[]
-) {
+): Set<string> {
 	const { config } = adder;
 	const workspace = createWorkspace(cwd);
 

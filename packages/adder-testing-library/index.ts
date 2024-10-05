@@ -23,7 +23,7 @@ export function runEndToEndTests(
 	test: (name: string, testFunction: (args: TestArguments) => Promise<void> | void) => void,
 	beforeAll: (fn: () => void) => void,
 	afterAll: (fn: () => void) => void
-) {
+): void {
 	const outputPath = path.join(process.cwd(), outputDirectory);
 	const templatesPath = path.join(outputPath, templatesDirectoryName);
 	const addersOutputPath = path.join(outputPath, addersDirectoryName);
@@ -73,7 +73,7 @@ export function runSnaphsotTests(
 	test: (name: string, testFunction: (args: TestArguments) => Promise<void> | void) => void,
 	beforeAll: (fn: () => void) => void,
 	afterAll: (fn: () => void) => void
-) {
+): void {
 	const outputPath = path.join(process.cwd(), outputDirectory);
 	const templatesPath = path.join(outputPath, templatesDirectoryName);
 	const addersOutputPath = path.join(outputPath, addersDirectoryName);
@@ -85,7 +85,7 @@ export function runSnaphsotTests(
 		beforeAll,
 		afterAll,
 		prepare: async () => {
-			await prepareSnaphotTests(outputPath, templatesPath, addersOutputPath, adders, testCases);
+			await prepareSnaphotTests(outputPath, templatesPath, addersOutputPath, testCases);
 		},
 		run: (testCase, _, { expect }) => {
 			const { config } = testCase.adder;
@@ -112,7 +112,7 @@ export function runSnaphsotTests(
 	});
 }
 
-export function runTests(
+function runTests(
 	adders: AdderWithoutExplicitArgs[],
 	testCases: Map<string, TestCase[]>,
 	testType: TestType,

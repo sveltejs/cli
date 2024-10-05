@@ -81,9 +81,15 @@ importers:
         specifier: workspace:*
         version: link:../packages/core
     devDependencies:
+      '@svelte-cli/adder-testing-library':
+        specifier: workspace:*
+        version: link:../packages/adder-testing-library
       sv:
         specifier: workspace:*
         version: link:../packages/cli
+      vitest:
+        specifier: ^2.1.2
+        version: 2.1.2(@types/node@22.5.4)(@vitest/ui@2.1.2)
 
   packages/adder-testing-library:
     dependencies:
