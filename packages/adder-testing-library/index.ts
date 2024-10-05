@@ -24,7 +24,6 @@ export function runEndToEndTests(
 	beforeAll: (fn: () => void) => void,
 	afterAll: (fn: () => void) => void
 ) {
-	const noop = () => {};
 	const outputPath = path.join(process.cwd(), outputDirectory);
 	const templatesPath = path.join(outputPath, templatesDirectoryName);
 	const addersOutputPath = path.join(outputPath, addersDirectoryName);
@@ -38,11 +37,15 @@ export function runEndToEndTests(
 		describe(adderId, () => {
 			const adder = adders.find((x) => x.config.metadata.id == adderId)!;
 			const adderTestDetails = adder.tests!;
-			beforeAll(adderTestDetails.beforeAll ?? noop);
+			beforeAll(async () => {
+				if (adderTestDetails.beforeAll) await adderTestDetails.beforeAll();
+			});
 
 			for (const testCase of adderTestCases) {
 				test(testCase.testName, async () => {
 					if (!adder.tests) return;
+
+					if (adder.tests.beforeEach) await adder.tests.beforeEach(testCase.cwd);
 
 					const cmd = adder.tests.command ?? 'dev';
 					const { url, devServer } = await startDevServer(testCase.cwd, cmd);
@@ -57,11 +60,15 @@ export function runEndToEndTests(
 					} finally {
 						await page.close();
 						await stopDevServer(devServer);
+
+						if (adder.tests.afterEach) await adder.tests.afterEach(testCase.cwd);
 					}
 				});
 			}
 
-			afterAll(adderTestDetails.afterAll ?? noop);
+			afterAll(async () => {
+				if (adderTestDetails.afterAll) await adderTestDetails.afterAll();
+			});
 		});
 	}
 

@@ -108,8 +108,10 @@ export type AdderTestConfig<Args extends OptionDefinition> = {
 	optionValues: Array<OptionValues<Args>>;
 	command?: string;
 	tests: Array<TestDefinition<Args>>;
-	beforeAll?: () => void;
-	afterAll?: () => void;
+	beforeAll?: () => MaybePromise<void>;
+	afterAll?: () => MaybePromise<void>;
+	beforeEach?: (cwd: string) => MaybePromise<void>;
+	afterEach?: (cwd: string) => MaybePromise<void>;
 };
 
 export function defineAdderTests<Args extends OptionDefinition>(
