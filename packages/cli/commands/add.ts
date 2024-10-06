@@ -20,7 +20,6 @@ import {
 	createWorkspace,
 	detectPackageManager,
 	installPackages,
-	TESTING,
 	type Workspace
 } from '@svelte-cli/core/internal';
 import type {
@@ -680,7 +679,7 @@ export async function runScripts<Args extends OptionDefinition>(
 			const pm = await detectPackageManager(workspace.cwd);
 			const cmd = resolveCommand(pm, 'execute', script.args)!;
 			await exec(cmd.command, cmd.args, {
-				nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : 'inherit' }
+				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
 			});
 
 			const executeCommand = COMMANDS[workspace.packageManager].execute;
