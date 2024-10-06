@@ -1,7 +1,6 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { FileType } from '../files/processors.ts';
 import type { Workspace } from '../files/workspace.ts';
-import type { Colors } from 'picocolors/types.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
@@ -49,13 +48,19 @@ export type AdderConfig<Args extends OptionDefinition> = {
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
-	nextSteps?: (data: {
-		options: OptionValues<Args>;
-		cwd: string;
-		colors: Colors;
-		docs: string | undefined;
-		workspace: Workspace<Args>;
-	}) => string[];
+	nextSteps?: (
+		data: {
+			highlighter: Highlighter;
+		} & Workspace<Args>
+	) => string[];
+};
+
+export type Highlighter = {
+	path: (str: string) => string;
+	command: (str: string) => string;
+	website: (str: string) => string;
+	route: (str: string) => string;
+	env: (str: string) => string;
 };
 
 export function defineAdderConfig<Args extends OptionDefinition>(

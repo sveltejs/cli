@@ -15,7 +15,12 @@ import {
 	communityAdderIds,
 	getCommunityAdder
 } from '@svelte-cli/adders';
-import { createOrUpdateFiles, createWorkspace, installPackages } from '@svelte-cli/core/internal';
+import {
+	createOrUpdateFiles,
+	createWorkspace,
+	installPackages,
+	getHighlighter
+} from '@svelte-cli/core/internal';
 import type { AdderWithoutExplicitArgs, OptionValues } from '@svelte-cli/core';
 import * as common from '../common.js';
 import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
@@ -469,6 +474,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
+	const highlighter = getHighlighter();
+
 	// print next steps
 	const nextStepsMsg = selectedAdders
 		.filter(({ adder }) => adder.config.nextSteps)
@@ -481,12 +488,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			}
 
 			const adderNextSteps = config.nextSteps!({
+				...workspace,
 				options: official[metadata.id],
-				cwd: options.cwd,
-				colors: pc,
-				docs: metadata.website?.documentation,
-				packageManager: workspace.packageManager,
-				workspace
+				highlighter
 			});
 			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
 			return adderMessage;

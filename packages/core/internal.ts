@@ -1,4 +1,4 @@
-export { installPackages } from './files/utils.ts';
+export { installPackages, getHighlighter } from './files/utils.ts';
 export { createOrUpdateFiles } from './files/processors.ts';
 export {
 	createWorkspace,

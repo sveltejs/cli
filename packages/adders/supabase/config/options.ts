@@ -4,7 +4,7 @@ export const options = defineAdderOptions({
 	auth: {
 		question: 'What authentication methods would you like?',
 		type: 'multiselect',
-		default: [] as unknown[],
+		default: [],
 		options: [
 			{
 				hint: 'Email and password',
@@ -14,7 +14,7 @@ export const options = defineAdderOptions({
 			{
 				hint: 'Magic link',
 				label: 'Magic link',
-				value: 'magicLink'
+				value: 'magic-link'
 			}
 		]
 	},
@@ -39,6 +39,6 @@ export const options = defineAdderOptions({
 		type: 'boolean',
 		default: false,
 		condition: ({ auth }) =>
-			(auth as unknown[]).includes('basic') || (auth as unknown[]).includes('magicLink')
+			(auth as unknown[]).includes('basic') || (auth as unknown[]).includes('magic-link')
 	}
 });

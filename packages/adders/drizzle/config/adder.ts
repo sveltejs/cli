@@ -327,15 +327,14 @@ export const adder = defineAdderConfig({
 			}
 		}
 	],
-	nextSteps: ({ options, colors }) => {
-		const highlight = (str: string) => colors.bold(colors.cyan(str));
+	nextSteps: ({ options, highlighter }) => {
 		const steps = [
-			`You will need to set ${colors.yellow('DATABASE_URL')} in your production environment`
+			`You will need to set ${highlighter.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
-			steps.push(`Run ${highlight('npm run db:start')} to start the docker container`);
+			steps.push(`Run ${highlighter.command('npm run db:start')} to start the docker container`);
 		}
-		steps.push(`To update your DB schema, run ${highlight('npm run db:push')}`);
+		steps.push(`To update your DB schema, run ${highlighter.command('npm run db:push')}`);
 
 		return steps;
 	}

@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import pc from 'picocolors';
 import { parseJson, serializeJson } from '@svelte-cli/ast-tooling';
-import type { AdderConfig } from '../adder/config.ts';
+import type { AdderConfig, Highlighter } from '../adder/config.ts';
 import type { OptionDefinition } from '../adder/options.ts';
 import type { Workspace, WorkspaceWithoutExplicitArgs } from './workspace.ts';
 
@@ -128,3 +129,13 @@ export const commonFilePaths = {
 	tsconfig: 'tsconfig.json',
 	viteConfigTS: 'vite.config.ts'
 } as const;
+
+export function getHighlighter(): Highlighter {
+	return {
+		command: (str) => pc.bold(pc.cyanBright(str)),
+		env: (str) => pc.yellow(str),
+		path: (str) => pc.green(str),
+		route: (str) => pc.bold(pc.cyanBright(str)),
+		website: (str) => pc.whiteBright(str)
+	};
+}

@@ -1,10 +1,4 @@
-import {
-	defineAdderConfig,
-	dedent,
-	type TextFileEditor,
-	colors,
-	type AstTypes
-} from '@svelte-cli/core';
+import { defineAdderConfig, dedent, type TextFileEditor, type AstTypes } from '@svelte-cli/core';
 import { options as availableOptions } from './options.ts';
 import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '../../common.ts';
 import { common, imports } from '@svelte-cli/core/js';
@@ -244,13 +238,13 @@ export const adder = defineAdderConfig({
 				`${kit?.routesDirectory}/auth/+page.server.${typescript ? 'ts' : 'js'}`,
 			contentType: 'text',
 			condition: ({ options }) =>
-				options.auth.includes('basic') || options.auth.includes('magicLink'),
+				options.auth.includes('basic') || options.auth.includes('magic-link'),
 			content: ({ options, typescript }) => {
 				const isTs = typescript;
 				const { auth, demo: isDemo } = options;
 
 				const isBasic = auth.includes('basic');
-				const isMagicLink = auth.includes('magicLink');
+				const isMagicLink = auth.includes('magic-link');
 
 				return dedent`
 					${isBasic ? `import { redirect } from '@sveltejs/kit'` : ''}
@@ -333,7 +327,7 @@ export const adder = defineAdderConfig({
 				const { auth } = options;
 
 				const isBasic = auth.includes('basic');
-				const isMagicLink = auth.includes('magicLink');
+				const isMagicLink = auth.includes('magic-link');
 
 				return dedent`
 					<script${isTs ? ' lang="ts"' : ''}>
@@ -503,7 +497,7 @@ export const adder = defineAdderConfig({
 				`${kit?.routesDirectory}/auth/confirm/+server.${typescript ? 'ts' : 'js'}`,
 			contentType: 'text',
 			condition: ({ options }) =>
-				options.auth.includes('basic') || options.auth.includes('magicLink'),
+				options.auth.includes('basic') || options.auth.includes('magic-link'),
 			content: ({ typescript }) => {
 				const isTs = typescript;
 
@@ -590,7 +584,7 @@ export const adder = defineAdderConfig({
 			condition: ({ options }) => options.cli,
 			content: ({ content, options }) => {
 				const isBasic = options.auth.includes('basic');
-				const isMagicLink = options.auth.includes('magicLink');
+				const isMagicLink = options.auth.includes('magic-link');
 
 				content = content.replace('"http://127.0.0.1:3000"', '"http://localhost:5173"');
 				content = content.replace('"https://127.0.0.1:3000"', '"https://localhost:5173/*"');
@@ -649,7 +643,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => './supabase/templates/magic_link.html',
 			contentType: 'text',
-			condition: ({ options }) => options.cli && options.auth.includes('magicLink'),
+			condition: ({ options }) => options.cli && options.auth.includes('magic-link'),
 			content: () => {
 				return dedent`
 					<html>
@@ -875,35 +869,39 @@ export const adder = defineAdderConfig({
 			}
 		}
 	],
-	nextSteps: ({ options, workspace }) => {
-		const command = workspace.packageManager === 'npm' ? 'npx' : workspace.packageManager;
+	nextSteps: ({ options, packageManager, typescript, highlighter }) => {
+		const command = packageManager === 'npm' ? 'npx' : packageManager;
 		const { auth, cli: isCli, helpers: isHelpers } = options;
 		const isBasic = auth.includes('basic');
-		const isMagicLink = auth.includes('magicLink');
+		const isMagicLink = auth.includes('magic-link');
 
-		const steps = ['Visit the Supabase docs: https://supabase.com/docs'];
+		const steps = [`Visit the Supabase docs: ${highlighter.website('https://supabase.com/docs')}`];
 
 		if (isCli) {
-			steps.push(`Start local Supabase services: ${colors.yellow(`${command} supabase start`)}`);
+			steps.push(
+				`Start local Supabase services: ${highlighter.command(`${command} supabase start`)}`
+			);
 			steps.push(dedent`
-				Changes to local Supabase config require a restart of the local services: ${colors.yellow(`${command} supabase stop`)} and ${colors.yellow(`${command} supabase start`)}`);
+				Changes to local Supabase config require a restart of the local services: ${highlighter.command(`${command} supabase stop`)} and ${highlighter.command(`${command} supabase start`)}`);
 		}
 
 		if (isHelpers) {
 			steps.push(dedent`
-				Check out ${colors.green('package.json')} for the helper scripts. Remember to generate your database types`);
+				Check out ${highlighter.path('package.json')} for the helper scripts. Remember to generate your database types`);
 		}
 
 		if (isBasic || isMagicLink) {
 			steps.push(dedent`
-				Update authGuard in ${colors.green(`./src/hooks.server.${workspace.typescript ? 'ts' : 'js'}`)} with your protected routes`);
+				Update authGuard in ${highlighter.path(`./src/hooks.server.${typescript ? 'ts' : 'js'}`)} with your protected routes`);
 		}
 
 		if (isBasic || isMagicLink) {
 			steps.push(`Update your hosted project's email templates`);
 
 			if (isCli) {
-				steps.push(`Local email templates are located in ${colors.green('./supabase/templates')}`);
+				steps.push(
+					`Local email templates are located in ${highlighter.path('./supabase/templates')}`
+				);
 			}
 		}
 
