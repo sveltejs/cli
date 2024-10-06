@@ -25,8 +25,9 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 
 	const fallbackConfig = common.expressionFromString('[]');
 	const defaultExport = exports.defaultExport(ast, fallbackConfig);
-	const array = defaultExport.value;
-	if (array.type !== 'ArrayExpression') return;
+	const defaultExportValue = defaultExport.value;
+	if (defaultExportValue.type !== 'ArrayExpression' && defaultExportValue.type !== 'CallExpression')
+		return;
 
 	const prettier = common.expressionFromString('prettier');
 	const sveltePrettierConfig = common.expressionFromString(
@@ -35,11 +36,15 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 	const configSpread = common.createSpreadElement(sveltePrettierConfig);
 
 	const nodesToInsert = [];
-	if (!common.hasNode(array, prettier)) nodesToInsert.push(prettier);
-	if (!common.hasNode(array, configSpread)) nodesToInsert.push(configSpread);
+	if (!common.hasNode(defaultExportValue, prettier)) nodesToInsert.push(prettier);
+	if (!common.hasNode(defaultExportValue, configSpread)) nodesToInsert.push(configSpread);
 
+	const elements =
+		defaultExportValue.type == 'ArrayExpression'
+			? defaultExportValue.elements
+			: defaultExportValue.arguments;
 	// finds index of `...svelte.configs["..."]`
-	const idx = array.elements.findIndex(
+	const idx = elements.findIndex(
 		(el) =>
 			el?.type === 'SpreadElement' &&
 			el.argument.type === 'MemberExpression' &&
@@ -51,9 +56,9 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 	);
 
 	if (idx !== -1) {
-		array.elements.splice(idx + 1, 0, ...nodesToInsert);
+		elements.splice(idx + 1, 0, ...nodesToInsert);
 	} else {
 		// append to the end as a fallback
-		array.elements.push(...nodesToInsert);
+		elements.push(...nodesToInsert);
 	}
 }
