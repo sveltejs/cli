@@ -108,12 +108,18 @@ function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
 	return { routesDirectory, libDirectory };
 }
 
+let packageManager: AgentName | undefined;
+
 /**
  * Guesses the package manager based on the detected lockfile or user-agent.
  * If neither of those return valid package managers, it falls back to `npm`.
  */
 export async function detectPackageManager(cwd: string): Promise<AgentName> {
+	if (packageManager) return packageManager;
+
 	const pm = await detect({ cwd });
+	if (pm?.name) packageManager = pm.name;
+
 	return pm?.name ?? getUserAgent() ?? 'npm';
 }
 
