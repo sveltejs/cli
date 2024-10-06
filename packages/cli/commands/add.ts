@@ -5,7 +5,7 @@ import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import * as pkg from 'empathic/package';
-import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector';
+import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
 	adderCategories,
@@ -18,16 +18,10 @@ import {
 import {
 	createOrUpdateFiles,
 	createWorkspace,
-	detectPackageManager,
 	installPackages,
 	type Workspace
 } from '@svelte-cli/core/internal';
-import type {
-	AdderWithoutExplicitArgs,
-	OptionDefinition,
-	OptionValues,
-	Scripts
-} from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs, OptionValues, Scripts } from '@svelte-cli/core';
 import * as common from '../common.js';
 import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
 
@@ -551,6 +545,7 @@ export async function installAdders({
 	const filesToFormat = new Set<string>();
 	for (const { config } of details) {
 		const adderId = config.metadata.id;
+		// TODO: make this sync
 		const workspace = await createWorkspace(cwd);
 
 		workspace.options = official[adderId] ?? community[adderId];
@@ -559,8 +554,11 @@ export async function installAdders({
 		const pkgPath = installPackages(config, workspace);
 		filesToFormat.add(pkgPath);
 		const changedFiles = createOrUpdateFiles(config.files, workspace);
-		if (config.scripts) await runScripts(config.scripts, workspace);
 		changedFiles.forEach((file) => filesToFormat.add(file));
+
+		if (config.scripts && config.scripts.length > 0) {
+			await runScripts(config.metadata.name, config.scripts, workspace);
+		}
 	}
 
 	return Array.from(filesToFormat);
@@ -655,38 +653,19 @@ function getPadding(lines: string[]) {
 	return Math.max(...lengths);
 }
 
-export async function runScripts<Args extends OptionDefinition>(
-	scripts: Array<Scripts<Args>>,
-	workspace: Workspace<Args>
-) {
-	if (scripts.length < 1) return;
-
-	const loadingSpinner = p.spinner();
-	const runningScriptsText = 'Running scripts...';
-	loadingSpinner.start(runningScriptsText);
+async function runScripts(adder: string, scripts: Array<Scripts<any>>, workspace: Workspace<any>) {
+	p.log.step(`Running external command ${pc.gray(`(${adder})`)}`);
 
 	for (const script of scripts) {
-		if (script.condition && !script.condition(workspace)) {
+		if (script.condition?.(workspace) === false) {
 			continue;
 		}
 
-		if (script.stdio == 'inherit') {
-			// stop spinner as it will interfere with the script output
-			loadingSpinner.stop(runningScriptsText);
-		}
-
 		try {
-			const pm = await detectPackageManager(workspace.cwd);
-			const cmd = resolveCommand(pm, 'execute', script.args)!;
-			await exec(cmd.command, cmd.args, {
-				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
-			});
-
-			const executeCommand = COMMANDS[workspace.packageManager].execute;
-			const { command, args } = constructCommand(executeCommand, script.args)!;
+			const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager == 'npm') args.unshift('--yes');
+			if (workspace.packageManager === 'npm') args.unshift('--yes');
 
 			await exec(command, args, {
 				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
@@ -695,12 +674,7 @@ export async function runScripts<Args extends OptionDefinition>(
 			const typedError = error as Error;
 			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
 		}
-
-		if (script.stdio == 'inherit') {
-			// resume spinner as it will no longer interfere with the script output
-			loadingSpinner.start(runningScriptsText);
-		}
 	}
 
-	loadingSpinner.stop('Successfully executed scripts');
+	p.log.success(`Finished running ${adder}`);
 }
