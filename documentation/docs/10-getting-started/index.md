@@ -1,3 +1,3 @@
 ---
-title: Getting started cli
+title: Getting started
 ---
