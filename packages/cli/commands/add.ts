@@ -35,7 +35,8 @@ import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packa
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
 	tailwindcss: v.optional(v.array(v.string())),
-	drizzle: v.optional(v.array(v.string()))
+	drizzle: v.optional(v.array(v.string())),
+	supabase: v.optional(v.array(v.string()))
 });
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
