@@ -133,7 +133,7 @@ export function addHooksHandle(
 	typescript: boolean,
 	newHandleName: string,
 	handleContent: string,
-	forceSeperateHandle: boolean = false
+	forceSeparateHandle: boolean = false
 ) {
 	if (typescript) {
 		imports.addNamed(ast, '@sveltejs/kit', { Handle: 'Handle' }, true);
@@ -196,7 +196,7 @@ export function addHooksHandle(
 			variables.typeAnnotateDeclarator(declarator, 'Handle');
 		}
 
-		if (!forceSeperateHandle) exports.namedExport(ast, handleName, newDecl);
+		if (!forceSeparateHandle) exports.namedExport(ast, handleName, newDecl);
 		else {
 			const newDecl = variables.declaration(ast, 'const', newHandleName, newHandle);
 			if (typescript) {
