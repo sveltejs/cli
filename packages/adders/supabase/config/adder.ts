@@ -1092,7 +1092,7 @@ function createUserType(name: string): AstTypes.TSPropertySignature {
 }
 
 function getSupabaseHandleContent() {
-	return `
+	return dedent`
 		async ({ event, resolve }) => {
 			event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 			cookies: {
@@ -1133,7 +1133,7 @@ function getSupabaseHandleContent() {
 }
 
 function getAuthGuardHandleContent(isDemo: boolean) {
-	return `
+	return dedent`
 		async ({ event, resolve }) => {
 			const { session, user } = await event.locals.safeGetSession()
 			event.locals.session = session
