@@ -58,7 +58,7 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 	}
 }
 
-export function getOrCreateAppInterface(
+export function addGlobalAppInterface(
 	ast: AstTypes.Program,
 	name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform'
 ) {
@@ -66,19 +66,13 @@ export function getOrCreateAppInterface(
 		.filter((n) => n.type === 'TSModuleDeclaration')
 		.find((m) => m.global && m.declare);
 
-	if (globalDecl && globalDecl?.body?.type !== 'TSModuleBlock') {
-		throw new Error('Unexpected body type of `declare global` in `src/app.d.ts`');
-	}
-
 	if (!globalDecl) {
-		const decl = common.statementFromString(`
-			declare global {}`) as AstTypes.TSModuleDeclaration;
-		ast.body.push(decl);
-		globalDecl = decl;
+		globalDecl = common.statementFromString('declare global {}') as AstTypes.TSModuleDeclaration;
+		ast.body.push(globalDecl);
 	}
 
-	if (!globalDecl || !globalDecl.body || !globalDecl.body.body) {
-		throw new Error('Failed processing global declaration');
+	if (globalDecl.body?.type !== 'TSModuleBlock') {
+		throw new Error('Unexpected body type of `declare global` in `src/app.d.ts`');
 	}
 
 	let app: AstTypes.TSModuleDeclaration | undefined;
@@ -100,8 +94,8 @@ export function getOrCreateAppInterface(
 	});
 
 	if (!app) {
-		app ??= common.statementFromString('namespace App {}') as AstTypes.TSModuleDeclaration;
-		(globalDecl.body as AstTypes.TSModuleBlock).body.push(app);
+		app = common.statementFromString('namespace App {}') as AstTypes.TSModuleDeclaration;
+		globalDecl.body.body.push(app);
 	}
 
 	if (app.body?.type !== 'TSModuleBlock') {
@@ -109,7 +103,7 @@ export function getOrCreateAppInterface(
 	}
 
 	if (!interfaceNode) {
-		// add interface it if it's missing
+		// add the interface if it's missing
 		interfaceNode = common.statementFromString(
 			`interface ${name} {}`
 		) as AstTypes.TSInterfaceDeclaration;

@@ -6,7 +6,7 @@ import {
 	type AstTypes
 } from '@svelte-cli/core';
 import { options as availableOptions } from './options.ts';
-import { addHooksHandle, getOrCreateAppInterface, hasTypeProp } from '../../common.ts';
+import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '../../common.ts';
 import { common, imports } from '@svelte-cli/core/js';
 import { addFromRawHtml } from '@svelte-cli/core/html';
 
@@ -110,7 +110,7 @@ export const adder = defineAdderConfig({
 				if (isCli && isHelpers)
 					imports.addNamed(ast, '$lib/supabase-types', { Database: 'Database' }, true);
 
-				const locals = getOrCreateAppInterface(ast, 'Locals');
+				const locals = addGlobalAppInterface(ast, 'Locals');
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
@@ -125,7 +125,7 @@ export const adder = defineAdderConfig({
 				if (!session) locals.body.body.push(createSessionType('session'));
 				if (!user) locals.body.body.push(createUserType('user'));
 
-				const pageData = getOrCreateAppInterface(ast, 'PageData');
+				const pageData = addGlobalAppInterface(ast, 'PageData');
 				if (!pageData) {
 					throw new Error('Failed detecting `pageData` interface in `src/app.d.ts`');
 				}
