@@ -58,7 +58,6 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			// create an inlang project if it doesn't exist yet
-			// TODO Scan for & use existing projects
 			name: () => 'project.inlang/settings.json',
 			condition: ({ cwd }) => !fs.existsSync(path.join(cwd, 'project.inlang')),
 			contentType: 'json',
@@ -112,9 +111,7 @@ export const adder = defineAdderConfig({
 
 				const existingExport = exports.namedExport(ast, 'i18n', i18n);
 				if (existingExport) {
-					warnings.push(
-						'Setting up $lib/i18n failed because it aleady exports an i18n function. Check that it is correct'
-					);
+					warnings.push('Setting up $lib/i18n failed because it aleady exports an i18n function');
 				}
 			}
 		},
