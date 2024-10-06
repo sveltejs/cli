@@ -38,7 +38,6 @@ export const options = defineAdderOptions({
 		question: 'Do you want to include demo routes to show protected routes?',
 		type: 'boolean',
 		default: false,
-		condition: ({ auth }) =>
-			(auth as unknown[]).includes('basic') || (auth as unknown[]).includes('magic-link')
+		condition: ({ auth }) => auth.includes('basic') || auth.includes('magic-link')
 	}
 });
