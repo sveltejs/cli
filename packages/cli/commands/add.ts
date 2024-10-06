@@ -15,13 +15,8 @@ import {
 	communityAdderIds,
 	getCommunityAdder
 } from '@svelte-cli/adders';
-import {
-	createOrUpdateFiles,
-	createWorkspace,
-	installPackages,
-	type Workspace
-} from '@svelte-cli/core/internal';
-import type { AdderWithoutExplicitArgs, OptionValues, Scripts } from '@svelte-cli/core';
+import { createOrUpdateFiles, createWorkspace, installPackages } from '@svelte-cli/core/internal';
+import type { AdderWithoutExplicitArgs, OptionValues } from '@svelte-cli/core';
 import * as common from '../common.js';
 import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
 
@@ -557,37 +552,31 @@ export async function installAdders({
 		changedFiles.forEach((file) => filesToFormat.add(file));
 
 		if (config.scripts && config.scripts.length > 0) {
-			await runScripts(config.metadata.name, config.scripts, workspace);
+			const name = config.metadata.name;
+			p.log.step(`Running external command ${pc.gray(`(${name})`)}`);
+
+			for (const script of config.scripts) {
+				if (script.condition?.(workspace) === false) continue;
+
+				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
+				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
+				if (workspace.packageManager === 'npm') args.unshift('--yes');
+
+				try {
+					await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio: script.stdio } });
+				} catch (error) {
+					const typedError = error as Error;
+					throw new Error(
+						`Failed to execute scripts '${script.description}': ` + typedError.message
+					);
+				}
+			}
+
+			p.log.success(`Finished running ${name}`);
 		}
 	}
 
 	return Array.from(filesToFormat);
-}
-
-async function runScripts(adder: string, scripts: Array<Scripts<any>>, workspace: Workspace<any>) {
-	p.log.step(`Running external command ${pc.gray(`(${adder})`)}`);
-
-	for (const script of scripts) {
-		if (script.condition?.(workspace) === false) {
-			continue;
-		}
-
-		try {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
-
-			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') args.unshift('--yes');
-
-			await exec(command, args, {
-				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
-			});
-		} catch (error) {
-			const typedError = error as Error;
-			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
-		}
-	}
-
-	p.log.success(`Finished running ${adder}`);
 }
 
 /**
