@@ -1,8 +1,0 @@
-diff a/.gitignore b/.gitignore	(rejected hunks)
-@@ -5,4 +5,4 @@ build/
- packages/tests/.outputs
- temp/
- coverage/
--.rollup.cache
-\ No newline at end of file
-+.rollup.cache

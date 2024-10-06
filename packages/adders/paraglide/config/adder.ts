@@ -10,13 +10,13 @@ const DEFAULT_INLANG_PROJECT = {
 	// sourceLanguageTag: 'en',
 	// languageTags: ['en'],
 	modules: [
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1.4.8/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1.5.9/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@1.4.8/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1.4.8/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1.0.8/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2.2.0/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0.9.36/dist/index.js'
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0/dist/index.js'
 	],
 	'plugin.inlang.messageFormat': {
 		pathPattern: './messages/{languageTag}.json'
