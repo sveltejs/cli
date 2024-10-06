@@ -441,7 +441,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			if (question.type === 'string' || question.type === 'number') {
 				answer = await p.text({
 					message,
-					initialValue: question.default.toString()
+					initialValue: question.default.toString(),
+					placeholder: question.placeholder,
+					validate: question.validate
 				});
 			}
 			if (p.isCancel(answer)) {
@@ -555,10 +557,12 @@ export async function installAdders({
 
 		// execute adders
 		if (config.integrationType === 'inline') {
+			await config.preInstall?.(workspace);
 			const pkgPath = installPackages(config, workspace);
 			filesToFormat.add(pkgPath);
 			const changedFiles = createOrUpdateFiles(config.files, workspace);
 			changedFiles.forEach((file) => filesToFormat.add(file));
+			await config.postInstall?.(workspace);
 		} else if (config.integrationType === 'external') {
 			await processExternalAdder(config, cwd);
 		} else {

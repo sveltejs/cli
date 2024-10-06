@@ -6,11 +6,15 @@ export type BooleanQuestion = {
 export type StringQuestion = {
 	type: 'string';
 	default: string;
+	validate?: (value: string) => string | undefined;
+	placeholder?: string;
 };
 
 export type NumberQuestion = {
 	type: 'number';
 	default: number;
+	validate?: (value: string) => string | undefined;
+	placeholder?: string;
 };
 
 export type SelectQuestion<Value = any> = {

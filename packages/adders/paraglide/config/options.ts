@@ -5,7 +5,7 @@ export const options = defineAdderOptions({
 		question: 'Which language tags would you like to support?',
 		type: 'string',
 		default: '',
-		placeholder: 'en, de-ch',
+		placeholder: 'en,de-ch',
 		validate(input) {
 			const { invalidLanguageTags, validLanguageTags } = parseLanguageTagInput(input);
 
@@ -18,10 +18,15 @@ export const options = defineAdderOptions({
 				}
 			}
 			if (validLanguageTags.length === 0)
-				return `Please enter at least one valid BCP47 language tag. Eg: en`;
+				return 'Please enter at least one valid BCP47 language tag. Eg: en';
 
 			return undefined;
 		}
+	},
+	demo: {
+		type: 'boolean',
+		default: false,
+		question: 'Do you want to include a demo?'
 	}
 });
 

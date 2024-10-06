@@ -47,6 +47,8 @@ export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<A
 	integrationType: 'inline';
 	packages: Array<PackageDefinition<Args>>;
 	files: Array<FileType<Args>>;
+	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
+	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
 	nextSteps?: (data: {
 		options: OptionValues<Args>;
 		cwd: string;

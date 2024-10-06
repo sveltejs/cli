@@ -7,8 +7,6 @@ import * as html from '@svelte-cli/core/html';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
-	// sourceLanguageTag: 'en',
-	// languageTags: ['en'],
 	modules: [
 		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1/dist/index.js',
 		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1/dist/index.js',
@@ -59,7 +57,7 @@ export const adder = defineAdderConfig({
 		{
 			// create an inlang project if it doesn't exist yet
 			name: () => 'project.inlang/settings.json',
-			condition: ({ cwd }) => !fs.existsSync(path.join(cwd, 'project.inlang')),
+			condition: ({ cwd }) => !fs.existsSync(path.join(cwd, 'project.inlang/settings.josn')),
 			contentType: 'json',
 			content: ({ options, data }) => {
 				for (const key in DEFAULT_INLANG_PROJECT) {
@@ -233,21 +231,63 @@ export const adder = defineAdderConfig({
 			}
 		},
 		{
-			// add an example langauge file
-			// TODO: Expand this for all languages
-			name: ({ options }) => {
+			// add usage example
+			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
+			contentType: 'svelte',
+			condition: ({ options }) => options.demo,
+			content({ jsAst, htmlAst, options }) {
+				imports.addDefault(jsAst, '$lib/paraglide/messages.js', '* as m');
+				imports.addNamed(jsAst, '$app/navigation', { goto: 'goto' });
+				imports.addNamed(jsAst, '$app/stores', { page: 'page' });
+				imports.addNamed(jsAst, '$lib/i18n', { i18n: 'i18n' });
+
+				const methodStatement = common.statementFromString(`
+					/**
+					 * @param { import("$lib/paraglide/runtime").AvailableLanguageTag } newLanguage
+					 */
+					function switchToLanguage(newLanguage) {
+						const canonicalPath = i18n.route($page.url.pathname);
+						const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
+						goto(localisedPath);
+					}
+				`);
+				jsAst.body.push(methodStatement);
+
+				// add localized message
+				html.addFromRawHtml(
+					htmlAst.childNodes,
+					`<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>`
+				);
+
+				// add links to other localized pages, the first one is the default
+				// language, thus it does not require any localized route
 				const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
-				const sourceLanguageTag = validLanguageTags[0];
-				if (!sourceLanguageTag) throw new Error('No language tags'); // this should be unreachable
-				return `messages/${sourceLanguageTag}.json`;
-			},
-			contentType: 'json',
-			content: ({ data }) => {
-				data['$schema'] = 'https://inlang.com/schema/inlang-message-format';
-				data.hello_world = 'Hello, {name}!';
+				const links = validLanguageTags
+					.map((x) => `<button onclick="{() => switchToLanguage('${x}')}">${x}</button>`)
+					.join('');
+				const div = html.element('div');
+				html.addFromRawHtml(div.childNodes, links);
+				html.appendElement(htmlAst.childNodes, div);
 			}
 		}
 	],
+	postInstall: ({ cwd, options }) => {
+		const jsonData: Record<string, string> = {};
+		jsonData['$schema'] = 'https://inlang.com/schema/inlang-message-format';
+
+		const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
+		for (const languageTag of validLanguageTags) {
+			jsonData.hello_world = `Hello, {name} from ${languageTag}!`;
+
+			const filePath = `messages/${languageTag}.json`;
+			const directoryPath = path.dirname(filePath);
+			const fullDirectoryPath = path.join(cwd, directoryPath);
+			const fullFilePath = path.join(cwd, filePath);
+
+			fs.mkdirSync(fullDirectoryPath, { recursive: true });
+			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2));
+		}
+	},
 	nextSteps: ({ colors }) => [
 		...warnings.map(colors.yellow),
 		'Edit your messages in `messages/en.json`',
