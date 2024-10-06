@@ -5,6 +5,8 @@ import {
 	parseHtml
 } from '@svelte-cli/ast-tooling';
 
+export { HtmlElement, HtmlElementType };
+
 export function div(attributes: Record<string, string> = {}): HtmlElement {
 	return element('div', attributes);
 }

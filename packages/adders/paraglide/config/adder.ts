@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineAdderConfig } from '@svelte-add/core';
-import { options, parseLanguageTagInput } from './options';
-import { HtmlElement, HtmlElementType } from '../../../packages/ast-tooling';
+import { defineAdderConfig } from '@svelte-cli/core';
+import { options, parseLanguageTagInput } from './options.ts';
+import { array, common, functions, imports, object, variables, exports } from '@svelte-cli/core/js';
+import * as html from '@svelte-cli/core/html';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -15,11 +16,11 @@ const DEFAULT_INLANG_PROJECT = {
 		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1.4.8/dist/index.js',
 		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1.0.8/dist/index.js',
 		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2.2.0/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0.9.36/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0.9.36/dist/index.js'
 	],
 	'plugin.inlang.messageFormat': {
-		pathPattern: './messages/{languageTag}.json',
-	},
+		pathPattern: './messages/{languageTag}.json'
+	}
 };
 
 const warnings: string[] = [];
@@ -40,10 +41,10 @@ export const adder = defineAdderConfig({
 				'paraglide',
 				'paraglide-js',
 				'paraglide-sveltekit',
-				'inlang',
+				'inlang'
 			],
-			documentation: 'https://inlang.com/m/dxnzrydw/paraglide-sveltekit-i18n',
-		},
+			documentation: 'https://inlang.com/m/dxnzrydw/paraglide-sveltekit-i18n'
+		}
 	},
 	options,
 	integrationType: 'inline',
@@ -51,8 +52,8 @@ export const adder = defineAdderConfig({
 		{
 			name: '@inlang/paraglide-sveltekit',
 			version: '^0.11.0',
-			dev: false,
-		},
+			dev: false
+		}
 	],
 	files: [
 		{
@@ -70,21 +71,21 @@ export const adder = defineAdderConfig({
 
 				data.sourceLanguageTag = sourceLanguageTag;
 				data.languageTags = validLanguageTags;
-			},
+			}
 		},
 		{
 			// add the vite plugin
-			name: ({ typescript }) => `vite.config.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content: ({ ast, array, object, functions, common, imports, exports }) => {
+			content: ({ ast }) => {
 				const vitePluginName = 'paraglide';
 				imports.addNamed(ast, '@inlang/paraglide-sveltekit/vite', {
-					paraglide: vitePluginName,
+					paraglide: vitePluginName
 				});
 
 				const { value: rootObject } = exports.defaultExport(
 					ast,
-					functions.call('defineConfig', []),
+					functions.call('defineConfig', [])
 				);
 				const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
 
@@ -92,17 +93,17 @@ export const adder = defineAdderConfig({
 				const pluginFunctionCall = functions.call(vitePluginName, []);
 				const pluginConfig = object.create({
 					project: common.createLiteral('./project.inlang'),
-					outdir: common.createLiteral('./src/lib/paraglide'),
+					outdir: common.createLiteral('./src/lib/paraglide')
 				});
 				functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
 				array.push(pluginsArray, pluginFunctionCall);
-			},
+			}
 		},
 		{
 			// src/lib/i18n file
-			name: ({ typescript }) => `src/lib/i18n.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `src/lib/i18n.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content({ ast, imports, exports, variables, common }) {
+			content({ ast }) {
 				imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
 				imports.addDefault(ast, '$lib/paraglide/runtime', '* as runtime');
 
@@ -112,18 +113,18 @@ export const adder = defineAdderConfig({
 				const existingExport = exports.namedExport(ast, 'i18n', i18n);
 				if (existingExport) {
 					warnings.push(
-						'Setting up $lib/i18n failed because it aleady exports an i18n function. Check that it is correct',
+						'Setting up $lib/i18n failed because it aleady exports an i18n function. Check that it is correct'
 					);
 				}
-			},
+			}
 		},
 		{
 			// reroute hook
-			name: ({ typescript }) => `src/hooks.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `src/hooks.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content({ ast, imports, exports, variables, common }) {
+			content({ ast }) {
 				imports.addNamed(ast, '$lib/i18n', {
-					i18n: 'i18n',
+					i18n: 'i18n'
 				});
 
 				const expression = common.expressionFromString('i18n.reroute()');
@@ -133,15 +134,15 @@ export const adder = defineAdderConfig({
 				if (existingExport) {
 					warnings.push('Adding the reroute hook automatically failed. Add it manually');
 				}
-			},
+			}
 		},
 		{
 			// handle hook
-			name: ({ typescript }) => `src/hooks.server.${typescript.installed ? 'ts' : 'js'}`,
+			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content({ ast, imports, exports, functions, variables, common }) {
+			content({ ast }) {
 				imports.addNamed(ast, '$lib/i18n', {
-					i18n: 'i18n',
+					i18n: 'i18n'
 				});
 
 				const i18nHandleExpression = common.expressionFromString('i18n.handle()');
@@ -149,13 +150,13 @@ export const adder = defineAdderConfig({
 					ast,
 					'const',
 					'handle',
-					i18nHandleExpression,
+					i18nHandleExpression
 				);
 				const existingExport = exports.namedExport(ast, 'handle', rerouteIdentifier);
 				if (existingExport) {
 					// if there is an existing `handle` hook, use the `sequence` function to add i18n.handle to it
 					imports.addNamed(ast, '@sveltejs/kit/hooks', {
-						sequence: 'sequence',
+						sequence: 'sequence'
 					});
 
 					const existingHandle = existingExport.declaration;
@@ -177,62 +178,62 @@ export const adder = defineAdderConfig({
 						...existingHandle.declarations
 							.filter((decl) => decl.type === 'VariableDeclarator')
 							.map((decl) => decl.init)
-							.filter((exp): exp is ExpressionKind => !!exp),
+							.filter((exp): exp is ExpressionKind => !!exp)
 					];
 
 					const newHandle = variables.declaration(ast, 'const', 'handle', sequenceExpression);
 					existingExport.declaration = newHandle;
 				}
-			},
+			}
 		},
 		{
 			// add the <ParaglideJS> component to the layout
-			name: ({ kit }) => `${kit.routesDirectory}/+layout.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			contentType: 'svelte',
-			content: ({ js, html }) => {
-				js.imports.addNamed(js.ast, '@inlang/paraglide-sveltekit', {
-					ParaglideJS: 'ParaglideJS',
+			content: ({ jsAst, htmlAst }) => {
+				imports.addNamed(jsAst, '@inlang/paraglide-sveltekit', {
+					ParaglideJS: 'ParaglideJS'
 				});
-				js.imports.addNamed(js.ast, '$lib/i18n', {
-					i18n: 'i18n',
+				imports.addNamed(jsAst, '$lib/i18n', {
+					i18n: 'i18n'
 				});
 
 				// wrap the HTML in a ParaglideJS instance
 				// TODO if (alreadyContainsParaglideJS(html.ast)) return;
-				const rootChildren = html.ast.children;
+				const rootChildren = htmlAst.children;
 				if (rootChildren.length === 0) {
 					const slot = html.element('slot');
 					rootChildren.push(slot);
 				}
 				const root = html.element('ParaglideJS', {});
 				root.attribs = {
-					'{i18n}': '',
+					'{i18n}': ''
 				};
 				root.children = rootChildren;
-				html.ast.children = [root];
-			},
+				htmlAst.children = [root];
+			}
 		},
 		{
 			// add the text-direction and lang attribute placeholders to app.html
-			name: () => `src/app.html`,
+			name: () => 'src/app.html',
 			contentType: 'html',
 			content(editor) {
 				const htmlNode = editor.ast.children.find(
-					(child): child is HtmlElement =>
-						child.type === HtmlElementType.Tag && child.name === 'html',
+					(child): child is html.HtmlElement =>
+						child.type === html.HtmlElementType.Tag && child.name === 'html'
 				);
 				if (!htmlNode) {
 					warnings.push(
-						"Could not find <html> node in app.html. You'll need to add the language placeholder manually",
+						"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
 					);
 					return;
 				}
 				htmlNode.attribs = {
 					...htmlNode.attribs,
 					lang: '%paraglide.lang%',
-					dir: '%paraglide.textDirection%',
+					dir: '%paraglide.textDirection%'
 				};
-			},
+			}
 		},
 		{
 			// add an example langauge file
@@ -247,12 +248,12 @@ export const adder = defineAdderConfig({
 			content: ({ data }) => {
 				data['$schema'] = 'https://inlang.com/schema/inlang-message-format';
 				data.hello_world = 'Hello, {name}!';
-			},
-		},
+			}
+		}
 	],
 	nextSteps: ({ colors }) => [
 		...warnings.map(colors.yellow),
 		'Edit your messages in `messages/en.json`',
-		'Consider installing the Sherlock IDE Extension',
-	],
+		'Consider installing the Sherlock IDE Extension'
+	]
 });
