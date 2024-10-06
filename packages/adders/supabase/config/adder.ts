@@ -875,14 +875,8 @@ export const adder = defineAdderConfig({
 			}
 		}
 	],
-	nextSteps: ({ options, packageManager, workspace }) => {
-		let command: string;
-		if (!packageManager || packageManager === 'npm') {
-			command = 'npx';
-		} else {
-			command = packageManager;
-		}
-
+	nextSteps: ({ options, workspace }) => {
+		const command = workspace.packageManager === 'npm' ? 'npx' : workspace.packageManager;
 		const { auth, cli: isCli, helpers: isHelpers } = options;
 		const isBasic = auth.includes('basic');
 		const isMagicLink = auth.includes('magicLink');

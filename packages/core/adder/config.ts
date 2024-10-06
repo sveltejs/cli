@@ -2,12 +2,10 @@ import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { FileType } from '../files/processors.ts';
 import type { Workspace } from '../files/workspace.ts';
 import type { Colors } from 'picocolors/types.ts';
-import type { AgentName } from 'package-manager-detector';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
-export type ConditionDefinitionWithoutExplicitArgs = ConditionDefinition<Record<string, Question>>;
 
 export type WebsiteMetadata = {
 	logo: string;
@@ -56,7 +54,6 @@ export type AdderConfig<Args extends OptionDefinition> = {
 		cwd: string;
 		colors: Colors;
 		docs: string | undefined;
-		packageManager: AgentName;
 		workspace: Workspace<Args>;
 	}) => string[];
 };
