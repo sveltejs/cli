@@ -477,8 +477,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// print next steps
 	const nextStepsMsg = selectedAdders
 		.filter(({ adder }) => adder.config.nextSteps)
-		.map(({ adder }) => adder.config)
-		.map((config) => {
+		.map(({ adder }) => {
+			const config = adder.config;
 			const metadata = config.metadata;
 			let adderMessage = '';
 			if (selectedAdders.length > 1) {
@@ -562,6 +562,32 @@ export async function installAdders({
 	}
 
 	return Array.from(filesToFormat);
+}
+
+async function runScripts(adder: string, scripts: Array<Scripts<any>>, workspace: Workspace<any>) {
+	p.log.step(`Running external command ${pc.gray(`(${adder})`)}`);
+
+	for (const script of scripts) {
+		if (script.condition?.(workspace) === false) {
+			continue;
+		}
+
+		try {
+			const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
+
+			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
+			if (workspace.packageManager === 'npm') args.unshift('--yes');
+
+			await exec(command, args, {
+				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
+			});
+		} catch (error) {
+			const typedError = error as Error;
+			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
+		}
+	}
+
+	p.log.success(`Finished running ${adder}`);
 }
 
 /**
@@ -651,30 +677,4 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 function getPadding(lines: string[]) {
 	const lengths = lines.map((s) => s.length);
 	return Math.max(...lengths);
-}
-
-async function runScripts(adder: string, scripts: Array<Scripts<any>>, workspace: Workspace<any>) {
-	p.log.step(`Running external command ${pc.gray(`(${adder})`)}`);
-
-	for (const script of scripts) {
-		if (script.condition?.(workspace) === false) {
-			continue;
-		}
-
-		try {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
-
-			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') args.unshift('--yes');
-
-			await exec(command, args, {
-				nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
-			});
-		} catch (error) {
-			const typedError = error as Error;
-			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
-		}
-	}
-
-	p.log.success(`Finished running ${adder}`);
 }

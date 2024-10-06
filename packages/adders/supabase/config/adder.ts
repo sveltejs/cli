@@ -705,7 +705,7 @@ export const adder = defineAdderConfig({
 
 				addFromRawHtml(
 					htmlAst.childNodes,
-					`
+					dedent`
 						<h1>Welcome to SvelteKit with Supabase</h1>
 						<ul>
 						<li><a href="/auth">Login</a></li>
