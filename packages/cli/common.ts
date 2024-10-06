@@ -6,7 +6,7 @@ import { detect, AGENTS, type AgentName } from 'package-manager-detector';
 import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
 import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import { getUserAgent } from '@svelte-cli/core/internal';
+import { detectPackageManager, getUserAgent } from '@svelte-cli/core/internal';
 
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
@@ -42,7 +42,7 @@ export async function runCommand(action: MaybePromise) {
 }
 
 export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	const pm = await guessPackageManager(cwd);
+	const pm = await detectPackageManager(cwd);
 	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
 	const cmd = resolveCommand(pm, 'execute-local', args)!;
 	await exec(cmd.command, cmd.args, {

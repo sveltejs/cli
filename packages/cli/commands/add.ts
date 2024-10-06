@@ -5,7 +5,7 @@ import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@svelte-cli/clack-prompts';
 import * as pkg from 'empathic/package';
-import { resolveCommand } from 'package-manager-detector';
+import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
 	adderCategories,
@@ -18,7 +18,9 @@ import {
 import {
 	createOrUpdateFiles,
 	createWorkspace,
+	detectPackageManager,
 	installPackages,
+	TESTING,
 	type Workspace
 } from '@svelte-cli/core/internal';
 import type {
@@ -29,7 +31,6 @@ import type {
 } from '@svelte-cli/core';
 import * as common from '../common.js';
 import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
-import { COMMANDS, constructCommand } from 'package-manager-detector';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -675,10 +676,10 @@ export async function runScripts<Args extends OptionDefinition>(
 		}
 
 		try {
-			const pm = await common.guessPackageManager(cwd);
+			const pm = await detectPackageManager(workspace.cwd);
 			const cmd = resolveCommand(pm, 'execute', script.args)!;
 			await exec(cmd.command, cmd.args, {
-				nodeOptions: { cwd, stdio: TESTING ? 'pipe' : 'inherit' }
+				nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : 'inherit' }
 			});
 
 			const executeCommand = COMMANDS[workspace.packageManager].execute;
