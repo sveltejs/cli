@@ -6,7 +6,7 @@ import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
 import { common, object } from '../tooling/js/index.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
-import type { OptionDefinition, OptionValues, Question } from '../adder/options.ts';
+import type { OptionDefinition, OptionValues } from '../adder/options.ts';
 import { AGENTS, detect, type AgentName } from 'package-manager-detector';
 
 export type Workspace<Args extends OptionDefinition> = {
@@ -18,8 +18,6 @@ export type Workspace<Args extends OptionDefinition> = {
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
 	packageManager: AgentName;
 };
-
-export type WorkspaceWithoutExplicitArgs = Workspace<Record<string, Question>>;
 
 export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	return {
@@ -62,7 +60,7 @@ export async function createWorkspace<Args extends OptionDefinition>(
 	return workspace;
 }
 
-function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
+function parseKitOptions(workspace: Workspace<any>) {
 	const configSource = readFile(workspace, commonFilePaths.svelteConfig);
 	const ast = parseScript(configSource);
 
