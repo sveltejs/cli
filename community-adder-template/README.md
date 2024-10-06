@@ -1,4 +1,4 @@
-# adder-template-js
+# community-adder-template
 
 > [!IMPORTANT]
 > This template's dependencies may not be up-to-date; be sure to update them to the latest!
@@ -11,7 +11,7 @@ The adder template for community adders for [`sv`](https://github.com/sveltejs/c
 Use [`degit`](https://github.com/Rich-Harris/degit) to clone the template:
 
 ```shell
-npx degit sveltejs/cli/adder-template adder-name
+npx degit sveltejs/cli/community-adder-template adder-name
 ```
 
 ## Using the adder
@@ -48,7 +48,7 @@ To execute the newly published package with `sv`, run:
 npx sv add --community npm:adder-package-name
 ```
 
-After that, feel free to open a pull request to [`sv`](https://github.com/sveltejs/cli) and add your adder to the [community list](/community/).
+After that, feel free to open a pull request to [`sv`](https://github.com/sveltejs/cli) and add your adder to the [community list](/community-adders/).
 
 ## Things to be aware of
 

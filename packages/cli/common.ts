@@ -3,7 +3,7 @@ import pkg from './package.json';
 import { exec } from 'tinyexec';
 import * as p from '@svelte-cli/clack-prompts';
 import { detect, AGENTS, type AgentName } from 'package-manager-detector';
-import { COMMANDS, constructCommand } from 'package-manager-detector/commands';
+import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
 import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { getUserAgent } from '@svelte-cli/core/internal';
@@ -42,7 +42,10 @@ export async function runCommand(action: MaybePromise) {
 }
 
 export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	await exec('npx', ['prettier', '--write', '--ignore-unknown', ...paths], {
+	const pm = await guessPackageManager(cwd);
+	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
+	const cmd = resolveCommand(pm, 'execute-local', args)!;
+	await exec(cmd.command, cmd.args, {
 		nodeOptions: { cwd, stdio: 'pipe' }
 	});
 }

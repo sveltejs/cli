@@ -5,8 +5,9 @@ import { program } from 'commander';
 import { add } from './commands/add.js';
 import { create } from './commands/create.js';
 import { migrate } from './commands/migrate.js';
+import { check } from './commands/check.js';
 import { helpConfig } from './common.js';
 
 program.name(pkg.name).version(pkg.version, '-v').configureHelp(helpConfig);
-program.addCommand(create).addCommand(add).addCommand(migrate);
+program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);
 program.parse();

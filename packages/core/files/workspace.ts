@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import * as find from 'empathic/find';
+import * as resolve from 'empathic/resolve';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
 import { common, object } from '../tooling/js/index.ts';
-import { commonFilePaths, findUp, getPackageJson, readFile } from './utils.ts';
+import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import type { OptionDefinition, OptionValues, Question } from '../adder/options.ts';
 import { AGENTS, detect, type AgentName } from 'package-manager-detector';
 
@@ -42,14 +44,14 @@ export async function createWorkspace<Args extends OptionDefinition>(
 		// as we might detect the monorepo `tsconfig.json` otherwise.
 		usesTypescript ||= fs.existsSync(path.join(cwd, commonFilePaths.tsconfig));
 	} else {
-		usesTypescript ||= findUp(cwd, commonFilePaths.tsconfig) !== undefined;
+		usesTypescript ||= find.up(commonFilePaths.tsconfig, { cwd }) !== undefined;
 	}
 
 	const { data: packageJson } = getPackageJson(workspace);
 
 	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 	workspace.typescript = usesTypescript;
-	workspace.prettier = 'prettier' in workspace.dependencies;
+	workspace.prettier = Boolean(resolve.from(cwd, 'prettier', true));
 	workspace.packageManager = await detectPackageManager(cwd);
 	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
 	for (const [key, value] of Object.entries(workspace.dependencies)) {
