@@ -37,12 +37,7 @@ export const adder = defineAdderConfig({
 			condition: ({ options }) => options.auth.length > 0
 		},
 		// Local development CLI
-		{
-			name: 'supabase',
-			version: '^1.191.3',
-			dev: true,
-			condition: ({ options }) => options.cli
-		}
+		{ name: 'supabase', version: '^1.191.3', dev: true, condition: ({ options }) => options.cli }
 	],
 	scripts: [
 		{
@@ -75,13 +70,9 @@ export const adder = defineAdderConfig({
 			contentType: 'script',
 			condition: ({ options }) => options.auth.length > 0,
 			content: ({ ast, options, typescript }) => {
-				const isTs = typescript;
-				const { demo: isDemo } = options;
-
 				imports.addNamed(ast, '@supabase/ssr', { createServerClient: 'createServerClient' });
 
-				if (!isTs && isDemo) imports.addNamed(ast, '@sveltejs/kit', { redirect: 'redirect' });
-				if (isTs && isDemo) {
+				if (options.demo) {
 					imports.addNamed(ast, '@sveltejs/kit', { redirect: 'redirect' });
 				}
 
@@ -91,7 +82,7 @@ export const adder = defineAdderConfig({
 				});
 
 				addHooksHandle(ast, typescript, 'supabase', getSupabaseHandleContent(), true);
-				addHooksHandle(ast, typescript, 'authGuard', getAuthGuardHandleContent(isDemo));
+				addHooksHandle(ast, typescript, 'authGuard', getAuthGuardHandleContent(options.demo));
 			}
 		},
 		{
@@ -99,8 +90,6 @@ export const adder = defineAdderConfig({
 			contentType: 'script',
 			condition: ({ options, typescript }) => typescript && options.auth.length > 0,
 			content: ({ ast, options, typescript }) => {
-				const { cli: isCli, helpers: isHelpers } = options;
-
 				imports.addNamed(
 					ast,
 					'@supabase/supabase-js',
@@ -112,8 +101,9 @@ export const adder = defineAdderConfig({
 					true
 				);
 
-				if (isCli && isHelpers)
+				if (options.cli && options.helpers) {
 					imports.addNamed(ast, '$lib/supabase-types', { Database: 'Database' }, true);
+				}
 
 				const locals = addGlobalAppInterface(ast, 'Locals');
 				if (!locals) {
@@ -251,27 +241,24 @@ export const adder = defineAdderConfig({
 			condition: ({ options }) =>
 				options.auth.includes('basic') || options.auth.includes('magic-link'),
 			content: ({ options, typescript }) => {
-				const isTs = typescript;
-				const { auth, demo: isDemo } = options;
-
-				const isBasic = auth.includes('basic');
-				const isMagicLink = auth.includes('magic-link');
+				const isBasic = options.auth.includes('basic');
+				const isMagicLink = options.auth.includes('magic-link');
 
 				return dedent`
 					${isBasic ? `import { redirect } from '@sveltejs/kit'` : ''}
-					${isDemo ? `import { PUBLIC_BASE_URL } from '$env/static/public'` : ''}
-					${isTs ? `import type { Actions } from './$types'` : ''}
+					${options.demo ? `import { PUBLIC_BASE_URL } from '$env/static/public'` : ''}
+					${typescript ? `import type { Actions } from './$types'` : ''}
 					
-					export const actions${isTs ? ': Actions' : ''} = {${
+					export const actions${typescript ? ': Actions' : ''} = {${
 						isBasic
 							? `
 						signup: async ({ request, locals: { supabase } }) => {
 							const formData = await request.formData()
-							const email = formData.get('email')${isTs ? ' as string' : ''}
-							const password = formData.get('password')${isTs ? ' as string' : ''}
+							const email = formData.get('email')${typescript ? ' as string' : ''}
+							const password = formData.get('password')${typescript ? ' as string' : ''}
 
 							const { error } = await supabase.auth.signUp({${
-								isDemo
+								options.demo
 									? `
 								email,
 								password,
@@ -286,7 +273,7 @@ export const adder = defineAdderConfig({
 								return { message: 'Something went wrong, please try again.' }
 							} else {
 								${
-									isDemo
+									options.demo
 										? `// Redirect to local Inbucket for demo purposes
 											redirect(303, \`http://localhost:54324/m/\${email}\`)`
 										: `return { message: 'Sign up succeeded! Please check your email inbox.' }`
@@ -295,8 +282,8 @@ export const adder = defineAdderConfig({
 						},
 						login: async ({ request, locals: { supabase } }) => {
 							const formData = await request.formData()
-							const email = formData.get('email')${isTs ? ' as string' : ''}
-							const password = formData.get('password')${isTs ? ' as string' : ''}
+							const email = formData.get('email')${typescript ? ' as string' : ''}
+							const password = formData.get('password')${typescript ? ' as string' : ''}
 
 							const { error } = await supabase.auth.signInWithPassword({ email, password })
 							if (error) {
@@ -304,7 +291,7 @@ export const adder = defineAdderConfig({
 								return { message: 'Something went wrong, please try again.' }
 							}
 							
-							redirect(303, '${isDemo ? '/private' : '/'}')
+							redirect(303, '${options.demo ? '/private' : '/'}')
 						},`
 							: ''
 					}${
@@ -312,7 +299,7 @@ export const adder = defineAdderConfig({
 							? `
 						magic: async ({ request, locals: { supabase } }) => {
 							const formData = await request.formData()
-							const email = formData.get('email')${isTs ? ' as string' : ''}
+							const email = formData.get('email')${typescript ? ' as string' : ''}
 
 							const { error } = await supabase.auth.signInWithOtp({ email })
 							if (error) {
@@ -334,18 +321,15 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			condition: ({ options }) => options.auth.length > 0,
 			content: ({ options, typescript }) => {
-				const isTs = typescript;
-				const { auth } = options;
-
-				const isBasic = auth.includes('basic');
-				const isMagicLink = auth.includes('magic-link');
+				const isBasic = options.auth.includes('basic');
+				const isMagicLink = options.auth.includes('magic-link');
 
 				return dedent`
-					<script${isTs ? ' lang="ts"' : ''}>
+					<script${typescript ? ' lang="ts"' : ''}>
 						${isBasic || isMagicLink ? `import { enhance } from '$app/forms'` : ''}
-						${(isBasic || isMagicLink) && isTs ? `import type { ActionData } from './$types'` : ''}
+						${(isBasic || isMagicLink) && typescript ? `import type { ActionData } from './$types'` : ''}
 
-						${isBasic || isMagicLink ? `export let form${isTs ? ': ActionData' : ''}` : ''}
+						${isBasic || isMagicLink ? `export let form${typescript ? ': ActionData' : ''}` : ''}
 					</script>
 
 					<form method="POST" use:enhance>
@@ -387,15 +371,13 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			condition: ({ options }) => options.auth.includes('basic'),
 			content: ({ typescript }) => {
-				const isTs = typescript;
-
 				return dedent`
-					<script${isTs ? ' lang="ts"' : ''}>
+					<script${typescript ? ' lang="ts"' : ''}>
 						import { enhance } from '$app/forms'
 						
-						${isTs ? `import type { ActionData } from './$types'` : ''}
+						${typescript ? `import type { ActionData } from './$types'` : ''}
 
-						export let form${isTs ? ': ActionData' : ''}
+						export let form${typescript ? ': ActionData' : ''}
 					</script>
 
 					<form method="POST" use:enhance>
@@ -418,16 +400,14 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			condition: ({ options }) => options.auth.includes('basic'),
 			content: ({ typescript }) => {
-				const isTs = typescript;
-
 				return dedent`
 					import { PUBLIC_BASE_URL } from '$env/static/public'
-					${isTs ? `import type { Actions } from './$types'` : ''}
+					${typescript ? `import type { Actions } from './$types'` : ''}
 
-					export const actions${isTs ? ': Actions' : ''} = {
+					export const actions${typescript ? ': Actions' : ''} = {
 						default: async ({ request, locals: { supabase } }) => {
 							const formData = await request.formData()
-							const email = formData.get('email')${isTs ? ' as string' : ''}
+							const email = formData.get('email')${typescript ? ' as string' : ''}
 
 							const { error } = await supabase.auth.resetPasswordForEmail(
 								email,
@@ -450,15 +430,13 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			condition: ({ options }) => options.auth.includes('basic'),
 			content: ({ typescript }) => {
-				const isTs = typescript;
-
 				return dedent`
-					${isTs ? `import type { Actions } from './$types'` : ''}
+					${typescript ? `import type { Actions } from './$types'` : ''}
 
-					export const actions${isTs ? ': Actions' : ''} = {
+					export const actions${typescript ? ': Actions' : ''} = {
 						default: async ({ request, locals: { supabase } }) => {
 							const formData = await request.formData()
-							const password = formData.get('password')${isTs ? ' as string' : ''}
+							const password = formData.get('password')${typescript ? ' as string' : ''}
 
 							const { error } = await supabase.auth.updateUser({ password })
 							if (error) {
@@ -477,15 +455,13 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			condition: ({ options }) => options.auth.includes('basic'),
 			content: ({ typescript }) => {
-				const isTs = typescript;
-
 				return dedent`
-					<script${isTs ? ' lang="ts"' : ''}>
+					<script${typescript ? ' lang="ts"' : ''}>
 						import { enhance } from '$app/forms'
 						
-						${isTs ? `import type { ActionData } from './$types'` : ''}
+						${typescript ? `import type { ActionData } from './$types'` : ''}
 
-						export let form${isTs ? ': ActionData' : ''}
+						export let form${typescript ? ': ActionData' : ''}
 					</script>
 
 					<form method="POST" use:enhance>
@@ -510,20 +486,18 @@ export const adder = defineAdderConfig({
 			condition: ({ options }) =>
 				options.auth.includes('basic') || options.auth.includes('magic-link'),
 			content: ({ typescript }) => {
-				const isTs = typescript;
-
 				return dedent`
 					import { error, redirect } from '@sveltejs/kit'
 					import { PUBLIC_BASE_URL } from '$env/static/public'
 					${
-						isTs
+						typescript
 							? dedent`import type { EmailOtpType } from '@supabase/supabase-js'
 							         import type { RequestHandler } from './$types'\n`
 							: ''
 					}
-					export const GET${isTs ? ': RequestHandler' : ''} = async ({ url, locals: { supabase } }) => {
+					export const GET${typescript ? ': RequestHandler' : ''} = async ({ url, locals: { supabase } }) => {
 						const token_hash = url.searchParams.get('token_hash')
-						const type = url.searchParams.get('type')${isTs ? ' as EmailOtpType | null' : ''}
+						const type = url.searchParams.get('type')${typescript ? ' as EmailOtpType | null' : ''}
 						const next = url.searchParams.get('next') ?? \`\${PUBLIC_BASE_URL}/\`
 
 						const redirectTo = new URL(next)
@@ -549,16 +523,14 @@ export const adder = defineAdderConfig({
 			contentType: 'text',
 			condition: ({ options }) => options.admin,
 			content: ({ options, typescript }) => {
-				const isTs = typescript;
-				const { cli: isCli, helpers: isHelpers } = options;
-
+				const annotate = typescript && options.cli && options.helpers;
 				return dedent`
 					import { PUBLIC_SUPABASE_URL } from '$env/static/public'
 					import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private'
-					${isTs && isCli && isHelpers ? `import type { Database } from '$lib/supabase-types'` : ''}
+					${annotate ? `import type { Database } from '$lib/supabase-types'` : ''}
 					import { createClient } from '@supabase/supabase-js'
 
-					export const supabaseAdmin = createClient${isTs && isCli && isHelpers ? '<Database>' : ''}(
+					export const supabaseAdmin = createClient${annotate ? '<Database>' : ''}(
 						PUBLIC_SUPABASE_URL,
 						SUPABASE_SERVICE_ROLE_KEY,
 						{
@@ -692,13 +664,12 @@ export const adder = defineAdderConfig({
 	],
 	nextSteps: ({ options, packageManager, typescript, highlighter }) => {
 		const command = packageManager === 'npm' ? 'npx' : packageManager;
-		const { auth, cli: isCli, helpers: isHelpers } = options;
-		const isBasic = auth.includes('basic');
-		const isMagicLink = auth.includes('magic-link');
+		const isBasic = options.auth.includes('basic');
+		const isMagicLink = options.auth.includes('magic-link');
 
 		const steps = [`Visit the Supabase docs: ${highlighter.website('https://supabase.com/docs')}`];
 
-		if (isCli) {
+		if (options.cli) {
 			steps.push(
 				`Start local Supabase services: ${highlighter.command(`${command} supabase start`)}`
 			);
@@ -706,7 +677,7 @@ export const adder = defineAdderConfig({
 				Changes to local Supabase config require a restart of the local services: ${highlighter.command(`${command} supabase stop`)} and ${highlighter.command(`${command} supabase start`)}`);
 		}
 
-		if (isHelpers) {
+		if (options.helpers) {
 			steps.push(dedent`
 				Check out ${highlighter.path('package.json')} for the helper scripts. Remember to generate your database types`);
 		}
@@ -719,7 +690,7 @@ export const adder = defineAdderConfig({
 		if (isBasic || isMagicLink) {
 			steps.push(`Update your hosted project's email templates`);
 
-			if (isCli) {
+			if (options.cli) {
 				steps.push(
 					`Local email templates are located in ${highlighter.path('./supabase/templates')}`
 				);

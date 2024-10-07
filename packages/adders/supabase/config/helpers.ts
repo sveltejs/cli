@@ -1,24 +1,20 @@
 import type { AstTypes, TextFileEditor } from '@svelte-cli/core';
-import { options as availableOptions } from './options.ts';
+import type { options } from './options.ts';
 
-export function generateEnvFileContent({
-	content,
-	options
-}: TextFileEditor<typeof availableOptions>) {
-	const isCli = options.cli;
-
+export function generateEnvFileContent(editor: TextFileEditor<typeof options>) {
+	let { content, options } = editor;
 	content = addEnvVar(content, 'PUBLIC_BASE_URL', '"http://localhost:5173"');
 	content = addEnvVar(
 		content,
 		'PUBLIC_SUPABASE_URL',
 		// Local development env always has the same credentials, prepopulate the local dev env file
-		isCli ? '"http://127.0.0.1:54321"' : '"<your_supabase_project_url>"'
+		options.cli ? '"http://127.0.0.1:54321"' : '"<your_supabase_project_url>"'
 	);
 	content = addEnvVar(
 		content,
 		'PUBLIC_SUPABASE_ANON_KEY',
 		// Local development env always has the same credentials, prepopulate the local dev env file
-		isCli
+		options.cli
 			? '"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"'
 			: '"<your_supabase_anon_key>"'
 	);
@@ -28,7 +24,7 @@ export function generateEnvFileContent({
 				content,
 				'SUPABASE_SERVICE_ROLE_KEY',
 				// Local development env always has the same credentials, prepopulate the local dev env file
-				isCli
+				options.cli
 					? '"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"'
 					: '"<your_supabase_service_role_key>"'
 			)

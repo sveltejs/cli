@@ -92,26 +92,23 @@ export const demos: Array<FileType<typeof options>> = [
 		contentType: 'text',
 		condition: ({ options }) => options.demo,
 		content: ({ options, typescript }) => {
-			const isTs = typescript;
-			const { cli: isCli } = options;
-
 			return dedent`
-                <script${isTs ? ' lang="ts"' : ''}>
+                <script${typescript ? ' lang="ts"' : ''}>
                     import { invalidate } from '$app/navigation'
 
                     let { data } = $props();
-                    let { ${isCli ? 'notes, supabase, user' : 'user'} } = $derived(data);
+                    let { ${options.cli ? 'notes, supabase, user' : 'user'} } = $derived(data);
 
                     ${
-											isCli
+											options.cli
 												? `
-                    async function handleSubmit(evt${isTs ? ': SubmitEvent' : ''}) {
+                    async function handleSubmit(evt${typescript ? ': SubmitEvent' : ''}) {
                         evt.preventDefault();
                         if (!evt.target) return;
 
-                        const form = evt.target${isTs ? ' as HTMLFormElement' : ''}
+                        const form = evt.target${typescript ? ' as HTMLFormElement' : ''}
 
-                        const note = (new FormData(form).get('note') ?? '')${isTs ? ' as string' : ''}
+                        const note = (new FormData(form).get('note') ?? '')${typescript ? ' as string' : ''}
                         if (!note) return;
 
                         const { error } = await supabase.from('notes').insert({ note });
@@ -127,7 +124,7 @@ export const demos: Array<FileType<typeof options>> = [
 
                 <h1>Private page for user: {user?.email}</h1>
                 ${
-									isCli
+									options.cli
 										? `
                 <h2>Notes</h2>
                 <ul>
@@ -153,11 +150,9 @@ export const demos: Array<FileType<typeof options>> = [
 		contentType: 'text',
 		condition: ({ options }) => options.demo && options.cli,
 		content: ({ typescript }) => {
-			const isTs = typescript;
-
 			return dedent`
-                ${isTs ? `import type { PageServerLoad } from './$types'\n` : ''}
-                export const load${isTs ? ': PageServerLoad' : ''} = async ({ depends, locals: { supabase } }) => {
+                ${typescript ? `import type { PageServerLoad } from './$types'\n` : ''}
+                export const load${typescript ? ': PageServerLoad' : ''} = async ({ depends, locals: { supabase } }) => {
                     depends('supabase:db:notes')
                     const { data: notes } = await supabase.from('notes').select('id,note').order('id')
                     return { notes: notes ?? [] }
