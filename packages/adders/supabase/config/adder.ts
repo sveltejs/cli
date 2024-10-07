@@ -410,26 +410,26 @@ export const adder = defineAdderConfig({
 				const isTs = typescript;
 
 				return dedent`
-						import { PUBLIC_BASE_URL } from '$env/static/public'
-						${isTs ? `import type { Actions } from './$types'` : ''}
+					import { PUBLIC_BASE_URL } from '$env/static/public'
+					${isTs ? `import type { Actions } from './$types'` : ''}
 
-						export const actions${isTs ? ': Actions' : ''} = {
-							default: async ({ request, locals: { supabase } }) => {
-								const formData = await request.formData()
-								const email = formData.get('email')${isTs ? ' as string' : ''}
+					export const actions${isTs ? ': Actions' : ''} = {
+						default: async ({ request, locals: { supabase } }) => {
+							const formData = await request.formData()
+							const email = formData.get('email')${isTs ? ' as string' : ''}
 
-								const { error } = await supabase.auth.resetPasswordForEmail(
-									email,
-									{ redirectTo: \`\${PUBLIC_BASE_URL}/auth/reset-password\` }
-								)
-								if (error) {
-									console.error(error)
-									return { message: 'Something went wrong, please try again.' }
-								} else {
-									return { message: 'Please check your email inbox.' }
-								}
-							},
-						}
+							const { error } = await supabase.auth.resetPasswordForEmail(
+								email,
+								{ redirectTo: \`\${PUBLIC_BASE_URL}/auth/reset-password\` }
+							)
+							if (error) {
+								console.error(error)
+								return { message: 'Something went wrong, please try again.' }
+							} else {
+								return { message: 'Please check your email inbox.' }
+							}
+						},
+					}
 					`;
 			}
 		},
@@ -1084,9 +1084,9 @@ function createUserType(name: string): AstTypes.TSPropertySignature {
 }
 
 function getSupabaseHandleContent() {
-	return dedent`
+	return `
 		async ({ event, resolve }) => {
-			event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+		event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 			cookies: {
 				getAll: () => event.cookies.getAll(),
 				setAll: (cookiesToSet) => {
@@ -1125,7 +1125,7 @@ function getSupabaseHandleContent() {
 }
 
 function getAuthGuardHandleContent(isDemo: boolean) {
-	return dedent`
+	return `
 		async ({ event, resolve }) => {
 			const { session, user } = await event.locals.safeGetSession()
 			event.locals.session = session
