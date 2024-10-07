@@ -4,8 +4,8 @@ import { exec } from 'tinyexec';
 import * as p from '@svelte-cli/clack-prompts';
 import { detect, AGENTS, type AgentName } from 'package-manager-detector';
 import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
-import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
+import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
 import { detectPackageManager, getUserAgent } from '@svelte-cli/core/internal';
 
 export const helpConfig: HelpConfiguration = {

@@ -2,12 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
 import * as resolve from 'empathic/resolve';
+import { AGENTS, detect, type AgentName } from 'package-manager-detector';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
 import { common, object } from '../tooling/js/index.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import type { OptionDefinition, OptionValues } from '../adder/options.ts';
-import { AGENTS, detect, type AgentName } from 'package-manager-detector';
 
 export type Workspace<Args extends OptionDefinition> = {
 	options: OptionValues<Args>;
