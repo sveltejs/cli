@@ -49,7 +49,7 @@ export const adder = defineAdderConfig({
 	packages: [
 		{
 			name: '@inlang/paraglide-sveltekit',
-			version: '^0.11.0',
+			version: '^0.11.1',
 			dev: false
 		}
 	],
