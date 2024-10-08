@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import * as v from 'valibot';
 import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';

@@ -1,3 +1,4 @@
+import process from 'node:process';
 import pc from 'picocolors';
 import pkg from './package.json';
 import { exec } from 'tinyexec';

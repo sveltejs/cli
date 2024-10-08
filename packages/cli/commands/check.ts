@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import process from 'node:process';
 import pc from 'picocolors';
 import * as resolve from 'empathic/resolve';
 import { Command } from 'commander';
