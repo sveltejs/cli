@@ -2,6 +2,7 @@ import { dedent, type FileType } from '@svelte-cli/core';
 import type { options } from './options.ts';
 import { common, imports } from '@svelte-cli/core/js';
 import { addFromRawHtml } from '@svelte-cli/core/html';
+import { createPrinter } from '../../common.ts';
 
 export const demos: Array<FileType<typeof options>> = [
 	// Demo routes when user has selected Basic Auth and/or Magic Link
@@ -92,23 +93,22 @@ export const demos: Array<FileType<typeof options>> = [
 		contentType: 'text',
 		condition: ({ options }) => options.demo,
 		content: ({ options, typescript }) => {
+			const [ts, cli] = createPrinter(typescript, options.cli);
 			return dedent`
-                <script${typescript ? ' lang="ts"' : ''}>
+                <script${ts(' lang="ts"')}>
                     import { invalidate } from '$app/navigation'
 
                     let { data } = $props();
-                    let { ${options.cli ? 'notes, supabase, user' : 'user'} } = $derived(data);
+                    let { ${cli('notes, supabase, user', 'user')} } = $derived(data);
 
-                    ${
-											options.cli
-												? `
-                    async function handleSubmit(evt${typescript ? ': SubmitEvent' : ''}) {
+                    ${cli(`
+                    async function handleSubmit(evt${ts(': SubmitEvent')}) {
                         evt.preventDefault();
                         if (!evt.target) return;
 
-                        const form = evt.target${typescript ? ' as HTMLFormElement' : ''}
+                        const form = evt.target${ts(' as HTMLFormElement')}
 
-                        const note = (new FormData(form).get('note') ?? '')${typescript ? ' as string' : ''}
+                        const note = (new FormData(form).get('note') ?? '')${ts(' as string')}
                         if (!note) return;
 
                         const { error } = await supabase.from('notes').insert({ note });
@@ -117,15 +117,11 @@ export const demos: Array<FileType<typeof options>> = [
                         invalidate('supabase:db:notes');
                         form.reset();
                     }
-                        `
-												: ''
-										}
+                        `)}
                 </script>
 
                 <h1>Private page for user: {user?.email}</h1>
-                ${
-									options.cli
-										? `
+                ${cli(`
                 <h2>Notes</h2>
                 <ul>
                     {#each notes as note}
@@ -138,9 +134,7 @@ export const demos: Array<FileType<typeof options>> = [
                         <input name="note" type="text" />
                     </label>
                 </form>
-                        `
-										: ''
-								}
+                        `)}
                 `;
 		}
 	},
@@ -150,9 +144,10 @@ export const demos: Array<FileType<typeof options>> = [
 		contentType: 'text',
 		condition: ({ options }) => options.demo && options.cli,
 		content: ({ typescript }) => {
+			const [ts] = createPrinter(typescript);
 			return dedent`
-                ${typescript ? `import type { PageServerLoad } from './$types'\n` : ''}
-                export const load${typescript ? ': PageServerLoad' : ''} = async ({ depends, locals: { supabase } }) => {
+                ${ts(`import type { PageServerLoad } from './$types'\n`)}
+                export const load${ts(': PageServerLoad')} = async ({ depends, locals: { supabase } }) => {
                     depends('supabase:db:notes')
                     const { data: notes } = await supabase.from('notes').select('id,note').order('id')
                     return { notes: notes ?? [] }

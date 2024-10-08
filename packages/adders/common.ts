@@ -2,6 +2,13 @@ import { imports, exports, common, variables, functions } from '@svelte-cli/core
 import { Walker, type AstKinds, type AstTypes, type ScriptFileEditor } from '@svelte-cli/core';
 import type { Question } from '@svelte-cli/core/internal';
 
+export function createPrinter(...conditions: boolean[]) {
+	const printers = conditions.map((condition) => {
+		return (content: string, alt = '') => (condition ? content : alt);
+	});
+	return printers;
+}
+
 export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string, Question>>) {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
