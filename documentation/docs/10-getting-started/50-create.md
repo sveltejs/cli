@@ -2,17 +2,17 @@
 title: Create a project
 ---
 
-## create
+## overview
 
 some cool description about the `create` command and it's capabilities
 
 ## usage
 
-```
+```bash
 npx sv create
 ```
 
-```
+```bash
 npx sv create ./my/path
 ```
 
@@ -28,7 +28,7 @@ npx sv create ./my/path
 ## programatic interface
 
 ```js
-// todo: this gives error in the docs site when commented in
+// todo: this gives error in the docs site when commented in, seems to be related that this package is not published to the registry at this point in time, as it seems to be trying to check types
 // import { create } from 'sv';
 
 // // todo: check if this is right

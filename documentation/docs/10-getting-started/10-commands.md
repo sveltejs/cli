@@ -10,10 +10,10 @@ The svelte cli `sv` aims to combine multiple tools into one single easy to remem
 
 The best way to use our cli is to run one of the following commands, depending on your package manager
 
-```sh
-npx sv # args
-pnpx sv # args
-# todo
+```bash
+npx sv <command> <args>
+pnpx sv <command> <args>
+# todo: should we add other package managers or just leave npx? Same goes for all other snippets
 ```
 
 ## Commands
