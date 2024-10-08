@@ -2,7 +2,7 @@ import { options } from './options.ts';
 import { defineAdderConfig } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { addImports } from '@svelte-cli/core/css';
-import { element } from '@svelte-cli/core/html';
+import { addFromRawHtml } from '@svelte-cli/core/html';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -118,8 +118,8 @@ export const adder = defineAdderConfig({
 			content: ({ jsAst, htmlAst }) => {
 				imports.addEmpty(jsAst, '../app.css');
 				if (htmlAst.childNodes.length === 0) {
-					const slot = element('slot');
-					htmlAst.childNodes.push(slot);
+					common.addFromString(jsAst, 'let { children } = $props();');
+					addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 				}
 			},
 			condition: ({ kit }) => Boolean(kit)
