@@ -231,7 +231,7 @@ export const adder = defineAdderConfig({
 					`
 				);
 
-				addFromRawHtml(htmlAst.childNodes, '{@render children?.()}');
+				addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 			}
 		},
 		{
