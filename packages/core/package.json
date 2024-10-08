@@ -36,14 +36,12 @@
 		"dist"
 	],
 	"devDependencies": {
+		"@svelte-cli/ast-tooling": "workspace:*",
 		"@svelte-cli/clack-prompts": "workspace:*",
 		"decircular": "^1.0.0",
 		"dedent": "^1.5.3",
 		"empathic": "^1.0.0",
 		"picocolors": "^1.1.0"
-	},
-	"dependencies": {
-		"@svelte-cli/ast-tooling": "workspace:*"
 	},
 	"bugs": "https://github.com/sveltejs/cli/issues",
 	"repository": {

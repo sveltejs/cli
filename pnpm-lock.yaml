@@ -195,11 +195,10 @@ importers:
         version: 0.41.0(typescript@5.6.2)
 
   packages/core:
-    dependencies:
+    devDependencies:
       '@svelte-cli/ast-tooling':
         specifier: workspace:*
         version: link:../ast-tooling
-    devDependencies:
       '@svelte-cli/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
