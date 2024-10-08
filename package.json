@@ -8,8 +8,6 @@
 		"check": "pnpm -r check",
 		"lint": "pnpm -r lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"format": "pnpm -r format",
-		"changeset:version": "changeset version && pnpm -r generate:version && git add --all",
-		"changeset:release": "changeset publish",
 		"dev": "rollup --config --watch",
 		"build": "rollup -c",
 		"test": "pnpm -r test"
