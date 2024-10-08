@@ -25,9 +25,8 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 
 	const fallbackConfig = common.expressionFromString('[]');
 	const defaultExport = exports.defaultExport(ast, fallbackConfig);
-	const defaultExportValue = defaultExport.value;
-	if (defaultExportValue.type !== 'ArrayExpression' && defaultExportValue.type !== 'CallExpression')
-		return;
+	const eslintConfig = defaultExport.value;
+	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression') return;
 
 	const prettier = common.expressionFromString('prettier');
 	const sveltePrettierConfig = common.expressionFromString(
@@ -36,13 +35,11 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 	const configSpread = common.createSpreadElement(sveltePrettierConfig);
 
 	const nodesToInsert = [];
-	if (!common.hasNode(defaultExportValue, prettier)) nodesToInsert.push(prettier);
-	if (!common.hasNode(defaultExportValue, configSpread)) nodesToInsert.push(configSpread);
+	if (!common.hasNode(eslintConfig, prettier)) nodesToInsert.push(prettier);
+	if (!common.hasNode(eslintConfig, configSpread)) nodesToInsert.push(configSpread);
 
 	const elements =
-		defaultExportValue.type == 'ArrayExpression'
-			? defaultExportValue.elements
-			: defaultExportValue.arguments;
+		eslintConfig.type == 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
 	// finds index of `...svelte.configs["..."]`
 	const idx = elements.findIndex(
 		(el) =>
