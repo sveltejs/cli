@@ -36,7 +36,7 @@
 		"@types/tar-fs": "^2.0.4",
 		"commander": "^12.1.0",
 		"empathic": "^1.0.0",
-		"package-manager-detector": "^0.2.1",
+		"package-manager-detector": "^0.2.2",
 		"picocolors": "^1.1.0",
 		"tar-fs": "^3.0.6",
 		"tinyexec": "^0.3.0",

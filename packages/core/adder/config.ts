@@ -1,12 +1,10 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { FileType } from '../files/processors.ts';
 import type { Workspace } from '../files/workspace.ts';
-import type { Colors } from 'picocolors/types.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
-export type ConditionDefinitionWithoutExplicitArgs = ConditionDefinition<Record<string, Question>>;
 
 export type WebsiteMetadata = {
 	logo: string;
@@ -35,35 +33,35 @@ export type PackageDefinition<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
-export type BaseAdderConfig<Args extends OptionDefinition> = {
+export type Scripts<Args extends OptionDefinition> = {
+	description: string;
+	args: string[];
+	stdio: 'inherit' | 'pipe';
+	condition?: ConditionDefinition<Args>;
+};
+
+export type AdderConfig<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
 	runsAfter?: string[];
 	dependsOn?: string[];
-	integrationType: string;
-};
-
-export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
-	integrationType: 'inline';
 	packages: Array<PackageDefinition<Args>>;
+	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
-	nextSteps?: (data: {
-		options: OptionValues<Args>;
-		cwd: string;
-		colors: Colors;
-		docs: string | undefined;
-	}) => string[];
+	nextSteps?: (
+		data: {
+			highlighter: Highlighter;
+		} & Workspace<Args>
+	) => string[];
 };
 
-export type ExternalAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
-	integrationType: 'external';
-	command: string;
-	environment?: Record<string, string>;
+export type Highlighter = {
+	path: (str: string) => string;
+	command: (str: string) => string;
+	website: (str: string) => string;
+	route: (str: string) => string;
+	env: (str: string) => string;
 };
-
-export type AdderConfig<Args extends OptionDefinition> =
-	| InlineAdderConfig<Args>
-	| ExternalAdderConfig<Args>;
 
 export function defineAdderConfig<Args extends OptionDefinition>(
 	config: AdderConfig<Args>

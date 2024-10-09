@@ -60,7 +60,7 @@ export function addNamed(
 	// prettier-ignore
 	Walker.walk(ast as AstTypes.ASTNode, {}, {
 		ImportDeclaration(node) {
-			if (node.source.type === 'StringLiteral' && node.source.value === importFrom && node.specifiers) {
+			if (node.source.value === importFrom && node.specifiers) {
 				importDecl = node;
 			}
 		},
