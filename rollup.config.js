@@ -29,7 +29,7 @@ function getConfig(project) {
 	if (project === 'core') {
 		inputs = {
 			index: `${projectRoot}/index.ts`,
-			internal: `${projectRoot}/internal.ts`,
+			parsers: `${projectRoot}/tooling/parsers.ts`,
 			css: `${projectRoot}/tooling/css/index.ts`,
 			html: `${projectRoot}/tooling/html/index.ts`,
 			js: `${projectRoot}/tooling/js/index.ts`
