@@ -89,9 +89,6 @@ export function runSnaphsotTests(
 			await prepareSnaphotTests(outputPath, templatesPath, addersOutputPath, testCases);
 		},
 		run: (testCase, _, { expect }) => {
-			const { config } = testCase.adder;
-			if (config.integrationType !== 'inline') return;
-
 			const filesToFormat = runAdder(testCase.adder, testCase.cwd, testCase.options, adders);
 
 			for (const changedFile of filesToFormat) {

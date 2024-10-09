@@ -1,7 +1,6 @@
 import { execSync, spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
-import process from 'node:process';
 import tiged from 'tiged';
 import terminate from 'terminate';
 import { create } from 'sv';
@@ -268,45 +267,29 @@ export function runAdder(
 	const filesToFormat = new Set<string>();
 
 	// execute adders
-	if (config.integrationType === 'inline') {
-		if (config.dependsOn) {
-			for (const dependencyAdderId of config.dependsOn) {
-				const dependencyAdder = adders.find((x) => x.config.metadata.id == dependencyAdderId);
+	if (config.dependsOn) {
+		for (const dependencyAdderId of config.dependsOn) {
+			const dependencyAdder = adders.find((x) => x.config.metadata.id == dependencyAdderId);
 
-				if (!dependencyAdder)
-					throw new Error(
-						`failed to find required dependency '${dependencyAdderId}' of adder ${adder.config.metadata.id}`
-					);
+			if (!dependencyAdder)
+				throw new Error(
+					`failed to find required dependency '${dependencyAdderId}' of adder ${adder.config.metadata.id}`
+				);
 
-				// apply default adder options
-				const options: Record<string, any> = {};
-				for (const [key, question] of Object.entries(dependencyAdder.config.options)) {
-					options[key] = question.default;
-				}
-
-				runAdder(dependencyAdder, cwd, options as OptionValues<Record<string, Question>>, adders);
+			// apply default adder options
+			const options: Record<string, any> = {};
+			for (const [key, question] of Object.entries(dependencyAdder.config.options)) {
+				options[key] = question.default;
 			}
-		}
 
-		const pkgPath = installPackages(config, workspace);
-		filesToFormat.add(pkgPath);
-		const changedFiles = createOrUpdateFiles(config.files, workspace);
-		changedFiles.forEach((file) => filesToFormat.add(file));
-	} else if (config.integrationType === 'external') {
-		try {
-			console.log('execute external adder');
-			execSync('npx ' + config.command, {
-				cwd,
-				env: Object.assign(process.env, config.environment ?? {}),
-				stdio: 'pipe'
-			});
-		} catch (error) {
-			const typedError = error as Error;
-			throw new Error('Failed executing external command: ' + typedError.message);
+			runAdder(dependencyAdder, cwd, options as OptionValues<Record<string, Question>>, adders);
 		}
-	} else {
-		throw new Error('Unknown integration type');
 	}
+
+	const pkgPath = installPackages(config, workspace);
+	filesToFormat.add(pkgPath);
+	const changedFiles = createOrUpdateFiles(config.files, workspace);
+	changedFiles.forEach((file) => filesToFormat.add(file));
 
 	return filesToFormat;
 }
