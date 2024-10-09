@@ -10,7 +10,6 @@ import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
 import routify from '../routify/index.ts';
 import storybook from '../storybook/index.ts';
-import supabase from '../supabase/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest/index.ts';
 
@@ -18,7 +17,7 @@ const categories: Record<Category, Array<Adder<any>>> = {
 	'Code Quality': [prettier, eslint],
 	Testing: [vitest, playwright],
 	CSS: [tailwindcss],
-	Database: [drizzle, supabase],
+	Database: [drizzle],
 	Auth: [lucia],
 	'Additional Functionality': [storybook, mdsvex, routify]
 };
