@@ -74,17 +74,14 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			name: () => '.env',
-			contentType: 'text',
 			content: generateEnvFileContent
 		},
 		{
 			name: () => '.env.example',
-			contentType: 'text',
 			content: generateEnvFileContent
 		},
 		{
 			name: () => 'docker-compose.yml',
-			contentType: 'text',
 			condition: ({ options }) =>
 				options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js'),
 			content: ({ content, options }) => {
@@ -142,7 +139,6 @@ export const adder = defineAdderConfig({
 		{
 			// Adds the db file to the gitignore if an ignore is present
 			name: () => '.gitignore',
-			contentType: 'text',
 			condition: ({ options }) => options.database === 'sqlite',
 			content: ({ content }) => {
 				if (content.length === 0) return content;

@@ -35,7 +35,6 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => '.gitignore',
-			contentType: 'text',
 			condition: ({ cwd }) => fs.existsSync(join(cwd, '.gitignore')),
 			content: ({ content }) => {
 				if (content.includes('test-results')) return content;
@@ -44,7 +43,6 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `e2e/demo.test.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
 			content: ({ content }) => {
 				if (content) return content;
 
