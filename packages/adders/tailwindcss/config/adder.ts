@@ -4,7 +4,6 @@ import { array, common, exports, functions, imports, object } from '@svelte-cli/
 import { addImports } from '@svelte-cli/core/css';
 import { parse } from 'svelte/compiler';
 import MagicString from 'magic-string';
-import { addEmpty } from '../../../core/tooling/js/imports.ts';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -110,7 +109,7 @@ export const adder = defineAdderConfig({
 			content: ({ content }) => {
 				const ast = parse(content);
 				const file = new MagicString(content);
-				addEmpty(ast, file, './app.css');
+				imports.addEmpty(ast, file, './app.css');
 				return file.toString();
 			},
 			condition: ({ kit }) => !kit
@@ -121,7 +120,7 @@ export const adder = defineAdderConfig({
 				content ||= '<slot />';
 				const ast = parse(content);
 				const file = new MagicString(content);
-				addEmpty(ast, file, '../app.css');
+				imports.addEmpty(ast, file, '../app.css');
 				return file.toString();
 			},
 			condition: ({ kit }) => Boolean(kit)
