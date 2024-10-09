@@ -19,7 +19,7 @@ export function addEmpty(ast: AST.Root, contents: MagicString, importFrom: strin
 
 	// check if already imported
 	for (const statement of body) {
-		if (statement.type === 'ImportDeclaration' && statement.source.value === '../app.css') {
+		if (statement.type === 'ImportDeclaration' && statement.source.value === importFrom) {
 			return;
 		}
 	}
