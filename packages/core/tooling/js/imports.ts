@@ -1,17 +1,33 @@
+import { type Ast } from 'svelte/compiler';
 import { Walker, type AstTypes } from '@svelte-cli/ast-tooling';
+import MagicString from 'magic-string';
 import { areNodesEqual } from './common.ts';
+import { dedent } from '../../index.ts';
 
-export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
-	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
-		type: 'ImportDeclaration',
-		source: {
-			type: 'Literal',
-			value: importFrom
-		},
-		specifiers: []
-	};
+export function addEmpty(ast: Ast, contents: MagicString, importFrom: string): void {
+	if (!ast.instance?.content?.body?.length) {
+		contents.prepend(dedent`
+			<script>
+				import '${importFrom}';
+			</script>
 
-	addImportIfNecessary(ast, expectedImportDeclaration);
+		`)
+		return;
+	}
+
+	// check if already imported
+	for (const statement of ast.instance.content.body) {
+		if (statement.type === 'ImportDeclaration' && statement.source.value === '../app.css') {
+			return;
+		}
+	}
+
+	const first_statement = ast.instance.content.body[0];
+	const is_first_line_import = first_statement.type === 'ImportDeclaration';
+	contents.prependLeft(
+		ast.instance.content.body[0].start,
+		`import '${importFrom}';` + (is_first_line_import ? '\n\t' : '\n\n\t')
+	);
 }
 
 export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: string): void {

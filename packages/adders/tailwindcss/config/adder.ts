@@ -4,6 +4,7 @@ import { array, common, exports, functions, imports, object } from '@svelte-cli/
 import { addImports } from '@svelte-cli/core/css';
 import { parse } from 'svelte/compiler';
 import MagicString from 'magic-string';
+import { addEmpty } from '../../../core/tooling/js/imports.ts';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -115,36 +116,10 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			content: ({ content }) => {
-				if (!content) {
-					content = '<slot />';
-				}
-
+				content ||= '<slot />';
 				const ast = parse(content);
-
-				if (!ast.instance?.content?.body?.length) {
-					return dedent`
-						<script>
-							import '../app.css';
-						</script>
-
-						${content}
-					`;
-				}
-
-				// check if already imported
-				for (const statement of ast.instance.content.body) {
-					if (statement.type === 'ImportDeclaration' && statement.source.value === '../app.css') {
-						return content;
-					}
-				}
-
-				const first_statement = ast.instance.content.body[0];
-				const is_first_line_import = first_statement.type === 'ImportDeclaration';
 				const file = new MagicString(content);
-				file.prependLeft(
-					ast.instance.content.body[0].start,
-					"import '../app.css';" + (is_first_line_import ? '\n\t' : '\n\n\t')
-				);
+				addEmpty(ast, file, '../app.css');
 				return file.toString();
 			},
 			condition: ({ kit }) => Boolean(kit)

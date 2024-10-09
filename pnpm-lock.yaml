@@ -90,15 +90,9 @@ importers:
 
   packages/adders:
     dependencies:
-      '@svelte-cli/ast-tooling':
-        specifier: workspace:*
-        version: link:../ast-tooling
       '@svelte-cli/core':
         specifier: workspace:*
         version: link:../core
-      magic-string:
-        specifier: ^0.30.11
-        version: 0.30.11
 
   packages/ast-tooling:
     devDependencies:
@@ -120,6 +114,9 @@ importers:
       htmlparser2:
         specifier: ^9.1.0
         version: 9.1.0
+      magic-string:
+        specifier: ^0.30.11
+        version: 0.30.11
       postcss:
         specifier: ^8.4.38
         version: 8.4.45
