@@ -5,8 +5,9 @@ import { exec } from 'tinyexec';
 import * as p from '@svelte-cli/clack-prompts';
 import { detect, AGENTS, type AgentName } from 'package-manager-detector';
 import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
-import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
 import type { Argument, HelpConfiguration, Option } from 'commander';
+import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
+import { detectPackageManager, getUserAgent } from '@svelte-cli/core/internal';
 
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
@@ -42,7 +43,7 @@ export async function runCommand(action: MaybePromise) {
 }
 
 export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	const pm = await guessPackageManager(cwd);
+	const pm = await detectPackageManager(cwd);
 	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
 	const cmd = resolveCommand(pm, 'execute-local', args)!;
 	await exec(cmd.command, cmd.args, {
@@ -88,25 +89,6 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 
 	loadingSpinner.stop('Successfully installed dependencies');
 	return 'installed';
-}
-
-/**
- * Guesses the package manager based on the detected lockfile or user-agent.
- * If neither of those return valid package managers, it falls back to `npm`.
- */
-export async function guessPackageManager(cwd: string): Promise<AgentName> {
-	if (packageManager) return packageManager;
-	const pm = await detect({ cwd });
-	return pm?.name ?? getUserAgent() ?? 'npm';
-}
-
-export function getUserAgent() {
-	const userAgent = process.env.npm_config_user_agent;
-	if (!userAgent) return undefined;
-	const pmSpec = userAgent.split(' ')[0];
-	const separatorPos = pmSpec.lastIndexOf('/');
-	const name = pmSpec.substring(0, separatorPos) as AgentName;
-	return AGENTS.includes(name) ? name : undefined;
 }
 
 async function installDependencies(command: string, args: string[], cwd: string) {

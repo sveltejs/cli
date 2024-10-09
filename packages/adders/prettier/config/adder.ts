@@ -15,7 +15,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'prettier', version: '^3.3.2', dev: true },
 		{ name: 'prettier-plugin-svelte', version: '^3.2.6', dev: true },

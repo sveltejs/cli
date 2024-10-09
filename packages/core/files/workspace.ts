@@ -2,11 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
 import * as resolve from 'empathic/resolve';
+import { AGENTS, detectSync, type AgentName } from 'package-manager-detector';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
 import { common, object } from '../tooling/js/index.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
-import type { OptionDefinition, OptionValues, Question } from '../adder/options.ts';
+import type { OptionDefinition, OptionValues } from '../adder/options.ts';
+import process from 'node:process';
 
 export type Workspace<Args extends OptionDefinition> = {
 	options: OptionValues<Args>;
@@ -15,9 +17,8 @@ export type Workspace<Args extends OptionDefinition> = {
 	prettier: boolean;
 	typescript: boolean;
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
+	packageManager: AgentName;
 };
-
-export type WorkspaceWithoutExplicitArgs = Workspace<Record<string, Question>>;
 
 export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	return {
@@ -48,6 +49,7 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 	workspace.typescript = usesTypescript;
 	workspace.prettier = Boolean(resolve.from(cwd, 'prettier', true));
+	workspace.packageManager = detectPackageManager(cwd);
 	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
 	for (const [key, value] of Object.entries(workspace.dependencies)) {
 		// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
@@ -57,7 +59,7 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 	return workspace;
 }
 
-function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
+function parseKitOptions(workspace: Workspace<any>) {
 	const configSource = readFile(workspace, commonFilePaths.svelteConfig);
 	const ast = parseScript(configSource);
 
@@ -101,4 +103,29 @@ function parseKitOptions(workspace: WorkspaceWithoutExplicitArgs) {
 	const libDirectory = (lib.value as string) || 'src/lib';
 
 	return { routesDirectory, libDirectory };
+}
+
+let packageManager: AgentName | undefined;
+
+/**
+ * Guesses the package manager based on the detected lockfile or user-agent.
+ * If neither of those return valid package managers, it falls back to `npm`.
+ */
+export function detectPackageManager(cwd: string): AgentName {
+	if (packageManager) return packageManager;
+
+	const pm = detectSync({ cwd });
+	if (pm?.name) packageManager = pm.name;
+
+	return pm?.name ?? getUserAgent() ?? 'npm';
+}
+
+export function getUserAgent(): AgentName | undefined {
+	const userAgent = process.env.npm_config_user_agent;
+	if (!userAgent) return undefined;
+
+	const pmSpec = userAgent.split(' ')[0];
+	const separatorPos = pmSpec.lastIndexOf('/');
+	const name = pmSpec.substring(0, separatorPos) as AgentName;
+	return AGENTS.includes(name) ? name : undefined;
 }

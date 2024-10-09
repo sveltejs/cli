@@ -18,7 +18,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'eslint', version: '^9.7.0', dev: true },
 		{ name: '@types/eslint', version: '^9.6.0', dev: true },

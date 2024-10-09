@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import pc from 'picocolors';
 import { parseJson, serializeJson } from '@svelte-cli/ast-tooling';
-import type { InlineAdderConfig } from '../adder/config.ts';
-import type { OptionDefinition } from '../adder/options.ts';
-import type { Workspace, WorkspaceWithoutExplicitArgs } from './workspace.ts';
+import type { AdderConfig, Highlighter } from '../adder/config.ts';
+import type { Workspace } from './workspace.ts';
 
 export type Package = {
 	name: string;
@@ -15,7 +15,7 @@ export type Package = {
 	keywords?: string[];
 };
 
-export function getPackageJson(workspace: WorkspaceWithoutExplicitArgs): {
+export function getPackageJson(workspace: Workspace<any>): {
 	text: string;
 	data: Package;
 } {
@@ -39,7 +39,7 @@ export function getPackageJson(workspace: WorkspaceWithoutExplicitArgs): {
 	};
 }
 
-export function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath: string): string {
+export function readFile(workspace: Workspace<any>, filePath: string): string {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 
 	if (!fileExistsWorkspace(workspace, filePath)) {
@@ -51,10 +51,7 @@ export function readFile(workspace: WorkspaceWithoutExplicitArgs, filePath: stri
 	return text;
 }
 
-export function installPackages<Args extends OptionDefinition>(
-	config: InlineAdderConfig<Args>,
-	workspace: Workspace<Args>
-): string {
+export function installPackages(config: AdderConfig<any>, workspace: Workspace<any>): string {
 	const { text: originalText, data } = getPackageJson(workspace);
 
 	for (const dependency of config.packages) {
@@ -93,11 +90,7 @@ function alphabetizeProperties(obj: Record<string, string>) {
 	return orderedObj;
 }
 
-export function writeFile(
-	workspace: WorkspaceWithoutExplicitArgs,
-	filePath: string,
-	content: string
-): void {
+export function writeFile(workspace: Workspace<any>, filePath: string, content: string): void {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
@@ -110,10 +103,7 @@ export function writeFile(
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
-export function fileExistsWorkspace(
-	workspace: WorkspaceWithoutExplicitArgs,
-	filePath: string
-): boolean {
+export function fileExistsWorkspace(workspace: Workspace<any>, filePath: string): boolean {
 	const fullFilePath = getFilePath(workspace.cwd, filePath);
 	return fs.existsSync(fullFilePath);
 }
@@ -128,3 +118,13 @@ export const commonFilePaths = {
 	tsconfig: 'tsconfig.json',
 	viteConfigTS: 'vite.config.ts'
 } as const;
+
+export function getHighlighter(): Highlighter {
+	return {
+		command: (str) => pc.bold(pc.cyanBright(str)),
+		env: (str) => pc.yellow(str),
+		path: (str) => pc.green(str),
+		route: (str) => pc.bold(str),
+		website: (str) => pc.whiteBright(str)
+	};
+}

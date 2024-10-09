@@ -13,6 +13,7 @@ import {
 } from '@svelte-cli/create';
 import * as common from '../common.js';
 import { runAddCommand } from './add.js';
+import { detectPackageManager } from '@svelte-cli/core/internal';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
 const templateChoices = templates.map((t) => t.name);
@@ -48,7 +49,7 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = await common.guessPackageManager(cwd);
+			const pm = await detectPackageManager(cwd);
 			if (relative !== '') {
 				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
 			}

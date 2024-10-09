@@ -20,22 +20,17 @@ import {
 	createOrUpdateFiles,
 	createWorkspace,
 	installPackages,
-	TESTING
+	getHighlighter
 } from '@svelte-cli/core/internal';
-import type {
-	AdderWithoutExplicitArgs,
-	ExternalAdderConfig,
-	InlineAdderConfig,
-	OptionDefinition,
-	OptionValues
-} from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs, OptionValues } from '@svelte-cli/core';
 import * as common from '../common.js';
 import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
 	tailwindcss: v.optional(v.array(v.string())),
-	drizzle: v.optional(v.array(v.string()))
+	drizzle: v.optional(v.array(v.string())),
+	supabase: v.optional(v.array(v.string()))
 });
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
@@ -343,12 +338,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 			// check if the dependent adder has already been installed
 			let installed = false;
-			if (dependent.config.integrationType === 'inline') {
-				installed = dependent.config.packages.every(
-					// we'll skip the conditions since we don't have any options to supply it
-					(p) => p.condition !== undefined || !!workspace.dependencies[p.name]
-				);
-			}
+			installed = dependent.config.packages.every(
+				// we'll skip the conditions since we don't have any options to supply it
+				(p) => p.condition !== undefined || !!workspace.dependencies[p.name]
+			);
+
 			if (installed) continue;
 
 			// prompt to install the dependent
@@ -481,11 +475,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
+	const highlighter = getHighlighter();
+
 	// print next steps
 	const nextStepsMsg = selectedAdders
-		.filter(({ adder }) => adder.config.integrationType === 'inline' && adder.config.nextSteps)
-		.map(({ adder }) => adder.config as InlineAdderConfig<any>)
-		.map((config) => {
+		.filter(({ adder }) => adder.config.nextSteps)
+		.map(({ adder }) => {
+			const config = adder.config;
 			const metadata = config.metadata;
 			let adderMessage = '';
 			if (selectedAdders.length > 1) {
@@ -493,10 +489,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			}
 
 			const adderNextSteps = config.nextSteps!({
+				...workspace,
 				options: official[metadata.id],
-				cwd: options.cwd,
-				colors: pc,
-				docs: metadata.website?.documentation
+				highlighter
 			});
 			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
 			return adderMessage;
@@ -550,43 +545,43 @@ export async function installAdders({
 	const filesToFormat = new Set<string>();
 	for (const { config } of details) {
 		const adderId = config.metadata.id;
+		// TODO: make this sync
 		const workspace = createWorkspace(cwd);
 
 		workspace.options = official[adderId] ?? community[adderId];
 
 		// execute adders
-		if (config.integrationType === 'inline') {
-			const pkgPath = installPackages(config, workspace);
-			filesToFormat.add(pkgPath);
-			const changedFiles = createOrUpdateFiles(config.files, workspace);
-			changedFiles.forEach((file) => filesToFormat.add(file));
-		} else if (config.integrationType === 'external') {
-			await processExternalAdder(config, cwd);
-		} else {
-			throw new Error('Unknown integration type');
+		const pkgPath = installPackages(config, workspace);
+		filesToFormat.add(pkgPath);
+		const changedFiles = createOrUpdateFiles(config.files, workspace);
+		changedFiles.forEach((file) => filesToFormat.add(file));
+
+		if (config.scripts && config.scripts.length > 0) {
+			const name = config.metadata.name;
+			p.log.step(`Running external command ${pc.gray(`(${name})`)}`);
+
+			for (const script of config.scripts) {
+				if (script.condition?.(workspace) === false) continue;
+
+				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
+				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
+				if (workspace.packageManager === 'npm') args.unshift('--yes');
+
+				try {
+					await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio: script.stdio } });
+				} catch (error) {
+					const typedError = error as Error;
+					throw new Error(
+						`Failed to execute scripts '${script.description}': ` + typedError.message
+					);
+				}
+			}
+
+			p.log.success(`Finished running ${name}`);
 		}
 	}
 
 	return Array.from(filesToFormat);
-}
-
-async function processExternalAdder<Args extends OptionDefinition>(
-	config: ExternalAdderConfig<Args>,
-	cwd: string
-) {
-	if (!TESTING) p.log.message(`Executing external command ${pc.gray(`(${config.metadata.id})`)}`);
-
-	try {
-		const pm = await common.guessPackageManager(cwd);
-		const cmd = resolveCommand(pm, 'execute', config.command.split(' '))!;
-		const env = { ...process.env, ...config.environment };
-		await exec(cmd.command, cmd.args, {
-			nodeOptions: { cwd, env, stdio: TESTING ? 'pipe' : 'inherit' }
-		});
-	} catch (error) {
-		const typedError = error as Error;
-		throw new Error('Failed executing external command: ' + typedError.message);
-	}
 }
 
 /**

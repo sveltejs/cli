@@ -10,7 +10,6 @@ export const adder = defineAdderConfig({
 		environments: { kit: true, svelte: true }
 	},
 	options,
-	integrationType: 'inline',
 	packages: [],
 	files: [
 		{
