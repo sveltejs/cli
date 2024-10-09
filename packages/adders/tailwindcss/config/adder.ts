@@ -2,7 +2,7 @@ import { options } from './options.ts';
 import { dedent, defineAdderConfig } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { addImports } from '@svelte-cli/core/css';
-import { parse } from 'svelte/compiler'
+import { parse } from 'svelte/compiler';
 import MagicString from 'magic-string';
 
 export const adder = defineAdderConfig({
@@ -120,7 +120,8 @@ export const adder = defineAdderConfig({
 				}
 
 				const ast = parse(content);
-				if (!ast.instance?.children?.length) {
+
+				if (!ast.instance?.content?.body?.length) {
 					return dedent`
 						<script>
 							import '../app.css';
@@ -131,13 +132,15 @@ export const adder = defineAdderConfig({
 				}
 
 				let new_lines = '';
-				const has_imports = ast.instance.children.some((statement) =>
-					statement.type === 'ImportDeclaration'
+				const has_imports = ast.instance.content.body.some(
+					(statement) =>
+						statement.type === 'ExpressionStatement' &&
+						statement.expression.type === 'ImportExpression'
 				);
 				new_lines = has_imports ? '\n' : '\n\n';
 
 				const file = new MagicString(content);
-				file.prependLeft(ast.instance.children[0].start, "\timport '../app.css';" + new_lines);
+				file.prependLeft(ast.instance.content.body[0].start, "\timport '../app.css';" + new_lines);
 				return file.toString();
 			},
 			condition: ({ kit }) => Boolean(kit)
