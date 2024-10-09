@@ -2,7 +2,7 @@
 title: Commands
 ---
 
-## Intorduction
+## Introduction
 
 `sv`, the Svelte CLI, aims to combine multiple tools into one single easy to remember command.
 

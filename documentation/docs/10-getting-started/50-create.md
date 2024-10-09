@@ -2,11 +2,11 @@
 title: Create a project
 ---
 
-## overview
+## Overview
 
-some cool description about the `create` command and it's capabilities
+`sv create` sets up a new SvelteKit project. It also offers numerous integrations with various technologies that are commonly-used for building web sites and web apps. You can set these up later with the `add` command.
 
-## usage
+## Usage
 
 ```bash
 npx sv create
@@ -16,7 +16,7 @@ npx sv create
 npx sv create ./my/path
 ```
 
-## available options
+## Available options
 
 | Option        | option values                   | default   | description                                                |
 | ------------- | ------------------------------- | --------- | ---------------------------------------------------------- |
@@ -28,7 +28,7 @@ npx sv create ./my/path
 ## programatic interface
 
 ```js
-// todo: this gives error in the docs site when commented in, seems to be related that this package is not published to the registry at this point in time, as it seems to be trying to check types
+// TODO: this gives type checking errors in the docs site when not commented out. Need to release sv, install it in the site, and uncomment this.
 // import { create } from 'sv';
 
 // // todo: check if this is right

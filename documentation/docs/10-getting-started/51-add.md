@@ -2,11 +2,11 @@
 title: Customize your project
 ---
 
-## overview
+## Overview
 
-some cool description about the `add` command and it's capabilities
+It also offers numerous integrations with various technologies that are commonly-used for building web sites and web apps.
 
-## usage
+## Usage
 
 ```bash
 npx sv add
@@ -20,7 +20,7 @@ npx sv add tailwindcss
 npx sv add tailwindcss --cwd ./my/path
 ```
 
-## available options
+## Available options
 
 | Option             | option values                              | default | description                                  |
 | ------------------ | ------------------------------------------ | ------- | -------------------------------------------- |
@@ -30,31 +30,21 @@ npx sv add tailwindcss --cwd ./my/path
 | --no-preconditions | -                                          | -       | skips checking preconditions                 |
 | --community        | [community adder names](#community-adders) | -       | adds community adders                        |
 
-## available adders
+## Official adders
 
-// todo: add unmerged adders
+- auth
+- drizzle
+- eslint
+- mdsvex
+- paraglide
+- playwright
+- prettier
+- routify
+- storybook
+- tailwindcss
+- vitest
 
-drizzle
-
-eslint
-
-lucia
-
-mdsvex
-
-playwright
-
-prettier
-
-routify
-
-storybook
-
-tailwindcss
-
-vitest
-
-## community adders
+## Community adders
 
 > The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.
 
@@ -73,5 +63,3 @@ npx sv add --community shadcn-svelte --cwd ./my/path
 ```bash
 npx sv add --community npm:your-custom-adder-published-to-npm --cwd ./my/path
 ```
-
-// todo: list of community adders???

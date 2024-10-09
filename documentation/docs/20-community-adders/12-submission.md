@@ -2,19 +2,19 @@
 title: Submission
 ---
 
-## overview
+## Overview
 
-normal text
+Community adders are still in development. We'd love to help get the first few released. Please open an issue or find us on Discord to discuss how to develop your adder and get it included.
 
-## requirements
+## Requirements
 
-- must benefit the overall svelte ecosystem and the community
-- must not be too specific to one presons needs
-- todo: whatever else we can think of
+- must benefit the overall ecosystem and community rather than being individually tailored
+- should be a best-in-class tool that is ideally widely used in the community
+- open source tools are generally preferred to commercial offerings
 
-## process
+## Process
 
 - create a fork of `sveltejs/cli`
-- modify file `todo` to add your community adder
+- modify the community manifest file to list your adder (TODO: this file does not exist yet)
 - create a PR
-- once merged, it might take a while before we draft a new release of `sv`, only then your new community adder will be available
+- wait for the the next release of `sv`
