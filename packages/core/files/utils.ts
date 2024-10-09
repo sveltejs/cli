@@ -123,6 +123,7 @@ export function getHighlighter(): Highlighter {
 	return {
 		command: (str) => pc.bold(pc.cyanBright(str)),
 		env: (str) => pc.yellow(str),
+		warning: (str) => pc.yellow(str),
 		path: (str) => pc.green(str),
 		route: (str) => pc.bold(str),
 		website: (str) => pc.whiteBright(str)

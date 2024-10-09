@@ -45,7 +45,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [
 		{
 			name: '@inlang/paraglide-sveltekit',
@@ -288,8 +287,8 @@ export const adder = defineAdderConfig({
 			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2));
 		}
 	},
-	nextSteps: ({ colors }) => [
-		...warnings.map(colors.yellow),
+	nextSteps: ({ highlighter }) => [
+		...warnings.map(highlighter.warning),
 		'Edit your messages in `messages/en.json`',
 		'Consider installing the Sherlock IDE Extension'
 	]
