@@ -1,7 +1,8 @@
-import tiged from 'tiged';
 import { execSync, spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
+import process from 'node:process';
+import tiged from 'tiged';
 import terminate from 'terminate';
 import { create } from 'sv';
 import { type AdderWithoutExplicitArgs, type OptionValues, type Question } from '@svelte-cli/core';

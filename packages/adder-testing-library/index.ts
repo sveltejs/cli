@@ -1,6 +1,7 @@
 import type { AdderWithoutExplicitArgs, TestType } from '@svelte-cli/core';
 import path from 'node:path';
 import fs from 'node:fs';
+import process from 'node:process';
 import { openPage, stopBrowser } from './browser.ts';
 import {
 	generateTestCases,
