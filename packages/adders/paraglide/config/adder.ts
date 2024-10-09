@@ -108,7 +108,7 @@ export const adder = defineAdderConfig({
 				const i18n = variables.declaration(ast, 'const', 'i18n', createI18nExpression);
 
 				const existingExport = exports.namedExport(ast, 'i18n', i18n);
-				if (existingExport) {
+				if (existingExport.declaration != i18n) {
 					warnings.push('Setting up $lib/i18n failed because it aleady exports an i18n function');
 				}
 			}
@@ -126,7 +126,7 @@ export const adder = defineAdderConfig({
 				const rerouteIdentifier = variables.declaration(ast, 'const', 'reroute', expression);
 
 				const existingExport = exports.namedExport(ast, 'reroute', rerouteIdentifier);
-				if (existingExport) {
+				if (existingExport.declaration != rerouteIdentifier) {
 					warnings.push('Adding the reroute hook automatically failed. Add it manually');
 				}
 			}
