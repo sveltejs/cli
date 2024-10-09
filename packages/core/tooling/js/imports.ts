@@ -5,7 +5,9 @@ import { areNodesEqual } from './common.ts';
 import { dedent } from '../../index.ts';
 
 export function addEmpty(ast: AST.Root, contents: MagicString, importFrom: string): void {
-	if (!ast.instance?.content?.body?.length) {
+	const body = ast.instance?.content?.body || [];
+
+	if (!body.length) {
 		contents.prepend(dedent`
 			<script>
 				import '${importFrom}';
@@ -16,16 +18,19 @@ export function addEmpty(ast: AST.Root, contents: MagicString, importFrom: strin
 	}
 
 	// check if already imported
-	for (const statement of ast.instance.content.body) {
+	for (const statement of body) {
 		if (statement.type === 'ImportDeclaration' && statement.source.value === '../app.css') {
 			return;
 		}
 	}
 
-	const first_statement = ast.instance.content.body[0];
+	const first_statement = body[0];
+	if (!first_statement.range) {
+		throw new Error(`${JSON.stringify(first_statement)} is missing range information.}`);
+	}
 	const is_first_line_import = first_statement.type === 'ImportDeclaration';
 	contents.prependLeft(
-		ast.instance.content.body[0].start,
+		first_statement.range[0],
 		`import '${importFrom}';` + (is_first_line_import ? '\n\t' : '\n\n\t')
 	);
 }
