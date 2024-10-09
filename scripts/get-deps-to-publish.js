@@ -9,6 +9,7 @@
 import { execSync } from 'node:child_process';
 import { relative, join } from 'node:path';
 import { existsSync } from 'node:fs';
+import process from 'node:process';
 
 if (!process.env.CHANGED_DIRS) throw new Error('CHANGED_DIRS is missing');
 

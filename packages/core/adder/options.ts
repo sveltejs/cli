@@ -36,7 +36,7 @@ export type BaseQuestion = {
 	 * When this condition explicitly returns `false`, the question's value will
 	 * always be `undefined` and will not fallback to the specified `default` value.
 	 */
-	condition?: (options: OptionValues<any>) => boolean;
+	condition?: (options: any) => boolean;
 	// TODO: we want to type `options` similar to OptionValues<Args> so that its option values can be inferred
 };
 

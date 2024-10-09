@@ -18,7 +18,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'tailwindcss', version: '^3.4.9', dev: true },
 		{ name: 'autoprefixer', version: '^10.4.20', dev: true },
