@@ -4,6 +4,7 @@ import { defineAdderConfig } from '@svelte-cli/core';
 import { options, parseLanguageTagInput } from './options.ts';
 import { array, common, functions, imports, object, variables, exports } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
+import { addHooksHandle } from '../../common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -134,50 +135,13 @@ export const adder = defineAdderConfig({
 			// handle hook
 			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
 			contentType: 'script',
-			content({ ast }) {
+			content({ ast, typescript }) {
 				imports.addNamed(ast, '$lib/i18n', {
 					i18n: 'i18n'
 				});
 
-				const i18nHandleExpression = common.expressionFromString('i18n.handle()');
-				const rerouteIdentifier = variables.declaration(
-					ast,
-					'const',
-					'handle',
-					i18nHandleExpression
-				);
-				const existingExport = exports.namedExport(ast, 'handle', rerouteIdentifier);
-				if (existingExport) {
-					// if there is an existing `handle` hook, use the `sequence` function to add i18n.handle to it
-					imports.addNamed(ast, '@sveltejs/kit/hooks', {
-						sequence: 'sequence'
-					});
-
-					const existingHandle = existingExport.declaration;
-					if (!existingHandle || existingHandle.type !== 'VariableDeclaration') {
-						warnings.push('Adding the handle hook automatically failed. Add it manually');
-						return;
-					}
-
-					const sequenceExpression = functions.call('sequence', []);
-
-					type VariableDeclarator = Extract<
-						(typeof existingHandle.declarations)[number],
-						{ type: 'VariableDeclarator' }
-					>;
-					type ExpressionKind = Exclude<VariableDeclarator['init'], null | undefined>;
-
-					sequenceExpression.arguments = [
-						i18nHandleExpression,
-						...existingHandle.declarations
-							.filter((decl) => decl.type === 'VariableDeclarator')
-							.map((decl) => decl.init)
-							.filter((exp): exp is ExpressionKind => !!exp)
-					];
-
-					const newHandle = variables.declaration(ast, 'const', 'handle', sequenceExpression);
-					existingExport.declaration = newHandle;
-				}
+				const hookHandleContent = 'i18n.handle()';
+				addHooksHandle(ast, typescript, 'paraglide', hookHandleContent);
 			}
 		},
 		{
@@ -185,26 +149,32 @@ export const adder = defineAdderConfig({
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			contentType: 'svelte',
 			content: ({ jsAst, htmlAst }) => {
+				const paraglideComponentName = 'ParaglideJS';
 				imports.addNamed(jsAst, '@inlang/paraglide-sveltekit', {
-					ParaglideJS: 'ParaglideJS'
+					[paraglideComponentName]: paraglideComponentName
 				});
 				imports.addNamed(jsAst, '$lib/i18n', {
 					i18n: 'i18n'
 				});
 
 				// wrap the HTML in a ParaglideJS instance
-				// TODO if (alreadyContainsParaglideJS(html.ast)) return;
 				const rootChildren = htmlAst.children;
 				if (rootChildren.length === 0) {
 					const slot = html.element('slot');
 					rootChildren.push(slot);
 				}
-				const root = html.element('ParaglideJS', {});
-				root.attribs = {
-					'{i18n}': ''
-				};
-				root.children = rootChildren;
-				htmlAst.children = [root];
+
+				const hasParaglideJsNode = rootChildren.find(
+					(x) => x.type == 'tag' && x.name == paraglideComponentName
+				);
+				if (!hasParaglideJsNode) {
+					const root = html.element(paraglideComponentName, {});
+					root.attribs = {
+						'{i18n}': ''
+					};
+					root.children = rootChildren;
+					htmlAst.children = [root];
+				}
 			}
 		},
 		{
