@@ -1,8 +1,9 @@
 import { options } from './options.ts';
-import { defineAdderConfig } from '@svelte-cli/core';
+import { dedent, defineAdderConfig } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { addImports } from '@svelte-cli/core/css';
-import { element } from '@svelte-cli/core/html';
+import { parse } from 'svelte/compiler'
+import MagicString from 'magic-string';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -113,13 +114,31 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			contentType: 'svelte',
-			content: ({ jsAst, htmlAst }) => {
-				imports.addEmpty(jsAst, '../app.css');
-				if (htmlAst.childNodes.length === 0) {
-					const slot = element('slot');
-					htmlAst.childNodes.push(slot);
+			content: ({ content }) => {
+				if (!content) {
+					content = '<slot />';
 				}
+
+				const ast = parse(content);
+				if (!ast.instance?.children?.length) {
+					return dedent`
+						<script>
+							import '../app.css';
+						</script>
+
+						${content}
+					`;
+				}
+
+				let new_lines = '';
+				const has_imports = ast.instance.children.some((statement) =>
+					statement.type === 'ImportDeclaration'
+				);
+				new_lines = has_imports ? '\n' : '\n\n';
+
+				const file = new MagicString(content);
+				file.prependLeft(ast.instance.children[0].start, "\timport '../app.css';" + new_lines);
+				return file.toString();
 			},
 			condition: ({ kit }) => Boolean(kit)
 		},
