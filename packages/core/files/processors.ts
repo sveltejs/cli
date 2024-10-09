@@ -54,7 +54,7 @@ type SvelteFile<Args extends OptionDefinition> = {
 	content: (editor: SvelteFileEditor<Args>) => void;
 };
 type TextFile<Args extends OptionDefinition> = {
-	contentType?: 'text';
+	contentType: undefined;
 	content: (editor: TextFileEditor<Args>) => string;
 };
 
