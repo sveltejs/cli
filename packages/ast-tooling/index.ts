@@ -69,11 +69,11 @@ export function serializeScript(ast: AstTypes.ASTNode): string {
 	return recastPrint(ast).code;
 }
 
-export function parsePostcss(content: string): CssAst {
+export function parseCss(content: string): CssAst {
 	return postcssParse(content);
 }
 
-export function serializePostcss(ast: CssAst): string {
+export function serializeCss(ast: CssAst): string {
 	return ast.toString();
 }
 
@@ -113,7 +113,7 @@ export type SvelteAst = {
 	cssAst: CssAst;
 };
 
-export function parseSvelteFile(content: string): SvelteAst {
+export function parseSvelte(content: string): SvelteAst {
 	const htmlAst = parseHtml(content);
 
 	let scriptTag, styleTag;
@@ -135,7 +135,7 @@ export function parseSvelteFile(content: string): SvelteAst {
 	}
 
 	const css = textContent(styleTag);
-	const cssAst = parsePostcss(css);
+	const cssAst = parseCss(css);
 
 	const scriptValue = textContent(scriptTag);
 	const jsAst = parseScript(scriptValue);
@@ -143,10 +143,10 @@ export function parseSvelteFile(content: string): SvelteAst {
 	return { jsAst, htmlAst, cssAst };
 }
 
-export function serializeSvelteFile(asts: SvelteAst): string {
+export function serializeSvelte(asts: SvelteAst): string {
 	const { jsAst, htmlAst, cssAst } = asts;
 
-	const css = serializePostcss(cssAst);
+	const css = serializeCss(cssAst);
 	const newScriptValue = serializeScript(jsAst);
 
 	if (newScriptValue.length > 0) {
