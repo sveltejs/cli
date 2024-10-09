@@ -21,6 +21,6 @@ pnpx sv <command> <args>
 | Command            | Sample usage                     | Description                                    |
 | ------------------ | -------------------------------- | ---------------------------------------------- |
 | [`create`](create) | `npx sv create ./my-project`     | Scaffolds new projects                         |
-| [add](add)         | `npx sv add tailwindcss`         | Customize your projects to add different tools |
+| [add](add)         | `npx sv add [adder...]`          | Customize your projects to add different tools |
 | migrate            | `npx sv migrate <migrationName>` | Migrate your project                           |
 | check              | `npx sv check`                   | Typecheck your Svelte files                     |
