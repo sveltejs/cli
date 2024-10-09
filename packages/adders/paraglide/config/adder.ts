@@ -254,7 +254,7 @@ export const adder = defineAdderConfig({
 			const fullFilePath = path.join(cwd, filePath);
 
 			fs.mkdirSync(fullDirectoryPath, { recursive: true });
-			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2));
+			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2) + '\n');
 		}
 	},
 	nextSteps: ({ highlighter }) => [
