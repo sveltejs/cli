@@ -1,10 +1,10 @@
-import { type Ast } from 'svelte/compiler';
+import { type AST } from 'svelte/compiler';
 import { Walker, type AstTypes } from '@svelte-cli/ast-tooling';
 import MagicString from 'magic-string';
 import { areNodesEqual } from './common.ts';
 import { dedent } from '../../index.ts';
 
-export function addEmpty(ast: Ast, contents: MagicString, importFrom: string): void {
+export function addEmpty(ast: AST.Root, contents: MagicString, importFrom: string): void {
 	if (!ast.instance?.content?.body?.length) {
 		contents.prepend(dedent`
 			<script>
