@@ -1,13 +1,25 @@
----
-title: Migrate your project
----
+# sv migrate
 
-## overview
+A CLI for migrating Svelte(Kit) codebases.
 
-some cool description about the `migrate` command and it's capabilities
+Run it using
 
-## usage
-
-```bash
-npx sv migrate svelte-5
 ```
+npx sv migrate [migration]
+```
+
+## Migrations
+
+| Migration     | From                  | To                    | Guide                                                           |
+| ------------- | --------------------- | --------------------- | --------------------------------------------------------------- |
+| `svelte-5`    | Svelte 4              | Svelte 5              | [Website](https://svelte.dev/docs/v5-migration-guide)           |
+| `sveltekit-2` | SvelteKit 1.0         | SvelteKit 2.0         | [Website](https://kit.svelte.dev/docs/migrating-to-sveltekit-2) |
+| `svelte-4`    | Svelte 3              | Svelte 4              | [Website](https://svelte.dev/docs/v4-migration-guide)           |
+| `package`     | `@sveltejs/package@1` | `@sveltejs/package@2` | [#8922](https://github.com/sveltejs/kit/pull/8922)              |
+| `routes`      | SvelteKit pre-1.0     | SvelteKit 1.0         | [#5774](https://github.com/sveltejs/kit/discussions/5774)       |
+
+Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
+
+## Changelog
+
+[The Changelog for this package is available on GitHub](https://github.com/sveltejs/kit/blob/main/packages/migrate/CHANGELOG.md).
