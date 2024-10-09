@@ -1,5 +1,5 @@
 import { options } from './options.ts';
-import { dedent, defineAdderConfig } from '@svelte-cli/core';
+import { defineAdderConfig } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { addImports } from '@svelte-cli/core/css';
 import { parse } from 'svelte/compiler';
@@ -107,9 +107,11 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => 'src/App.svelte',
-			contentType: 'svelte',
-			content: ({ jsAst }) => {
-				imports.addEmpty(jsAst, './app.css');
+			content: ({ content }) => {
+				const ast = parse(content);
+				const file = new MagicString(content);
+				addEmpty(ast, file, './app.css');
+				return file.toString();
 			},
 			condition: ({ kit }) => !kit
 		},
