@@ -73,7 +73,8 @@ export function parseSvelte(source: string): {
 				ms.appendLeft(0, script);
 			} else {
 				const { start, end } = locations(source, scriptSource);
-				ms.overwrite(start, end, code.script);
+				const formatted = indent(code.script, ms.getIndentString());
+				ms.overwrite(start, end, formatted);
 			}
 		}
 		if (code.css !== undefined) {
@@ -83,7 +84,8 @@ export function parseSvelte(source: string): {
 				ms.append(style);
 			} else {
 				const { start, end } = locations(source, cssSource);
-				ms.overwrite(start, end, code.css);
+				const formatted = indent(code.css, ms.getIndentString());
+				ms.overwrite(start, end, formatted);
 			}
 		}
 		if (code.template !== undefined) {
@@ -105,8 +107,13 @@ export function parseSvelte(source: string): {
 	};
 }
 
-function locations(source: string, search: string) {
+function locations(source: string, search: string): { start: number; end: number } {
 	const start = source.indexOf(search);
 	const end = start + search.length;
 	return { start, end };
+}
+
+function indent(content: string, indent: string): string {
+	const indented = indent + content.split('\n').join(`\n${indent}`);
+	return `\n${indented}\n`;
 }
