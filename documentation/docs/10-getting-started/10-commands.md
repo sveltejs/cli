@@ -4,7 +4,7 @@ title: Commands
 
 ## Intorduction
 
-The svelte cli `sv` aims to combine multiple tools into one single easy to remember command.
+`sv`, the Svelte CLI, aims to combine multiple tools into one single easy to remember command.
 
 ## Usage
 
