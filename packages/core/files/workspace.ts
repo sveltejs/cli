@@ -8,6 +8,7 @@ import { TESTING } from '../env.ts';
 import { common, object } from '../tooling/js/index.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import type { OptionDefinition, OptionValues } from '../adder/options.ts';
+import process from 'node:process';
 
 export type Workspace<Args extends OptionDefinition> = {
 	options: OptionValues<Args>;
@@ -29,9 +30,7 @@ export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	} as Workspace<Args>;
 }
 
-export function createWorkspace<Args extends OptionDefinition>(
-	cwd: string
-): Promise<Workspace<Args>> {
+export function createWorkspace<Args extends OptionDefinition>(cwd: string): Workspace<Args> {
 	const workspace = createEmptyWorkspace<Args>();
 	workspace.cwd = cwd;
 
