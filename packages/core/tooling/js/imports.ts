@@ -11,7 +11,7 @@ export function addEmpty(ast: Ast, contents: MagicString, importFrom: string): v
 				import '${importFrom}';
 			</script>
 
-		`)
+		`);
 		return;
 	}
 
