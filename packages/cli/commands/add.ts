@@ -283,7 +283,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
 		const adderOptions: AdderChoices = {};
-		const workspace = await createWorkspace(options.cwd);
+		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
 		for (const category of categories) {
 			const adderIds = adderCategories[category];
@@ -330,7 +330,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				(dep) => !selectedAdders.some((a) => a.adder.config.metadata.id === dep)
 			) ?? [];
 
-		const workspace = await createWorkspace(options.cwd);
+		const workspace = createWorkspace(options.cwd);
 		for (const depId of dependents) {
 			const dependent = adderDetails.find((a) => a.config.metadata.id === depId);
 			if (!dependent) throw new Error(`Adder '${name}' depends on an invalid '${depId}'`);
@@ -363,7 +363,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			.filter((p) => p !== undefined);
 
 		// add global checks
-		const { kit } = await createWorkspace(options.cwd);
+		const { kit } = createWorkspace(options.cwd);
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
 		const globalPreconditions = common.getGlobalPreconditions(options.cwd, projectType, adders);
@@ -461,7 +461,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	}
 
 	// format modified/created files with prettier (if available)
-	const workspace = await createWorkspace(options.cwd);
+	const workspace = createWorkspace(options.cwd);
 	if (filesToFormat.length > 0 && depsStatus === 'installed' && workspace.prettier) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
@@ -545,7 +545,7 @@ export async function installAdders({
 	for (const { config } of details) {
 		const adderId = config.metadata.id;
 		// TODO: make this sync
-		const workspace = await createWorkspace(cwd);
+		const workspace = createWorkspace(cwd);
 
 		workspace.options = official[adderId] ?? community[adderId];
 

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
 import * as resolve from 'empathic/resolve';
-import { AGENTS, detect, type AgentName } from 'package-manager-detector';
+import { AGENTS, detectSync, type AgentName } from 'package-manager-detector';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
 import { common, object } from '../tooling/js/index.ts';
@@ -29,7 +29,7 @@ export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	} as Workspace<Args>;
 }
 
-export async function createWorkspace<Args extends OptionDefinition>(
+export function createWorkspace<Args extends OptionDefinition>(
 	cwd: string
 ): Promise<Workspace<Args>> {
 	const workspace = createEmptyWorkspace<Args>();
@@ -50,7 +50,7 @@ export async function createWorkspace<Args extends OptionDefinition>(
 	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 	workspace.typescript = usesTypescript;
 	workspace.prettier = Boolean(resolve.from(cwd, 'prettier', true));
-	workspace.packageManager = await detectPackageManager(cwd);
+	workspace.packageManager = detectPackageManager(cwd);
 	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
 	for (const [key, value] of Object.entries(workspace.dependencies)) {
 		// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
@@ -112,10 +112,10 @@ let packageManager: AgentName | undefined;
  * Guesses the package manager based on the detected lockfile or user-agent.
  * If neither of those return valid package managers, it falls back to `npm`.
  */
-export async function detectPackageManager(cwd: string): Promise<AgentName> {
+export function detectPackageManager(cwd: string): AgentName {
 	if (packageManager) return packageManager;
 
-	const pm = await detect({ cwd });
+	const pm = detectSync({ cwd });
 	if (pm?.name) packageManager = pm.name;
 
 	return pm?.name ?? getUserAgent() ?? 'npm';
