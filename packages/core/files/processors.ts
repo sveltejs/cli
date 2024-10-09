@@ -107,7 +107,7 @@ export function createOrUpdateFiles<Args extends OptionDefinition>(
 			if (fileDetails.contentType === 'svelte') {
 				content = handleSvelteFile(content, fileDetails, workspace);
 			}
-			if (!fileDetails.contentType || fileDetails.contentType === 'text') {
+			if (!fileDetails.contentType) {
 				content = handleTextFile(content, fileDetails, workspace);
 			}
 
