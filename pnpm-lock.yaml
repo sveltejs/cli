@@ -179,8 +179,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       package-manager-detector:
-        specifier: ^0.2.1
-        version: 0.2.1
+        specifier: ^0.2.2
+        version: 0.2.2
       picocolors:
         specifier: ^1.1.0
         version: 1.1.0
@@ -1612,9 +1612,6 @@ packages:
   package-json-from-dist@1.0.0:
     resolution: {integrity: sha512-dATvCeZN/8wQsGywez1mzHtTlP22H8OEfPrVMLNr4/eGa+ijtLn/6M5f0dY8UKNrC2O9UCU6SSoG3qRKnt7STw==}
 
-  package-manager-detector@0.2.1:
-    resolution: {integrity: sha512-/hVW2fZvAdEas+wyKh0SnlZ2mx0NIa1+j11YaQkogEJkcMErbwchHCuo8z7lEtajZJQZ6rgZNVTWMVVd71Bjng==}
-
   package-manager-detector@0.2.2:
     resolution: {integrity: sha512-VgXbyrSNsml4eHWIvxxG/nTL4wgybMTXCV2Un/+yEc3aDKKU6nQBZjbeP3Pl3qm9Qg92X/1ng4ffvCeD/zwHgg==}
 
@@ -2256,7 +2253,7 @@ snapshots:
       mri: 1.2.0
       outdent: 0.5.0
       p-limit: 2.3.0
-      package-manager-detector: 0.2.1
+      package-manager-detector: 0.2.2
       picocolors: 1.1.0
       resolve-from: 5.0.0
       semver: 7.6.3
@@ -3585,8 +3582,6 @@ snapshots:
   p-try@2.2.0: {}
 
   package-json-from-dist@1.0.0: {}
-
-  package-manager-detector@0.2.1: {}
 
   package-manager-detector@0.2.2: {}
 
