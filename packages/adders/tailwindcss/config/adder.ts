@@ -143,7 +143,7 @@ export const adder = defineAdderConfig({
 				const file = new MagicString(content);
 				file.prependLeft(
 					ast.instance.content.body[0].start,
-					"\timport '../app.css';" + (is_first_line_import ? '\n' : '\n\n')
+					"import '../app.css';" + (is_first_line_import ? '\n\t' : '\n\n\t')
 				);
 				return file.toString();
 			},
