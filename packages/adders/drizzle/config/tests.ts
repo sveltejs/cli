@@ -65,7 +65,6 @@ export const tests = defineAdderTests({
 		{
 			// override the config so we can remove strict mode
 			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
 			condition: ({ kit }) => Boolean(kit),
 			content: ({ content }) => {
 				return content.replace('strict: true,', '');

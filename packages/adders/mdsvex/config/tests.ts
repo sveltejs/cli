@@ -24,13 +24,11 @@ export const tests = defineAdderTests({
 		},
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/Demo.svx`,
-			contentType: 'text',
 			content: addMarkdownFile,
 			condition: ({ kit }) => Boolean(kit)
 		},
 		{
 			name: () => 'src/Demo.svx',
-			contentType: 'text',
 			content: addMarkdownFile,
 			condition: ({ kit }) => !kit
 		}

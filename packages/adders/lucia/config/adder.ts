@@ -476,7 +476,6 @@ export const adder = defineAdderConfig({
 			name: ({ kit, typescript }) =>
 				`${kit!.routesDirectory}/demo/login/+page.server.${typescript ? 'ts' : 'js'}`,
 			condition: ({ options }) => options.demo,
-			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
 					log.warn(
@@ -622,7 +621,6 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ kit }) => `${kit!.routesDirectory}/demo/login/+page.svelte`,
 			condition: ({ options }) => options.demo,
-			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
 					log.warn(`Existing ${colors.yellow('/demo/login/+page.svelte')} file. Could not update.`);
@@ -660,7 +658,6 @@ export const adder = defineAdderConfig({
 			name: ({ kit, typescript }) =>
 				`${kit!.routesDirectory}/demo/+page.server.${typescript ? 'ts' : 'js'}`,
 			condition: ({ options }) => options.demo,
-			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
 					log.warn(
@@ -704,7 +701,6 @@ export const adder = defineAdderConfig({
 		{
 			name: ({ kit }) => `${kit!.routesDirectory}/demo/+page.svelte`,
 			condition: ({ options }) => options.demo,
-			contentType: 'text',
 			content({ content, typescript }) {
 				if (content) {
 					log.warn(`Existing ${colors.yellow('/demo/+page.svelte')} file. Could not update.`);

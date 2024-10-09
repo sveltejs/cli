@@ -34,7 +34,6 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `src/demo.spec.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
 			content: ({ content }) => {
 				if (content) return content;
 

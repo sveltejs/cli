@@ -29,7 +29,6 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			name: () => '.prettierignore',
-			contentType: 'text',
 			content: ({ content }) => {
 				if (content) return content;
 				return dedent`
