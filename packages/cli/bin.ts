@@ -2,7 +2,7 @@
 
 import pkg from './package.json';
 import { program } from 'commander';
-import { add } from './commands/add.js';
+import { add } from './commands/add/index.ts';
 import { create } from './commands/create.js';
 import { migrate } from './commands/migrate.js';
 import { check } from './commands/check.js';

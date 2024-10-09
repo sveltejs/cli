@@ -16,15 +16,12 @@ import {
 	communityAdderIds,
 	getCommunityAdder
 } from '@svelte-cli/adders';
-import {
-	createOrUpdateFiles,
-	createWorkspace,
-	installPackages,
-	getHighlighter
-} from '@svelte-cli/core/internal';
 import type { AdderWithoutExplicitArgs, OptionValues } from '@svelte-cli/core';
-import * as common from '../common.js';
-import { Directive, downloadPackage, getPackageJSON } from '../utils/fetch-packages.js';
+import * as common from '../../common.ts';
+import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
+import { createWorkspace } from './workspace.ts';
+import { getHighlighter, installPackages } from './utils.ts';
+import { createOrUpdateFiles } from './processor.ts';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -545,7 +542,6 @@ export async function installAdders({
 	const filesToFormat = new Set<string>();
 	for (const { config } of details) {
 		const adderId = config.metadata.id;
-		// TODO: make this sync
 		const workspace = createWorkspace(cwd);
 
 		workspace.options = official[adderId] ?? community[adderId];
