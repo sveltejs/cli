@@ -30,6 +30,10 @@
 		"./js": {
 			"types": "./dist/tooling/js/index.d.ts",
 			"default": "./dist/js.js"
+		},
+		"./parsers": {
+			"types": "./dist/tooling/parsers.d.ts",
+			"default": "./dist/parsers.js"
 		}
 	},
 	"files": [

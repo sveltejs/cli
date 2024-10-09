@@ -2,8 +2,7 @@ import { options } from './options.ts';
 import { defineAdderConfig } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { addImports } from '@svelte-cli/core/css';
-import { parse } from 'svelte/compiler';
-import MagicString from 'magic-string';
+import { svelteMagicAst } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -107,10 +106,9 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'src/App.svelte',
 			content: ({ content }) => {
-				const ast = parse(content, { modern: true });
-				const file = new MagicString(content);
-				imports.addEmpty(ast, file, './app.css');
-				return file.toString();
+				const { ast, source } = svelteMagicAst(content);
+				imports.addEmpty(ast, source, './app.css');
+				return source.toString();
 			},
 			condition: ({ kit }) => !kit
 		},
@@ -118,10 +116,9 @@ export const adder = defineAdderConfig({
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			content: ({ content }) => {
 				content ||= '<slot />';
-				const ast = parse(content, { modern: true });
-				const file = new MagicString(content);
-				imports.addEmpty(ast, file, '../app.css');
-				return file.toString();
+				const { ast, source } = svelteMagicAst(content);
+				imports.addEmpty(ast, source, '../app.css');
+				return source.toString();
 			},
 			condition: ({ kit }) => Boolean(kit)
 		},
