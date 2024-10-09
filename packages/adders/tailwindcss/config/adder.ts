@@ -131,16 +131,26 @@ export const adder = defineAdderConfig({
 					`;
 				}
 
-				let new_lines = '';
-				const has_imports = ast.instance.content.body.some(
-					(statement) =>
+				// check if already imported
+				for (const statement of ast.instance.content.body) {
+					if (
 						statement.type === 'ExpressionStatement' &&
-						statement.expression.type === 'ImportExpression'
-				);
-				new_lines = has_imports ? '\n' : '\n\n';
+						statement.expression.type === 'ImportExpression' &&
+						statement.expression.source.value === '../app.css'
+					) {
+						return content;
+					}
+				}
 
+				const first_statement = ast.instance.content.body[0];
+				const is_first_line_import =
+					first_statement.type === 'ExpressionStatement' &&
+					first_statement.expression.type === 'ImportExpression';
 				const file = new MagicString(content);
-				file.prependLeft(ast.instance.content.body[0].start, "\timport '../app.css';" + new_lines);
+				file.prependLeft(
+					ast.instance.content.body[0].start,
+					"\timport '../app.css';" + (is_first_line_import ? '\n' : '\n\n')
+				);
 				return file.toString();
 			},
 			condition: ({ kit }) => Boolean(kit)
