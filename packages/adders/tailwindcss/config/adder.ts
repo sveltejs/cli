@@ -133,19 +133,13 @@ export const adder = defineAdderConfig({
 
 				// check if already imported
 				for (const statement of ast.instance.content.body) {
-					if (
-						statement.type === 'ExpressionStatement' &&
-						statement.expression.type === 'ImportExpression' &&
-						statement.expression.source.value === '../app.css'
-					) {
+					if (statement.type === 'ImportDeclaration' && statement.source.value === '../app.css') {
 						return content;
 					}
 				}
 
 				const first_statement = ast.instance.content.body[0];
-				const is_first_line_import =
-					first_statement.type === 'ExpressionStatement' &&
-					first_statement.expression.type === 'ImportExpression';
+				const is_first_line_import = first_statement.type === 'ImportDeclaration';
 				const file = new MagicString(content);
 				file.prependLeft(
 					ast.instance.content.body[0].start,
