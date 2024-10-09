@@ -107,7 +107,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'src/App.svelte',
 			content: ({ content }) => {
-				const ast = parse(content);
+				const ast = parse(content, { modern: true });
 				const file = new MagicString(content);
 				imports.addEmpty(ast, file, './app.css');
 				return file.toString();
@@ -118,7 +118,7 @@ export const adder = defineAdderConfig({
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			content: ({ content }) => {
 				content ||= '<slot />';
-				const ast = parse(content);
+				const ast = parse(content, { modern: true });
 				const file = new MagicString(content);
 				imports.addEmpty(ast, file, '../app.css');
 				return file.toString();
