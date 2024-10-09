@@ -291,5 +291,21 @@ export function runAdder(
 	const changedFiles = createOrUpdateFiles(config.files, workspace);
 	changedFiles.forEach((file) => filesToFormat.add(file));
 
+	if (config.scripts && config.scripts.length > 0) {
+		for (const script of config.scripts) {
+			if (script.condition?.(workspace) === false) continue;
+
+			try {
+				execSync('pnpx ' + script.args.join(' '), {
+					cwd: workspace.cwd,
+					stdio: 'pipe'
+				});
+			} catch (error) {
+				const typedError = error as Error;
+				throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
+			}
+		}
+	}
+
 	return filesToFormat;
 }
