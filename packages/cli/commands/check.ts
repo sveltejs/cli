@@ -1,9 +1,10 @@
 import { execSync } from 'node:child_process';
+import process from 'node:process';
 import pc from 'picocolors';
 import * as resolve from 'empathic/resolve';
 import { Command } from 'commander';
 import { resolveCommand } from 'package-manager-detector/commands';
-import { getUserAgent } from '../common.ts';
+import { getUserAgent } from '@svelte-cli/core/internal';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
@@ -39,6 +40,7 @@ function runCheck(cwd: string, args: string[]) {
 
 	// avoids printing the stack trace for `sv` when `svelte-check` exits with an error code
 	try {
-		execSync(`npx svelte-check ${args.join(' ')}`, { stdio: 'inherit', cwd });
+		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
+		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
 	} catch {}
 }

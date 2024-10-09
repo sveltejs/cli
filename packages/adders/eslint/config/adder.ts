@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
-import { defineAdderConfig, log } from '@svelte-cli/core';
-import { array, common, exports, imports, object } from '@svelte-cli/core/js';
+import { defineAdderConfig, log, type AstKinds, type AstTypes } from '@svelte-cli/core';
+import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -18,7 +18,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'eslint', version: '^9.7.0', dev: true },
 		{ name: '@types/eslint', version: '^9.6.0', dev: true },
@@ -65,18 +64,20 @@ export const adder = defineAdderConfig({
 			name: () => 'eslint.config.js',
 			contentType: 'script',
 			content: ({ ast, typescript }) => {
-				const eslintConfigs = array.createEmpty();
+				const eslintConfigs: Array<
+					AstKinds.ExpressionKind | AstTypes.SpreadElement | AstTypes.ObjectExpression
+				> = [];
 
 				const jsConfig = common.expressionFromString('js.configs.recommended');
-				array.push(eslintConfigs, jsConfig);
+				eslintConfigs.push(jsConfig);
 
 				if (typescript) {
 					const tsConfig = common.expressionFromString('ts.configs.recommended');
-					array.push(eslintConfigs, common.createSpreadElement(tsConfig));
+					eslintConfigs.push(common.createSpreadElement(tsConfig));
 				}
 
 				const svelteConfig = common.expressionFromString('svelte.configs["flat/recommended"]');
-				array.push(eslintConfigs, common.createSpreadElement(svelteConfig));
+				eslintConfigs.push(common.createSpreadElement(svelteConfig));
 
 				const globalsBrowser = common.createSpreadElement(
 					common.expressionFromString('globals.browser')
@@ -89,7 +90,7 @@ export const adder = defineAdderConfig({
 						globals: globalsObjLiteral
 					})
 				});
-				array.push(eslintConfigs, globalsConfig);
+				eslintConfigs.push(globalsConfig);
 
 				if (typescript) {
 					const svelteTSParserConfig = object.create({
@@ -100,23 +101,35 @@ export const adder = defineAdderConfig({
 							})
 						})
 					});
-					array.push(eslintConfigs, svelteTSParserConfig);
+					eslintConfigs.push(svelteTSParserConfig);
 				}
 
 				const ignoresConfig = object.create({
 					ignores: common.expressionFromString('["build/", ".svelte-kit/", "dist/"]')
 				});
-				array.push(eslintConfigs, ignoresConfig);
+				eslintConfigs.push(ignoresConfig);
 
-				const defaultExport = exports.defaultExport(ast, eslintConfigs);
+				let exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression;
+				if (typescript) {
+					const tsConfigCall = functions.call('ts.config', []);
+					tsConfigCall.arguments.push(...eslintConfigs);
+					exportExpression = tsConfigCall;
+				} else {
+					const eslintArray = array.createEmpty();
+					eslintConfigs.map((x) => array.push(eslintArray, x));
+					exportExpression = eslintArray;
+				}
+
+				const defaultExport = exports.defaultExport(ast, exportExpression);
 				// if it's not the config we created, then we'll leave it alone and exit out
-				if (defaultExport.value !== eslintConfigs) {
+				if (defaultExport.value !== exportExpression) {
 					log.warn('An eslint config is already defined. Skipping initialization.');
 					return;
 				}
 
 				// type annotate config
-				common.addJsDocTypeComment(defaultExport.astNode, "import('eslint').Linter.Config[]");
+				if (!typescript)
+					common.addJsDocTypeComment(defaultExport.astNode, "import('eslint').Linter.Config[]");
 
 				// imports
 				if (typescript) imports.addDefault(ast, 'typescript-eslint', 'ts');

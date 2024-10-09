@@ -54,7 +54,7 @@ type SvelteFile<Args extends OptionDefinition> = {
 	content: (editor: SvelteFileEditor<Args>) => void;
 };
 type TextFile<Args extends OptionDefinition> = {
-	contentType: 'text';
+	contentType?: undefined;
 	content: (editor: TextFileEditor<Args>) => string;
 };
 
@@ -107,7 +107,7 @@ export function createOrUpdateFiles<Args extends OptionDefinition>(
 			if (fileDetails.contentType === 'svelte') {
 				content = handleSvelteFile(content, fileDetails, workspace);
 			}
-			if (fileDetails.contentType === 'text') {
+			if (!fileDetails.contentType) {
 				content = handleTextFile(content, fileDetails, workspace);
 			}
 

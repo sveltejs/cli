@@ -1,5 +1,5 @@
 import readline, { type Key, type ReadLine } from 'node:readline';
-import { stdin, stdout } from 'node:process';
+import process, { stdin, stdout } from 'node:process';
 import { WriteStream } from 'node:tty';
 import type { Readable, Writable } from 'node:stream';
 import { cursor, erase } from 'sisteransi';

@@ -10,12 +10,10 @@ export const adder = defineAdderConfig({
 		environments: { kit: true, svelte: true }
 	},
 	options,
-	integrationType: 'inline',
 	packages: [],
 	files: [
 		{
 			name: () => 'adder-template-demo.txt',
-			contentType: 'text',
 			content: ({ content, options }) => {
 				if (options.demo) {
 					return 'This is a text file made by the Community Adder Template demo!';

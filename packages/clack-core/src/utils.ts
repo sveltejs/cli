@@ -1,10 +1,10 @@
 import type { Key } from 'node:readline';
 
-import { stdin, stdout } from 'node:process';
+import process, { stdin, stdout } from 'node:process';
 import * as readline from 'node:readline';
 import { cursor } from 'sisteransi';
 
-const isWindows = globalThis.process.platform.startsWith('win');
+const isWindows = process.platform.startsWith('win');
 
 export type BlockOptions = {
 	input?: NodeJS.ReadStream | undefined;

@@ -16,7 +16,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [{ name: '@roxi/routify', version: 'next', dev: true }],
 	files: [
 		{

@@ -21,7 +21,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options: availableOptions,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'drizzle-orm', version: '^0.33.0', dev: false },
 		{ name: 'drizzle-kit', version: '^0.24.2', dev: true },
@@ -78,17 +77,14 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			name: () => '.env',
-			contentType: 'text',
 			content: generateEnvFileContent
 		},
 		{
 			name: () => '.env.example',
-			contentType: 'text',
 			content: generateEnvFileContent
 		},
 		{
 			name: () => 'docker-compose.yml',
-			contentType: 'text',
 			condition: ({ options }) =>
 				options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js'),
 			content: ({ content, options }) => {
@@ -146,7 +142,6 @@ export const adder = defineAdderConfig({
 		{
 			// Adds the db file to the gitignore if an ignore is present
 			name: () => '.gitignore',
-			contentType: 'text',
 			condition: ({ options }) => options.database === 'sqlite',
 			content: ({ content }) => {
 				if (content.length === 0) return content;
@@ -335,15 +330,14 @@ export const adder = defineAdderConfig({
 			}
 		}
 	],
-	nextSteps: ({ options, colors }) => {
-		const highlight = (str: string) => colors.bold(colors.cyan(str));
+	nextSteps: ({ options, highlighter }) => {
 		const steps = [
-			`You will need to set ${colors.yellow('DATABASE_URL')} in your production environment`
+			`You will need to set ${highlighter.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
-			steps.push(`Run ${highlight('npm run db:start')} to start the docker container`);
+			steps.push(`Run ${highlighter.command('npm run db:start')} to start the docker container`);
 		}
-		steps.push(`To update your DB schema, run ${highlight('npm run db:push')}`);
+		steps.push(`To update your DB schema, run ${highlighter.command('npm run db:push')}`);
 
 		return steps;
 	}
