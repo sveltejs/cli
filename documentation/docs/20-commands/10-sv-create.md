@@ -23,7 +23,7 @@ npx sv create ./my/path
 | --no-adders   | -                               | -         | skips interactive adder installer                          |
 | --no-install  | -                               | -         | skips installing dependencies                              |
 
-## programatic interface
+## Programmatic interface
 
 ```js
 // TODO: this gives type checking errors in the docs site when not commented out. Need to release sv, install it in the site, and uncomment this.
