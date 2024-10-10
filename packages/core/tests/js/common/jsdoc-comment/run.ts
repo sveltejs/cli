@@ -1,4 +1,4 @@
-import { array, common, variables } from '@svelte-cli/core/js';
+import { common } from '@svelte-cli/core/js';
 import type { AstTypes, ScriptFileEditor } from '@svelte-cli/core';
 
 export function run({ ast }: ScriptFileEditor<any>): void {
