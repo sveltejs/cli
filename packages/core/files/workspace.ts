@@ -16,6 +16,7 @@ export type Workspace<Args extends OptionDefinition> = {
 	 * Returns the dependency version declared in the package.json.
 	 * This may differ from the installed version.
 	 * Includes both dependencies and devDependencies.
+	 * Also checks parent package.json files if called in a monorepo.
 	 * @param pkg the package to check for
 	 * @returns the dependency version with any leading characters such as ^ or ~ removed
 	 */
