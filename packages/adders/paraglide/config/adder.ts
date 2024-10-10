@@ -56,7 +56,7 @@ export const adder = defineAdderConfig({
 		{
 			// create an inlang project if it doesn't exist yet
 			name: () => 'project.inlang/settings.json',
-			condition: ({ cwd }) => !fs.existsSync(path.join(cwd, 'project.inlang/settings.josn')),
+			condition: ({ cwd }) => !fs.existsSync(path.join(cwd, 'project.inlang/settings.json')),
 			contentType: 'json',
 			content: ({ options, data }) => {
 				for (const key in DEFAULT_INLANG_PROJECT) {
