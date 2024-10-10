@@ -2,9 +2,7 @@
 title: sv add
 ---
 
-## Overview
-
-It also offers numerous integrations with various technologies that are commonly-used for building web sites and web apps.
+`sv add` installs adders to an existing project.
 
 ## Usage
 

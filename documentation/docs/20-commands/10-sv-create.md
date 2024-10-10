@@ -2,9 +2,7 @@
 title: sv create
 ---
 
-## Overview
-
-`sv create` sets up a new SvelteKit project. It also offers numerous integrations with various technologies that are commonly-used for building web sites and web apps. You can set these up later with the `add` command.
+`sv create` sets up a new SvelteKit project, with options to install [adders](sv-add#Official-adders).
 
 ## Usage
 

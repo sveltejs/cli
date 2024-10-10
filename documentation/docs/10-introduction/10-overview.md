@@ -2,23 +2,14 @@
 title: Overview
 ---
 
-`sv`, the Svelte CLI, aims to combine multiple tools into one single easy to remember command.
+The command line interface (CLI), `sv`, is a toolkit for creating and maintaining Svelte applications.
 
 ## Usage
 
-The best way to use our cli is to run one of the following commands, depending on your package manager
+The easiest way to run `sv` is with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) (or the equivalent command if you're using a different package manager — for example, `pnpx` if you're using [pnpm](https://pnpm.io/)):
 
 ```bash
 npx sv <command> <args>
-pnpx sv <command> <args>
-# todo: should we add other package managers or just leave npx? Same goes for all other snippets
 ```
 
-## Commands
-
-| Command            | Sample usage                     | Description                                    |
-| ------------------ | -------------------------------- | ---------------------------------------------- |
-| [`create`](create) | `npx sv create ./my-project`     | Scaffolds new projects                         |
-| [add](add)         | `npx sv add [adder...]`          | Customize your projects to add different tools |
-| migrate            | `npx sv migrate <migrationName>` | Migrate your project                           |
-| check              | `npx sv check`                   | Typecheck your Svelte files                    |
+If you're inside a project where `sv` is already installed, this will use the local installation, otherwise it will download the latest version and run it without installing it, which is particularly useful for [`sv create`](sv-create).
