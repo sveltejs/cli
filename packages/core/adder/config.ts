@@ -60,7 +60,6 @@ export type AdderConfig<Args extends OptionDefinition> = {
 export type Highlighter = {
 	path: (str: string) => string;
 	command: (str: string) => string;
-	warning: (str: string) => string;
 	website: (str: string) => string;
 	route: (str: string) => string;
 	env: (str: string) => string;

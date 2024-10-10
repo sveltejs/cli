@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdderConfig, log } from '@svelte-cli/core';
 import { options, parseLanguageTagInput } from './options.ts';
 import { array, common, functions, imports, object, variables, exports } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
@@ -22,7 +22,6 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-const warnings: string[] = [];
 export const adder = defineAdderConfig({
 	metadata: {
 		id: 'paraglide',
@@ -109,7 +108,7 @@ export const adder = defineAdderConfig({
 
 				const existingExport = exports.namedExport(ast, 'i18n', i18n);
 				if (existingExport.declaration != i18n) {
-					warnings.push('Setting up $lib/i18n failed because it aleady exports an i18n function');
+					log.warn('Setting up $lib/i18n failed because it aleady exports an i18n function');
 				}
 			}
 		},
@@ -127,7 +126,7 @@ export const adder = defineAdderConfig({
 
 				const existingExport = exports.namedExport(ast, 'reroute', rerouteIdentifier);
 				if (existingExport.declaration != rerouteIdentifier) {
-					warnings.push('Adding the reroute hook automatically failed. Add it manually');
+					log.warn('Adding the reroute hook automatically failed. Add it manually');
 				}
 			}
 		},
@@ -187,7 +186,7 @@ export const adder = defineAdderConfig({
 						child.type === html.HtmlElementType.Tag && child.name === 'html'
 				);
 				if (!htmlNode) {
-					warnings.push(
+					log.warn(
 						"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
 					);
 					return;
@@ -257,8 +256,7 @@ export const adder = defineAdderConfig({
 			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2) + '\n');
 		}
 	},
-	nextSteps: ({ highlighter }) => [
-		...warnings.map(highlighter.warning),
+	nextSteps: () => [
 		'Edit your messages in `messages/en.json`',
 		'Consider installing the Sherlock IDE Extension'
 	]
