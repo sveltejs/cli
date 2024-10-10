@@ -1,10 +1,12 @@
-# Check your code with sv check
+---
+title: sv check
+---
 
 Provides CLI diagnostics checks for:
 
--   Unused CSS
--   Svelte A11y hints
--   JavaScript/TypeScript compiler errors
+- Unused CSS
+- Svelte A11y hints
+- JavaScript/TypeScript compiler errors
 
 Requires Node 16 or later.
 
@@ -20,16 +22,16 @@ Package.json:
 
 ```json
 {
-    // ...
-    "scripts": {
-        "sv": "npx sv"
-        // ...
-    },
-    // ...
-    "devDependencies": {
-        "svelte-check": "..."
-        // ...
-    }
+	// ...
+	"scripts": {
+		"sv": "npx sv"
+		// ...
+	},
+	// ...
+	"devDependencies": {
+		"svelte-check": "..."
+		// ...
+	}
 }
 ```
 
@@ -120,4 +122,4 @@ If the application experiences a runtime error, this error will appear as a `FAI
 
 ### Credits
 
--   Vue's [VTI](https://github.com/vuejs/vetur/tree/master/vti) which laid the foundation for `svelte-check`
+- Vue's [VTI](https://github.com/vuejs/vetur/tree/master/vti) which laid the foundation for `svelte-check`

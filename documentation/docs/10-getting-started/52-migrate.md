@@ -1,4 +1,6 @@
-# sv migrate
+---
+title: sv migrate
+---
 
 A CLI for migrating Svelte(Kit) codebases.
 

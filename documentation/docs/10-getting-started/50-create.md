@@ -1,5 +1,5 @@
 ---
-title: Create a project
+title: sv create
 ---
 
 ## Overview
