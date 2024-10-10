@@ -15,6 +15,7 @@ export type Workspace<Args extends OptionDefinition> = {
 	/**
 	 * Returns the dependency version declared in the package.json.
 	 * This may differ from the installed version.
+	 * Includes both dependencies and devDependencies.
 	 * @param pkg the package to check for
 	 * @returns the dependency version with any leading characters such as ^ or ~ removed
 	 */
@@ -48,19 +49,21 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 		usesTypescript ||= find.up(commonFilePaths.tsconfig, { cwd }) !== undefined;
 	}
 
+	let dependencies: Record<string, string> = {};
+	let directory = workspace.cwd;
+	const root = findRoot(workspace.cwd);
+	while (directory && directory !== root) {
+		const { data: packageJson } = getPackageJson(workspace.cwd);
+		dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies, ...dependencies };
+		directory = path.dirname(directory);
+	}
+	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
+	for (const [key, value] of Object.entries(dependencies)) {
+		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
+	}
+
 	workspace.dependencyVersion = (pkg) => {
-		const root = findRoot(workspace.cwd);
-		let directory = cwd;
-		while (directory && directory !== root) {
-			const { data: packageJson } = getPackageJson(workspace.cwd);
-			const dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
-			const found = dependencies[pkg];
-			if (found) {
-				// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
-				return found.replaceAll(/[^\d|.]/g, '');
-			}
-			directory = path.dirname(directory);
-		}
+		return dependencies[pkg];
 	};
 	workspace.typescript = usesTypescript;
 	workspace.packageManager = detectPackageManager(cwd);
