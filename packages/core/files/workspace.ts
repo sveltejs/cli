@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
-import * as resolve from 'empathic/resolve';
 import { AGENTS, detectSync, type AgentName } from 'package-manager-detector';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
@@ -13,8 +12,13 @@ import process from 'node:process';
 export type Workspace<Args extends OptionDefinition> = {
 	options: OptionValues<Args>;
 	cwd: string;
-	dependencies: Record<string, string>;
-	isResolvable: (module: string) => boolean;
+	/**
+	 * Returns the dependency version declared in the package.json.
+	 * This may differ from the installed version.
+	 * @param pkg the package to check for
+	 * @returns the dependency version with any leading characters such as ^ or ~ removed
+	 */
+	dependencyVersion: (pkg: string) => string | undefined;
 	typescript: boolean;
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
 	packageManager: AgentName;
@@ -24,7 +28,7 @@ export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	return {
 		options: {},
 		cwd: '',
-		isResolvable: (_module) => false,
+		dependencyVersion: (_pkg) => undefined,
 		typescript: false,
 		kit: undefined
 	} as Workspace<Args>;
@@ -45,17 +49,19 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 	}
 
 	const { data: packageJson } = getPackageJson(workspace);
+	const dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 
-	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
-	workspace.typescript = usesTypescript;
-	workspace.isResolvable = (module: string) => Boolean(resolve.from(workspace.cwd, module, true));
-	workspace.packageManager = detectPackageManager(cwd);
-	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
-	for (const [key, value] of Object.entries(workspace.dependencies)) {
+	workspace.dependencyVersion = (pkg) => {
+		const found = dependencies[pkg];
+		if (!found) {
+			return found;
+		}
 		// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
-		workspace.dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
-	}
-
+		return found.replaceAll(/[^\d|.]/g, '');
+	};
+	workspace.typescript = usesTypescript;
+	workspace.packageManager = detectPackageManager(cwd);
+	if ('@sveltejs/kit' in dependencies) workspace.kit = parseKitOptions(workspace);
 	return workspace;
 }
 

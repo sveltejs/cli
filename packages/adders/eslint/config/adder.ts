@@ -33,7 +33,7 @@ export const adder = defineAdderConfig({
 			name: 'eslint-config-prettier',
 			version: '^9.1.0',
 			dev: true,
-			condition: ({ isResolvable }) => isResolvable('prettier')
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		}
 	],
 	files: [
@@ -141,7 +141,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'eslint.config.js',
 			contentType: 'script',
-			condition: ({ isResolvable }) => isResolvable('prettier'),
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier')),
 			content: addEslintConfigPrettier
 		}
 	]

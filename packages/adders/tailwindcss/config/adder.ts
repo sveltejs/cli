@@ -31,7 +31,7 @@ export const adder = defineAdderConfig({
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
-			condition: ({ isResolvable }) => isResolvable('prettier')
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		}
 	],
 	files: [
@@ -134,7 +134,7 @@ export const adder = defineAdderConfig({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 			},
-			condition: ({ isResolvable }) => isResolvable('prettier')
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		}
 	]
 });

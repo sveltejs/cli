@@ -340,7 +340,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			let installed = false;
 			installed = dependent.config.packages.every(
 				// we'll skip the conditions since we don't have any options to supply it
-				(p) => p.condition !== undefined || !!workspace.dependencies[p.name]
+				(p) => p.condition !== undefined || !!workspace.dependencyVersion(p.name)
 			);
 
 			if (installed) continue;
@@ -466,7 +466,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	if (
 		filesToFormat.length > 0 &&
 		depsStatus === 'installed' &&
-		workspace.isResolvable('prettier')
+		!!workspace.dependencyVersion('prettier')
 	) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
