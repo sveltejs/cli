@@ -1,6 +1,6 @@
 import { options as availableOptions } from './options.ts';
 import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
-import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
+import { defineAdder, dedent, type TextFileEditor } from '@svelte-cli/core';
 
 const PORTS = {
 	mysql: '3306',
@@ -8,7 +8,7 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'drizzle',
 		name: 'Drizzle',

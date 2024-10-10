@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
 import { parseJson, serializeJson } from '@svelte-cli/ast-tooling';
-import type { AdderConfig, Highlighter } from '../adder/config.ts';
+import type { Adder, Highlighter } from '../adder/config.ts';
 import type { Workspace } from './workspace.ts';
 
 export type Package = {
@@ -51,7 +51,7 @@ export function readFile(workspace: Workspace<any>, filePath: string): string {
 	return text;
 }
 
-export function installPackages(config: AdderConfig<any>, workspace: Workspace<any>): string {
+export function installPackages(config: Adder<any>, workspace: Workspace<any>): string {
 	const { text: originalText, data } = getPackageJson(workspace);
 
 	for (const dependency of config.packages) {

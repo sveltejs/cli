@@ -1,5 +1,5 @@
 import { options } from './options.ts';
-import { colors, dedent, defineAdderConfig, log, Walker } from '@svelte-cli/core';
+import { colors, dedent, defineAdder, log, Walker } from '@svelte-cli/core';
 import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@svelte-cli/core/js';
@@ -22,7 +22,7 @@ type Dialect = keyof typeof LUCIA_ADAPTER;
 let drizzleDialect: Dialect;
 let schemaPath: string;
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'lucia',
 		name: 'Lucia',

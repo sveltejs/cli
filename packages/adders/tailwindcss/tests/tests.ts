@@ -1,5 +1,5 @@
 import { defineAdderTests, type OptionDefinition, type SvelteFileEditor } from '@svelte-cli/core';
-import { options } from './options.ts';
+import { options } from '../config/options.ts';
 import * as html from '@svelte-cli/core/html';
 
 const divId = 'myDiv';

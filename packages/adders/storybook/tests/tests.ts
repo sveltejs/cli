@@ -1,5 +1,5 @@
 import { defineAdderTests } from '@svelte-cli/core';
-import { options } from './options.ts';
+import { options } from '../config/options.ts';
 
 let port = 6006;
 
