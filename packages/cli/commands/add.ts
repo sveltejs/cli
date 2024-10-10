@@ -463,7 +463,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// format modified/created files with prettier (if available)
 	const workspace = createWorkspace(options.cwd);
-	if (filesToFormat.length > 0 && depsStatus === 'installed' && workspace.isResolvable('prettier')) {
+	if (
+		filesToFormat.length > 0 &&
+		depsStatus === 'installed' &&
+		workspace.isResolvable('prettier')
+	) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
 		try {
