@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { parsePostcss, serializePostcss } from '@svelte-cli/ast-tooling';
+import { parseCss, serializeCss } from '@svelte-cli/ast-tooling';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,13 +16,13 @@ for (const categoryDirectory of categoryDirectories) {
 
 				const inputFilePath = join(testDirectoryPath, 'input.css');
 				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath) : '';
-				const ast = parsePostcss(input.toString());
+				const ast = parseCss(input.toString());
 
 				// dynamic imports always need to provide the path inline for static analysis
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
 				module.run({ ast });
 
-				const output = serializePostcss(ast);
+				const output = serializeCss(ast);
 				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.css`);
 			});
 		}
