@@ -13,6 +13,6 @@ Community adders are still in development. We'd love to help get the first few r
 ## Process
 
 - create a fork of `sveltejs/cli`
-- modify the community manifest file to list your adder (TODO: this file does not exist yet)
+- list your file in the `community-adders` directory
 - create a PR
 - wait for the the next release of `sv`
