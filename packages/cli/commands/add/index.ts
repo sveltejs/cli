@@ -39,7 +39,7 @@ const OptionsSchema = v.strictObject({
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 const adderDetails = adderIds.map((id) => getAdderDetails(id));
-const aliases = adderDetails.map((c) => c.config.metadata.alias).filter((v) => v !== undefined);
+const aliases = adderDetails.map((c) => c.metadata.alias).filter((v) => v !== undefined);
 const addersOptions = getAdderOptionFlags();
 const communityDetails: AdderWithoutExplicitArgs[] = [];
 
@@ -112,7 +112,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 		official[adderId] ??= {};
 
-		const optionEntries = Object.entries(details.config.options);
+		const optionEntries = Object.entries(details.options);
 		for (const specifiedOption of specifiedOptions) {
 			// we'll skip empty string and `none` options so that default values can be applied later
 			if (!specifiedOption || specifiedOption === 'none') continue;
@@ -152,7 +152,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 
 		// apply defaults to unspecified options
-		for (const [id, question] of Object.entries(details.config.options)) {
+		for (const [id, question] of Object.entries(details.options)) {
 			// we'll only apply defaults to options that don't explicitly fail their conditions
 			if (question.condition?.(official[adderId]) !== false) {
 				official[adderId][id] ??= question.default;
@@ -266,7 +266,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			start('Downloading community adder packages');
 			const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
 			for (const adder of details) {
-				const id = adder.config.metadata.id;
+				const id = adder.metadata.id;
 				community[id] ??= {};
 				communityDetails.push(adder);
 				selectedAdders.push({ type: 'community', adder });
@@ -287,7 +287,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			const adderIds = adderCategories[category];
 			const categoryOptions = adderIds
 				.map((id) => {
-					const config = getAdderDetails(id).config;
+					const config = getAdderDetails(id);
 					// we'll only display adders within their respective project types
 					if (projectType === 'kit' && !config.metadata.environments.kit) return;
 					if (projectType === 'svelte' && !config.metadata.environments.svelte) return;
@@ -322,20 +322,19 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// add inter-adder dependencies
 	for (const { adder } of selectedAdders) {
-		const name = adder.config.metadata.name;
+		const name = adder.metadata.name;
 		const dependents =
-			adder.config.dependsOn?.filter(
-				(dep) => !selectedAdders.some((a) => a.adder.config.metadata.id === dep)
-			) ?? [];
+			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.metadata.id === dep)) ??
+			[];
 
 		const workspace = createWorkspace(options.cwd);
 		for (const depId of dependents) {
-			const dependent = adderDetails.find((a) => a.config.metadata.id === depId);
+			const dependent = adderDetails.find((a) => a.metadata.id === depId);
 			if (!dependent) throw new Error(`Adder '${name}' depends on an invalid '${depId}'`);
 
 			// check if the dependent adder has already been installed
 			let installed = false;
-			installed = dependent.config.packages.every(
+			installed = dependent.packages.every(
 				// we'll skip the conditions since we don't have any options to supply it
 				(p) => p.condition !== undefined || !!workspace.dependencies[p.name]
 			);
@@ -357,7 +356,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// run precondition checks
 	if (options.preconditions) {
 		const preconditions = selectedAdders
-			.flatMap(({ adder }) => adder.checks.preconditions)
+			.flatMap(({ adder }) => adder.preconditions)
 			.filter((p) => p !== undefined);
 
 		// add global checks
@@ -393,8 +392,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// ask remaining questions
 	for (const { adder, type } of selectedAdders) {
-		const adderId = adder.config.metadata.id;
-		const questionPrefix = selectedAdders.length > 1 ? `${adder.config.metadata.name}: ` : '';
+		const adderId = adder.metadata.id;
+		const questionPrefix = selectedAdders.length > 1 ? `${adder.metadata.name}: ` : '';
 
 		let values: QuestionValues = {};
 		if (type === 'official') {
@@ -406,7 +405,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			values = community[adderId];
 		}
 
-		for (const [questionId, question] of Object.entries(adder.config.options)) {
+		for (const [questionId, question] of Object.entries(adder.options)) {
 			const shouldAsk = question.condition?.(values);
 			if (shouldAsk === false || values[questionId] !== undefined) continue;
 
@@ -476,16 +475,15 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// print next steps
 	const nextStepsMsg = selectedAdders
-		.filter(({ adder }) => adder.config.nextSteps)
+		.filter(({ adder }) => adder.nextSteps)
 		.map(({ adder }) => {
-			const config = adder.config;
-			const metadata = config.metadata;
+			const metadata = adder.metadata;
 			let adderMessage = '';
 			if (selectedAdders.length > 1) {
 				adderMessage = `${pc.green(metadata.name)}:\n`;
 			}
 
-			const adderNextSteps = config.nextSteps!({
+			const adderNextSteps = adder.nextSteps!({
 				...workspace,
 				options: official[metadata.id],
 				highlighter
@@ -519,7 +517,7 @@ export async function installAdders({
 }: InstallAdderOptions): Promise<string[]> {
 	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
 	const commDetails = Object.keys(community).map(
-		(id) => communityDetails.find((x) => x.config.metadata.id === id)!
+		(id) => communityDetails.find((a) => a.metadata.id === id)!
 	);
 	const details = adderDetails.concat(commDetails);
 
@@ -528,19 +526,15 @@ export async function installAdders({
 	// and adders with dependencies runs later on, based on the adders they depend on.
 	// based on https://stackoverflow.com/a/72030336/16075084
 	details.sort((a, b) => {
-		if (!a.config.runsAfter) return -1;
-		if (!b.config.runsAfter) return 1;
+		if (!a.runsAfter) return -1;
+		if (!b.runsAfter) return 1;
 
-		return a.config.runsAfter.includes(b.config.metadata.id)
-			? 1
-			: b.config.runsAfter.includes(a.config.metadata.id)
-				? -1
-				: 0;
+		return a.runsAfter.includes(b.metadata.id) ? 1 : b.runsAfter.includes(a.metadata.id) ? -1 : 0;
 	});
 
 	// apply adders
 	const filesToFormat = new Set<string>();
-	for (const { config } of details) {
+	for (const config of details) {
 		const adderId = config.metadata.id;
 		const workspace = createWorkspace(cwd);
 
@@ -587,8 +581,8 @@ function transformAliases(ids: string[]): string[] {
 	const set = new Set<string>();
 	for (const id of ids) {
 		if (aliases.includes(id)) {
-			const adder = adderDetails.find((a) => a.config.metadata.alias === id)!;
-			set.add(adder.config.metadata.id);
+			const adder = adderDetails.find((a) => a.metadata.alias === id)!;
+			set.add(adder.metadata.id);
 		} else {
 			set.add(id);
 		}
@@ -600,7 +594,7 @@ function getAdderOptionFlags(): Option[] {
 	const options: Option[] = [];
 	for (const id of adderIds) {
 		const details = getAdderDetails(id);
-		if (Object.values(details.config.options).length === 0) continue;
+		if (Object.values(details.options).length === 0) continue;
 
 		const { defaults, groups } = getOptionChoices(details);
 		const choices = Object.entries(groups)
@@ -629,7 +623,7 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
 	const options: Record<string, unknown> = {};
-	for (const [id, question] of Object.entries(details.config.options)) {
+	for (const [id, question] of Object.entries(details.options)) {
 		let values: string[] = [];
 		const applyDefault = question.condition?.(options) !== false;
 		if (question.type === 'boolean') {

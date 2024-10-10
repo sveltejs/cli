@@ -40,7 +40,7 @@ export type Scripts<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
-export type AdderConfig<Args extends OptionDefinition> = {
+export type Adder<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
 	runsAfter?: string[];
@@ -48,6 +48,7 @@ export type AdderConfig<Args extends OptionDefinition> = {
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
+	preconditions?: Precondition[];
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
@@ -63,29 +64,12 @@ export type Highlighter = {
 	env: (str: string) => string;
 };
 
-export function defineAdderConfig<Args extends OptionDefinition>(
-	config: AdderConfig<Args>
-): AdderConfig<Args> {
+export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>): Adder<Args> {
 	return config;
 }
 
-export type Adder<Args extends OptionDefinition> = {
-	config: AdderConfig<Args>;
-	checks: AdderCheckConfig<Args>;
-	tests?: AdderTestConfig<Args>;
-};
-
 export type AdderWithoutExplicitArgs = Adder<Record<string, Question>>;
-export type AdderConfigWithoutExplicitArgs = AdderConfig<Record<string, Question>>;
-
-export function defineAdder<Args extends OptionDefinition>(
-	config: AdderConfig<Args>,
-	checks: AdderCheckConfig<Args>,
-	tests?: AdderTestConfig<Args>
-): Adder<Args> {
-	const adder: Adder<Args> = { config, checks, tests };
-	return adder;
-}
+export type AdderConfigWithoutExplicitArgs = Adder<Record<string, Question>>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
@@ -125,14 +109,3 @@ export type Precondition = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
-
-export type AdderCheckConfig<Args extends OptionDefinition> = {
-	options: Args;
-	preconditions?: Precondition[];
-};
-
-export function defineAdderChecks<Args extends OptionDefinition>(
-	checks: AdderCheckConfig<Args>
-): AdderCheckConfig<Args> {
-	return checks;
-}

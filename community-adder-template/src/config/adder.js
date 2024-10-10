@@ -1,9 +1,9 @@
 import { options } from './options.js';
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdder } from '@svelte-cli/core';
 import { imports } from '@svelte-cli/core/js';
 import { parseScript } from '@svelte-cli/core/parsers';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'community-adder-template',
 		name: 'Community Adder Template',

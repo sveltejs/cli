@@ -1,6 +1,6 @@
 import { options as availableOptions } from './options.ts';
 import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
-import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
+import { defineAdder, dedent, type FileEditor } from '@svelte-cli/core';
 import { parseScript } from '@svelte-cli/core/parsers';
 
 const PORTS = {
@@ -9,7 +9,7 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'drizzle',
 		name: 'Drizzle',
@@ -346,7 +346,7 @@ export const adder = defineAdderConfig({
 	}
 });
 
-function generateEnvFileContent({ content, options }: TextFileEditor<typeof availableOptions>) {
+function generateEnvFileContent({ content, options }: FileEditor<typeof availableOptions>) {
 	const DB_URL_KEY = 'DATABASE_URL';
 	if (options.docker) {
 		// we'll prefill with the default docker db credentials

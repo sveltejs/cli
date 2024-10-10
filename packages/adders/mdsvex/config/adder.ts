@@ -1,9 +1,9 @@
 import { options } from './options.ts';
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdder } from '@svelte-cli/core';
 import { array, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { parseScript } from '@svelte-cli/core/parsers';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'mdsvex',
 		name: 'mdsvex',

@@ -1,10 +1,10 @@
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdder } from '@svelte-cli/core';
 import { options } from './options.ts';
 import { array, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
 import { parseScript } from '@svelte-cli/core/parsers';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'routify',
 		name: 'Routify',

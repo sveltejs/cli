@@ -1,4 +1,4 @@
-import { options } from './options.ts';
+import { options } from '../config/options.ts';
 import { defineAdderTests } from '@svelte-cli/core';
 import { common } from '@svelte-cli/core/js';
 import { addFromRawHtml } from '@svelte-cli/core/html';
