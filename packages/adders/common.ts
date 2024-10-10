@@ -1,4 +1,5 @@
 import { imports, exports, common, variables, functions } from '@svelte-cli/core/js';
+import * as html from '@svelte-cli/core/html';
 import { Walker, type AstKinds, type AstTypes, type ScriptFileEditor } from '@svelte-cli/core';
 import type { Question } from '@svelte-cli/core/internal';
 
@@ -356,4 +357,27 @@ function isFunctionDeclaration(
 	funcName: string
 ): node is AstTypes.FunctionDeclaration {
 	return node.type === 'FunctionDeclaration' && node.id?.name === funcName;
+}
+
+export function addSlot(
+	jsAst: AstTypes.Program,
+	htmlAst: html.HtmlDocument,
+	dependencies: Record<string, string>
+) {
+	let slotSyntax = false;
+	if (
+		'svelte' in dependencies &&
+		dependencies['svelte'] &&
+		(dependencies['svelte'].startsWith('4') || dependencies['svelte'].startsWith('3'))
+	)
+		slotSyntax = true;
+
+	if (slotSyntax) {
+		const slot = html.element('slot');
+		html.appendElement(htmlAst.childNodes, slot);
+		return;
+	}
+
+	common.addFromString(jsAst, 'let { children } = $props();');
+	html.addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 }
