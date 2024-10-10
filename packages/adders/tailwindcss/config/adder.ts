@@ -3,6 +3,7 @@ import { defineAdderConfig } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { addImports } from '@svelte-cli/core/css';
 import { element } from '@svelte-cli/core/html';
+import * as resolve from 'empathic/resolve';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -31,7 +32,7 @@ export const adder = defineAdderConfig({
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
-			condition: ({ prettier }) => prettier
+			condition: ({ cwd }) => Boolean(resolve.from(cwd, 'prettier', true)),
 		}
 	],
 	files: [
@@ -134,7 +135,7 @@ export const adder = defineAdderConfig({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 			},
-			condition: ({ prettier }) => prettier
+			condition: ({ cwd }) => Boolean(resolve.from(cwd, 'prettier', true)),
 		}
 	]
 });

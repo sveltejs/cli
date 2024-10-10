@@ -16,5 +16,8 @@
 	},
 	"dependencies": {
 		"@svelte-cli/core": "workspace:*"
+	},
+	"devDependencies": {
+		"empathic": "^1.0.0"
 	}
 }

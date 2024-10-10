@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
-import * as resolve from 'empathic/resolve';
 import { AGENTS, detectSync, type AgentName } from 'package-manager-detector';
 import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
 import { TESTING } from '../env.ts';
@@ -14,7 +13,6 @@ export type Workspace<Args extends OptionDefinition> = {
 	options: OptionValues<Args>;
 	cwd: string;
 	dependencies: Record<string, string>;
-	prettier: boolean;
 	typescript: boolean;
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
 	packageManager: AgentName;
@@ -24,7 +22,6 @@ export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	return {
 		options: {},
 		cwd: '',
-		prettier: false,
 		typescript: false,
 		kit: undefined
 	} as Workspace<Args>;
@@ -48,7 +45,6 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 
 	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 	workspace.typescript = usesTypescript;
-	workspace.prettier = Boolean(resolve.from(cwd, 'prettier', true));
 	workspace.packageManager = detectPackageManager(cwd);
 	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
 	for (const [key, value] of Object.entries(workspace.dependencies)) {
