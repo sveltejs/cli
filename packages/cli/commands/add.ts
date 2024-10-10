@@ -360,7 +360,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// run precondition checks
 	if (options.preconditions) {
 		const preconditions = selectedAdders
-			.flatMap(({ adder }) => adder.checks.preconditions)
+			.flatMap(({ adder }) => adder.config.preconditions)
 			.filter((p) => p !== undefined);
 
 		// add global checks
