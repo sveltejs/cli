@@ -2,7 +2,7 @@
 title: sv add
 ---
 
-`sv add` installs adders to an existing project.
+`sv add` updates your code to add news functionality to an existing project.
 
 ## Usage
 
