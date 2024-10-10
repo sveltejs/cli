@@ -29,10 +29,10 @@ function getConfig(project) {
 	if (project === 'core') {
 		inputs = {
 			index: `${projectRoot}/index.ts`,
-			parsers: `${projectRoot}/tooling/parsers.ts`,
 			css: `${projectRoot}/tooling/css/index.ts`,
 			html: `${projectRoot}/tooling/html/index.ts`,
-			js: `${projectRoot}/tooling/js/index.ts`
+			js: `${projectRoot}/tooling/js/index.ts`,
+			parsers: `${projectRoot}/tooling/parsers.ts`
 		};
 	} else if (project === 'cli') {
 		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/bin.ts`];
