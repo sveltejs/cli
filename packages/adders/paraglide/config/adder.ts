@@ -257,7 +257,7 @@ export const adder = defineAdderConfig({
 		}
 	},
 	nextSteps: () => [
-		'Edit your messages in `messages/en.json`',
+		`Edit your messages in ${highlighter.path("messages/en.json")}`,
 		'Consider installing the Sherlock IDE Extension'
 	]
 });
