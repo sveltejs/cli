@@ -26,7 +26,7 @@ export const adder = defineAdderConfig({
 	metadata: {
 		id: 'paraglide',
 		name: 'Paraglide',
-		description: 'Typesafe i18n with localized routing',
+		description: 'Typesafe i18n with localised routing',
 		environments: { svelte: false, kit: true },
 		website: {
 			logo: './paraglide.png',
