@@ -4,7 +4,7 @@ import { defineAdderConfig, log } from '@svelte-cli/core';
 import { options, parseLanguageTagInput } from './options.ts';
 import { array, common, functions, imports, object, variables, exports } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
-import { addHooksHandle } from '../../common.ts';
+import { addHooksHandle, createPrinter } from '../../common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -203,22 +203,35 @@ export const adder = defineAdderConfig({
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
 			contentType: 'svelte',
 			condition: ({ options }) => options.demo,
-			content({ jsAst, htmlAst, options }) {
+			content({ jsAst, htmlAst, options, typescript }) {
 				imports.addDefault(jsAst, '$lib/paraglide/messages.js', '* as m');
 				imports.addNamed(jsAst, '$app/navigation', { goto: 'goto' });
 				imports.addNamed(jsAst, '$app/stores', { page: 'page' });
 				imports.addNamed(jsAst, '$lib/i18n', { i18n: 'i18n' });
+				if (typescript) {
+					imports.addNamed(
+						jsAst,
+						'$lib/paraglide/runtime',
+						{ AvailableLanguageTag: 'AvailableLanguageTag' },
+						true
+					);
+				}
+
+				const [ts] = createPrinter(typescript);
 
 				const methodStatement = common.statementFromString(`
-					/**
-					 * @param { import("$lib/paraglide/runtime").AvailableLanguageTag } newLanguage
-					 */
-					function switchToLanguage(newLanguage) {
+					function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
 						const canonicalPath = i18n.route($page.url.pathname);
 						const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
 						goto(localisedPath);
 					}
 				`);
+				if (!typescript) {
+					common.addJsDocComment(methodStatement, {
+						'import("$lib/paraglide/runtime").AvailableLanguageTag': 'newLanguage'
+					});
+				}
+
 				jsAst.body.push(methodStatement);
 
 				// add localized message
@@ -256,8 +269,8 @@ export const adder = defineAdderConfig({
 			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2) + '\n');
 		}
 	},
-	nextSteps: () => [
-		`Edit your messages in ${highlighter.path("messages/en.json")}`,
+	nextSteps: ({ highlighter }) => [
+		`Edit your messages in ${highlighter.path('messages/en.json')}`,
 		'Consider installing the Sherlock IDE Extension'
 	]
 });
