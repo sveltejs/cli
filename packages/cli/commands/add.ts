@@ -480,14 +480,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	const nextStepsMsg = selectedAdders
 		.filter(({ adder }) => adder.nextSteps)
 		.map(({ adder }) => {
-			const config = adder;
-			const metadata = config.metadata;
+			const metadata = adder.metadata;
 			let adderMessage = '';
 			if (selectedAdders.length > 1) {
 				adderMessage = `${pc.green(metadata.name)}:\n`;
 			}
 
-			const adderNextSteps = config.nextSteps!({
+			const adderNextSteps = adder.nextSteps!({
 				...workspace,
 				options: official[metadata.id],
 				highlighter
@@ -521,7 +520,7 @@ export async function installAdders({
 }: InstallAdderOptions): Promise<string[]> {
 	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
 	const commDetails = Object.keys(community).map(
-		(id) => communityDetails.find((x) => x.metadata.id === id)!
+		(id) => communityDetails.find((a) => a.metadata.id === id)!
 	);
 	const details = adderDetails.concat(commDetails);
 
