@@ -111,21 +111,20 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'src/App.svelte',
 			content: ({ content, typescript }) => {
-				const { script, generateCode } = parseSvelte(content);
+				const { script, generateCode } = parseSvelte(content, { typescript });
 				imports.addEmpty(script.ast, './app.css');
-				return generateCode({ script: script.generateCode(), typescript });
+				return generateCode({ script: script.generateCode() });
 			},
 			condition: ({ kit }) => !kit
 		},
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
 			content: ({ content, typescript }) => {
-				const { script, generateCode } = parseSvelte(content);
+				const { script, generateCode } = parseSvelte(content, { typescript });
 				imports.addEmpty(script.ast, '../app.css');
 				return generateCode({
 					script: script.generateCode(),
-					template: content.length === 0 ? '<slot />' : undefined,
-					typescript
+					template: content.length === 0 ? '<slot />' : undefined
 				});
 			},
 			condition: ({ kit }) => Boolean(kit)

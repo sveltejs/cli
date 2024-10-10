@@ -39,9 +39,11 @@ type SvelteGenerator = (code: {
 	module?: string;
 	css?: string;
 	template?: string;
-	typescript?: boolean;
 }) => string;
-export function parseSvelte(source: string): {
+export function parseSvelte(
+	source: string,
+	options?: { typescript?: boolean }
+): {
 	script: ReturnType<typeof parseScript>;
 	module: ReturnType<typeof parseScript>;
 	css: ReturnType<typeof parseCss>;
@@ -76,7 +78,7 @@ export function parseSvelte(source: string): {
 		// TODO: this is imperfect and needs adjustments
 		if (code.script !== undefined) {
 			if (scriptSource.length === 0) {
-				const ts = code.typescript ? ' lang="ts"' : '';
+				const ts = options?.typescript ? ' lang="ts"' : '';
 				const indented = code.script.split('\n').join('\n\t');
 				const script = `<script${ts}>\n\t${indented}\n</script>\n\n`;
 				ms.prepend(script);
@@ -88,7 +90,7 @@ export function parseSvelte(source: string): {
 		}
 		if (code.module !== undefined) {
 			if (moduleSource.length === 0) {
-				const ts = code.typescript ? ' lang="ts"' : '';
+				const ts = options?.typescript ? ' lang="ts"' : '';
 				const indented = code.module.split('\n').join('\n\t');
 				// TODO: make a svelte 5 variant
 				const module = `<script${ts} context="module">\n\t${indented}\n</script>\n\n`;
