@@ -143,12 +143,14 @@ function indent(content: string, indent: string): string {
 	return `\n${indented}\n`;
 }
 
-// both regex were sourced from Svelte: https://github.com/sveltejs/svelte/blob/0d3d5a2a85c0f9eccb2c8dbbecc0532ec918b157/packages/svelte/src/compiler/preprocess/index.js#L253-L256
+// sourced from Svelte: https://github.com/sveltejs/svelte/blob/0d3d5a2a85c0f9eccb2c8dbbecc0532ec918b157/packages/svelte/src/compiler/preprocess/index.js#L253-L256
+const regexScriptTags =
+	/<!--[^]*?-->|<script((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/script>)/;
+const regexStyleTags =
+	/<!--[^]*?-->|<style((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/style>)/;
+
 type Script = { tag: string; attrs: string; src: string };
 function extractScripts(source: string): Script[] {
-	const regexScriptTags =
-		/<!--[^]*?-->|<script((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/script>)/g;
-
 	const scripts = [];
 	const [tag = '', attrs = '', src = ''] = regexScriptTags.exec(source) ?? [];
 	if (tag) {
@@ -161,9 +163,6 @@ function extractScripts(source: string): Script[] {
 }
 
 function extractStyle(source: string) {
-	const regexStyleTags =
-		/<!--[^]*?-->|<style((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/style>)/g;
-
 	const [styleTag = '', attributes = '', cssSource = ''] = regexStyleTags.exec(source) ?? [];
 	return { styleTag, attributes, cssSource };
 }
