@@ -48,24 +48,40 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 		usesTypescript ||= find.up(commonFilePaths.tsconfig, { cwd }) !== undefined;
 	}
 
-	const { data: packageJson } = getPackageJson(workspace.cwd);
-	const dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
-
 	workspace.dependencyVersion = (pkg) => {
-		// TODO: support monorepos
-		// it would be nice to keep this working before the user has done an install
-		// we could go up checking all the package.json until we find a pnpm-workspace.yaml, etc.
-		const found = dependencies[pkg];
-		if (!found) {
-			return found;
+		const root = findRoot(workspace.cwd);
+		let directory = cwd;
+		while (directory && directory !== root) {
+			const { data: packageJson } = getPackageJson(workspace.cwd);
+			const dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
+			const found = dependencies[pkg];
+			if (found) {
+				// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
+				return found.replaceAll(/[^\d|.]/g, '');
+			}
+			directory = path.dirname(directory);
 		}
-		// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
-		return found.replaceAll(/[^\d|.]/g, '');
 	};
 	workspace.typescript = usesTypescript;
 	workspace.packageManager = detectPackageManager(cwd);
-	if ('@sveltejs/kit' in dependencies) workspace.kit = parseKitOptions(workspace);
+	if (workspace.dependencyVersion('@sveltejs/kit')) workspace.kit = parseKitOptions(workspace);
 	return workspace;
+}
+
+function findRoot(cwd: string): string {
+	const { root } = path.parse(cwd);
+	let directory = cwd;
+	while (directory && directory !== root) {
+		if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
+			return directory;
+		}
+		const { data } = getPackageJson(directory);
+		if (data.workspaces) {
+			return directory;
+		}
+		directory = path.dirname(directory);
+	}
+	return root;
 }
 
 function parseKitOptions(workspace: Workspace<any>) {

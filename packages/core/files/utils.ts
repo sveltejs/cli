@@ -13,6 +13,7 @@ export type Package = {
 	bugs?: string;
 	repository?: { type: string; url: string };
 	keywords?: string[];
+	workspaces?: string[];
 };
 
 export function getPackageJson(cwd: string): {
