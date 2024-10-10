@@ -43,7 +43,7 @@ export async function runCommand(action: MaybePromise) {
 }
 
 export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	const pm = await detectPackageManager(cwd);
+	const pm = detectPackageManager(cwd);
 	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
 	const cmd = resolveCommand(pm, 'execute-local', args)!;
 	await exec(cmd.command, cmd.args, {
@@ -135,7 +135,7 @@ export function getGlobalPreconditions(
 				name: 'supported environments',
 				run: () => {
 					const addersForInvalidEnvironment = adders.filter((a) => {
-						const supportedEnvironments = a.config.metadata.environments;
+						const supportedEnvironments = a.metadata.environments;
 						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
 						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
 
@@ -147,7 +147,7 @@ export function getGlobalPreconditions(
 					}
 
 					const messages = addersForInvalidEnvironment.map(
-						(a) => `"${a.config.metadata.name}" does not support "${projectType}"`
+						(a) => `"${a.metadata.name}" does not support "${projectType}"`
 					);
 					return { success: false, message: messages.join(' / ') };
 				}

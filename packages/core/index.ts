@@ -1,9 +1,4 @@
-export {
-	defineAdderConfig,
-	defineAdderTests,
-	defineAdder,
-	defineAdderOptions
-} from './adder/config.ts';
+export { defineAdderTests, defineAdder, defineAdderOptions } from './adder/config.ts';
 export { log } from '@svelte-cli/clack-prompts';
 export { default as colors } from 'picocolors';
 export { default as dedent } from 'dedent';

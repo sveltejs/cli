@@ -1,10 +1,10 @@
 import { options } from './options.ts';
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdder } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { addImports } from '@svelte-cli/core/css';
 import { element } from '@svelte-cli/core/html';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'tailwindcss',
 		alias: 'tailwind',

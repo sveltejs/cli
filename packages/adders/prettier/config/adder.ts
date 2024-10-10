@@ -1,8 +1,8 @@
-import { dedent, defineAdderConfig, log, colors } from '@svelte-cli/core';
+import { dedent, defineAdder, log, colors } from '@svelte-cli/core';
 import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'prettier',
 		name: 'Prettier',
