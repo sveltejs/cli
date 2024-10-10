@@ -30,6 +30,10 @@
 		"./js": {
 			"types": "./dist/tooling/js/index.d.ts",
 			"default": "./dist/js.js"
+		},
+		"./shared": {
+			"types": "./dist/tooling/shared/index.d.ts",
+			"default": "./dist/shared.js"
 		}
 	},
 	"files": [

@@ -32,7 +32,8 @@ function getConfig(project) {
 			internal: `${projectRoot}/internal.ts`,
 			css: `${projectRoot}/tooling/css/index.ts`,
 			html: `${projectRoot}/tooling/html/index.ts`,
-			js: `${projectRoot}/tooling/js/index.ts`
+			js: `${projectRoot}/tooling/js/index.ts`,
+			shared: `${projectRoot}/tooling/shared/index.ts`
 		};
 	} else if (project === 'cli') {
 		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/bin.ts`];
