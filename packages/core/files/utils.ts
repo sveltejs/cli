@@ -15,11 +15,11 @@ export type Package = {
 	keywords?: string[];
 };
 
-export function getPackageJson(workspace: Workspace<any>): {
+export function getPackageJson(cwd: string): {
 	text: string;
 	data: Package;
 } {
-	const packageText = readFile(workspace, commonFilePaths.packageJson);
+	const packageText = readFile(cwd, commonFilePaths.packageJson);
 	if (!packageText) {
 		return {
 			text: '',
@@ -39,10 +39,10 @@ export function getPackageJson(workspace: Workspace<any>): {
 	};
 }
 
-export function readFile(workspace: Workspace<any>, filePath: string): string {
-	const fullFilePath = getFilePath(workspace.cwd, filePath);
+export function readFile(cwd: string, filePath: string): string {
+	const fullFilePath = getFilePath(cwd, filePath);
 
-	if (!fileExistsWorkspace(workspace, filePath)) {
+	if (!fileExists(cwd, filePath)) {
 		return '';
 	}
 
@@ -52,7 +52,7 @@ export function readFile(workspace: Workspace<any>, filePath: string): string {
 }
 
 export function installPackages(config: AdderConfig<any>, workspace: Workspace<any>): string {
-	const { text: originalText, data } = getPackageJson(workspace);
+	const { text: originalText, data } = getPackageJson(workspace.cwd);
 
 	for (const dependency of config.packages) {
 		if (dependency.condition && !dependency.condition(workspace)) {
@@ -103,8 +103,8 @@ export function writeFile(workspace: Workspace<any>, filePath: string, content: 
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
-export function fileExistsWorkspace(workspace: Workspace<any>, filePath: string): boolean {
-	const fullFilePath = getFilePath(workspace.cwd, filePath);
+export function fileExists(cwd: string, filePath: string): boolean {
+	const fullFilePath = getFilePath(cwd, filePath);
 	return fs.existsSync(fullFilePath);
 }
 

@@ -48,7 +48,7 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 		usesTypescript ||= find.up(commonFilePaths.tsconfig, { cwd }) !== undefined;
 	}
 
-	const { data: packageJson } = getPackageJson(workspace);
+	const { data: packageJson } = getPackageJson(workspace.cwd);
 	const dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 
 	workspace.dependencyVersion = (pkg) => {
@@ -69,7 +69,7 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 }
 
 function parseKitOptions(workspace: Workspace<any>) {
-	const configSource = readFile(workspace, commonFilePaths.svelteConfig);
+	const configSource = readFile(workspace.cwd, commonFilePaths.svelteConfig);
 	const ast = parseScript(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');

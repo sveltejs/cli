@@ -13,7 +13,7 @@ import {
 	type CssAst,
 	type HtmlDocument
 } from '@svelte-cli/ast-tooling';
-import { fileExistsWorkspace, readFile, writeFile } from './utils.ts';
+import { fileExists, readFile, writeFile } from './utils.ts';
 import type { ConditionDefinition } from '../adder/config.ts';
 import type { OptionDefinition } from '../adder/options.ts';
 import type { Workspace } from './workspace.ts';
@@ -89,8 +89,8 @@ export function createOrUpdateFiles<Args extends OptionDefinition>(
 				continue;
 			}
 
-			const exists = fileExistsWorkspace(workspace, fileDetails.name(workspace));
-			let content = exists ? readFile(workspace, fileDetails.name(workspace)) : '';
+			const exists = fileExists(workspace.cwd, fileDetails.name(workspace));
+			let content = exists ? readFile(workspace.cwd, fileDetails.name(workspace)) : '';
 
 			if (fileDetails.contentType === 'css') {
 				content = handleCssFile(content, fileDetails, workspace);
