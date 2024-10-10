@@ -1,6 +1,7 @@
 import { options as availableOptions } from './options.ts';
 import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
 import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
+import { parseScript } from '@svelte-cli/core/parsers';
 
 const PORTS = {
 	mysql: '3306',
@@ -150,8 +151,9 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ options, ast, typescript }) => {
+			content: ({ options, content, typescript }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
 				const envCheckStatement = common.statementFromString(
@@ -161,10 +163,10 @@ export const adder = defineAdderConfig({
 
 				const fallback = common.expressionFromString('defineConfig({})');
 				const { value: exportDefault } = exports.defaultExport(ast, fallback);
-				if (exportDefault.type !== 'CallExpression') return;
+				if (exportDefault.type !== 'CallExpression') return content;
 
 				const objExpression = exportDefault.arguments?.[0];
-				if (!objExpression || objExpression.type !== 'ObjectExpression') return;
+				if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
 
 				const driver = options.sqlite === 'turso' ? common.createLiteral('turso') : undefined;
 				const authToken =
@@ -190,13 +192,16 @@ export const adder = defineAdderConfig({
 				// The `driver` property is only required for _some_ sqlite DBs.
 				// We'll need to remove it if it's anything but sqlite
 				if (options.database !== 'sqlite') object.removeProperty(objExpression, 'driver');
+
+				return generateCode();
 			}
 		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/schema.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, options }) => {
+			content: ({ content, options }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				let userSchemaExpression;
 				if (options.database === 'sqlite') {
 					imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
@@ -240,13 +245,16 @@ export const adder = defineAdderConfig({
 				if (!userSchemaExpression) throw new Error('unreachable state...');
 				const userIdentifier = variables.declaration(ast, 'const', 'user', userSchemaExpression);
 				exports.namedExport(ast, 'user', userIdentifier);
+
+				return generateCode();
 			}
 		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/index.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, options }) => {
+			content: ({ content, options }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
 
 				// env var checks
@@ -320,6 +328,8 @@ export const adder = defineAdderConfig({
 				const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
 				const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 				exports.namedExport(ast, 'db', db);
+
+				return generateCode();
 			}
 		}
 	],

@@ -2,6 +2,7 @@ import { defineAdderConfig } from '@svelte-cli/core';
 import { options } from './options.ts';
 import { array, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
+import { parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -20,8 +21,8 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
 				const vitePluginName = 'routify';
 				imports.addDefault(ast, '@roxi/routify/vite-plugin', vitePluginName);
 
@@ -37,6 +38,7 @@ export const adder = defineAdderConfig({
 				functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
 
 				array.push(pluginsArray, pluginFunctionCall);
+				return generateCode();
 			}
 		},
 		{

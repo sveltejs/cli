@@ -4,6 +4,7 @@ import { common, exports, imports, variables, object, functions } from '@svelte-
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@svelte-cli/core/js';
 import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '../../common.ts';
+import { parseScript } from '@svelte-cli/core/parsers';
 
 const LUCIA_ADAPTER = {
 	mysql: 'DrizzleMySQLAdapter',
@@ -51,8 +52,8 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
 				const isProp = (name: string, node: AstTypes.ObjectProperty) =>
 					node.key.type === 'Identifier' && node.key.name === name;
 
@@ -74,12 +75,13 @@ export const adder = defineAdderConfig({
 				if (!schemaPath) {
 					throw new Error('Failed to find schema path in your `drizzle.config.[js|ts]` file');
 				}
+				return generateCode();
 			}
 		},
 		{
 			name: () => schemaPath,
-			contentType: 'script',
-			content: ({ ast, options }) => {
+			content: ({ content, options }) => {
+				const { ast, generateCode } = parseScript(content);
 				const createTable = (name: string) => functions.call(TABLE_TYPE[drizzleDialect], [name]);
 
 				const userDecl = variables.declaration(ast, 'const', 'user', createTable('user'));
@@ -186,12 +188,13 @@ export const adder = defineAdderConfig({
 						)
 					});
 				}
+				return generateCode();
 			}
 		},
 		{
 			name: ({ kit, typescript }) => `${kit?.libDirectory}/server/auth.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, source, typescript, options }) => {
+			content: ({ content, typescript, options }) => {
+				const { ast, generateCode } = parseScript(content);
 				const adapter = LUCIA_ADAPTER[drizzleDialect];
 
 				imports.addNamed(ast, '$lib/server/db/schema.js', { user: 'user', session: 'session' });
@@ -220,7 +223,7 @@ export const adder = defineAdderConfig({
 				exports.namedExport(ast, 'lucia', luciaDecl);
 
 				// module declaration
-				if (typescript && !/declare module ["']lucia["']/.test(source)) {
+				if (typescript && !/declare module ["']lucia["']/.test(content)) {
 					const moduleDecl = common.statementFromString(`
 						declare module 'lucia' {
 							interface Register {
@@ -232,15 +235,16 @@ export const adder = defineAdderConfig({
 						}`);
 					common.addStatement(ast, moduleDecl);
 				}
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'src/app.d.ts',
 			condition: ({ typescript }) => typescript,
-			contentType: 'script',
-			content: ({ ast }) => {
-				const locals = addGlobalAppInterface(ast, 'Locals');
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
 
+				const locals = addGlobalAppInterface(ast, 'Locals');
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
@@ -254,15 +258,16 @@ export const adder = defineAdderConfig({
 				if (!session) {
 					locals.body.body.push(createLuciaType('session'));
 				}
+				return generateCode();
 			}
 		},
 		{
 			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, typescript }) => {
+			content: ({ content, typescript }) => {
+				const { ast, generateCode } = parseScript(content);
 				imports.addNamed(ast, '$lib/server/auth.js', { lucia: 'lucia' });
-
 				addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
+				return generateCode();
 			}
 		},
 		// DEMO

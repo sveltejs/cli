@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { options } from './options.ts';
 import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
 import { common, exports, imports, object } from '@svelte-cli/core/js';
+import { parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -57,8 +58,8 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `playwright.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
 				const defineConfig = common.expressionFromString('defineConfig({})');
 				const defaultExport = exports.defaultExport(ast, defineConfig);
 
@@ -84,6 +85,7 @@ export const adder = defineAdderConfig({
 					// unexpected config shape
 					log.warn('Unexpected playwright config for playwright adder. Could not update.');
 				}
+				return generateCode();
 			}
 		}
 	]

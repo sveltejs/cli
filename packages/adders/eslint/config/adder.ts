@@ -4,6 +4,7 @@ import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
 import { defineAdderConfig, log, type AstKinds, type AstTypes } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
+import { parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -62,8 +63,9 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => 'eslint.config.js',
-			contentType: 'script',
-			content: ({ ast, typescript }) => {
+			content: ({ content, typescript }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				const eslintConfigs: Array<
 					AstKinds.ExpressionKind | AstTypes.SpreadElement | AstTypes.ObjectExpression
 				> = [];
@@ -124,7 +126,7 @@ export const adder = defineAdderConfig({
 				// if it's not the config we created, then we'll leave it alone and exit out
 				if (defaultExport.value !== exportExpression) {
 					log.warn('An eslint config is already defined. Skipping initialization.');
-					return;
+					return content;
 				}
 
 				// type annotate config
@@ -136,11 +138,12 @@ export const adder = defineAdderConfig({
 				imports.addDefault(ast, 'globals', 'globals');
 				imports.addDefault(ast, 'eslint-plugin-svelte', 'svelte');
 				imports.addDefault(ast, '@eslint/js', 'js');
+
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'eslint.config.js',
-			contentType: 'script',
 			condition: ({ prettier }) => prettier,
 			content: addEslintConfigPrettier
 		}

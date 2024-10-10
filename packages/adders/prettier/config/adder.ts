@@ -85,7 +85,6 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => 'eslint.config.js',
-			contentType: 'script',
 			condition: ({ dependencies: deps }) => {
 				// We only want this to execute when it's `false`, not falsy
 
