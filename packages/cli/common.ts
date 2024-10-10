@@ -43,7 +43,7 @@ export async function runCommand(action: MaybePromise) {
 }
 
 export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	const pm = await detectPackageManager(cwd);
+	const pm = detectPackageManager(cwd);
 	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
 	const cmd = resolveCommand(pm, 'execute-local', args)!;
 	await exec(cmd.command, cmd.args, {
