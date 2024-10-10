@@ -440,6 +440,9 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 					placeholder: question.placeholder,
 					validate: question.validate
 				});
+				if (question.type === 'number') {
+					answer = Number(answer);
+				}
 			}
 			if (p.isCancel(answer)) {
 				p.cancel('Operation cancelled.');
