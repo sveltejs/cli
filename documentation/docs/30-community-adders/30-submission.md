@@ -2,8 +2,6 @@
 title: Submission
 ---
 
-## Overview
-
 Community adders are still in development. We'd love to help get the first few released. Please open an issue or find us on Discord to discuss how to develop your adder and get it included.
 
 ## Requirements

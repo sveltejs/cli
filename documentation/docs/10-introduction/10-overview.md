@@ -1,8 +1,6 @@
 ---
-title: Commands
+title: Overview
 ---
-
-## Introduction
 
 `sv`, the Svelte CLI, aims to combine multiple tools into one single easy to remember command.
 
@@ -23,4 +21,4 @@ pnpx sv <command> <args>
 | [`create`](create) | `npx sv create ./my-project`     | Scaffolds new projects                         |
 | [add](add)         | `npx sv add [adder...]`          | Customize your projects to add different tools |
 | migrate            | `npx sv migrate <migrationName>` | Migrate your project                           |
-| check              | `npx sv check`                   | Typecheck your Svelte files                     |
+| check              | `npx sv check`                   | Typecheck your Svelte files                    |
