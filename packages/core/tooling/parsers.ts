@@ -34,31 +34,40 @@ export function parseJson(source: string): { data: any } & ParseBase {
 	return { data, source, generateCode };
 }
 
-// sourced from Svelte: https://github.com/sveltejs/svelte/blob/0d3d5a2a85c0f9eccb2c8dbbecc0532ec918b157/packages/svelte/src/compiler/preprocess/index.js#L253-L256
-const regexStyleTags =
-	/<!--[^]*?-->|<style((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/style>)/g;
-const regexScriptTags =
-	/<!--[^]*?-->|<script((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/script>)/g;
-
 type SvelteGenerator = (code: {
 	script?: string;
+	module?: string;
 	css?: string;
 	template?: string;
 	typescript?: boolean;
 }) => string;
 export function parseSvelte(source: string): {
 	script: ReturnType<typeof parseScript>;
+	module: ReturnType<typeof parseScript>;
 	css: ReturnType<typeof parseCss>;
 	template: ReturnType<typeof parseHtml>;
 	generateCode: SvelteGenerator;
 } {
 	// `xTag` captures the whole tag block (ex: <script>...</script>)
-	// `xSource` is just the contents within the tags
-	const [scriptTag = '', , scriptSource = ''] = regexScriptTags.exec(source) ?? [];
-	const [styleTag = '', , cssSource = ''] = regexStyleTags.exec(source) ?? [];
-	const templateSource = source.replace(scriptTag, '').replace(styleTag, '');
+	// `xSource` is the contents within the tags
+	const scripts = extractScripts(source);
+	// instance block
+	const { tag: scriptTag = '', src: scriptSource = '' } =
+		scripts.find(({ attrs }) => !attrs.includes('module')) ?? {};
+	// module block
+	const { tag: moduleScriptTag = '', src: moduleSource = '' } =
+		scripts.find(({ attrs }) => attrs.includes('module')) ?? {};
+	// style block
+	const { styleTag, cssSource } = extractStyle(source);
+	// rest of the template
+	// TODO: needs more testing
+	const templateSource = source
+		.replace(moduleScriptTag, '')
+		.replace(scriptTag, '')
+		.replace(styleTag, '');
 
 	const script = parseScript(scriptSource);
+	const module = parseScript(moduleSource);
 	const css = parseCss(cssSource);
 	const template = parseHtml(templateSource);
 
@@ -70,10 +79,23 @@ export function parseSvelte(source: string): {
 				const ts = code.typescript ? ' lang="ts"' : '';
 				const indented = code.script.split('\n').join('\n\t');
 				const script = `<script${ts}>\n\t${indented}\n</script>\n\n`;
-				ms.appendLeft(0, script);
+				ms.prepend(script);
 			} else {
 				const { start, end } = locations(source, scriptSource);
 				const formatted = indent(code.script, ms.getIndentString());
+				ms.overwrite(start, end, formatted);
+			}
+		}
+		if (code.module !== undefined) {
+			if (moduleSource.length === 0) {
+				const ts = code.typescript ? ' lang="ts"' : '';
+				const indented = code.module.split('\n').join('\n\t');
+				// TODO: make a svelte 5 variant
+				const module = `<script${ts} context="module">\n\t${indented}\n</script>\n\n`;
+				ms.prepend(module);
+			} else {
+				const { start, end } = locations(source, moduleSource);
+				const formatted = indent(code.module, ms.getIndentString());
 				ms.overwrite(start, end, formatted);
 			}
 		}
@@ -101,7 +123,8 @@ export function parseSvelte(source: string): {
 
 	return {
 		script: { ...script, source: scriptSource },
-		css: { ...css, source: scriptSource },
+		module: { ...module, source: moduleSource },
+		css: { ...css, source: cssSource },
 		template: { ...template, source: templateSource },
 		generateCode
 	};
@@ -116,4 +139,29 @@ function locations(source: string, search: string): { start: number; end: number
 function indent(content: string, indent: string): string {
 	const indented = indent + content.split('\n').join(`\n${indent}`);
 	return `\n${indented}\n`;
+}
+
+// both regex were sourced from Svelte: https://github.com/sveltejs/svelte/blob/0d3d5a2a85c0f9eccb2c8dbbecc0532ec918b157/packages/svelte/src/compiler/preprocess/index.js#L253-L256
+type Script = { tag: string; attrs: string; src: string };
+function extractScripts(source: string): Script[] {
+	const regexScriptTags =
+		/<!--[^]*?-->|<script((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/script>)/g;
+
+	const scripts = [];
+	const [tag = '', attrs = '', src = ''] = regexScriptTags.exec(source) ?? [];
+	if (tag) {
+		const stripped = source.replace(tag, '');
+		scripts.push({ tag, attrs, src }, ...extractScripts(stripped));
+		return scripts;
+	}
+
+	return [];
+}
+
+function extractStyle(source: string) {
+	const regexStyleTags =
+		/<!--[^]*?-->|<style((?:\s+[^=>'"/\s]+=(?:"[^"]*"|'[^']*'|[^>\s]+)|\s+[^=>'"/\s]+)*\s*)(?:\/>|>([\S\s]*?)<\/style>)/g;
+
+	const [styleTag = '', attributes = '', cssSource = ''] = regexStyleTags.exec(source) ?? [];
+	return { styleTag, attributes, cssSource };
 }
