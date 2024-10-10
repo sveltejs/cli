@@ -2,8 +2,7 @@ export {
 	defineAdderConfig,
 	defineAdderTests,
 	defineAdder,
-	defineAdderOptions,
-	defineAdderChecks
+	defineAdderOptions
 } from './adder/config.ts';
 export { log } from '@svelte-cli/clack-prompts';
 export { default as colors } from 'picocolors';

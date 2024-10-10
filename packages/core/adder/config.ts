@@ -48,6 +48,7 @@ export type AdderConfig<Args extends OptionDefinition> = {
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
+	preconditions?: Precondition[];
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
@@ -71,7 +72,6 @@ export function defineAdderConfig<Args extends OptionDefinition>(
 
 export type Adder<Args extends OptionDefinition> = {
 	config: AdderConfig<Args>;
-	checks: AdderCheckConfig<Args>;
 	tests?: AdderTestConfig<Args>;
 };
 
@@ -80,10 +80,9 @@ export type AdderConfigWithoutExplicitArgs = AdderConfig<Record<string, Question
 
 export function defineAdder<Args extends OptionDefinition>(
 	config: AdderConfig<Args>,
-	checks: AdderCheckConfig<Args>,
 	tests?: AdderTestConfig<Args>
 ): Adder<Args> {
-	const adder: Adder<Args> = { config, checks, tests };
+	const adder: Adder<Args> = { config, tests };
 	return adder;
 }
 
@@ -125,14 +124,3 @@ export type Precondition = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
-
-export type AdderCheckConfig<Args extends OptionDefinition> = {
-	options: Args;
-	preconditions?: Precondition[];
-};
-
-export function defineAdderChecks<Args extends OptionDefinition>(
-	checks: AdderCheckConfig<Args>
-): AdderCheckConfig<Args> {
-	return checks;
-}
