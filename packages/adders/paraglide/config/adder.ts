@@ -108,7 +108,7 @@ export const adder = defineAdderConfig({
 
 				const existingExport = exports.namedExport(ast, 'i18n', i18n);
 				if (existingExport.declaration != i18n) {
-					log.warn('Setting up $lib/i18n failed because it aleady exports an i18n function');
+					log.warn('Setting up $lib/i18n failed because it already exports an i18n function');
 				}
 			}
 		},
