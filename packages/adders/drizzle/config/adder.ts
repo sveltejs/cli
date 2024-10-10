@@ -23,51 +23,55 @@ export const adder = defineAdderConfig({
 	options: availableOptions,
 	packages: [
 		{ name: 'drizzle-orm', version: '^0.33.0', dev: false },
-		{ name: 'drizzle-kit', version: '^0.22.0', dev: true },
+		{ name: 'drizzle-kit', version: '^0.24.2', dev: true },
 		// MySQL
 		{
 			name: 'mysql2',
-			version: '^3.11.0',
+			version: '^3.11.3',
 			dev: false,
-			condition: ({ options }) => options.mysql === 'mysql2'
+			condition: ({ options }) => options.database == 'mysql' && options.mysql === 'mysql2'
 		},
 		{
 			name: '@planetscale/database',
 			version: '^1.18.0',
 			dev: false,
-			condition: ({ options }) => options.mysql === 'planetscale'
+			condition: ({ options }) => options.database == 'mysql' && options.mysql === 'planetscale'
 		},
 		// PostgreSQL
 		{
 			name: '@neondatabase/serverless',
 			version: '^0.9.4',
 			dev: false,
-			condition: ({ options }) => options.postgresql === 'neon'
+			condition: ({ options }) => options.database == 'postgresql' && options.postgresql === 'neon'
 		},
 		{
 			name: 'postgres',
 			version: '^3.4.4',
 			dev: false,
-			condition: ({ options }) => options.postgresql === 'postgres.js'
+			condition: ({ options }) =>
+				options.database == 'postgresql' && options.postgresql === 'postgres.js'
 		},
 		// SQLite
 		{
 			name: 'better-sqlite3',
 			version: '^11.1.2',
 			dev: false,
-			condition: ({ options }) => options.sqlite === 'better-sqlite3'
+			condition: ({ options }) =>
+				options.database == 'sqlite' && options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@types/better-sqlite3',
 			version: '^7.6.11',
 			dev: true,
-			condition: ({ options }) => options.sqlite === 'better-sqlite3'
+			condition: ({ options }) =>
+				options.database == 'sqlite' && options.sqlite === 'better-sqlite3'
 		},
 		{
 			name: '@libsql/client',
 			version: '^0.9.0',
 			dev: false,
-			condition: ({ options }) => options.sqlite === 'libsql' || options.sqlite === 'turso'
+			condition: ({ options }) =>
+				options.database == 'sqlite' && (options.sqlite === 'libsql' || options.sqlite === 'turso')
 		}
 	],
 	files: [
@@ -96,13 +100,13 @@ export const adder = defineAdderConfig({
 				const DB_NAME = 'local';
 
 				let dbSpecificContent = '';
-				if (options.mysql === 'mysql2') {
+				if (options.database == 'mysql' && options.mysql === 'mysql2') {
 					dbSpecificContent = `
                       MYSQL_ROOT_PASSWORD: ${PASSWORD}
                       MYSQL_DATABASE: ${DB_NAME}
                 `;
 				}
-				if (options.postgresql === 'postgres.js') {
+				if (options.database == 'postgresql' && options.postgresql === 'postgres.js') {
 					dbSpecificContent = `
                       POSTGRES_USER: ${USER}
                       POSTGRES_PASSWORD: ${PASSWORD}
@@ -257,13 +261,16 @@ export const adder = defineAdderConfig({
 
 				let clientExpression;
 				// SQLite
-				if (options.sqlite === 'better-sqlite3') {
+				if (options.database == 'sqlite' && options.sqlite === 'better-sqlite3') {
 					imports.addDefault(ast, 'better-sqlite3', 'Database');
 					imports.addNamed(ast, 'drizzle-orm/better-sqlite3', { drizzle: 'drizzle' });
 
 					clientExpression = common.expressionFromString('new Database(env.DATABASE_URL)');
 				}
-				if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
+				if (
+					options.database == 'sqlite' &&
+					(options.sqlite === 'libsql' || options.sqlite === 'turso')
+				) {
 					imports.addNamed(ast, '@libsql/client', { createClient: 'createClient' });
 					imports.addNamed(ast, 'drizzle-orm/libsql', { drizzle: 'drizzle' });
 
@@ -285,7 +292,7 @@ export const adder = defineAdderConfig({
 					}
 				}
 				// MySQL
-				if (options.mysql === 'mysql2') {
+				if (options.database == 'mysql' && options.mysql === 'mysql2') {
 					imports.addDefault(ast, 'mysql2/promise', 'mysql');
 					imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
@@ -293,20 +300,20 @@ export const adder = defineAdderConfig({
 						'await mysql.createConnection(env.DATABASE_URL)'
 					);
 				}
-				if (options.mysql === 'planetscale') {
+				if (options.database == 'mysql' && options.mysql === 'planetscale') {
 					imports.addNamed(ast, '@planetscale/database', { Client: 'Client' });
 					imports.addNamed(ast, 'drizzle-orm/planetscale-serverless', { drizzle: 'drizzle' });
 
 					clientExpression = common.expressionFromString('new Client({ url: env.DATABASE_URL })');
 				}
 				// PostgreSQL
-				if (options.postgresql === 'neon') {
+				if (options.database == 'postgresql' && options.postgresql === 'neon') {
 					imports.addNamed(ast, '@neondatabase/serverless', { neon: 'neon' });
 					imports.addNamed(ast, 'drizzle-orm/neon-http', { drizzle: 'drizzle' });
 
 					clientExpression = common.expressionFromString('neon(env.DATABASE_URL)');
 				}
-				if (options.postgresql === 'postgres.js') {
+				if (options.database == 'postgresql' && options.postgresql === 'postgres.js') {
 					imports.addDefault(ast, 'postgres', 'postgres');
 					imports.addNamed(ast, 'drizzle-orm/postgres-js', { drizzle: 'drizzle' });
 

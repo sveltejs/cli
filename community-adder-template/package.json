@@ -12,13 +12,17 @@
 	],
 	"scripts": {
 		"start": "sv add -C temp --community file:../",
-		"create-temp": "sv create temp --check-types typescript --template skeleton --no-adders --no-install"
+		"create-temp": "sv create temp --check-types typescript --template skeleton --no-adders --no-install",
+		"dev:test": "vitest",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@svelte-cli/core": "workspace:*"
 	},
 	"devDependencies": {
-		"sv": "workspace:*"
+		"@svelte-cli/adder-testing-library": "workspace:*",
+		"sv": "workspace:*",
+		"vitest": "^2.1.2"
 	},
 	"files": [
 		"src",

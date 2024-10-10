@@ -1,0 +1,17 @@
+{
+	"name": "@svelte-cli/adder-tests",
+	"private": true,
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"format": "pnpm lint --write",
+		"check": "tsc",
+		"test": "vitest run",
+		"test:ui": "vitest --ui"
+	},
+	"dependencies": {
+		"@svelte-cli/adder-testing-library": "workspace:*",
+		"@svelte-cli/adders": "workspace:*"
+	}
+}

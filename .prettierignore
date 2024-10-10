@@ -1,2 +1,3 @@
 packages/core/tests/**/input.*
 packages/core/tests/**/output.*
+packages/adder-tests/_snapshots
