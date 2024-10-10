@@ -1,6 +1,7 @@
-import { imports, exports, common, variables, functions } from '@svelte-cli/core/js';
-import { Walker, type AstKinds, type AstTypes, type ScriptFileEditor } from '@svelte-cli/core';
-import type { Question } from '@svelte-cli/core/internal';
+import { Walker, type AstKinds } from '@svelte-cli/ast-tooling';
+import type { ScriptFileEditor } from '../../files/processors.ts';
+import type { Question } from '../../internal.ts';
+import { common, functions, imports, variables, exports, type AstTypes } from '../js/index.ts';
 
 export function createPrinter(
 	...conditions: boolean[]
