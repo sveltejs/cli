@@ -62,7 +62,7 @@ export type Highlighter = {
 	command: (str: string) => string;
 	website: (str: string) => string;
 	route: (str: string) => string;
-	env: (str: string) => string;
+	env: (str: string) => string; // used for printing environment variable names
 };
 
 export function defineAdderConfig<Args extends OptionDefinition>(
