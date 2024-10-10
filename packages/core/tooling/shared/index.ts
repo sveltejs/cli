@@ -2,14 +2,16 @@ import { imports, exports, common, variables, functions } from '@svelte-cli/core
 import { Walker, type AstKinds, type AstTypes, type ScriptFileEditor } from '@svelte-cli/core';
 import type { Question } from '@svelte-cli/core/internal';
 
-export function createPrinter(...conditions: boolean[]) {
+export function createPrinter(
+	...conditions: boolean[]
+): Array<(content: string, alt?: string) => string> {
 	const printers = conditions.map((condition) => {
 		return (content: string, alt = '') => (condition ? content : alt);
 	});
 	return printers;
 }
 
-export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string, Question>>) {
+export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string, Question>>): void {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
 	const sveltePluginImport = importNodes.find(
@@ -70,7 +72,7 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 export function addGlobalAppInterface(
 	ast: AstTypes.Program,
 	name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform'
-) {
+): AstTypes.TSInterfaceDeclaration {
 	let globalDecl = ast.body
 		.filter((n) => n.type === 'TSModuleDeclaration')
 		.find((m) => m.global && m.declare);
@@ -125,7 +127,7 @@ export function addGlobalAppInterface(
 export function hasTypeProp(
 	name: string,
 	node: AstTypes.TSInterfaceDeclaration['body']['body'][number]
-) {
+): boolean {
 	return (
 		node.type === 'TSPropertySignature' && node.key.type === 'Identifier' && node.key.name === name
 	);
@@ -137,7 +139,7 @@ export function addHooksHandle(
 	newHandleName: string,
 	handleContent: string,
 	forceSeparateHandle: boolean = false
-) {
+): void {
 	if (typescript) {
 		imports.addNamed(ast, '@sveltejs/kit', { Handle: 'Handle' }, true);
 	}
@@ -263,8 +265,6 @@ export function addHooksHandle(
 		} else {
 			ast.body.push(newDecl, exportDecl);
 		}
-
-		return;
 	}
 
 	// At this point, the existing `handle` doesn't call `sequence`, so we'll need to rename the original
