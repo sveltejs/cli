@@ -3,7 +3,7 @@ import path from 'node:path';
 import { options } from './options.ts';
 import { defineAdderConfig, log, type AstKinds, type AstTypes } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
-import { addEslintConfigPrettier } from '@svelte-cli/core/shared';
+import { addEslintConfigPrettier } from '../../common.ts';
 
 export const adder = defineAdderConfig({
 	metadata: {
