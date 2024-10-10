@@ -52,6 +52,9 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 	const dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
 
 	workspace.dependencyVersion = (pkg) => {
+		// TODO: support monorepos
+		// it would be nice to keep this working before the user has done an install
+		// we could go up checking all the package.json until we find a pnpm-workspace.yaml, etc.
 		const found = dependencies[pkg];
 		if (!found) {
 			return found;
