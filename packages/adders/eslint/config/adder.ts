@@ -4,7 +4,6 @@ import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
 import { defineAdderConfig, log, type AstKinds, type AstTypes } from '@svelte-cli/core';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
-import * as resolve from 'empathic/resolve';
 
 export const adder = defineAdderConfig({
 	metadata: {
@@ -34,7 +33,7 @@ export const adder = defineAdderConfig({
 			name: 'eslint-config-prettier',
 			version: '^9.1.0',
 			dev: true,
-			condition: ({ cwd }) => Boolean(resolve.from(cwd, 'prettier', true))
+			condition: ({ isResolvable }) => isResolvable('prettier')
 		}
 	],
 	files: [
@@ -142,7 +141,7 @@ export const adder = defineAdderConfig({
 		{
 			name: () => 'eslint.config.js',
 			contentType: 'script',
-			condition: ({ cwd }) => Boolean(resolve.from(cwd, 'prettier', true)),
+			condition: ({ isResolvable }) => isResolvable('prettier'),
 			content: addEslintConfigPrettier
 		}
 	]

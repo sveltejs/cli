@@ -93,10 +93,6 @@ importers:
       '@svelte-cli/core':
         specifier: workspace:*
         version: link:../core
-    devDependencies:
-      empathic:
-        specifier: ^1.0.0
-        version: 1.0.0
 
   packages/ast-tooling:
     devDependencies:
