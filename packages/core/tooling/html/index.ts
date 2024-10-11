@@ -1,9 +1,4 @@
-import {
-	type HtmlChildNode,
-	HtmlElement,
-	HtmlElementType,
-	parseHtml
-} from '@sveltejs/ast-tooling';
+import { type HtmlChildNode, HtmlElement, HtmlElementType, parseHtml } from '@sveltejs/ast-tooling';
 
 export function div(attributes: Record<string, string> = {}): HtmlElement {
 	return element('div', attributes);
