@@ -1,13 +1,5 @@
-import {
-	imports,
-	exports,
-	common,
-	variables,
-	functions,
-	type AstKinds,
-	type AstTypes
-} from '@svelte-cli/core/js';
-import { Walker, type Question, type FileEditor } from '@svelte-cli/core';
+import { imports, exports, common } from '@svelte-cli/core/js';
+import { type Question, type FileEditor } from '@svelte-cli/core';
 import { parseScript } from '@svelte-cli/core/parsers';
 
 export function createPrinter(...conditions: boolean[]) {
@@ -17,7 +9,7 @@ export function createPrinter(...conditions: boolean[]) {
 	return printers;
 }
 
-export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Question>>): void {
+export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Question>>): string {
 	const { ast, generateCode } = parseScript(content);
 
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
