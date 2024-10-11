@@ -1,8 +1,9 @@
 import { options } from './options.js';
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdder } from '@svelte-cli/core';
 import { imports } from '@svelte-cli/core/js';
+import { parseScript } from '@svelte-cli/core/parsers';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'community-adder-template',
 		name: 'Community Adder Template',
@@ -10,12 +11,10 @@ export const adder = defineAdderConfig({
 		environments: { kit: true, svelte: true }
 	},
 	options,
-	integrationType: 'inline',
 	packages: [],
 	files: [
 		{
 			name: () => 'adder-template-demo.txt',
-			contentType: 'text',
 			content: ({ content, options }) => {
 				if (options.demo) {
 					return 'This is a text file made by the Community Adder Template demo!';
@@ -25,9 +24,10 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => 'src/DemoComponent.svelte',
-			contentType: 'svelte',
-			content: ({ jsAst }) => {
-				imports.addDefault(jsAst, '../adder-template-demo.txt?raw', 'Demo');
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
+				imports.addDefault(ast, '../adder-template-demo.txt?raw', 'Demo');
+				return generateCode();
 			}
 		}
 	]

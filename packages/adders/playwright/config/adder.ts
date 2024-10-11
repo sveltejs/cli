@@ -1,10 +1,11 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { options } from './options.ts';
-import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
+import { dedent, defineAdder, log } from '@svelte-cli/core';
 import { common, exports, imports, object } from '@svelte-cli/core/js';
+import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'playwright',
 		name: 'Playwright',
@@ -17,13 +18,12 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options,
-	integrationType: 'inline',
 	packages: [{ name: '@playwright/test', version: '^1.45.3', dev: true }],
 	files: [
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				const TEST_CMD = 'playwright test';
@@ -31,11 +31,11 @@ export const adder = defineAdderConfig({
 				scripts['test:e2e'] ??= TEST_CMD;
 				scripts['test'] ??= RUN_TEST;
 				if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
+				return generateCode();
 			}
 		},
 		{
 			name: () => '.gitignore',
-			contentType: 'text',
 			condition: ({ cwd }) => fs.existsSync(join(cwd, '.gitignore')),
 			content: ({ content }) => {
 				if (content.includes('test-results')) return content;
@@ -44,7 +44,6 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `e2e/demo.test.${typescript ? 'ts' : 'js'}`,
-			contentType: 'text',
 			content: ({ content }) => {
 				if (content) return content;
 
@@ -60,8 +59,8 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `playwright.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
 				const defineConfig = common.expressionFromString('defineConfig({})');
 				const defaultExport = exports.defaultExport(ast, defineConfig);
 
@@ -75,7 +74,7 @@ export const adder = defineAdderConfig({
 
 				if (
 					defaultExport.value.type === 'CallExpression' &&
-					defaultExport.value.arguments[0].type === 'ObjectExpression'
+					defaultExport.value.arguments[0]?.type === 'ObjectExpression'
 				) {
 					// uses the `defineConfig` helper
 					imports.addNamed(ast, '@playwright/test', { defineConfig: 'defineConfig' });
@@ -87,6 +86,7 @@ export const adder = defineAdderConfig({
 					// unexpected config shape
 					log.warn('Unexpected playwright config for playwright adder. Could not update.');
 				}
+				return generateCode();
 			}
 		}
 	]

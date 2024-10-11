@@ -1,12 +1,10 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
-import type { FileType } from '../files/processors.ts';
-import type { Workspace } from '../files/workspace.ts';
-import type { Colors } from 'picocolors/types.ts';
+import type { FileType } from './processors.ts';
+import type { Workspace } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
-export type ConditionDefinitionWithoutExplicitArgs = ConditionDefinition<Record<string, Question>>;
 
 export type WebsiteMetadata = {
 	logo: string;
@@ -35,59 +33,41 @@ export type PackageDefinition<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
-export type BaseAdderConfig<Args extends OptionDefinition> = {
+export type Scripts<Args extends OptionDefinition> = {
+	description: string;
+	args: string[];
+	stdio: 'inherit' | 'pipe';
+	condition?: ConditionDefinition<Args>;
+};
+
+export type Adder<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
-	runsAfter?: string[];
 	dependsOn?: string[];
-	integrationType: string;
-};
-
-export type InlineAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
-	integrationType: 'inline';
 	packages: Array<PackageDefinition<Args>>;
+	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
-	nextSteps?: (data: {
-		options: OptionValues<Args>;
-		cwd: string;
-		colors: Colors;
-		docs: string | undefined;
-	}) => string[];
+	nextSteps?: (
+		data: {
+			highlighter: Highlighter;
+		} & Workspace<Args>
+	) => string[];
 };
 
-export type ExternalAdderConfig<Args extends OptionDefinition> = BaseAdderConfig<Args> & {
-	integrationType: 'external';
-	command: string;
-	environment?: Record<string, string>;
+export type Highlighter = {
+	path: (str: string) => string;
+	command: (str: string) => string;
+	website: (str: string) => string;
+	route: (str: string) => string;
+	env: (str: string) => string;
 };
 
-export type AdderConfig<Args extends OptionDefinition> =
-	| InlineAdderConfig<Args>
-	| ExternalAdderConfig<Args>;
-
-export function defineAdderConfig<Args extends OptionDefinition>(
-	config: AdderConfig<Args>
-): AdderConfig<Args> {
+export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>): Adder<Args> {
 	return config;
 }
 
-export type Adder<Args extends OptionDefinition> = {
-	config: AdderConfig<Args>;
-	checks: AdderCheckConfig<Args>;
-	tests?: AdderTestConfig<Args>;
-};
-
 export type AdderWithoutExplicitArgs = Adder<Record<string, Question>>;
-export type AdderConfigWithoutExplicitArgs = AdderConfig<Record<string, Question>>;
-
-export function defineAdder<Args extends OptionDefinition>(
-	config: AdderConfig<Args>,
-	checks: AdderCheckConfig<Args>,
-	tests?: AdderTestConfig<Args>
-): Adder<Args> {
-	const adder: Adder<Args> = { config, checks, tests };
-	return adder;
-}
+export type AdderConfigWithoutExplicitArgs = Adder<Record<string, Question>>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
@@ -127,14 +107,3 @@ export type Precondition = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
-
-export type AdderCheckConfig<Args extends OptionDefinition> = {
-	options: Args;
-	preconditions?: Precondition[];
-};
-
-export function defineAdderChecks<Args extends OptionDefinition>(
-	checks: AdderCheckConfig<Args>
-): AdderCheckConfig<Args> {
-	return checks;
-}

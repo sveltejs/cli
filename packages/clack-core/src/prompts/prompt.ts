@@ -1,5 +1,5 @@
 import readline, { type Key, type ReadLine } from 'node:readline';
-import { stdin, stdout } from 'node:process';
+import process, { stdin, stdout } from 'node:process';
 import { WriteStream } from 'node:tty';
 import type { Readable, Writable } from 'node:stream';
 import { cursor, erase } from 'sisteransi';
@@ -227,7 +227,7 @@ export default class Prompt {
 		const diff = diffLines(this._prevFrame, frame);
 		this.restoreCursor();
 		if (diff) {
-			const diffLine = diff[0];
+			const diffLine = diff[0]!;
 			const lines = frame.split('\n');
 			let newLines: string[] = [];
 

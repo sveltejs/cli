@@ -27,8 +27,8 @@ importers:
         specifier: workspace:*
         version: link:packages/create
       '@sveltejs/eslint-config':
-        specifier: ^8.0.1
-        version: 8.0.1(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)
+        specifier: ^8.1.0
+        version: 8.1.0(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)
       '@svitejs/changesets-changelog-github-compact':
         specifier: ^1.1.0
         version: 1.1.0
@@ -179,8 +179,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       package-manager-detector:
-        specifier: ^0.2.1
-        version: 0.2.1
+        specifier: ^0.2.2
+        version: 0.2.2
       picocolors:
         specifier: ^1.1.0
         version: 1.1.0
@@ -208,9 +208,9 @@ importers:
       dedent:
         specifier: ^1.5.3
         version: 1.5.3
-      empathic:
-        specifier: ^1.0.0
-        version: 1.0.0
+      magic-string:
+        specifier: ^0.30.11
+        version: 0.30.11
       picocolors:
         specifier: ^1.1.0
         version: 1.1.0
@@ -709,8 +709,8 @@ packages:
     peerDependencies:
       eslint: '>=8.40.0'
 
-  '@sveltejs/eslint-config@8.0.1':
-    resolution: {integrity: sha512-0EYGo15CKgf7nK/toq8oa2wM62cmjxvnOKqualIL5L9r42F1dXHGgMoXRSHQj+TctUlJqXj8DZr64SkIfaQtOQ==}
+  '@sveltejs/eslint-config@8.1.0':
+    resolution: {integrity: sha512-cfgp4lPREYBjNd4ZzaP/jA85ufm7vfXiaV7h9vILXNogne80IbZRNhRCQ8XoOqTAOY/pChIzWTBuR8aDNMbAEA==}
     peerDependencies:
       '@stylistic/eslint-plugin-js': '>= 1'
       eslint: '>= 9'
@@ -1605,8 +1605,8 @@ packages:
   package-json-from-dist@1.0.0:
     resolution: {integrity: sha512-dATvCeZN/8wQsGywez1mzHtTlP22H8OEfPrVMLNr4/eGa+ijtLn/6M5f0dY8UKNrC2O9UCU6SSoG3qRKnt7STw==}
 
-  package-manager-detector@0.2.1:
-    resolution: {integrity: sha512-/hVW2fZvAdEas+wyKh0SnlZ2mx0NIa1+j11YaQkogEJkcMErbwchHCuo8z7lEtajZJQZ6rgZNVTWMVVd71Bjng==}
+  package-manager-detector@0.2.2:
+    resolution: {integrity: sha512-VgXbyrSNsml4eHWIvxxG/nTL4wgybMTXCV2Un/+yEc3aDKKU6nQBZjbeP3Pl3qm9Qg92X/1ng4ffvCeD/zwHgg==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -2244,7 +2244,7 @@ snapshots:
       fs-extra: 7.0.1
       mri: 1.2.0
       p-limit: 2.3.0
-      package-manager-detector: 0.2.1
+      package-manager-detector: 0.2.2
       picocolors: 1.1.0
       resolve-from: 5.0.0
       semver: 7.6.3
@@ -2633,7 +2633,7 @@ snapshots:
       eslint-visitor-keys: 4.0.0
       espree: 10.1.0
 
-  '@sveltejs/eslint-config@8.0.1(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)':
+  '@sveltejs/eslint-config@8.1.0(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)':
     dependencies:
       '@stylistic/eslint-plugin-js': 2.8.0(eslint@9.10.0)
       eslint: 9.10.0
@@ -3572,7 +3572,7 @@ snapshots:
 
   package-json-from-dist@1.0.0: {}
 
-  package-manager-detector@0.2.1: {}
+  package-manager-detector@0.2.2: {}
 
   parent-module@1.0.1:
     dependencies:

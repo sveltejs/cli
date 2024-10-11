@@ -9,12 +9,13 @@
 import { execSync } from 'node:child_process';
 import { relative, join } from 'node:path';
 import { existsSync } from 'node:fs';
+import process from 'node:process';
 
 if (!process.env.CHANGED_DIRS) throw new Error('CHANGED_DIRS is missing');
 
 const json = execSync('pnpm -r list --only-projects --json').toString('utf8');
 const repoPackages =
-	/** @type {Array<import('../packages/core/files/utils.js').Package & { path: string, private: boolean, peerDependencies?: Record<string, string> }>} */ (
+	/** @type {Array<import('../packages/cli/commands/add/utils.ts').Package & { path: string, private: boolean, peerDependencies?: Record<string, string> }>} */ (
 		JSON.parse(json)
 	);
 

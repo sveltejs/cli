@@ -2,7 +2,7 @@
 	"exclude": [
 		"**/dist/**",
 		"**/temp/**",
-		"**/tests/**",
+		"**/core/tests/**",
 		"packages/create/templates/**",
 		"packages/create/shared/**",
 		// Ignoring the rollup config so that the imported plugins can resolve their types correctly
@@ -20,6 +20,7 @@
 		"esModuleInterop": true,
 		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
-		"noEmit": true
+		"noEmit": true,
+		"noUncheckedIndexedAccess": true
 	}
 }

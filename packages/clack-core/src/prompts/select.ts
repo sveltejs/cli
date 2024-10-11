@@ -13,7 +13,7 @@ export default class SelectPrompt<T extends { value: any }> extends Prompt {
 	}
 
 	private changeValue() {
-		this.value = this._value.value;
+		this.value = this._value!.value;
 	}
 
 	constructor(opts: SelectOptions<T>) {

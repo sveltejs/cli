@@ -1,7 +1,7 @@
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdder } from '@svelte-cli/core';
 import { options } from './options.ts';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'storybook',
 		name: 'Storybook',
@@ -20,8 +20,14 @@ export const adder = defineAdderConfig({
 			documentation: 'https://storybook.js.org/docs/get-started'
 		}
 	},
-
+	packages: [],
+	scripts: [
+		{
+			description: 'applies storybook',
+			args: ['storybook@latest', 'init', '--skip-install', '--no-dev'],
+			stdio: 'inherit'
+		}
+	],
 	options,
-	integrationType: 'external',
-	command: 'storybook@latest init --skip-install --no-dev'
+	files: []
 });

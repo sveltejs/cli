@@ -1,6 +1,7 @@
 import { options as availableOptions } from './options.ts';
 import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
-import { defineAdderConfig, dedent, type TextFileEditor } from '@svelte-cli/core';
+import { defineAdder, dedent, type FileEditor } from '@svelte-cli/core';
+import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 const PORTS = {
 	mysql: '3306',
@@ -8,7 +9,7 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'drizzle',
 		name: 'Drizzle',
@@ -21,7 +22,6 @@ export const adder = defineAdderConfig({
 		}
 	},
 	options: availableOptions,
-	integrationType: 'inline',
 	packages: [
 		{ name: 'drizzle-orm', version: '^0.33.0', dev: false },
 		{ name: 'drizzle-kit', version: '^0.22.0', dev: true },
@@ -74,17 +74,14 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			name: () => '.env',
-			contentType: 'text',
 			content: generateEnvFileContent
 		},
 		{
 			name: () => '.env.example',
-			contentType: 'text',
 			content: generateEnvFileContent
 		},
 		{
 			name: () => 'docker-compose.yml',
-			contentType: 'text',
 			condition: ({ options }) =>
 				options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js'),
 			content: ({ content, options }) => {
@@ -129,20 +126,20 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data, options }) => {
+			content: ({ content, options }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				if (options.docker) scripts['db:start'] ??= 'docker compose up';
 				scripts['db:push'] ??= 'drizzle-kit push';
 				scripts['db:migrate'] ??= 'drizzle-kit migrate';
 				scripts['db:studio'] ??= 'drizzle-kit studio';
+				return generateCode();
 			}
 		},
 		{
 			// Adds the db file to the gitignore if an ignore is present
 			name: () => '.gitignore',
-			contentType: 'text',
 			condition: ({ options }) => options.database === 'sqlite',
 			content: ({ content }) => {
 				if (content.length === 0) return content;
@@ -155,8 +152,9 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ options, ast, typescript }) => {
+			content: ({ options, content, typescript }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
 				const envCheckStatement = common.statementFromString(
@@ -166,10 +164,10 @@ export const adder = defineAdderConfig({
 
 				const fallback = common.expressionFromString('defineConfig({})');
 				const { value: exportDefault } = exports.defaultExport(ast, fallback);
-				if (exportDefault.type !== 'CallExpression') return;
+				if (exportDefault.type !== 'CallExpression') return content;
 
 				const objExpression = exportDefault.arguments?.[0];
-				if (!objExpression || objExpression.type !== 'ObjectExpression') return;
+				if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
 
 				const driver = options.sqlite === 'turso' ? common.createLiteral('turso') : undefined;
 				const authToken =
@@ -195,13 +193,16 @@ export const adder = defineAdderConfig({
 				// The `driver` property is only required for _some_ sqlite DBs.
 				// We'll need to remove it if it's anything but sqlite
 				if (options.database !== 'sqlite') object.removeProperty(objExpression, 'driver');
+
+				return generateCode();
 			}
 		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/schema.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, options }) => {
+			content: ({ content, options }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				let userSchemaExpression;
 				if (options.database === 'sqlite') {
 					imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
@@ -245,13 +246,16 @@ export const adder = defineAdderConfig({
 				if (!userSchemaExpression) throw new Error('unreachable state...');
 				const userIdentifier = variables.declaration(ast, 'const', 'user', userSchemaExpression);
 				exports.namedExport(ast, 'user', userIdentifier);
+
+				return generateCode();
 			}
 		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/index.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, options }) => {
+			content: ({ content, options }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
 
 				// env var checks
@@ -325,24 +329,25 @@ export const adder = defineAdderConfig({
 				const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
 				const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 				exports.namedExport(ast, 'db', db);
+
+				return generateCode();
 			}
 		}
 	],
-	nextSteps: ({ options, colors }) => {
-		const highlight = (str: string) => colors.bold(colors.cyan(str));
+	nextSteps: ({ options, highlighter }) => {
 		const steps = [
-			`You will need to set ${colors.yellow('DATABASE_URL')} in your production environment`
+			`You will need to set ${highlighter.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
-			steps.push(`Run ${highlight('npm run db:start')} to start the docker container`);
+			steps.push(`Run ${highlighter.command('npm run db:start')} to start the docker container`);
 		}
-		steps.push(`To update your DB schema, run ${highlight('npm run db:push')}`);
+		steps.push(`To update your DB schema, run ${highlighter.command('npm run db:push')}`);
 
 		return steps;
 	}
 });
 
-function generateEnvFileContent({ content, options }: TextFileEditor<typeof availableOptions>) {
+function generateEnvFileContent({ content, options }: FileEditor<typeof availableOptions>) {
 	const DB_URL_KEY = 'DATABASE_URL';
 	if (options.docker) {
 		// we'll prefill with the default docker db credentials
