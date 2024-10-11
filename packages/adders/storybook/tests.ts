@@ -1,10 +1,9 @@
 import { defineAdderTests } from '@svelte-cli/core';
-import { options } from '../options.ts';
 
 let port = 6006;
 
 export const tests = defineAdderTests({
-	options,
+	options: {},
 	optionValues: [],
 	get command() {
 		return `storybook -p ${port++} --ci`;

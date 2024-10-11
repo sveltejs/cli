@@ -1,5 +1,4 @@
 import { dedent, defineAdder, log, colors } from '@svelte-cli/core';
-import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../common.ts';
 import { parseJson } from '@svelte-cli/core/parsers';
 
@@ -10,7 +9,7 @@ export const adder = defineAdder({
 	environments: { svelte: true, kit: true },
 	logo: './prettier.svg',
 	documentation: 'https://prettier.io',
-	options,
+	options: {},
 	packages: [
 		{ name: 'prettier', version: '^3.3.2', dev: true },
 		{ name: 'prettier-plugin-svelte', version: '^3.2.6', dev: true },

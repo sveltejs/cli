@@ -1,5 +1,4 @@
 import { defineAdder } from '@svelte-cli/core';
-import { options } from './options.ts';
 
 export const adder = defineAdder({
 	id: 'storybook',
@@ -8,6 +7,7 @@ export const adder = defineAdder({
 	environments: { kit: true, svelte: true },
 	logo: './storybook.svg',
 	documentation: 'https://storybook.js.org/docs/get-started',
+	options: {},
 	packages: [],
 	scripts: [
 		{
@@ -16,6 +16,5 @@ export const adder = defineAdder({
 			stdio: 'inherit'
 		}
 	],
-	options,
 	files: []
 });

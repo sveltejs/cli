@@ -1,5 +1,4 @@
 import { defineAdderTests, type OptionDefinition, type FileEditor } from '@svelte-cli/core';
-import { options } from './options.ts';
 import { imports } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
 import { parseSvelte } from '@svelte-cli/core/parsers';
@@ -27,7 +26,7 @@ export const tests = defineAdderTests({
 			condition: ({ kit }) => !kit
 		}
 	],
-	options,
+	options: {},
 	optionValues: [],
 	tests: [
 		{

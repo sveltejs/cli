@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../common.ts';
 import { defineAdder, log } from '@svelte-cli/core';
 import {
@@ -22,7 +21,7 @@ export const adder = defineAdder({
 	environments: { svelte: true, kit: true },
 	logo: './eslint.svg',
 	documentation: 'https://eslint.org',
-	options,
+	options: {},
 	packages: [
 		{ name: 'eslint', version: '^9.7.0', dev: true },
 		{ name: '@types/eslint', version: '^9.6.0', dev: true },

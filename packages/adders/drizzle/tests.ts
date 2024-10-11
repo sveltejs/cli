@@ -1,4 +1,4 @@
-import { options } from '../config/options.ts';
+import { options } from './options.ts';
 import { defineAdderTests } from '@svelte-cli/core';
 import { parseSvelte, parseJson } from '@svelte-cli/core/parsers';
 

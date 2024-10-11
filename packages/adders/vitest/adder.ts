@@ -1,4 +1,3 @@
-import { options } from './options.ts';
 import { dedent, defineAdder, log } from '@svelte-cli/core';
 import { common, exports, imports, object } from '@svelte-cli/core/js';
 import { parseJson, parseScript } from '@svelte-cli/core/parsers';
@@ -10,7 +9,7 @@ export const adder = defineAdder({
 	environments: { svelte: true, kit: true },
 	logo: './vitest.svg',
 	documentation: 'https://vitest.dev',
-	options,
+	options: {},
 	packages: [{ name: 'vitest', version: '^2.0.4', dev: true }],
 	files: [
 		{

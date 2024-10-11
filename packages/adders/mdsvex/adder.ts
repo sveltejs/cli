@@ -1,4 +1,3 @@
-import { options } from './options.ts';
 import { defineAdder } from '@svelte-cli/core';
 import { array, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { parseScript } from '@svelte-cli/core/parsers';
@@ -10,7 +9,7 @@ export const adder = defineAdder({
 	environments: { svelte: true, kit: true },
 	logo: './mdsvex.svg',
 	documentation: 'https://mdsvex.pngwn.io/docs',
-	options,
+	options: {},
 	packages: [{ name: 'mdsvex', version: '^0.11.2', dev: true }],
 	files: [
 		{

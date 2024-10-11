@@ -1,5 +1,4 @@
 import { defineAdder } from '@svelte-cli/core';
-import { options } from './options.ts';
 import { array, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
 import { parseScript, parseSvelte } from '@svelte-cli/core/parsers';
@@ -11,7 +10,7 @@ export const adder = defineAdder({
 	environments: { svelte: true, kit: false },
 	logo: './routify.svg',
 	documentation: 'https://routify.dev',
-	options,
+	options: {},
 	packages: [{ name: '@roxi/routify', version: 'next', dev: true }],
 	files: [
 		{

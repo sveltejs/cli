@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import { options } from './options.ts';
 import { dedent, defineAdder, log } from '@svelte-cli/core';
 import { common, exports, imports, object } from '@svelte-cli/core/js';
 import { parseJson, parseScript } from '@svelte-cli/core/parsers';
@@ -12,7 +11,7 @@ export const adder = defineAdder({
 	environments: { svelte: true, kit: true },
 	logo: './playwright.svg',
 	documentation: 'https://playwright.dev',
-	options,
+	options: {},
 	packages: [{ name: '@playwright/test', version: '^1.45.3', dev: true }],
 	files: [
 		{
