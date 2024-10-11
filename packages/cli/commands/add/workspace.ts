@@ -1,40 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
-<<<<<<< HEAD:packages/core/files/workspace.ts
-import { AGENTS, detectSync, type AgentName } from 'package-manager-detector';
-import { type AstTypes, parseScript } from '@svelte-cli/ast-tooling';
-import { TESTING } from '../env.ts';
-import { common, object } from '../tooling/js/index.ts';
-import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
-import type { OptionDefinition, OptionValues } from '../adder/options.ts';
-import process from 'node:process';
-
-export type Workspace<Args extends OptionDefinition> = {
-	options: OptionValues<Args>;
-	cwd: string;
-	/**
-	 * Returns the dependency version declared in the package.json.
-	 * This may differ from the installed version.
-	 * Includes both dependencies and devDependencies.
-	 * Also checks parent package.json files if called in a monorepo.
-	 * @param pkg the package to check for
-	 * @returns the dependency version with any leading characters such as ^ or ~ removed
-	 */
-	dependencyVersion: (pkg: string) => string | undefined;
-	typescript: boolean;
-	kit: { libDirectory: string; routesDirectory: string } | undefined;
-	packageManager: AgentName;
-};
-=======
-import * as resolve from 'empathic/resolve';
 import { common, object, type AstTypes } from '@svelte-cli/core/js';
 import { parseScript } from '@svelte-cli/core/parsers';
 import { TESTING } from '../../env.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import { detectPackageManager } from '../../common.ts';
 import type { OptionDefinition, Workspace } from '@svelte-cli/core';
->>>>>>> main:packages/cli/commands/add/workspace.ts
 
 export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	return {
@@ -99,13 +71,8 @@ function findRoot(cwd: string): string {
 }
 
 function parseKitOptions(workspace: Workspace<any>) {
-<<<<<<< HEAD:packages/core/files/workspace.ts
 	const configSource = readFile(workspace.cwd, commonFilePaths.svelteConfig);
-	const ast = parseScript(configSource);
-=======
-	const configSource = readFile(workspace, commonFilePaths.svelteConfig);
 	const { ast } = parseScript(configSource);
->>>>>>> main:packages/cli/commands/add/workspace.ts
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
 	if (!defaultExport) throw Error('Missing default export in `svelte.config.js`');
