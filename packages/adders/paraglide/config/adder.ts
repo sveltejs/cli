@@ -1,10 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineAdderConfig, log } from '@svelte-cli/core';
+import { defineAdder, log } from '@svelte-cli/core';
 import { options, parseLanguageTagInput } from './options.ts';
 import { array, common, functions, imports, object, variables, exports } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
 import { addHooksHandle, createPrinter } from '../../common.ts';
+import { parseHtml, parseJson, parseScript, parseSvelte } from '@svelte-cli/core/parsers';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -22,7 +23,7 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'paraglide',
 		name: 'Paraglide',
@@ -57,8 +58,9 @@ export const adder = defineAdderConfig({
 			// create an inlang project if it doesn't exist yet
 			name: () => 'project.inlang/settings.json',
 			condition: ({ cwd }) => !fs.existsSync(path.join(cwd, 'project.inlang/settings.json')),
-			contentType: 'json',
-			content: ({ options, data }) => {
+			content: ({ options, content }) => {
+				const { data, generateCode } = parseJson(content);
+
 				for (const key in DEFAULT_INLANG_PROJECT) {
 					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
 				}
@@ -67,13 +69,16 @@ export const adder = defineAdderConfig({
 
 				data.sourceLanguageTag = sourceLanguageTag;
 				data.languageTags = validLanguageTags;
+
+				return generateCode();
 			}
 		},
 		{
 			// add the vite plugin
 			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				const vitePluginName = 'paraglide';
 				imports.addNamed(ast, '@inlang/paraglide-sveltekit/vite', {
 					paraglide: vitePluginName
@@ -93,13 +98,16 @@ export const adder = defineAdderConfig({
 				});
 				functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
 				array.push(pluginsArray, pluginFunctionCall);
+
+				return generateCode();
 			}
 		},
 		{
 			// src/lib/i18n file
 			name: ({ typescript }) => `src/lib/i18n.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content({ ast }) {
+			content({ content }) {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
 				imports.addDefault(ast, '$lib/paraglide/runtime', '* as runtime');
 
@@ -110,13 +118,16 @@ export const adder = defineAdderConfig({
 				if (existingExport.declaration != i18n) {
 					log.warn('Setting up $lib/i18n failed because it already exports an i18n function');
 				}
+
+				return generateCode();
 			}
 		},
 		{
 			// reroute hook
 			name: ({ typescript }) => `src/hooks.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content({ ast }) {
+			content({ content }) {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, '$lib/i18n', {
 					i18n: 'i18n'
 				});
@@ -128,36 +139,42 @@ export const adder = defineAdderConfig({
 				if (existingExport.declaration != rerouteIdentifier) {
 					log.warn('Adding the reroute hook automatically failed. Add it manually');
 				}
+
+				return generateCode();
 			}
 		},
 		{
 			// handle hook
 			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content({ ast, typescript }) {
+			content({ content, typescript }) {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, '$lib/i18n', {
 					i18n: 'i18n'
 				});
 
 				const hookHandleContent = 'i18n.handle()';
 				addHooksHandle(ast, typescript, 'paraglide', hookHandleContent);
+
+				return generateCode();
 			}
 		},
 		{
 			// add the <ParaglideJS> component to the layout
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			contentType: 'svelte',
-			content: ({ jsAst, htmlAst }) => {
+			content: ({ content }) => {
+				const { script, template, generateCode } = parseSvelte(content);
+
 				const paraglideComponentName = 'ParaglideJS';
-				imports.addNamed(jsAst, '@inlang/paraglide-sveltekit', {
+				imports.addNamed(script.ast, '@inlang/paraglide-sveltekit', {
 					[paraglideComponentName]: paraglideComponentName
 				});
-				imports.addNamed(jsAst, '$lib/i18n', {
+				imports.addNamed(script.ast, '$lib/i18n', {
 					i18n: 'i18n'
 				});
 
 				// wrap the HTML in a ParaglideJS instance
-				const rootChildren = htmlAst.children;
+				const rootChildren = template.ast.children;
 				if (rootChildren.length === 0) {
 					const slot = html.element('slot');
 					rootChildren.push(slot);
@@ -172,16 +189,19 @@ export const adder = defineAdderConfig({
 						'{i18n}': ''
 					};
 					root.children = rootChildren;
-					htmlAst.children = [root];
+					template.ast.children = [root];
 				}
+
+				return generateCode({ script: script.generateCode(), template: template.generateCode() });
 			}
 		},
 		{
 			// add the text-direction and lang attribute placeholders to app.html
 			name: () => 'src/app.html',
-			contentType: 'html',
-			content(editor) {
-				const htmlNode = editor.ast.children.find(
+			content: ({ content }) => {
+				const { ast, generateCode } = parseHtml(content);
+
+				const htmlNode = ast.children.find(
 					(child): child is html.HtmlElement =>
 						child.type === html.HtmlElementType.Tag && child.name === 'html'
 				);
@@ -189,28 +209,31 @@ export const adder = defineAdderConfig({
 					log.warn(
 						"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
 					);
-					return;
+					return generateCode();
 				}
 				htmlNode.attribs = {
 					...htmlNode.attribs,
 					lang: '%paraglide.lang%',
 					dir: '%paraglide.textDirection%'
 				};
+
+				return generateCode();
 			}
 		},
 		{
 			// add usage example
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
-			contentType: 'svelte',
 			condition: ({ options }) => options.demo,
-			content({ jsAst, htmlAst, options, typescript }) {
-				imports.addDefault(jsAst, '$lib/paraglide/messages.js', '* as m');
-				imports.addNamed(jsAst, '$app/navigation', { goto: 'goto' });
-				imports.addNamed(jsAst, '$app/stores', { page: 'page' });
-				imports.addNamed(jsAst, '$lib/i18n', { i18n: 'i18n' });
+			content({ content, options, typescript }) {
+				const { script, template, generateCode } = parseSvelte(content);
+
+				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
+				imports.addNamed(script.ast, '$app/navigation', { goto: 'goto' });
+				imports.addNamed(script.ast, '$app/stores', { page: 'page' });
+				imports.addNamed(script.ast, '$lib/i18n', { i18n: 'i18n' });
 				if (typescript) {
 					imports.addNamed(
-						jsAst,
+						script.ast,
 						'$lib/paraglide/runtime',
 						{ AvailableLanguageTag: 'AvailableLanguageTag' },
 						true
@@ -220,7 +243,7 @@ export const adder = defineAdderConfig({
 				const [ts] = createPrinter(typescript);
 
 				const methodStatement = common.statementFromString(`
-					function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
+					function switchToLanguage(newLanguage${ts!(': AvailableLanguageTag')}) {
 						const canonicalPath = i18n.route($page.url.pathname);
 						const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
 						goto(localisedPath);
@@ -232,11 +255,11 @@ export const adder = defineAdderConfig({
 					});
 				}
 
-				jsAst.body.push(methodStatement);
+				script.ast.body.push(methodStatement);
 
 				// add localized message
 				html.addFromRawHtml(
-					htmlAst.childNodes,
+					template.ast.childNodes,
 					`<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>`
 				);
 
@@ -248,7 +271,9 @@ export const adder = defineAdderConfig({
 					.join('');
 				const div = html.element('div');
 				html.addFromRawHtml(div.childNodes, links);
-				html.appendElement(htmlAst.childNodes, div);
+				html.appendElement(template.ast.childNodes, div);
+
+				return generateCode({ script: script.generateCode(), template: template.generateCode() });
 			}
 		}
 	],
