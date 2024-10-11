@@ -1,8 +1,9 @@
 import { options } from './options.ts';
-import { dedent, defineAdderConfig, log } from '@svelte-cli/core';
+import { dedent, defineAdder, log } from '@svelte-cli/core';
 import { common, exports, imports, object } from '@svelte-cli/core/js';
+import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'vitest',
 		name: 'Vitest',
@@ -19,8 +20,8 @@ export const adder = defineAdderConfig({
 	files: [
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				const TEST_CMD = 'vitest';
@@ -29,6 +30,7 @@ export const adder = defineAdderConfig({
 				scripts['test:unit'] ??= TEST_CMD;
 				scripts['test'] ??= RUN_TEST;
 				if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
+				return generateCode();
 			}
 		},
 		{
@@ -49,8 +51,9 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				// find `defineConfig` import declaration for "vite"
 				const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
 				const defineConfigImportDecl = importDecls.find(
@@ -86,7 +89,7 @@ export const adder = defineAdderConfig({
 				// uses the `defineConfig` helper
 				if (
 					defaultExport.value.type === 'CallExpression' &&
-					defaultExport.value.arguments[0].type === 'ObjectExpression'
+					defaultExport.value.arguments[0]?.type === 'ObjectExpression'
 				) {
 					// if the previous `defineConfig` was aliased, reuse the alias for the "vitest/config" import
 					const importSpecifier = defineConfigImportDecl?.specifiers?.find(
@@ -103,6 +106,8 @@ export const adder = defineAdderConfig({
 					// unexpected config shape
 					log.warn('Unexpected vite config for vitest adder. Could not update.');
 				}
+
+				return generateCode();
 			}
 		}
 	]

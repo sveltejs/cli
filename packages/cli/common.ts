@@ -3,11 +3,10 @@ import pc from 'picocolors';
 import pkg from './package.json';
 import { exec } from 'tinyexec';
 import * as p from '@svelte-cli/clack-prompts';
-import { detect, AGENTS, type AgentName } from 'package-manager-detector';
+import { AGENTS, type AgentName, detectSync } from 'package-manager-detector';
 import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
-import { detectPackageManager, getUserAgent } from '@svelte-cli/core/internal';
 
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
@@ -27,8 +26,6 @@ function formatDescription(arg: Option | Argument): string {
 
 type MaybePromise = () => Promise<void> | void;
 
-export let packageManager: AgentName | undefined;
-
 export async function runCommand(action: MaybePromise) {
 	try {
 		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
@@ -43,7 +40,7 @@ export async function runCommand(action: MaybePromise) {
 }
 
 export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	const pm = await detectPackageManager(cwd);
+	const pm = detectPackageManager(cwd);
 	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
 	const cmd = resolveCommand(pm, 'execute-local', args)!;
 	await exec(cmd.command, cmd.args, {
@@ -53,7 +50,7 @@ export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
 
 type PackageManagerOptions = Array<{ value: AgentName | null; label: AgentName | 'None' }>;
 export async function suggestInstallingDependencies(cwd: string): Promise<'installed' | 'skipped'> {
-	const detectedPm = await detect({ cwd });
+	const detectedPm = detectSync({ cwd });
 	let selectedPm = detectedPm?.agent ?? null;
 
 	const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
@@ -100,6 +97,31 @@ async function installDependencies(command: string, args: string[], cwd: string)
 	}
 }
 
+export let packageManager: AgentName | undefined;
+
+/**
+ * Guesses the package manager based on the detected lockfile or user-agent.
+ * If neither of those return valid package managers, it falls back to `npm`.
+ */
+export function detectPackageManager(cwd: string): AgentName {
+	if (packageManager) return packageManager;
+
+	const pm = detectSync({ cwd });
+	if (pm?.name) packageManager = pm.name;
+
+	return pm?.name ?? getUserAgent() ?? 'npm';
+}
+
+export function getUserAgent(): AgentName | undefined {
+	const userAgent = process.env.npm_config_user_agent;
+	if (!userAgent) return undefined;
+
+	const pmSpec = userAgent.split(' ')[0]!;
+	const separatorPos = pmSpec.lastIndexOf('/');
+	const name = pmSpec.substring(0, separatorPos) as AgentName;
+	return AGENTS.includes(name) ? name : undefined;
+}
+
 type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
 	cwd: string,
@@ -135,7 +157,7 @@ export function getGlobalPreconditions(
 				name: 'supported environments',
 				run: () => {
 					const addersForInvalidEnvironment = adders.filter((a) => {
-						const supportedEnvironments = a.config.metadata.environments;
+						const supportedEnvironments = a.metadata.environments;
 						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
 						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
 
@@ -147,7 +169,7 @@ export function getGlobalPreconditions(
 					}
 
 					const messages = addersForInvalidEnvironment.map(
-						(a) => `"${a.config.metadata.name}" does not support "${projectType}"`
+						(a) => `"${a.metadata.name}" does not support "${projectType}"`
 					);
 					return { success: false, message: messages.join(' / ') };
 				}

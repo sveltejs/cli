@@ -11,7 +11,7 @@ export default class MultiSelectPrompt<T extends { value: any }> extends Prompt 
 	cursor: number = 0;
 
 	private get _value() {
-		return this.options[this.cursor].value;
+		return this.options[this.cursor]!.value;
 	}
 
 	private toggleAll() {

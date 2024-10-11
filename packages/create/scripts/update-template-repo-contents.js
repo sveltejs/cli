@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { create } from '../dist/index.js';
 
-const repo = process.argv[2];
+const repo = /** @type {string} */ (process.argv[2]);
 
 fs.readdirSync(repo).forEach((file) => {
 	if (file !== '.git') {
