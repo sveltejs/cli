@@ -3,7 +3,6 @@ import { defineAdder } from '@svelte-cli/core';
 import { addImports } from '@svelte-cli/core/css';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@svelte-cli/core/parsers';
-import { addImports } from '@svelte-cli/core/css';
 import { addSlot } from '../../common.ts';
 
 export const adder = defineAdder({
@@ -121,15 +120,16 @@ export const adder = defineAdder({
 		},
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			contentType: 'svelte',
-			content: ({ jsAst, htmlAst, dependencies }) => {
-				imports.addEmpty(jsAst, '../app.css');
-				if (htmlAst.childNodes.length === 0) {
-					addSlot(jsAst, htmlAst, dependencies);
-				}
-			content: ({ content, typescript }) => {
-				const { script, generateCode } = parseSvelte(content, { typescript });
+			content: ({ content, typescript, dependencyVersion }) => {
+				const { script, template, generateCode } = parseSvelte(content, { typescript });
 				imports.addEmpty(script.ast, '../app.css');
+
+				if (content.length === 0) {
+					const svelteVersion = dependencyVersion('svelte');
+					if (!svelteVersion) throw new Error('Failed to determine svelte version');
+					addSlot(script.ast, template.ast, svelteVersion);
+				}
+
 				return generateCode({
 					script: script.generateCode(),
 					template: content.length === 0 ? '<slot />' : undefined

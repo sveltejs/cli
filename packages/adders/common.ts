@@ -375,14 +375,10 @@ function isFunctionDeclaration(
 export function addSlot(
 	jsAst: AstTypes.Program,
 	htmlAst: html.HtmlDocument,
-	dependencies: Record<string, string>
+	svelteVersion: string
 ) {
 	let slotSyntax = false;
-	if (
-		'svelte' in dependencies &&
-		dependencies['svelte'] &&
-		(dependencies['svelte'].startsWith('4') || dependencies['svelte'].startsWith('3'))
-	)
+	if (svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3')))
 		slotSyntax = true;
 
 	if (slotSyntax) {
