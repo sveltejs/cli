@@ -2,7 +2,7 @@ import { defineAdder, defineAdderOptions } from '@svelte-cli/core';
 import { addImports } from '@svelte-cli/core/css';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@svelte-cli/core/parsers';
-import { addSlot } from '../common.ts';
+import { addSlot } from '@svelte-cli/core/shared';
 
 export const options = defineAdderOptions({
 	plugins: {

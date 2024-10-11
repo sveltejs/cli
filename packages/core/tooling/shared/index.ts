@@ -1,5 +1,6 @@
 import { Walker, type AstKinds } from '@svelte-cli/ast-tooling';
 import { common, functions, imports, variables, exports, type AstTypes } from '../js/index.ts';
+import * as html from '../html/index.ts';
 
 export function createPrinter(
 	...conditions: boolean[]
@@ -262,6 +263,24 @@ export function addHooksHandle(
 		ast.body.push(newDecl);
 		exports.namedExport(ast, handleName, newHandleDecl);
 	}
+}
+
+export function addSlot(
+	jsAst: AstTypes.Program,
+	htmlAst: html.HtmlDocument,
+	svelteVersion: string
+): void {
+	const slotSyntax =
+		svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3'));
+
+	if (slotSyntax) {
+		const slot = html.element('slot');
+		html.appendElement(htmlAst.childNodes, slot);
+		return;
+	}
+
+	common.addFromString(jsAst, 'let { children } = $props();');
+	html.addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 }
 
 function usingSequence(node: AstTypes.VariableDeclarator, handleName: string) {
