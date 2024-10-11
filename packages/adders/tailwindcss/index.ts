@@ -134,7 +134,7 @@ export default defineAdder({
 
 				return generateCode({
 					script: script.generateCode(),
-					template: template: content.length === 0 ? template.generateCode() : undefined
+					template: content.length === 0 ? template.generateCode() : undefined
 				});
 			},
 			condition: ({ kit }) => Boolean(kit)
