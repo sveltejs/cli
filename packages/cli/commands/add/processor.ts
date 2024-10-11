@@ -17,8 +17,8 @@ export function createOrUpdateFiles<Args extends OptionDefinition>(
 				continue;
 			}
 
-			const exists = fileExists(workspace, fileDetails.name(workspace));
-			let content = exists ? readFile(workspace, fileDetails.name(workspace)) : '';
+			const exists = fileExists(workspace.cwd, fileDetails.name(workspace));
+			let content = exists ? readFile(workspace.cwd, fileDetails.name(workspace)) : '';
 			// process file
 			content = fileDetails.content({ content, ...workspace });
 
