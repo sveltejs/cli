@@ -1,6 +1,6 @@
 # sv - the Svelte CLI
 
-A CLI for creating new [SvelteKit](https://kit.svelte.dev) projects and adding functionality to existing ones. Just run...
+A CLI for creating new [SvelteKit](https://svelte.dev/docs/kit) projects and adding functionality to existing ones. Just run...
 
 ```bash
 npx sv

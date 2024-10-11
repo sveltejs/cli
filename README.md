@@ -2,7 +2,7 @@
 
 # sv - the Svelte scaffolding CLI
 
-Read the [SvelteKit documentation](https://kit.svelte.dev/docs) for more details about getting started with a newly created app.
+Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details about getting started with a newly created app.
 
 ### Packages
 
