@@ -47,7 +47,6 @@ export const adder = defineAdder({
 			dev: false
 		}
 	],
-	runsAfter: ['drizzle'],
 	dependsOn: ['drizzle'],
 	files: [
 		{

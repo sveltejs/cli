@@ -530,10 +530,10 @@ export async function installAdders({
 	// and adders with dependencies runs later on, based on the adders they depend on.
 	// based on https://stackoverflow.com/a/72030336/16075084
 	details.sort((a, b) => {
-		if (!a.runsAfter) return -1;
-		if (!b.runsAfter) return 1;
+		if (!a.dependsOn) return -1;
+		if (!b.dependsOn) return 1;
 
-		return a.runsAfter.includes(b.metadata.id) ? 1 : b.runsAfter.includes(a.metadata.id) ? -1 : 0;
+		return a.dependsOn.includes(b.metadata.id) ? 1 : b.dependsOn.includes(a.metadata.id) ? -1 : 0;
 	});
 
 	// apply adders
