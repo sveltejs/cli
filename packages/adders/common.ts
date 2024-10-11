@@ -8,6 +8,7 @@ import {
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { Walker, type Question, type FileEditor } from '@sveltejs/cli-core';
+import * as html from '@sveltejs/cli-core/html';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export function createPrinter(...conditions: boolean[]) {
@@ -369,4 +370,22 @@ function isFunctionDeclaration(
 	funcName: string
 ): node is AstTypes.FunctionDeclaration {
 	return node.type === 'FunctionDeclaration' && node.id?.name === funcName;
+}
+
+export function addSlot(
+	jsAst: AstTypes.Program,
+	htmlAst: html.HtmlDocument,
+	svelteVersion: string
+) {
+	const slotSyntax =
+		svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3'));
+
+	if (slotSyntax) {
+		const slot = html.element('slot');
+		html.appendElement(htmlAst.childNodes, slot);
+		return;
+	}
+
+	common.addFromString(jsAst, 'let { children } = $props();');
+	html.addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 }

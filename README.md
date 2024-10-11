@@ -29,3 +29,7 @@ Svelte is an MIT-licensed open source project with its ongoing development made 
 ## License
 
 [MIT](https://github.com/sveltejs/kit/blob/main/LICENSE)
+
+## Acknowledgements
+
+Thank you to [Christopher Brown](https://github.com/chbrown) who originally owned the `sv` name on npm for graciously allowing it to be used for the Svelte CLI. You can find the original `sv` package at [`@chbrown/sv`](https://www.npmjs.com/package/@chbrown/sv).
