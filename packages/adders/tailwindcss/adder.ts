@@ -1,4 +1,3 @@
-import { options } from './options.ts';
 import { defineAdder } from '@svelte-cli/core';
 import { addImports } from '@svelte-cli/core/css';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
@@ -12,7 +11,14 @@ export const adder = defineAdder({
 	environments: { svelte: true, kit: true },
 	logo: './tailwindcss.svg',
 	documentation: 'https://tailwindcss.com/docs',
-	options,
+	options: {
+		plugins: {
+			type: 'multiselect',
+			question: 'Which plugins would you like to add?',
+			options: [{ value: 'typography', label: 'Typography' }],
+			default: []
+		}
+	},
 	packages: [
 		{ name: 'tailwindcss', version: '^3.4.9', dev: true },
 		{ name: 'autoprefixer', version: '^10.4.20', dev: true },

@@ -3,7 +3,7 @@ import { colors, dedent, defineAdder, log, Walker } from '@svelte-cli/core';
 import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@svelte-cli/core/js';
-import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '../../common.ts';
+import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '../common.ts';
 import { parseScript } from '@svelte-cli/core/parsers';
 
 const LUCIA_ADAPTER = {

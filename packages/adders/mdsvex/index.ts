@@ -1,3 +1,3 @@
-import { adder } from './config/adder.ts';
+import { adder } from './adder.ts';
 
 export default adder;
