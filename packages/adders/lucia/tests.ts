@@ -1,5 +1,5 @@
 import { defineAdderTests } from '@svelte-cli/core';
-import { options } from './options.ts';
+import { options } from './index.ts';
 
 export const tests = defineAdderTests({
 	files: [],

@@ -1,6 +1,5 @@
-import { options as availableOptions } from './options.ts';
 import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
-import { defineAdder, dedent, type FileEditor } from '@svelte-cli/core';
+import { defineAdder, defineAdderOptions, dedent, type FileEditor } from '@svelte-cli/core';
 import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 const PORTS = {
@@ -9,13 +8,68 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
+export const options = defineAdderOptions({
+	database: {
+		question: 'Which database would you like to use?',
+		type: 'select',
+		default: 'sqlite',
+		options: [
+			{ value: 'postgresql', label: 'PostgreSQL' },
+			{ value: 'mysql', label: 'MySQL' },
+			{ value: 'sqlite', label: 'SQLite' }
+		]
+	},
+	postgresql: {
+		question: 'Which PostgreSQL client would you like to use?',
+		type: 'select',
+		group: 'client',
+		default: 'postgres.js',
+		options: [
+			{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
+			{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
+		],
+		condition: ({ database }) => database === 'postgresql'
+	},
+	mysql: {
+		question: 'Which MySQL client would you like to use?',
+		type: 'select',
+		group: 'client',
+		default: 'mysql2',
+		options: [
+			{ value: 'mysql2', hint: 'recommended for most users' },
+			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
+		],
+		condition: ({ database }) => database === 'mysql'
+	},
+	sqlite: {
+		question: 'Which SQLite client would you like to use?',
+		type: 'select',
+		group: 'client',
+		default: 'libsql',
+		options: [
+			{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
+			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
+			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
+		],
+		condition: ({ database }) => database === 'sqlite'
+	},
+	docker: {
+		question: 'Do you want to run the database locally with docker-compose?',
+		default: false,
+		type: 'boolean',
+		condition: ({ database, mysql, postgresql }) =>
+			(database === 'mysql' && mysql === 'mysql2') ||
+			(database === 'postgresql' && postgresql === 'postgres.js')
+	}
+});
+
 export default defineAdder({
 	id: 'drizzle',
 	name: 'Drizzle',
 	description: 'Headless ORM for NodeJS, TypeScript and JavaScript',
 	environments: { svelte: false, kit: true },
 	documentation: 'https://orm.drizzle.team/docs/overview',
-	options: availableOptions,
+	options,
 	packages: [
 		{ name: 'drizzle-orm', version: '^0.33.0', dev: false },
 		{ name: 'drizzle-kit', version: '^0.22.0', dev: true },
@@ -341,12 +395,12 @@ export default defineAdder({
 	}
 });
 
-function generateEnvFileContent({ content, options }: FileEditor<typeof availableOptions>) {
+function generateEnvFileContent({ content, options: opts }: FileEditor<typeof options>) {
 	const DB_URL_KEY = 'DATABASE_URL';
-	if (options.docker) {
+	if (opts.docker) {
 		// we'll prefill with the default docker db credentials
-		const protocol = options.database === 'mysql' ? 'mysql' : 'postgres';
-		const port = PORTS[options.database];
+		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
+		const port = PORTS[opts.database];
 		content = addEnvVar(
 			content,
 			DB_URL_KEY,
@@ -354,23 +408,23 @@ function generateEnvFileContent({ content, options }: FileEditor<typeof availabl
 		);
 		return content;
 	}
-	if (options.sqlite === 'better-sqlite3' || options.sqlite === 'libsql') {
-		const dbFile = options.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
+	if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
+		const dbFile = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
 		content = addEnvVar(content, DB_URL_KEY, dbFile);
 		return content;
 	}
 
 	content = addEnvComment(content, 'Replace with your DB credentials!');
-	if (options.sqlite === 'turso') {
+	if (opts.sqlite === 'turso') {
 		content = addEnvVar(content, DB_URL_KEY, '"libsql://db-name-user.turso.io"');
 		content = addEnvVar(content, 'DATABASE_AUTH_TOKEN', '""');
 		content = addEnvComment(content, 'A local DB can also be used in dev as well');
 		content = addEnvComment(content, `${DB_URL_KEY}="file:local.db"`);
 	}
-	if (options.database === 'mysql') {
+	if (opts.database === 'mysql') {
 		content = addEnvVar(content, DB_URL_KEY, '"mysql://user:password@host:port/db-name"');
 	}
-	if (options.database === 'postgresql') {
+	if (opts.database === 'postgresql') {
 		content = addEnvVar(content, DB_URL_KEY, '"postgres://user:password@host:port/db-name"');
 	}
 	return content;

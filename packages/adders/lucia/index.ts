@@ -1,5 +1,4 @@
-import { options } from './options.ts';
-import { colors, dedent, defineAdder, log, Walker } from '@svelte-cli/core';
+import { colors, dedent, defineAdder, defineAdderOptions, log, Walker } from '@svelte-cli/core';
 import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@svelte-cli/core/js';
@@ -22,6 +21,14 @@ type Dialect = keyof typeof LUCIA_ADAPTER;
 
 let drizzleDialect: Dialect;
 let schemaPath: string;
+
+export const options = defineAdderOptions({
+	demo: {
+		type: 'boolean',
+		default: false,
+		question: `Do you want to include a demo? ${colors.dim('(includes a login/register page)')}`
+	}
+});
 
 export default defineAdder({
 	id: 'lucia',

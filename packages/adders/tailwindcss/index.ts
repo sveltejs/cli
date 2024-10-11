@@ -1,7 +1,16 @@
-import { defineAdder } from '@svelte-cli/core';
+import { defineAdder, defineAdderOptions } from '@svelte-cli/core';
 import { addImports } from '@svelte-cli/core/css';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@svelte-cli/core/parsers';
+
+export const options = defineAdderOptions({
+	plugins: {
+		type: 'multiselect',
+		question: 'Which plugins would you like to add?',
+		options: [{ value: 'typography', label: 'Typography' }],
+		default: []
+	}
+});
 
 export default defineAdder({
 	id: 'tailwindcss',
