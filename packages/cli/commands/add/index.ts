@@ -39,7 +39,7 @@ const OptionsSchema = v.strictObject({
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 const adderDetails = adderIds.map((id) => getAdderDetails(id));
-const aliases = adderDetails.map((c) => c.metadata.alias).filter((v) => v !== undefined);
+const aliases = adderDetails.map((c) => c.alias).filter((v) => v !== undefined);
 const addersOptions = getAdderOptionFlags();
 const communityDetails: AdderWithoutExplicitArgs[] = [];
 
@@ -266,7 +266,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			start('Downloading community adder packages');
 			const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
 			for (const adder of details) {
-				const id = adder.metadata.id;
+				const id = adder.id;
 				community[id] ??= {};
 				communityDetails.push(adder);
 				selectedAdders.push({ type: 'community', adder });
@@ -289,13 +289,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 				.map((id) => {
 					const config = getAdderDetails(id);
 					// we'll only display adders within their respective project types
-					if (projectType === 'kit' && !config.metadata.environments.kit) return;
-					if (projectType === 'svelte' && !config.metadata.environments.svelte) return;
+					if (projectType === 'kit' && !config.environments.kit) return;
+					if (projectType === 'svelte' && !config.environments.svelte) return;
 
 					return {
-						label: config.metadata.name,
-						value: config.metadata.id,
-						hint: config.metadata.website?.documentation
+						label: config.name,
+						value: config.id,
+						hint: config.documentation
 					};
 				})
 				.filter((c) => !!c);
@@ -322,14 +322,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// add inter-adder dependencies
 	for (const { adder } of selectedAdders) {
-		const name = adder.metadata.name;
+		const name = adder.name;
 		const dependents =
-			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.metadata.id === dep)) ??
-			[];
+			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
 
 		const workspace = createWorkspace(options.cwd);
 		for (const depId of dependents) {
-			const dependent = adderDetails.find((a) => a.metadata.id === depId);
+			const dependent = adderDetails.find((a) => a.id === depId);
 			if (!dependent) throw new Error(`Adder '${name}' depends on an invalid '${depId}'`);
 
 			// check if the dependent adder has already been installed
@@ -387,8 +386,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// ask remaining questions
 	for (const { adder, type } of selectedAdders) {
-		const adderId = adder.metadata.id;
-		const questionPrefix = selectedAdders.length > 1 ? `${adder.metadata.name}: ` : '';
+		const adderId = adder.id;
+		const questionPrefix = selectedAdders.length > 1 ? `${adder.name}: ` : '';
 
 		let values: QuestionValues = {};
 		if (type === 'official') {
@@ -481,15 +480,14 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	const nextStepsMsg = selectedAdders
 		.filter(({ adder }) => adder.nextSteps)
 		.map(({ adder }) => {
-			const metadata = adder.metadata;
 			let adderMessage = '';
 			if (selectedAdders.length > 1) {
-				adderMessage = `${pc.green(metadata.name)}:\n`;
+				adderMessage = `${pc.green(adder.name)}:\n`;
 			}
 
 			const adderNextSteps = adder.nextSteps!({
 				...workspace,
-				options: official[metadata.id]!,
+				options: official[adder.id]!,
 				highlighter
 			});
 			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
@@ -521,7 +519,7 @@ export async function installAdders({
 }: InstallAdderOptions): Promise<string[]> {
 	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
 	const commDetails = Object.keys(community).map(
-		(id) => communityDetails.find((a) => a.metadata.id === id)!
+		(id) => communityDetails.find((a) => a.id === id)!
 	);
 	const details = adderDetails.concat(commDetails);
 
@@ -533,13 +531,13 @@ export async function installAdders({
 		if (!a.dependsOn) return -1;
 		if (!b.dependsOn) return 1;
 
-		return a.dependsOn.includes(b.metadata.id) ? 1 : b.dependsOn.includes(a.metadata.id) ? -1 : 0;
+		return a.dependsOn.includes(b.id) ? 1 : b.dependsOn.includes(a.id) ? -1 : 0;
 	});
 
 	// apply adders
 	const filesToFormat = new Set<string>();
 	for (const config of details) {
-		const adderId = config.metadata.id;
+		const adderId = config.id;
 		const workspace = createWorkspace(cwd);
 
 		workspace.options = official[adderId] ?? community[adderId]!;
@@ -553,7 +551,7 @@ export async function installAdders({
 		await config.postInstall?.(workspace);
 
 		if (config.scripts && config.scripts.length > 0) {
-			const name = config.metadata.name;
+			const name = config.name;
 			p.log.step(`Running external command ${pc.gray(`(${name})`)}`);
 
 			for (const script of config.scripts) {
@@ -587,8 +585,8 @@ function transformAliases(ids: string[]): string[] {
 	const set = new Set<string>();
 	for (const id of ids) {
 		if (aliases.includes(id)) {
-			const adder = adderDetails.find((a) => a.metadata.alias === id)!;
-			set.add(adder.metadata.id);
+			const adder = adderDetails.find((a) => a.alias === id)!;
+			set.add(adder.id);
 		} else {
 			set.add(id);
 		}
