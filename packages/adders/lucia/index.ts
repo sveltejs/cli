@@ -1,9 +1,9 @@
-import { colors, dedent, defineAdder, defineAdderOptions, log, Walker } from '@svelte-cli/core';
-import { common, exports, imports, variables, object, functions } from '@svelte-cli/core/js';
+import { colors, dedent, defineAdder, defineAdderOptions, log, Walker } from '@sveltejs/cli-core';
+import { common, exports, imports, variables, object, functions } from '@sveltejs/cli-core/js';
 // eslint-disable-next-line no-duplicate-imports
-import type { AstTypes } from '@svelte-cli/core/js';
+import type { AstTypes } from '@sveltejs/cli-core/js';
 import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '../common.ts';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { parseScript } from '@sveltejs/cli-core/parsers';
 
 const LUCIA_ADAPTER = {
 	mysql: 'DrizzleMySQLAdapter',

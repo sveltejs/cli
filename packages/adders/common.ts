@@ -6,10 +6,10 @@ import {
 	functions,
 	type AstKinds,
 	type AstTypes
-} from '@svelte-cli/core/js';
-import * as html from '@svelte-cli/core/html';
-import { Walker, type Question, type FileEditor } from '@svelte-cli/core';
-import { parseScript } from '@svelte-cli/core/parsers';
+} from '@sveltejs/cli-core/js';
+import { Walker, type Question, type FileEditor } from '@sveltejs/cli-core';
+import * as html from '@sveltejs/cli-core/html';
+import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export function createPrinter(...conditions: boolean[]) {
 	const printers = conditions.map((condition) => {

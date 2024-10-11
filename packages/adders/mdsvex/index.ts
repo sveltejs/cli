@@ -1,6 +1,6 @@
-import { defineAdder } from '@svelte-cli/core';
-import { array, exports, functions, imports, object } from '@svelte-cli/core/js';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { defineAdder } from '@sveltejs/cli-core';
+import { array, exports, functions, imports, object } from '@sveltejs/cli-core/js';
+import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'mdsvex',

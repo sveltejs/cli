@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { addEslintConfigPrettier } from '../common.ts';
-import { defineAdder, log } from '@svelte-cli/core';
+import { defineAdder, log } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -11,8 +11,8 @@ import {
 	object,
 	type AstKinds,
 	type AstTypes
-} from '@svelte-cli/core/js';
-import { parseJson, parseScript } from '@svelte-cli/core/parsers';
+} from '@sveltejs/cli-core/js';
+import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'eslint',

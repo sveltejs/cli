@@ -2,11 +2,11 @@ import process from 'node:process';
 import pc from 'picocolors';
 import pkg from './package.json';
 import { exec } from 'tinyexec';
-import * as p from '@svelte-cli/clack-prompts';
+import * as p from '@sveltejs/clack-prompts';
 import { AGENTS, type AgentName, detectSync } from 'package-manager-detector';
 import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,

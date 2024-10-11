@@ -1,7 +1,7 @@
-import { defineAdderTests, type OptionDefinition, type FileEditor } from '@svelte-cli/core';
-import { imports } from '@svelte-cli/core/js';
-import * as html from '@svelte-cli/core/html';
-import { parseSvelte } from '@svelte-cli/core/parsers';
+import { defineAdderTests, type OptionDefinition, type FileEditor } from '@sveltejs/cli-core';
+import { imports } from '@sveltejs/cli-core/js';
+import * as html from '@sveltejs/cli-core/html';
+import { parseSvelte } from '@sveltejs/cli-core/parsers';
 
 export const tests = defineAdderTests({
 	files: [

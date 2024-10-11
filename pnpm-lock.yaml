@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@changesets/cli':
-        specifier: ^2.27.8
-        version: 2.27.8
+        specifier: ^2.27.9
+        version: 2.27.9
       '@rollup/plugin-commonjs':
         specifier: ^26.0.1
         version: 26.0.1(rollup@4.21.2)
@@ -23,7 +23,7 @@ importers:
       '@rollup/plugin-node-resolve':
         specifier: ^15.2.3
         version: 15.2.3(rollup@4.21.2)
-      '@svelte-cli/create':
+      '@sveltejs/create':
         specifier: workspace:*
         version: link:packages/create
       '@sveltejs/eslint-config':
@@ -80,7 +80,7 @@ importers:
 
   community-adder-template:
     dependencies:
-      '@svelte-cli/core':
+      '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../packages/core
     devDependencies:
@@ -90,7 +90,7 @@ importers:
 
   packages/adders:
     dependencies:
-      '@svelte-cli/core':
+      '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../core
 
@@ -141,7 +141,7 @@ importers:
 
   packages/clack-prompts:
     devDependencies:
-      '@svelte-cli/clack-core':
+      '@sveltejs/clack-core':
         specifier: workspace:*
         version: link:../clack-core
       is-unicode-supported:
@@ -155,18 +155,17 @@ importers:
         version: 1.0.5
 
   packages/cli:
-    dependencies:
-      '@svelte-cli/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
-      '@svelte-cli/adders':
+      '@sveltejs/adders':
         specifier: workspace:*
         version: link:../adders
-      '@svelte-cli/clack-prompts':
+      '@sveltejs/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
-      '@svelte-cli/create':
+      '@sveltejs/cli-core':
+        specifier: workspace:*
+        version: link:../core
+      '@sveltejs/create':
         specifier: workspace:*
         version: link:../create
       '@types/tar-fs':
@@ -196,11 +195,11 @@ importers:
 
   packages/core:
     dependencies:
-      '@svelte-cli/ast-tooling':
+      '@sveltejs/ast-tooling':
         specifier: workspace:*
         version: link:../ast-tooling
     devDependencies:
-      '@svelte-cli/clack-prompts':
+      '@sveltejs/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
       decircular:
@@ -267,8 +266,8 @@ packages:
   '@changesets/changelog-git@0.2.0':
     resolution: {integrity: sha512-bHOx97iFI4OClIT35Lok3sJAwM31VbUM++gnMBV16fdbtBhgYu4dxsphBF/0AZZsyAHMrnM0yFcj5gZM1py6uQ==}
 
-  '@changesets/cli@2.27.8':
-    resolution: {integrity: sha512-gZNyh+LdSsI82wBSHLQ3QN5J30P4uHKJ4fXgoGwQxfXwYFTJzDdvIJasZn8rYQtmKhyQuiBj4SSnLuKlxKWq4w==}
+  '@changesets/cli@2.27.9':
+    resolution: {integrity: sha512-q42a/ZbDnxPpCb5Wkm6tMVIxgeI9C/bexntzTeCFBrQEdpisQqk8kCHllYZMDjYtEc1ZzumbMJAG8H0Z4rdvjg==}
     hasBin: true
 
   '@changesets/config@3.0.3':
@@ -739,9 +738,6 @@ packages:
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
-
-  '@types/semver@7.5.8':
-    resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
 
   '@types/tar-fs@2.0.4':
     resolution: {integrity: sha512-ipPec0CjTmVDWE+QKr9cTmIIoTl7dFG/yARCM5MqK8i6CNLIG1P8x4kwDsOQY1ChZOZjH0wO9nvfgBvWl4R3kA==}
@@ -2224,7 +2220,7 @@ snapshots:
     dependencies:
       '@changesets/types': 6.0.0
 
-  '@changesets/cli@2.27.8':
+  '@changesets/cli@2.27.9':
     dependencies:
       '@changesets/apply-release-plan': 7.0.5
       '@changesets/assemble-release-plan': 6.0.4
@@ -2241,14 +2237,12 @@ snapshots:
       '@changesets/types': 6.0.0
       '@changesets/write': 0.3.2
       '@manypkg/get-packages': 1.1.3
-      '@types/semver': 7.5.8
       ansi-colors: 4.1.3
       ci-info: 3.9.0
       enquirer: 2.4.1
       external-editor: 3.1.0
       fs-extra: 7.0.1
       mri: 1.2.0
-      outdent: 0.5.0
       p-limit: 2.3.0
       package-manager-detector: 0.2.2
       picocolors: 1.1.0
@@ -2668,8 +2662,6 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/resolve@1.20.2': {}
-
-  '@types/semver@7.5.8': {}
 
   '@types/tar-fs@2.0.4':
     dependencies:

@@ -1,7 +1,7 @@
 {
-	"name": "@svelte-cli/adders",
+	"name": "@sveltejs/adders",
 	"private": true,
-	"version": "1.6.0",
+	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
@@ -15,6 +15,6 @@
 		}
 	},
 	"dependencies": {
-		"@svelte-cli/core": "workspace:*"
+		"@sveltejs/cli-core": "workspace:*"
 	}
 }

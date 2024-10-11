@@ -1,4 +1,4 @@
-import { defineAdderTests } from '@svelte-cli/core';
+import { defineAdderTests } from '@sveltejs/cli-core';
 
 let port = 6006;
 

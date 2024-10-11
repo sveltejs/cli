@@ -10,12 +10,12 @@ import {
 	SelectPrompt,
 	type State,
 	TextPrompt
-} from '@svelte-cli/clack-core';
+} from '@sveltejs/clack-core';
 import isUnicodeSupported from 'is-unicode-supported';
 import color from 'picocolors';
 import { cursor, erase } from 'sisteransi';
 
-export { isCancel } from '@svelte-cli/clack-core';
+export { isCancel } from '@sveltejs/clack-core';
 
 const unicode = isUnicodeSupported();
 const s = (c: string, fallback: string) => (unicode ? c : fallback);

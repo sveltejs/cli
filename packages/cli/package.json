@@ -26,13 +26,11 @@
 			"default": "./dist/index.js"
 		}
 	},
-	"dependencies": {
-		"@svelte-cli/core": "workspace:*"
-	},
 	"devDependencies": {
-		"@svelte-cli/adders": "workspace:*",
-		"@svelte-cli/clack-prompts": "workspace:*",
-		"@svelte-cli/create": "workspace:*",
+		"@sveltejs/adders": "workspace:*",
+		"@sveltejs/clack-prompts": "workspace:*",
+		"@sveltejs/cli-core": "workspace:*",
+		"@sveltejs/create": "workspace:*",
 		"@types/tar-fs": "^2.0.4",
 		"commander": "^12.1.0",
 		"empathic": "^1.0.0",
@@ -46,7 +44,7 @@
 		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"format": "pnpm lint --write",
 		"check": "tsc",
-		"postpublish": "pnpm -F @svelte-cli/create update-template-repo"
+		"postpublish": "pnpm -F @sveltejs/create update-template-repo"
 	},
 	"files": [
 		"dist"

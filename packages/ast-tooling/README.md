@@ -1,4 +1,4 @@
-# @svelte-cli/ast-tooling
+# @sveltejs/ast-tooling
 
 This package provides tools and methods for parsing and serializing CSS, HTML and JS AST's. As the main [sv](https://svelte-add.com) project requires all of these tools they have been extracted into this separate project.
 
