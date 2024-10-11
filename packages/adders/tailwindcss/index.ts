@@ -19,14 +19,7 @@ export default defineAdder({
 	description: 'Rapidly build modern websites without ever leaving your HTML',
 	environments: { svelte: true, kit: true },
 	documentation: 'https://tailwindcss.com/docs',
-	options: {
-		plugins: {
-			type: 'multiselect',
-			question: 'Which plugins would you like to add?',
-			options: [{ value: 'typography', label: 'Typography' }],
-			default: []
-		}
-	},
+	options,
 	packages: [
 		{ name: 'tailwindcss', version: '^3.4.9', dev: true },
 		{ name: 'autoprefixer', version: '^10.4.20', dev: true },

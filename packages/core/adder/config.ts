@@ -6,7 +6,7 @@ export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
 
-export type AdderConfigEnvironments = {
+export type Environments = {
 	svelte: boolean;
 	kit: boolean;
 };
@@ -30,7 +30,7 @@ export type Adder<Args extends OptionDefinition> = {
 	alias?: string;
 	name: string;
 	description: string;
-	environments: AdderConfigEnvironments;
+	environments: Environments;
 	documentation?: string;
 	options: Args;
 	dependsOn?: string[];
