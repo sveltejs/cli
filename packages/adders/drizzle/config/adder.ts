@@ -1,6 +1,7 @@
 import { options as availableOptions } from './options.ts';
 import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
-import { defineAdder, dedent, type TextFileEditor } from '@svelte-cli/core';
+import { defineAdder, dedent, type FileEditor } from '@svelte-cli/core';
+import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 const PORTS = {
 	mysql: '3306',
@@ -125,14 +126,15 @@ export const adder = defineAdder({
 		},
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data, options }) => {
+			content: ({ content, options }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				if (options.docker) scripts['db:start'] ??= 'docker compose up';
 				scripts['db:push'] ??= 'drizzle-kit push';
 				scripts['db:migrate'] ??= 'drizzle-kit migrate';
 				scripts['db:studio'] ??= 'drizzle-kit studio';
+				return generateCode();
 			}
 		},
 		{
@@ -150,8 +152,9 @@ export const adder = defineAdder({
 		},
 		{
 			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ options, ast, typescript }) => {
+			content: ({ options, content, typescript }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
 				const envCheckStatement = common.statementFromString(
@@ -161,10 +164,10 @@ export const adder = defineAdder({
 
 				const fallback = common.expressionFromString('defineConfig({})');
 				const { value: exportDefault } = exports.defaultExport(ast, fallback);
-				if (exportDefault.type !== 'CallExpression') return;
+				if (exportDefault.type !== 'CallExpression') return content;
 
 				const objExpression = exportDefault.arguments?.[0];
-				if (!objExpression || objExpression.type !== 'ObjectExpression') return;
+				if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
 
 				const driver = options.sqlite === 'turso' ? common.createLiteral('turso') : undefined;
 				const authToken =
@@ -190,13 +193,16 @@ export const adder = defineAdder({
 				// The `driver` property is only required for _some_ sqlite DBs.
 				// We'll need to remove it if it's anything but sqlite
 				if (options.database !== 'sqlite') object.removeProperty(objExpression, 'driver');
+
+				return generateCode();
 			}
 		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/schema.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, options }) => {
+			content: ({ content, options }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				let userSchemaExpression;
 				if (options.database === 'sqlite') {
 					imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
@@ -240,13 +246,16 @@ export const adder = defineAdder({
 				if (!userSchemaExpression) throw new Error('unreachable state...');
 				const userIdentifier = variables.declaration(ast, 'const', 'user', userSchemaExpression);
 				exports.namedExport(ast, 'user', userIdentifier);
+
+				return generateCode();
 			}
 		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.libDirectory}/server/db/index.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast, options }) => {
+			content: ({ content, options }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
 
 				// env var checks
@@ -320,6 +329,8 @@ export const adder = defineAdder({
 				const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
 				const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 				exports.namedExport(ast, 'db', db);
+
+				return generateCode();
 			}
 		}
 	],
@@ -336,7 +347,7 @@ export const adder = defineAdder({
 	}
 });
 
-function generateEnvFileContent({ content, options }: TextFileEditor<typeof availableOptions>) {
+function generateEnvFileContent({ content, options }: FileEditor<typeof availableOptions>) {
 	const DB_URL_KEY = 'DATABASE_URL';
 	if (options.docker) {
 		// we'll prefill with the default docker db credentials

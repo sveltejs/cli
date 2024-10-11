@@ -1,7 +1,6 @@
 import { options } from '../config/options.ts';
 import { defineAdderTests } from '@svelte-cli/core';
-import { common } from '@svelte-cli/core/js';
-import { addFromRawHtml } from '@svelte-cli/core/html';
+import { parseSvelte, parseJson } from '@svelte-cli/core/parsers';
 
 const defaultOptionValues = {
 	sqlite: options.sqlite.default,
@@ -21,29 +20,26 @@ export const tests = defineAdderTests({
 	files: [
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
-			contentType: 'svelte',
 			condition: ({ kit }) => Boolean(kit),
-			content: ({ htmlAst, jsAst }) => {
-				common.addFromString(jsAst, 'export let data;');
-				addFromRawHtml(
-					htmlAst.childNodes,
-					`
-                    {#each data.users as user}
+			content: ({ content }) => {
+				const { script, template, generateCode } = parseSvelte(content);
+				const dataProp = '\nexport let data;';
+				const eachBlock = `
+					{#each data.users as user}
                         <span data-test-id="user-id-{user.id}">{user.id} {user.name}</span>
-                    {/each}
-                    `
-				);
+                    {/each}`;
+				return generateCode({
+					script: script.source + dataProp,
+					template: template.source + eachBlock
+				});
 			}
 		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit?.routesDirectory}/+page.server.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
 			condition: ({ kit }) => Boolean(kit),
-			content: ({ ast, typescript }) => {
-				common.addFromString(
-					ast,
-					`
+			content: ({ typescript }) => {
+				return `
                     import { db } from '$lib/server/db';
                     import { user } from '$lib/server/db/schema.js';
 
@@ -58,8 +54,7 @@ export const tests = defineAdderTests({
                     function insertUser(${typescript ? 'value: typeof user.$inferInsert' : 'value'}) {
                         return db.insert(user).values(value);
                     }
-                    `
-				);
+                    `;
 			}
 		},
 		{
@@ -72,10 +67,11 @@ export const tests = defineAdderTests({
 		},
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				// executes after pnpm install
 				data.scripts['postinstall'] ??= 'pnpm run db:push';
+				return generateCode();
 			}
 		}
 	],

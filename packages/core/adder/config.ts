@@ -1,6 +1,6 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
-import type { FileType } from '../files/processors.ts';
-import type { Workspace } from '../files/workspace.ts';
+import type { FileType } from './processors.ts';
+import type { Workspace } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>

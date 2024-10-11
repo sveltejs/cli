@@ -20,6 +20,7 @@
 		"esModuleInterop": true,
 		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
-		"noEmit": true
+		"noEmit": true,
+		"noUncheckedIndexedAccess": true
 	}
 }

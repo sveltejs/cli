@@ -2,6 +2,7 @@ import { defineAdder } from '@svelte-cli/core';
 import { options } from './options.ts';
 import { array, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
+import { parseScript, parseSvelte } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
 	metadata: {
@@ -20,8 +21,8 @@ export const adder = defineAdder({
 	files: [
 		{
 			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
 				const vitePluginName = 'routify';
 				imports.addDefault(ast, '@roxi/routify/vite-plugin', vitePluginName);
 
@@ -37,17 +38,18 @@ export const adder = defineAdder({
 				functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
 
 				array.push(pluginsArray, pluginFunctionCall);
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'src/App.svelte',
-			contentType: 'svelte',
-			content: ({ jsAst, htmlAst }) => {
-				imports.addNamed(jsAst, '@roxi/routify', {
+			content: ({ content }) => {
+				const { script, template, generateCode } = parseSvelte(content);
+				imports.addNamed(script.ast, '@roxi/routify', {
 					Router: 'Router',
 					createRouter: 'createRouter'
 				});
-				imports.addDefault(jsAst, '../.routify/routes.default.js', 'routes');
+				imports.addDefault(script.ast, '../.routify/routes.default.js', 'routes');
 
 				const routesObject = object.createEmpty();
 				const routesIdentifier = variables.identifier('routes');
@@ -55,31 +57,30 @@ export const adder = defineAdder({
 				const createRouterFunction = functions.call('createRouter', []);
 				createRouterFunction.arguments.push(routesObject);
 				const routerVariableDeclaration = variables.declaration(
-					jsAst,
+					script.ast,
 					'const',
 					'router',
 					createRouterFunction
 				);
-				exports.namedExport(jsAst, 'router', routerVariableDeclaration);
+				exports.namedExport(script.ast, 'router', routerVariableDeclaration);
 
 				const router = html.element('Router', { '{router}': '' });
-				html.insertElement(htmlAst.childNodes, router);
+				html.insertElement(template.ast.childNodes, router);
+				return generateCode({ script: script.generateCode(), template: template.generateCode() });
 			}
 		},
 		{
 			name: () => 'src/routes/index.svelte',
-			contentType: 'svelte',
-			content: ({ htmlAst }) => {
+			content: ({ content }) => {
 				const htmlString = `${routifyDemoHtml}<p>On index</p>`;
-				html.addFromRawHtml(htmlAst.childNodes, htmlString);
+				return content + htmlString;
 			}
 		},
 		{
 			name: () => 'src/routes/demo.svelte',
-			contentType: 'svelte',
-			content: ({ htmlAst }) => {
+			content: ({ content }) => {
 				const htmlString = `${routifyDemoHtml}<p>On demo</p>`;
-				html.addFromRawHtml(htmlAst.childNodes, htmlString);
+				return content + htmlString;
 			}
 		}
 	]

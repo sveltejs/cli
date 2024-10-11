@@ -7,6 +7,8 @@ import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
 import { fileURLToPath } from 'node:url';
 
+/** @import { File, LanguageType } from '../index.ts' */
+
 const pkgRoot = path.resolve(fileURLToPath(import.meta.url), '..', '..');
 
 /** @param {string} content */
@@ -77,7 +79,7 @@ async function generate_templates(dist, shared) {
 		const meta_file = path.join(cwd, '.meta.json');
 		if (!fs.existsSync(meta_file)) throw new Error('Template must have a .meta.json file');
 
-		/** @type {Record<string, import('../index.ts').File[]>} */
+		/** @type {Record<LanguageType, File[]>} */
 		const types = {
 			typescript: [],
 			checkjs: [],
@@ -149,6 +151,7 @@ async function generate_templates(dist, shared) {
 							while ((import_match = import_pattern.exec(typescript))) {
 								const word_pattern = /[a-z_$][a-z0-9_$]*/gi;
 								let word_match;
+								// @ts-ignore
 								while ((word_match = word_pattern.exec(import_match[1]))) {
 									imports.push(word_match[0]);
 								}
@@ -258,8 +261,10 @@ async function generate_shared(dist) {
 
 			const pattern = /([+-])([a-z0-9]+)/g;
 			let match;
+			// @ts-ignore
 			while ((match = pattern.exec(conditions))) {
 				const set = match[1] === '+' ? include : exclude;
+				// @ts-ignore
 				set.push(match[2]);
 			}
 

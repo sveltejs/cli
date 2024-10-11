@@ -2,11 +2,11 @@
 
 import pkg from './package.json';
 import { program } from 'commander';
-import { add } from './commands/add.js';
-import { create } from './commands/create.js';
-import { migrate } from './commands/migrate.js';
-import { check } from './commands/check.js';
-import { helpConfig } from './common.js';
+import { add } from './commands/add/index.ts';
+import { create } from './commands/create.ts';
+import { migrate } from './commands/migrate.ts';
+import { check } from './commands/check.ts';
+import { helpConfig } from './common.ts';
 
 program.name(pkg.name).version(pkg.version, '-v').configureHelp(helpConfig);
 program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);

@@ -1,6 +1,7 @@
 import { options } from './options.ts';
 import { defineAdder } from '@svelte-cli/core';
 import { array, exports, functions, imports, object } from '@svelte-cli/core/js';
+import { parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
 	metadata: {
@@ -19,8 +20,9 @@ export const adder = defineAdder({
 	files: [
 		{
 			name: () => 'svelte.config.js',
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
+
 				imports.addNamed(ast, 'mdsvex', { mdsvex: 'mdsvex' });
 
 				const { value: exportDefault } = exports.defaultExport(ast, object.createEmpty());
@@ -43,6 +45,8 @@ export const adder = defineAdder({
 				const extensionsArray = object.property(exportDefault, 'extensions', array.createEmpty());
 				array.push(extensionsArray, '.svelte');
 				array.push(extensionsArray, '.svx');
+
+				return generateCode();
 			}
 		}
 	]

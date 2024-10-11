@@ -1,24 +1,18 @@
-import {
-	defineAdderTests,
-	type SvelteFileEditor,
-	type TextFileEditor,
-	type OptionDefinition
-} from '@svelte-cli/core';
+import { defineAdderTests, type OptionDefinition, type FileEditor } from '@svelte-cli/core';
 import { options } from '../config/options.ts';
 import { imports } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
+import { parseSvelte } from '@svelte-cli/core/parsers';
 
 export const tests = defineAdderTests({
 	files: [
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
-			contentType: 'svelte',
 			content: useMarkdownFile,
 			condition: ({ kit }) => Boolean(kit)
 		},
 		{
 			name: () => 'src/App.svelte',
-			contentType: 'svelte',
 			content: useMarkdownFile,
 			condition: ({ kit }) => !kit
 		},
@@ -47,10 +41,10 @@ export const tests = defineAdderTests({
 	]
 });
 
-function addMarkdownFile<Args extends OptionDefinition>(editor: TextFileEditor<Args>) {
+function addMarkdownFile<Args extends OptionDefinition>({ content }: FileEditor<Args>) {
 	// example taken from website: https://mdsvex.pngwn.io
 	return (
-		editor.content +
+		content +
 		`
 ---
 title: Svex up your markdown
@@ -65,14 +59,13 @@ Markdown is pretty good but sometimes you just need more.
 	);
 }
 
-function useMarkdownFile<Args extends OptionDefinition>({
-	jsAst,
-	htmlAst
-}: SvelteFileEditor<Args>) {
-	imports.addDefault(jsAst, './Demo.svx', 'Demo');
+function useMarkdownFile<Args extends OptionDefinition>({ content }: FileEditor<Args>) {
+	const { script, template, generateCode } = parseSvelte(content);
+	imports.addDefault(script.ast, './Demo.svx', 'Demo');
 
 	const div = html.div({ class: 'mdsvex' });
-	html.appendElement(htmlAst.childNodes, div);
+	html.appendElement(template.ast.childNodes, div);
 	const mdsvexNode = html.element('Demo');
 	html.appendElement(div.childNodes, mdsvexNode);
+	return generateCode({ script: script.generateCode(), template: template.generateCode() });
 }

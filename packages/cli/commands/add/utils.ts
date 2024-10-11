@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
-import { parseJson, serializeJson } from '@svelte-cli/ast-tooling';
-import type { Adder, Highlighter } from '../adder/config.ts';
-import type { Workspace } from './workspace.ts';
+import { parseJson } from '@svelte-cli/core/parsers';
+import type { Adder, Highlighter, Workspace } from '@svelte-cli/core';
 
 export type Package = {
 	name: string;
@@ -15,28 +14,15 @@ export type Package = {
 	keywords?: string[];
 };
 
-export function getPackageJson(workspace: Workspace<any>): {
-	text: string;
-	data: Package;
-} {
+export function getPackageJson(workspace: Workspace<any>) {
 	const packageText = readFile(workspace, commonFilePaths.packageJson);
 	if (!packageText) {
-		return {
-			text: '',
-			data: {
-				dependencies: {},
-				devDependencies: {},
-				name: '',
-				version: ''
-			}
-		};
+		const pkgPath = path.join(workspace.cwd, commonFilePaths.packageJson);
+		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
-	const packageJson = parseJson(packageText) as Package;
-	return {
-		text: packageText,
-		data: packageJson
-	};
+	const { data, generateCode } = parseJson(packageText);
+	return { source: packageText, data: data as Package, generateCode };
 }
 
 export function readFile(workspace: Workspace<any>, filePath: string): string {
@@ -52,7 +38,7 @@ export function readFile(workspace: Workspace<any>, filePath: string): string {
 }
 
 export function installPackages(config: Adder<any>, workspace: Workspace<any>): string {
-	const { text: originalText, data } = getPackageJson(workspace);
+	const { data, generateCode } = getPackageJson(workspace);
 
 	for (const dependency of config.packages) {
 		if (dependency.condition && !dependency.condition(workspace)) {
@@ -60,16 +46,10 @@ export function installPackages(config: Adder<any>, workspace: Workspace<any>): 
 		}
 
 		if (dependency.dev) {
-			if (!data.devDependencies) {
-				data.devDependencies = {};
-			}
-
+			data.devDependencies ??= {};
 			data.devDependencies[dependency.name] = dependency.version;
 		} else {
-			if (!data.dependencies) {
-				data.dependencies = {};
-			}
-
+			data.dependencies ??= {};
 			data.dependencies[dependency.name] = dependency.version;
 		}
 	}
@@ -77,7 +57,7 @@ export function installPackages(config: Adder<any>, workspace: Workspace<any>): 
 	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
 	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
 
-	writeFile(workspace, commonFilePaths.packageJson, serializeJson(originalText, data));
+	writeFile(workspace, commonFilePaths.packageJson, generateCode());
 	return commonFilePaths.packageJson;
 }
 

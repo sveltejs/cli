@@ -1,6 +1,5 @@
-import { defineAdderTests, type OptionDefinition, type SvelteFileEditor } from '@svelte-cli/core';
+import { defineAdderTests } from '@svelte-cli/core';
 import { options } from '../config/options.ts';
-import * as html from '@svelte-cli/core/html';
 
 const divId = 'myDiv';
 const typographyDivId = 'myTypographyDiv';
@@ -9,19 +8,19 @@ export const tests = defineAdderTests({
 	files: [
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
-			contentType: 'svelte',
-			content: (editor) => {
-				prepareCoreTest(editor);
-				if (editor.options.plugins.includes('typography')) prepareTypographyTest(editor);
+			content: ({ content, options }) => {
+				content = prepareCoreTest(content);
+				if (options.plugins.includes('typography')) content = prepareTypographyTest(content);
+				return content;
 			},
 			condition: ({ kit }) => Boolean(kit)
 		},
 		{
 			name: () => 'src/App.svelte',
-			contentType: 'svelte',
-			content: (editor) => {
-				prepareCoreTest(editor);
-				if (editor.options.plugins.includes('typography')) prepareTypographyTest(editor);
+			content: ({ content, options }) => {
+				content = prepareCoreTest(content);
+				if (options.plugins.includes('typography')) content = prepareTypographyTest(content);
+				return content;
 			},
 			condition: ({ kit }) => !kit
 		}
@@ -53,12 +52,12 @@ export const tests = defineAdderTests({
 	]
 });
 
-function prepareCoreTest<Args extends OptionDefinition>({ htmlAst }: SvelteFileEditor<Args>) {
-	const div = html.div({ class: 'bg-slate-600 border-gray-50 border-4 mt-1', id: divId });
-	html.appendElement(htmlAst.childNodes, div);
+function prepareCoreTest(content: string) {
+	const div = `<div class="bg-slate-600 border-gray-50 border-4 mt-1" id="${divId}"></div>`;
+	return content + div;
 }
 
-function prepareTypographyTest<Args extends OptionDefinition>({ htmlAst }: SvelteFileEditor<Args>) {
-	const div = html.element('p', { class: 'text-lg text-right line-through', id: typographyDivId });
-	html.appendElement(htmlAst.childNodes, div);
+function prepareTypographyTest(content: string) {
+	const p = `<p class="text-lg text-right line-through" id="${typographyDivId}"></p>`;
+	return content + p;
 }
