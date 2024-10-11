@@ -355,16 +355,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// run precondition checks
 	if (options.preconditions) {
-		const preconditions = selectedAdders
-			.flatMap(({ adder }) => adder.preconditions)
-			.filter((p) => p !== undefined);
-
 		// add global checks
 		const { kit } = createWorkspace(options.cwd);
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
-		const globalPreconditions = common.getGlobalPreconditions(options.cwd, projectType, adders);
-		preconditions.unshift(...globalPreconditions.preconditions);
+		const { preconditions } = common.getGlobalPreconditions(options.cwd, projectType, adders);
 
 		const fails: Array<{ name: string; message?: string }> = [];
 		for (const condition of preconditions) {
@@ -535,10 +530,10 @@ export async function installAdders({
 	// and adders with dependencies runs later on, based on the adders they depend on.
 	// based on https://stackoverflow.com/a/72030336/16075084
 	details.sort((a, b) => {
-		if (!a.runsAfter) return -1;
-		if (!b.runsAfter) return 1;
+		if (!a.dependsOn) return -1;
+		if (!b.dependsOn) return 1;
 
-		return a.runsAfter.includes(b.metadata.id) ? 1 : b.runsAfter.includes(a.metadata.id) ? -1 : 0;
+		return a.dependsOn.includes(b.metadata.id) ? 1 : b.dependsOn.includes(a.metadata.id) ? -1 : 0;
 	});
 
 	// apply adders

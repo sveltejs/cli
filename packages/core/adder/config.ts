@@ -43,14 +43,12 @@ export type Scripts<Args extends OptionDefinition> = {
 export type Adder<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
-	runsAfter?: string[];
 	dependsOn?: string[];
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
 	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
 	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
-	preconditions?: Precondition[];
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
