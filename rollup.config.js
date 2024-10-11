@@ -11,7 +11,7 @@ import esbuild from 'rollup-plugin-esbuild';
 import { buildTemplates } from '@svelte-cli/create/build';
 import MagicString from 'magic-string';
 
-/** @import { Package } from "./packages/core/files/utils.js" */
+/** @import { Package } from "./packages/cli/commands/add/utils" */
 /** @import { Plugin, RollupOptions } from "rollup" */
 /** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
 
@@ -47,7 +47,7 @@ function getConfig(project) {
 	const externalDeps = getExternalDeps(pkg);
 
 	// always externalizes `@svelte-cli/core` and any deps that are `dependencies` or `peerDependencies`
-	const external = [/@svelte-cli\/core\w*/g, ...externalDeps];
+	const external = [...externalDeps];
 
 	/** @type {Plugin | undefined} */
 	let buildCliTemplatesPlugin;

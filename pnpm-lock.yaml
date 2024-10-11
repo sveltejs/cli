@@ -155,10 +155,6 @@ importers:
         version: 1.0.5
 
   packages/cli:
-    dependencies:
-      '@svelte-cli/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       '@svelte-cli/adders':
         specifier: workspace:*
@@ -166,6 +162,9 @@ importers:
       '@svelte-cli/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
+      '@svelte-cli/core':
+        specifier: workspace:*
+        version: link:../core
       '@svelte-cli/create':
         specifier: workspace:*
         version: link:../create
@@ -195,10 +194,11 @@ importers:
         version: 0.41.0(typescript@5.6.2)
 
   packages/core:
-    devDependencies:
+    dependencies:
       '@svelte-cli/ast-tooling':
         specifier: workspace:*
         version: link:../ast-tooling
+    devDependencies:
       '@svelte-cli/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts

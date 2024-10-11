@@ -26,12 +26,10 @@
 			"default": "./dist/index.js"
 		}
 	},
-	"dependencies": {
-		"@svelte-cli/core": "workspace:*"
-	},
 	"devDependencies": {
 		"@svelte-cli/adders": "workspace:*",
 		"@svelte-cli/clack-prompts": "workspace:*",
+		"@svelte-cli/core": "workspace:*",
 		"@svelte-cli/create": "workspace:*",
 		"@types/tar-fs": "^2.0.4",
 		"commander": "^12.1.0",
