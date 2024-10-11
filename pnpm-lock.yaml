@@ -209,12 +209,9 @@ importers:
       dedent:
         specifier: ^1.5.3
         version: 1.5.3
-      empathic:
-        specifier: ^1.0.0
-        version: 1.0.0
-      package-manager-detector:
-        specifier: ^0.2.2
-        version: 0.2.2
+      magic-string:
+        specifier: ^0.30.11
+        version: 0.30.11
       picocolors:
         specifier: ^1.1.0
         version: 1.1.0

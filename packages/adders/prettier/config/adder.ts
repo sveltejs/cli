@@ -1,8 +1,9 @@
-import { dedent, defineAdderConfig, log, colors } from '@svelte-cli/core';
+import { dedent, defineAdder, log, colors } from '@svelte-cli/core';
 import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
+import { parseJson } from '@svelte-cli/core/parsers';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'prettier',
 		name: 'Prettier',
@@ -40,8 +41,8 @@ export const adder = defineAdderConfig({
 		},
 		{
 			name: () => '.prettierrc',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				if (Object.keys(data).length === 0) {
 					// we'll only set these defaults if there is no pre-existing config
 					data.useTabs = true;
@@ -64,12 +65,14 @@ export const adder = defineAdderConfig({
 				if (!override) {
 					overrides.push({ files: '*.svelte', options: { parser: 'svelte' } });
 				}
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data, dependencyVersion }) => {
+			content: ({ content, dependencyVersion }) => {
+				const { data, generateCode } = parseJson(content);
+
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				const CHECK_CMD = 'prettier --check .';
@@ -81,12 +84,13 @@ export const adder = defineAdderConfig({
 				} else {
 					scripts['lint'] ??= CHECK_CMD;
 				}
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'eslint.config.js',
-			contentType: 'script',
 			condition: ({ dependencyVersion }) => {
+
 				// We only want this to execute when it's `false`, not falsy
 
 				if (dependencyVersion('eslint')?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
