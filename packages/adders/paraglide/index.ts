@@ -1,10 +1,18 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineAdder, defineAdderOptions, log } from '@svelte-cli/core';
-import { array, common, functions, imports, object, variables, exports } from '@svelte-cli/core/js';
-import * as html from '@svelte-cli/core/html';
+import { defineAdder, defineAdderOptions, log } from '@sveltejs/cli-core';
+import {
+	array,
+	common,
+	functions,
+	imports,
+	object,
+	variables,
+	exports
+} from '@sveltejs/cli-core/js';
+import * as html from '@sveltejs/cli-core/html';
 import { addHooksHandle, addSlot, createPrinter } from '../common.ts';
-import { parseHtml, parseJson, parseScript, parseSvelte } from '@svelte-cli/core/parsers';
+import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
