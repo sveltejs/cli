@@ -2,6 +2,7 @@ import { defineAdder, defineAdderOptions } from '@svelte-cli/core';
 import { addImports } from '@svelte-cli/core/css';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@svelte-cli/core/parsers';
+import { addSlot } from '../common.ts';
 
 export const options = defineAdderOptions({
 	plugins: {
@@ -121,12 +122,19 @@ export default defineAdder({
 		},
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			content: ({ content, typescript }) => {
-				const { script, generateCode } = parseSvelte(content, { typescript });
+			content: ({ content, typescript, dependencyVersion }) => {
+				const { script, template, generateCode } = parseSvelte(content, { typescript });
 				imports.addEmpty(script.ast, '../app.css');
+
+				if (content.length === 0) {
+					const svelteVersion = dependencyVersion('svelte');
+					if (!svelteVersion) throw new Error('Failed to determine svelte version');
+					addSlot(script.ast, template.ast, svelteVersion);
+				}
+
 				return generateCode({
 					script: script.generateCode(),
-					template: content.length === 0 ? '<slot />' : undefined
+					template: content.length === 0 ? template.generateCode() : undefined
 				});
 			},
 			condition: ({ kit }) => Boolean(kit)
