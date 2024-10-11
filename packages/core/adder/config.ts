@@ -47,7 +47,6 @@ export type Adder<Args extends OptionDefinition> = {
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
-	preconditions?: Precondition[];
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;

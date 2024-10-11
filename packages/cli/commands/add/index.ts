@@ -355,16 +355,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// run precondition checks
 	if (options.preconditions) {
-		const preconditions = selectedAdders
-			.flatMap(({ adder }) => adder.preconditions)
-			.filter((p) => p !== undefined);
-
 		// add global checks
 		const { kit } = createWorkspace(options.cwd);
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
-		const globalPreconditions = common.getGlobalPreconditions(options.cwd, projectType, adders);
-		preconditions.unshift(...globalPreconditions.preconditions);
+		const { preconditions } = common.getGlobalPreconditions(options.cwd, projectType, adders);
 
 		const fails: Array<{ name: string; message?: string }> = [];
 		for (const condition of preconditions) {
