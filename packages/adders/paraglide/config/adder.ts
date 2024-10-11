@@ -243,7 +243,7 @@ export const adder = defineAdder({
 				const [ts] = createPrinter(typescript);
 
 				const methodStatement = common.statementFromString(`
-					function switchToLanguage(newLanguage${ts!(': AvailableLanguageTag')}) {
+					function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
 						const canonicalPath = i18n.route($page.url.pathname);
 						const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
 						goto(localisedPath);
