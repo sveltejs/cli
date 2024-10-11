@@ -67,7 +67,8 @@ export function parseSvelte(
 	const templateSource = source
 		.replace(moduleScriptTag, '')
 		.replace(scriptTag, '')
-		.replace(styleTag, '');
+		.replace(styleTag, '')
+		.trim();
 
 	const script = parseScript(scriptSource);
 	const module = parseScript(moduleSource);
