@@ -20,7 +20,7 @@ export function createEmptyWorkspace<Args extends OptionDefinition>() {
 
 export function createWorkspace<Args extends OptionDefinition>(cwd: string): Workspace<Args> {
 	const workspace = createEmptyWorkspace<Args>();
-	workspace.cwd = cwd;
+	workspace.cwd = path.resolve(cwd);
 
 	let usesTypescript = fs.existsSync(path.join(cwd, commonFilePaths.viteConfigTS));
 
@@ -36,8 +36,14 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 	let directory = workspace.cwd;
 	const root = findRoot(workspace.cwd);
 	while (directory && directory !== root) {
-		const { data: packageJson } = getPackageJson(workspace.cwd);
-		dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies, ...dependencies };
+		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+			const { data: packageJson } = getPackageJson(directory);
+			dependencies = {
+				...packageJson.devDependencies,
+				...packageJson.dependencies,
+				...dependencies
+			};
+		}
 		directory = path.dirname(directory);
 	}
 	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
@@ -58,12 +64,14 @@ function findRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {
-		if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
-			return directory;
-		}
-		const { data } = getPackageJson(directory);
-		if (data.workspaces) {
-			return directory;
+		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+			if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
+				return directory;
+			}
+			const { data } = getPackageJson(directory);
+			if (data.workspaces) {
+				return directory;
+			}
 		}
 		directory = path.dirname(directory);
 	}
