@@ -485,7 +485,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 			const adderNextSteps = adder.nextSteps!({
 				...workspace,
-				options: official[metadata.id],
+				options: official[metadata.id]!,
 				highlighter
 			});
 			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
@@ -538,7 +538,7 @@ export async function installAdders({
 		const adderId = config.metadata.id;
 		const workspace = createWorkspace(cwd);
 
-		workspace.options = official[adderId] ?? community[adderId];
+		workspace.options = official[adderId] ?? community[adderId]!;
 
 		// execute adders
 		const pkgPath = installPackages(config, workspace);
@@ -630,7 +630,7 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 			values = [id, `no-${id}`];
 			if (applyDefault) {
 				options[id] = question.default;
-				defaults.push(question.default ? values[0] : values[1]);
+				defaults.push((question.default ? values[0] : values[1])!);
 			}
 		}
 		if (question.type === 'select') {

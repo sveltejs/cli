@@ -1,7 +1,7 @@
 import { options as availableOptions } from './options.ts';
 import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
 import { defineAdder, dedent, type FileEditor } from '@svelte-cli/core';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 const PORTS = {
 	mysql: '3306',
@@ -126,14 +126,15 @@ export const adder = defineAdder({
 		},
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data, options }) => {
+			content: ({ content, options }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				if (options.docker) scripts['db:start'] ??= 'docker compose up';
 				scripts['db:push'] ??= 'drizzle-kit push';
 				scripts['db:migrate'] ??= 'drizzle-kit migrate';
 				scripts['db:studio'] ??= 'drizzle-kit studio';
+				return generateCode();
 			}
 		},
 		{

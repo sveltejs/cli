@@ -1,6 +1,7 @@
 import { dedent, defineAdder, log, colors } from '@svelte-cli/core';
 import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
+import { parseJson } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
 	metadata: {
@@ -40,8 +41,8 @@ export const adder = defineAdder({
 		},
 		{
 			name: () => '.prettierrc',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				if (Object.keys(data).length === 0) {
 					// we'll only set these defaults if there is no pre-existing config
 					data.useTabs = true;
@@ -64,12 +65,13 @@ export const adder = defineAdder({
 				if (!override) {
 					overrides.push({ files: '*.svelte', options: { parser: 'svelte' } });
 				}
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data, dependencies }) => {
+			content: ({ content, dependencies }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				const CHECK_CMD = 'prettier --check .';
@@ -81,6 +83,7 @@ export const adder = defineAdder({
 				} else {
 					scripts['lint'] ??= CHECK_CMD;
 				}
+				return generateCode();
 			}
 		},
 		{

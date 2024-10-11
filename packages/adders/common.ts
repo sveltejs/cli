@@ -1,6 +1,13 @@
-import { imports, exports, common, variables, functions } from '@svelte-cli/core/js';
-import { Walker, type AstKinds, type AstTypes, type TextFileEditor } from '@svelte-cli/core';
-import type { Question } from '@svelte-cli/core/internal';
+import {
+	imports,
+	exports,
+	common,
+	variables,
+	functions,
+	type AstKinds,
+	type AstTypes
+} from '@svelte-cli/core/js';
+import { Walker, type Question, type FileEditor } from '@svelte-cli/core';
 import { parseScript } from '@svelte-cli/core/parsers';
 
 export function createPrinter(...conditions: boolean[]) {
@@ -10,7 +17,7 @@ export function createPrinter(...conditions: boolean[]) {
 	return printers;
 }
 
-export function addEslintConfigPrettier({ content }: TextFileEditor<Record<string, Question>>) {
+export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Question>>) {
 	const { ast, generateCode } = parseScript(content);
 
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
@@ -36,7 +43,8 @@ export function addEslintConfigPrettier({ content }: TextFileEditor<Record<strin
 	const fallbackConfig = common.expressionFromString('[]');
 	const defaultExport = exports.defaultExport(ast, fallbackConfig);
 	const eslintConfig = defaultExport.value;
-	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression') return content;
+	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression')
+		return content;
 
 	const prettier = common.expressionFromString('prettier');
 	const sveltePrettierConfig = common.expressionFromString(

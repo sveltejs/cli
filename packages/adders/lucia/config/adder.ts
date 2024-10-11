@@ -107,8 +107,8 @@ export const adder = defineAdder({
 				const userAttributes = userTable.arguments[1];
 				const sessionAttributes = sessionTable.arguments[1];
 				if (
-					userAttributes.type !== 'ObjectExpression' ||
-					sessionAttributes.type !== 'ObjectExpression'
+					userAttributes?.type !== 'ObjectExpression' ||
+					sessionAttributes?.type !== 'ObjectExpression'
 				) {
 					throw new Error('unexpected shape of `user` or `session` table definition');
 				}
@@ -553,7 +553,7 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 						qualifier: {
 							type: 'Identifier',
 							// capitalize first letter
-							name: `${name[0].toUpperCase()}${name.slice(1)}`
+							name: `${name[0]!.toUpperCase()}${name.slice(1)}`
 						}
 					},
 					{

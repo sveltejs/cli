@@ -116,7 +116,7 @@ export function getUserAgent(): AgentName | undefined {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;
 
-	const pmSpec = userAgent.split(' ')[0];
+	const pmSpec = userAgent.split(' ')[0]!;
 	const separatorPos = pmSpec.lastIndexOf('/');
 	const name = pmSpec.substring(0, separatorPos) as AgentName;
 	return AGENTS.includes(name) ? name : undefined;

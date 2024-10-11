@@ -2,9 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { options } from './options.ts';
 import { addEslintConfigPrettier } from '../../common.ts';
-import { defineAdder, log, type AstKinds, type AstTypes } from '@svelte-cli/core';
-import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { defineAdder, log } from '@svelte-cli/core';
+import {
+	array,
+	common,
+	exports,
+	functions,
+	imports,
+	object,
+	type AstKinds,
+	type AstTypes
+} from '@svelte-cli/core/js';
+import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
 	metadata: {
@@ -40,25 +49,27 @@ export const adder = defineAdder({
 	files: [
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				const LINT_CMD = 'eslint .';
 				scripts['lint'] ??= LINT_CMD;
 				if (!scripts['lint'].includes(LINT_CMD)) scripts['lint'] += ` && ${LINT_CMD}`;
+				return generateCode();
 			}
 		},
 		{
 			name: () => '.vscode/settings.json',
-			contentType: 'json',
 			// we'll only want to run this step if the file exists
 			condition: ({ cwd }) => fs.existsSync(path.join(cwd, '.vscode', 'settings.json')),
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				const validate: string[] | undefined = data['eslint.validate'];
 				if (validate && !validate.includes('svelte')) {
 					validate.push('svelte');
 				}
+				return generateCode();
 			}
 		},
 		{

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { options } from './options.ts';
 import { dedent, defineAdder, log } from '@svelte-cli/core';
 import { common, exports, imports, object } from '@svelte-cli/core/js';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
 	metadata: {
@@ -22,8 +22,8 @@ export const adder = defineAdder({
 	files: [
 		{
 			name: () => 'package.json',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				const TEST_CMD = 'playwright test';
@@ -31,6 +31,7 @@ export const adder = defineAdder({
 				scripts['test:e2e'] ??= TEST_CMD;
 				scripts['test'] ??= RUN_TEST;
 				if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
+				return generateCode();
 			}
 		},
 		{
@@ -73,7 +74,7 @@ export const adder = defineAdder({
 
 				if (
 					defaultExport.value.type === 'CallExpression' &&
-					defaultExport.value.arguments[0].type === 'ObjectExpression'
+					defaultExport.value.arguments[0]?.type === 'ObjectExpression'
 				) {
 					// uses the `defineConfig` helper
 					imports.addNamed(ast, '@playwright/test', { defineConfig: 'defineConfig' });
