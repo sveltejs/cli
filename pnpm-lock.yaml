@@ -23,7 +23,7 @@ importers:
       '@rollup/plugin-node-resolve':
         specifier: ^15.2.3
         version: 15.2.3(rollup@4.21.2)
-      '@svelte-cli/create':
+      '@sveltejs/create':
         specifier: workspace:*
         version: link:packages/create
       '@sveltejs/eslint-config':
@@ -80,7 +80,7 @@ importers:
 
   community-adder-template:
     dependencies:
-      '@svelte-cli/core':
+      '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../packages/core
     devDependencies:
@@ -90,7 +90,7 @@ importers:
 
   packages/adders:
     dependencies:
-      '@svelte-cli/core':
+      '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../core
 
@@ -141,7 +141,7 @@ importers:
 
   packages/clack-prompts:
     devDependencies:
-      '@svelte-cli/clack-core':
+      '@sveltejs/clack-core':
         specifier: workspace:*
         version: link:../clack-core
       is-unicode-supported:
@@ -156,16 +156,16 @@ importers:
 
   packages/cli:
     devDependencies:
-      '@svelte-cli/adders':
+      '@sveltejs/adders':
         specifier: workspace:*
         version: link:../adders
-      '@svelte-cli/clack-prompts':
+      '@sveltejs/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
-      '@svelte-cli/core':
+      '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../core
-      '@svelte-cli/create':
+      '@sveltejs/create':
         specifier: workspace:*
         version: link:../create
       '@types/tar-fs':
@@ -195,11 +195,11 @@ importers:
 
   packages/core:
     dependencies:
-      '@svelte-cli/ast-tooling':
+      '@sveltejs/ast-tooling':
         specifier: workspace:*
         version: link:../ast-tooling
     devDependencies:
-      '@svelte-cli/clack-prompts':
+      '@sveltejs/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
       decircular:

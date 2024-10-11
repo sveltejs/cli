@@ -3,7 +3,7 @@ import {
 	HtmlElement,
 	HtmlElementType,
 	parseHtml
-} from '@svelte-cli/ast-tooling';
+} from '@sveltejs/ast-tooling';
 
 export function div(attributes: Record<string, string> = {}): HtmlElement {
 	return element('div', attributes);

@@ -1,7 +1,7 @@
 {
-	"name": "@svelte-cli/core",
+	"name": "@sveltejs/cli-core",
 	"private": true,
-	"version": "2.10.4",
+	"version": "0.0.0",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
@@ -37,14 +37,14 @@
 		"dist"
 	],
 	"devDependencies": {
-		"@svelte-cli/clack-prompts": "workspace:*",
+		"@sveltejs/clack-prompts": "workspace:*",
 		"decircular": "^1.0.0",
 		"dedent": "^1.5.3",
 		"magic-string": "^0.30.11",
 		"picocolors": "^1.1.0"
 	},
 	"dependencies": {
-		"@svelte-cli/ast-tooling": "workspace:*"
+		"@sveltejs/ast-tooling": "workspace:*"
 	},
 	"bugs": "https://github.com/sveltejs/cli/issues",
 	"repository": {

@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
-import { common, object, type AstTypes } from '@svelte-cli/core/js';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { parseScript } from '@sveltejs/cli-core/parsers';
 import { TESTING } from '../../env.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import { detectPackageManager } from '../../common.ts';
-import type { OptionDefinition, Workspace } from '@svelte-cli/core';
+import type { OptionDefinition, Workspace } from '@sveltejs/cli-core';
 
 export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	return {

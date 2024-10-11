@@ -1,7 +1,7 @@
 {
-	"name": "@svelte-cli/ast-tooling",
+	"name": "@sveltejs/ast-tooling",
 	"private": true,
-	"version": "2.1.7",
+	"version": "0.0.0",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {

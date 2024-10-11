@@ -1,4 +1,4 @@
-import * as tools from '@svelte-cli/ast-tooling';
+import * as tools from '@sveltejs/ast-tooling';
 import MagicString from 'magic-string';
 
 type ParseBase = {

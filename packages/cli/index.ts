@@ -1,3 +1,3 @@
-import { create } from '@svelte-cli/create';
+import { create } from '@sveltejs/create';
 
 export { create };

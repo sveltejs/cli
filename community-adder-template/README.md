@@ -52,4 +52,4 @@ After that, feel free to open a pull request to [`sv`](https://github.com/svelte
 
 ## Things to be aware of
 
-Community adders are **not permitted** to have any external dependencies outside of `@svelte-cli/core`. If the use of a dependency is absolutely necessary, then they can be bundled using a bundler of your choosing (e.g. Rollup, Rolldown, tsup, etc.).
+Community adders are **not permitted** to have any external dependencies outside of `@sveltejs/cli-core`. If the use of a dependency is absolutely necessary, then they can be bundled using a bundler of your choosing (e.g. Rollup, Rolldown, tsup, etc.).

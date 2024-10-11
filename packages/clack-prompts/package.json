@@ -1,5 +1,5 @@
 {
-	"name": "@svelte-cli/clack-prompts",
+	"name": "@sveltejs/clack-prompts",
 	"private": true,
 	"version": "0.9.1",
 	"type": "module",
@@ -26,7 +26,7 @@
 	],
 	"license": "MIT",
 	"devDependencies": {
-		"@svelte-cli/clack-core": "workspace:*",
+		"@sveltejs/clack-core": "workspace:*",
 		"is-unicode-supported": "^1.3.0",
 		"picocolors": "^1.1.0",
 		"sisteransi": "^1.0.5"

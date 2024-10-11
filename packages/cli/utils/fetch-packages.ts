@@ -4,7 +4,7 @@ import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
 import { fileURLToPath } from 'node:url';
-import type { AdderWithoutExplicitArgs } from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = path.join(fileURLToPath(import.meta.url), '..', '..', 'node_modules');
@@ -14,17 +14,17 @@ export const Directive = { file: 'file:', npm: 'npm:' };
 function verifyPackage(pkg: Record<string, any>, specifier: string) {
 	const deps = { ...pkg.dependencies, ...pkg.peerDependencies };
 	// valid adders should always have a dependency on `core`
-	if (!deps['@svelte-cli/core']) {
+	if (!deps['@sveltejs/cli-core']) {
 		throw new Error(
-			`Invalid adder package specified: '${specifier}' is missing a dependency on '@svelte-cli/core' in its 'package.json'`
+			`Invalid adder package specified: '${specifier}' is missing a dependency on '@sveltejs/cli-core' in its 'package.json'`
 		);
 	}
 	// adders should never have any external dependencies outside of `core`.
 	// if the adder does have an external dependency, then we'll throw a helpful error guiding them to the solution
 	for (const dep of Object.keys(deps)) {
-		if (dep === '@svelte-cli/core') continue;
+		if (dep === '@sveltejs/cli-core') continue;
 		throw new Error(
-			`Invalid adder package detected: '${specifier}'\nCommunity adders should not have any external 'dependencies' besides '@svelte-cli/core'. Consider bundling your dependencies if they are necessary`
+			`Invalid adder package detected: '${specifier}'\nCommunity adders should not have any external 'dependencies' besides '@sveltejs/cli-core'. Consider bundling your dependencies if they are necessary`
 		);
 	}
 }

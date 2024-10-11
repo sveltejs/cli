@@ -1,7 +1,7 @@
 import { options } from './options.js';
-import { defineAdder } from '@svelte-cli/core';
-import { imports } from '@svelte-cli/core/js';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { defineAdder } from '@sveltejs/cli-core';
+import { imports } from '@sveltejs/cli-core/js';
+import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export const adder = defineAdder({
 	id: 'community-adder-template',
