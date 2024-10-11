@@ -133,7 +133,9 @@ export default defineAdder({
 						userId: common.expressionFromString(
 							`text('user_id').notNull().references(() => user.id)`
 						),
-						expiresAt: common.expressionFromString(`integer('expires_at').notNull()`)
+						expiresAt: common.expressionFromString(
+							`integer('expires_at', { mode: 'timestamp' }).notNull()`
+						)
 					});
 				}
 				if (drizzleDialect === 'mysql') {
