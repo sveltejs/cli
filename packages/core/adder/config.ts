@@ -31,7 +31,6 @@ export type Adder<Args extends OptionDefinition> = {
 	name: string;
 	description: string;
 	environments: AdderConfigEnvironments;
-	logo?: string;
 	documentation?: string;
 	options: Args;
 	dependsOn?: string[];

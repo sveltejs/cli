@@ -9,7 +9,6 @@ export default defineAdder({
 	name: 'Playwright',
 	description: 'A testing framework for end-to-end testing',
 	environments: { svelte: true, kit: true },
-	logo: './playwright.svg',
 	documentation: 'https://playwright.dev',
 	options: {},
 	packages: [{ name: '@playwright/test', version: '^1.45.3', dev: true }],

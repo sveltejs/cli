@@ -28,7 +28,6 @@ export default defineAdder({
 	name: 'Lucia',
 	description: 'An auth library that abstracts away the complexity of handling sessions',
 	environments: { svelte: false, kit: true },
-	logo: './lucia.webp',
 	documentation: 'https://lucia-auth.com',
 	options,
 	packages: [

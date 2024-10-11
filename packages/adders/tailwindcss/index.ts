@@ -9,7 +9,6 @@ export default defineAdder({
 	name: 'Tailwind CSS',
 	description: 'Rapidly build modern websites without ever leaving your HTML',
 	environments: { svelte: true, kit: true },
-	logo: './tailwindcss.svg',
 	documentation: 'https://tailwindcss.com/docs',
 	options: {
 		plugins: {

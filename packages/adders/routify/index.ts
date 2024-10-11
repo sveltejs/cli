@@ -8,7 +8,6 @@ export default defineAdder({
 	name: 'Routify',
 	description: 'The Router that Grows With You',
 	environments: { svelte: true, kit: false },
-	logo: './routify.svg',
 	documentation: 'https://routify.dev',
 	options: {},
 	packages: [{ name: '@roxi/routify', version: 'next', dev: true }],

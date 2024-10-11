@@ -5,7 +5,6 @@ export default defineAdder({
 	name: 'Storybook',
 	description: 'Build UIs without the grunt work',
 	environments: { kit: true, svelte: true },
-	logo: './storybook.svg',
 	documentation: 'https://storybook.js.org/docs/get-started',
 	options: {},
 	packages: [],

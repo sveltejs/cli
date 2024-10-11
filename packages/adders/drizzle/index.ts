@@ -14,7 +14,6 @@ export default defineAdder({
 	name: 'Drizzle',
 	description: 'Headless ORM for NodeJS, TypeScript and JavaScript',
 	environments: { svelte: false, kit: true },
-	logo: './drizzle.svg',
 	documentation: 'https://orm.drizzle.team/docs/overview',
 	options: availableOptions,
 	packages: [

@@ -7,7 +7,6 @@ export default defineAdder({
 	name: 'Prettier',
 	description: 'An opinionated code formatter',
 	environments: { svelte: true, kit: true },
-	logo: './prettier.svg',
 	documentation: 'https://prettier.io',
 	options: {},
 	packages: [
