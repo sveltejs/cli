@@ -27,7 +27,7 @@ export const adderCategories: AdderCategories = getCategoriesById();
 function getCategoriesById(): AdderCategories {
 	const adderCategories: any = {};
 	for (const [key, adders] of Object.entries(categories)) {
-		adderCategories[key] = adders.map((a) => a.name);
+		adderCategories[key] = adders.map((a) => a.id);
 	}
 	return adderCategories;
 }
@@ -37,7 +37,7 @@ export const adderIds: string[] = Object.values(adderCategories).flatMap((x) => 
 const adderDetails = Object.values(categories).flat();
 
 export function getAdderDetails(name: string): AdderWithoutExplicitArgs {
-	const details = adderDetails.find((a) => a.name === name);
+	const details = adderDetails.find((a) => a.id === name);
 	if (!details) {
 		throw new Error(`Invalid adder name: ${name}`);
 	}
