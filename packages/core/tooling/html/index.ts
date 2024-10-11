@@ -1,9 +1,12 @@
 import {
 	type HtmlChildNode,
+	type HtmlDocument,
 	HtmlElement,
 	HtmlElementType,
 	parseHtml
 } from '@svelte-cli/ast-tooling';
+
+export type { HtmlDocument };
 
 export function div(attributes: Record<string, string> = {}): HtmlElement {
 	return element('div', attributes);
