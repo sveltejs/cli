@@ -1,4 +1,4 @@
-import { defineAdderTests } from '@svelte-cli/core';
+import { defineAdderTests } from '@sveltejs/cli-core';
 
 export const tests = defineAdderTests({
 	files: [],

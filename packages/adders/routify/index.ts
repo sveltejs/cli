@@ -1,7 +1,7 @@
-import { defineAdder } from '@svelte-cli/core';
-import { array, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
-import * as html from '@svelte-cli/core/html';
-import { parseScript, parseSvelte } from '@svelte-cli/core/parsers';
+import { defineAdder } from '@sveltejs/cli-core';
+import { array, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
+import * as html from '@sveltejs/cli-core/html';
+import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'routify',

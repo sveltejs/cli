@@ -1,4 +1,4 @@
-import { defineAdder } from '@svelte-cli/core';
+import { defineAdder } from '@sveltejs/cli-core';
 
 export default defineAdder({
 	id: 'storybook',

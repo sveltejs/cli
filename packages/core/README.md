@@ -1,4 +1,4 @@
-# @svelte-cli/core
+# @sveltejs/cli-core
 
 This is the core of [sv](https://svelte-add.com). This package handles the following things (and a lot more)
 

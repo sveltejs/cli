@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import { dedent, defineAdder, log } from '@svelte-cli/core';
-import { common, exports, imports, object } from '@svelte-cli/core/js';
-import { parseJson, parseScript } from '@svelte-cli/core/parsers';
+import { dedent, defineAdder, log } from '@sveltejs/cli-core';
+import { common, exports, imports, object } from '@sveltejs/cli-core/js';
+import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'playwright',

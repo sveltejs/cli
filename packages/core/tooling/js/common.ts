@@ -5,7 +5,7 @@ import {
 	parseScript,
 	serializeScript,
 	stripAst
-} from '@svelte-cli/ast-tooling';
+} from '@sveltejs/ast-tooling';
 import decircular from 'decircular';
 import dedent from 'dedent';
 

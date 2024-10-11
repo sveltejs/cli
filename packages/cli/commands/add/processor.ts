@@ -1,5 +1,5 @@
 import { fileExists, readFile, writeFile } from './utils.ts';
-import type { Workspace, OptionDefinition, FileType } from '@svelte-cli/core';
+import type { Workspace, OptionDefinition, FileType } from '@sveltejs/cli-core';
 
 /**
  * @param files

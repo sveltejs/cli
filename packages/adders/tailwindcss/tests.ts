@@ -1,4 +1,4 @@
-import { defineAdderTests } from '@svelte-cli/core';
+import { defineAdderTests } from '@sveltejs/cli-core';
 import { options } from './index.ts';
 
 const divId = 'myDiv';

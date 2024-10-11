@@ -1,5 +1,5 @@
-import { variables } from '@svelte-cli/core/js';
-import type { ScriptFileEditor } from '@svelte-cli/core';
+import { variables } from '@sveltejs/cli-core/js';
+import type { ScriptFileEditor } from '@sveltejs/cli-core';
 
 export function run({ ast }: ScriptFileEditor<any>): void {
 	const decl = ast.body[0] as any;

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { parseScript, serializeScript } from '@svelte-cli/ast-tooling';
+import { parseScript, serializeScript } from '@sveltejs/ast-tooling';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

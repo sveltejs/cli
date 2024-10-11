@@ -1,5 +1,5 @@
 {
-	"name": "@svelte-cli/clack-core",
+	"name": "@sveltejs/clack-core",
 	"private": true,
 	"version": "0.4.2",
 	"type": "module",
