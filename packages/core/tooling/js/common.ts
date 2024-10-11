@@ -111,7 +111,7 @@ export function addFromString(
 
 export function expressionFromString(value: string): AstKinds.ExpressionKind {
 	const program = parseScript(dedent(value));
-	const statement = program.body[0];
+	const statement = program.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
 		throw new Error('value passed was not an expression');
 	}
@@ -121,7 +121,7 @@ export function expressionFromString(value: string): AstKinds.ExpressionKind {
 
 export function statementFromString(value: string): AstKinds.StatementKind {
 	const program = parseScript(dedent(value));
-	const statement = program.body[0];
+	const statement = program.body[0]!;
 
 	return statement;
 }
