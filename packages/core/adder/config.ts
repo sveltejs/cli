@@ -6,24 +6,9 @@ export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
 
-export type WebsiteMetadata = {
-	logo: string;
-	keywords: string[];
-	documentation: string;
-};
-
-export type AdderConfigEnvironments = {
+export type Environments = {
 	svelte: boolean;
 	kit: boolean;
-};
-
-export type AdderConfigMetadata = {
-	id: string;
-	alias?: string;
-	name: string;
-	description: string;
-	environments: AdderConfigEnvironments;
-	website?: WebsiteMetadata;
 };
 
 export type PackageDefinition<Args extends OptionDefinition> = {
@@ -41,7 +26,12 @@ export type Scripts<Args extends OptionDefinition> = {
 };
 
 export type Adder<Args extends OptionDefinition> = {
-	metadata: AdderConfigMetadata;
+	id: string;
+	alias?: string;
+	name: string;
+	description: string;
+	environments: Environments;
+	documentation?: string;
 	options: Args;
 	dependsOn?: string[];
 	packages: Array<PackageDefinition<Args>>;

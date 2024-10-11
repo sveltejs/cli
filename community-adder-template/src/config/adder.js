@@ -4,12 +4,10 @@ import { imports } from '@svelte-cli/core/js';
 import { parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'community-adder-template',
-		name: 'Community Adder Template',
-		description: 'An adder template demo',
-		environments: { kit: true, svelte: true }
-	},
+	id: 'community-adder-template',
+	name: 'Community Adder Template',
+	description: 'An adder template demo',
+	environments: { kit: true, svelte: true },
 	options,
 	packages: [],
 	files: [
