@@ -377,9 +377,7 @@ export function addSlot(
 	htmlAst: html.HtmlDocument,
 	svelteVersion: string
 ) {
-	let slotSyntax = false;
-	if (svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3')))
-		slotSyntax = true;
+	const slotSyntax = svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3'));
 
 	if (slotSyntax) {
 		const slot = html.element('slot');
