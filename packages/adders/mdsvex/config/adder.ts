@@ -4,17 +4,12 @@ import { array, exports, functions, imports, object } from '@svelte-cli/core/js'
 import { parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'mdsvex',
-		name: 'mdsvex',
-		description: 'svelte in markdown',
-		environments: { svelte: true, kit: true },
-		website: {
-			logo: './mdsvex.svg',
-			keywords: ['mdsvex', 'svelte', 'markdown'],
-			documentation: 'https://mdsvex.pngwn.io/docs'
-		}
-	},
+	id: 'mdsvex',
+	name: 'mdsvex',
+	description: 'svelte in markdown',
+	environments: { svelte: true, kit: true },
+	logo: './mdsvex.svg',
+	documentation: 'https://mdsvex.pngwn.io/docs',
 	options,
 	packages: [{ name: 'mdsvex', version: '^0.11.2', dev: true }],
 	files: [

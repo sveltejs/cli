@@ -10,17 +10,12 @@ const PORTS = {
 } as const;
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'drizzle',
-		name: 'Drizzle',
-		description: 'Headless ORM for NodeJS, TypeScript and JavaScript',
-		environments: { svelte: false, kit: true },
-		website: {
-			logo: './drizzle.svg',
-			keywords: ['drizzle', 'drizzle-orm', 'drizzle-kit', 'database', 'orm'],
-			documentation: 'https://orm.drizzle.team/docs/overview'
-		}
-	},
+	id: 'drizzle',
+	name: 'Drizzle',
+	description: 'Headless ORM for NodeJS, TypeScript and JavaScript',
+	environments: { svelte: false, kit: true },
+	logo: './drizzle.svg',
+	documentation: 'https://orm.drizzle.team/docs/overview',
 	options: availableOptions,
 	packages: [
 		{ name: 'drizzle-orm', version: '^0.33.0', dev: false },

@@ -6,17 +6,12 @@ import { common, exports, imports, object } from '@svelte-cli/core/js';
 import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'playwright',
-		name: 'Playwright',
-		description: 'A testing framework for end-to-end testing',
-		environments: { svelte: true, kit: true },
-		website: {
-			logo: './playwright.svg',
-			keywords: ['test', 'testing', 'end-to-end', 'e2e', 'integration'],
-			documentation: 'https://playwright.dev'
-		}
-	},
+	id: 'playwright',
+	name: 'Playwright',
+	description: 'A testing framework for end-to-end testing',
+	environments: { svelte: true, kit: true },
+	logo: './playwright.svg',
+	documentation: 'https://playwright.dev',
 	options,
 	packages: [{ name: '@playwright/test', version: '^1.45.3', dev: true }],
 	files: [

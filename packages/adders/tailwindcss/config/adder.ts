@@ -5,18 +5,13 @@ import { array, common, exports, functions, imports, object } from '@svelte-cli/
 import { parseCss, parseScript, parseJson, parseSvelte } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'tailwindcss',
-		alias: 'tailwind',
-		name: 'Tailwind CSS',
-		description: 'Rapidly build modern websites without ever leaving your HTML',
-		environments: { svelte: true, kit: true },
-		website: {
-			logo: './tailwindcss.svg',
-			keywords: ['tailwind', 'postcss', 'autoprefixer'],
-			documentation: 'https://tailwindcss.com/docs'
-		}
-	},
+	id: 'tailwindcss',
+	alias: 'tailwind',
+	name: 'Tailwind CSS',
+	description: 'Rapidly build modern websites without ever leaving your HTML',
+	environments: { svelte: true, kit: true },
+	logo: './tailwindcss.svg',
+	documentation: 'https://tailwindcss.com/docs',
 	options,
 	packages: [
 		{ name: 'tailwindcss', version: '^3.4.9', dev: true },

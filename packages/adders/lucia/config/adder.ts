@@ -24,17 +24,12 @@ let drizzleDialect: Dialect;
 let schemaPath: string;
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'lucia',
-		name: 'Lucia',
-		description: 'An auth library that abstracts away the complexity of handling sessions',
-		environments: { svelte: false, kit: true },
-		website: {
-			logo: './lucia.webp',
-			keywords: ['lucia', 'lucia-auth', 'auth', 'authentication'],
-			documentation: 'https://lucia-auth.com'
-		}
-	},
+	id: 'lucia',
+	name: 'Lucia',
+	description: 'An auth library that abstracts away the complexity of handling sessions',
+	environments: { svelte: false, kit: true },
+	logo: './lucia.webp',
+	documentation: 'https://lucia-auth.com',
 	options,
 	packages: [
 		{ name: 'lucia', version: '^3.2.0', dev: false },

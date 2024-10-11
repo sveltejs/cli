@@ -5,17 +5,12 @@ import * as html from '@svelte-cli/core/html';
 import { parseScript, parseSvelte } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'routify',
-		name: 'Routify',
-		description: 'The Router that Grows With You',
-		environments: { svelte: true, kit: false },
-		website: {
-			logo: './routify.svg',
-			keywords: ['routify', 'svelte', 'router'],
-			documentation: 'https://routify.dev'
-		}
-	},
+	id: 'routify',
+	name: 'Routify',
+	description: 'The Router that Grows With You',
+	environments: { svelte: true, kit: false },
+	logo: './routify.svg',
+	documentation: 'https://routify.dev',
 	options,
 	packages: [{ name: '@roxi/routify', version: 'next', dev: true }],
 	files: [

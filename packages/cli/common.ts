@@ -157,7 +157,7 @@ export function getGlobalPreconditions(
 				name: 'supported environments',
 				run: () => {
 					const addersForInvalidEnvironment = adders.filter((a) => {
-						const supportedEnvironments = a.metadata.environments;
+						const supportedEnvironments = a.environments;
 						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
 						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
 
@@ -169,7 +169,7 @@ export function getGlobalPreconditions(
 					}
 
 					const messages = addersForInvalidEnvironment.map(
-						(a) => `"${a.metadata.name}" does not support "${projectType}"`
+						(a) => `"${a.name}" does not support "${projectType}"`
 					);
 					return { success: false, message: messages.join(' / ') };
 				}

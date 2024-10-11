@@ -16,17 +16,12 @@ import {
 import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'eslint',
-		name: 'ESLint',
-		description: 'A configurable JavaScript linter',
-		environments: { svelte: true, kit: true },
-		website: {
-			logo: './eslint.svg',
-			keywords: ['eslint', 'code', 'linter'],
-			documentation: 'https://eslint.org'
-		}
-	},
+	id: 'eslint',
+	name: 'ESLint',
+	description: 'A configurable JavaScript linter',
+	environments: { svelte: true, kit: true },
+	logo: './eslint.svg',
+	documentation: 'https://eslint.org',
 	options,
 	packages: [
 		{ name: 'eslint', version: '^9.7.0', dev: true },

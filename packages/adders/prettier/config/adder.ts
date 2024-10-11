@@ -4,17 +4,12 @@ import { addEslintConfigPrettier } from '../../common.ts';
 import { parseJson } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'prettier',
-		name: 'Prettier',
-		description: 'An opinionated code formatter',
-		environments: { svelte: true, kit: true },
-		website: {
-			logo: './prettier.svg',
-			keywords: ['prettier', 'code', 'formatter', 'formatting'],
-			documentation: 'https://prettier.io'
-		}
-	},
+	id: 'prettier',
+	name: 'Prettier',
+	description: 'An opinionated code formatter',
+	environments: { svelte: true, kit: true },
+	logo: './prettier.svg',
+	documentation: 'https://prettier.io',
 	options,
 	packages: [
 		{ name: 'prettier', version: '^3.3.2', dev: true },

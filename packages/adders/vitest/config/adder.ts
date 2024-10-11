@@ -4,17 +4,12 @@ import { common, exports, imports, object } from '@svelte-cli/core/js';
 import { parseJson, parseScript } from '@svelte-cli/core/parsers';
 
 export const adder = defineAdder({
-	metadata: {
-		id: 'vitest',
-		name: 'Vitest',
-		description: 'A testing framework powered by Vite',
-		environments: { svelte: true, kit: true },
-		website: {
-			logo: './vitest.svg',
-			keywords: ['test', 'testing', 'unit', 'unit-testing'],
-			documentation: 'https://vitest.dev'
-		}
-	},
+	id: 'vitest',
+	name: 'Vitest',
+	description: 'A testing framework powered by Vite',
+	environments: { svelte: true, kit: true },
+	logo: './vitest.svg',
+	documentation: 'https://vitest.dev',
 	options,
 	packages: [{ name: 'vitest', version: '^2.0.4', dev: true }],
 	files: [
