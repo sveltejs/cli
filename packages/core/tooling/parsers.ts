@@ -28,6 +28,7 @@ export function parseHtml(source: string): { ast: tools.HtmlDocument } & ParseBa
 }
 
 export function parseJson(source: string): { data: any } & ParseBase {
+	if (!source) source = '{}';
 	const data = tools.parseJson(source);
 	const generateCode = () => tools.serializeJson(source, data);
 
