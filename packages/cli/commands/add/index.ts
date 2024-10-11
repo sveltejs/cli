@@ -53,7 +53,7 @@ export const add = new Command('add')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
-	.option('--community [adder...]', 'community adders to install')
+	//.option('--community [adder...]', 'community adders to install')
 	.configureHelp(common.helpConfig)
 	.action((adderArgs, opts) => {
 		// validate workspace
