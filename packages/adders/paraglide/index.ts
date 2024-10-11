@@ -3,7 +3,7 @@ import path from 'node:path';
 import { defineAdder, defineAdderOptions, log } from '@svelte-cli/core';
 import { array, common, functions, imports, object, variables, exports } from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
-import { addHooksHandle, createPrinter } from '../common.ts';
+import { addHooksHandle, addSlot, createPrinter } from '../common.ts';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@svelte-cli/core/parsers';
 
 const DEFAULT_INLANG_PROJECT = {
@@ -175,7 +175,7 @@ export default defineAdder({
 		{
 			// add the <ParaglideJS> component to the layout
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			content: ({ content }) => {
+			content: ({ content, dependencyVersion }) => {
 				const { script, template, generateCode } = parseSvelte(content);
 
 				const paraglideComponentName = 'ParaglideJS';
@@ -189,8 +189,10 @@ export default defineAdder({
 				// wrap the HTML in a ParaglideJS instance
 				const rootChildren = template.ast.children;
 				if (rootChildren.length === 0) {
-					const slot = html.element('slot');
-					rootChildren.push(slot);
+					const svelteVersion = dependencyVersion('svelte');
+					if (!svelteVersion) throw new Error('Failed to determine svelte version');
+
+					addSlot(script.ast, template.ast, svelteVersion);
 				}
 
 				const hasParaglideJsNode = rootChildren.find(
