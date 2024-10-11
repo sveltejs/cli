@@ -15,10 +15,6 @@
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
 		},
-		"./internal": {
-			"types": "./dist/internal.d.ts",
-			"default": "./dist/internal.js"
-		},
 		"./css": {
 			"types": "./dist/tooling/css/index.d.ts",
 			"default": "./dist/css.js"
@@ -30,6 +26,10 @@
 		"./js": {
 			"types": "./dist/tooling/js/index.d.ts",
 			"default": "./dist/js.js"
+		},
+		"./parsers": {
+			"types": "./dist/tooling/parsers.d.ts",
+			"default": "./dist/parsers.js"
 		}
 	},
 	"files": [
@@ -39,8 +39,7 @@
 		"@svelte-cli/clack-prompts": "workspace:*",
 		"decircular": "^1.0.0",
 		"dedent": "^1.5.3",
-		"package-manager-detector": "^0.2.2",
-		"empathic": "^1.0.0",
+		"magic-string": "^0.30.11",
 		"picocolors": "^1.1.0"
 	},
 	"dependencies": {

@@ -1,10 +1,12 @@
 import { options } from './options.ts';
-import { defineAdderConfig } from '@svelte-cli/core';
+import { defineAdder } from '@svelte-cli/core';
+import { addImports } from '@svelte-cli/core/css';
 import { array, common, exports, functions, imports, object } from '@svelte-cli/core/js';
+import { parseCss, parseScript, parseJson, parseSvelte } from '@svelte-cli/core/parsers';
 import { addImports } from '@svelte-cli/core/css';
 import { addSlot } from '../../common.ts';
 
-export const adder = defineAdderConfig({
+export const adder = defineAdder({
 	metadata: {
 		id: 'tailwindcss',
 		alias: 'tailwind',
@@ -31,14 +33,14 @@ export const adder = defineAdderConfig({
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
-			condition: ({ prettier }) => prettier
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		}
 	],
 	files: [
 		{
 			name: ({ typescript }) => `tailwind.config.${typescript ? 'ts' : 'js'}`,
-			contentType: 'script',
-			content: ({ options, ast, typescript }) => {
+			content: ({ options, typescript, content }) => {
+				const { ast, generateCode } = parseScript(content);
 				let root;
 				const rootExport = object.createEmpty();
 				if (typescript) {
@@ -63,23 +65,26 @@ export const adder = defineAdderConfig({
 					const requireCall = functions.call('require', ['@tailwindcss/typography']);
 					array.push(pluginsArray, requireCall);
 				}
+
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'postcss.config.js',
-			contentType: 'script',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseScript(content);
 				const { value: rootObject } = exports.defaultExport(ast, object.createEmpty());
 				const pluginsObject = object.property(rootObject, 'plugins', object.createEmpty());
 
 				object.property(pluginsObject, 'tailwindcss', object.createEmpty());
 				object.property(pluginsObject, 'autoprefixer', object.createEmpty());
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'src/app.css',
-			contentType: 'css',
-			content: ({ ast }) => {
+			content: ({ content }) => {
+				const { ast, generateCode } = parseCss(content);
 				const layerImports = ['base', 'components', 'utilities'].map(
 					(layer) => `"tailwindcss/${layer}"`
 				);
@@ -101,13 +106,16 @@ export const adder = defineAdderConfig({
 				// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
 				// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
 				nodes.forEach((n) => (n.raws.before = '\n'));
+
+				return generateCode();
 			}
 		},
 		{
 			name: () => 'src/App.svelte',
-			contentType: 'svelte',
-			content: ({ jsAst }) => {
-				imports.addEmpty(jsAst, './app.css');
+			content: ({ content, typescript }) => {
+				const { script, generateCode } = parseSvelte(content, { typescript });
+				imports.addEmpty(script.ast, './app.css');
+				return generateCode({ script: script.generateCode() });
 			},
 			condition: ({ kit }) => !kit
 		},
@@ -119,21 +127,30 @@ export const adder = defineAdderConfig({
 				if (htmlAst.childNodes.length === 0) {
 					addSlot(jsAst, htmlAst, dependencies);
 				}
+			content: ({ content, typescript }) => {
+				const { script, generateCode } = parseSvelte(content, { typescript });
+				imports.addEmpty(script.ast, '../app.css');
+				return generateCode({
+					script: script.generateCode(),
+					template: content.length === 0 ? '<slot />' : undefined
+				});
 			},
 			condition: ({ kit }) => Boolean(kit)
 		},
 		{
 			name: () => '.prettierrc',
-			contentType: 'json',
-			content: ({ data }) => {
+			content: ({ content }) => {
+				const { data, generateCode } = parseJson(content);
 				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
 
 				data.plugins ??= [];
 				const plugins: string[] = data.plugins;
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
+
+				return generateCode();
 			},
-			condition: ({ prettier }) => prettier
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		}
 	]
 });

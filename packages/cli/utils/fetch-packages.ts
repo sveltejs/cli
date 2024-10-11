@@ -121,7 +121,7 @@ async function fetchPackageJSON(packageName: string) {
 	if (packageName.startsWith('@')) {
 		const [org, name] = pkgName.split('/', 2);
 		scope = `${org}/`;
-		pkgName = name;
+		pkgName = name!;
 	}
 
 	const [name, tag = 'latest'] = pkgName.split('@');

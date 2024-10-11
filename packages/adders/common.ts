@@ -1,7 +1,15 @@
-import { imports, exports, common, variables, functions } from '@svelte-cli/core/js';
+import {
+	imports,
+	exports,
+	common,
+	variables,
+	functions,
+	type AstKinds,
+	type AstTypes
+} from '@svelte-cli/core/js';
 import * as html from '@svelte-cli/core/html';
-import { Walker, type AstKinds, type AstTypes, type ScriptFileEditor } from '@svelte-cli/core';
-import type { Question } from '@svelte-cli/core/internal';
+import { Walker, type Question, type FileEditor } from '@svelte-cli/core';
+import { parseScript } from '@svelte-cli/core/parsers';
 
 export function createPrinter(...conditions: boolean[]) {
 	const printers = conditions.map((condition) => {
@@ -10,7 +18,9 @@ export function createPrinter(...conditions: boolean[]) {
 	return printers;
 }
 
-export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string, Question>>) {
+export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Question>>) {
+	const { ast, generateCode } = parseScript(content);
+
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
 	const sveltePluginImport = importNodes.find(
@@ -34,7 +44,8 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 	const fallbackConfig = common.expressionFromString('[]');
 	const defaultExport = exports.defaultExport(ast, fallbackConfig);
 	const eslintConfig = defaultExport.value;
-	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression') return;
+	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression')
+		return content;
 
 	const prettier = common.expressionFromString('prettier');
 	const sveltePrettierConfig = common.expressionFromString(
@@ -66,6 +77,8 @@ export function addEslintConfigPrettier({ ast }: ScriptFileEditor<Record<string,
 		// append to the end as a fallback
 		elements.push(...nodesToInsert);
 	}
+
+	return generateCode();
 }
 
 export function addGlobalAppInterface(
