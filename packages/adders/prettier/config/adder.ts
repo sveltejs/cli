@@ -90,7 +90,6 @@ export const adder = defineAdder({
 		{
 			name: () => 'eslint.config.js',
 			condition: ({ dependencyVersion }) => {
-
 				// We only want this to execute when it's `false`, not falsy
 
 				if (dependencyVersion('eslint')?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
