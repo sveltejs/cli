@@ -43,7 +43,6 @@ export type Scripts<Args extends OptionDefinition> = {
 export type Adder<Args extends OptionDefinition> = {
 	metadata: AdderConfigMetadata;
 	options: Args;
-	runsAfter?: string[];
 	dependsOn?: string[];
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
