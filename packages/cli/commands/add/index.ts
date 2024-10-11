@@ -336,7 +336,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			let installed = false;
 			installed = dependent.packages.every(
 				// we'll skip the conditions since we don't have any options to supply it
-				(p) => p.condition !== undefined || !!workspace.dependencies[p.name]
+				(p) => p.condition !== undefined || !!workspace.dependencyVersion(p.name)
 			);
 
 			if (installed) continue;
@@ -459,7 +459,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// format modified/created files with prettier (if available)
 	const workspace = createWorkspace(options.cwd);
-	if (filesToFormat.length > 0 && depsStatus === 'installed' && workspace.prettier) {
+	if (
+		filesToFormat.length > 0 &&
+		depsStatus === 'installed' &&
+		!!workspace.dependencyVersion('prettier')
+	) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
 		try {

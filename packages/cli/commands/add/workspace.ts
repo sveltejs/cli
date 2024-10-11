@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as find from 'empathic/find';
-import * as resolve from 'empathic/resolve';
 import { common, object, type AstTypes } from '@svelte-cli/core/js';
 import { parseScript } from '@svelte-cli/core/parsers';
 import { TESTING } from '../../env.ts';
@@ -13,7 +12,7 @@ export function createEmptyWorkspace<Args extends OptionDefinition>() {
 	return {
 		options: {},
 		cwd: '',
-		prettier: false,
+		dependencyVersion: (_pkg) => undefined,
 		typescript: false,
 		kit: undefined
 	} as Workspace<Args>;
@@ -33,23 +32,46 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 		usesTypescript ||= find.up(commonFilePaths.tsconfig, { cwd }) !== undefined;
 	}
 
-	const { data: packageJson } = getPackageJson(workspace);
-
-	workspace.dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies };
-	workspace.typescript = usesTypescript;
-	workspace.prettier = Boolean(resolve.from(cwd, 'prettier', true));
-	workspace.packageManager = detectPackageManager(cwd);
-	if ('@sveltejs/kit' in workspace.dependencies) workspace.kit = parseKitOptions(workspace);
-	for (const [key, value] of Object.entries(workspace.dependencies)) {
-		// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
-		workspace.dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
+	let dependencies: Record<string, string> = {};
+	let directory = workspace.cwd;
+	const root = findRoot(workspace.cwd);
+	while (directory && directory !== root) {
+		const { data: packageJson } = getPackageJson(workspace.cwd);
+		dependencies = { ...packageJson.devDependencies, ...packageJson.dependencies, ...dependencies };
+		directory = path.dirname(directory);
+	}
+	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
+	for (const [key, value] of Object.entries(dependencies)) {
+		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
+	workspace.dependencyVersion = (pkg) => {
+		return dependencies[pkg];
+	};
+	workspace.typescript = usesTypescript;
+	workspace.packageManager = detectPackageManager(cwd);
+	if (workspace.dependencyVersion('@sveltejs/kit')) workspace.kit = parseKitOptions(workspace);
 	return workspace;
 }
 
+function findRoot(cwd: string): string {
+	const { root } = path.parse(cwd);
+	let directory = cwd;
+	while (directory && directory !== root) {
+		if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
+			return directory;
+		}
+		const { data } = getPackageJson(directory);
+		if (data.workspaces) {
+			return directory;
+		}
+		directory = path.dirname(directory);
+	}
+	return root;
+}
+
 function parseKitOptions(workspace: Workspace<any>) {
-	const configSource = readFile(workspace, commonFilePaths.svelteConfig);
+	const configSource = readFile(workspace.cwd, commonFilePaths.svelteConfig);
 	const { ast } = parseScript(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');

@@ -23,7 +23,7 @@ export const adder = defineAdder({
 			name: 'eslint-config-prettier',
 			version: '^9.1.0',
 			dev: true,
-			condition: ({ dependencies }) => hasEslint(dependencies)
+			condition: ({ dependencyVersion }) => hasEslint(dependencyVersion)
 		}
 	],
 	files: [
@@ -70,14 +70,15 @@ export const adder = defineAdder({
 		},
 		{
 			name: () => 'package.json',
-			content: ({ content, dependencies }) => {
+			content: ({ content, dependencyVersion }) => {
 				const { data, generateCode } = parseJson(content);
+
 				data.scripts ??= {};
 				const scripts: Record<string, string> = data.scripts;
 				const CHECK_CMD = 'prettier --check .';
 				scripts['format'] ??= 'prettier --write .';
 
-				if (hasEslint(dependencies)) {
+				if (hasEslint(dependencyVersion)) {
 					scripts['lint'] ??= `${CHECK_CMD} && eslint .`;
 					if (!scripts['lint'].includes(CHECK_CMD)) scripts['lint'] += ` && ${CHECK_CMD}`;
 				} else {
@@ -88,17 +89,17 @@ export const adder = defineAdder({
 		},
 		{
 			name: () => 'eslint.config.js',
-			condition: ({ dependencies: deps }) => {
+			condition: ({ dependencyVersion }) => {
 				// We only want this to execute when it's `false`, not falsy
 
-				if (deps['eslint']?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
+				if (dependencyVersion('eslint')?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
 					log.warn(
 						`An older major version of ${colors.yellow(
 							'eslint'
 						)} was detected. Skipping ${colors.yellow('eslint-config-prettier')} installation.`
 					);
 				}
-				return hasEslint(deps);
+				return hasEslint(dependencyVersion);
 			},
 			content: addEslintConfigPrettier
 		}
@@ -107,6 +108,7 @@ export const adder = defineAdder({
 
 const SUPPORTED_ESLINT_VERSION = '9';
 
-function hasEslint(deps: Record<string, string>): boolean {
-	return !!deps['eslint'] && deps['eslint'].startsWith(SUPPORTED_ESLINT_VERSION);
+function hasEslint(dependencyVersion: (pkg: string) => string | undefined): boolean {
+	const version = dependencyVersion('eslint');
+	return !!version && version.startsWith(SUPPORTED_ESLINT_VERSION);
 }

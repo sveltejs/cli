@@ -31,7 +31,7 @@ export const adder = defineAdder({
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
-			condition: ({ prettier }) => prettier
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		}
 	],
 	files: [
@@ -142,7 +142,7 @@ export const adder = defineAdder({
 
 				return generateCode();
 			},
-			condition: ({ prettier }) => prettier
+			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		}
 	]
 });

@@ -12,12 +12,13 @@ export type Package = {
 	bugs?: string;
 	repository?: { type: string; url: string };
 	keywords?: string[];
+	workspaces?: string[];
 };
 
-export function getPackageJson(workspace: Workspace<any>) {
-	const packageText = readFile(workspace, commonFilePaths.packageJson);
+export function getPackageJson(cwd: string) {
+	const packageText = readFile(cwd, commonFilePaths.packageJson);
 	if (!packageText) {
-		const pkgPath = path.join(workspace.cwd, commonFilePaths.packageJson);
+		const pkgPath = path.join(cwd, commonFilePaths.packageJson);
 		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
@@ -25,10 +26,10 @@ export function getPackageJson(workspace: Workspace<any>) {
 	return { source: packageText, data: data as Package, generateCode };
 }
 
-export function readFile(workspace: Workspace<any>, filePath: string): string {
-	const fullFilePath = getFilePath(workspace.cwd, filePath);
+export function readFile(cwd: string, filePath: string): string {
+	const fullFilePath = getFilePath(cwd, filePath);
 
-	if (!fileExistsWorkspace(workspace, filePath)) {
+	if (!fileExists(cwd, filePath)) {
 		return '';
 	}
 
@@ -38,7 +39,7 @@ export function readFile(workspace: Workspace<any>, filePath: string): string {
 }
 
 export function installPackages(config: Adder<any>, workspace: Workspace<any>): string {
-	const { data, generateCode } = getPackageJson(workspace);
+	const { data, generateCode } = getPackageJson(workspace.cwd);
 
 	for (const dependency of config.packages) {
 		if (dependency.condition && !dependency.condition(workspace)) {
@@ -83,8 +84,8 @@ export function writeFile(workspace: Workspace<any>, filePath: string, content: 
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
-export function fileExistsWorkspace(workspace: Workspace<any>, filePath: string): boolean {
-	const fullFilePath = getFilePath(workspace.cwd, filePath);
+export function fileExists(cwd: string, filePath: string): boolean {
+	const fullFilePath = getFilePath(cwd, filePath);
 	return fs.existsSync(fullFilePath);
 }
 
