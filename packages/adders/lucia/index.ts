@@ -184,7 +184,14 @@ export default defineAdder({
 						)
 					});
 				}
-				return generateCode();
+				let code = generateCode();
+				if (!code.includes('export type Session =')) {
+					code += '\n\nexport type Session = typeof session.$inferSelect;';
+				}
+				if (!code.includes('export type User =')) {
+					code += '\n\nexport type User = typeof user.$inferSelect;';
+				}
+				return code;
 			}
 		},
 		{
@@ -231,11 +238,8 @@ export default defineAdder({
 						return session;
 					}
 
-					${ts('export type SessionValidationResult =')}
-						${ts("| { session: table.Session; user: Omit<table.User, 'passwordHash'> }")}
-						${ts('| { session: null; user: null };')}
-
-					export async function validateSession(sessionId${ts(': string')})${ts(': Promise<SessionValidationResult>')} {
+					${ts('export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;\n')}
+					export async function validateSession(sessionId${ts(': string')}) {
 						const [result] = await db
 							.select({
 								// Adjust user table here to tweak returned data
