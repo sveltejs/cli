@@ -1,6 +1,6 @@
 import { imports, exports, common } from '@sveltejs/cli-core/js';
 import { type Question, type FileEditor } from '@sveltejs/cli-core';
-import { parseScript } from '@svelte-cli/core/parsers';
+import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export function createPrinter(...conditions: boolean[]) {
 	const printers = conditions.map((condition) => {
