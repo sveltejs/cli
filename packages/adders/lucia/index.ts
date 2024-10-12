@@ -330,9 +330,9 @@ export default defineAdder({
 					import { hash, verify } from '@node-rs/argon2';
 					import { eq } from 'drizzle-orm';
 					import { generateId } from 'lucia';
-					import { lucia } from '$lib/server/auth';
 					import { db } from '$lib/server/db';
-					import { user } from '$lib/server/db/schema.js';
+					import * as auth from '$lib/server/auth';
+					import * as table from '$lib/server/db/schema';
 					${ts(`import type { Actions, PageServerLoad } from './$types';`)}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
@@ -349,26 +349,20 @@ export default defineAdder({
 							const password = formData.get('password');
 
 							if (!validateUsername(username)) {
-								return fail(400, {
-									message: 'Invalid username',
-								});
+								return fail(400, { message: 'Invalid username' });
 							}
 							if (!validatePassword(password)) {
-								return fail(400, {
-									message: 'Invalid password',
-								});
+								return fail(400, { message: 'Invalid password' });
 							}
 
 							const results = await db
 								.select()
 								.from(user)
-								.where(eq(user.username, username));
+								.where(eq(table.user.username, username));
 
 							const existingUser = results.at(0);
 							if (!existingUser) {
-								return fail(400, {
-									message: 'Incorrect username or password',
-								});
+								return fail(400, { message: 'Incorrect username or password' });
 							}
 
 							const validPassword = await verify(existingUser.passwordHash, password, {
@@ -378,16 +372,16 @@ export default defineAdder({
 								parallelism: 1,
 							});
 							if (!validPassword) {
-								return fail(400, {
-									message: 'Incorrect username or password',
-								});
+								return fail(400, { message: 'Incorrect username or password' });
 							}
 
-							const session = await lucia.createSession(existingUser.id, {});
-							const sessionCookie = lucia.createSessionCookie(session.id);
-							event.cookies.set(sessionCookie.name, sessionCookie.value, {
+							const session = await auth.createSession(existingUser.id);
+							event.cookies.set(auth.sessionCookieName, session.id, {
 								path: '/',
-								...sessionCookie.attributes,
+								sameSite: 'lax',
+								httpOnly: true,
+								expires: session.expiresAt,
+								secure: !dev
 							});
 
 							return redirect(302, '/demo');
@@ -398,16 +392,13 @@ export default defineAdder({
 							const password = formData.get('password');
 
 							if (!validateUsername(username)) {
-								return fail(400, {
-									message: 'Invalid username',
-								});
+								return fail(400, { message: 'Invalid username' });
 							}
 							if (!validatePassword(password)) {
-								return fail(400, {
-									message: 'Invalid password',
-								});
+								return fail(400, { message: 'Invalid password' });
 							}
 
+							const userId = generateId(15);
 							const passwordHash = await hash(password, {
 								// recommended minimum parameters
 								memoryCost: 19456,
@@ -415,31 +406,26 @@ export default defineAdder({
 								outputLen: 32,
 								parallelism: 1,
 							});
-							const userId = generateId(15);
 
 							try {
-								await db.insert(user).values({
-									id: userId,
-									username,
-									passwordHash,
-								});
+								await db.insert(user).values({ id: userId, username, passwordHash });
 
-								const session = await lucia.createSession(userId, {});
-								const sessionCookie = lucia.createSessionCookie(session.id);
-								event.cookies.set(sessionCookie.name, sessionCookie.value, {
+								const session = await auth.createSession(userId);
+								event.cookies.set(auth.sessionCookieName, session.id, {
 									path: '/',
-									...sessionCookie.attributes,
+									sameSite: 'lax',
+									httpOnly: true,
+									expires: session.expiresAt,
+									secure: !dev
 								});
 							} catch (e) {
-								return fail(500, {
-									message: 'An error has occurred',
-								});
+								return fail(500, { message: 'An error has occurred' });
 							}
 							return redirect(302, '/demo');
 						},
 					};
 
-					function validateUsername(username${ts(': unknown): username is string', ')')} {
+					function validateUsername(username${ts(': unknown')})${ts(': username is string')} {
 						return (
 							typeof username === 'string' &&
 							username.length >= 3 &&
@@ -448,7 +434,7 @@ export default defineAdder({
 						);
 					}
 
-					function validatePassword(password${ts(': unknown): password is string', ')')} {
+					function validatePassword(password${ts(': unknown')})${ts(': password is string')} {
 						return (
 							typeof password === 'string' &&
 							password.length >= 6 &&
@@ -508,7 +494,7 @@ export default defineAdder({
 
 				const ts = (str: string) => (typescript ? str : '');
 				return dedent`
-					import { lucia } from '$lib/server/auth';
+					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts(`import type { Actions, PageServerLoad } from './$types';`)}
 					
@@ -516,9 +502,7 @@ export default defineAdder({
 						if (!event.locals.user) {
 							return redirect(302, '/demo/login');
 						}
-						return {
-							user: event.locals.user,
-						};
+						return { user: event.locals.user };
 					};
 
 					export const actions${ts(': Actions')} = {
@@ -526,12 +510,9 @@ export default defineAdder({
 							if (!event.locals.session) {
 								return fail(401);
 							}
-							await lucia.invalidateSession(event.locals.session.id);
-							const sessionCookie = lucia.createBlankSessionCookie();
-							event.cookies.set(sessionCookie.name, sessionCookie.value, {
-								path: '/',
-								...sessionCookie.attributes,
-							});
+							await auth.invalidateSession(event.locals.session.id);
+							event.cookies.delete(auth.sessionCookieName, { path: '/' });
+							
 							return redirect(302, '/demo/login');
 						},
 					};
