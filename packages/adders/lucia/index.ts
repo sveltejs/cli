@@ -307,6 +307,7 @@ export default defineAdder({
 			content: ({ content, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
 				imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
+				imports.addNamed(ast, '$app/environment', { dev: 'dev' });
 				addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
 				return generateCode();
 			}
@@ -599,7 +600,7 @@ function getAuthHandleContent() {
 			}
 
 			const { session, user } = await auth.validateSession(sessionId);
-			if (!session) {
+			if (session) {
 				event.cookies.set(auth.sessionCookieName, session.id, {
 					path: '/',
 					sameSite: 'lax',
