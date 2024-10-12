@@ -1,4 +1,5 @@
 ---
+'@sveltejs/cli-core': patch
 'sv': patch
 ---
 
