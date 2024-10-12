@@ -1,6 +1,6 @@
-import { common, exports, functions, imports, object, variables } from '@svelte-cli/core/js';
-import { defineAdder, defineAdderOptions, dedent, type FileEditor } from '@svelte-cli/core';
-import { parseJson, parseScript } from '@svelte-cli/core/parsers';
+import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
+import { defineAdder, defineAdderOptions, dedent, type FileEditor } from '@sveltejs/cli-core';
+import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const PORTS = {
 	mysql: '3306',

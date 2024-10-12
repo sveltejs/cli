@@ -1,5 +1,5 @@
-import { imports, exports, common } from '@svelte-cli/core/js';
-import { type Question, type FileEditor } from '@svelte-cli/core';
+import { imports, exports, common } from '@sveltejs/cli-core/js';
+import { type Question, type FileEditor } from '@sveltejs/cli-core';
 import { parseScript } from '@svelte-cli/core/parsers';
 
 export function createPrinter(...conditions: boolean[]) {

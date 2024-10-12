@@ -5,7 +5,7 @@ import {
 	Comment,
 	type CssAst,
 	type CssChildNode
-} from '@svelte-cli/ast-tooling';
+} from '@sveltejs/ast-tooling';
 
 export function addRule(ast: CssAst, selector: string): Rule {
 	const rules = ast.nodes.filter((x): x is Rule => x.type == 'rule');

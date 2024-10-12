@@ -4,7 +4,7 @@ import {
 	HtmlElement,
 	HtmlElementType,
 	parseHtml
-} from '@svelte-cli/ast-tooling';
+} from '@sveltejs/ast-tooling';
 
 export type { HtmlDocument };
 

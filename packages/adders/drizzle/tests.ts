@@ -1,6 +1,6 @@
 import { options } from './index.ts';
-import { defineAdderTests } from '@svelte-cli/core';
-import { parseSvelte, parseJson } from '@svelte-cli/core/parsers';
+import { defineAdderTests } from '@sveltejs/cli-core';
+import { parseSvelte, parseJson } from '@sveltejs/cli-core/parsers';
 
 const defaultOptionValues = {
 	sqlite: options.sqlite.default,

@@ -1,5 +1,5 @@
 import type { AdderCategories, Category } from './categories.ts';
-import type { AdderWithoutExplicitArgs, Adder } from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs, Adder } from '@sveltejs/cli-core';
 
 // adders
 import drizzle from '../drizzle/index.ts';

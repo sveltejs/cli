@@ -3,14 +3,14 @@ import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 import { Command, Option } from 'commander';
-import * as p from '@svelte-cli/clack-prompts';
+import * as p from '@sveltejs/clack-prompts';
 import pc from 'picocolors';
 import {
 	create as createKit,
 	templates,
 	type LanguageType,
 	type TemplateType
-} from '@svelte-cli/create';
+} from '@sveltejs/create';
 import * as common from '../common.js';
 import { runAddCommand } from './add/index.ts';
 

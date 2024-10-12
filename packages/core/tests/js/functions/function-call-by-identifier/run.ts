@@ -1,5 +1,5 @@
-import { functions, common } from '@svelte-cli/core/js';
-import type { ScriptFileEditor } from '@svelte-cli/core';
+import { functions, common } from '@sveltejs/cli-core/js';
+import type { ScriptFileEditor } from '@sveltejs/cli-core';
 
 export function run({ ast }: ScriptFileEditor<any>): void {
 	const functionCall = functions.callByIdentifier('foo', ['a']);

@@ -1,5 +1,6 @@
 {
 	"name": "community-adder-template",
+	"private": true,
 	"version": "0.0.0",
 	"license": "MIT",
 	"type": "module",
@@ -15,7 +16,7 @@
 		"create-temp": "sv create temp --check-types typescript --template skeleton --no-adders --no-install"
 	},
 	"dependencies": {
-		"@svelte-cli/core": "workspace:*"
+		"@sveltejs/cli-core": "workspace:*"
 	},
 	"devDependencies": {
 		"sv": "workspace:*"

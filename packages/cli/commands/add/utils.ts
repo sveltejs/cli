@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
-import { parseJson } from '@svelte-cli/core/parsers';
-import type { Adder, Highlighter, Workspace } from '@svelte-cli/core';
+import { parseJson } from '@sveltejs/cli-core/parsers';
+import type { Adder, Highlighter, Workspace } from '@sveltejs/cli-core';
 
 export type Package = {
 	name: string;

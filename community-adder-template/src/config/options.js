@@ -1,4 +1,4 @@
-import { defineAdderOptions } from '@svelte-cli/core';
+import { defineAdderOptions } from '@sveltejs/cli-core';
 
 export const options = defineAdderOptions({
 	demo: {

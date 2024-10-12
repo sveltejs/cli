@@ -4,7 +4,7 @@ import process from 'node:process';
 import * as v from 'valibot';
 import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
-import * as p from '@svelte-cli/clack-prompts';
+import * as p from '@sveltejs/clack-prompts';
 import * as pkg from 'empathic/package';
 import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
@@ -15,8 +15,8 @@ import {
 	getAdderDetails,
 	communityAdderIds,
 	getCommunityAdder
-} from '@svelte-cli/adders';
-import type { AdderWithoutExplicitArgs, OptionValues } from '@svelte-cli/core';
+} from '@sveltejs/adders';
+import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
 import * as common from '../../common.ts';
 import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
 import { createWorkspace } from './workspace.ts';
@@ -53,7 +53,7 @@ export const add = new Command('add')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
-	.option('--community [adder...]', 'community adders to install')
+	//.option('--community [adder...]', 'community adders to install')
 	.configureHelp(common.helpConfig)
 	.action((adderArgs, opts) => {
 		// validate workspace
