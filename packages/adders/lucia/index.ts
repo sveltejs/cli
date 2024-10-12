@@ -192,7 +192,7 @@ export default defineAdder({
 			content: ({ content, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
 
-				imports.addNamespace(content, '$lib/server/db/schema', 'table');
+				imports.addNamespace(ast, '$lib/server/db/schema', 'table');
 				imports.addNamed(ast, '$lib/server/db', { db: 'db' });
 				imports.addNamed(ast, '@oslojs/encoding', {
 					encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',

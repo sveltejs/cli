@@ -14,6 +14,21 @@ export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
 	addImportIfNecessary(ast, expectedImportDeclaration);
 }
 
+export function addNamespace(ast: AstTypes.Program, importFrom: string, importAs: string): string {
+	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
+		type: 'ImportDeclaration',
+		source: { type: 'Literal', value: importFrom },
+		specifiers: [
+			{
+				type: 'ImportNamespaceSpecifier',
+				local: { type: 'Identifier', name: importAs }
+			}
+		]
+	};
+
+	addImportIfNecessary(ast, expectedImportDeclaration);
+}
+
 export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: string): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
 		type: 'ImportDeclaration',
