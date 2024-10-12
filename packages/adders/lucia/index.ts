@@ -306,7 +306,7 @@ export default defineAdder({
 			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
 			content: ({ content, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
-				imports.addNamed(ast, '$lib/server/auth.js', { lucia: 'lucia' });
+				imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
 				addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
 				return generateCode();
 			}
@@ -610,25 +610,24 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 function getAuthHandleContent() {
 	return `
 		async ({ event, resolve }) => {
-			const sessionId = event.cookies.get(lucia.sessionCookieName);
+			const sessionId = event.cookies.get(auth.sessionCookieName);
 			if (!sessionId) {
 				event.locals.user = null;
 				event.locals.session = null;
 				return resolve(event);
 			}
 
-			const { session, user } = await lucia.validateSession(sessionId);
+			const { session, user } = await auth.validateSession(sessionId);
 			if (!session) {
-				event.cookies.delete(lucia.sessionCookieName, { path: '/' });
-			}
-
-			if (session?.fresh) {
-				const sessionCookie = lucia.createSessionCookie(session.id);
-
-				event.cookies.set(sessionCookie.name, sessionCookie.value, {
+				event.cookies.set(auth.sessionCookieName, session.id, {
 					path: '/',
-					...sessionCookie.attributes,
+					sameSite: 'lax',
+					httpOnly: true,
+					expires: session.expiresAt,
+					secure: !dev
 				});
+			} else {
+				event.cookies.delete(auth.sessionCookieName, { path: '/' });
 			}
 
 			event.locals.user = user;
