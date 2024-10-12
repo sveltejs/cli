@@ -153,36 +153,6 @@ export function parseSvelte(content: string): SvelteAst {
 	return { jsAst, htmlAst, cssAst };
 }
 
-export function serializeSvelte(asts: SvelteAst): string {
-	const { jsAst, htmlAst, cssAst } = asts;
-
-	const css = serializeCss(cssAst);
-	const newScriptValue = serializeScript(jsAst);
-
-	if (newScriptValue.length > 0) {
-		const scriptTag = new Element('script', {}, undefined, ElementType.ElementType.Script);
-		for (const child of scriptTag.children) {
-			removeElement(child);
-		}
-
-		appendChild(scriptTag, new Text(newScriptValue));
-		prependChild(htmlAst, scriptTag);
-	}
-
-	if (css.length > 0) {
-		const styleTag = new Element('style', {}, undefined, ElementType.ElementType.Style);
-		for (const child of styleTag.children) {
-			removeElement(child);
-		}
-
-		appendChild(styleTag, new Text(css));
-		appendChild(htmlAst, styleTag);
-	}
-
-	const content = serializeHtml(htmlAst);
-	return content;
-}
-
 export function parseJson(content: string): any {
 	// some of the files we need to process contain comments. The default
 	// node JSON.parse fails parsing those comments.
