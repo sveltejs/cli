@@ -2,14 +2,8 @@ import { colors, dedent, defineAdder, defineAdderOptions, log, Walker } from '@s
 import { common, exports, imports, variables, object, functions } from '@sveltejs/cli-core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@sveltejs/cli-core/js';
-import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '../common.ts';
+import { addHooksHandle, addGlobalAppInterface, hasTypeProp, createPrinter } from '../common.ts';
 import { parseScript } from '@sveltejs/cli-core/parsers';
-
-const LUCIA_ADAPTER = {
-	mysql: 'DrizzleMySQLAdapter',
-	postgresql: 'DrizzlePostgreSQLAdapter',
-	sqlite: 'DrizzleSQLiteAdapter'
-} as const;
 
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',
@@ -17,7 +11,7 @@ const TABLE_TYPE = {
 	sqlite: 'sqliteTable'
 };
 
-type Dialect = keyof typeof LUCIA_ADAPTER;
+type Dialect = 'mysql' | 'postgresql' | 'sqlite';
 
 let drizzleDialect: Dialect;
 let schemaPath: string;
@@ -38,8 +32,8 @@ export default defineAdder({
 	documentation: 'https://lucia-auth.com',
 	options,
 	packages: [
-		{ name: 'lucia', version: '^3.2.0', dev: false },
-		{ name: '@lucia-auth/adapter-drizzle', version: '^1.1.0', dev: false },
+		{ name: '@oslojs/crypto', version: '^1.0.1', dev: false },
+		{ name: '@oslojs/encoding', version: '^1.1.0', dev: false },
 		// password hashing for demo
 		{
 			name: '@node-rs/argon2',
@@ -195,47 +189,125 @@ export default defineAdder({
 		},
 		{
 			name: ({ kit, typescript }) => `${kit?.libDirectory}/server/auth.${typescript ? 'ts' : 'js'}`,
-			content: ({ content, typescript, options }) => {
+			content: ({ content, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
-				const adapter = LUCIA_ADAPTER[drizzleDialect];
 
-				imports.addNamed(ast, '$lib/server/db/schema.js', { user: 'user', session: 'session' });
+				imports.addNamespace(content, '$lib/server/db/schema', 'table');
 				imports.addNamed(ast, '$lib/server/db', { db: 'db' });
-				imports.addNamed(ast, 'lucia', { Lucia: 'Lucia' });
-				imports.addNamed(ast, '@lucia-auth/adapter-drizzle', { [adapter]: adapter });
-				imports.addNamed(ast, '$app/environment', { dev: 'dev' });
+				imports.addNamed(ast, '@oslojs/encoding', {
+					encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',
+					encodeHexLowerCase: 'encodeHexLowerCase'
+				});
+				imports.addNamed(ast, '@oslojs/crypto/random', {
+					generateRandomString: 'generateRandomString'
+				});
+				imports.addNamed(ast, '@oslojs/crypto/random', { RandomReader: 'RandomReader' }, true);
+				imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
+				imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
 
-				// adapter
-				const adapterDecl = common.statementFromString(
-					`const adapter = new ${adapter}(db, session, user);`
+				common.addFromString(ast, 'const DAY_IN_MS = 1000 * 60 * 60 * 24;');
+
+				const cookieName = common.createLiteral('auth-session');
+				const session = variables.declaration(ast, 'const', 'sessionCookieName', cookieName);
+				exports.namedExport(ast, 'sessionCookieName', session);
+
+				const [ts] = createPrinter(typescript);
+				common.addFromString(
+					ast,
+					`
+					function generateSessionToken()${ts(': string')} {
+						const bytes = crypto.getRandomValues(new Uint8Array(20));
+						const token = encodeBase32LowerCaseNoPadding(bytes);
+						return token;
+					}
+					`
 				);
-				common.addStatement(ast, adapterDecl);
+				common.addFromString(
+					ast,
+					`
+					const random${ts(': RandomReader')} = {
+						read(bytes${ts(': Uint8Array')})${ts(': void')} {
+							crypto.getRandomValues(bytes);
+						}
+					};
+					`
+				);
+				common.addFromString(
+					ast,
+					`
+					export function generateId(length${ts(': number')})${ts(': string')} {
+						const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+						return generateRandomString(random, alphabet, length);
+					}`
+				);
+				common.addFromString(
+					ast,
+					`
+					export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
+						const token = generateSessionToken();
+						const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+						const session${ts(': table.Session')} = {
+							id: sessionId,
+							userId,
+							expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
+						};
+						await db.insert(table.session).values(session);
+						return session;
+					}`
+				);
+				common.addFromString(
+					ast,
+					`
+					export async function validateSession(sessionId${ts(': string')})${ts(': Promise<SessionValidationResult>')} {
+						const [result] = await db
+							.select({
+								// Adjust user table here to tweak returned data
+								user: { id: table.user.id, username: table.user.username },
+								session: table.session
+							})
+							.from(table.session)
+							.innerJoin(table.user, eq(table.session.userId, table.user.id))
+							.where(eq(table.session.id, sessionId));
 
-				// lucia export
-				const luciaInit = common.expressionFromString(`
-					new Lucia(adapter, {
-						sessionCookie: {
-							attributes: {
-								secure: !dev
-							}
-						},
-						${options.demo ? 'getUserAttributes: (attributes) => ({ username: attributes.username })' : ''}
-					})`);
-				const luciaDecl = variables.declaration(ast, 'const', 'lucia', luciaInit);
-				exports.namedExport(ast, 'lucia', luciaDecl);
+						if (!result) {
+							return { session: null, user: null };
+						}
+						const { session, user } = result;
 
-				// module declaration
-				if (typescript && !/declare module ["']lucia["']/.test(content)) {
-					const moduleDecl = common.statementFromString(`
-						declare module 'lucia' {
-							interface Register {
-								Lucia: typeof lucia;
-								// attributes that are already included are omitted
-								DatabaseUserAttributes: Omit<typeof user.$inferSelect, 'id'>;
-								DatabaseSessionAttributes: Omit<typeof session.$inferSelect, 'id' | 'userId' | 'expiresAt'>;
-							}
-						}`);
-					common.addStatement(ast, moduleDecl);
+						const sessionExpired = Date.now() >= session.expiresAt.getTime();
+						if (sessionExpired) {
+							await db.delete(table.session).where(eq(table.session.id, session.id));
+							return { session: null, user: null };
+						}
+
+						const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
+						if (renewSession) {
+							session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
+							await db
+								.update(table.session)
+								.set({ expiresAt: session.expiresAt })
+								.where(eq(table.session.id, session.id));
+						}
+
+						return { session, user };
+					}`
+				);
+				common.addFromString(
+					ast,
+					`
+					export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
+						await db.delete(table.session).where(eq(table.session.id, sessionId));
+					}`
+				);
+
+				// exports validation type
+				if (typescript && !content.includes('export type SessionValidationResult')) {
+					const validatedSessionType = common.statementFromString(`
+						export type SessionValidationResult =
+							| { session: table.Session; user: Omit<table.User, 'passwordHash'> }
+							| { session: null; user: null };
+						`);
+					common.addStatement(ast, validatedSessionType);
 				}
 				return generateCode();
 			}
@@ -286,7 +358,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string, opt = '') => (typescript ? str : opt);
+				const [ts] = createPrinter(typescript);
 				return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					import { hash, verify } from '@node-rs/argon2';
@@ -547,21 +619,22 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 		typeAnnotation: {
 			type: 'TSTypeAnnotation',
 			typeAnnotation: {
-				type: 'TSUnionType',
-				types: [
-					{
-						type: 'TSImportType',
-						argument: { type: 'StringLiteral', value: 'lucia' },
-						qualifier: {
-							type: 'Identifier',
-							// capitalize first letter
-							name: `${name[0]!.toUpperCase()}${name.slice(1)}`
-						}
-					},
-					{
-						type: 'TSNullKeyword'
+				type: 'TSIndexedAccessType',
+				objectType: {
+					type: 'TSImportType',
+					argument: { type: 'StringLiteral', value: '$lib/server/auth' },
+					qualifier: {
+						type: 'Identifier',
+						name: 'SessionValidationResult'
 					}
-				]
+				},
+				indexType: {
+					type: 'TSLiteralType',
+					literal: {
+						type: 'StringLiteral',
+						value: name
+					}
+				}
 			}
 		}
 	};
