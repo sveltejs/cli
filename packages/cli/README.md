@@ -1,6 +1,6 @@
 # sv - the Svelte CLI
 
-A CLI for creating new [SvelteKit](https://kit.svelte.dev) projects and adding functionality to existing ones. Just run...
+A command line interface (CLI) for creating and maintaining [Svelte](https://svelte.dev) applications. Just run...
 
 ```bash
 npx sv
@@ -31,4 +31,4 @@ This project was formed by merging the `create-svelte` and `svelte-add` CLIs. Th
 
 ## License
 
-[MIT](../../LICENSE).
+[MIT](../../LICENSE)
