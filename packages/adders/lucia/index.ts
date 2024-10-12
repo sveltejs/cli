@@ -326,10 +326,10 @@ export default defineAdder({
 
 				const [ts] = createPrinter(typescript);
 				return dedent`
+					import { dev } from '$app/environment';
 					import { fail, redirect } from '@sveltejs/kit';
 					import { hash, verify } from '@node-rs/argon2';
 					import { eq } from 'drizzle-orm';
-					import { generateId } from 'lucia';
 					import { db } from '$lib/server/db';
 					import * as auth from '$lib/server/auth';
 					import * as table from '$lib/server/db/schema';
@@ -357,7 +357,7 @@ export default defineAdder({
 
 							const results = await db
 								.select()
-								.from(user)
+								.from(table.user)
 								.where(eq(table.user.username, username));
 
 							const existingUser = results.at(0);
@@ -398,7 +398,7 @@ export default defineAdder({
 								return fail(400, { message: 'Invalid password' });
 							}
 
-							const userId = generateId(15);
+							const userId = auth.generateId(15);
 							const passwordHash = await hash(password, {
 								// recommended minimum parameters
 								memoryCost: 19456,
@@ -408,7 +408,7 @@ export default defineAdder({
 							});
 
 							try {
-								await db.insert(user).values({ id: userId, username, passwordHash });
+								await db.insert(table.user).values({ id: userId, username, passwordHash });
 
 								const session = await auth.createSession(userId);
 								event.cookies.set(auth.sessionCookieName, session.id, {
@@ -512,7 +512,7 @@ export default defineAdder({
 							}
 							await auth.invalidateSession(event.locals.session.id);
 							event.cookies.delete(auth.sessionCookieName, { path: '/' });
-							
+
 							return redirect(302, '/demo/login');
 						},
 					};
