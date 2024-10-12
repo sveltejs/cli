@@ -3,6 +3,7 @@ import {
 	type HtmlDocument,
 	HtmlElement,
 	HtmlElementType,
+	HtmlText,
 	parseHtml
 } from '@sveltejs/ast-tooling';
 
@@ -32,4 +33,11 @@ export function addFromRawHtml(childNodes: HtmlChildNode[], html: string): void 
 	for (const childNode of document.childNodes) {
 		childNodes.push(childNode);
 	}
+}
+
+export function text(content: string): HtmlText {
+	return {
+		type: HtmlElementType.Text,
+		data: content
+	} as HtmlText;
 }

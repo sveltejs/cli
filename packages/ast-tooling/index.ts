@@ -30,6 +30,7 @@ export {
 	// html
 	Document as HtmlDocument,
 	Element as HtmlElement,
+	Text as HtmlText,
 	ElementType as HtmlElementType,
 
 	// css
