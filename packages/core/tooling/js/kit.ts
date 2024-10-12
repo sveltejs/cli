@@ -1,15 +1,5 @@
-import { Walker, type AstKinds } from '@svelte-cli/ast-tooling';
+import { Walker, type AstKinds } from '@sveltejs/ast-tooling';
 import { common, functions, imports, variables, exports, type AstTypes } from '../js/index.ts';
-import * as html from '../html/index.ts';
-
-export function createPrinter(
-	...conditions: boolean[]
-): Array<(content: string, alt?: string) => string> {
-	const printers = conditions.map((condition) => {
-		return (content: string, alt = '') => (condition ? content : alt);
-	});
-	return printers;
-}
 
 export function addGlobalAppInterface(
 	ast: AstTypes.Program,
@@ -64,15 +54,6 @@ export function addGlobalAppInterface(
 	}
 
 	return interfaceNode;
-}
-
-export function hasTypeProp(
-	name: string,
-	node: AstTypes.TSInterfaceDeclaration['body']['body'][number]
-): boolean {
-	return (
-		node.type === 'TSPropertySignature' && node.key.type === 'Identifier' && node.key.name === name
-	);
 }
 
 export function addHooksHandle(
@@ -263,24 +244,6 @@ export function addHooksHandle(
 		ast.body.push(newDecl);
 		exports.namedExport(ast, handleName, newHandleDecl);
 	}
-}
-
-export function addSlot(
-	jsAst: AstTypes.Program,
-	htmlAst: html.HtmlDocument,
-	svelteVersion: string
-): void {
-	const slotSyntax =
-		svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3'));
-
-	if (slotSyntax) {
-		const slot = html.element('slot');
-		html.appendElement(htmlAst.childNodes, slot);
-		return;
-	}
-
-	common.addFromString(jsAst, 'let { children } = $props();');
-	html.addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 }
 
 function usingSequence(node: AstTypes.VariableDeclarator, handleName: string) {

@@ -1,8 +1,15 @@
-import { colors, dedent, defineAdder, defineAdderOptions, log, Walker } from '@sveltejs/cli-core';
-import { common, exports, imports, variables, object, functions } from '@sveltejs/cli-core/js';
+import {
+	colors,
+	dedent,
+	defineAdder,
+	defineAdderOptions,
+	log,
+	utils,
+	Walker
+} from '@sveltejs/cli-core';
+import { common, exports, imports, variables, object, functions, kit } from '@sveltejs/cli-core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@sveltejs/cli-core/js';
-import { addHooksHandle, addGlobalAppInterface, hasTypeProp } from '@sveltejs/cli-core/shared';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
 const LUCIA_ADAPTER = {
@@ -244,13 +251,13 @@ export default defineAdder({
 			content: ({ content }) => {
 				const { ast, generateCode } = parseScript(content);
 
-				const locals = addGlobalAppInterface(ast, 'Locals');
+				const locals = kit.addGlobalAppInterface(ast, 'Locals');
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
 
-				const user = locals.body.body.find((prop) => hasTypeProp('user', prop));
-				const session = locals.body.body.find((prop) => hasTypeProp('session', prop));
+				const user = locals.body.body.find((prop) => common.hasTypeProp('user', prop));
+				const session = locals.body.body.find((prop) => common.hasTypeProp('session', prop));
 
 				if (!user) {
 					locals.body.body.push(createLuciaType('user'));
@@ -266,7 +273,7 @@ export default defineAdder({
 			content: ({ content, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
 				imports.addNamed(ast, '$lib/server/auth.js', { lucia: 'lucia' });
-				addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
+				kit.addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
 				return generateCode();
 			}
 		},
@@ -284,7 +291,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string, opt = '') => (typescript ? str : opt);
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					import { hash, verify } from '@node-rs/argon2';
@@ -427,7 +434,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string) => (typescript ? str : '');
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
@@ -466,7 +473,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string) => (typescript ? str : '');
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { lucia } from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
@@ -507,7 +514,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string) => (typescript ? str : '');
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';

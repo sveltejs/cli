@@ -32,7 +32,6 @@ function getConfig(project) {
 			css: `${projectRoot}/tooling/css/index.ts`,
 			html: `${projectRoot}/tooling/html/index.ts`,
 			js: `${projectRoot}/tooling/js/index.ts`,
-			shared: `${projectRoot}/tooling/shared/index.ts`,
 			parsers: `${projectRoot}/tooling/parsers.ts`
 		};
 	} else if (project === 'cli') {

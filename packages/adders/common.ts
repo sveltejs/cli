@@ -2,13 +2,6 @@ import { imports, exports, common } from '@sveltejs/cli-core/js';
 import { type Question, type FileEditor } from '@sveltejs/cli-core';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
-export function createPrinter(...conditions: boolean[]) {
-	const printers = conditions.map((condition) => {
-		return (content: string, alt = '') => (condition ? content : alt);
-	});
-	return printers;
-}
-
 export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Question>>): string {
 	const { ast, generateCode } = parseScript(content);
 
