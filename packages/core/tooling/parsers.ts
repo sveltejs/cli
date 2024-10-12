@@ -8,7 +8,7 @@ type ParseBase = {
 
 export function parseScript(source: string): { ast: tools.AstTypes.Program } & ParseBase {
 	const ast = tools.parseScript(source);
-	const generateCode = () => tools.serializeScript(ast);
+	const generateCode = () => tools.serializeScript(ast, source);
 
 	return { ast, source, generateCode };
 }
