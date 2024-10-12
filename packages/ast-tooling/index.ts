@@ -71,8 +71,7 @@ export function serializeScript(ast: AstTypes.ASTNode, previousContent?: string)
 		// provide sensible defaults if we generate a new file
 		options = {
 			quote: 'single',
-			useTabs: false,
-			tabWidth: 4
+			useTabs: true
 		};
 	}
 
