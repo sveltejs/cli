@@ -15,15 +15,14 @@ for (const categoryDirectory of categoryDirectories) {
 				const testDirectoryPath = join(baseDir, categoryDirectory, testName);
 
 				const inputFilePath = join(testDirectoryPath, 'input.ts');
-				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath) : '';
-				const inputString = input.toString();
-				const ast = parseScript(inputString);
+				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath, 'utf8') : '';
+				const ast = parseScript(input);
 
 				// dynamic imports always need to provide the path inline for static analysis
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
 				module.run({ ast });
 
-				const output = serializeScript(ast, inputString);
+				const output = serializeScript(ast, input);
 				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
 			});
 		}
