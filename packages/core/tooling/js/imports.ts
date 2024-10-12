@@ -14,7 +14,7 @@ export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
 	addImportIfNecessary(ast, expectedImportDeclaration);
 }
 
-export function addNamespace(ast: AstTypes.Program, importFrom: string, importAs: string): string {
+export function addNamespace(ast: AstTypes.Program, importFrom: string, importAs: string): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: { type: 'Literal', value: importFrom },
