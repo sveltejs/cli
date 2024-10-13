@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.5.3",
+	"version": "0.5.1",
 	"description": "A CLI for creating and updating SvelteKit projects",
 	"keywords": [
 		"create",
