@@ -211,7 +211,7 @@ export default defineAdder({
 					root.attribs = {
 						'{i18n}': ''
 					};
-					root.children = [html.text('\n\t'), ...rootChildren, html.text('\n')];
+					root.children = rootChildren;
 					template.ast.children = [root];
 				}
 

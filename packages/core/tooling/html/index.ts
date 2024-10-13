@@ -4,7 +4,6 @@ import {
 	type HtmlDocument,
 	HtmlElement,
 	HtmlElementType,
-	HtmlText,
 	parseHtml
 } from '@sveltejs/ast-tooling';
 import { addFromString } from '../js/common.ts';
