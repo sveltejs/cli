@@ -36,13 +36,6 @@ export function addFromRawHtml(childNodes: HtmlChildNode[], html: string): void 
 	}
 }
 
-export function text(content: string): HtmlText {
-	return {
-		type: HtmlElementType.Text,
-		data: content
-	} as HtmlText;
-}
-
 export function addSlot(
 	jsAst: AstTypes.Program,
 	htmlAst: HtmlDocument,
