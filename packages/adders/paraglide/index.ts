@@ -257,7 +257,7 @@ export default defineAdder({
 					);
 				}
 
-				const { ts } = utils.createPrinter({ ts: typescript });
+				const [ts] = utils.createPrinter(typescript);
 
 				const scriptCode = new MagicString(script.generateCode());
 				if (!scriptCode.original.includes('function switchToLanguage')) {

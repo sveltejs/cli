@@ -291,7 +291,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const { ts } = utils.createPrinter({ ts: typescript });
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					import { hash, verify } from '@node-rs/argon2';
@@ -434,7 +434,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const { ts } = utils.createPrinter({ ts: typescript });
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
@@ -473,7 +473,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const { ts } = utils.createPrinter({ ts: typescript });
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { lucia } from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
@@ -514,7 +514,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const { ts } = utils.createPrinter({ ts: typescript });
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
