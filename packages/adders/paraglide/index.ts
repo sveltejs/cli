@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineAdder, defineAdderOptions, log } from '@sveltejs/cli-core';
+import { defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -8,10 +8,10 @@ import {
 	imports,
 	object,
 	variables,
-	exports
+	exports,
+	kit
 } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
-import { addHooksHandle, addSlot, createPrinter } from '../common.ts';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
 const DEFAULT_INLANG_PROJECT = {
@@ -175,7 +175,7 @@ export default defineAdder({
 				});
 
 				const hookHandleContent = 'i18n.handle()';
-				addHooksHandle(ast, typescript, 'paraglide', hookHandleContent);
+				kit.addHooksHandle(ast, typescript, 'paraglide', hookHandleContent);
 
 				return generateCode();
 			}
@@ -200,7 +200,7 @@ export default defineAdder({
 					const svelteVersion = dependencyVersion('svelte');
 					if (!svelteVersion) throw new Error('Failed to determine svelte version');
 
-					addSlot(script.ast, template.ast, svelteVersion);
+					html.addSlot(script.ast, template.ast, svelteVersion);
 				}
 
 				const hasParaglideJsNode = rootChildren.find(
@@ -263,7 +263,7 @@ export default defineAdder({
 					);
 				}
 
-				const [ts] = createPrinter(typescript);
+				const { ts } = utils.createPrinter({ ts: typescript });
 
 				const methodStatement = common.statementFromString(`
 					function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
