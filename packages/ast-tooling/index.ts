@@ -15,8 +15,7 @@ import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
 import * as acorn from 'acorn';
 import { tsPlugin } from 'acorn-typescript';
-// @ts-expect-error
-import { print as esrapPrint } from 'esrap';
+import { print as esrapPrint } from 'esrap-typescript-temp';
 // todo: why is this file only generated during `dev` startup, if it's prefixed with type?
 import { TsEstree } from './ts-estree.ts';
 
