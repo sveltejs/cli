@@ -169,31 +169,28 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
-	type AdderChoices = Record<string, Array<{ value: string; label: string }>>;
+	type AdderChoices = Array<{ value: string; label: string }>;
 
 	// we'll let the user choose community adders when `--community` is specified without args
 	if (options.community === true) {
-		const promptOptions: AdderChoices = {};
+		let promptOptions: AdderChoices = [];
 		const communityAdders = await Promise.all(
 			communityAdderIds.map(async (id) => ({ id, ...(await getCommunityAdder(id)) }))
 		);
 		const categories = new Set(communityAdders.map((adder) => adder.category));
 
-		for (const category of categories) {
-			promptOptions[category] = communityAdders
-				.filter((adder) => adder.category === category)
+		for (const _category of categories) {
+			promptOptions = communityAdders
 				.map((adder) => ({
 					value: adder.id,
-					label: adder.name,
-					hint: adder.repo
+					label: adder.id,
+					hint: adder.homepage
 				}));
 		}
 
-		const selected = await p.groupMultiselect({
+		const selected = await p.multiselect({
 			message: 'Which community tools would you like to add to your project?',
-			options: promptOptions,
-			spacedGroups: true,
-			selectableGroups: false,
+			options: promptOptions.sort((a, b) => (a?.label || '').localeCompare(b?.label || '')),
 			required: false
 		});
 
@@ -281,7 +278,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
-		const adderOptions: AdderChoices = {};
+		let adderOptions: AdderChoices = [];
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
 		for (const category of categories) {
@@ -294,23 +291,21 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 					if (projectType === 'svelte' && !config.environments.svelte) return;
 
 					return {
-						label: config.name,
+						label: config.id,
 						value: config.id,
-						hint: config.documentation
+						hint: config.homepage
 					};
 				})
 				.filter((c) => !!c);
 
 			if (categoryOptions.length > 0) {
-				adderOptions[category] = categoryOptions;
+				adderOptions = [...adderOptions, ...categoryOptions];
 			}
 		}
 
-		const selected = await p.groupMultiselect({
+		const selected = await p.multiselect({
 			message: 'What would you like to add to your project?',
-			options: adderOptions,
-			spacedGroups: true,
-			selectableGroups: false,
+			options: adderOptions.sort((a, b) => (a?.label || '').localeCompare(b?.label || '')),
 			required: false
 		});
 		if (p.isCancel(selected)) {

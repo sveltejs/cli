@@ -6,5 +6,5 @@ export default {
 	category: 'Icon',
 	npm: 'unplugin-icons-svelte-integration',
 	repo: 'https://github.com/owner-name/repo-name',
-	website: 'https://github.com/unplugin/unplugin-icons'
+	homepage: 'https://github.com/unplugin/unplugin-icons'
 } satisfies CommunityAdder;

@@ -7,7 +7,7 @@ export default defineAdder({
 	name: 'Vitest',
 	description: 'A testing framework powered by Vite',
 	environments: { svelte: true, kit: true },
-	documentation: 'https://vitest.dev',
+	homepage: 'https://vitest.dev',
 	options: {},
 	packages: [{ name: 'vitest', version: '^2.0.4', dev: true }],
 	files: [

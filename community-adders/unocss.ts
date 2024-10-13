@@ -6,5 +6,5 @@ export default {
 	category: 'CSS',
 	npm: 'unocss-svelte-integration',
 	repo: 'https://github.com/owner-name/repo-name',
-	website: 'https://unocss.dev'
+	homepage: 'https://unocss.dev'
 } satisfies CommunityAdder;

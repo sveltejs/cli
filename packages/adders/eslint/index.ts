@@ -19,7 +19,7 @@ export default defineAdder({
 	name: 'ESLint',
 	description: 'A configurable JavaScript linter',
 	environments: { svelte: true, kit: true },
-	documentation: 'https://eslint.org',
+	homepage: 'https://eslint.org',
 	options: {},
 	packages: [
 		{ name: 'eslint', version: '^9.7.0', dev: true },

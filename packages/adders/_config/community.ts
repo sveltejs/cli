@@ -6,7 +6,7 @@ export type CommunityAdder = {
 	category: Category | CommunityCategory;
 	npm: string;
 	repo: string;
-	website: string;
+	homepage: string;
 };
 
 /** EVALUATED AT BUILD TIME */

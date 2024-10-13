@@ -19,7 +19,7 @@ export default defineAdder({
 	name: 'Tailwind CSS',
 	description: 'Rapidly build modern websites without ever leaving your HTML',
 	environments: { svelte: true, kit: true },
-	documentation: 'https://tailwindcss.com/docs',
+	homepage: 'https://tailwindcss.com',
 	options,
 	packages: [
 		{ name: 'tailwindcss', version: '^3.4.9', dev: true },

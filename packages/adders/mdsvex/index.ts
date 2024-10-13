@@ -7,7 +7,7 @@ export default defineAdder({
 	name: 'mdsvex',
 	description: 'svelte in markdown',
 	environments: { svelte: true, kit: true },
-	documentation: 'https://mdsvex.pngwn.io/docs',
+	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
 	packages: [{ name: 'mdsvex', version: '^0.11.2', dev: true }],
 	files: [

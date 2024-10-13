@@ -31,7 +31,7 @@ export type Adder<Args extends OptionDefinition> = {
 	name: string;
 	description: string;
 	environments: Environments;
-	documentation?: string;
+	homepage?: string;
 	options: Args;
 	dependsOn?: string[];
 	packages: Array<PackageDefinition<Args>>;
