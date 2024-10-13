@@ -275,23 +275,23 @@ export default defineAdder({
 				`);
 				}
 
+				const templateCode = new MagicString(template.source);
+
 				// add localized message
-				html.addFromRawHtml(
-					template.ast.childNodes,
-					`\n\n<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>\n`
-				);
+				templateCode.append("\n\n<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>\n");
 
 				// add links to other localized pages, the first one is the default
 				// language, thus it does not require any localized route
 				const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
 				const links = validLanguageTags
-					.map((x) => `\n\t<button onclick="{() => switchToLanguage('${x}')}">${x}</button>`)
-					.join('');
-				const div = html.element('div');
-				html.addFromRawHtml(div.childNodes, `${links}\n`);
-				html.appendElement(template.ast.childNodes, div);
+					.map(
+						(x) =>
+							`${templateCode.getIndentString()}<button onclick={() => switchToLanguage('${x}')}>${x}</button>`
+					)
+					.join('\n');
+				templateCode.append(`<div>\n${links}\n</div>`);
 
-				return generateCode({ script: scriptCode.toString(), template: template.generateCode() });
+				return generateCode({ script: scriptCode.toString(), template: templateCode.toString() });
 			}
 		}
 	],
