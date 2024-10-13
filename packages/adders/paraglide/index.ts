@@ -184,8 +184,8 @@ export default defineAdder({
 		{
 			// add the <ParaglideJS> component to the layout
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			content: ({ content, dependencyVersion }) => {
-				const { script, template, generateCode } = parseSvelte(content);
+			content: ({ content, dependencyVersion, typescript }) => {
+				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 				const paraglideComponentName = 'ParaglideJS';
 				imports.addNamed(script.ast, '@inlang/paraglide-sveltekit', {
