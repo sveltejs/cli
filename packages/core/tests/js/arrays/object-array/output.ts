@@ -1,5 +1,1 @@
-const array = [{
-  test: true
-}, {
-  test2: "string"
-}];
+const array = [{ test: true }, { test2: "string" }];

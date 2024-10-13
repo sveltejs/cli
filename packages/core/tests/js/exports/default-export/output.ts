@@ -1,3 +1,1 @@
-export default {
-  test: "string"
-};
+export default { test: "string" };

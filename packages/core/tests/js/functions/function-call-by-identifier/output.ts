@@ -3,4 +3,5 @@ function foo(bar: string) {
 }
 
 const a = 'bar';
+
 foo(a);

@@ -61,17 +61,17 @@ export default defineAdder({
 			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
 			content: ({ content }) => {
 				const { ast, generateCode } = parseScript(content);
-				const isProp = (name: string, node: AstTypes.ObjectProperty) =>
+				const isProp = (name: string, node: AstTypes.Property) =>
 					node.key.type === 'Identifier' && node.key.name === name;
 
 				// prettier-ignore
-				Walker.walk(ast as AstTypes.ASTNode, {}, {
-					ObjectProperty(node) {
-						if (isProp('dialect', node) && node.value.type === 'StringLiteral') {
+				Walker.walk(ast as AstTypes.Node, {}, {
+					Property(node) {
+						if (isProp('dialect', node) && node.value.type === 'Literal') {
 							drizzleDialect = node.value.value as Dialect;
 						}
-						if (isProp('schema', node) && node.value.type === 'StringLiteral') {
-							schemaPath = node.value.value;
+						if (isProp('schema', node) && node.value.type === 'Literal') {
+							schemaPath = node.value.value as string;
 						}
 					}
 				})
@@ -549,6 +549,7 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 			type: 'Identifier',
 			name
 		},
+		computed: false,
 		typeAnnotation: {
 			type: 'TSTypeAnnotation',
 			typeAnnotation: {
@@ -556,7 +557,7 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 				types: [
 					{
 						type: 'TSImportType',
-						argument: { type: 'StringLiteral', value: 'lucia' },
+						argument: { type: 'Literal', value: 'lucia' },
 						qualifier: {
 							type: 'Identifier',
 							// capitalize first letter
@@ -603,7 +604,7 @@ function getAuthHandleContent() {
 		};`;
 }
 
-function getCallExpression(ast: AstTypes.ASTNode): AstTypes.CallExpression | undefined {
+function getCallExpression(ast: AstTypes.Node): AstTypes.CallExpression | undefined {
 	let callExpression;
 
 	// prettier-ignore

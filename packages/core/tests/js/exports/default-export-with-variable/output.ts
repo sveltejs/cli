@@ -1,5 +1,3 @@
-const object = {
-  test: "string"
-};
+const object = { test: "string" };
 
 export default object;

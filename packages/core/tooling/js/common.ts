@@ -1,5 +1,4 @@
 import {
-	type AstKinds,
 	type AstTypes,
 	Walker,
 	parseScript,
@@ -9,21 +8,20 @@ import {
 import decircular from 'decircular';
 import dedent from 'dedent';
 
-export function addJsDocTypeComment(node: AstTypes.Node, type: string): void {
-	const comment: AstTypes.CommentBlock = {
-		type: 'CommentBlock',
-		value: `* @type {${type}} `,
-		leading: true
+export function addJsDocTypeComment(node: AstTypes.BaseNode, type: string): void {
+	const comment: AstTypes.Comment = {
+		type: 'Line',
+		value: `* @type {${type}} `
 	};
 
-	node.comments ??= [];
+	node.leadingComments ??= [];
 
-	const found = node.comments.find((n) => n.type === 'CommentBlock' && n.value === comment.value);
-	if (!found) node.comments.push(comment);
+	const found = node.leadingComments.find((n) => n.type === 'Line' && n.value === comment.value);
+	if (!found) node.leadingComments.push(comment);
 }
 
 export function typeAnnotateExpression(
-	node: AstKinds.ExpressionKind,
+	node: AstTypes.Expression,
 	type: string
 ): AstTypes.TSAsExpression {
 	const expression: AstTypes.TSAsExpression = {
@@ -35,7 +33,7 @@ export function typeAnnotateExpression(
 	return expression;
 }
 
-export function createSpreadElement(expression: AstKinds.ExpressionKind): AstTypes.SpreadElement {
+export function createSpreadElement(expression: AstTypes.Expression): AstTypes.SpreadElement {
 	return {
 		type: 'SpreadElement',
 		argument: expression
@@ -51,13 +49,15 @@ export function createLiteral(value: string | number | boolean | null = null): A
 	return literal;
 }
 
-export function areNodesEqual(ast1: AstTypes.ASTNode, ast2: AstTypes.ASTNode): boolean {
+export function areNodesEqual(ast1: AstTypes.Node, ast2: AstTypes.Node): boolean {
 	// We're deep cloning these trees so that we can strip the locations off of them for comparisons.
 	// Without this, we'd be getting false negatives due to slight differences in formatting style.
 	// These ASTs are also filled to the brim with circular references, which prevents
 	// us from using `structuredCloned` directly
-	const ast1Clone = stripAst(decircular(ast1), 'loc');
-	const ast2Clone = stripAst(decircular(ast2), 'loc');
+
+	// todo: can we simplify this duplicated call?
+	const ast1Clone = stripAst(stripAst(decircular(ast1), 'loc'), 'raw');
+	const ast2Clone = stripAst(stripAst(decircular(ast2), 'loc'), 'raw');
 	return serializeScript(ast1Clone) === serializeScript(ast2Clone);
 }
 
@@ -69,9 +69,7 @@ export function blockStatement(): AstTypes.BlockStatement {
 	return statement;
 }
 
-export function expressionStatement(
-	expression: AstKinds.ExpressionKind
-): AstTypes.ExpressionStatement {
+export function expressionStatement(expression: AstTypes.Expression): AstTypes.ExpressionStatement {
 	const statement: AstTypes.ExpressionStatement = {
 		type: 'ExpressionStatement',
 		expression
@@ -86,11 +84,12 @@ export function addFromString(
 	const program = parseScript(dedent(value));
 
 	for (const childNode of program.body) {
+		// @ts-expect-error
 		ast.body.push(childNode);
 	}
 }
 
-export function expressionFromString(value: string): AstKinds.ExpressionKind {
+export function expressionFromString(value: string): AstTypes.Expression {
 	const program = parseScript(dedent(value));
 	const statement = program.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
@@ -100,23 +99,27 @@ export function expressionFromString(value: string): AstKinds.ExpressionKind {
 	return statement.expression;
 }
 
-export function statementFromString(value: string): AstKinds.StatementKind {
+export function statementFromString(value: string): AstTypes.Statement {
+	return fromString<AstTypes.Statement>(value);
+}
+
+export function fromString<T extends AstTypes.Node>(value: string): T {
 	const program = parseScript(dedent(value));
 	const statement = program.body[0]!;
 
-	return statement;
+	return statement as T;
 }
 
 /** Appends the statement to body of the block if it doesn't already exist */
 export function addStatement(
 	ast: AstTypes.BlockStatement | AstTypes.Program,
-	statement: AstKinds.StatementKind
+	statement: AstTypes.Statement
 ): void {
 	if (!hasNode(ast, statement)) ast.body.push(statement);
 }
 
 /** Returns `true` if the provided node exists in the AST */
-export function hasNode(ast: AstTypes.ASTNode, nodeToMatch: AstTypes.ASTNode): boolean {
+export function hasNode(ast: AstTypes.Node, nodeToMatch: AstTypes.Node): boolean {
 	let found = false;
 	// prettier-ignore
 	// this gets needlessly butchered by prettier
