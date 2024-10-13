@@ -1,5 +1,11 @@
 # sv
 
+## 0.5.3
+### Patch Changes
+
+
+- chore: publish release ([#106](https://github.com/sveltejs/cli/pull/106))
+
 ## 0.5.2
 ### Patch Changes
 
