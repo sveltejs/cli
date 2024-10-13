@@ -151,3 +151,12 @@ export function hasNode(ast: AstTypes.ASTNode, nodeToMatch: AstTypes.ASTNode): b
 
 	return found;
 }
+
+export function hasTypeProp(
+	name: string,
+	node: AstTypes.TSInterfaceDeclaration['body']['body'][number]
+): boolean {
+	return (
+		node.type === 'TSPropertySignature' && node.key.type === 'Identifier' && node.key.name === name
+	);
+}
