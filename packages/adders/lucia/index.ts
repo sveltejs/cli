@@ -74,7 +74,7 @@ export default defineAdder({
 		},
 		{
 			name: () => schemaPath,
-			content: ({ content, options }) => {
+			content: ({ content, options, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
 				const createTable = (name: string) => functions.call(TABLE_TYPE[drizzleDialect], [name]);
 
@@ -184,12 +184,15 @@ export default defineAdder({
 						)
 					});
 				}
+
 				let code = generateCode();
-				if (!code.includes('export type Session =')) {
-					code += '\n\nexport type Session = typeof session.$inferSelect;';
-				}
-				if (!code.includes('export type User =')) {
-					code += '\n\nexport type User = typeof user.$inferSelect;';
+				if (typescript) {
+					if (!code.includes('export type Session =')) {
+						code += '\n\nexport type Session = typeof session.$inferSelect;';
+					}
+					if (!code.includes('export type User =')) {
+						code += '\n\nexport type User = typeof user.$inferSelect;';
+					}
 				}
 				return code;
 			}
