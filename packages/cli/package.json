@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.5.0",
+	"version": "0.5.3",
 	"description": "A CLI for creating and updating SvelteKit projects",
 	"keywords": [
 		"create",
@@ -18,7 +18,7 @@
 		"directory": "packages/cli"
 	},
 	"license": "MIT",
-	"homepage": "https://kit.svelte.dev",
+	"homepage": "https://svelte.dev",
 	"bin": "./dist/bin.js",
 	"exports": {
 		".": {

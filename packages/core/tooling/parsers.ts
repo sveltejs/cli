@@ -67,7 +67,8 @@ export function parseSvelte(
 	const templateSource = source
 		.replace(moduleScriptTag, '')
 		.replace(scriptTag, '')
-		.replace(styleTag, '');
+		.replace(styleTag, '')
+		.trim();
 
 	const script = parseScript(scriptSource);
 	const module = parseScript(moduleSource);
@@ -86,7 +87,7 @@ export function parseSvelte(
 			} else {
 				const { start, end } = locations(source, scriptSource);
 				const formatted = indent(code.script, ms.getIndentString());
-				ms.overwrite(start, end, formatted);
+				ms.update(start, end, formatted);
 			}
 		}
 		if (code.module !== undefined) {
@@ -99,7 +100,7 @@ export function parseSvelte(
 			} else {
 				const { start, end } = locations(source, moduleSource);
 				const formatted = indent(code.module, ms.getIndentString());
-				ms.overwrite(start, end, formatted);
+				ms.update(start, end, formatted);
 			}
 		}
 		if (code.css !== undefined) {
@@ -110,7 +111,7 @@ export function parseSvelte(
 			} else {
 				const { start, end } = locations(source, cssSource);
 				const formatted = indent(code.css, ms.getIndentString());
-				ms.overwrite(start, end, formatted);
+				ms.update(start, end, formatted);
 			}
 		}
 		if (code.template !== undefined) {
@@ -118,7 +119,7 @@ export function parseSvelte(
 				ms.appendLeft(0, code.template);
 			} else {
 				const { start, end } = locations(source, templateSource);
-				ms.overwrite(start, end, code.template);
+				ms.update(start, end, code.template);
 			}
 		}
 		return ms.toString();

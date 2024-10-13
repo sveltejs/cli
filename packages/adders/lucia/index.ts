@@ -1,8 +1,15 @@
-import { colors, dedent, defineAdder, defineAdderOptions, log, Walker } from '@sveltejs/cli-core';
-import { common, exports, imports, variables, object, functions } from '@sveltejs/cli-core/js';
+import {
+	colors,
+	dedent,
+	defineAdder,
+	defineAdderOptions,
+	log,
+	utils,
+	Walker
+} from '@sveltejs/cli-core';
+import { common, exports, imports, variables, object, functions, kit } from '@sveltejs/cli-core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@sveltejs/cli-core/js';
-import { addHooksHandle, addGlobalAppInterface, hasTypeProp, createPrinter } from '../common.ts';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
 const TABLE_TYPE = {
@@ -205,7 +212,7 @@ export default defineAdder({
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
-				const [ts] = createPrinter(typescript);
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { eq } from 'drizzle-orm';
 					import { sha256 } from '@oslojs/crypto/sha2';
@@ -299,13 +306,13 @@ export default defineAdder({
 			content: ({ content }) => {
 				const { ast, generateCode } = parseScript(content);
 
-				const locals = addGlobalAppInterface(ast, 'Locals');
+				const locals = kit.addGlobalAppInterface(ast, 'Locals');
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
 
-				const user = locals.body.body.find((prop) => hasTypeProp('user', prop));
-				const session = locals.body.body.find((prop) => hasTypeProp('session', prop));
+				const user = locals.body.body.find((prop) => common.hasTypeProp('user', prop));
+				const session = locals.body.body.find((prop) => common.hasTypeProp('session', prop));
 
 				if (!user) {
 					locals.body.body.push(createLuciaType('user'));
@@ -322,7 +329,7 @@ export default defineAdder({
 				const { ast, generateCode } = parseScript(content);
 				imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
 				imports.addNamed(ast, '$app/environment', { dev: 'dev' });
-				addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
+				kit.addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
 				return generateCode();
 			}
 		},
@@ -339,7 +346,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const [ts] = createPrinter(typescript);
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { dev } from '$app/environment';
 					import { fail, redirect } from '@sveltejs/kit';
@@ -469,7 +476,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string) => (typescript ? str : '');
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
@@ -507,7 +514,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string) => (typescript ? str : '');
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
@@ -544,7 +551,7 @@ export default defineAdder({
 					return content;
 				}
 
-				const ts = (str: string) => (typescript ? str : '');
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';

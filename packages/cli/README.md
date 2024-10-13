@@ -1,27 +1,12 @@
 # sv - the Svelte CLI
 
-A CLI for creating new [SvelteKit](https://kit.svelte.dev) projects and adding functionality to existing ones. Just run...
+A command line interface (CLI) for creating and maintaining [Svelte](https://svelte.dev) applications. Just run...
 
 ```bash
 npx sv
 ```
 
 ...and follow the prompts.
-
-## API
-
-You can also use `sv` programmatically:
-
-```js
-import { create } from 'sv';
-
-await create('my-new-app', {
-  name: 'my-new-app',
-  template: 'default' // or 'skeleton' or 'skeletonlib'
-});
-```
-
-`checkjs` means your project will use TypeScript to typecheck JavaScript via [JSDoc comments](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
 
 ## Acknowledgements
 
@@ -31,4 +16,4 @@ This project was formed by merging the `create-svelte` and `svelte-add` CLIs. Th
 
 ## License
 
-[MIT](../../LICENSE).
+[MIT](../../LICENSE)

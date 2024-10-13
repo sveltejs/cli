@@ -37,6 +37,8 @@ export type Adder<Args extends OptionDefinition> = {
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
+	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
+	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
@@ -49,7 +51,7 @@ export type Highlighter = {
 	command: (str: string) => string;
 	website: (str: string) => string;
 	route: (str: string) => string;
-	env: (str: string) => string;
+	env: (str: string) => string; // used for printing environment variable names
 };
 
 export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>): Adder<Args> {
