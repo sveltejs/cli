@@ -4,4 +4,4 @@
 ### Patch Changes
 
 
-- feat: paraglide integration ([#110](https://github.com/sveltejs/cli/pull/110))
+- feat: paraglide integration ([#67](https://github.com/sveltejs/cli/pull/67))
