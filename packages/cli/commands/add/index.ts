@@ -180,12 +180,11 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		const categories = new Set(communityAdders.map((adder) => adder.category));
 
 		for (const _category of categories) {
-			promptOptions = communityAdders
-				.map((adder) => ({
-					value: adder.id,
-					label: adder.id,
-					hint: adder.homepage
-				}));
+			promptOptions = communityAdders.map((adder) => ({
+				value: adder.id,
+				label: adder.id,
+				hint: adder.homepage
+			}));
 		}
 
 		const selected = await p.multiselect({
