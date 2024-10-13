@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-publish release
+chore: publish release
