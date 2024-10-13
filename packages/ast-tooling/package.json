@@ -19,14 +19,15 @@
 		"dist"
 	],
 	"devDependencies": {
-		"@babel/parser": "^7.24.7",
-		"ast-types": "^0.14.2",
+		"@types/estree": "^1.0.6",
+		"acorn": "^8.12.1",
+		"acorn-typescript": "^1.4.13",
 		"dom-serializer": "^2.0.0",
 		"domhandler": "^5.0.3",
 		"domutils": "^3.1.0",
+		"esrap": "^1.2.2",
 		"htmlparser2": "^9.1.0",
 		"postcss": "^8.4.38",
-		"recast": "^0.23.7",
 		"silver-fleece": "^1.1.0",
 		"zimmerframe": "^1.1.2"
 	},

@@ -1,5 +1,3 @@
-import { parse as tsParse } from 'recast/parsers/typescript.js';
-import { parse as recastParse, print as recastPrint } from 'recast';
 import { Document, Element, Text, type ChildNode } from 'domhandler';
 import { ElementType, parseDocument } from 'htmlparser2';
 import { appendChild, prependChild, removeElement, textContent } from 'domutils';
@@ -15,8 +13,12 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
-import type { namedTypes as AstTypes } from 'ast-types';
-import type * as AstKinds from 'ast-types/gen/kinds.d.ts';
+import * as acorn from 'acorn';
+import { tsPlugin } from 'acorn-typescript';
+// @ts-expect-error
+import { print as esrapPrint } from 'esrap';
+// todo: why is this file only generated during `dev` startup, if it's prefixed with type?
+import { TsEstree } from './ts-estree.ts';
 
 /**
  * Most of the AST tooling is pretty big in bundle size and bundling takes forever.
@@ -48,25 +50,70 @@ export type {
 	ChildNode as HtmlChildNode,
 
 	// js
-	AstTypes,
-	AstKinds,
+	TsEstree as AstTypes,
 
 	//css
 	CssChildNode
 };
 
-export function parseScript(content: string): AstTypes.Program {
-	const recastOutput: { program: AstTypes.Program } = recastParse(content, {
-		parser: {
-			parse: tsParse
+export function parseScript(content: string): TsEstree.Program {
+	const comments: any[] = [];
+
+	// @ts-expect-error
+	const acornTs = acorn.Parser.extend(tsPlugin({ allowSatisfies: true }));
+
+	const ast = acornTs.parse(content, {
+		ecmaVersion: 'latest',
+		sourceType: 'module',
+		locations: true,
+		onComment: (block, value, start, end) => {
+			if (block && /\n/.test(value)) {
+				let a = start;
+				while (a > 0 && content[a - 1] !== '\n') a -= 1;
+
+				let b = a;
+				// @ts-expect-error
+				while (/[ \t]/.test(content[b])) b += 1;
+
+				const indentation = content.slice(a, b);
+				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
+			}
+
+			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
 		}
 	});
 
-	return recastOutput.program;
+	Walker.walk(ast, null, {
+		_(node, { next }) {
+			const commentNode /** @type {import('../../src/types').NodeWithComments} */ =
+				/** @type {any} */ node;
+			let comment;
+
+			while (comments[0] && comments[0].start < node.start) {
+				comment = comments.shift();
+				// @ts-expect-error
+				(commentNode.leadingComments ||= []).push(comment);
+			}
+
+			next();
+
+			if (comments[0]) {
+				const slice = content.slice(node.end, comments[0].start);
+
+				if (/^[,) \t]*$/.test(slice)) {
+					// @ts-expect-error
+					commentNode.trailingComments = [comments.shift()];
+				}
+			}
+		}
+	});
+
+	return ast as TsEstree.Program;
 }
 
-export function serializeScript(ast: AstTypes.ASTNode): string {
-	return recastPrint(ast).code;
+export function serializeScript(ast: TsEstree.Node): string {
+	const { code } = esrapPrint(ast, {});
+	return code;
 }
 
 export function parseCss(content: string): CssAst {
@@ -108,7 +155,7 @@ export function stripAst<T>(node: T, propToRemove: string): T {
 }
 
 export type SvelteAst = {
-	jsAst: AstTypes.Program;
+	jsAst: TsEstree.Program;
 	htmlAst: Document;
 	cssAst: CssAst;
 };

@@ -55,7 +55,9 @@ export default defineAdder({
 						importDecl.importKind === 'value' &&
 						importDecl.specifiers?.some(
 							(specifier) =>
-								specifier.type === 'ImportSpecifier' && specifier.imported.name === 'defineConfig'
+								specifier.type === 'ImportSpecifier' &&
+								specifier.imported.type == 'Identifier' &&
+								specifier.imported.name === 'defineConfig'
 						)
 				);
 
@@ -67,7 +69,10 @@ export default defineAdder({
 				} else {
 					// otherwise, just remove the `defineConfig` specifier
 					const idxToRemove = defineConfigImportDecl?.specifiers?.findIndex(
-						(s) => s.type === 'ImportSpecifier' && s.imported.name === 'defineConfig'
+						(specifier) =>
+							specifier.type === 'ImportSpecifier' &&
+							specifier.imported.type == 'Identifier' &&
+							specifier.imported.name === 'defineConfig'
 					);
 					if (idxToRemove) defineConfigImportDecl?.specifiers?.splice(idxToRemove, 1);
 				}
@@ -86,7 +91,10 @@ export default defineAdder({
 				) {
 					// if the previous `defineConfig` was aliased, reuse the alias for the "vitest/config" import
 					const importSpecifier = defineConfigImportDecl?.specifiers?.find(
-						(sp) => sp.type === 'ImportSpecifier' && sp.imported.name === 'defineConfig'
+						(specifier) =>
+							specifier.type === 'ImportSpecifier' &&
+							specifier.imported.type == 'Identifier' &&
+							specifier.imported.name === 'defineConfig'
 					);
 					const defineConfigAlias = importSpecifier?.local?.name ?? 'defineConfig';
 					imports.addNamed(ast, 'vitest/config', { defineConfig: defineConfigAlias });

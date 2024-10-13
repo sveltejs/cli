@@ -1,10 +1,10 @@
-import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '@sveltejs/ast-tooling';
 
 export function declaration(
-	ast: AstTypes.Program | AstKinds.DeclarationKind,
+	ast: AstTypes.Program | AstTypes.Declaration,
 	kind: 'const' | 'let' | 'var',
 	name: string,
-	value: AstKinds.ExpressionKind
+	value: AstTypes.Expression
 ): AstTypes.VariableDeclaration {
 	const declarations =
 		ast.type == 'Program'

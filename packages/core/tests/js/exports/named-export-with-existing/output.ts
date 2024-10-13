@@ -1,4 +1,1 @@
-export const named = {
-    test: 'string',
-    test2: "string2"
-};
+export const named = { test: 'string', test2: "string2" };

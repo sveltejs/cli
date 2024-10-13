@@ -9,7 +9,6 @@ import {
 	functions,
 	imports,
 	object,
-	type AstKinds,
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
@@ -71,7 +70,7 @@ export default defineAdder({
 				const { ast, generateCode } = parseScript(content);
 
 				const eslintConfigs: Array<
-					AstKinds.ExpressionKind | AstTypes.SpreadElement | AstTypes.ObjectExpression
+					AstTypes.Expression | AstTypes.SpreadElement | AstTypes.ObjectExpression
 				> = [];
 
 				const jsConfig = common.expressionFromString('js.configs.recommended');
