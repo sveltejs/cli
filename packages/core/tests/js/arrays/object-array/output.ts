@@ -1,5 +1,5 @@
 const array = [{
-    test: true
+  test: true
 }, {
-    test2: 'string'
+  test2: 'string'
 }];
