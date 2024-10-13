@@ -10,7 +10,8 @@
 		"format": "pnpm -r format",
 		"dev": "rollup --config --watch",
 		"build": "rollup -c",
-		"test": "pnpm -r test"
+		"test": "pnpm -r test",
+		"changeset:publish": "changeset publish"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.9",
