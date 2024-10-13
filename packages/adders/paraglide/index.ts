@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
+import MagicString from 'magic-string';
+import { dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -183,8 +184,8 @@ export default defineAdder({
 		{
 			// add the <ParaglideJS> component to the layout
 			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			content: ({ content, dependencyVersion }) => {
-				const { script, template, generateCode } = parseSvelte(content);
+			content: ({ content, dependencyVersion, typescript }) => {
+				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 				const paraglideComponentName = 'ParaglideJS';
 				imports.addNamed(script.ast, '@inlang/paraglide-sveltekit', {
@@ -194,28 +195,21 @@ export default defineAdder({
 					i18n: 'i18n'
 				});
 
-				// wrap the HTML in a ParaglideJS instance
-				const rootChildren = template.ast.children;
-				if (rootChildren.length === 0) {
+				if (template.source.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');
 					if (!svelteVersion) throw new Error('Failed to determine svelte version');
 
 					html.addSlot(script.ast, template.ast, svelteVersion);
 				}
 
-				const hasParaglideJsNode = rootChildren.find(
-					(x) => x.type == 'tag' && x.name == paraglideComponentName
-				);
-				if (!hasParaglideJsNode) {
-					const root = html.element(paraglideComponentName, {});
-					root.attribs = {
-						'{i18n}': ''
-					};
-					root.children = rootChildren;
-					template.ast.children = [root];
+				const templateCode = new MagicString(template.generateCode());
+				if (!templateCode.original.includes('<ParaglideJS')) {
+					templateCode.indent();
+					templateCode.prepend('<ParaglideJS {i18n}>\n');
+					templateCode.append('\n</ParaglideJS>');
 				}
 
-				return generateCode({ script: script.generateCode(), template: template.generateCode() });
+				return generateCode({ script: script.generateCode(), template: templateCode.toString() });
 			}
 		},
 		{
@@ -263,40 +257,41 @@ export default defineAdder({
 					);
 				}
 
-				const { ts } = utils.createPrinter({ ts: typescript });
+				const [ts] = utils.createPrinter(typescript);
 
-				const methodStatement = common.statementFromString(`
+				const scriptCode = new MagicString(script.generateCode());
+				if (!scriptCode.original.includes('function switchToLanguage')) {
+					scriptCode.trim();
+					scriptCode.append('\n\n');
+					scriptCode.append(dedent`
+					${ts('', '/**')} 
+					${ts('', '* @param import("$lib/paraglide/runtime").AvailableLanguageTag newLanguage')} 
+					${ts('', '*/')} 
 					function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
 						const canonicalPath = i18n.route($page.url.pathname);
 						const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
 						goto(localisedPath);
 					}
 				`);
-				if (!typescript) {
-					common.addJsDocComment(methodStatement, {
-						'import("$lib/paraglide/runtime").AvailableLanguageTag': 'newLanguage'
-					});
 				}
 
-				script.ast.body.push(methodStatement);
+				const templateCode = new MagicString(template.source);
 
 				// add localized message
-				html.addFromRawHtml(
-					template.ast.childNodes,
-					`\n\n<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>\n`
-				);
+				templateCode.append("\n\n<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>\n");
 
 				// add links to other localized pages, the first one is the default
 				// language, thus it does not require any localized route
 				const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
 				const links = validLanguageTags
-					.map((x) => `\n\t<button onclick="{() => switchToLanguage('${x}')}">${x}</button>`)
-					.join('');
-				const div = html.element('div');
-				html.addFromRawHtml(div.childNodes, `${links}\n`);
-				html.appendElement(template.ast.childNodes, div);
+					.map(
+						(x) =>
+							`${templateCode.getIndentString()}<button onclick={() => switchToLanguage('${x}')}>${x}</button>`
+					)
+					.join('\n');
+				templateCode.append(`<div>\n${links}\n</div>`);
 
-				return generateCode({ script: script.generateCode(), template: template.generateCode() });
+				return generateCode({ script: scriptCode.toString(), template: templateCode.toString() });
 			}
 		}
 	],
