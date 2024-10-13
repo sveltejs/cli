@@ -218,17 +218,23 @@ export default defineAdder({
 
 					export const sessionCookieName = 'auth-session';
 
+					${ts('', '/** @returns {string} */')}
 					function generateSessionToken()${ts(': string')} {
 						const bytes = crypto.getRandomValues(new Uint8Array(20));
 						const token = encodeBase32LowerCaseNoPadding(bytes);
 						return token;
 					}
 
+					${ts('', '/**')}
+					${ts('', ' * @param {number} length')}
+					${ts('', ' * @returns {string}')}
+					${ts('', ' */')}
 					export function generateId(length${ts(': number')})${ts(': string')} {
 						const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
 						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
 					}
 
+					${ts('', '/** @param {string} userId */')}
 					export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
 						const token = generateSessionToken();
 						const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
@@ -242,6 +248,7 @@ export default defineAdder({
 					}
 
 					${ts('export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;\n')}
+					${ts('', '/** @param {string} sessionId */')}
 					export async function validateSession(sessionId${ts(': string')}) {
 						const [result] = await db
 							.select({
@@ -275,7 +282,11 @@ export default defineAdder({
 
 						return { session, user };
 					}
-
+					
+					${ts('', '/**')}
+					${ts('', ' * @param {string} sessionId')}
+					${ts('', ' * @returns {Promise<void>}')}
+					${ts('', ' */')}
 					export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
 						await db.delete(table.session).where(eq(table.session.id, sessionId));
 					}
