@@ -114,9 +114,9 @@ importers:
       domutils:
         specifier: ^3.1.0
         version: 3.1.0
-      esrap:
-        specifier: ^1.2.2
-        version: link:../../../esrap
+      esrap-typescript-temp:
+        specifier: ^0.0.1
+        version: 0.0.1
       htmlparser2:
         specifier: ^9.1.0
         version: 9.1.0
@@ -1159,6 +1159,9 @@ packages:
   esquery@1.6.0:
     resolution: {integrity: sha512-ca9pw9fomFcKPvFLXhBKUK90ZvGibiGOvRJNbjljY7s7uq/5YO4BOzcYtJqExdx99rF6aAcnRxHmcUHcz6sQsg==}
     engines: {node: '>=0.10'}
+
+  esrap-typescript-temp@0.0.1:
+    resolution: {integrity: sha512-7CtMLBfcpwqzI42svwz3CYEujMUzWqqv/s1ezaWXdFZlFnMaAQoxh1BYo5emZeeP+fNmqGRc/9cvazg5N5zlLg==}
 
   esrap@1.2.2:
     resolution: {integrity: sha512-F2pSJklxx1BlQIQgooczXCPHmcWpn6EsP5oo73LQfonG9fIlIENQ8vMmfGXeojP9MrkzUNAfyU5vdFlR9shHAw==}
@@ -3108,6 +3111,11 @@ snapshots:
   esquery@1.6.0:
     dependencies:
       estraverse: 5.3.0
+
+  esrap-typescript-temp@0.0.1:
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.5.0
+      '@typescript-eslint/types': 8.5.0
 
   esrap@1.2.2:
     dependencies:
