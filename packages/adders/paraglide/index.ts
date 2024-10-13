@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import MagicString from 'magic-string';
-import { defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
+import { dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -259,20 +259,21 @@ export default defineAdder({
 
 				const { ts } = utils.createPrinter({ ts: typescript });
 
-				const methodStatement = common.statementFromString(`
+				const scriptCode = new MagicString(script.generateCode());
+				if (!scriptCode.original.includes('function switchToLanguage')) {
+					scriptCode.trim();
+					scriptCode.append('\n\n');
+					scriptCode.append(dedent`
+					${ts('', '/**')} 
+					${ts('', '* @param import("$lib/paraglide/runtime").AvailableLanguageTag newLanguage')} 
+					${ts('', '*/')} 
 					function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
 						const canonicalPath = i18n.route($page.url.pathname);
 						const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
 						goto(localisedPath);
 					}
 				`);
-				if (!typescript) {
-					common.addJsDocComment(methodStatement, {
-						'import("$lib/paraglide/runtime").AvailableLanguageTag': 'newLanguage'
-					});
 				}
-
-				script.ast.body.push(methodStatement);
 
 				// add localized message
 				html.addFromRawHtml(
@@ -290,7 +291,7 @@ export default defineAdder({
 				html.addFromRawHtml(div.childNodes, `${links}\n`);
 				html.appendElement(template.ast.childNodes, div);
 
-				return generateCode({ script: script.generateCode(), template: template.generateCode() });
+				return generateCode({ script: scriptCode.toString(), template: template.generateCode() });
 			}
 		}
 	],
