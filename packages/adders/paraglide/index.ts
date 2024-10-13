@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import MagicString from 'magic-string';
 import { defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
 	array,
@@ -194,28 +195,21 @@ export default defineAdder({
 					i18n: 'i18n'
 				});
 
-				// wrap the HTML in a ParaglideJS instance
-				const rootChildren = template.ast.children;
-				if (rootChildren.length === 0) {
+				if (template.source.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');
 					if (!svelteVersion) throw new Error('Failed to determine svelte version');
 
 					html.addSlot(script.ast, template.ast, svelteVersion);
 				}
 
-				const hasParaglideJsNode = rootChildren.find(
-					(x) => x.type == 'tag' && x.name == paraglideComponentName
-				);
-				if (!hasParaglideJsNode) {
-					const root = html.element(paraglideComponentName, {});
-					root.attribs = {
-						'{i18n}': ''
-					};
-					root.children = rootChildren;
-					template.ast.children = [root];
+				const templateCode = new MagicString(template.generateCode());
+				if (!templateCode.original.includes('<ParaglideJS')) {
+					templateCode.indent();
+					templateCode.prepend('<ParaglideJS {i18n}>\n');
+					templateCode.append('\n</ParaglideJS>');
 				}
 
-				return generateCode({ script: script.generateCode(), template: template.generateCode() });
+				return generateCode({ script: script.generateCode(), template: templateCode.toString() });
 			}
 		},
 		{
