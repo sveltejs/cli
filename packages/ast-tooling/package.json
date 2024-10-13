@@ -36,5 +36,5 @@
 		"type": "git",
 		"url": "https://github.com/sveltejs/cli/tree/main/packages/ast-tooling"
 	},
-	"keywords": [ ]
+	"keywords": []
 }
