@@ -1,3 +1,4 @@
+import MagicString from 'magic-string';
 import {
 	colors,
 	dedent,
@@ -206,98 +207,124 @@ export default defineAdder({
 		},
 		{
 			name: ({ kit, typescript }) => `${kit?.libDirectory}/server/auth.${typescript ? 'ts' : 'js'}`,
-			content: ({ content, typescript, kit }) => {
-				if (content) {
-					const filePath = `${kit!.libDirectory}/server/auth.${typescript ? 'ts' : 'js'}`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
-					return content;
-				}
+			content: ({ content, typescript }) => {
+				const { ast, generateCode } = parseScript(content);
+
+				imports.addNamespace(ast, '$lib/server/db/schema', 'table');
+				imports.addNamed(ast, '$lib/server/db', { db: 'db' });
+				imports.addNamed(ast, '@oslojs/encoding', {
+					encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',
+					encodeHexLowerCase: 'encodeHexLowerCase'
+				});
+				imports.addNamed(ast, '@oslojs/crypto/random', {
+					generateRandomString: 'generateRandomString'
+				});
+				imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
+				imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
+
+				const ms = new MagicString(generateCode().trim());
 				const [ts] = utils.createPrinter(typescript);
-				return dedent`
-					import { eq } from 'drizzle-orm';
-					import { sha256 } from '@oslojs/crypto/sha2';
-					import { generateRandomString } from '@oslojs/crypto/random';
-					import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
-					import { db } from '$lib/server/db';
-					import * as table from '$lib/server/db/schema';
 
-					const DAY_IN_MS = 1000 * 60 * 60 * 24;
+				if (!ms.original.includes('const DAY_IN_MS')) {
+					ms.append('\n\nconst DAY_IN_MS = 1000 * 60 * 60 * 24;');
+				}
+				if (!ms.original.includes('export const sessionCookieName')) {
+					ms.append("\n\nexport const sessionCookieName = 'auth-session';");
+				}
+				if (!ms.original.includes('function generateSessionToken')) {
+					const generateSessionToken = dedent`					
+						${ts('', '/** @returns {string} */')}
+						function generateSessionToken()${ts(': string')} {
+							const bytes = crypto.getRandomValues(new Uint8Array(20));
+							const token = encodeBase32LowerCaseNoPadding(bytes);
+							return token;
+						}`;
+					ms.append(`\n\n${generateSessionToken}`);
+				}
+				if (!ms.original.includes('function generateId')) {
+					const generateId = dedent`					
+						${ts('', '/**')}
+						${ts('', ' * @param {number} length')}
+						${ts('', ' * @returns {string}')}
+						${ts('', ' */')}
+						export function generateId(length${ts(': number')})${ts(': string')} {
+							const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+							return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
+						}`;
+					ms.append(`\n\n${generateId}`);
+				}
+				if (!ms.original.includes('async function createSession')) {
+					const createSession = dedent`					
+						${ts('', '/** @param {string} userId */')}
+						export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
+							const token = generateSessionToken();
+							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+							const session${ts(': table.Session')} = {
+								id: sessionId,
+								userId,
+								expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
+							};
+							await db.insert(table.session).values(session);
+							return session;
+						}`;
+					ms.append(`\n\n${createSession}`);
+				}
+				if (!ms.original.includes('async function invalidateSession')) {
+					const invalidateSession = dedent`					
+						${ts('', '/**')}
+						${ts('', ' * @param {string} sessionId')}
+						${ts('', ' * @returns {Promise<void>}')}
+						${ts('', ' */')}
+						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
+							await db.delete(table.session).where(eq(table.session.id, sessionId));
+						}`;
+					ms.append(`\n\n${invalidateSession}`);
+				}
+				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
+					const sessionType =
+						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
+					ms.append(`\n\n${sessionType}`);
+				}
+				if (!ms.original.includes('async function validateSession')) {
+					const validateSession = dedent`					
+						${ts('', '/** @param {string} sessionId */')}
+						export async function validateSession(sessionId${ts(': string')}) {
+							const [result] = await db
+								.select({
+									// Adjust user table here to tweak returned data
+									user: { id: table.user.id, username: table.user.username },
+									session: table.session
+								})
+								.from(table.session)
+								.innerJoin(table.user, eq(table.session.userId, table.user.id))
+								.where(eq(table.session.id, sessionId));
+	
+							if (!result) {
+								return { session: null, user: null };
+							}
+							const { session, user } = result;
+	
+							const sessionExpired = Date.now() >= session.expiresAt.getTime();
+							if (sessionExpired) {
+								await db.delete(table.session).where(eq(table.session.id, session.id));
+								return { session: null, user: null };
+							}
+	
+							const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
+							if (renewSession) {
+								session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
+								await db
+									.update(table.session)
+									.set({ expiresAt: session.expiresAt })
+									.where(eq(table.session.id, session.id));
+							}
+	
+							return { session, user };
+						}`;
+					ms.append(`\n\n${validateSession}`);
+				}
 
-					export const sessionCookieName = 'auth-session';
-
-					${ts('', '/** @returns {string} */')}
-					function generateSessionToken()${ts(': string')} {
-						const bytes = crypto.getRandomValues(new Uint8Array(20));
-						const token = encodeBase32LowerCaseNoPadding(bytes);
-						return token;
-					}
-
-					${ts('', '/**')}
-					${ts('', ' * @param {number} length')}
-					${ts('', ' * @returns {string}')}
-					${ts('', ' */')}
-					export function generateId(length${ts(': number')})${ts(': string')} {
-						const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
-						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
-					}
-
-					${ts('', '/** @param {string} userId */')}
-					export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
-						const token = generateSessionToken();
-						const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-						const session${ts(': table.Session')} = {
-							id: sessionId,
-							userId,
-							expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
-						};
-						await db.insert(table.session).values(session);
-						return session;
-					}
-
-					${ts('export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;\n')}
-					${ts('', '/** @param {string} sessionId */')}
-					export async function validateSession(sessionId${ts(': string')}) {
-						const [result] = await db
-							.select({
-								// Adjust user table here to tweak returned data
-								user: { id: table.user.id, username: table.user.username },
-								session: table.session
-							})
-							.from(table.session)
-							.innerJoin(table.user, eq(table.session.userId, table.user.id))
-							.where(eq(table.session.id, sessionId));
-
-						if (!result) {
-							return { session: null, user: null };
-						}
-						const { session, user } = result;
-
-						const sessionExpired = Date.now() >= session.expiresAt.getTime();
-						if (sessionExpired) {
-							await db.delete(table.session).where(eq(table.session.id, session.id));
-							return { session: null, user: null };
-						}
-
-						const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
-						if (renewSession) {
-							session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
-							await db
-								.update(table.session)
-								.set({ expiresAt: session.expiresAt })
-								.where(eq(table.session.id, session.id));
-						}
-
-						return { session, user };
-					}
-					
-					${ts('', '/**')}
-					${ts('', ' * @param {string} sessionId')}
-					${ts('', ' * @returns {Promise<void>}')}
-					${ts('', ' */')}
-					export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
-						await db.delete(table.session).where(eq(table.session.id, sessionId));
-					}
-				`;
+				return ms.toString();
 			}
 		},
 		{
