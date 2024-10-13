@@ -27,7 +27,8 @@ const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
 	tailwindcss: v.optional(v.array(v.string())),
 	drizzle: v.optional(v.array(v.string())),
-	supabase: v.optional(v.array(v.string()))
+	supabase: v.optional(v.array(v.string())),
+	paraglide: v.optional(v.array(v.string()))
 });
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
@@ -426,8 +427,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			if (question.type === 'string' || question.type === 'number') {
 				answer = await p.text({
 					message,
-					initialValue: question.default.toString()
+					initialValue: question.default.toString(),
+					placeholder: question.placeholder,
+					validate: question.validate
 				});
+				if (question.type === 'number') {
+					answer = Number(answer);
+				}
 			}
 			if (p.isCancel(answer)) {
 				p.cancel('Operation cancelled.');
@@ -538,10 +544,12 @@ export async function installAdders({
 		workspace.options = official[adderId] ?? community[adderId]!;
 
 		// execute adders
+		await config.preInstall?.(workspace);
 		const pkgPath = installPackages(config, workspace);
 		filesToFormat.add(pkgPath);
 		const changedFiles = createOrUpdateFiles(config.files, workspace);
 		changedFiles.forEach((file) => filesToFormat.add(file));
+		await config.postInstall?.(workspace);
 
 		if (config.scripts && config.scripts.length > 0) {
 			const name = config.name;

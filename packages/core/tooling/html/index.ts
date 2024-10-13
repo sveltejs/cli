@@ -1,11 +1,14 @@
 import {
+	type AstTypes,
 	type HtmlChildNode,
 	type HtmlDocument,
 	HtmlElement,
 	HtmlElementType,
 	parseHtml
 } from '@sveltejs/ast-tooling';
+import { addFromString } from '../js/common.ts';
 
+export { HtmlElement, HtmlElementType };
 export type { HtmlDocument };
 
 export function div(attributes: Record<string, string> = {}): HtmlElement {
@@ -31,4 +34,22 @@ export function addFromRawHtml(childNodes: HtmlChildNode[], html: string): void 
 	for (const childNode of document.childNodes) {
 		childNodes.push(childNode);
 	}
+}
+
+export function addSlot(
+	jsAst: AstTypes.Program,
+	htmlAst: HtmlDocument,
+	svelteVersion: string
+): void {
+	const slotSyntax =
+		svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3'));
+
+	if (slotSyntax) {
+		const slot = element('slot');
+		appendElement(htmlAst.childNodes, slot);
+		return;
+	}
+
+	addFromString(jsAst, 'let { children } = $props();');
+	addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 }
