@@ -16,6 +16,25 @@ export function addJsDocTypeComment(node: AstTypes.Node, type: string): void {
 		leading: true
 	};
 
+	addComment(node, comment);
+}
+
+export function addJsDocComment(node: AstTypes.Node, params: Record<string, string>): void {
+	const commentLines: string[] = [];
+	for (const [key, value] of Object.entries(params)) {
+		commentLines.push(`@param {${key}} ${value}`);
+	}
+
+	const comment: AstTypes.CommentBlock = {
+		type: 'CommentBlock',
+		value: `*\n * ${commentLines.join('\n * ')}\n `,
+		leading: true
+	};
+
+	addComment(node, comment);
+}
+
+function addComment(node: AstTypes.Node, comment: AstTypes.CommentBlock) {
 	node.comments ??= [];
 
 	const found = node.comments.find((n) => n.type === 'CommentBlock' && n.value === comment.value);

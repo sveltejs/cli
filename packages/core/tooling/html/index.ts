@@ -8,6 +8,7 @@ import {
 } from '@sveltejs/ast-tooling';
 import { addFromString } from '../js/common.ts';
 
+export { HtmlElement, HtmlElementType };
 export type { HtmlDocument };
 
 export function div(attributes: Record<string, string> = {}): HtmlElement {
