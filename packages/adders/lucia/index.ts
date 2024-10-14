@@ -591,7 +591,7 @@ export default defineAdder({
 		}
 	],
 	nextSteps: ({ highlighter, options }) => {
-		const steps = [`Run ${highlighter.command('npm run db:push')} to update your database`];
+		const steps = [`Run ${highlighter.command('npm run db:push')} to update your database schema`];
 		if (options.demo) {
 			steps.push(`Visit ${highlighter.route('/demo')} route to view the demo`);
 		}
