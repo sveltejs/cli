@@ -382,8 +382,7 @@ export default defineAdder({
 					import { db } from '$lib/server/db';
 					import * as auth from '$lib/server/auth';
 					import * as table from '$lib/server/db/schema';
-					${ts(`import type { Actions, PageServerLoad } from './$types';`)}
-
+					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo');
@@ -507,8 +506,7 @@ export default defineAdder({
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
-						${ts(`import type { ActionData } from './$types';`)}
-
+						${ts(`import type { ActionData } from './$types';\n`)}
 						export let form${ts(': ActionData')};
 					</script>
 
@@ -545,8 +543,7 @@ export default defineAdder({
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
-					${ts(`import type { Actions, PageServerLoad } from './$types';`)}
-					
+					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/login');
@@ -582,8 +579,7 @@ export default defineAdder({
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
-						${ts(`import type { PageServerData } from './$types';`)}
-
+						${ts(`import type { PageServerData } from './$types';\n`)}
 						export let data${ts(': PageServerData')};
 					</script>
 
