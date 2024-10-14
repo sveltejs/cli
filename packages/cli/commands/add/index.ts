@@ -8,7 +8,12 @@ import * as p from '@sveltejs/clack-prompts';
 import * as pkg from 'empathic/package';
 import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
-import { adders, getAdderDetails, communityAdderIds, getCommunityAdder } from '@sveltejs/adders';
+import {
+	officialAdders,
+	getAdderDetails,
+	communityAdderIds,
+	getCommunityAdder
+} from '@sveltejs/adders';
 import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
 import * as common from '../../common.ts';
 import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
@@ -32,7 +37,7 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-const adderDetails = adders.map((adder) => getAdderDetails(adder.id));
+const adderDetails = officialAdders.map((adder) => getAdderDetails(adder.id));
 const aliases = adderDetails.map((c) => c.alias).filter((v) => v !== undefined);
 const addersOptions = getAdderOptionFlags();
 const communityDetails: AdderWithoutExplicitArgs[] = [];
@@ -66,11 +71,8 @@ export const add = new Command('add')
 
 		const specifiedAdders = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
-
-		const adderIds = adders.map((adder) => adder.id);
-		const invalidAdders = specifiedAdders.filter(
-			(a) => !adderIds.includes(a) && !aliases.includes(a)
-		);
+		const adderIds = officialAdders.map((adder) => adder.id);
+		const invalidAdders = specifiedAdders.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
 		if (invalidAdders.length > 0) {
 			console.error(`Invalid adders specified: ${invalidAdders.join(', ')}`);
 			process.exit(1);
@@ -271,7 +273,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 	if (selectedAdders.length === 0) {
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		const adderOptions = adders
+		const adderOptions = officialAdders
 			.map((adder) => {
 				// we'll only display adders within their respective project types
 				if (projectType === 'kit' && !adder.environments.kit) return;
@@ -300,14 +302,13 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 
 	// add inter-adder dependencies
 	for (const { adder } of selectedAdders) {
-		const name = adder.name;
 		const dependents =
 			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
 
 		const workspace = createWorkspace(options.cwd);
 		for (const depId of dependents) {
 			const dependent = adderDetails.find((a) => a.id === depId);
-			if (!dependent) throw new Error(`Adder '${name}' depends on an invalid '${depId}'`);
+			if (!dependent) throw new Error(`Adder '${adder.id}' depends on an invalid '${depId}'`);
 
 			// check if the dependent adder has already been installed
 			let installed = false;
@@ -320,7 +321,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 
 			// prompt to install the dependent
 			const install = await p.confirm({
-				message: `The ${pc.bold(pc.cyan(name))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
+				message: `The ${pc.bold(pc.cyan(adder.id))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
 			});
 			if (install !== true) {
 				p.cancel('Operation cancelled.');
@@ -365,7 +366,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 	// ask remaining questions
 	for (const { adder, type } of selectedAdders) {
 		const adderId = adder.id;
-		const questionPrefix = selectedAdders.length > 1 ? `${adder.name}: ` : '';
+		const questionPrefix = selectedAdders.length > 1 ? `${adder.id}: ` : '';
 
 		let values: QuestionValues = {};
 		if (type === 'official') {
@@ -460,7 +461,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 		.map(({ adder }) => {
 			let adderMessage = '';
 			if (selectedAdders.length > 1) {
-				adderMessage = `${pc.green(adder.name)}:\n`;
+				adderMessage = `${pc.green(adder.id)}:\n`;
 			}
 
 			const adderNextSteps = adder.nextSteps!({
@@ -529,8 +530,7 @@ export async function installAdders({
 		await config.postInstall?.(workspace);
 
 		if (config.scripts && config.scripts.length > 0) {
-			const name = config.name;
-			p.log.step(`Running external command ${pc.gray(`(${name})`)}`);
+			p.log.step(`Running external command ${pc.gray(`(${config.id})`)}`);
 
 			for (const script of config.scripts) {
 				if (script.condition?.(workspace) === false) continue;
@@ -549,7 +549,7 @@ export async function installAdders({
 				}
 			}
 
-			p.log.success(`Finished running ${name}`);
+			p.log.success(`Finished running ${config.id}`);
 		}
 	}
 
@@ -574,7 +574,7 @@ function transformAliases(ids: string[]): string[] {
 
 function getAdderOptionFlags(): Option[] {
 	const options: Option[] = [];
-	for (const adder of adders) {
+	for (const adder of officialAdders) {
 		const id = adder.id;
 		const details = getAdderDetails(id);
 		if (Object.values(details.options).length === 0) continue;

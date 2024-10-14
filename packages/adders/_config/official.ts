@@ -12,7 +12,9 @@ import storybook from '../storybook/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest/index.ts';
 
-export const adders = [
+// The order of adders here determines the order they are displayed inside the CLI
+// We generally try to order them by perceived popularity
+export const officialAdders = [
 	prettier,
 	eslint,
 	vitest,
@@ -27,7 +29,7 @@ export const adders = [
 ];
 
 export function getAdderDetails(id: string): AdderWithoutExplicitArgs {
-	const details = adders.find((a) => a.id === id);
+	const details = officialAdders.find((a) => a.id === id);
 	if (!details) {
 		throw new Error(`Invalid adder: ${id}`);
 	}
