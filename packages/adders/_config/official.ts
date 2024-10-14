@@ -2,7 +2,7 @@ import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
-import auth from '../lucia/index.ts';
+import lucia from '../lucia/index.ts';
 import mdsvex from '../mdsvex/index.ts';
 import paraglide from '../paraglide/index.ts';
 import playwright from '../playwright/index.ts';
@@ -21,7 +21,7 @@ export const officialAdders = [
 	playwright,
 	tailwindcss,
 	drizzle,
-	auth,
+	lucia,
 	mdsvex,
 	paraglide,
 	storybook,

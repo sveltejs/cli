@@ -38,7 +38,7 @@ export const options = defineAdderOptions({
 });
 
 export default defineAdder({
-	id: 'auth',
+	id: 'lucia',
 	environments: { svelte: false, kit: true },
 	homepage: 'https://lucia-next.pages.dev',
 	options,
