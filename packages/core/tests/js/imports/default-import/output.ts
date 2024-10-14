@@ -1,1 +1,1 @@
-import MyPackage from "package";
+import MyPackage from 'package';
