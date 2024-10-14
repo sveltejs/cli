@@ -72,7 +72,9 @@ export const add = new Command('add')
 		const specifiedAdders = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
 		const adderIds = officialAdders.map((adder) => adder.id);
-		const invalidAdders = specifiedAdders.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
+		const invalidAdders = specifiedAdders.filter(
+			(a) => !adderIds.includes(a) && !aliases.includes(a)
+		);
 		if (invalidAdders.length > 0) {
 			console.error(`Invalid adders specified: ${invalidAdders.join(', ')}`);
 			process.exit(1);
