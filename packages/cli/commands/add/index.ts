@@ -452,7 +452,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	}
 
 	// install dependencies
-	let depsStatus: 'installed' | 'skipped' | undefined;
+	let depsStatus: 'installed' | 'skipped' = 'skipped';
 	if (options.install && selectedAdders.length > 0) {
 		depsStatus = await common.suggestInstallingDependencies(options.cwd);
 	}
