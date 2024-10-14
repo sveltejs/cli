@@ -63,10 +63,8 @@ export const options = defineAdderOptions({
 
 export default defineAdder({
 	id: 'paraglide',
-	name: 'Paraglide',
-	description: 'Typesafe i18n with localised routing',
 	environments: { svelte: false, kit: true },
-	documentation: 'https://inlang.com/m/dxnzrydw/paraglide-sveltekit-i18n',
+	homepage: 'https://inlang.com',
 	options,
 	packages: [
 		{

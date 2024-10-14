@@ -9,9 +9,7 @@ import * as pkg from 'empathic/package';
 import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
-	adderCategories,
-	categories,
-	adderIds,
+	officialAdders,
 	getAdderDetails,
 	communityAdderIds,
 	getCommunityAdder
@@ -39,8 +37,7 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-const adderDetails = adderIds.map((id) => getAdderDetails(id));
-const aliases = adderDetails.map((c) => c.alias).filter((v) => v !== undefined);
+const aliases = officialAdders.map((c) => c.alias).filter((v) => v !== undefined);
 const addersOptions = getAdderOptionFlags();
 const communityDetails: AdderWithoutExplicitArgs[] = [];
 
@@ -71,16 +68,18 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const adders = v.parse(AddersSchema, adderArgs);
+		const specifiedAdders = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
-
-		const invalidAdders = adders.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
+		const adderIds = officialAdders.map((adder) => adder.id);
+		const invalidAdders = specifiedAdders.filter(
+			(a) => !adderIds.includes(a) && !aliases.includes(a)
+		);
 		if (invalidAdders.length > 0) {
 			console.error(`Invalid adders specified: ${invalidAdders.join(', ')}`);
 			process.exit(1);
 		}
 
-		const selectedAdders = transformAliases(adders);
+		const selectedAdders = transformAliases(specifiedAdders);
 		common.runCommand(async () => {
 			await runAddCommand(options, selectedAdders);
 		});
@@ -92,8 +91,8 @@ for (const option of addersOptions) {
 }
 
 type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
-export async function runAddCommand(options: Options, adders: string[]): Promise<void> {
-	const selectedAdders: SelectedAdder[] = adders.map((id) => ({
+export async function runAddCommand(options: Options, selectedAdderIds: string[]): Promise<void> {
+	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
 		type: 'official',
 		adder: getAdderDetails(id)
 	}));
@@ -169,31 +168,21 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		}
 	}
 
-	type AdderChoices = Record<string, Array<{ value: string; label: string }>>;
-
 	// we'll let the user choose community adders when `--community` is specified without args
 	if (options.community === true) {
-		const promptOptions: AdderChoices = {};
 		const communityAdders = await Promise.all(
-			communityAdderIds.map(async (id) => ({ id, ...(await getCommunityAdder(id)) }))
+			communityAdderIds.map(async (id) => await getCommunityAdder(id))
 		);
-		const categories = new Set(communityAdders.map((adder) => adder.category));
 
-		for (const category of categories) {
-			promptOptions[category] = communityAdders
-				.filter((adder) => adder.category === category)
-				.map((adder) => ({
-					value: adder.id,
-					label: adder.name,
-					hint: adder.repo
-				}));
-		}
+		const promptOptions = communityAdders.map((adder) => ({
+			value: adder.id,
+			label: adder.id,
+			hint: 'https://www.npmjs.com/package/' + adder.id
+		}));
 
-		const selected = await p.groupMultiselect({
+		const selected = await p.multiselect({
 			message: 'Which community tools would you like to add to your project?',
 			options: promptOptions,
-			spacedGroups: true,
-			selectableGroups: false,
 			required: false
 		});
 
@@ -231,14 +220,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			start('Resolving community adder packages');
 			const pkgs = await Promise.all(
 				adders.map(async (id) => {
-					const adder = await getCommunityAdder(id).catch(() => undefined);
-					const packageName = adder?.npm ?? id;
-					const details = await getPackageJSON({ cwd: options.cwd, packageName });
-					return {
-						...details,
-						// prioritize community adder defined repo urls
-						repo: adder?.repo ?? details.repo
-					};
+					return await getPackageJSON({ cwd: options.cwd, packageName: id });
 				})
 			);
 			stop('Resolved community adder packages');
@@ -281,36 +263,25 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
-		const adderOptions: AdderChoices = {};
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		for (const category of categories) {
-			const adderIds = adderCategories[category];
-			const categoryOptions = adderIds
-				.map((id) => {
-					const config = getAdderDetails(id);
-					// we'll only display adders within their respective project types
-					if (projectType === 'kit' && !config.environments.kit) return;
-					if (projectType === 'svelte' && !config.environments.svelte) return;
+		const adderOptions = officialAdders
+			.map((adder) => {
+				// we'll only display adders within their respective project types
+				if (projectType === 'kit' && !adder.environments.kit) return;
+				if (projectType === 'svelte' && !adder.environments.svelte) return;
 
-					return {
-						label: config.name,
-						value: config.id,
-						hint: config.documentation
-					};
-				})
-				.filter((c) => !!c);
+				return {
+					label: adder.id,
+					value: adder.id,
+					hint: adder.homepage
+				};
+			})
+			.filter((a) => !!a);
 
-			if (categoryOptions.length > 0) {
-				adderOptions[category] = categoryOptions;
-			}
-		}
-
-		const selected = await p.groupMultiselect({
+		const selected = await p.multiselect({
 			message: 'What would you like to add to your project?',
 			options: adderOptions,
-			spacedGroups: true,
-			selectableGroups: false,
 			required: false
 		});
 		if (p.isCancel(selected)) {
@@ -323,14 +294,13 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 	// add inter-adder dependencies
 	for (const { adder } of selectedAdders) {
-		const name = adder.name;
 		const dependents =
 			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
 
 		const workspace = createWorkspace(options.cwd);
 		for (const depId of dependents) {
-			const dependent = adderDetails.find((a) => a.id === depId);
-			if (!dependent) throw new Error(`Adder '${name}' depends on an invalid '${depId}'`);
+			const dependent = officialAdders.find((a) => a.id === depId) as AdderWithoutExplicitArgs;
+			if (!dependent) throw new Error(`Adder '${adder.id}' depends on an invalid '${depId}'`);
 
 			// check if the dependent adder has already been installed
 			let installed = false;
@@ -343,7 +313,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 
 			// prompt to install the dependent
 			const install = await p.confirm({
-				message: `The ${pc.bold(pc.cyan(name))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
+				message: `The ${pc.bold(pc.cyan(adder.id))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
 			});
 			if (install !== true) {
 				p.cancel('Operation cancelled.');
@@ -388,7 +358,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 	// ask remaining questions
 	for (const { adder, type } of selectedAdders) {
 		const adderId = adder.id;
-		const questionPrefix = selectedAdders.length > 1 ? `${adder.name}: ` : '';
+		const questionPrefix = selectedAdders.length > 1 ? `${adder.id}: ` : '';
 
 		let values: QuestionValues = {};
 		if (type === 'official') {
@@ -483,7 +453,7 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		.map(({ adder }) => {
 			let adderMessage = '';
 			if (selectedAdders.length > 1) {
-				adderMessage = `${pc.green(adder.name)}:\n`;
+				adderMessage = `${pc.green(adder.id)}:\n`;
 			}
 
 			const adderNextSteps = adder.nextSteps!({
@@ -552,8 +522,7 @@ export async function installAdders({
 		await config.postInstall?.(workspace);
 
 		if (config.scripts && config.scripts.length > 0) {
-			const name = config.name;
-			p.log.step(`Running external command ${pc.gray(`(${name})`)}`);
+			p.log.step(`Running external command ${pc.gray(`(${config.id})`)}`);
 
 			for (const script of config.scripts) {
 				if (script.condition?.(workspace) === false) continue;
@@ -572,7 +541,7 @@ export async function installAdders({
 				}
 			}
 
-			p.log.success(`Finished running ${name}`);
+			p.log.success(`Finished running ${config.id}`);
 		}
 	}
 
@@ -586,7 +555,7 @@ function transformAliases(ids: string[]): string[] {
 	const set = new Set<string>();
 	for (const id of ids) {
 		if (aliases.includes(id)) {
-			const adder = adderDetails.find((a) => a.alias === id)!;
+			const adder = officialAdders.find((a) => a.alias === id)!;
 			set.add(adder.id);
 		} else {
 			set.add(id);
@@ -597,7 +566,8 @@ function transformAliases(ids: string[]): string[] {
 
 function getAdderOptionFlags(): Option[] {
 	const options: Option[] = [];
-	for (const id of adderIds) {
+	for (const adder of officialAdders) {
+		const id = adder.id;
 		const details = getAdderDetails(id);
 		if (Object.values(details.options).length === 0) continue;
 

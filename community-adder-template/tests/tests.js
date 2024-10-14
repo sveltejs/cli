@@ -1,5 +1,5 @@
 import { defineAdderTests } from '@sveltejs/cli-core';
-import { options } from '../src/config/options.js';
+import { options } from '../src/index.js';
 
 export const tests = defineAdderTests({
 	files: [],

@@ -5,10 +5,8 @@ import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'routify',
-	name: 'Routify',
-	description: 'The Router that Grows With You',
 	environments: { svelte: true, kit: false },
-	documentation: 'https://routify.dev',
+	homepage: 'https://routify.dev',
 	options: {},
 	packages: [{ name: '@roxi/routify', version: 'next', dev: true }],
 	files: [
