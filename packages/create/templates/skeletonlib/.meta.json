@@ -1,4 +1,4 @@
 {
-	"title": "Library project",
-	"description": "Barebones scaffolding for your new Svelte library"
+	"title": "Svelte library",
+	"description": "setup with svelte-package to help correctly package your library"
 }
