@@ -138,10 +138,12 @@ async function createProject(cwd: string, options: Options) {
 
 	if (options.adders) {
 		await runAddCommand(
-			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
+			{ cwd: projectPath, install: false, preconditions: true, community: [] },
 			[]
 		);
-	} else if (options.install) {
+	}
+	// show install prompt even if no adders selected
+	if (options.install) {
 		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
 		// then we'll prompt to install dependencies here
 		await common.suggestInstallingDependencies(projectPath);
