@@ -5,7 +5,7 @@ import { mkdirp, copy, dist } from './utils.ts';
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = 'typescript' | 'checkjs' | 'none';
 
-const templateTypes = ['skeleton', 'skeletonlib', 'demo'] as const;
+const templateTypes = ['minimal', 'demo', 'library'] as const;
 
 export type Options = {
 	name: string;
@@ -95,7 +95,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 }
 
 function matches_condition(condition: Condition, options: Options) {
-	if (condition === 'demo' || condition === 'skeleton' || condition === 'skeletonlib') {
+	if (condition === 'demo' || condition === 'minimal' || condition === 'library') {
 		return options.template === condition;
 	}
 	if (condition === 'typescript' || condition === 'checkjs') {

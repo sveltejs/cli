@@ -417,8 +417,8 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 	// apply adders
 	let filesToFormat: string[] = [];
 	if (Object.keys({ ...official, ...community }).length > 0) {
-		filesToFormat = await installAdders({ cwd: options.cwd, official, community });
-		p.log.success('Successfully installed adders');
+		filesToFormat = await runAdders({ cwd: options.cwd, official, community });
+		p.log.success('Successfully setup integrations');
 	}
 
 	// install dependencies
@@ -479,11 +479,9 @@ export type InstallAdderOptions = {
 };
 
 /**
- * Installs adders
- * @param options {InstallAdderOptions}
  * @returns a list of paths of modified files
  */
-export async function installAdders({
+async function runAdders({
 	cwd,
 	official = {},
 	community = {}
