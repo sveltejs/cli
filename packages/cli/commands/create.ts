@@ -142,6 +142,7 @@ async function createProject(cwd: string, options: Options) {
 			[]
 		);
 	}
+	// show install prompt even if no adders selected
 	if (options.install) {
 		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
 		// then we'll prompt to install dependencies here
