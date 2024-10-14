@@ -98,7 +98,7 @@ async function createProject(cwd: string, options: Options) {
 			template: () => {
 				if (options.template) return Promise.resolve(options.template);
 				return p.select<TemplateType>({
-					message: 'Which app template would you like?',
+					message: 'Which template would you like?',
 					initialValue: 'skeleton',
 					options: templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }))
 				});
