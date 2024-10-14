@@ -8,12 +8,7 @@ import * as p from '@sveltejs/clack-prompts';
 import * as pkg from 'empathic/package';
 import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
-import {
-	adders,
-	getAdderDetails,
-	communityAdderIds,
-	getCommunityAdder
-} from '@sveltejs/adders';
+import { adders, getAdderDetails, communityAdderIds, getCommunityAdder } from '@sveltejs/adders';
 import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
 import * as common from '../../common.ts';
 import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
@@ -276,23 +271,23 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 		let adderOptions: AdderChoices = [];
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-			const categoryOptions = adders
-				.map((config) => {
-					// we'll only display adders within their respective project types
-					if (projectType === 'kit' && !config.environments.kit) return;
-					if (projectType === 'svelte' && !config.environments.svelte) return;
+		const categoryOptions = adders
+			.map((config) => {
+				// we'll only display adders within their respective project types
+				if (projectType === 'kit' && !config.environments.kit) return;
+				if (projectType === 'svelte' && !config.environments.svelte) return;
 
-					return {
-						label: config.id,
-						value: config.id,
-						hint: config.homepage
-					};
-				})
-				.filter((c) => !!c);
+				return {
+					label: config.id,
+					value: config.id,
+					hint: config.homepage
+				};
+			})
+			.filter((c) => !!c);
 
-			if (categoryOptions.length > 0) {
-				adderOptions = [...adderOptions, ...categoryOptions];
-			}
+		if (categoryOptions.length > 0) {
+			adderOptions = [...adderOptions, ...categoryOptions];
+		}
 
 		const selected = await p.multiselect({
 			message: 'What would you like to add to your project?',
