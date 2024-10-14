@@ -27,7 +27,7 @@ let schemaPath: string;
 export const options = defineAdderOptions({
 	demo: {
 		type: 'boolean',
-		default: false,
+		default: true,
 		question: `Do you want to include a demo? ${colors.dim('(includes a login/register page)')}`
 	}
 });
@@ -214,9 +214,6 @@ export default defineAdder({
 					encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',
 					encodeHexLowerCase: 'encodeHexLowerCase'
 				});
-				imports.addNamed(ast, '@oslojs/crypto/random', {
-					generateRandomString: 'generateRandomString'
-				});
 				imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
 				imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
 
@@ -228,60 +225,6 @@ export default defineAdder({
 				}
 				if (!ms.original.includes('export const sessionCookieName')) {
 					ms.append("\n\nexport const sessionCookieName = 'auth-session';");
-				}
-				if (!ms.original.includes('function generateSessionToken')) {
-					const generateSessionToken = dedent`					
-						${ts('', '/** @returns {string} */')}
-						function generateSessionToken()${ts(': string')} {
-							const bytes = crypto.getRandomValues(new Uint8Array(20));
-							const token = encodeBase32LowerCaseNoPadding(bytes);
-							return token;
-						}`;
-					ms.append(`\n\n${generateSessionToken}`);
-				}
-				if (!ms.original.includes('function generateId')) {
-					const generateId = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {number} length')}
-						${ts('', ' * @returns {string}')}
-						${ts('', ' */')}
-						export function generateId(length${ts(': number')})${ts(': string')} {
-							const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
-							return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
-						}`;
-					ms.append(`\n\n${generateId}`);
-				}
-				if (!ms.original.includes('async function createSession')) {
-					const createSession = dedent`					
-						${ts('', '/** @param {string} userId */')}
-						export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
-							const token = generateSessionToken();
-							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-							const session${ts(': table.Session')} = {
-								id: sessionId,
-								userId,
-								expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
-							};
-							await db.insert(table.session).values(session);
-							return session;
-						}`;
-					ms.append(`\n\n${createSession}`);
-				}
-				if (!ms.original.includes('async function invalidateSession')) {
-					const invalidateSession = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {string} sessionId')}
-						${ts('', ' * @returns {Promise<void>}')}
-						${ts('', ' */')}
-						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
-							await db.delete(table.session).where(eq(table.session.id, sessionId));
-						}`;
-					ms.append(`\n\n${invalidateSession}`);
-				}
-				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
-					const sessionType =
-						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
-					ms.append(`\n\n${sessionType}`);
 				}
 				if (!ms.original.includes('async function validateSession')) {
 					const validateSession = dedent`					
@@ -320,6 +263,48 @@ export default defineAdder({
 							return { session, user };
 						}`;
 					ms.append(`\n\n${validateSession}`);
+				}
+				if (!ms.original.includes('async function invalidateSession')) {
+					const invalidateSession = dedent`					
+						${ts('', '/**')}
+						${ts('', ' * @param {string} sessionId')}
+						${ts('', ' * @returns {Promise<void>}')}
+						${ts('', ' */')}
+						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
+							await db.delete(table.session).where(eq(table.session.id, sessionId));
+						}`;
+					ms.append(`\n\n${invalidateSession}`);
+				}
+				if (!ms.original.includes('function generateSessionToken')) {
+					const generateSessionToken = dedent`					
+						${ts('', '/** @returns {string} */')}
+						function generateSessionToken()${ts(': string')} {
+							const bytes = crypto.getRandomValues(new Uint8Array(20));
+							const token = encodeBase32LowerCaseNoPadding(bytes);
+							return token;
+						}`;
+					ms.append(`\n\n${generateSessionToken}`);
+				}
+				if (!ms.original.includes('async function createSession')) {
+					const createSession = dedent`					
+						${ts('', '/** @param {string} userId */')}
+						export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
+							const token = generateSessionToken();
+							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+							const session${ts(': table.Session')} = {
+								id: sessionId,
+								userId,
+								expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
+							};
+							await db.insert(table.session).values(session);
+							return session;
+						}`;
+					ms.append(`\n\n${createSession}`);
+				}
+				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
+					const sessionType =
+						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
+					ms.append(`\n\n${sessionType}`);
 				}
 
 				return ms.toString();
@@ -373,12 +358,13 @@ export default defineAdder({
 
 				const [ts] = utils.createPrinter(typescript);
 				return dedent`
-					import { dev } from '$app/environment';
-					import { fail, redirect } from '@sveltejs/kit';
 					import { hash, verify } from '@node-rs/argon2';
+					import { generateRandomString } from '@oslojs/crypto/random';
+					import { fail, redirect } from '@sveltejs/kit';
 					import { eq } from 'drizzle-orm';
-					import { db } from '$lib/server/db';
+					import { dev } from '$app/environment';
 					import * as auth from '$lib/server/auth';
+					import { db } from '$lib/server/db';
 					import * as table from '$lib/server/db/schema';
 					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
 					export const load${ts(': PageServerLoad')} = async (event) => {
@@ -444,7 +430,7 @@ export default defineAdder({
 								return fail(400, { message: 'Invalid password' });
 							}
 
-							const userId = auth.generateId(15);
+							const userId = generateUserId(15);
 							const passwordHash = await hash(password, {
 								// recommended minimum parameters
 								memoryCost: 19456,
@@ -470,6 +456,11 @@ export default defineAdder({
 							return redirect(302, '/demo');
 						},
 					};
+
+					function generateUserId(length${ts(': number')})${ts(': string')} {
+						const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
+					}
 
 					function validateUsername(username${ts(': unknown')})${ts(': username is string')} {
 						return (
