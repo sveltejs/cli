@@ -9,9 +9,7 @@ import * as pkg from 'empathic/package';
 import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
-	adderCategories,
-	categories,
-	adderIds,
+	adders,
 	getAdderDetails,
 	communityAdderIds,
 	getCommunityAdder
@@ -39,7 +37,7 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-const adderDetails = adderIds.map((id) => getAdderDetails(id));
+const adderDetails = adders.map((adder) => getAdderDetails(adder.id));
 const aliases = adderDetails.map((c) => c.alias).filter((v) => v !== undefined);
 const addersOptions = getAdderOptionFlags();
 const communityDetails: AdderWithoutExplicitArgs[] = [];
@@ -71,16 +69,17 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const adders = v.parse(AddersSchema, adderArgs);
+		const adderSchemas = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
 
-		const invalidAdders = adders.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
+		const adderIds = adders.map((adder) => adder.id);
+		const invalidAdders = adderSchemas.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
 		if (invalidAdders.length > 0) {
 			console.error(`Invalid adders specified: ${invalidAdders.join(', ')}`);
 			process.exit(1);
 		}
 
-		const selectedAdders = transformAliases(adders);
+		const selectedAdders = transformAliases(adderSchemas);
 		common.runCommand(async () => {
 			await runAddCommand(options, selectedAdders);
 		});
@@ -92,8 +91,8 @@ for (const option of addersOptions) {
 }
 
 type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
-export async function runAddCommand(options: Options, adders: string[]): Promise<void> {
-	const selectedAdders: SelectedAdder[] = adders.map((id) => ({
+export async function runAddCommand(options: Options, selectedAdderIds: string[]): Promise<void> {
+	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
 		type: 'official',
 		adder: getAdderDetails(id)
 	}));
@@ -177,15 +176,12 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		const communityAdders = await Promise.all(
 			communityAdderIds.map(async (id) => ({ id, ...(await getCommunityAdder(id)) }))
 		);
-		const categories = new Set(communityAdders.map((adder) => adder.category));
 
-		for (const _category of categories) {
-			promptOptions = communityAdders.map((adder) => ({
-				value: adder.id,
-				label: adder.id,
-				hint: adder.homepage
-			}));
-		}
+		promptOptions = communityAdders.map((adder) => ({
+			value: adder.id,
+			label: adder.id,
+			hint: adder.homepage
+		}));
 
 		const selected = await p.multiselect({
 			message: 'Which community tools would you like to add to your project?',
@@ -280,11 +276,8 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 		let adderOptions: AdderChoices = [];
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		for (const category of categories) {
-			const adderIds = adderCategories[category];
-			const categoryOptions = adderIds
-				.map((id) => {
-					const config = getAdderDetails(id);
+			const categoryOptions = adders
+				.map((config) => {
 					// we'll only display adders within their respective project types
 					if (projectType === 'kit' && !config.environments.kit) return;
 					if (projectType === 'svelte' && !config.environments.svelte) return;
@@ -300,7 +293,6 @@ export async function runAddCommand(options: Options, adders: string[]): Promise
 			if (categoryOptions.length > 0) {
 				adderOptions = [...adderOptions, ...categoryOptions];
 			}
-		}
 
 		const selected = await p.multiselect({
 			message: 'What would you like to add to your project?',
@@ -591,7 +583,8 @@ function transformAliases(ids: string[]): string[] {
 
 function getAdderOptionFlags(): Option[] {
 	const options: Option[] = [];
-	for (const id of adderIds) {
+	for (const adder of adders) {
+		const id = adder.id;
 		const details = getAdderDetails(id);
 		if (Object.values(details.options).length === 0) continue;
 

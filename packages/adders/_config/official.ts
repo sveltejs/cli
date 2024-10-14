@@ -1,7 +1,5 @@
-import type { AdderCategories, Category } from './categories.ts';
-import type { AdderWithoutExplicitArgs, Adder } from '@sveltejs/cli-core';
+import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
 
-// adders
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
 import lucia from '../lucia/index.ts';
@@ -14,33 +12,24 @@ import storybook from '../storybook/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest/index.ts';
 
-const categories: Record<Category, Array<Adder<any>>> = {
-	'Code Quality': [prettier, eslint],
-	Testing: [vitest, playwright],
-	CSS: [tailwindcss],
-	Database: [drizzle],
-	Auth: [lucia],
-	'Additional Functionality': [storybook, paraglide, mdsvex, routify]
-};
+export const adders = [
+	drizzle,
+	eslint,
+	lucia,
+	mdsvex,
+	paraglide,
+	playwright,
+	prettier,
+	routify,
+	storybook,
+	tailwindcss,
+	vitest
+];
 
-export const adderCategories: AdderCategories = getCategoriesById();
-
-function getCategoriesById(): AdderCategories {
-	const adderCategories: any = {};
-	for (const [key, adders] of Object.entries(categories)) {
-		adderCategories[key] = adders.map((a) => a.id);
-	}
-	return adderCategories;
-}
-
-export const adderIds: string[] = Object.values(adderCategories).flatMap((x) => x);
-
-const adderDetails = Object.values(categories).flat();
-
-export function getAdderDetails(name: string): AdderWithoutExplicitArgs {
-	const details = adderDetails.find((a) => a.id === name);
+export function getAdderDetails(id: string): AdderWithoutExplicitArgs {
+	const details = adders.find((a) => a.id === id);
 	if (!details) {
-		throw new Error(`Invalid adder name: ${name}`);
+		throw new Error(`Invalid adder: ${id}`);
 	}
 
 	return details as AdderWithoutExplicitArgs;
