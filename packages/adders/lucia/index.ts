@@ -34,10 +34,8 @@ export const options = defineAdderOptions({
 
 export default defineAdder({
 	id: 'lucia',
-	name: 'Lucia',
-	description: 'An auth library that abstracts away the complexity of handling sessions',
 	environments: { svelte: false, kit: true },
-	documentation: 'https://lucia-next.pages.dev',
+	homepage: 'https://lucia-next.pages.dev',
 	options,
 	packages: [
 		{ name: '@oslojs/crypto', version: '^1.0.1', dev: false },
