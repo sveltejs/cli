@@ -2,7 +2,7 @@ import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
-import lucia from '../lucia/index.ts';
+import auth from '../lucia/index.ts';
 import mdsvex from '../mdsvex/index.ts';
 import paraglide from '../paraglide/index.ts';
 import playwright from '../playwright/index.ts';
@@ -13,17 +13,17 @@ import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest/index.ts';
 
 export const adders = [
-	drizzle,
+	prettier,
 	eslint,
-	lucia,
+	vitest,
+	playwright,
+	tailwindcss,
+	drizzle,
+	auth,
 	mdsvex,
 	paraglide,
-	playwright,
-	prettier,
-	routify,
 	storybook,
-	tailwindcss,
-	vitest
+	routify
 ];
 
 export function getAdderDetails(id: string): AdderWithoutExplicitArgs {

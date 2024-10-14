@@ -296,7 +296,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 
 		const selected = await p.multiselect({
 			message: 'What would you like to add to your project?',
-			options: adderOptions.sort((a, b) => (a?.label || '').localeCompare(b?.label || '')),
+			options: adderOptions,
 			required: false
 		});
 		if (p.isCancel(selected)) {

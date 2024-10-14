@@ -38,9 +38,9 @@ export const options = defineAdderOptions({
 });
 
 export default defineAdder({
-	id: 'lucia',
-	name: 'Lucia',
-	description: 'An auth library that abstracts away the complexity of handling sessions',
+	id: 'auth',
+	name: 'Auth',
+	description: 'An auth setup that handles passwords and sessions',
 	environments: { svelte: false, kit: true },
 	homepage: 'https://lucia-next.pages.dev',
 	options,
