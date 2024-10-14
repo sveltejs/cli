@@ -37,8 +37,7 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-const adderDetails = officialAdders.map((adder) => getAdderDetails(adder.id));
-const aliases = adderDetails.map((c) => c.alias).filter((v) => v !== undefined);
+const aliases = officialAdders.map((c) => c.alias).filter((v) => v !== undefined);
 const addersOptions = getAdderOptionFlags();
 const communityDetails: AdderWithoutExplicitArgs[] = [];
 
@@ -300,7 +299,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 
 		const workspace = createWorkspace(options.cwd);
 		for (const depId of dependents) {
-			const dependent = adderDetails.find((a) => a.id === depId);
+			const dependent = officialAdders.find((a) => a.id === depId) as AdderWithoutExplicitArgs;
 			if (!dependent) throw new Error(`Adder '${adder.id}' depends on an invalid '${depId}'`);
 
 			// check if the dependent adder has already been installed
@@ -556,7 +555,7 @@ function transformAliases(ids: string[]): string[] {
 	const set = new Set<string>();
 	for (const id of ids) {
 		if (aliases.includes(id)) {
-			const adder = adderDetails.find((a) => a.alias === id)!;
+			const adder = officialAdders.find((a) => a.alias === id)!;
 			set.add(adder.id);
 		} else {
 			set.add(id);
