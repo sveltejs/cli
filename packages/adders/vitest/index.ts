@@ -4,8 +4,6 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'vitest',
-	name: 'Vitest',
-	description: 'A testing framework powered by Vite',
 	environments: { svelte: true, kit: true },
 	homepage: 'https://vitest.dev',
 	options: {},

@@ -170,16 +170,14 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 	// we'll let the user choose community adders when `--community` is specified without args
 	if (options.community === true) {
 		const communityAdders = await Promise.all(
-			communityAdderIds.map(async (id) => ({ id, ...(await getCommunityAdder(id)) }))
+			communityAdderIds.map(async (id) => await getCommunityAdder(id))
 		);
 
-		const promptOptions = communityAdders
-			.map((adder) => ({
-				value: adder.id,
-				label: adder.id,
-				hint: adder.homepage
-			}))
-			.sort((a, b) => (a?.label || '').localeCompare(b?.label || ''));
+		const promptOptions = communityAdders.map((adder) => ({
+			value: adder.id,
+			label: adder.id,
+			hint: 'https://www.npmjs.com/package/' + adder.id
+		}));
 
 		const selected = await p.multiselect({
 			message: 'Which community tools would you like to add to your project?',
@@ -221,14 +219,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 			start('Resolving community adder packages');
 			const pkgs = await Promise.all(
 				adders.map(async (id) => {
-					const adder = await getCommunityAdder(id).catch(() => undefined);
-					const packageName = adder?.npm ?? id;
-					const details = await getPackageJSON({ cwd: options.cwd, packageName });
-					return {
-						...details,
-						// prioritize community adder defined repo urls
-						repo: adder?.repo ?? details.repo
-					};
+					return await getPackageJSON({ cwd: options.cwd, packageName: id });
 				})
 			);
 			stop('Resolved community adder packages');

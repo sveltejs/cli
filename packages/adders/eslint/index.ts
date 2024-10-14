@@ -16,8 +16,6 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'eslint',
-	name: 'ESLint',
-	description: 'A configurable JavaScript linter',
 	environments: { svelte: true, kit: true },
 	homepage: 'https://eslint.org',
 	options: {},

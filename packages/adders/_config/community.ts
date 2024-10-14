@@ -1,9 +1,5 @@
 export type CommunityAdder = {
-	name: string;
-	description: string;
-	npm: string;
-	repo: string;
-	homepage: string;
+	id: string; // the npm package name
 };
 
 /** EVALUATED AT BUILD TIME */

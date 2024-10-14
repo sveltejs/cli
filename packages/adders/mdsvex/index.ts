@@ -4,8 +4,6 @@ import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'mdsvex',
-	name: 'mdsvex',
-	description: 'svelte in markdown',
 	environments: { svelte: true, kit: true },
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},

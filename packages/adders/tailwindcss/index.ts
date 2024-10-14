@@ -16,8 +16,6 @@ export const options = defineAdderOptions({
 export default defineAdder({
 	id: 'tailwindcss',
 	alias: 'tailwind',
-	name: 'Tailwind CSS',
-	description: 'Rapidly build modern websites without ever leaving your HTML',
 	environments: { svelte: true, kit: true },
 	homepage: 'https://tailwindcss.com',
 	options,

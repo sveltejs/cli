@@ -12,8 +12,6 @@ export const options = defineAdderOptions({
 
 export const adder = defineAdder({
 	id: 'community-adder-template',
-	name: 'Community Adder Template',
-	description: 'An adder template demo',
 	environments: { kit: true, svelte: true },
 	options,
 	packages: [],

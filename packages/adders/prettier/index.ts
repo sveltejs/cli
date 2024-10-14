@@ -4,8 +4,6 @@ import { parseJson } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'prettier',
-	name: 'Prettier',
-	description: 'An opinionated code formatter',
 	environments: { svelte: true, kit: true },
 	homepage: 'https://prettier.io',
 	options: {},

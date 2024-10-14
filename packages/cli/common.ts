@@ -169,7 +169,7 @@ export function getGlobalPreconditions(
 					}
 
 					const messages = addersForInvalidEnvironment.map(
-						(a) => `"${a.name}" does not support "${projectType}"`
+						(a) => `"${a.id}" does not support "${projectType}"`
 					);
 					return { success: false, message: messages.join(' / ') };
 				}

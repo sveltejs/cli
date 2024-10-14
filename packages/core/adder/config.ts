@@ -28,8 +28,6 @@ export type Scripts<Args extends OptionDefinition> = {
 export type Adder<Args extends OptionDefinition> = {
 	id: string;
 	alias?: string;
-	name: string;
-	description: string;
 	environments: Environments;
 	homepage?: string;
 	options: Args;
