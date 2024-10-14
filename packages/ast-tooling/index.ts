@@ -1,8 +1,8 @@
 import { parse as tsParse } from 'recast/parsers/typescript.js';
-import { parse as recastParse, print as recastPrint } from 'recast';
-import { Document, Element, Text, type ChildNode } from 'domhandler';
+import { parse as recastParse, print as recastPrint, type Options as RecastOptions } from 'recast';
+import { Document, Element, type ChildNode } from 'domhandler';
 import { ElementType, parseDocument } from 'htmlparser2';
-import { appendChild, prependChild, removeElement, textContent } from 'domutils';
+import { removeElement, textContent } from 'domutils';
 import serializeDom from 'dom-serializer';
 import {
 	Root as CssAst,
@@ -65,8 +65,17 @@ export function parseScript(content: string): AstTypes.Program {
 	return recastOutput.program;
 }
 
-export function serializeScript(ast: AstTypes.ASTNode): string {
-	return recastPrint(ast).code;
+export function serializeScript(ast: AstTypes.ASTNode, previousContent?: string): string {
+	let options: RecastOptions | undefined;
+	if (!previousContent) {
+		// provide sensible defaults if we generate a new file
+		options = {
+			quote: 'single',
+			useTabs: true
+		};
+	}
+
+	return recastPrint(ast, options).code;
 }
 
 export function parseCss(content: string): CssAst {
@@ -141,36 +150,6 @@ export function parseSvelte(content: string): SvelteAst {
 	const jsAst = parseScript(scriptValue);
 
 	return { jsAst, htmlAst, cssAst };
-}
-
-export function serializeSvelte(asts: SvelteAst): string {
-	const { jsAst, htmlAst, cssAst } = asts;
-
-	const css = serializeCss(cssAst);
-	const newScriptValue = serializeScript(jsAst);
-
-	if (newScriptValue.length > 0) {
-		const scriptTag = new Element('script', {}, undefined, ElementType.ElementType.Script);
-		for (const child of scriptTag.children) {
-			removeElement(child);
-		}
-
-		appendChild(scriptTag, new Text(newScriptValue));
-		prependChild(htmlAst, scriptTag);
-	}
-
-	if (css.length > 0) {
-		const styleTag = new Element('style', {}, undefined, ElementType.ElementType.Style);
-		for (const child of styleTag.children) {
-			removeElement(child);
-		}
-
-		appendChild(styleTag, new Text(css));
-		appendChild(htmlAst, styleTag);
-	}
-
-	const content = serializeHtml(htmlAst);
-	return content;
 }
 
 export function parseJson(content: string): any {

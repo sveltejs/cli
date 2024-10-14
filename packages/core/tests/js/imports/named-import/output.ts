@@ -1,2 +1,2 @@
-import { Handle } from "@sveltejs/kit";
-import { namedOne } from "package";
+import { Handle } from '@sveltejs/kit';
+import { namedOne } from 'package';
