@@ -64,17 +64,19 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const adderSchemas = v.parse(AddersSchema, adderArgs);
+		const specifiedAdders = v.parse(AddersSchema, adderArgs);
 		const options = v.parse(OptionsSchema, opts);
 
 		const adderIds = adders.map((adder) => adder.id);
-		const invalidAdders = adderSchemas.filter((a) => !adderIds.includes(a) && !aliases.includes(a));
+		const invalidAdders = specifiedAdders.filter(
+			(a) => !adderIds.includes(a) && !aliases.includes(a)
+		);
 		if (invalidAdders.length > 0) {
 			console.error(`Invalid adders specified: ${invalidAdders.join(', ')}`);
 			process.exit(1);
 		}
 
-		const selectedAdders = transformAliases(adderSchemas);
+		const selectedAdders = transformAliases(specifiedAdders);
 		common.runCommand(async () => {
 			await runAddCommand(options, selectedAdders);
 		});
@@ -163,24 +165,23 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 		}
 	}
 
-	type AdderChoices = Array<{ value: string; label: string }>;
-
 	// we'll let the user choose community adders when `--community` is specified without args
 	if (options.community === true) {
-		let promptOptions: AdderChoices = [];
 		const communityAdders = await Promise.all(
 			communityAdderIds.map(async (id) => ({ id, ...(await getCommunityAdder(id)) }))
 		);
 
-		promptOptions = communityAdders.map((adder) => ({
-			value: adder.id,
-			label: adder.id,
-			hint: adder.homepage
-		}));
+		const promptOptions = communityAdders
+			.map((adder) => ({
+				value: adder.id,
+				label: adder.id,
+				hint: adder.homepage
+			}))
+			.sort((a, b) => (a?.label || '').localeCompare(b?.label || ''));
 
 		const selected = await p.multiselect({
 			message: 'Which community tools would you like to add to your project?',
-			options: promptOptions.sort((a, b) => (a?.label || '').localeCompare(b?.label || '')),
+			options: promptOptions,
 			required: false
 		});
 
@@ -268,26 +269,21 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
-		let adderOptions: AdderChoices = [];
 		const workspace = createWorkspace(options.cwd);
 		const projectType = workspace.kit ? 'kit' : 'svelte';
-		const categoryOptions = adders
-			.map((config) => {
+		const adderOptions = adders
+			.map((adder) => {
 				// we'll only display adders within their respective project types
-				if (projectType === 'kit' && !config.environments.kit) return;
-				if (projectType === 'svelte' && !config.environments.svelte) return;
+				if (projectType === 'kit' && !adder.environments.kit) return;
+				if (projectType === 'svelte' && !adder.environments.svelte) return;
 
 				return {
-					label: config.id,
-					value: config.id,
-					hint: config.homepage
+					label: adder.id,
+					value: adder.id,
+					hint: adder.homepage
 				};
 			})
-			.filter((c) => !!c);
-
-		if (categoryOptions.length > 0) {
-			adderOptions = [...adderOptions, ...categoryOptions];
-		}
+			.filter((a) => !!a);
 
 		const selected = await p.multiselect({
 			message: 'What would you like to add to your project?',
