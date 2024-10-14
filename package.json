@@ -5,12 +5,12 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"check": "pnpm -r check",
-		"lint": "pnpm -r lint && eslint --cache --cache-location node_modules/.eslintcache",
-		"format": "pnpm -r format",
+		"check": "pnpm --parallel check",
+		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
+		"format": "pnpm --parallel format",
 		"dev": "rollup --config --watch",
 		"build": "rollup -c",
-		"test": "pnpm -r test",
+		"test": "pnpm --parallel test",
 		"changeset:publish": "changeset publish"
 	},
 	"devDependencies": {
