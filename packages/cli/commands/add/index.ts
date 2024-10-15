@@ -524,8 +524,9 @@ async function runAdders({
 				if (script.condition?.(workspace) === false) continue;
 
 				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
+				const adderPrefix = details.length > 1 ? `${config.id}: ` : '';
 				p.log.step(
-					`${config.id}: Running external command ${pc.gray(`(${command} ${args.join(' ')})`)}`
+					`${adderPrefix}Running external command ${pc.gray(`(${command} ${args.join(' ')})`)}`
 				);
 
 				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
