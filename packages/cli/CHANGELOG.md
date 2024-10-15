@@ -1,5 +1,14 @@
 # sv
 
+## 0.5.3
+### Patch Changes
+
+
+- fix: ensure `lang="ts"` is added in `paraglide` demo ([#129](https://github.com/sveltejs/cli/pull/129))
+
+
+- fix: rename `auth` handler to `handleAuth` for `lucia` ([#134](https://github.com/sveltejs/cli/pull/134))
+
 ## 0.5.2
 ### Patch Changes
 
