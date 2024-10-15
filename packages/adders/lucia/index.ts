@@ -573,7 +573,6 @@ export default defineAdder({
 						import { enhance } from '$app/forms';
 						${ts(`import type { PageServerData } from './$types';\n`)}
 						${s5(`let { data }${ts(': { data: PageServerData }')} = $props();`, `export let data${ts(': PageServerData')};`)}
-
 					</script>
 
 					<h1>Hi, {data.user.username}!</h1>
