@@ -1,5 +1,5 @@
 ---
-"@sveltejs/adders": patch
+'sv': patch
 ---
 
 fix: better prompt for paraglide langs
