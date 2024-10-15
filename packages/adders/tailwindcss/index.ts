@@ -1,6 +1,6 @@
-import { defineAdder, defineAdderOptions } from '@sveltejs/cli-core';
+import { defineAdder, defineAdderOptions, type PackageDefinition } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
-import { array, common, exports, functions, imports, object } from '@sveltejs/cli-core/js';
+import { array, common, exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
@@ -10,22 +10,30 @@ type Plugin = {
 	package: string;
 	version: string;
 };
+
 const plugins: Plugin[] = [
 	{ id: 'typography', name: 'Typography', package: '@tailwindcss/typography', version: '^0.5.15' },
 	{ id: 'forms', name: 'Forms', package: '@tailwindcss/forms', version: '^0.5.9' },
 	{
-		id: 'container-queries',
-		name: 'Container queris',
+		id: 'containerQueries',
+		name: 'Container queries',
 		package: '@tailwindcss/container-queries',
 		version: '^0.1.1'
 	},
 	{
-		id: 'aspect-ratio',
+		id: 'aspectRatio',
 		name: 'Aspect ratio',
 		package: '@tailwindcss/aspect-ratio',
 		version: '^0.4.2'
 	}
 ];
+
+const pluginPackages: Array<PackageDefinition<typeof options>> = plugins.map((x) => ({
+	name: x.package,
+	version: x.version,
+	dev: true,
+	condition: ({ options }) => options.plugins.includes(x.id)
+}));
 
 export const options = defineAdderOptions({
 	plugins: {
@@ -51,12 +59,7 @@ export default defineAdder({
 			dev: true,
 			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
 		},
-		...plugins.map((x) => ({
-			name: x.package,
-			version: x.version,
-			dev: true,
-			condition: ({ options }) => options.plugins.includes(x.id)
-		}))
+		...pluginPackages
 	],
 	files: [
 		{
@@ -72,8 +75,9 @@ export default defineAdder({
 
 				const { astNode: exportDeclaration } = exports.defaultExport(ast, root ?? rootExport);
 
-				if (!typescript)
+				if (!typescript) {
 					common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
+				}
 
 				const contentArray = object.property(rootExport, 'content', array.createEmpty());
 				array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
@@ -84,10 +88,9 @@ export default defineAdder({
 				const pluginsArray = object.property(rootExport, 'plugins', array.createEmpty());
 
 				for (const plugin of plugins) {
-					if (options.plugins.includes(plugin.id)) {
-						const requireCall = functions.call('require', [plugin.package]);
-						array.push(pluginsArray, requireCall);
-					}
+					if (!options.plugins.includes(plugin.id)) continue;
+					imports.addDefault(ast, plugin.package, plugin.id);
+					array.push(pluginsArray, { type: 'Identifier', name: plugin.id });
 				}
 
 				return generateCode();
