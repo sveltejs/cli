@@ -99,9 +99,7 @@ export default defineAdder({
 				const { ast, generateCode } = parseScript(content);
 
 				const vitePluginName = 'paraglide';
-				imports.addNamed(ast, '@inlang/paraglide-sveltekit/vite', {
-					paraglide: vitePluginName
-				});
+				imports.addNamed(ast, '@inlang/paraglide-sveltekit/vite', { paraglide: vitePluginName });
 
 				const { value: rootObject } = exports.defaultExport(
 					ast,
@@ -239,7 +237,7 @@ export default defineAdder({
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
 			condition: ({ options }) => options.demo,
 			content({ content, options, typescript }) {
-				const { script, template, generateCode } = parseSvelte(content);
+				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
 				imports.addNamed(script.ast, '$app/navigation', { goto: 'goto' });
