@@ -525,7 +525,7 @@ async function runAdders({
 
 				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
 				p.log.step(
-					`Running external command for ${pc.bold(pc.cyanBright(config.id))} ${pc.gray(`(${command} ${args.join(' ')})`)}`
+					`${config.id}: Running external command ${pc.gray(`(${command} ${args.join(' ')})`)}`
 				);
 
 				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
