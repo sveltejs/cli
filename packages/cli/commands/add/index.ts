@@ -520,12 +520,14 @@ async function runAdders({
 		await config.postInstall?.(workspace);
 
 		if (config.scripts && config.scripts.length > 0) {
-			p.log.step(`Running external command ${pc.gray(`(${config.id})`)}`);
-
 			for (const script of config.scripts) {
 				if (script.condition?.(workspace) === false) continue;
 
 				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
+				p.log.step(
+					`Running external ${pc.bold(pc.cyanBright(config.id))} command ${pc.gray(`(${command} ${args.join(' ')})`)}`
+				);
+
 				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
 				if (workspace.packageManager === 'npm') args.unshift('--yes');
 
