@@ -1,6 +1,6 @@
 import { defineAdder, defineAdderOptions, type PackageDefinition } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
-import { array, common, exports, imports, object } from '@sveltejs/cli-core/js';
+import { array, common, exports, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
@@ -49,7 +49,7 @@ export const options = defineAdderOptions({
 	plugins: {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
-		options: plugins.map((x) => ({ value: x.id, label: x.id })),
+		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
 		default: []
 	}
 });
@@ -83,19 +83,26 @@ export default defineAdder({
 					root = common.typeAnnotateExpression(rootExport, 'Config');
 				}
 
-				const { astNode: exportDeclaration } = exports.defaultExport(ast, root ?? rootExport);
+				const { astNode: exportDeclaration, value: node } = exports.defaultExport(
+					ast,
+					root ?? rootExport
+				);
+
+				const config = (
+					node.type === 'TSAsExpression' ? node.expression : node
+				) as AstTypes.ObjectExpression;
 
 				if (!typescript) {
 					common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
 				}
 
-				const contentArray = object.property(rootExport, 'content', array.createEmpty());
+				const contentArray = object.property(config, 'content', array.createEmpty());
 				array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
 
-				const themeObject = object.property(rootExport, 'theme', object.createEmpty());
+				const themeObject = object.property(config, 'theme', object.createEmpty());
 				object.property(themeObject, 'extend', object.createEmpty());
 
-				const pluginsArray = object.property(rootExport, 'plugins', array.createEmpty());
+				const pluginsArray = object.property(config, 'plugins', array.createEmpty());
 
 				for (const plugin of plugins) {
 					if (!options.plugins.includes(plugin.id)) continue;
