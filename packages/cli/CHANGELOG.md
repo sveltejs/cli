@@ -1,20 +1,5 @@
 # sv
 
-## 0.5.3
-### Patch Changes
-
-
-- fix: ensure `lang="ts"` is added in `paraglide` demo ([`cab89b4c9ea864acf77ddaccfb0235add076a154`](https://github.com/sveltejs/cli/commit/cab89b4c9ea864acf77ddaccfb0235add076a154))
-
-
-- fix: rename `auth` handler to `handleAuth` for `lucia` ([`cab89b4c9ea864acf77ddaccfb0235add076a154`](https://github.com/sveltejs/cli/commit/cab89b4c9ea864acf77ddaccfb0235add076a154))
-
-
-- chore: log the external command being executed ([#140](https://github.com/sveltejs/cli/pull/140))
-
-
-- fix: always add new handlers for hooks ([`cab89b4c9ea864acf77ddaccfb0235add076a154`](https://github.com/sveltejs/cli/commit/cab89b4c9ea864acf77ddaccfb0235add076a154))
-
 ## 0.5.2
 ### Patch Changes
 
