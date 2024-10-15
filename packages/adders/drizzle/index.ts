@@ -387,7 +387,7 @@ export default defineAdder({
 		if (options.docker) {
 			steps.push(`Run ${highlighter.command('npm run db:start')} to start the docker container`);
 		}
-		steps.push(`To update your DB schema, run ${highlighter.command('npm run db:push')}`);
+		steps.push(`Run ${highlighter.command('npm run db:push')} to update your database schema`);
 
 		return steps;
 	}
