@@ -2,22 +2,27 @@
 	"name": "@sveltejs/ast-tooling",
 	"private": true,
 	"version": "0.0.0",
-	"license": "MIT",
 	"type": "module",
-	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"format": "pnpm lint --write",
-		"check": "tsc"
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/ast-tooling"
 	},
+	"bugs": "https://github.com/sveltejs/cli/issues",
+	"scripts": {
+		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
+	},
+	"files": [
+		"dist"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
 		}
 	},
-	"files": [
-		"dist"
-	],
 	"devDependencies": {
 		"@babel/parser": "^7.24.7",
 		"ast-types": "^0.14.2",
@@ -29,11 +34,5 @@
 		"recast": "^0.23.7",
 		"silver-fleece": "^1.1.0",
 		"zimmerframe": "^1.1.2"
-	},
-	"bugs": "https://github.com/sveltejs/cli/issues",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/sveltejs/cli/tree/main/packages/ast-tooling"
-	},
-	"keywords": []
+	}
 }

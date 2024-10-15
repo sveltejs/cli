@@ -1,10 +1,11 @@
 {
 	"name": "default-template",
-	"version": "0.0.2-next.0",
 	"private": true,
+	"version": "0.0.2-next.0",
+	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
 		"build": "vite build",
+		"dev": "vite dev",
 		"preview": "vite preview"
 	},
 	"devDependencies": {
@@ -16,6 +17,5 @@
 		"svelte": "^4.2.10",
 		"typescript": "^5.3.3",
 		"vite": "^5.3.2"
-	},
-	"type": "module"
+	}
 }

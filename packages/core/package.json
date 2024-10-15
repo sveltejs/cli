@@ -2,15 +2,23 @@
 	"name": "@sveltejs/cli-core",
 	"private": true,
 	"version": "0.0.0",
-	"license": "MIT",
 	"type": "module",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/core"
+	},
+	"bugs": "https://github.com/sveltejs/cli/issues",
 	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"format": "pnpm lint --write",
 		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"test": "vitest run",
 		"test:ui": "vitest --ui"
 	},
+	"files": [
+		"dist"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
@@ -33,23 +41,15 @@
 			"default": "./dist/parsers.js"
 		}
 	},
-	"files": [
-		"dist"
-	],
+	"dependencies": {
+		"@sveltejs/ast-tooling": "workspace:*"
+	},
 	"devDependencies": {
 		"@sveltejs/clack-prompts": "workspace:*",
 		"decircular": "^1.0.0",
 		"dedent": "^1.5.3",
 		"magic-string": "^0.30.12",
 		"picocolors": "^1.1.0"
-	},
-	"dependencies": {
-		"@sveltejs/ast-tooling": "workspace:*"
-	},
-	"bugs": "https://github.com/sveltejs/cli/issues",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/sveltejs/cli/tree/main/packages/core"
 	},
 	"keywords": [
 		"create",

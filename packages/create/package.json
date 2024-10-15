@@ -2,24 +2,25 @@
 	"name": "@sveltejs/create",
 	"private": true,
 	"version": "0.0.0",
-	"description": "An API for creating SvelteKit projects",
 	"type": "module",
-	"keywords": [
-		"create",
-		"new",
-		"project",
-		"starter",
-		"svelte",
-		"sveltekit",
-		"template"
-	],
+	"description": "An API for creating SvelteKit projects",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/sveltejs/cli",
 		"directory": "packages/create"
 	},
-	"license": "MIT",
 	"homepage": "https://svelte.dev",
+	"scripts": {
+		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"test": "node scripts/build-templates dist && vitest run",
+		"update-template-repo": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
+	},
+	"files": [
+		"dist"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
@@ -35,14 +36,13 @@
 		"sucrase": "^3.34.0",
 		"tiny-glob": "^0.2.9"
 	},
-	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"format": "pnpm lint --write",
-		"test": "node scripts/build-templates dist && vitest run",
-		"check": "tsc",
-		"update-template-repo": "echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
-	},
-	"files": [
-		"dist"
+	"keywords": [
+		"create",
+		"new",
+		"project",
+		"starter",
+		"svelte",
+		"sveltekit",
+		"template"
 	]
 }

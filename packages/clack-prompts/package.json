@@ -3,11 +3,21 @@
 	"private": true,
 	"version": "0.9.1",
 	"type": "module",
-	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"format": "pnpm lint --write",
-		"check": "tsc"
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/clack-prompts"
 	},
+	"bugs": "https://github.com/sveltejs/cli/issues",
+	"scripts": {
+		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
+	},
+	"files": [
+		"dist"
+	],
+	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
@@ -15,16 +25,6 @@
 		},
 		"./package.json": "./package.json"
 	},
-	"types": "./dist/index.d.ts",
-	"bugs": "https://github.com/sveltejs/cli/issues",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/sveltejs/cli/tree/main/packages/clack-prompts"
-	},
-	"files": [
-		"dist"
-	],
-	"license": "MIT",
 	"devDependencies": {
 		"@sveltejs/clack-core": "workspace:*",
 		"is-unicode-supported": "^1.3.0",
