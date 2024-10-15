@@ -339,7 +339,7 @@ export default defineAdder({
 				const { ast, generateCode } = parseScript(content);
 				imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
 				imports.addNamed(ast, '$app/environment', { dev: 'dev' });
-				kit.addHooksHandle(ast, typescript, 'auth', getAuthHandleContent());
+				kit.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
 				return generateCode();
 			}
 		},
