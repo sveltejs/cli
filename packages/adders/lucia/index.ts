@@ -226,6 +226,43 @@ export default defineAdder({
 				if (!ms.original.includes('export const sessionCookieName')) {
 					ms.append("\n\nexport const sessionCookieName = 'auth-session';");
 				}
+				if (!ms.original.includes('function generateSessionToken')) {
+					const generateSessionToken = dedent`					
+						${ts('', '/** @returns {string} */')}
+						function generateSessionToken()${ts(': string')} {
+							const bytes = crypto.getRandomValues(new Uint8Array(20));
+							const token = encodeBase32LowerCaseNoPadding(bytes);
+							return token;
+						}`;
+					ms.append(`\n\n${generateSessionToken}`);
+				}
+				if (!ms.original.includes('async function createSession')) {
+					const createSession = dedent`					
+						${ts('', '/** @param {string} userId */')}
+						export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
+							const token = generateSessionToken();
+							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+							const session${ts(': table.Session')} = {
+								id: sessionId,
+								userId,
+								expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
+							};
+							await db.insert(table.session).values(session);
+							return session;
+						}`;
+					ms.append(`\n\n${createSession}`);
+				}
+				if (!ms.original.includes('async function invalidateSession')) {
+					const invalidateSession = dedent`					
+						${ts('', '/**')}
+						${ts('', ' * @param {string} sessionId')}
+						${ts('', ' * @returns {Promise<void>}')}
+						${ts('', ' */')}
+						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
+							await db.delete(table.session).where(eq(table.session.id, sessionId));
+						}`;
+					ms.append(`\n\n${invalidateSession}`);
+				}
 				if (!ms.original.includes('async function validateSession')) {
 					const validateSession = dedent`					
 						${ts('', '/** @param {string} sessionId */')}
@@ -263,43 +300,6 @@ export default defineAdder({
 							return { session, user };
 						}`;
 					ms.append(`\n\n${validateSession}`);
-				}
-				if (!ms.original.includes('async function invalidateSession')) {
-					const invalidateSession = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {string} sessionId')}
-						${ts('', ' * @returns {Promise<void>}')}
-						${ts('', ' */')}
-						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
-							await db.delete(table.session).where(eq(table.session.id, sessionId));
-						}`;
-					ms.append(`\n\n${invalidateSession}`);
-				}
-				if (!ms.original.includes('function generateSessionToken')) {
-					const generateSessionToken = dedent`					
-						${ts('', '/** @returns {string} */')}
-						function generateSessionToken()${ts(': string')} {
-							const bytes = crypto.getRandomValues(new Uint8Array(20));
-							const token = encodeBase32LowerCaseNoPadding(bytes);
-							return token;
-						}`;
-					ms.append(`\n\n${generateSessionToken}`);
-				}
-				if (!ms.original.includes('async function createSession')) {
-					const createSession = dedent`					
-						${ts('', '/** @param {string} userId */')}
-						export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
-							const token = generateSessionToken();
-							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-							const session${ts(': table.Session')} = {
-								id: sessionId,
-								userId,
-								expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
-							};
-							await db.insert(table.session).values(session);
-							return session;
-						}`;
-					ms.append(`\n\n${createSession}`);
 				}
 				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
 					const sessionType =
