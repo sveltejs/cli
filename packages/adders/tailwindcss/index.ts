@@ -4,11 +4,34 @@ import { array, common, exports, functions, imports, object } from '@sveltejs/cl
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
+type Plugin = {
+	id: string;
+	name: string;
+	package: string;
+	version: string;
+};
+const plugins: Plugin[] = [
+	{ id: 'typography', name: 'Typography', package: '@tailwindcss/typography', version: '^0.5.15' },
+	{ id: 'forms', name: 'Forms', package: '@tailwindcss/forms', version: '^0.5.9' },
+	{
+		id: 'container-queries',
+		name: 'Container queris',
+		package: '@tailwindcss/container-queries',
+		version: '^0.1.1'
+	},
+	{
+		id: 'aspect-ratio',
+		name: 'Aspect ratio',
+		package: '@tailwindcss/aspect-ratio',
+		version: '^0.4.2'
+	}
+];
+
 export const options = defineAdderOptions({
 	plugins: {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
-		options: [{ value: 'typography', label: 'Typography' }],
+		options: plugins.map((x) => ({ value: x.id, label: x.name })),
 		default: []
 	}
 });
@@ -23,17 +46,17 @@ export default defineAdder({
 		{ name: 'tailwindcss', version: '^3.4.9', dev: true },
 		{ name: 'autoprefixer', version: '^10.4.20', dev: true },
 		{
-			name: '@tailwindcss/typography',
-			version: '^0.5.14',
-			dev: true,
-			condition: ({ options }) => options.plugins.includes('typography')
-		},
-		{
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
 			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
-		}
+		},
+		...plugins.map((x) => ({
+			name: x.package,
+			version: x.version,
+			dev: true,
+			condition: ({ options }) => options.plugins.includes(x.id)
+		}))
 	],
 	files: [
 		{
@@ -60,9 +83,11 @@ export default defineAdder({
 
 				const pluginsArray = object.property(rootExport, 'plugins', array.createEmpty());
 
-				if (options.plugins.includes('typography')) {
-					const requireCall = functions.call('require', ['@tailwindcss/typography']);
-					array.push(pluginsArray, requireCall);
+				for (const plugin of plugins) {
+					if (options.plugins.includes(plugin.id)) {
+						const requireCall = functions.call('require', [plugin.package]);
+						array.push(pluginsArray, requireCall);
+					}
 				}
 
 				return generateCode();
