@@ -459,8 +459,8 @@ export default defineAdder({
 
 					const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 
-					function generateUserId()${ts(': string')} {
-						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, 21);
+					function generateUserId(length = 21)${ts(': string')} {
+						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
 					}
 
 					function validateUsername(username${ts(': unknown')})${ts(': username is string')} {
