@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import MagicString from 'magic-string';
-import { dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
+import { colors, dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -33,7 +33,7 @@ const DEFAULT_INLANG_PROJECT = {
 
 export const options = defineAdderOptions({
 	availableLanguageTags: {
-		question: 'Which language tags would you like to support? (e.g. en,de-ch)',
+		question: `Which language tags would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en',
 		validate(input: any) {
