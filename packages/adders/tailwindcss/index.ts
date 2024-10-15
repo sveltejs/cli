@@ -9,22 +9,37 @@ type Plugin = {
 	name: string;
 	package: string;
 	version: string;
+	identifier: string;
 };
 
 const plugins: Plugin[] = [
-	{ id: 'typography', name: 'Typography', package: '@tailwindcss/typography', version: '^0.5.15' },
-	{ id: 'forms', name: 'Forms', package: '@tailwindcss/forms', version: '^0.5.9' },
 	{
-		id: 'containerQueries',
-		name: 'Container queries',
-		package: '@tailwindcss/container-queries',
-		version: '^0.1.1'
+		id: 'typography',
+		name: 'Typography',
+		package: '@tailwindcss/typography',
+		version: '^0.5.15',
+		identifier: 'typography'
 	},
 	{
-		id: 'aspectRatio',
+		id: 'forms',
+		name: 'Forms',
+		package: '@tailwindcss/forms',
+		version: '^0.5.9',
+		identifier: 'forms'
+	},
+	{
+		id: 'container-queries',
+		name: 'Container queries',
+		package: '@tailwindcss/container-queries',
+		version: '^0.1.1',
+		identifier: 'containerQueries'
+	},
+	{
+		id: 'aspect-ratio',
 		name: 'Aspect ratio',
 		package: '@tailwindcss/aspect-ratio',
-		version: '^0.4.2'
+		version: '^0.4.2',
+		identifier: 'aspectRatio'
 	}
 ];
 
@@ -89,8 +104,8 @@ export default defineAdder({
 
 				for (const plugin of plugins) {
 					if (!options.plugins.includes(plugin.id)) continue;
-					imports.addDefault(ast, plugin.package, plugin.id);
-					array.push(pluginsArray, { type: 'Identifier', name: plugin.id });
+					imports.addDefault(ast, plugin.package, plugin.identifier);
+					array.push(pluginsArray, { type: 'Identifier', name: plugin.identifier });
 				}
 
 				return generateCode();
