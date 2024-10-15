@@ -1,5 +1,26 @@
 # sv
 
+## 0.5.3
+### Patch Changes
+
+
+- fix: ensure `lang="ts"` is added in `paraglide` demo ([#145](https://github.com/sveltejs/cli/pull/145))
+
+
+- fix: rename `auth` handler to `handleAuth` for `lucia` ([#145](https://github.com/sveltejs/cli/pull/145))
+
+
+- chore: log the external command being executed ([#145](https://github.com/sveltejs/cli/pull/145))
+
+
+- fix: always add new handlers for hooks ([#145](https://github.com/sveltejs/cli/pull/145))
+
+
+- fix: better prompt for paraglide langs ([#130](https://github.com/sveltejs/cli/pull/130))
+
+
+- chore(lucia): update demo to use svelte 5 syntax ([#141](https://github.com/sveltejs/cli/pull/141))
+
 ## 0.5.2
 ### Patch Changes
 
