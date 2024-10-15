@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import MagicString from 'magic-string';
-import { dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
+import { colors, dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -33,16 +33,15 @@ const DEFAULT_INLANG_PROJECT = {
 
 export const options = defineAdderOptions({
 	availableLanguageTags: {
-		question: 'Which language tags would you like to support?',
+		question: `Which language tags would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
-		default: '',
-		placeholder: 'en,de-ch',
+		default: 'en',
 		validate(input: any) {
 			const { invalidLanguageTags, validLanguageTags } = parseLanguageTagInput(input);
 
 			if (invalidLanguageTags.length > 0) {
 				if (invalidLanguageTags.length === 1) {
-					return `The input "${invalidLanguageTags[0]}" is not a valid BCP47 language tag`;
+					return `The input "${invalidLanguageTags[0]}" is not a valid IETF BCP 47 language tag`;
 				} else {
 					const listFormat = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
 					return `The inputs ${listFormat.format(invalidLanguageTags.map((x) => `"${x}"`))} are not valid BCP47 language tags`;
