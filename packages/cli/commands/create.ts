@@ -84,7 +84,10 @@ async function createProject(cwd: string, options: Options) {
 				});
 			},
 			force: async ({ results: { directory } }) => {
-				if (fs.existsSync(directory!) && fs.readdirSync(directory!).filter(x => !x.startsWith('.')).length > 0) {
+				if (
+					fs.existsSync(directory!) &&
+					fs.readdirSync(directory!).filter((x) => !x.startsWith('.')).length > 0
+				) {
 					const force = await p.confirm({
 						message: 'Directory not empty. Continue?',
 						initialValue: false
