@@ -324,7 +324,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 	}
 
 	// run precondition checks
-	if (options.preconditions) {
+	if (options.preconditions && selectedAdders.length > 0) {
 		// add global checks
 		const { kit } = createWorkspace(options.cwd);
 		const projectType = kit ? 'kit' : 'svelte';
