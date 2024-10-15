@@ -60,8 +60,7 @@ export function addHooksHandle(
 	ast: AstTypes.Program,
 	typescript: boolean,
 	newHandleName: string,
-	handleContent: string,
-	forceSeparateHandle: boolean = false
+	handleContent: string
 ): void {
 	if (typescript) {
 		imports.addNamed(ast, '@sveltejs/kit', { Handle: 'Handle' }, true);
@@ -117,34 +116,24 @@ export function addHooksHandle(
 	// This is the straightforward case. If there's no existing `handle`, we'll just add one
 	// with the new handle's definition and exit
 	if (!originalHandleDecl || !exportDecl) {
-		// handle declaration doesn't exist, so we'll just create it with the hook
-		const newDecl = variables.declaration(ast, 'const', handleName, newHandle);
+		const newDecl = variables.declaration(ast, 'const', newHandleName, newHandle);
 		if (typescript) {
 			const declarator = newDecl.declarations[0] as AstTypes.VariableDeclarator;
 			variables.typeAnnotateDeclarator(declarator, 'Handle');
 		}
+		ast.body.push(newDecl);
 
-		if (!forceSeparateHandle) exports.namedExport(ast, handleName, newDecl);
-		else {
-			const newDecl = variables.declaration(ast, 'const', newHandleName, newHandle);
-			if (typescript) {
-				const declarator = newDecl.declarations[0] as AstTypes.VariableDeclarator;
-				variables.typeAnnotateDeclarator(declarator, 'Handle');
-			}
-			ast.body.push(newDecl);
-
-			const handleDecl = variables.declaration(
-				ast,
-				'const',
-				handleName,
-				common.expressionFromString(newHandleName)
-			);
-			if (typescript) {
-				const declarator = handleDecl.declarations[0] as AstTypes.VariableDeclarator;
-				variables.typeAnnotateDeclarator(declarator, 'Handle');
-			}
-			exports.namedExport(ast, handleName, handleDecl);
+		const handleDecl = variables.declaration(
+			ast,
+			'const',
+			handleName,
+			common.expressionFromString(newHandleName)
+		);
+		if (typescript) {
+			const declarator = handleDecl.declarations[0] as AstTypes.VariableDeclarator;
+			variables.typeAnnotateDeclarator(declarator, 'Handle');
 		}
+		exports.namedExport(ast, handleName, handleDecl);
 
 		return;
 	}
