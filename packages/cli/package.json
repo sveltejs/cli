@@ -1,24 +1,24 @@
 {
 	"name": "sv",
 	"version": "0.5.1",
+	"type": "module",
 	"description": "A CLI for creating and updating SvelteKit projects",
-	"keywords": [
-		"create",
-		"new",
-		"project",
-		"starter",
-		"svelte",
-		"sveltekit",
-		"template",
-		"wizard"
-	],
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/sveltejs/cli",
 		"directory": "packages/cli"
 	},
-	"license": "MIT",
 	"homepage": "https://svelte.dev",
+	"scripts": {
+		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"postpublish": "pnpm -F @sveltejs/create update-template-repo"
+	},
+	"files": [
+		"dist"
+	],
 	"bin": "./dist/bin.js",
 	"exports": {
 		".": {
@@ -40,14 +40,14 @@
 		"tinyexec": "^0.3.0",
 		"valibot": "^0.41.0"
 	},
-	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"format": "pnpm lint --write",
-		"check": "tsc",
-		"postpublish": "pnpm -F @sveltejs/create update-template-repo"
-	},
-	"files": [
-		"dist"
-	],
-	"type": "module"
+	"keywords": [
+		"create",
+		"new",
+		"project",
+		"starter",
+		"svelte",
+		"sveltekit",
+		"template",
+		"wizard"
+	]
 }
