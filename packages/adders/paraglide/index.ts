@@ -171,7 +171,7 @@ export default defineAdder({
 				});
 
 				const hookHandleContent = 'i18n.handle()';
-				kit.addHooksHandle(ast, typescript, 'paraglide', hookHandleContent);
+				kit.addHooksHandle(ast, typescript, 'handleParaglide', hookHandleContent);
 
 				return generateCode();
 			}
