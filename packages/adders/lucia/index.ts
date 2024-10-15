@@ -485,19 +485,20 @@ export default defineAdder({
 		{
 			name: ({ kit }) => `${kit!.routesDirectory}/demo/login/+page.svelte`,
 			condition: ({ options }) => options.demo,
-			content({ content, typescript, kit }) {
+			content({ content, dependencyVersion, typescript, kit }) {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/login/+page.svelte`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
 
-				const [ts] = utils.createPrinter(typescript);
+				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
+				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
 						${ts(`import type { ActionData } from './$types';\n`)}
-						export let form${ts(': ActionData')};
+						${s5(`let { form }${ts(': { form: ActionData }')} = $props();`, `export let form${ts(': ActionData')};`)}
 					</script>
 
 					<h1>Login/Register</h1>
@@ -558,19 +559,20 @@ export default defineAdder({
 		{
 			name: ({ kit }) => `${kit!.routesDirectory}/demo/+page.svelte`,
 			condition: ({ options }) => options.demo,
-			content({ content, typescript, kit }) {
+			content({ content, dependencyVersion, typescript, kit }) {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/+page.svelte`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
 
-				const [ts] = utils.createPrinter(typescript);
+				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
+				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
 					<script ${ts(`lang='ts'`)}>
 						import { enhance } from '$app/forms';
 						${ts(`import type { PageServerData } from './$types';\n`)}
-						export let data${ts(': PageServerData')};
+						${s5(`let { data }${ts(': { data: PageServerData }')} = $props();`, `export let data${ts(': PageServerData')};`)}
 					</script>
 
 					<h1>Hi, {data.user.username}!</h1>
