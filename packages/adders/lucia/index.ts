@@ -430,7 +430,7 @@ export default defineAdder({
 								return fail(400, { message: 'Invalid password' });
 							}
 
-							const userId = generateUserId(15);
+							const userId = generateUserId();
 							const passwordHash = await hash(password, {
 								// recommended minimum parameters
 								memoryCost: 19456,
@@ -457,9 +457,10 @@ export default defineAdder({
 						},
 					};
 
-					function generateUserId(length${ts(': number')})${ts(': string')} {
-						const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
-						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
+					const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
+
+					function generateUserId()${ts(': string')} {
+						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, 21);
 					}
 
 					function validateUsername(username${ts(': unknown')})${ts(': username is string')} {
