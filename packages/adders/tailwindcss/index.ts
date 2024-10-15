@@ -6,7 +6,6 @@ import { addSlot } from '@sveltejs/cli-core/html';
 
 type Plugin = {
 	id: string;
-	name: string;
 	package: string;
 	version: string;
 	identifier: string;
@@ -15,28 +14,24 @@ type Plugin = {
 const plugins: Plugin[] = [
 	{
 		id: 'typography',
-		name: 'Typography',
 		package: '@tailwindcss/typography',
 		version: '^0.5.15',
 		identifier: 'typography'
 	},
 	{
 		id: 'forms',
-		name: 'Forms',
 		package: '@tailwindcss/forms',
 		version: '^0.5.9',
 		identifier: 'forms'
 	},
 	{
 		id: 'container-queries',
-		name: 'Container queries',
 		package: '@tailwindcss/container-queries',
 		version: '^0.1.1',
 		identifier: 'containerQueries'
 	},
 	{
 		id: 'aspect-ratio',
-		name: 'Aspect ratio',
 		package: '@tailwindcss/aspect-ratio',
 		version: '^0.4.2',
 		identifier: 'aspectRatio'
@@ -54,7 +49,7 @@ export const options = defineAdderOptions({
 	plugins: {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
-		options: plugins.map((x) => ({ value: x.id, label: x.name })),
+		options: plugins.map((x) => ({ value: x.id, label: x.id })),
 		default: []
 	}
 });
