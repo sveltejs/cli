@@ -347,11 +347,11 @@ export default defineAdder({
 		// login/register
 		{
 			name: ({ kit, typescript }) =>
-				`${kit!.routesDirectory}/demo/login/+page.server.${typescript ? 'ts' : 'js'}`,
+				`${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`,
 			condition: ({ options }) => options.demo,
 			content({ content, typescript, kit }) {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/login/+page.server.${typescript ? 'ts' : 'js'}`;
+					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -369,7 +369,7 @@ export default defineAdder({
 					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
-							return redirect(302, '/demo');
+							return redirect(302, '/demo/lucia');
 						}
 						return {};
 					};
@@ -416,7 +416,7 @@ export default defineAdder({
 								secure: !dev
 							});
 
-							return redirect(302, '/demo');
+							return redirect(302, '/demo/lucia');
 						},
 						register: async (event) => {
 							const formData = await event.request.formData();
@@ -453,7 +453,7 @@ export default defineAdder({
 							} catch (e) {
 								return fail(500, { message: 'An error has occurred' });
 							}
-							return redirect(302, '/demo');
+							return redirect(302, '/demo/lucia');
 						},
 					};
 
@@ -483,11 +483,11 @@ export default defineAdder({
 			}
 		},
 		{
-			name: ({ kit }) => `${kit!.routesDirectory}/demo/login/+page.svelte`,
+			name: ({ kit }) => `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`,
 			condition: ({ options }) => options.demo,
 			content({ content, dependencyVersion, typescript, kit }) {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/login/+page.svelte`;
+					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -521,11 +521,11 @@ export default defineAdder({
 		// logout
 		{
 			name: ({ kit, typescript }) =>
-				`${kit!.routesDirectory}/demo/+page.server.${typescript ? 'ts' : 'js'}`,
+				`${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`,
 			condition: ({ options }) => options.demo,
 			content({ content, typescript, kit }) {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/+page.server.${typescript ? 'ts' : 'js'}`;
+					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -537,7 +537,7 @@ export default defineAdder({
 					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {
-							return redirect(302, '/demo/login');
+							return redirect(302, '/demo/lucia/login');
 						}
 						return { user: event.locals.user };
 					};
@@ -550,18 +550,18 @@ export default defineAdder({
 							await auth.invalidateSession(event.locals.session.id);
 							event.cookies.delete(auth.sessionCookieName, { path: '/' });
 
-							return redirect(302, '/demo/login');
+							return redirect(302, '/demo/lucia/login');
 						},
 					};
 				`;
 			}
 		},
 		{
-			name: ({ kit }) => `${kit!.routesDirectory}/demo/+page.svelte`,
+			name: ({ kit }) => `${kit!.routesDirectory}/demo/lucia/+page.svelte`,
 			condition: ({ options }) => options.demo,
 			content({ content, dependencyVersion, typescript, kit }) {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/+page.svelte`;
+					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.svelte`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -587,7 +587,7 @@ export default defineAdder({
 	nextSteps: ({ highlighter, options }) => {
 		const steps = [`Run ${highlighter.command('npm run db:push')} to update your database schema`];
 		if (options.demo) {
-			steps.push(`Visit ${highlighter.route('/demo')} route to view the demo`);
+			steps.push(`Visit ${highlighter.route('/demo/lucia')} route to view the demo`);
 		}
 
 		return steps;

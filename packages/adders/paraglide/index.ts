@@ -55,7 +55,7 @@ export const options = defineAdderOptions({
 	},
 	demo: {
 		type: 'boolean',
-		default: false,
+		default: true,
 		question: 'Do you want to include a demo?'
 	}
 });
@@ -234,7 +234,7 @@ export default defineAdder({
 		},
 		{
 			// add usage example
-			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/demo/paraglide/+page.svelte`,
 			condition: ({ options }) => options.demo,
 			content({ content, options, typescript }) {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
@@ -307,10 +307,17 @@ export default defineAdder({
 			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2) + '\n');
 		}
 	},
-	nextSteps: ({ highlighter }) => [
-		`Edit your messages in ${highlighter.path('messages/en.json')}`,
-		'Consider installing the Sherlock IDE Extension'
-	]
+	nextSteps: ({ highlighter }) => {
+		const steps = [
+			`Edit your messages in ${highlighter.path('messages/en.json')}`,
+			'Consider installing the Sherlock IDE Extension'
+		];
+		if (options.demo) {
+			steps.push(`Visit ${highlighter.route('/demo/paraglide')} route to view the demo`);
+		}
+
+		return steps;
+	}
 });
 
 const isValidLanguageTag = (languageTag: string): boolean =>
