@@ -91,7 +91,11 @@ for (const option of addersOptions) {
 }
 
 type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
-export async function runAddCommand(options: Options, selectedAdderIds: string[], duringCreate: boolean = false): Promise<void> {
+export async function runAddCommand(
+	options: Options,
+	selectedAdderIds: string[],
+	duringCreate: boolean = false
+): Promise<void> {
 	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
 		type: 'official',
 		adder: getAdderDetails(id)
@@ -100,7 +104,9 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 	const community: AdderOption = {};
 
 	function cancel(): never {
-		p.cancel(`Operation cancelled.${duringCreate ? ' Project directory created before cancellation.' : ''}`);
+		p.cancel(
+			`Operation cancelled.${duringCreate ? ' Project directory created before cancellation.' : ''}`
+		);
 		process.exit(1);
 	}
 
