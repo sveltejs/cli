@@ -1,14 +1,55 @@
-import { defineAdder, defineAdderOptions } from '@sveltejs/cli-core';
+import { defineAdder, defineAdderOptions, type PackageDefinition } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
-import { array, common, exports, functions, imports, object } from '@sveltejs/cli-core/js';
+import { array, common, exports, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
+
+type Plugin = {
+	id: string;
+	package: string;
+	version: string;
+	identifier: string;
+};
+
+const plugins: Plugin[] = [
+	{
+		id: 'typography',
+		package: '@tailwindcss/typography',
+		version: '^0.5.15',
+		identifier: 'typography'
+	},
+	{
+		id: 'forms',
+		package: '@tailwindcss/forms',
+		version: '^0.5.9',
+		identifier: 'forms'
+	},
+	{
+		id: 'container-queries',
+		package: '@tailwindcss/container-queries',
+		version: '^0.1.1',
+		identifier: 'containerQueries'
+	},
+	{
+		id: 'aspect-ratio',
+		package: '@tailwindcss/aspect-ratio',
+		version: '^0.4.2',
+		identifier: 'aspectRatio'
+	}
+];
+
+const pluginPackages: Array<PackageDefinition<typeof options>> = plugins.map((x) => ({
+	name: x.package,
+	version: x.version,
+	dev: true,
+	condition: ({ options }) => options.plugins.includes(x.id)
+}));
 
 export const options = defineAdderOptions({
 	plugins: {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
-		options: [{ value: 'typography', label: 'Typography' }],
+		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
 		default: []
 	}
 });
@@ -23,17 +64,12 @@ export default defineAdder({
 		{ name: 'tailwindcss', version: '^3.4.9', dev: true },
 		{ name: 'autoprefixer', version: '^10.4.20', dev: true },
 		{
-			name: '@tailwindcss/typography',
-			version: '^0.5.14',
-			dev: true,
-			condition: ({ options }) => options.plugins.includes('typography')
-		},
-		{
 			name: 'prettier-plugin-tailwindcss',
 			version: '^0.6.5',
 			dev: true,
 			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
-		}
+		},
+		...pluginPackages
 	],
 	files: [
 		{
@@ -47,22 +83,31 @@ export default defineAdder({
 					root = common.typeAnnotateExpression(rootExport, 'Config');
 				}
 
-				const { astNode: exportDeclaration } = exports.defaultExport(ast, root ?? rootExport);
+				const { astNode: exportDeclaration, value: node } = exports.defaultExport(
+					ast,
+					root ?? rootExport
+				);
 
-				if (!typescript)
+				const config = (
+					node.type === 'TSAsExpression' ? node.expression : node
+				) as AstTypes.ObjectExpression;
+
+				if (!typescript) {
 					common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
+				}
 
-				const contentArray = object.property(rootExport, 'content', array.createEmpty());
+				const contentArray = object.property(config, 'content', array.createEmpty());
 				array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
 
-				const themeObject = object.property(rootExport, 'theme', object.createEmpty());
+				const themeObject = object.property(config, 'theme', object.createEmpty());
 				object.property(themeObject, 'extend', object.createEmpty());
 
-				const pluginsArray = object.property(rootExport, 'plugins', array.createEmpty());
+				const pluginsArray = object.property(config, 'plugins', array.createEmpty());
 
-				if (options.plugins.includes('typography')) {
-					const requireCall = functions.call('require', ['@tailwindcss/typography']);
-					array.push(pluginsArray, requireCall);
+				for (const plugin of plugins) {
+					if (!options.plugins.includes(plugin.id)) continue;
+					imports.addDefault(ast, plugin.package, plugin.identifier);
+					array.push(pluginsArray, { type: 'Identifier', name: plugin.identifier });
 				}
 
 				return generateCode();
