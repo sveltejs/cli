@@ -46,8 +46,8 @@ const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 
 export const add = new Command('add')
-	.description('applies specified adders into a project')
-	.argument('[adder...]', 'adders to install')
+	.description('applies specified integrations into a project')
+	.argument('[integration...]', 'integrations to install')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skips installing dependencies')
 	.option('--no-preconditions', 'skips validating preconditions')
@@ -577,7 +577,7 @@ function getAdderOptionFlags(): Option[] {
 		const preset = defaults.join(', ') || 'none';
 		const option = new Option(
 			`--${id} [options...]`,
-			`${id} adder options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
+			`${id} integration options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
 		)
 			// presets are applied when `--adder` is specified with no options
 			.preset(preset)
