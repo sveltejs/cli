@@ -168,9 +168,10 @@ export function getGlobalPreconditions(
 						return { success: true, message: undefined };
 					}
 
-					const messages = addersForInvalidEnvironment.map(
-						(a) => `"${a.id}" does not support "${projectType}"`
-					);
+					const messages = addersForInvalidEnvironment.map((a) => {
+						if (projectType == 'kit') return `"${a.id}" does not support SvelteKit`;
+						else return `"${a.id}" requires SvelteKit`;
+					});
 					return { success: false, message: messages.join(' / ') };
 				}
 			}
