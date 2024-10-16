@@ -313,7 +313,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 
 			// prompt to install the dependent
 			const install = await p.confirm({
-				message: `The ${pc.bold(pc.cyan(adder.id))} adder requires ${pc.bold(pc.cyan(depId))} to also be installed. ${pc.green('Install it?')}`
+				message: `The ${pc.bold(pc.cyan(adder.id))} integration requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
 			});
 			if (install !== true) {
 				p.cancel('Operation cancelled.');
