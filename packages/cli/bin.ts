@@ -8,6 +8,6 @@ import { migrate } from './commands/migrate.ts';
 import { check } from './commands/check.ts';
 import { helpConfig } from './common.ts';
 
-program.name(pkg.name).version(pkg.version, '-v').configureHelp(helpConfig);
+program.name(pkg.name).version(pkg.version, '-v, --version').configureHelp(helpConfig);
 program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);
 program.parse();
