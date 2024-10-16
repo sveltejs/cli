@@ -124,8 +124,8 @@ importers:
         specifier: ^0.23.7
         version: 0.23.9
       silver-fleece:
-        specifier: ^1.1.0
-        version: 1.1.0
+        specifier: ^1.2.0
+        version: 1.2.0
       zimmerframe:
         specifier: ^1.1.2
         version: 1.1.2
@@ -1847,8 +1847,8 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
-  silver-fleece@1.1.0:
-    resolution: {integrity: sha512-V3vShUiLRVPMu9aSWpU5kLDoU/HO7muJKE236EO663po3YxivAkMLbRg+amV/FhbIfF5bWXX5TVX+VYmRaOBFA==}
+  silver-fleece@1.2.0:
+    resolution: {integrity: sha512-HybmIKLTyaHfO6mSNYHYcE5tAfabCA9zw2hI9KRyWgv7kMf3uLlXxsCrE8uXFADRd7uQYKFqU+a6cTd2+Gv7Wg==}
 
   sirv@2.0.4:
     resolution: {integrity: sha512-94Bdh3cC2PKrbgSOUqTiGPWVZeSiXfKOVZNJniWoqrWrRkB1CJzBU3NEbiTsPcYy1lDsANA/THzS+9WBiy5nfQ==}
@@ -3830,7 +3830,7 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  silver-fleece@1.1.0: {}
+  silver-fleece@1.2.0: {}
 
   sirv@2.0.4:
     dependencies:
