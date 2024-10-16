@@ -164,14 +164,19 @@ export function getGlobalPreconditions(
 						return false;
 					});
 
-					if (addersForInvalidEnvironment.length == 0) {
+					if (addersForInvalidEnvironment.length === 0) {
 						return { success: true, message: undefined };
 					}
 
-					const messages = addersForInvalidEnvironment.map(
-						(a) => `"${a.id}" does not support "${projectType}"`
-					);
-					return { success: false, message: messages.join(' / ') };
+					const messages = addersForInvalidEnvironment.map((a) => {
+						if (projectType === 'kit') {
+							return `'${a.id}' does not support SvelteKit`;
+						} else {
+							return `'${a.id}' requires SvelteKit`;
+						}
+					});
+
+					throw new Error(messages.join('\n'));
 				}
 			}
 		]
