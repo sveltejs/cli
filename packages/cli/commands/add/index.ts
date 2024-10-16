@@ -91,13 +91,18 @@ for (const option of addersOptions) {
 }
 
 type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
-export async function runAddCommand(options: Options, selectedAdderIds: string[]): Promise<void> {
+export async function runAddCommand(options: Options, selectedAdderIds: string[], duringCreate: boolean = false): Promise<void> {
 	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
 		type: 'official',
 		adder: getAdderDetails(id)
 	}));
 	const official: AdderOption = {};
 	const community: AdderOption = {};
+
+	function cancel(): never {
+		p.cancel(`Operation cancelled.${duringCreate ? ' Project directory created before cancellation.' : ''}`);
+		process.exit(1);
+	}
 
 	// apply specified options from flags
 	for (const adderOption of addersOptions) {
@@ -187,8 +192,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 		});
 
 		if (p.isCancel(selected)) {
-			p.cancel('Operation cancelled.');
-			process.exit(1);
+			cancel();
 		} else if (selected.length === 0) {
 			p.cancel('No adders selected. Exiting.');
 			process.exit(1);
@@ -242,8 +246,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 
 			const confirm = await p.confirm({ message: 'Would you like to continue?' });
 			if (confirm !== true) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
+				cancel();
 			}
 
 			start('Downloading community adder packages');
@@ -285,8 +288,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 			required: false
 		});
 		if (p.isCancel(selected)) {
-			p.cancel('Operation cancelled.');
-			process.exit(1);
+			cancel();
 		}
 
 		selected.forEach((id) => selectedAdders.push({ type: 'official', adder: getAdderDetails(id) }));
@@ -316,8 +318,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 				message: `The ${pc.bold(pc.cyan(adder.id))} integration requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
 			});
 			if (install !== true) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
+				cancel();
 			}
 			selectedAdders.push({ type: 'official', adder: dependent });
 		}
@@ -349,8 +350,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 				initialValue: false
 			});
 			if (p.isCancel(force) || !force) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
+				cancel();
 			}
 		}
 	}
@@ -406,8 +406,7 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 				}
 			}
 			if (p.isCancel(answer)) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
+				cancel();
 			}
 
 			values[questionId] = answer;

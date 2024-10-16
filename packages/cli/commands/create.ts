@@ -127,9 +127,6 @@ async function createProject(cwd: string, options: Options) {
 		}
 	);
 
-	const initSpinner = p.spinner();
-	initSpinner.start('Initializing template');
-
 	const projectPath = path.resolve(directory);
 	createKit(projectPath, {
 		name: path.basename(projectPath),
@@ -137,12 +134,11 @@ async function createProject(cwd: string, options: Options) {
 		types: language
 	});
 
-	initSpinner.stop('Project created');
-
 	if (options.integrations) {
 		await runAddCommand(
 			{ cwd: projectPath, install: false, preconditions: true, community: [] },
-			[]
+			[],
+			true
 		);
 	}
 	// show install prompt even if no integrations are selected
