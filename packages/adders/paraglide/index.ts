@@ -234,7 +234,7 @@ export default defineAdder({
 		},
 		{
 			// add usage example
-			name: ({ kit }) => `${kit?.routesDirectory}/paraglide-demo/+page.svelte`,
+			name: ({ kit }) => `${kit?.routesDirectory}/demo/paraglide/+page.svelte`,
 			condition: ({ options }) => options.demo,
 			content({ content, options, typescript }) {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
@@ -313,7 +313,7 @@ export default defineAdder({
 			'Consider installing the Sherlock IDE Extension'
 		];
 		if (options.demo) {
-			steps.push(`Visit ${highlighter.route('/paraglide-demo')} route to view the demo`);
+			steps.push(`Visit ${highlighter.route('/demo/paraglide')} route to view the demo`);
 		}
 
 		return steps;
