@@ -24,7 +24,7 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 const ProjectPathSchema = v.string();
 const OptionsSchema = v.strictObject({
 	checkTypes: v.optional(v.picklist(langs)),
-	adders: v.boolean(),
+	integrations: v.boolean(),
 	install: v.boolean(),
 	template: v.optional(v.picklist(templateChoices))
 });
@@ -35,7 +35,7 @@ export const create = new Command('create')
 	.argument('[path]', 'where the project will be created', process.cwd())
 	.addOption(langOption)
 	.addOption(templateOption)
-	.option('--no-adders', 'skips interactive adder installer')
+	.option('--no-integrations', 'skips interactive integration installer')
 	.option('--no-install', 'skips installing dependencies')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
@@ -139,13 +139,13 @@ async function createProject(cwd: string, options: Options) {
 
 	initSpinner.stop('Project created');
 
-	if (options.adders) {
+	if (options.integrations) {
 		await runAddCommand(
 			{ cwd: projectPath, install: false, preconditions: true, community: [] },
 			[]
 		);
 	}
-	// show install prompt even if no adders selected
+	// show install prompt even if no integrations are selected
 	if (options.install) {
 		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
 		// then we'll prompt to install dependencies here
