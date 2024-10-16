@@ -1,5 +1,17 @@
 # sv
 
+## 0.5.4
+### Patch Changes
+
+
+- chore: move paraglide demo into seperate page ([#149](https://github.com/sveltejs/cli/pull/149))
+
+
+- chore: improve unsupported environment message ([#152](https://github.com/sveltejs/cli/pull/152))
+
+
+- feat: tailwindcss plugins ([#127](https://github.com/sveltejs/cli/pull/127))
+
 ## 0.5.3
 ### Patch Changes
 
