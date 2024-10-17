@@ -42,7 +42,7 @@ export const create = new Command('create')
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
-			const { directory } = await createProject(cwd, options);
+			const { directory, integrationNextSteps } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
@@ -67,6 +67,7 @@ export const create = new Command('create')
 			];
 
 			p.box(steps.join('\n'), 'Project next steps');
+			if (integrationNextSteps) p.box(integrationNextSteps, 'Integration next steps');
 		});
 	});
 
@@ -127,9 +128,6 @@ async function createProject(cwd: string, options: Options) {
 		}
 	);
 
-	const initSpinner = p.spinner();
-	initSpinner.start('Initializing template');
-
 	const projectPath = path.resolve(directory);
 	createKit(projectPath, {
 		name: path.basename(projectPath),
@@ -137,13 +135,15 @@ async function createProject(cwd: string, options: Options) {
 		types: language
 	});
 
-	initSpinner.stop('Project created');
+	p.log.success('Project created');
 
+	let integrationNextSteps;
 	if (options.integrations) {
-		await runAddCommand(
+		const { nextSteps } = await runAddCommand(
 			{ cwd: projectPath, install: false, preconditions: true, community: [] },
 			[]
 		);
+		integrationNextSteps = nextSteps;
 	}
 	// show install prompt even if no integrations are selected
 	if (options.install) {
@@ -152,7 +152,5 @@ async function createProject(cwd: string, options: Options) {
 		await common.suggestInstallingDependencies(projectPath);
 	}
 
-	return {
-		directory: projectPath
-	};
+	return { directory: projectPath, integrationNextSteps };
 }
