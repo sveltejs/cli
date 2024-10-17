@@ -155,8 +155,5 @@ async function createProject(cwd: string, options: Options) {
 		await common.suggestInstallingDependencies(projectPath);
 	}
 
-	return {
-		directory: projectPath,
-		integrationNextSteps
-	};
+	return { directory: projectPath, integrationNextSteps };
 }
