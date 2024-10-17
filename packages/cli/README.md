@@ -1,6 +1,6 @@
 # sv - the Svelte CLI
 
-A command line interface (CLI) for creating and maintaining [Svelte](https://svelte.dev) applications. Just run
+A command line interface (CLI) for creating and maintaining [Svelte](https://svelte.dev) applications. Just run:
 
 ```bash
 npx sv
