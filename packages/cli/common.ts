@@ -50,32 +50,28 @@ export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
 
 type PackageManagerOptions = Array<{ value: AgentName | null; label: AgentName | 'None' }>;
 export async function suggestInstallingDependencies(cwd: string): Promise<'installed' | 'skipped'> {
-	const detectedPm = detectSync({ cwd });
-	let selectedPm = detectedPm?.agent ?? null;
+	const detected = detectSync({ cwd });
+	const agent = detected?.agent ?? getUserAgent() ?? null;
 
 	const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
 	const options: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
 	options.unshift({ label: 'None', value: null });
 
-	if (!selectedPm) {
-		const pm = await p.select({
-			message: 'Which package manager do you want to install dependencies with?',
-			options,
-			initialValue: getUserAgent()
-		});
-		if (p.isCancel(pm)) {
-			p.cancel('Operation cancelled.');
-			process.exit(1);
-		}
-
-		selectedPm = pm;
+	const pm = await p.select({
+		message: 'Which package manager do you want to install dependencies with?',
+		options,
+		initialValue: agent
+	});
+	if (p.isCancel(pm)) {
+		p.cancel('Operation cancelled.');
+		process.exit(1);
 	}
 
-	if (!selectedPm || !COMMANDS[selectedPm]) {
+	if (!pm) {
 		return 'skipped';
 	}
 
-	const { command, args } = constructCommand(COMMANDS[selectedPm].install, [])!;
+	const { command, args } = constructCommand(COMMANDS[pm].install, [])!;
 
 	const loadingSpinner = p.spinner();
 	loadingSpinner.start('Installing dependencies...');
