@@ -81,7 +81,8 @@ export const add = new Command('add')
 
 		const selectedAdders = transformAliases(specifiedAdders);
 		common.runCommand(async () => {
-			await runAddCommand(options, selectedAdders);
+			const { nextSteps } = await runAddCommand(options, selectedAdders);
+			if (nextSteps) p.box(nextSteps, 'Next steps');
 		});
 	});
 
@@ -91,7 +92,10 @@ for (const option of addersOptions) {
 }
 
 type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
-export async function runAddCommand(options: Options, selectedAdderIds: string[]): Promise<void> {
+export async function runAddCommand(
+	options: Options,
+	selectedAdderIds: string[]
+): Promise<{ nextSteps?: string }> {
 	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
 		type: 'official',
 		adder: getAdderDetails(id)
@@ -448,24 +452,27 @@ export async function runAddCommand(options: Options, selectedAdderIds: string[]
 	const highlighter = getHighlighter();
 
 	// print next steps
-	const nextStepsMsg = selectedAdders
-		.filter(({ adder }) => adder.nextSteps)
-		.map(({ adder }) => {
-			let adderMessage = '';
-			if (selectedAdders.length > 1) {
-				adderMessage = `${pc.green(adder.id)}:\n`;
-			}
+	const nextSteps =
+		selectedAdders
+			.filter(({ adder }) => adder.nextSteps)
+			.map(({ adder }) => {
+				let adderMessage = '';
+				if (selectedAdders.length > 1) {
+					adderMessage = `${pc.green(adder.id)}:\n`;
+				}
 
-			const adderNextSteps = adder.nextSteps!({
-				...workspace,
-				options: official[adder.id]!,
-				highlighter
-			});
-			adderMessage += `- ${adderNextSteps.join('\n- ')}`;
-			return adderMessage;
-		})
-		.join('\n\n');
-	if (nextStepsMsg) p.box(nextStepsMsg, 'Next steps');
+				const adderNextSteps = adder.nextSteps!({
+					...workspace,
+					options: official[adder.id]!,
+					highlighter
+				});
+				adderMessage += `- ${adderNextSteps.join('\n- ')}`;
+				return adderMessage;
+			})
+			// instead of returning an empty string, we'll return `undefined`
+			.join('\n\n') || undefined;
+
+	return { nextSteps };
 }
 
 type AdderId = string;

@@ -42,7 +42,7 @@ export const create = new Command('create')
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
-			const { directory } = await createProject(cwd, options);
+			const { directory, integrationNextSteps } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
@@ -66,6 +66,7 @@ export const create = new Command('create')
 				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
 			];
 
+			if (integrationNextSteps) p.box(integrationNextSteps, 'Integration next steps');
 			p.box(steps.join('\n'), 'Project next steps');
 		});
 	});
@@ -139,11 +140,13 @@ async function createProject(cwd: string, options: Options) {
 
 	initSpinner.stop('Project created');
 
+	let integrationNextSteps;
 	if (options.integrations) {
-		await runAddCommand(
+		const results = await runAddCommand(
 			{ cwd: projectPath, install: false, preconditions: true, community: [] },
 			[]
 		);
+		integrationNextSteps = results.nextSteps;
 	}
 	// show install prompt even if no integrations are selected
 	if (options.install) {
@@ -153,6 +156,7 @@ async function createProject(cwd: string, options: Options) {
 	}
 
 	return {
-		directory: projectPath
+		directory: projectPath,
+		integrationNextSteps
 	};
 }
