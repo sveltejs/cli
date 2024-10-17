@@ -142,11 +142,11 @@ async function createProject(cwd: string, options: Options) {
 
 	let integrationNextSteps;
 	if (options.integrations) {
-		const results = await runAddCommand(
+		const { nextSteps } = await runAddCommand(
 			{ cwd: projectPath, install: false, preconditions: true, community: [] },
 			[]
 		);
-		integrationNextSteps = results.nextSteps;
+		integrationNextSteps = nextSteps;
 	}
 	// show install prompt even if no integrations are selected
 	if (options.install) {
