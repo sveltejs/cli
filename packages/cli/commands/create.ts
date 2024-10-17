@@ -66,8 +66,8 @@ export const create = new Command('create')
 				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
 			];
 
-			if (integrationNextSteps) p.box(integrationNextSteps, 'Integration next steps');
 			p.box(steps.join('\n'), 'Project next steps');
+			if (integrationNextSteps) p.box(integrationNextSteps, 'Integration next steps');
 		});
 	});
 
