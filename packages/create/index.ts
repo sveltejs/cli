@@ -5,7 +5,7 @@ import { mkdirp, copy, dist } from './utils.ts';
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = 'typescript' | 'checkjs' | 'none';
 
-const templateTypes = ['minimal', 'demo', 'library', 'svelte'] as const;
+const templateTypes = ['minimal', 'demo', 'svelte', 'library'] as const;
 
 export type Options = {
 	name: string;
