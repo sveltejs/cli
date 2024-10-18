@@ -1,4 +1,4 @@
 {
 	"title": "Svelte minimal",
-	"description": "barebones scaffolding for your new app"
+	"description": "basic Vite template if you don't need multiple URLs. Most users should use SvelteKit"
 }
