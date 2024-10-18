@@ -12,6 +12,7 @@ import { common, exports, imports, variables, object, functions, kit } from '@sv
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
+import { addToDemoPage } from '../common.ts';
 
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',
@@ -345,6 +346,11 @@ export default defineAdder({
 		},
 		// DEMO
 		// login/register
+		{
+			name: ({ kit }) => `${kit?.routesDirectory}/demo/+page.svelte`,
+			condition: ({ options }) => options.demo,
+			content: (editor) => addToDemoPage(editor, 'lucia')
+		},
 		{
 			name: ({ kit, typescript }) =>
 				`${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`,
