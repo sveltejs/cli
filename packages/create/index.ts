@@ -5,7 +5,7 @@ import { mkdirp, copy, dist } from './utils.ts';
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = 'typescript' | 'checkjs' | 'none';
 
-const templateTypes = ['minimal', 'demo', 'library'] as const;
+const templateTypes = ['minimal', 'demo', 'library', 'svelte'] as const;
 
 export type Options = {
 	name: string;
@@ -18,7 +18,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = Exclude<TemplateType | LanguageType, 'none'>;
+export type Condition = Exclude<TemplateType | LanguageType, 'none'> | 'kit';
 
 export type Common = {
 	files: Array<{
@@ -95,7 +95,19 @@ function write_common_files(cwd: string, options: Options, name: string) {
 }
 
 function matches_condition(condition: Condition, options: Options) {
-	if (condition === 'demo' || condition === 'minimal' || condition === 'library') {
+	if (condition == 'kit') {
+		return (
+			options.template === 'library' ||
+			options.template === 'demo' ||
+			options.template === 'minimal'
+		);
+	}
+	if (
+		condition === 'demo' ||
+		condition === 'minimal' ||
+		condition === 'library' ||
+		condition === 'svelte'
+	) {
 		return options.template === condition;
 	}
 	if (condition === 'typescript' || condition === 'checkjs') {
