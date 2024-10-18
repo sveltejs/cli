@@ -71,11 +71,13 @@ export function addToDemoPage(
 ): string {
 	const { template, generateCode } = parseSvelte(content);
 
-	const entry = `<a href="/demo/${path}">${path}</a><br>`;
-	if (template.source.includes(entry)) return generateCode({});
+	for (const node of template.ast.childNodes) {
+		if (node.type === 'tag' && node.attribs['href'] === `/demo/${path}`) {
+			return content;
+		}
+	}
 
-	const newLine = template.source !== '';
-	template.source += `${newLine ? '\n' : ''}${entry}`;
-
-	return generateCode({ template: template.source });
+	const newLine = template.source ? '\n' : '';
+	const src = template.source + `${newLine}<a href="/demo/${path}">${path}</a>`;
+	return generateCode({ template: src });
 }
