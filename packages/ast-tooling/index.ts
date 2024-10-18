@@ -13,7 +13,6 @@ import {
 	parse as postcssParse,
 	type ChildNode as CssChildNode
 } from 'postcss';
-// @ts-expect-error
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
 import type { namedTypes as AstTypes } from 'ast-types';
