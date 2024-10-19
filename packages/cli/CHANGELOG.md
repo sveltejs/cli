@@ -1,5 +1,11 @@
 # sv
 
+## 0.5.6
+### Patch Changes
+
+
+- chore: use `svelte@5` full release ([#174](https://github.com/sveltejs/cli/pull/174))
+
 ## 0.5.5
 ### Patch Changes
 
