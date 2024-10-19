@@ -34,7 +34,7 @@ export async function runCommand(action: MaybePromise) {
 	} catch (e) {
 		p.cancel('Operation failed.');
 		if (e instanceof Error) {
-			console.error(e.message);
+			console.error(e.stack ?? e);
 		}
 	}
 }
