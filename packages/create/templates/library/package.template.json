@@ -8,8 +8,8 @@
 		"package": "svelte-kit sync && svelte-package && publint",
 		"prepublishOnly": "npm run package"
 	},
-	"files": [ "dist", "!dist/**/*.test.*", "!dist/**/*.spec.*" ],
-	"sideEffects": [ "**/*.css" ],
+	"files": ["dist", "!dist/**/*.test.*", "!dist/**/*.spec.*"],
+	"sideEffects": ["**/*.css"],
 	"svelte": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"type": "module",
