@@ -147,10 +147,7 @@ async function createProject(cwd: string, options: Options) {
 		);
 		packageManager = pm;
 		integrationNextSteps = nextSteps;
-	}
-
-	// show install prompt even if no integrations are selected
-	if (!packageManager && options.install) {
+	} else if (options.install) {
 		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
 		// then we'll prompt to install dependencies here
 		packageManager = await common.packageManagerPrompt(projectPath);
