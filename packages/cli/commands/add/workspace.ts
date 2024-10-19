@@ -4,37 +4,28 @@ import * as find from 'empathic/find';
 import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { TESTING } from '../../env.ts';
+import { getUserAgent } from '../../common.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
-import { detectPackageManager } from '../../common.ts';
-import type { OptionDefinition, Workspace } from '@sveltejs/cli-core';
+import type { Workspace } from '@sveltejs/cli-core';
+import type { AgentName } from 'package-manager-detector';
 
-export function createEmptyWorkspace<Args extends OptionDefinition>() {
-	return {
-		options: {},
-		cwd: '',
-		dependencyVersion: (_pkg) => undefined,
-		typescript: false,
-		kit: undefined
-	} as Workspace<Args>;
-}
-
-export function createWorkspace<Args extends OptionDefinition>(cwd: string): Workspace<Args> {
-	const workspace = createEmptyWorkspace<Args>();
-	workspace.cwd = path.resolve(cwd);
-
-	let usesTypescript = fs.existsSync(path.join(cwd, commonFilePaths.viteConfigTS));
+type CreateWorkspaceOptions = { cwd: string; packageManager?: AgentName };
+export function createWorkspace({ cwd, packageManager }: CreateWorkspaceOptions): Workspace<any> {
+	const resolvedCwd = path.resolve(cwd);
+	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
+	let usesTypescript = fs.existsSync(viteConfigPath);
 
 	if (TESTING) {
 		// while executing tests, we only look into the direct `cwd`
 		// as we might detect the monorepo `tsconfig.json` otherwise.
-		usesTypescript ||= fs.existsSync(path.join(cwd, commonFilePaths.tsconfig));
+		usesTypescript ||= fs.existsSync(path.join(resolvedCwd, commonFilePaths.tsconfig));
 	} else {
 		usesTypescript ||= find.up(commonFilePaths.tsconfig, { cwd }) !== undefined;
 	}
 
 	let dependencies: Record<string, string> = {};
-	let directory = workspace.cwd;
-	const root = findRoot(workspace.cwd);
+	let directory = resolvedCwd;
+	const root = findRoot(resolvedCwd);
 	while (directory && directory !== root) {
 		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
 			const { data: packageJson } = getPackageJson(directory);
@@ -51,13 +42,16 @@ export function createWorkspace<Args extends OptionDefinition>(cwd: string): Wor
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
-	workspace.dependencyVersion = (pkg) => {
-		return dependencies[pkg];
+	const kit = dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined;
+
+	return {
+		kit,
+		packageManager: packageManager ?? getUserAgent() ?? 'npm',
+		cwd: resolvedCwd,
+		dependencyVersion: (pkg) => dependencies[pkg],
+		typescript: usesTypescript,
+		options: {}
 	};
-	workspace.typescript = usesTypescript;
-	workspace.packageManager = detectPackageManager(cwd);
-	if (workspace.dependencyVersion('@sveltejs/kit')) workspace.kit = parseKitOptions(workspace);
-	return workspace;
 }
 
 function findRoot(cwd: string): string {
@@ -78,8 +72,8 @@ function findRoot(cwd: string): string {
 	return root;
 }
 
-function parseKitOptions(workspace: Workspace<any>) {
-	const configSource = readFile(workspace.cwd, commonFilePaths.svelteConfig);
+function parseKitOptions(cwd: string) {
+	const configSource = readFile(cwd, commonFilePaths.svelteConfig);
 	const { ast } = parseScript(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
