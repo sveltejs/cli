@@ -1,6 +1,6 @@
 import { imports, exports, common } from '@sveltejs/cli-core/js';
 import { type Question, type FileEditor } from '@sveltejs/cli-core';
-import { parseScript } from '@sveltejs/cli-core/parsers';
+import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
 export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Question>>): string {
 	const { ast, generateCode } = parseScript(content);
@@ -63,4 +63,21 @@ export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Q
 	}
 
 	return generateCode();
+}
+
+export function addToDemoPage(
+	{ content }: FileEditor<Record<string, Question>>,
+	path: string
+): string {
+	const { template, generateCode } = parseSvelte(content);
+
+	for (const node of template.ast.childNodes) {
+		if (node.type === 'tag' && node.attribs['href'] === `/demo/${path}`) {
+			return content;
+		}
+	}
+
+	const newLine = template.source ? '\n' : '';
+	const src = template.source + `${newLine}<a href="/demo/${path}">${path}</a>`;
+	return generateCode({ template: src });
 }

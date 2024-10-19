@@ -14,6 +14,7 @@ import {
 } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
+import { addToDemoPage } from '../common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -231,6 +232,11 @@ export default defineAdder({
 
 				return generateCode();
 			}
+		},
+		{
+			name: ({ kit }) => `${kit?.routesDirectory}/demo/+page.svelte`,
+			condition: ({ options }) => options.demo,
+			content: (editor) => addToDemoPage(editor, 'paraglide')
 		},
 		{
 			// add usage example
