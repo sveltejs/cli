@@ -1,5 +1,26 @@
 # sv
 
+## 0.5.5
+### Patch Changes
+
+
+- feat: create `/demo` page ([#171](https://github.com/sveltejs/cli/pull/171))
+
+
+- chore: remove auto-installing dependencies ([#164](https://github.com/sveltejs/cli/pull/164))
+
+
+- feat: add `--version` flag ([#160](https://github.com/sveltejs/cli/pull/160))
+
+
+- chore: update `silver-fleece` ([#169](https://github.com/sveltejs/cli/pull/169))
+
+
+- fix: adjust ordering of "next steps" in `create` ([#166](https://github.com/sveltejs/cli/pull/166))
+
+
+- chore: ensure stack trace is logged ([#172](https://github.com/sveltejs/cli/pull/172))
+
 ## 0.5.4
 ### Patch Changes
 
