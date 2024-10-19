@@ -20,15 +20,15 @@
 		}
 	},
 	"peerDependencies": {
-		"svelte": "^5.0.0-next.1"
+		"svelte": "^5.0.0"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/package": "^2.0.0",
-		"@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
+		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"publint": "^0.2.0",
-		"svelte": "^5.0.0-next.1",
+		"svelte": "^5.0.0",
 		"typescript": "^5.3.2",
 		"vite": "^5.0.11"
 	}

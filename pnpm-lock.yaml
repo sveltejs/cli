@@ -28,7 +28,7 @@ importers:
         version: link:packages/create
       '@sveltejs/eslint-config':
         specifier: ^8.1.0
-        version: 8.1.0(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)
+        version: 8.1.0(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)
       '@svitejs/changesets-changelog-github-compact':
         specifier: ^1.1.0
         version: 1.1.0
@@ -52,7 +52,7 @@ importers:
         version: 2.5.3(prettier@3.3.3)
       prettier-plugin-svelte:
         specifier: ^3.2.6
-        version: 3.2.6(prettier@3.3.3)(svelte@5.0.0-next.262)
+        version: 3.2.6(prettier@3.3.3)(svelte@5.0.0)
       rollup:
         specifier: ^4.21.2
         version: 4.21.2
@@ -66,8 +66,8 @@ importers:
         specifier: workspace:*
         version: link:packages/cli
       svelte:
-        specifier: ^5.0.0-next.1
-        version: 5.0.0-next.262
+        specifier: ^5.0.0
+        version: 5.0.0
       typescript:
         specifier: ^5.6.2
         version: 5.6.2
@@ -1949,8 +1949,8 @@ packages:
       svelte:
         optional: true
 
-  svelte@5.0.0-next.262:
-    resolution: {integrity: sha512-gAY0POArLN5yI/ihvItG0wQCh7ycfvxSvvVlvPECshFKmR/ep6ZAlqX50+aUGDSG/5megFqnSJfP7piC6lOtew==}
+  svelte@5.0.0:
+    resolution: {integrity: sha512-jv2IvTtakG58DqZMo6fY3T6HFmGV4iDQH2lSUyfmCEYaoa+aCNcF+9rERbdDvT4XDF0nQBg6TEoJn0dirED8VQ==}
     engines: {node: '>=18'}
 
   synckit@0.9.2:
@@ -2688,13 +2688,13 @@ snapshots:
       eslint-visitor-keys: 4.0.0
       espree: 10.1.0
 
-  '@sveltejs/eslint-config@8.1.0(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)':
+  '@sveltejs/eslint-config@8.1.0(@stylistic/eslint-plugin-js@2.8.0(eslint@9.10.0))(eslint-config-prettier@9.1.0(eslint@9.10.0))(eslint-plugin-n@17.10.2(eslint@9.10.0))(eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0))(eslint@9.10.0)(typescript-eslint@8.5.0(eslint@9.10.0)(typescript@5.6.2))(typescript@5.6.2)':
     dependencies:
       '@stylistic/eslint-plugin-js': 2.8.0(eslint@9.10.0)
       eslint: 9.10.0
       eslint-config-prettier: 9.1.0(eslint@9.10.0)
       eslint-plugin-n: 17.10.2(eslint@9.10.0)
-      eslint-plugin-svelte: 2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262)
+      eslint-plugin-svelte: 2.43.0(eslint@9.10.0)(svelte@5.0.0)
       globals: 15.9.0
       typescript: 5.6.2
       typescript-eslint: 8.5.0(eslint@9.10.0)(typescript@5.6.2)
@@ -3133,7 +3133,7 @@ snapshots:
       minimatch: 9.0.5
       semver: 7.6.3
 
-  eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0-next.262):
+  eslint-plugin-svelte@2.43.0(eslint@9.10.0)(svelte@5.0.0):
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@9.10.0)
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -3146,9 +3146,9 @@ snapshots:
       postcss-safe-parser: 6.0.0(postcss@8.4.45)
       postcss-selector-parser: 6.1.2
       semver: 7.6.3
-      svelte-eslint-parser: 0.41.0(svelte@5.0.0-next.262)
+      svelte-eslint-parser: 0.41.0(svelte@5.0.0)
     optionalDependencies:
-      svelte: 5.0.0-next.262
+      svelte: 5.0.0
     transitivePeerDependencies:
       - ts-node
 
@@ -3713,10 +3713,10 @@ snapshots:
     optionalDependencies:
       prettier: 3.3.3
 
-  prettier-plugin-svelte@3.2.6(prettier@3.3.3)(svelte@5.0.0-next.262):
+  prettier-plugin-svelte@3.2.6(prettier@3.3.3)(svelte@5.0.0):
     dependencies:
       prettier: 3.3.3
-      svelte: 5.0.0-next.262
+      svelte: 5.0.0
 
   prettier@2.8.8: {}
 
@@ -3924,7 +3924,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte-eslint-parser@0.41.0(svelte@5.0.0-next.262):
+  svelte-eslint-parser@0.41.0(svelte@5.0.0):
     dependencies:
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
@@ -3932,9 +3932,9 @@ snapshots:
       postcss: 8.4.45
       postcss-scss: 4.0.9(postcss@8.4.45)
     optionalDependencies:
-      svelte: 5.0.0-next.262
+      svelte: 5.0.0
 
-  svelte@5.0.0-next.262:
+  svelte@5.0.0:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@jridgewell/sourcemap-codec': 1.5.0
