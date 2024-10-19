@@ -16,12 +16,12 @@ npx sv create ./my/path
 
 ## Available options
 
-| Option            | option values                   | default   | description                                                |
-| ----------------- | ------------------------------- | --------- | ---------------------------------------------------------- |
-| --check-types     | typescript \| checkjs \| none   | typescipt | determine if type checking should be added to this project |
-| --template        | skeleton \| skeletonlib \| demo | skeleton  | project template                                           |
-| --no-integrations | -                               | -         | skips interactive integration installer                    |
-| --no-install      | -                               | -         | skips installing dependencies                              |
+| Option            | option values                 | default    | description                                                |
+| ----------------- | ----------------------------- | ---------- | ---------------------------------------------------------- |
+| --check-types     | typescript \| checkjs \| none | typescript | determine if type checking should be added to this project |
+| --template        | minimal \| library \| demo    | minimal    | project template                                           |
+| --no-integrations | -                             | -          | skips interactive integration installer                    |
+| --no-install      | -                             | -          | skips installing dependencies                              |
 
 ## Programmatic interface
 
