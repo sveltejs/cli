@@ -1,6 +1,9 @@
 # community-adder-template
 
 > [!IMPORTANT]
+> Community adders are currently not supported. Please see [#184](https://github.com/sveltejs/cli/issues/184) for details.
+
+> [!IMPORTANT]
 > This template's dependencies may not be up-to-date; be sure to update them to the latest!
 > If you get stuck, check out the [implementations of official adders](https://github.com/sveltejs/cli/tree/main/packages/adders).
 
