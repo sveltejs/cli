@@ -1,5 +1,11 @@
 # sv
 
+## 0.5.7
+### Patch Changes
+
+
+- fix: improve package manager detection ([#178](https://github.com/sveltejs/cli/pull/178))
+
 ## 0.5.6
 ### Patch Changes
 
