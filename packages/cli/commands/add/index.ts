@@ -418,6 +418,8 @@ export async function runAddCommand(
 		}
 	}
 
+	// we'll return early when no adders are selected,
+	// indicating that installing deps was skipped and no PM was selected
 	if (selectedAdders.length === 0) return { packageManager: null };
 
 	// prompt for package manager

@@ -42,10 +42,8 @@ export function createWorkspace({ cwd, packageManager }: CreateWorkspaceOptions)
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
-	const kit = dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined;
-
 	return {
-		kit,
+		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
 		packageManager: packageManager ?? getUserAgent() ?? 'npm',
 		cwd: resolvedCwd,
 		dependencyVersion: (pkg) => dependencies[pkg],
