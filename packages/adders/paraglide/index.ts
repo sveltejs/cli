@@ -67,6 +67,9 @@ export default defineAdder({
 	homepage: 'https://inlang.com',
 	options,
 	run: ({ sv, cwd, options, typescript, kit, dependencyVersion }) => {
+		const ext = typescript ? 'ts' : 'js';
+		if (!kit) throw new Error('SvelteKit is required');
+
 		sv.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
 
 		if (!fs.existsSync(path.join(cwd, 'project.inlang/settings.json'))) {
@@ -87,7 +90,7 @@ export default defineAdder({
 		}
 
 		// add the vite plugin
-		sv.updateFile(`vite.config.${typescript ? 'ts' : 'js'}`, (content) => {
+		sv.updateFile(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'paraglide';
@@ -109,7 +112,7 @@ export default defineAdder({
 		});
 
 		// src/lib/i18n file
-		sv.updateFile(`src/lib/i18n.${typescript ? 'ts' : 'js'}`, (content) => {
+		sv.updateFile(`src/lib/i18n.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
@@ -119,7 +122,7 @@ export default defineAdder({
 			const i18n = variables.declaration(ast, 'const', 'i18n', createI18nExpression);
 
 			const existingExport = exports.namedExport(ast, 'i18n', i18n);
-			if (existingExport.declaration != i18n) {
+			if (existingExport.declaration !== i18n) {
 				log.warn('Setting up $lib/i18n failed because it already exports an i18n function');
 			}
 
@@ -127,7 +130,7 @@ export default defineAdder({
 		});
 
 		// reroute hook
-		sv.updateFile(`src/hooks.${typescript ? 'ts' : 'js'}`, (content) => {
+		sv.updateFile(`src/hooks.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
@@ -136,7 +139,7 @@ export default defineAdder({
 			const rerouteIdentifier = variables.declaration(ast, 'const', 'reroute', expression);
 
 			const existingExport = exports.namedExport(ast, 'reroute', rerouteIdentifier);
-			if (existingExport.declaration != rerouteIdentifier) {
+			if (existingExport.declaration !== rerouteIdentifier) {
 				log.warn('Adding the reroute hook automatically failed. Add it manually');
 			}
 
@@ -144,7 +147,7 @@ export default defineAdder({
 		});
 
 		// handle hook
-		sv.updateFile(`src/hooks.server.${typescript ? 'ts' : 'js'}`, (content) => {
+		sv.updateFile(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
@@ -156,7 +159,7 @@ export default defineAdder({
 		});
 
 		// add the <ParaglideJS> component to the layout
-		sv.updateFile(`${kit?.routesDirectory}/+layout.svelte`, (content) => {
+		sv.updateFile(`${kit.routesDirectory}/+layout.svelte`, (content) => {
 			const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 			const paraglideComponentName = 'ParaglideJS';
@@ -206,12 +209,12 @@ export default defineAdder({
 		});
 
 		if (options.demo) {
-			sv.updateFile(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
+			sv.updateFile(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'paraglide');
 			});
 
 			// add usage example
-			sv.updateFile(`${kit?.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
+			sv.updateFile(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
