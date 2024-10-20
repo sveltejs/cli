@@ -95,7 +95,7 @@ type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplic
 export async function runAddCommand(
 	options: Options,
 	selectedAdderIds: string[]
-): Promise<{ nextSteps?: string; packageManager?: AgentName }> {
+): Promise<{ nextSteps?: string; packageManager?: AgentName | null }> {
 	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
 		type: 'official',
 		adder: getAdderDetails(id)
@@ -418,21 +418,20 @@ export async function runAddCommand(
 		}
 	}
 
+	if (selectedAdders.length === 0) return { packageManager: null };
+
 	// prompt for package manager
 	let packageManager: AgentName | undefined;
-	if (options.install && selectedAdders.length > 0) {
+	if (options.install) {
 		packageManager = await common.packageManagerPrompt(options.cwd);
 	}
 
 	// apply adders
-	let filesToFormat: string[] = [];
-	if (Object.keys({ ...official, ...community }).length > 0) {
-		filesToFormat = await runAdders({ cwd: options.cwd, packageManager, official, community });
-		p.log.success('Successfully setup integrations');
-	}
+	const filesToFormat = await runAdders({ cwd: options.cwd, packageManager, official, community });
+	p.log.success('Successfully setup integrations');
 
 	// install dependencies
-	if (packageManager && options.install && selectedAdders.length > 0) {
+	if (packageManager && options.install) {
 		await common.installDependencies(packageManager, options.cwd);
 	}
 

@@ -138,9 +138,15 @@ async function createProject(cwd: string, options: Options) {
 
 	p.log.success('Project created');
 
-	let packageManager: AgentName | undefined;
+	let packageManager: AgentName | undefined | null;
 	let integrationNextSteps: string | undefined;
+	const installDeps = async () => {
+		packageManager = await common.packageManagerPrompt(projectPath);
+		if (packageManager) await common.installDependencies(packageManager, projectPath);
+	};
+
 	if (options.integrations) {
+		// `runAddCommand` includes installing dependencies
 		const { nextSteps, packageManager: pm } = await runAddCommand(
 			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
 			[]
@@ -148,10 +154,14 @@ async function createProject(cwd: string, options: Options) {
 		packageManager = pm;
 		integrationNextSteps = nextSteps;
 	} else if (options.install) {
-		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
-		// then we'll prompt to install dependencies here
-		packageManager = await common.packageManagerPrompt(projectPath);
-		if (packageManager) await common.installDependencies(packageManager, projectPath);
+		// `--no-integrations` was set, so we'll prompt to install deps manually
+		await installDeps();
+	}
+
+	// no integrations were selected (which means the install prompt was skipped in `runAddCommand`),
+	// so we'll prompt to install
+	if (packageManager === null && options.install) {
+		await installDeps();
 	}
 
 	return { directory: projectPath, integrationNextSteps, packageManager };
