@@ -50,11 +50,11 @@ export default defineAdder({
 	environments: { svelte: false, kit: true },
 	homepage: 'https://inlang.com',
 	options,
-	run: ({ files, cwd, options, typescript, kit, packages, dependencyVersion }) => {
-		packages.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
+	run: ({ api, cwd, options, typescript, kit, dependencyVersion }) => {
+		api.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
 
 		if (!fs.existsSync(path.join(cwd, 'project.inlang/settings.json'))) {
-			files.update('project.inlang/settings.json', (content) => {
+			api.updateFile('project.inlang/settings.json', (content) => {
 				const { data, generateCode } = parseJson(content);
 
 				const DEFAULT_INLANG_PROJECT = {
@@ -87,7 +87,7 @@ export default defineAdder({
 		}
 
 		// add the vite plugin
-		files.update(`vite.config.${typescript ? 'ts' : 'js'}`, (content) => {
+		api.updateFile(`vite.config.${typescript ? 'ts' : 'js'}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'paraglide';
@@ -109,7 +109,7 @@ export default defineAdder({
 		});
 
 		// src/lib/i18n file
-		files.update(`src/lib/i18n.${typescript ? 'ts' : 'js'}`, (content) => {
+		api.updateFile(`src/lib/i18n.${typescript ? 'ts' : 'js'}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
@@ -127,7 +127,7 @@ export default defineAdder({
 		});
 
 		// reroute hook
-		files.update(`src/hooks.${typescript ? 'ts' : 'js'}`, (content) => {
+		api.updateFile(`src/hooks.${typescript ? 'ts' : 'js'}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$lib/i18n', {
@@ -146,7 +146,7 @@ export default defineAdder({
 		});
 
 		// handle hook
-		files.update(`src/hooks.server.${typescript ? 'ts' : 'js'}`, (content) => {
+		api.updateFile(`src/hooks.server.${typescript ? 'ts' : 'js'}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$lib/i18n', {
@@ -160,7 +160,7 @@ export default defineAdder({
 		});
 
 		// add the <ParaglideJS> component to the layout
-		files.update(`${kit?.routesDirectory}/+layout.svelte`, (content) => {
+		api.updateFile(`${kit?.routesDirectory}/+layout.svelte`, (content) => {
 			const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 			const paraglideComponentName = 'ParaglideJS';
@@ -189,7 +189,7 @@ export default defineAdder({
 		});
 
 		// add the text-direction and lang attribute placeholders to app.html
-		files.update('src/app.html', (content) => {
+		api.updateFile('src/app.html', (content) => {
 			const { ast, generateCode } = parseHtml(content);
 
 			const htmlNode = ast.children.find(
@@ -212,12 +212,12 @@ export default defineAdder({
 		});
 
 		if (options.demo) {
-			files.update(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
+			api.updateFile(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'paraglide');
 			});
 
 			// add usage example
-			files.update(`${kit?.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
+			api.updateFile(`${kit?.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
@@ -273,7 +273,7 @@ export default defineAdder({
 
 		const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
 		for (const languageTag of validLanguageTags) {
-			files.update(`messages/${languageTag}.json`, (content) => {
+			api.updateFile(`messages/${languageTag}.json`, (content) => {
 				const { data, generateCode } = parseJson(content);
 				data['$schema'] = 'https://inlang.com/schema/inlang-message-format';
 				data.hello_world = `Hello, {name} from ${languageTag}!`;

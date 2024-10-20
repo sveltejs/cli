@@ -27,7 +27,7 @@ export type Scripts<Args extends OptionDefinition> = {
 
 // todo: rename
 export type FileApi = {
-	update: (name: string, content: (content: string) => string) => string;
+	updateFile: (name: string, content: (content: string) => string) => string;
 };
 
 // todo: rename
@@ -55,7 +55,7 @@ export type Adder<Args extends OptionDefinition> = {
 	) => string[];
 
 	run: (
-		workspace: Workspace<Args> & { files: FileApi; packages: PackageApi; scripts: ScriptApi }
+		workspace: Workspace<Args> & { api: FileApi & PackageApi & ScriptApi }
 	) => MaybePromise<void>;
 
 	// todo: to remove (start)
