@@ -55,7 +55,7 @@ export type Adder<Args extends OptionDefinition> = {
 	) => string[];
 
 	run: (
-		workspace: Workspace<Args> & { api: FileApi & PackageApi & ScriptApi }
+		workspace: Workspace<Args> & { sv: FileApi & PackageApi & ScriptApi }
 	) => MaybePromise<void>;
 
 	// todo: to remove (start)
