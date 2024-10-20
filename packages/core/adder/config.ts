@@ -38,7 +38,7 @@ export type PackageApi = {
 
 // todo: rename
 export type ScriptApi = {
-	run: (args: { description: string; args: string[]; stdio: 'inherit' | 'pipe' }) => void;
+	execute: (args: { description: string; args: string[]; stdio: 'inherit' | 'pipe' }) => void;
 };
 
 export type Adder<Args extends OptionDefinition> = {

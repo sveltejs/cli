@@ -45,6 +45,22 @@ export const options = defineAdderOptions({
 	}
 });
 
+const DEFAULT_INLANG_PROJECT = {
+	$schema: 'https://inlang.com/schema/project-settings',
+	modules: [
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0/dist/index.js'
+	],
+	'plugin.inlang.messageFormat': {
+		pathPattern: './messages/{languageTag}.json'
+	}
+};
+
 export default defineAdder({
 	id: 'paraglide',
 	environments: { svelte: false, kit: true },
@@ -56,22 +72,6 @@ export default defineAdder({
 		if (!fs.existsSync(path.join(cwd, 'project.inlang/settings.json'))) {
 			api.updateFile('project.inlang/settings.json', (content) => {
 				const { data, generateCode } = parseJson(content);
-
-				const DEFAULT_INLANG_PROJECT = {
-					$schema: 'https://inlang.com/schema/project-settings',
-					modules: [
-						'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1/dist/index.js',
-						'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1/dist/index.js',
-						'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@1/dist/index.js',
-						'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1/dist/index.js',
-						'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1/dist/index.js',
-						'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2/dist/index.js',
-						'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0/dist/index.js'
-					],
-					'plugin.inlang.messageFormat': {
-						pathPattern: './messages/{languageTag}.json'
-					}
-				};
 
 				for (const key in DEFAULT_INLANG_PROJECT) {
 					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
