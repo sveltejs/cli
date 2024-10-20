@@ -380,14 +380,18 @@ export default defineAdder({
 			}
 		}
 	],
-	nextSteps: ({ options, highlighter }) => {
+	nextSteps: ({ options, highlighter, packageManager }) => {
 		const steps = [
 			`You will need to set ${highlighter.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
-			steps.push(`Run ${highlighter.command('npm run db:start')} to start the docker container`);
+			steps.push(
+				`Run ${highlighter.command(`${packageManager} run db:start`)} to start the docker container`
+			);
 		}
-		steps.push(`Run ${highlighter.command('npm run db:push')} to update your database schema`);
+		steps.push(
+			`Run ${highlighter.command(`${packageManager} run db:push`)} to update your database schema`
+		);
 
 		return steps;
 	}

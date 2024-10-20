@@ -590,8 +590,10 @@ export default defineAdder({
 			}
 		}
 	],
-	nextSteps: ({ highlighter, options }) => {
-		const steps = [`Run ${highlighter.command('npm run db:push')} to update your database schema`];
+	nextSteps: ({ highlighter, options, packageManager }) => {
+		const steps = [
+			`Run ${highlighter.command(`${packageManager} run db:push`)} to update your database schema`
+		];
 		if (options.demo) {
 			steps.push(`Visit ${highlighter.route('/demo/lucia')} route to view the demo`);
 		}
