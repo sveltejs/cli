@@ -63,7 +63,7 @@ Usage:
 
 ### More docs, preprocessor setup and troubleshooting
 
-[See here](/docs/README.md).
+[See here](https://github.com/sveltejs/language-tools/blob/master/docs/README.md).
 
 ### Machine-Readable Output
 
