@@ -25,6 +25,22 @@ export type Scripts<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
+// todo: rename
+export type FileApi = {
+	update: (name: string, content: (content: string) => string) => string;
+};
+
+// todo: rename
+export type PackageApi = {
+	dependency: (pkg: string, version: string) => void;
+	devDependency: (pkg: string, version: string) => void;
+};
+
+// todo: rename
+export type ScriptApi = {
+	run: (args: { description: string; args: string[]; stdio: 'inherit' | 'pipe' }) => void;
+};
+
 export type Adder<Args extends OptionDefinition> = {
 	id: string;
 	alias?: string;
@@ -32,16 +48,23 @@ export type Adder<Args extends OptionDefinition> = {
 	homepage?: string;
 	options: Args;
 	dependsOn?: string[];
-	packages: Array<PackageDefinition<Args>>;
-	scripts?: Array<Scripts<Args>>;
-	files: Array<FileType<Args>>;
-	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
-	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
 		} & Workspace<Args>
 	) => string[];
+
+	run: (
+		workspace: Workspace<Args> & { files: FileApi; packages: PackageApi; scripts: ScriptApi }
+	) => MaybePromise<void>;
+
+	// todo: to remove (start)
+	files: Array<FileType<Args>>;
+	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
+	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
+	packages: Array<PackageDefinition<Args>>;
+	scripts?: Array<Scripts<Args>>;
+	// todo: to remove (end)
 };
 
 export type Highlighter = {
