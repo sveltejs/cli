@@ -6,7 +6,7 @@ import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@sveltejs/clack-prompts';
 import * as pkg from 'empathic/package';
-import { resolveCommand } from 'package-manager-detector';
+import { resolveCommand, type AgentName } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
 	officialAdders,
@@ -95,7 +95,7 @@ type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplic
 export async function runAddCommand(
 	options: Options,
 	selectedAdderIds: string[]
-): Promise<{ nextSteps?: string }> {
+): Promise<{ nextSteps?: string; packageManager?: AgentName | null }> {
 	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
 		type: 'official',
 		adder: getAdderDetails(id)
@@ -267,7 +267,7 @@ export async function runAddCommand(
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
-		const workspace = createWorkspace(options.cwd);
+		const workspace = createWorkspace({ cwd: options.cwd });
 		const projectType = workspace.kit ? 'kit' : 'svelte';
 		const adderOptions = officialAdders
 			.map((adder) => {
@@ -301,7 +301,7 @@ export async function runAddCommand(
 		const dependents =
 			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
 
-		const workspace = createWorkspace(options.cwd);
+		const workspace = createWorkspace({ cwd: options.cwd });
 		for (const depId of dependents) {
 			const dependent = officialAdders.find((a) => a.id === depId) as AdderWithoutExplicitArgs;
 			if (!dependent) throw new Error(`Adder '${adder.id}' depends on an invalid '${depId}'`);
@@ -330,7 +330,7 @@ export async function runAddCommand(
 	// run precondition checks
 	if (options.preconditions && selectedAdders.length > 0) {
 		// add global checks
-		const { kit } = createWorkspace(options.cwd);
+		const { kit } = createWorkspace({ cwd: options.cwd });
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
 		const { preconditions } = common.getGlobalPreconditions(options.cwd, projectType, adders);
@@ -418,30 +418,32 @@ export async function runAddCommand(
 		}
 	}
 
-	// apply adders
-	let filesToFormat: string[] = [];
-	if (Object.keys({ ...official, ...community }).length > 0) {
-		filesToFormat = await runAdders({ cwd: options.cwd, official, community });
-		p.log.success('Successfully setup integrations');
+	// we'll return early when no adders are selected,
+	// indicating that installing deps was skipped and no PM was selected
+	if (selectedAdders.length === 0) return { packageManager: null };
+
+	// prompt for package manager
+	let packageManager: AgentName | undefined;
+	if (options.install) {
+		packageManager = await common.packageManagerPrompt(options.cwd);
 	}
 
+	// apply adders
+	const filesToFormat = await runAdders({ cwd: options.cwd, packageManager, official, community });
+	p.log.success('Successfully setup integrations');
+
 	// install dependencies
-	let depsStatus: 'installed' | 'skipped' = 'skipped';
-	if (options.install && selectedAdders.length > 0) {
-		depsStatus = await common.suggestInstallingDependencies(options.cwd);
+	if (packageManager && options.install) {
+		await common.installDependencies(packageManager, options.cwd);
 	}
 
 	// format modified/created files with prettier (if available)
-	const workspace = createWorkspace(options.cwd);
-	if (
-		filesToFormat.length > 0 &&
-		depsStatus === 'installed' &&
-		!!workspace.dependencyVersion('prettier')
-	) {
+	const workspace = createWorkspace({ cwd: options.cwd, packageManager });
+	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
 		try {
-			await common.formatFiles(options.cwd, filesToFormat);
+			await common.formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
 			stop('Successfully formatted modified files');
 		} catch (e) {
 			stop('Failed to format files');
@@ -472,7 +474,7 @@ export async function runAddCommand(
 			// instead of returning an empty string, we'll return `undefined`
 			.join('\n\n') || undefined;
 
-	return { nextSteps };
+	return { nextSteps, packageManager };
 }
 
 type AdderId = string;
@@ -481,6 +483,7 @@ export type AdderOption = Record<AdderId, QuestionValues>;
 
 export type InstallAdderOptions = {
 	cwd: string;
+	packageManager?: AgentName;
 	official?: AdderOption;
 	community?: AdderOption;
 };
@@ -491,7 +494,8 @@ export type InstallAdderOptions = {
 async function runAdders({
 	cwd,
 	official = {},
-	community = {}
+	community = {},
+	packageManager
 }: InstallAdderOptions): Promise<string[]> {
 	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
 	const commDetails = Object.keys(community).map(
@@ -514,7 +518,7 @@ async function runAdders({
 	const filesToFormat = new Set<string>();
 	for (const config of details) {
 		const adderId = config.id;
-		const workspace = createWorkspace(cwd);
+		const workspace = createWorkspace({ cwd, packageManager });
 
 		workspace.options = official[adderId] ?? community[adderId]!;
 

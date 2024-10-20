@@ -13,6 +13,7 @@ import {
 } from '@sveltejs/create';
 import * as common from '../common.js';
 import { runAddCommand } from './add/index.ts';
+import { detectSync, type AgentName } from 'package-manager-detector';
 
 const langs = ['typescript', 'checkjs', 'none'] as const;
 const templateChoices = templates.map((t) => t.name);
@@ -42,17 +43,17 @@ export const create = new Command('create')
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
-			const { directory, integrationNextSteps } = await createProject(cwd, options);
+			const { directory, integrationNextSteps, packageManager } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = common.detectPackageManager(cwd);
+			const pm = packageManager ?? detectSync({ cwd })?.name ?? common.getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
 			}
-			if (!common.packageManager) {
+			if (!packageManager) {
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 
@@ -137,20 +138,31 @@ async function createProject(cwd: string, options: Options) {
 
 	p.log.success('Project created');
 
-	let integrationNextSteps;
+	let packageManager: AgentName | undefined | null;
+	let integrationNextSteps: string | undefined;
+	const installDeps = async () => {
+		packageManager = await common.packageManagerPrompt(projectPath);
+		if (packageManager) await common.installDependencies(packageManager, projectPath);
+	};
+
 	if (options.integrations) {
-		const { nextSteps } = await runAddCommand(
-			{ cwd: projectPath, install: false, preconditions: true, community: [] },
+		// `runAddCommand` includes installing dependencies
+		const { nextSteps, packageManager: pm } = await runAddCommand(
+			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
 			[]
 		);
+		packageManager = pm;
 		integrationNextSteps = nextSteps;
-	}
-	// show install prompt even if no integrations are selected
-	if (options.install) {
-		// `runAddCommand` includes the installing dependencies prompt. if it's skipped,
-		// then we'll prompt to install dependencies here
-		await common.suggestInstallingDependencies(projectPath);
+	} else if (options.install) {
+		// `--no-integrations` was set, so we'll prompt to install deps manually
+		await installDeps();
 	}
 
-	return { directory: projectPath, integrationNextSteps };
+	// no integrations were selected (which means the install prompt was skipped in `runAddCommand`),
+	// so we'll prompt to install
+	if (packageManager === null && options.install) {
+		await installDeps();
+	}
+
+	return { directory: projectPath, integrationNextSteps, packageManager };
 }

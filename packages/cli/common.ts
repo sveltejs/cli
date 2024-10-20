@@ -39,27 +39,28 @@ export async function runCommand(action: MaybePromise) {
 	}
 }
 
-export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	const pm = detectPackageManager(cwd);
-	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
-	const cmd = resolveCommand(pm, 'execute-local', args)!;
-	await exec(cmd.command, cmd.args, {
-		nodeOptions: { cwd, stdio: 'pipe' }
-	});
+export async function formatFiles(options: {
+	packageManager: AgentName;
+	cwd: string;
+	paths: string[];
+}): Promise<void> {
+	const args = ['prettier', '--write', '--ignore-unknown', ...options.paths];
+	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
+	await exec(cmd.command, cmd.args, { nodeOptions: { cwd: options.cwd, stdio: 'pipe' } });
 }
 
-type PackageManagerOptions = Array<{ value: AgentName | null; label: AgentName | 'None' }>;
-export async function suggestInstallingDependencies(cwd: string): Promise<'installed' | 'skipped'> {
-	const detected = detectSync({ cwd });
-	const agent = detected?.agent ?? getUserAgent() ?? null;
+const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
+const agentOptions: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
+agentOptions.unshift({ label: 'None', value: undefined });
 
-	const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
-	const options: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
-	options.unshift({ label: 'None', value: null });
+type PackageManagerOptions = Array<{ value: AgentName | undefined; label: AgentName | 'None' }>;
+export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
+	const detected = detectSync({ cwd });
+	const agent = detected?.name ?? getUserAgent();
 
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
-		options,
+		options: agentOptions,
 		initialValue: agent
 	});
 	if (p.isCancel(pm)) {
@@ -67,45 +68,20 @@ export async function suggestInstallingDependencies(cwd: string): Promise<'insta
 		process.exit(1);
 	}
 
-	if (!pm) {
-		return 'skipped';
-	}
-
-	const { command, args } = constructCommand(COMMANDS[pm].install, [])!;
-
-	const loadingSpinner = p.spinner();
-	loadingSpinner.start('Installing dependencies...');
-
-	await installDependencies(command, args, cwd);
-
-	packageManager = command as AgentName;
-
-	loadingSpinner.stop('Successfully installed dependencies');
-	return 'installed';
+	return pm;
 }
 
-async function installDependencies(command: string, args: string[], cwd: string) {
+export async function installDependencies(agent: AgentName, cwd: string) {
+	const spinner = p.spinner();
+	spinner.start('Installing dependencies...');
 	try {
+		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
 		await exec(command, args, { nodeOptions: { cwd } });
+		spinner.stop('Successfully installed dependencies');
 	} catch (error) {
-		const typedError = error as Error;
-		throw new Error(`Unable to install dependencies: ${typedError.message}`);
+		spinner.stop('Failed to install dependencies', 2);
+		throw error;
 	}
-}
-
-export let packageManager: AgentName | undefined;
-
-/**
- * Guesses the package manager based on the detected lockfile or user-agent.
- * If neither of those return valid package managers, it falls back to `npm`.
- */
-export function detectPackageManager(cwd: string): AgentName {
-	if (packageManager) return packageManager;
-
-	const pm = detectSync({ cwd });
-	if (pm?.name) packageManager = pm.name;
-
-	return pm?.name ?? getUserAgent() ?? 'npm';
 }
 
 export function getUserAgent(): AgentName | undefined {
