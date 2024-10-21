@@ -26,19 +26,14 @@ export type Scripts<Args extends OptionDefinition> = {
 };
 
 // todo: rename
-export type FileApi = {
-	updateFile: (name: string, content: (content: string) => string) => string;
-};
+export type SvApi = {
+	updateFile: (path: string, content: (content: string) => string) => string;
 
-// todo: rename
-export type PackageApi = {
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
-};
 
-// todo: rename
-export type ScriptApi = {
-	execute: (args: { description: string; args: string[]; stdio: 'inherit' | 'pipe' }) => void;
+	// todo: why make this an object, and all other params? Unify!
+	executeScript: (options: { args: string[]; stdio: 'inherit' | 'pipe' }) => Promise<void>;
 };
 
 export type Adder<Args extends OptionDefinition> = {
@@ -54,17 +49,7 @@ export type Adder<Args extends OptionDefinition> = {
 		} & Workspace<Args>
 	) => string[];
 
-	run: (
-		workspace: Workspace<Args> & { sv: FileApi & PackageApi & ScriptApi }
-	) => MaybePromise<void>;
-
-	// todo: to remove (start)
-	files: Array<FileType<Args>>;
-	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
-	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
-	packages: Array<PackageDefinition<Args>>;
-	scripts?: Array<Scripts<Args>>;
-	// todo: to remove (end)
+	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
 };
 
 export type Highlighter = {

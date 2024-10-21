@@ -14,12 +14,11 @@ import {
 	communityAdderIds,
 	getCommunityAdder
 } from '@sveltejs/adders';
-import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
+import type { AdderWithoutExplicitArgs, OptionValues, SvApi } from '@sveltejs/cli-core';
 import * as common from '../../common.ts';
 import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
 import { createWorkspace } from './workspace.ts';
-import { getHighlighter, installPackages } from './utils.ts';
-import { createOrUpdateFiles } from './processor.ts';
+import { fileExists, getHighlighter, installPackages, readFile, writeFile } from './utils.ts';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -307,11 +306,12 @@ export async function runAddCommand(
 			if (!dependent) throw new Error(`Adder '${adder.id}' depends on an invalid '${depId}'`);
 
 			// check if the dependent adder has already been installed
-			let installed = false;
-			installed = dependent.packages.every(
-				// we'll skip the conditions since we don't have any options to supply it
-				(p) => p.condition !== undefined || !!workspace.dependencyVersion(p.name)
-			);
+			const installed = false;
+			// todo: see discussion, how to solve this
+			// installed = dependent.packages.every(
+			// 	// we'll skip the conditions since we don't have any options to supply it
+			// 	(p) => p.condition !== undefined || !!workspace.dependencyVersion(p.name)
+			// );
 
 			if (installed) continue;
 
@@ -516,28 +516,33 @@ async function runAdders({
 
 	// apply adders
 	const filesToFormat = new Set<string>();
-	for (const config of details) {
-		const adderId = config.id;
+	for (const adder of details) {
+		const adderId = adder.id;
 		const workspace = createWorkspace({ cwd, packageManager });
 
 		workspace.options = official[adderId] ?? community[adderId]!;
 
 		// execute adders
-		await config.preInstall?.(workspace);
-		const pkgPath = installPackages(config, workspace);
-		filesToFormat.add(pkgPath);
-		const changedFiles = createOrUpdateFiles(config.files, workspace);
-		changedFiles.forEach((file) => filesToFormat.add(file));
-		await config.postInstall?.(workspace);
+		const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+		const sv: SvApi = {
+			updateFile: (path, content) => {
+				const exists = fileExists(workspace.cwd, path);
+				let contentString = exists ? readFile(workspace.cwd, path) : '';
+				// process file
+				// todo: rename
+				contentString = content(contentString);
 
-		if (config.scripts && config.scripts.length > 0) {
-			for (const script of config.scripts) {
-				if (script.condition?.(workspace) === false) continue;
+				writeFile(workspace, path, contentString);
+				filesToFormat.add(path);
 
+				return contentString;
+			},
+			executeScript: async (script) => {
 				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
-				const adderPrefix = details.length > 1 ? `${config.id}: ` : '';
+				const adderPrefix = details.length > 1 ? `${adder.id}: ` : '';
+				const executedCommandDisplayName = `${command} ${args.join(' ')}`;
 				p.log.step(
-					`${adderPrefix}Running external command ${pc.gray(`(${command} ${args.join(' ')})`)}`
+					`${adderPrefix}Running external command ${pc.gray(`(${executedCommandDisplayName})`)}`
 				);
 
 				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
@@ -548,11 +553,20 @@ async function runAdders({
 				} catch (error) {
 					const typedError = error as Error;
 					throw new Error(
-						`Failed to execute scripts '${script.description}': ` + typedError.message
+						`Failed to execute scripts '${executedCommandDisplayName}': ` + typedError.message
 					);
 				}
+			},
+			dependency: (pkg, version) => {
+				dependencies.push({ pkg, version, dev: false });
+			},
+			devDependency: (pkg, version) => {
+				dependencies.push({ pkg, version, dev: true });
 			}
-		}
+		};
+		await adder.run({ ...workspace, sv });
+
+		installPackages(dependencies, workspace);
 	}
 
 	return Array.from(filesToFormat);

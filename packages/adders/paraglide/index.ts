@@ -280,11 +280,6 @@ export default defineAdder({
 		}
 	},
 
-	// todo: to remove (start)
-	packages: [],
-	files: [],
-	// todo: to remove (end)
-
 	nextSteps: ({ highlighter }) => {
 		const steps = [
 			`Edit your messages in ${highlighter.path('messages/en.json')}`,
