@@ -1,3 +1,3 @@
 # @sveltejs/create
 
-An internal package for scaffolding SvelteKit projects.
+An internal package for scaffolding (Svelte)Kit projects.

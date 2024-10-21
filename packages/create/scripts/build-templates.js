@@ -109,7 +109,8 @@ async function generate_templates(dist, shared) {
 				const contents = fs.readFileSync(path.join(cwd, name), 'utf8');
 
 				if (name.endsWith('.d.ts')) {
-					if (name.endsWith('app.d.ts')) types.checkjs.push({ name, contents });
+					if (name.endsWith('app.d.ts') || name.endsWith('vite-env.d.ts'))
+						types.checkjs.push({ name, contents });
 					types.typescript.push({ name, contents });
 				} else if (name.endsWith('.ts')) {
 					const js = await convert_typescript(contents);
