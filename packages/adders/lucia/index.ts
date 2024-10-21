@@ -36,7 +36,7 @@ export const options = defineAdderOptions({
 export default defineAdder({
 	id: 'lucia',
 	environments: { svelte: false, kit: true },
-	homepage: 'https://lucia-auth.com/',
+	homepage: 'https://lucia-auth.com',
 	options,
 	packages: [
 		{ name: '@oslojs/crypto', version: '^1.0.1', dev: false },
