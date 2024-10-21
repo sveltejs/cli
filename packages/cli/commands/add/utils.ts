@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
 import { parseJson } from '@sveltejs/cli-core/parsers';
-import type { Adder, Highlighter, Workspace } from '@sveltejs/cli-core';
+import type { Highlighter, Workspace } from '@sveltejs/cli-core';
 
 export type Package = {
 	name: string;
@@ -38,20 +38,19 @@ export function readFile(cwd: string, filePath: string): string {
 	return text;
 }
 
-export function installPackages(config: Adder<any>, workspace: Workspace<any>): string {
+export function installPackages(
+	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
+	workspace: Workspace<any>
+): string {
 	const { data, generateCode } = getPackageJson(workspace.cwd);
 
-	for (const dependency of config.packages) {
-		if (dependency.condition && !dependency.condition(workspace)) {
-			continue;
-		}
-
+	for (const dependency of dependencies) {
 		if (dependency.dev) {
 			data.devDependencies ??= {};
-			data.devDependencies[dependency.name] = dependency.version;
+			data.devDependencies[dependency.pkg] = dependency.version;
 		} else {
 			data.dependencies ??= {};
-			data.dependencies[dependency.name] = dependency.version;
+			data.dependencies[dependency.pkg] = dependency.version;
 		}
 	}
 

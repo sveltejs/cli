@@ -65,10 +65,7 @@ export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Q
 	return generateCode();
 }
 
-export function addToDemoPage(
-	{ content }: FileEditor<Record<string, Question>>,
-	path: string
-): string {
+export function addToDemoPage(content: string, path: string): string {
 	const { template, generateCode } = parseSvelte(content);
 
 	for (const node of template.ast.childNodes) {
