@@ -527,15 +527,14 @@ async function runAdders({
 		const sv: SvApi = {
 			updateFile: (path, content) => {
 				const exists = fileExists(workspace.cwd, path);
-				let contentString = exists ? readFile(workspace.cwd, path) : '';
+				let fileContent = exists ? readFile(workspace.cwd, path) : '';
 				// process file
-				// todo: rename
-				contentString = content(contentString);
+				fileContent = content(fileContent);
 
-				writeFile(workspace, path, contentString);
+				writeFile(workspace, path, fileContent);
 				filesToFormat.add(path);
 
-				return contentString;
+				return fileContent;
 			},
 			executeScript: async (script) => {
 				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
