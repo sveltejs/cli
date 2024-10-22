@@ -8,7 +8,31 @@ import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-dete
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 
+// partially sourced from https://github.com/tj/commander.js/blob/970ecae402b253de691e6a9066fea22f38fe7431/lib/help.js#L12
 export const helpConfig: HelpConfiguration = {
+	subcommandTerm: (cmd) => {
+		const humanReadableArgName = (arg: Argument) => {
+			const nameOutput = arg.name() + (arg.variadic === true ? '...' : '');
+
+			return arg.required ? '<' + nameOutput + '>' : '[' + nameOutput + ']';
+		};
+
+		// Legacy. Ignores custom usage string, and nested commands.
+		const args = cmd.registeredArguments.map((arg) => humanReadableArgName(arg)).join(' ');
+		const aliases = cmd.aliases();
+		return (
+			pc.blue(cmd.name()) +
+			(aliases[0] ? '|' + aliases[0] : '') +
+			(cmd.options.length ? ' [options]' : '') + // simplistic check for non-help option
+			(args ? ' ' + args : '')
+		);
+	},
+	argumentTerm: (arg) => {
+		return pc.blue(arg.name());
+	},
+	optionTerm: (option) => {
+		return pc.blue(option.flags);
+	},
 	argumentDescription: formatDescription,
 	optionDescription: formatDescription
 };
