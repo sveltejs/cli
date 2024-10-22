@@ -73,7 +73,7 @@ export default defineAdder({
 		sv.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
 
 		if (!fs.existsSync(path.join(cwd, 'project.inlang/settings.json'))) {
-			sv.updateFile('project.inlang/settings.json', (content) => {
+			sv.file('project.inlang/settings.json', (content) => {
 				const { data, generateCode } = parseJson(content);
 
 				for (const key in DEFAULT_INLANG_PROJECT) {
@@ -90,7 +90,7 @@ export default defineAdder({
 		}
 
 		// add the vite plugin
-		sv.updateFile(`vite.config.${ext}`, (content) => {
+		sv.file(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'paraglide';
@@ -112,7 +112,7 @@ export default defineAdder({
 		});
 
 		// src/lib/i18n file
-		sv.updateFile(`src/lib/i18n.${ext}`, (content) => {
+		sv.file(`src/lib/i18n.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
@@ -130,7 +130,7 @@ export default defineAdder({
 		});
 
 		// reroute hook
-		sv.updateFile(`src/hooks.${ext}`, (content) => {
+		sv.file(`src/hooks.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
@@ -147,7 +147,7 @@ export default defineAdder({
 		});
 
 		// handle hook
-		sv.updateFile(`src/hooks.server.${ext}`, (content) => {
+		sv.file(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
@@ -159,7 +159,7 @@ export default defineAdder({
 		});
 
 		// add the <ParaglideJS> component to the layout
-		sv.updateFile(`${kit.routesDirectory}/+layout.svelte`, (content) => {
+		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
 			const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 			const paraglideComponentName = 'ParaglideJS';
@@ -186,7 +186,7 @@ export default defineAdder({
 		});
 
 		// add the text-direction and lang attribute placeholders to app.html
-		sv.updateFile('src/app.html', (content) => {
+		sv.file('src/app.html', (content) => {
 			const { ast, generateCode } = parseHtml(content);
 
 			const htmlNode = ast.children.find(
@@ -209,12 +209,12 @@ export default defineAdder({
 		});
 
 		if (options.demo) {
-			sv.updateFile(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
+			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'paraglide');
 			});
 
 			// add usage example
-			sv.updateFile(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
+			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
@@ -270,7 +270,7 @@ export default defineAdder({
 
 		const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
 		for (const languageTag of validLanguageTags) {
-			sv.updateFile(`messages/${languageTag}.json`, (content) => {
+			sv.file(`messages/${languageTag}.json`, (content) => {
 				const { data, generateCode } = parseJson(content);
 				data['$schema'] = 'https://inlang.com/schema/inlang-message-format';
 				data.hello_world = `Hello, {name} from ${languageTag}!`;

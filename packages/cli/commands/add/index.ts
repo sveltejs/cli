@@ -525,7 +525,7 @@ async function runAdders({
 		// execute adders
 		const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 		const sv: SvApi = {
-			updateFile: (path, content) => {
+			file: (path, content) => {
 				const exists = fileExists(workspace.cwd, path);
 				let fileContent = exists ? readFile(workspace.cwd, path) : '';
 				// process file
@@ -536,7 +536,7 @@ async function runAdders({
 
 				return fileContent;
 			},
-			executeScript: async (script) => {
+			execute: async (script) => {
 				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
 				const adderPrefix = details.length > 1 ? `${adder.id}: ` : '';
 				const executedCommandDisplayName = `${command} ${args.join(' ')}`;
