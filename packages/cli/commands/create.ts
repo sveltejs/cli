@@ -51,7 +51,10 @@ export const create = new Command('create')
 			const relative = path.relative(process.cwd(), directory);
 			const pm = packageManager ?? detectSync({ cwd })?.name ?? common.getUserAgent() ?? 'npm';
 			if (relative !== '') {
-				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
+				const pathHasSpaces = relative.includes(' ');
+				initialSteps.push(
+					`${i++}: ${highlight(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
+				);
 			}
 			if (!packageManager) {
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
