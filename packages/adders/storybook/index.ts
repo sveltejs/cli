@@ -5,13 +5,10 @@ export default defineAdder({
 	environments: { kit: true, svelte: true },
 	homepage: 'https://storybook.js.org',
 	options: {},
-	packages: [],
-	scripts: [
-		{
-			description: 'applies storybook',
+	run: ({ sv }) => {
+		sv.execute({
 			args: ['storybook@latest', 'init', '--skip-install', '--no-dev'],
 			stdio: 'inherit'
-		}
-	],
-	files: []
+		});
+	}
 });
