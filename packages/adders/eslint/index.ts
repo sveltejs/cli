@@ -20,6 +20,8 @@ export default defineAdder({
 	homepage: 'https://eslint.org',
 	options: {},
 	run: ({ sv, typescript, cwd, dependencyVersion }) => {
+		const prettierInstalled = Boolean(dependencyVersion('prettier'));
+
 		sv.devDependency('eslint', '^9.7.0');
 		sv.devDependency('@types/eslint', '^9.6.0');
 		sv.devDependency('globals', '^15.0.0');
@@ -27,7 +29,6 @@ export default defineAdder({
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.0.0');
 
-		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^9.1.0');
 
 		sv.file('package.json', (content) => {
