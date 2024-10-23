@@ -8,7 +8,15 @@ import {
 	utils,
 	Walker
 } from '@sveltejs/cli-core';
-import { common, exports, imports, variables, object, functions, kit } from '@sveltejs/cli-core/js';
+import {
+	common,
+	exports,
+	imports,
+	variables,
+	object,
+	functions,
+	kit as kitJs
+} from '@sveltejs/cli-core/js';
 // eslint-disable-next-line no-duplicate-imports
 import type { AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
@@ -38,286 +46,279 @@ export default defineAdder({
 	environments: { svelte: false, kit: true },
 	homepage: 'https://lucia-next.pages.dev',
 	options,
-	packages: [
-		{ name: '@oslojs/crypto', version: '^1.0.1', dev: false },
-		{ name: '@oslojs/encoding', version: '^1.1.0', dev: false },
-		// password hashing for demo
-		{
-			name: '@node-rs/argon2',
-			version: '^1.1.0',
-			condition: ({ options }) => options.demo,
-			dev: false
+	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
+		const ext = typescript ? 'ts' : 'js';
+
+		sv.dependency('@oslojs/crypto', '^1.0.1');
+		sv.dependency('@oslojs/encoding', '^1.1.0');
+
+		if (options.demo) {
+			// password hashing for demo
+			sv.dependency('@node-rs/argon2', '^1.1.0');
 		}
-	],
-	dependsOn: ['drizzle'],
-	files: [
-		{
-			name: ({ typescript }) => `drizzle.config.${typescript ? 'ts' : 'js'}`,
-			content: ({ content }) => {
-				const { ast, generateCode } = parseScript(content);
-				const isProp = (name: string, node: AstTypes.ObjectProperty) =>
-					node.key.type === 'Identifier' && node.key.name === name;
 
-				// prettier-ignore
-				Walker.walk(ast as AstTypes.ASTNode, {}, {
-					ObjectProperty(node) {
-						if (isProp('dialect', node) && node.value.type === 'StringLiteral') {
-							drizzleDialect = node.value.value as Dialect;
-						}
-						if (isProp('schema', node) && node.value.type === 'StringLiteral') {
-							schemaPath = node.value.value;
-						}
+		// todo: depends on lucia. Is this the right way?
+		sv.dependsOn('drizzle', {});
+
+		sv.file(`drizzle.config.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+			const isProp = (name: string, node: AstTypes.ObjectProperty) =>
+				node.key.type === 'Identifier' && node.key.name === name;
+
+			// prettier-ignore
+			Walker.walk(ast as AstTypes.ASTNode, {}, {
+				ObjectProperty(node) {
+					if (isProp('dialect', node) && node.value.type === 'StringLiteral') {
+						drizzleDialect = node.value.value as Dialect;
 					}
-				})
+					if (isProp('schema', node) && node.value.type === 'StringLiteral') {
+						schemaPath = node.value.value;
+					}
+				}
+			})
 
-				if (!drizzleDialect) {
-					throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
-				}
-				if (!schemaPath) {
-					throw new Error('Failed to find schema path in your `drizzle.config.[js|ts]` file');
-				}
-				return generateCode();
+			if (!drizzleDialect) {
+				throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
 			}
-		},
-		{
-			name: () => schemaPath,
-			content: ({ content, options, typescript }) => {
-				const { ast, generateCode } = parseScript(content);
-				const createTable = (name: string) => functions.call(TABLE_TYPE[drizzleDialect], [name]);
-
-				const userDecl = variables.declaration(ast, 'const', 'user', createTable('user'));
-				const sessionDecl = variables.declaration(ast, 'const', 'session', createTable('session'));
-
-				const user = exports.namedExport(ast, 'user', userDecl);
-				const session = exports.namedExport(ast, 'session', sessionDecl);
-
-				const userTable = getCallExpression(user);
-				const sessionTable = getCallExpression(session);
-
-				if (!userTable || !sessionTable) {
-					throw new Error('failed to find call expression of `user` or `session`');
-				}
-
-				if (userTable.arguments.length === 1) {
-					userTable.arguments.push(object.createEmpty());
-				}
-				if (sessionTable.arguments.length === 1) {
-					sessionTable.arguments.push(object.createEmpty());
-				}
-
-				const userAttributes = userTable.arguments[1];
-				const sessionAttributes = sessionTable.arguments[1];
-				if (
-					userAttributes?.type !== 'ObjectExpression' ||
-					sessionAttributes?.type !== 'ObjectExpression'
-				) {
-					throw new Error('unexpected shape of `user` or `session` table definition');
-				}
-
-				if (drizzleDialect === 'sqlite') {
-					imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
-						sqliteTable: 'sqliteTable',
-						text: 'text',
-						integer: 'integer'
-					});
-					object.overrideProperties(userAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`)
-					});
-					if (options.demo) {
-						object.overrideProperties(userAttributes, {
-							username: common.expressionFromString(`text('username').notNull().unique()`),
-							passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
-						});
-					}
-					object.overrideProperties(sessionAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`),
-						userId: common.expressionFromString(
-							`text('user_id').notNull().references(() => user.id)`
-						),
-						expiresAt: common.expressionFromString(
-							`integer('expires_at', { mode: 'timestamp' }).notNull()`
-						)
-					});
-				}
-				if (drizzleDialect === 'mysql') {
-					imports.addNamed(ast, 'drizzle-orm/mysql-core', {
-						mysqlTable: 'mysqlTable',
-						varchar: 'varchar',
-						datetime: 'datetime'
-					});
-					object.overrideProperties(userAttributes, {
-						id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`)
-					});
-					if (options.demo) {
-						object.overrideProperties(userAttributes, {
-							username: common.expressionFromString(
-								`varchar('username', { length: 32 }).notNull().unique()`
-							),
-							passwordHash: common.expressionFromString(
-								`varchar('password_hash', { length: 255 }).notNull()`
-							)
-						});
-					}
-					object.overrideProperties(sessionAttributes, {
-						id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`),
-						userId: common.expressionFromString(
-							`varchar('user_id', { length: 255 }).notNull().references(() => user.id)`
-						),
-						expiresAt: common.expressionFromString(`datetime('expires_at').notNull()`)
-					});
-				}
-				if (drizzleDialect === 'postgresql') {
-					imports.addNamed(ast, 'drizzle-orm/pg-core', {
-						pgTable: 'pgTable',
-						text: 'text',
-						timestamp: 'timestamp'
-					});
-					object.overrideProperties(userAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`)
-					});
-					if (options.demo) {
-						object.overrideProperties(userAttributes, {
-							username: common.expressionFromString(`text('username').notNull().unique()`),
-							passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
-						});
-					}
-					object.overrideProperties(sessionAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`),
-						userId: common.expressionFromString(
-							`text('user_id').notNull().references(() => user.id)`
-						),
-						expiresAt: common.expressionFromString(
-							`timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()`
-						)
-					});
-				}
-
-				let code = generateCode();
-				if (typescript) {
-					if (!code.includes('export type Session =')) {
-						code += '\n\nexport type Session = typeof session.$inferSelect;';
-					}
-					if (!code.includes('export type User =')) {
-						code += '\n\nexport type User = typeof user.$inferSelect;';
-					}
-				}
-				return code;
+			if (!schemaPath) {
+				throw new Error('Failed to find schema path in your `drizzle.config.[js|ts]` file');
 			}
-		},
-		{
-			name: ({ kit, typescript }) => `${kit?.libDirectory}/server/auth.${typescript ? 'ts' : 'js'}`,
-			content: ({ content, typescript }) => {
-				const { ast, generateCode } = parseScript(content);
+			return generateCode();
+		});
 
-				imports.addNamespace(ast, '$lib/server/db/schema', 'table');
-				imports.addNamed(ast, '$lib/server/db', { db: 'db' });
-				imports.addNamed(ast, '@oslojs/encoding', {
-					encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',
-					encodeHexLowerCase: 'encodeHexLowerCase'
+		sv.file(schemaPath, (content) => {
+			const { ast, generateCode } = parseScript(content);
+			const createTable = (name: string) => functions.call(TABLE_TYPE[drizzleDialect], [name]);
+
+			const userDecl = variables.declaration(ast, 'const', 'user', createTable('user'));
+			const sessionDecl = variables.declaration(ast, 'const', 'session', createTable('session'));
+
+			const user = exports.namedExport(ast, 'user', userDecl);
+			const session = exports.namedExport(ast, 'session', sessionDecl);
+
+			const userTable = getCallExpression(user);
+			const sessionTable = getCallExpression(session);
+
+			if (!userTable || !sessionTable) {
+				throw new Error('failed to find call expression of `user` or `session`');
+			}
+
+			if (userTable.arguments.length === 1) {
+				userTable.arguments.push(object.createEmpty());
+			}
+			if (sessionTable.arguments.length === 1) {
+				sessionTable.arguments.push(object.createEmpty());
+			}
+
+			const userAttributes = userTable.arguments[1];
+			const sessionAttributes = sessionTable.arguments[1];
+			if (
+				userAttributes?.type !== 'ObjectExpression' ||
+				sessionAttributes?.type !== 'ObjectExpression'
+			) {
+				throw new Error('unexpected shape of `user` or `session` table definition');
+			}
+
+			if (drizzleDialect === 'sqlite') {
+				imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
+					sqliteTable: 'sqliteTable',
+					text: 'text',
+					integer: 'integer'
 				});
-				imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
-				imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
-
-				const ms = new MagicString(generateCode().trim());
-				const [ts] = utils.createPrinter(typescript);
-
-				if (!ms.original.includes('const DAY_IN_MS')) {
-					ms.append('\n\nconst DAY_IN_MS = 1000 * 60 * 60 * 24;');
+				object.overrideProperties(userAttributes, {
+					id: common.expressionFromString(`text('id').primaryKey()`)
+				});
+				if (options.demo) {
+					object.overrideProperties(userAttributes, {
+						username: common.expressionFromString(`text('username').notNull().unique()`),
+						passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
+					});
 				}
-				if (!ms.original.includes('export const sessionCookieName')) {
-					ms.append("\n\nexport const sessionCookieName = 'auth-session';");
-				}
-				if (!ms.original.includes('function generateSessionToken')) {
-					const generateSessionToken = dedent`					
-						${ts('', '/** @returns {string} */')}
-						function generateSessionToken()${ts(': string')} {
-							const bytes = crypto.getRandomValues(new Uint8Array(20));
-							const token = encodeBase32LowerCaseNoPadding(bytes);
-							return token;
-						}`;
-					ms.append(`\n\n${generateSessionToken}`);
-				}
-				if (!ms.original.includes('async function createSession')) {
-					const createSession = dedent`					
-						${ts('', '/** @param {string} userId */')}
-						export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
-							const token = generateSessionToken();
-							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-							const session${ts(': table.Session')} = {
-								id: sessionId,
-								userId,
-								expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
-							};
-							await db.insert(table.session).values(session);
-							return session;
-						}`;
-					ms.append(`\n\n${createSession}`);
-				}
-				if (!ms.original.includes('async function invalidateSession')) {
-					const invalidateSession = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {string} sessionId')}
-						${ts('', ' * @returns {Promise<void>}')}
-						${ts('', ' */')}
-						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
-							await db.delete(table.session).where(eq(table.session.id, sessionId));
-						}`;
-					ms.append(`\n\n${invalidateSession}`);
-				}
-				if (!ms.original.includes('async function validateSession')) {
-					const validateSession = dedent`					
-						${ts('', '/** @param {string} sessionId */')}
-						export async function validateSession(sessionId${ts(': string')}) {
-							const [result] = await db
-								.select({
-									// Adjust user table here to tweak returned data
-									user: { id: table.user.id, username: table.user.username },
-									session: table.session
-								})
-								.from(table.session)
-								.innerJoin(table.user, eq(table.session.userId, table.user.id))
-								.where(eq(table.session.id, sessionId));
-	
-							if (!result) {
-								return { session: null, user: null };
-							}
-							const { session, user } = result;
-	
-							const sessionExpired = Date.now() >= session.expiresAt.getTime();
-							if (sessionExpired) {
-								await db.delete(table.session).where(eq(table.session.id, session.id));
-								return { session: null, user: null };
-							}
-	
-							const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
-							if (renewSession) {
-								session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
-								await db
-									.update(table.session)
-									.set({ expiresAt: session.expiresAt })
-									.where(eq(table.session.id, session.id));
-							}
-	
-							return { session, user };
-						}`;
-					ms.append(`\n\n${validateSession}`);
-				}
-				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
-					const sessionType =
-						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
-					ms.append(`\n\n${sessionType}`);
-				}
-
-				return ms.toString();
+				object.overrideProperties(sessionAttributes, {
+					id: common.expressionFromString(`text('id').primaryKey()`),
+					userId: common.expressionFromString(
+						`text('user_id').notNull().references(() => user.id)`
+					),
+					expiresAt: common.expressionFromString(
+						`integer('expires_at', { mode: 'timestamp' }).notNull()`
+					)
+				});
 			}
-		},
-		{
-			name: () => 'src/app.d.ts',
-			condition: ({ typescript }) => typescript,
-			content: ({ content }) => {
+			if (drizzleDialect === 'mysql') {
+				imports.addNamed(ast, 'drizzle-orm/mysql-core', {
+					mysqlTable: 'mysqlTable',
+					varchar: 'varchar',
+					datetime: 'datetime'
+				});
+				object.overrideProperties(userAttributes, {
+					id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`)
+				});
+				if (options.demo) {
+					object.overrideProperties(userAttributes, {
+						username: common.expressionFromString(
+							`varchar('username', { length: 32 }).notNull().unique()`
+						),
+						passwordHash: common.expressionFromString(
+							`varchar('password_hash', { length: 255 }).notNull()`
+						)
+					});
+				}
+				object.overrideProperties(sessionAttributes, {
+					id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`),
+					userId: common.expressionFromString(
+						`varchar('user_id', { length: 255 }).notNull().references(() => user.id)`
+					),
+					expiresAt: common.expressionFromString(`datetime('expires_at').notNull()`)
+				});
+			}
+			if (drizzleDialect === 'postgresql') {
+				imports.addNamed(ast, 'drizzle-orm/pg-core', {
+					pgTable: 'pgTable',
+					text: 'text',
+					timestamp: 'timestamp'
+				});
+				object.overrideProperties(userAttributes, {
+					id: common.expressionFromString(`text('id').primaryKey()`)
+				});
+				if (options.demo) {
+					object.overrideProperties(userAttributes, {
+						username: common.expressionFromString(`text('username').notNull().unique()`),
+						passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
+					});
+				}
+				object.overrideProperties(sessionAttributes, {
+					id: common.expressionFromString(`text('id').primaryKey()`),
+					userId: common.expressionFromString(
+						`text('user_id').notNull().references(() => user.id)`
+					),
+					expiresAt: common.expressionFromString(
+						`timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()`
+					)
+				});
+			}
+
+			let code = generateCode();
+			if (typescript) {
+				if (!code.includes('export type Session =')) {
+					code += '\n\nexport type Session = typeof session.$inferSelect;';
+				}
+				if (!code.includes('export type User =')) {
+					code += '\n\nexport type User = typeof user.$inferSelect;';
+				}
+			}
+			return code;
+		});
+
+		sv.file(`${kit?.libDirectory}/server/auth.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+
+			imports.addNamespace(ast, '$lib/server/db/schema', 'table');
+			imports.addNamed(ast, '$lib/server/db', { db: 'db' });
+			imports.addNamed(ast, '@oslojs/encoding', {
+				encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',
+				encodeHexLowerCase: 'encodeHexLowerCase'
+			});
+			imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
+			imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
+
+			const ms = new MagicString(generateCode().trim());
+			const [ts] = utils.createPrinter(typescript);
+
+			if (!ms.original.includes('const DAY_IN_MS')) {
+				ms.append('\n\nconst DAY_IN_MS = 1000 * 60 * 60 * 24;');
+			}
+			if (!ms.original.includes('export const sessionCookieName')) {
+				ms.append("\n\nexport const sessionCookieName = 'auth-session';");
+			}
+			if (!ms.original.includes('function generateSessionToken')) {
+				const generateSessionToken = dedent`					
+					${ts('', '/** @returns {string} */')}
+					function generateSessionToken()${ts(': string')} {
+						const bytes = crypto.getRandomValues(new Uint8Array(20));
+						const token = encodeBase32LowerCaseNoPadding(bytes);
+						return token;
+					}`;
+				ms.append(`\n\n${generateSessionToken}`);
+			}
+			if (!ms.original.includes('async function createSession')) {
+				const createSession = dedent`					
+					${ts('', '/** @param {string} userId */')}
+					export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
+						const token = generateSessionToken();
+						const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+						const session${ts(': table.Session')} = {
+							id: sessionId,
+							userId,
+							expiresAt: new Date(Date.now() + DAY_IN_MS * 30)
+						};
+						await db.insert(table.session).values(session);
+						return session;
+					}`;
+				ms.append(`\n\n${createSession}`);
+			}
+			if (!ms.original.includes('async function invalidateSession')) {
+				const invalidateSession = dedent`					
+					${ts('', '/**')}
+					${ts('', ' * @param {string} sessionId')}
+					${ts('', ' * @returns {Promise<void>}')}
+					${ts('', ' */')}
+					export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
+						await db.delete(table.session).where(eq(table.session.id, sessionId));
+					}`;
+				ms.append(`\n\n${invalidateSession}`);
+			}
+			if (!ms.original.includes('async function validateSession')) {
+				const validateSession = dedent`					
+					${ts('', '/** @param {string} sessionId */')}
+					export async function validateSession(sessionId${ts(': string')}) {
+						const [result] = await db
+							.select({
+								// Adjust user table here to tweak returned data
+								user: { id: table.user.id, username: table.user.username },
+								session: table.session
+							})
+							.from(table.session)
+							.innerJoin(table.user, eq(table.session.userId, table.user.id))
+							.where(eq(table.session.id, sessionId));
+
+						if (!result) {
+							return { session: null, user: null };
+						}
+						const { session, user } = result;
+
+						const sessionExpired = Date.now() >= session.expiresAt.getTime();
+						if (sessionExpired) {
+							await db.delete(table.session).where(eq(table.session.id, session.id));
+							return { session: null, user: null };
+						}
+
+						const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
+						if (renewSession) {
+							session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
+							await db
+								.update(table.session)
+								.set({ expiresAt: session.expiresAt })
+								.where(eq(table.session.id, session.id));
+						}
+
+						return { session, user };
+					}`;
+				ms.append(`\n\n${validateSession}`);
+			}
+			if (typescript && !ms.original.includes('export type SessionValidationResult')) {
+				const sessionType =
+					'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
+				ms.append(`\n\n${sessionType}`);
+			}
+
+			return ms.toString();
+		});
+
+		if (typescript) {
+			sv.file('src/app.d.ts', (content) => {
 				const { ast, generateCode } = parseScript(content);
 
-				const locals = kit.addGlobalAppInterface(ast, 'Locals');
+				const locals = kitJs.addGlobalAppInterface(ast, 'Locals');
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
@@ -332,30 +333,23 @@ export default defineAdder({
 					locals.body.body.push(createLuciaType('session'));
 				}
 				return generateCode();
-			}
-		},
-		{
-			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
-			content: ({ content, typescript }) => {
-				const { ast, generateCode } = parseScript(content);
-				imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
-				imports.addNamed(ast, '$app/environment', { dev: 'dev' });
-				kit.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
-				return generateCode();
-			}
-		},
-		// DEMO
-		// login/register
-		{
-			name: ({ kit }) => `${kit?.routesDirectory}/demo/+page.svelte`,
-			condition: ({ options }) => options.demo,
-			content: (editor) => addToDemoPage(editor, 'lucia')
-		},
-		{
-			name: ({ kit, typescript }) =>
-				`${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`,
-			condition: ({ options }) => options.demo,
-			content({ content, typescript, kit }) {
+			});
+		}
+
+		sv.file(`src/hooks.server.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+			imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
+			imports.addNamed(ast, '$app/environment', { dev: 'dev' });
+			kitJs.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
+			return generateCode();
+		});
+
+		if (options.demo) {
+			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
+				return addToDemoPage(content, 'lucia');
+			});
+
+			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
@@ -486,12 +480,9 @@ export default defineAdder({
 						);
 					}
 				`;
-			}
-		},
-		{
-			name: ({ kit }) => `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`,
-			condition: ({ options }) => options.demo,
-			content({ content, dependencyVersion, typescript, kit }) {
+			});
+
+			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
@@ -522,14 +513,9 @@ export default defineAdder({
 					</form>
 					<p style='color: red'>{form?.message ?? ''}</p>
 				`;
-			}
-		},
-		// logout
-		{
-			name: ({ kit, typescript }) =>
-				`${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`,
-			condition: ({ options }) => options.demo,
-			content({ content, typescript, kit }) {
+			});
+
+			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.server.${ext}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
@@ -560,12 +546,9 @@ export default defineAdder({
 						},
 					};
 				`;
-			}
-		},
-		{
-			name: ({ kit }) => `${kit!.routesDirectory}/demo/lucia/+page.svelte`,
-			condition: ({ options }) => options.demo,
-			content({ content, dependencyVersion, typescript, kit }) {
+			});
+
+			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.svelte`;
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
@@ -587,9 +570,9 @@ export default defineAdder({
 						<button>Sign out</button>
 					</form>
 				`;
-			}
+			});
 		}
-	],
+	},
 	nextSteps: ({ highlighter, options, packageManager }) => {
 		const steps = [
 			`Run ${highlighter.command(`${packageManager} run db:push`)} to update your database schema`
