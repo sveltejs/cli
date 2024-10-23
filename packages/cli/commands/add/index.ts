@@ -45,6 +45,8 @@ const communityDetails: AdderWithoutExplicitArgs[] = [];
 const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 
+const multiselectHint = pc.dim('(use arrow keys / space bar)');
+
 export const add = new Command('add')
 	.description('applies specified integrations into a project')
 	.argument('[integration...]', 'integrations to install')
@@ -185,7 +187,7 @@ export async function runAddCommand(
 		}));
 
 		const selected = await p.multiselect({
-			message: 'Which community tools would you like to add to your project?',
+			message: `Which community tools would you like to add to your project? ${multiselectHint}`,
 			options: promptOptions,
 			required: false
 		});
@@ -284,7 +286,7 @@ export async function runAddCommand(
 			.filter((a) => !!a);
 
 		const selected = await p.multiselect({
-			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
+			message: `What would you like to add to your project? ${multiselectHint}`,
 			options: adderOptions,
 			required: false
 		});
@@ -392,7 +394,7 @@ export async function runAddCommand(
 			}
 			if (question.type === 'multiselect') {
 				answer = await p.multiselect({
-					message,
+					message: `${message}  ${multiselectHint}`,
 					initialValues: question.default,
 					required: false,
 					options: question.options
