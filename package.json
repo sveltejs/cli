@@ -1,17 +1,20 @@
 {
 	"name": "sv-monorepo",
-	"version": "0.0.1",
-	"description": "monorepo for sv and friends",
 	"private": true,
+	"version": "0.0.1",
 	"type": "module",
+	"description": "monorepo for sv and friends",
+	"engines": {
+		"pnpm": "^9.0.0"
+	},
 	"scripts": {
-		"check": "pnpm --parallel check",
-		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
-		"format": "pnpm --parallel format",
-		"dev": "rollup --config --watch",
 		"build": "rollup -c",
-		"test": "pnpm --parallel test",
-		"changeset:publish": "changeset publish"
+		"changeset:publish": "changeset publish",
+		"check": "pnpm --parallel check",
+		"dev": "rollup --config --watch",
+		"format": "pnpm --parallel format",
+		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
+		"test": "pnpm --parallel test"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.9",
@@ -39,8 +42,5 @@
 		"unplugin-isolated-decl": "^0.6.5",
 		"vitest": "^2.1.2"
 	},
-	"packageManager": "pnpm@9.7.0",
-	"engines": {
-		"pnpm": "^9.0.0"
-	}
+	"packageManager": "pnpm@9.7.0"
 }
