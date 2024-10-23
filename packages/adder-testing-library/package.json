@@ -4,17 +4,10 @@
 	"version": "1.0.0",
 	"type": "module",
 	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"format": "pnpm lint --write",
 		"check": "tsc",
-		"postinstall": "pnpm exec playwright install chromium"
-	},
-	"dependencies": {
-		"@sveltejs/cli-core": "workspace:*",
-		"playwright": "^1.44.1",
-		"sv": "workspace:*",
-		"terminate": "^2.8.0",
-		"tiged": "3.0.0-rc.0"
+		"format": "pnpm lint --write",
+		"postinstall": "pnpm exec playwright install chromium",
+		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
 	},
 	"files": [
 		"dist"
@@ -24,5 +17,12 @@
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
 		}
+	},
+	"dependencies": {
+		"@sveltejs/cli-core": "workspace:*",
+		"playwright": "^1.44.1",
+		"sv": "workspace:*",
+		"terminate": "^2.8.0",
+		"tiged": "3.0.0-rc.0"
 	}
 }
