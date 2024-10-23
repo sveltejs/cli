@@ -1,5 +1,5 @@
-import { defineAdderTests } from '@svelte-cli/core';
-import * as html from '@svelte-cli/core/html';
+import { defineAdderTests } from '@sveltejs/cli-core';
+import * as html from '@sveltejs/cli-core/html';
 import { options } from './options.js';
 
 export const tests = defineAdderTests({

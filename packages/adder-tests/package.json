@@ -1,5 +1,5 @@
 {
-	"name": "@svelte-cli/adder-tests",
+	"name": "@sveltejs/adder-tests",
 	"private": true,
 	"version": "1.0.0",
 	"type": "module",
@@ -11,7 +11,7 @@
 		"test:ui": "vitest --ui"
 	},
 	"dependencies": {
-		"@svelte-cli/adder-testing-library": "workspace:*",
-		"@svelte-cli/adders": "workspace:*"
+		"@sveltejs/adder-testing-library": "workspace:*",
+		"@sveltejs/adders": "workspace:*"
 	}
 }

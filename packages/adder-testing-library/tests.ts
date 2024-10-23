@@ -1,4 +1,4 @@
-import type { AdderWithoutExplicitArgs, OptionValues, Question, Tests } from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs, OptionValues, Question, Tests } from '@sveltejs/cli-core';
 import type { Page } from 'playwright';
 
 export async function startTests(

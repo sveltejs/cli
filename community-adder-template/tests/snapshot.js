@@ -1,6 +1,6 @@
 import { test, describe, beforeAll, afterAll } from 'vitest';
 import adder from './src/index.js';
-import { runSnaphsotTests } from '@svelte-cli/adder-testing-library';
+import { runSnaphsotTests } from '@sveltejs/adder-testing-library';
 
 runSnaphsotTests(
 	'.outputs-snapshots',

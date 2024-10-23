@@ -87,7 +87,7 @@ importers:
         specifier: workspace:*
         version: link:../packages/core
     devDependencies:
-      '@svelte-cli/adder-testing-library':
+      '@sveltejs/adder-testing-library':
         specifier: workspace:*
         version: link:../packages/adder-testing-library
       sv:
@@ -99,7 +99,7 @@ importers:
 
   packages/adder-testing-library:
     dependencies:
-      '@svelte-cli/core':
+      '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../core
       playwright:
@@ -117,10 +117,10 @@ importers:
 
   packages/adder-tests:
     dependencies:
-      '@svelte-cli/adder-testing-library':
+      '@sveltejs/adder-testing-library':
         specifier: workspace:*
         version: link:../adder-testing-library
-      '@svelte-cli/adders':
+      '@sveltejs/adders':
         specifier: workspace:*
         version: link:../adders
 
@@ -1379,17 +1379,10 @@ packages:
   get-func-name@2.0.2:
     resolution: {integrity: sha512-8vXOvuE167CtIc3OyItco7N/dpRtBbYOsPsXCz7X/PMnlGjYjSGuZJgM1Y7mmew7BKf9BqvLX2tnOVy1BBUsxQ==}
 
-<<<<<<< HEAD
-=======
   get-stdin@9.0.0:
     resolution: {integrity: sha512-dVKBjfWisLAicarI2Sf+JuBE/DghV4UzNAVe9yhEJuzeREd3JhOTE9cUaJTeSa77fsbQUK3pcOpJfM59+VKZaA==}
     engines: {node: '>=12'}
 
-  get-stream@8.0.1:
-    resolution: {integrity: sha512-VaUJspBffn/LMCJVoMvSAdmscJyS1auj5Zulnn5UoYcY531UWmdwhRWkcGKnGU93m5HSXP9LP2usOryrBtQowA==}
-    engines: {node: '>=16'}
-
->>>>>>> main
   get-tsconfig@4.8.0:
     resolution: {integrity: sha512-Pgba6TExTZ0FJAn1qkJAjIeKoDJ3CsI2ChuLohJnZl/tTU8MVrq3b+2t5UOPfRa4RMsorClBjJALkJUMjG1PAw==}
 
@@ -2960,7 +2953,7 @@ snapshots:
     dependencies:
       '@vitest/spy': 2.1.2
       estree-walker: 3.0.3
-      magic-string: 0.30.11
+      magic-string: 0.30.12
     optionalDependencies:
       vite: 5.4.3(@types/node@22.5.4)
 
@@ -2975,13 +2968,8 @@ snapshots:
 
   '@vitest/snapshot@2.1.2':
     dependencies:
-<<<<<<< HEAD
       '@vitest/pretty-format': 2.1.2
-      magic-string: 0.30.11
-=======
-      '@vitest/pretty-format': 2.0.5
       magic-string: 0.30.12
->>>>>>> main
       pathe: 1.1.2
 
   '@vitest/spy@2.1.2':
@@ -3513,13 +3501,9 @@ snapshots:
 
   fuzzysearch@1.0.3: {}
 
-<<<<<<< HEAD
   get-func-name@2.0.2: {}
-=======
-  get-stdin@9.0.0: {}
 
-  get-stream@8.0.1: {}
->>>>>>> main
+  get-stdin@9.0.0: {}
 
   get-tsconfig@4.8.0:
     dependencies:
@@ -4363,12 +4347,7 @@ snapshots:
       '@vitest/utils': 2.1.2
       chai: 5.1.1
       debug: 4.3.7
-<<<<<<< HEAD
-      magic-string: 0.30.11
-=======
-      execa: 8.0.1
       magic-string: 0.30.12
->>>>>>> main
       pathe: 1.1.2
       std-env: 3.7.0
       tinybench: 2.9.0

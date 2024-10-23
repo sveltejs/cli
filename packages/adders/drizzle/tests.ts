@@ -1,7 +1,7 @@
 import { options } from './options.ts';
-import { defineAdderTests } from '@svelte-cli/core';
-import { common } from '@svelte-cli/core/js';
-import { addFromRawHtml } from '@svelte-cli/core/html';
+import { defineAdderTests } from '@sveltejs/cli-core';
+import { common } from '@sveltejs/cli-core/js';
+import { addFromRawHtml } from '@sveltejs/cli-core/html';
 import path from 'node:path';
 import url from 'node:url';
 import { execSync } from 'node:child_process';

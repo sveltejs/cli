@@ -1,4 +1,4 @@
-import type { AdderWithoutExplicitArgs, TestType } from '@svelte-cli/core';
+import type { AdderWithoutExplicitArgs, TestType } from '@sveltejs/cli-core';
 import path from 'node:path';
 import fs from 'node:fs';
 import process from 'node:process';

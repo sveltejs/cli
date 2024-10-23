@@ -1,5 +1,6 @@
 {
-	"name": "@svelte-cli/adder-testing-library",
+	"name": "@sveltejs/adder-testing-library",
+	"private": true,
 	"version": "1.0.0",
 	"type": "module",
 	"scripts": {
@@ -9,7 +10,7 @@
 		"postinstall": "pnpm exec playwright install chromium"
 	},
 	"dependencies": {
-		"@svelte-cli/core": "workspace:*",
+		"@sveltejs/cli-core": "workspace:*",
 		"playwright": "^1.44.1",
 		"sv": "workspace:*",
 		"terminate": "^2.8.0",

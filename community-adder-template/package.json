@@ -21,7 +21,7 @@
 		"@sveltejs/cli-core": "workspace:*"
 	},
 	"devDependencies": {
-		"@svelte-cli/adder-testing-library": "workspace:*",
+		"@sveltejs/adder-testing-library": "workspace:*",
 		"sv": "workspace:*",
 		"vitest": "^2.1.2"
 	},

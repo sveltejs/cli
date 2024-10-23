@@ -4,8 +4,12 @@ import fs from 'node:fs';
 import tiged from 'tiged';
 import terminate from 'terminate';
 import { create } from 'sv';
-import { type AdderWithoutExplicitArgs, type OptionValues, type Question } from '@svelte-cli/core';
-import { createWorkspace, installPackages, createOrUpdateFiles } from '@svelte-cli/core/internal';
+import {
+	type AdderWithoutExplicitArgs,
+	type OptionValues,
+	type Question
+} from '@sveltejs/cli-core';
+import { createWorkspace, installPackages, createOrUpdateFiles } from '@sveltejs/cli-core/internal';
 import { startBrowser } from './browser.ts';
 
 export type TestCase = {
