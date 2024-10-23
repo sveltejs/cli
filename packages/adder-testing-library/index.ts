@@ -1,4 +1,4 @@
-import type { AdderWithoutExplicitArgs, TestType } from '@sveltejs/cli-core';
+import type { AdderTestConfig, AdderWithoutExplicitArgs, TestType } from '@sveltejs/cli-core';
 import path from 'node:path';
 import fs from 'node:fs';
 import process from 'node:process';
@@ -17,9 +17,14 @@ import { startTests } from './tests.ts';
 const templatesDirectoryName = 'templates';
 const addersDirectoryName = 'adders';
 
+export type AdderWithTests = {
+	config: AdderWithoutExplicitArgs;
+	tests: AdderTestConfig<Record<string, any>>;
+};
+
 export function runEndToEndTests(
 	outputDirectory: string,
-	adders: AdderWithoutExplicitArgs[],
+	adders: AdderWithTests[],
 	describe: (name: string, testFactory: () => void) => void,
 	test: (name: string, testFunction: (args: TestArguments) => Promise<void> | void) => void,
 	beforeAll: (fn: () => void) => void,
@@ -69,7 +74,7 @@ type TestArguments = {
 export function runSnaphsotTests(
 	outputDirectory: string,
 	snapshotDirectory: string,
-	adders: AdderWithoutExplicitArgs[],
+	adders: AdderWithTests[],
 	describe: (name: string, testFactory: () => void) => void,
 	test: (name: string, testFunction: (args: TestArguments) => Promise<void> | void) => void,
 	beforeAll: (fn: () => void) => void,
@@ -111,7 +116,7 @@ export function runSnaphsotTests(
 }
 
 function runTests(
-	adders: AdderWithoutExplicitArgs[],
+	adders: AdderWithTests[],
 	testCases: Map<string, TestCase[]>,
 	testType: TestType,
 	options: {
@@ -120,11 +125,7 @@ function runTests(
 		beforeAll: (fn: () => void) => void;
 		afterAll: (fn: () => void) => void;
 		prepare: () => Promise<void>;
-		run: (
-			testCase: TestCase,
-			adder: AdderWithoutExplicitArgs,
-			args: TestArguments
-		) => Promise<void> | void;
+		run: (testCase: TestCase, adder: AdderWithTests, args: TestArguments) => Promise<void> | void;
 		tearDown: () => Promise<void>;
 	}
 ) {
@@ -134,7 +135,7 @@ function runTests(
 
 	for (const [adderId, adderTestCases] of testCases) {
 		options.describe(adderId, () => {
-			const adder = adders.find((x) => x.config.metadata.id == adderId)!;
+			const adder = adders.find((x) => x.config.id == adderId)!;
 			if (!adder) throw new Error('failed to find ' + adderId);
 			const adderTestDetails = adder.tests!;
 			options.beforeAll(async () => {

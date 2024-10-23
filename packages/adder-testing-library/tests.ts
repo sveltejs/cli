@@ -1,9 +1,10 @@
-import type { AdderWithoutExplicitArgs, OptionValues, Question, Tests } from '@sveltejs/cli-core';
+import type { OptionValues, Question, Tests } from '@sveltejs/cli-core';
 import type { Page } from 'playwright';
+import type { AdderWithTests } from './index.ts';
 
 export async function startTests(
 	page: Page,
-	adder: AdderWithoutExplicitArgs,
+	adder: AdderWithTests,
 	options: OptionValues<Record<string, Question>>
 ): Promise<void> {
 	const tests: Tests = {
@@ -25,7 +26,7 @@ export async function startTests(
 }
 
 async function executeAdderTests(
-	adder: AdderWithoutExplicitArgs,
+	adder: AdderWithTests,
 	testMethods: Tests,
 	options: OptionValues<Record<string, Question>>
 ) {

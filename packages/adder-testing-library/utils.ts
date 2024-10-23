@@ -3,19 +3,15 @@ import path from 'node:path';
 import fs from 'node:fs';
 import tiged from 'tiged';
 import terminate from 'terminate';
-import { create } from 'sv';
-import {
-	type AdderWithoutExplicitArgs,
-	type OptionValues,
-	type Question
-} from '@sveltejs/cli-core';
-import { createWorkspace, installPackages, createOrUpdateFiles } from '@sveltejs/cli-core/internal';
+import { create, createOrUpdateFiles, createWorkspace, installPackages } from 'sv';
+import { type OptionValues, type Question } from '@sveltejs/cli-core';
 import { startBrowser } from './browser.ts';
+import type { AdderWithTests } from './index.ts';
 
 export type TestCase = {
 	testName: string;
 	template: string;
-	adder: AdderWithoutExplicitArgs;
+	adder: AdderWithTests;
 	options: OptionValues<Record<string, Question>>;
 	cwd: string;
 };
@@ -48,7 +44,7 @@ export async function downloadProjectTemplates(outputPath: string): Promise<void
 		if (templateType.includes('kit')) {
 			create(templateOutputPath, {
 				name: templateType,
-				template: 'skeleton',
+				template: 'minimal',
 				types:
 					templateType == ProjectTypes.Kit_TS
 						? 'typescript'
@@ -111,20 +107,20 @@ export async function stopDevServer(devServer: ChildProcessWithoutNullStreams): 
 }
 
 export function generateTestCases(
-	adders: AdderWithoutExplicitArgs[],
+	adders: AdderWithTests[],
 	addersOutputPath: string,
 	options: { ignoreEmptyTests: boolean }
 ): Map<string, TestCase[]> {
 	const testCases = new Map<string, TestCase[]>();
 	for (const adder of adders) {
-		const adderId = adder.config.metadata.id;
+		const adderId = adder.config.id;
 		const adderTestCases: TestCase[] = [];
 		const testData = adder.tests;
 		if (!testData || !testData.tests || (options.ignoreEmptyTests && testData.tests.length == 0))
 			continue;
 
 		for (const template of ProjectTypesList) {
-			const environments = adder.config.metadata.environments;
+			const environments = adder.config.environments;
 			if (
 				(!environments.kit && template.includes('kit')) ||
 				(!environments.svelte && template.includes('svelte'))
@@ -142,7 +138,7 @@ export function generateTestCases(
 					.join('+');
 				if (!optionDirectoryName) optionDirectoryName = 'default';
 				const cwd = path.join(addersOutputPath, adderId, template, optionDirectoryName);
-				const testName = `${adder.config.metadata.id} / ${template} / ${JSON.stringify(options)}`;
+				const testName = `${adder.config.id} / ${template} / ${JSON.stringify(options)}`;
 
 				const testCase: TestCase = {
 					testName,
@@ -165,7 +161,7 @@ export async function prepareEndToEndTests(
 	outputPath: string,
 	templatesPath: string,
 	addersPath: string,
-	adders: AdderWithoutExplicitArgs[],
+	adders: AdderWithTests[],
 	testCases: Map<string, TestCase[]>
 ): Promise<void> {
 	console.log('deleting old files');
@@ -181,7 +177,7 @@ export async function prepareEndToEndTests(
 
 	const dirs: string[] = [];
 	for (const type of Object.values(ProjectTypes)) {
-		dirs.push(...adders.map((a) => `  - 'adders/${a.config.metadata.id}/${type}/*'`));
+		dirs.push(...adders.map((a) => `  - 'adders/${a.config.id}/${type}/*'`));
 	}
 
 	const pnpmWorkspace = `packages:\n${dirs.join('\n')}\n`;
@@ -213,7 +209,7 @@ export async function prepareEndToEndTests(
 	console.log('preparing test files');
 	for (const adderTestCases of testCases.values()) {
 		for (const testCase of adderTestCases) {
-			const workspace = createWorkspace(testCase.cwd);
+			const workspace = createWorkspace({ cwd: testCase.cwd });
 			workspace.options = testCase.options;
 			createOrUpdateFiles(testCase.adder.tests?.files ?? [], workspace);
 		}
@@ -258,13 +254,13 @@ export async function prepareSnaphotTests(
 }
 
 export function runAdder(
-	adder: AdderWithoutExplicitArgs,
+	adder: AdderWithTests,
 	cwd: string,
 	options: OptionValues<Record<string, Question>>,
-	adders: AdderWithoutExplicitArgs[]
+	adders: AdderWithTests[]
 ): Set<string> {
 	const { config } = adder;
-	const workspace = createWorkspace(cwd);
+	const workspace = createWorkspace({ cwd });
 
 	workspace.options = options;
 
@@ -273,11 +269,11 @@ export function runAdder(
 	// execute adders
 	if (config.dependsOn) {
 		for (const dependencyAdderId of config.dependsOn) {
-			const dependencyAdder = adders.find((x) => x.config.metadata.id == dependencyAdderId);
+			const dependencyAdder = adders.find((x) => x.config.id == dependencyAdderId);
 
 			if (!dependencyAdder)
 				throw new Error(
-					`failed to find required dependency '${dependencyAdderId}' of adder ${adder.config.metadata.id}`
+					`failed to find required dependency '${dependencyAdderId}' of adder ${adder.config.id}`
 				);
 
 			// apply default adder options

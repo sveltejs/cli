@@ -1,11 +1,21 @@
 import { test, describe, beforeAll, afterAll } from 'vitest';
-import { officialAdders } from '@sveltejs/adders';
+import { getAdderTestDetails, getAdderDetails, officialAdders } from '@sveltejs/adders';
 import { runSnaphsotTests } from '@sveltejs/adder-testing-library';
+
+// todo: I'm sure there is a better way to do this
+const adders = await Promise.all(
+	officialAdders.map(async (x) => {
+		return {
+			config: getAdderDetails(x.id),
+			tests: await getAdderTestDetails(x.id)
+		};
+	})
+);
 
 runSnaphsotTests(
 	'.outputs-snapshots',
 	'_snapshots',
-	officialAdders,
+	adders,
 	describe,
 	test.concurrent,
 	beforeAll,

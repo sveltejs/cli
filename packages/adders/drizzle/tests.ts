@@ -1,10 +1,9 @@
-import { options } from './options.ts';
 import { defineAdderTests } from '@sveltejs/cli-core';
-import { common } from '@sveltejs/cli-core/js';
-import { addFromRawHtml } from '@sveltejs/cli-core/html';
 import path from 'node:path';
 import url from 'node:url';
 import { execSync } from 'node:child_process';
+import { options } from './index.ts';
+import { parseSvelte } from '@sveltejs/cli-core/parsers';
 
 const defaultOptionValues = {
 	sqlite: options.sqlite.default,

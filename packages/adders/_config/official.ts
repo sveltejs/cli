@@ -1,4 +1,4 @@
-import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
+import type { AdderTestConfig, AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
@@ -35,4 +35,9 @@ export function getAdderDetails(id: string): AdderWithoutExplicitArgs {
 	}
 
 	return details as AdderWithoutExplicitArgs;
+}
+
+export async function getAdderTestDetails(id: string) {
+	const defaultAA = await import(`../${id}/tests.ts`);
+	return defaultAA.tests as AdderTestConfig<Record<string, any>>;
 }
