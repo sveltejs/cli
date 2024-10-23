@@ -1,6 +1,5 @@
 import { defineAdderTests } from '@sveltejs/cli-core';
-import * as html from '@sveltejs/cli-core/html';
-import { options } from './options.js';
+import { options } from '../src/index.js';
 
 export const tests = defineAdderTests({
 	options,
@@ -8,21 +7,13 @@ export const tests = defineAdderTests({
 	files: [
 		{
 			name: ({ kit }) => `${kit?.routesDirectory}/+page.svelte`,
-			contentType: 'svelte',
 			condition: ({ kit }) => Boolean(kit),
-			content: ({ htmlAst }) => {
-				const div = html.div({ class: 'test' });
-				html.appendElement(htmlAst.childNodes, div);
-			}
+			content: () => '<div class="test"></div>'
 		},
 		{
 			name: () => 'src/App.svelte',
-			contentType: 'svelte',
 			condition: ({ kit }) => !kit,
-			content: ({ htmlAst }) => {
-				const div = html.div({ class: 'test' });
-				html.appendElement(htmlAst.childNodes, div);
-			}
+			content: () => '<div class="test"></div>'
 		}
 	],
 	tests: [

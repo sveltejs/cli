@@ -6,7 +6,7 @@ import { openPage, stopBrowser } from './browser.ts';
 import {
 	generateTestCases,
 	prepareEndToEndTests,
-	prepareSnaphotTests,
+	prepareSnapshotTests,
 	runAdder,
 	startDevServer,
 	stopDevServer,
@@ -71,7 +71,7 @@ type TestArguments = {
 	};
 };
 
-export function runSnaphsotTests(
+export function runSnapshotTests(
 	outputDirectory: string,
 	snapshotDirectory: string,
 	adders: AdderWithTests[],
@@ -91,7 +91,7 @@ export function runSnaphsotTests(
 		beforeAll,
 		afterAll,
 		prepare: async () => {
-			await prepareSnaphotTests(outputPath, templatesPath, addersOutputPath, testCases);
+			await prepareSnapshotTests(outputPath, templatesPath, addersOutputPath, testCases);
 		},
 		run: (testCase, _, { expect }) => {
 			const filesToFormat = runAdder(testCase.adder, testCase.cwd, testCase.options, adders);

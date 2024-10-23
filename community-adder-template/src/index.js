@@ -3,14 +3,14 @@ import { imports } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export const options = defineAdderOptions({
-    demo: {
-        question: 'Do you want to use a demo?',
-        type: 'boolean',
-        default: false
-    }
+	demo: {
+		question: 'Do you want to use a demo?',
+		type: 'boolean',
+		default: false
+	}
 });
 
-export const adder = defineAdder({
+export default defineAdder({
 	id: 'community-adder-template',
 	environments: { kit: true, svelte: true },
 	options,

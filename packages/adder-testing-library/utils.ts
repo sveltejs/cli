@@ -223,7 +223,7 @@ export async function prepareEndToEndTests(
 	console.log('start testing');
 }
 
-export async function prepareSnaphotTests(
+export async function prepareSnapshotTests(
 	outputPath: string,
 	templatesPath: string,
 	addersPath: string,
