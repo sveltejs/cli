@@ -5,4 +5,5 @@ export * as functions from './function.ts';
 export * as imports from './imports.ts';
 export * as variables from './variables.ts';
 export * as exports from './exports.ts';
-export type { AstTypes, AstKinds } from '@svelte-cli/ast-tooling';
+export * as kit from './kit.ts';
+export type { AstTypes, AstKinds } from '@sveltejs/ast-tooling';

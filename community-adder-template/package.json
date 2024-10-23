@@ -1,5 +1,6 @@
 {
 	"name": "community-adder-template",
+	"private": true,
 	"version": "0.0.0",
 	"license": "MIT",
 	"type": "module",
@@ -17,7 +18,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@svelte-cli/core": "workspace:*"
+		"@sveltejs/cli-core": "workspace:*"
 	},
 	"devDependencies": {
 		"@svelte-cli/adder-testing-library": "workspace:*",

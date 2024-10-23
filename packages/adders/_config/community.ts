@@ -1,12 +1,5 @@
-import type { Category, CommunityCategory } from './categories.ts';
-
 export type CommunityAdder = {
-	name: string;
-	description: string;
-	category: Category | CommunityCategory;
-	npm: string;
-	repo: string;
-	website: string;
+	id: string; // the npm package name
 };
 
 /** EVALUATED AT BUILD TIME */

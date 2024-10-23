@@ -227,7 +227,7 @@ export default class Prompt {
 		const diff = diffLines(this._prevFrame, frame);
 		this.restoreCursor();
 		if (diff) {
-			const diffLine = diff[0];
+			const diffLine = diff[0]!;
 			const lines = frame.split('\n');
 			let newLines: string[] = [];
 

@@ -1,4 +1,4 @@
-import { Walker, type AstTypes } from '@svelte-cli/ast-tooling';
+import { Walker, type AstTypes } from '@sveltejs/ast-tooling';
 import { areNodesEqual } from './common.ts';
 
 export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
@@ -9,6 +9,21 @@ export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
 			value: importFrom
 		},
 		specifiers: []
+	};
+
+	addImportIfNecessary(ast, expectedImportDeclaration);
+}
+
+export function addNamespace(ast: AstTypes.Program, importFrom: string, importAs: string): void {
+	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
+		type: 'ImportDeclaration',
+		source: { type: 'Literal', value: importFrom },
+		specifiers: [
+			{
+				type: 'ImportNamespaceSpecifier',
+				local: { type: 'Identifier', name: importAs }
+			}
+		]
 	};
 
 	addImportIfNecessary(ast, expectedImportDeclaration);

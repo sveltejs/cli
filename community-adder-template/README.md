@@ -1,6 +1,9 @@
 # community-adder-template
 
 > [!IMPORTANT]
+> Community adders are currently not supported. Please see [#184](https://github.com/sveltejs/cli/issues/184) for details.
+
+> [!IMPORTANT]
 > This template's dependencies may not be up-to-date; be sure to update them to the latest!
 > If you get stuck, check out the [implementations of official adders](https://github.com/sveltejs/cli/tree/main/packages/adders).
 
@@ -52,4 +55,4 @@ After that, feel free to open a pull request to [`sv`](https://github.com/svelte
 
 ## Things to be aware of
 
-Community adders are **not permitted** to have any external dependencies outside of `@svelte-cli/core`. If the use of a dependency is absolutely necessary, then they can be bundled using a bundler of your choosing (e.g. Rollup, Rolldown, tsup, etc.).
+Community adders are **not permitted** to have any external dependencies outside of `@sveltejs/cli-core`. If the use of a dependency is absolutely necessary, then they can be bundled using a bundler of your choosing (e.g. Rollup, Rolldown, tsup, etc.).

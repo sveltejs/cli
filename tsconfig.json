@@ -2,7 +2,7 @@
 	"exclude": [
 		"**/dist/**",
 		"**/temp/**",
-		"**/tests/**",
+		"**/core/tests/**",
 		"packages/create/templates/**",
 		"packages/create/shared/**",
 		"packages/adder-tests/_snapshots/**",

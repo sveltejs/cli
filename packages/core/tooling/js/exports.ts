@@ -1,4 +1,4 @@
-import type { AstKinds, AstTypes } from '@svelte-cli/ast-tooling';
+import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
 
 export type ExportDefaultReturn<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;

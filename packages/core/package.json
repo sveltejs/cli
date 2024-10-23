@@ -1,23 +1,28 @@
 {
-	"name": "@svelte-cli/core",
-	"version": "2.10.4",
-	"license": "MIT",
+	"name": "@sveltejs/cli-core",
+	"private": true,
+	"version": "0.0.0",
 	"type": "module",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli/tree/main/packages/core"
+	},
+	"bugs": "https://github.com/sveltejs/cli/issues",
 	"scripts": {
-		"lint": "prettier --check . --config ../../.prettierrc --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"format": "pnpm lint --write",
 		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"test": "vitest run",
 		"test:ui": "vitest --ui"
 	},
+	"files": [
+		"dist"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
-		},
-		"./internal": {
-			"types": "./dist/internal.d.ts",
-			"default": "./dist/internal.js"
 		},
 		"./css": {
 			"types": "./dist/tooling/css/index.d.ts",
@@ -30,26 +35,21 @@
 		"./js": {
 			"types": "./dist/tooling/js/index.d.ts",
 			"default": "./dist/js.js"
+		},
+		"./parsers": {
+			"types": "./dist/tooling/parsers.d.ts",
+			"default": "./dist/parsers.js"
 		}
 	},
-	"files": [
-		"dist"
-	],
+	"dependencies": {
+		"@sveltejs/ast-tooling": "workspace:*"
+	},
 	"devDependencies": {
-		"@svelte-cli/clack-prompts": "workspace:*",
+		"@sveltejs/clack-prompts": "workspace:*",
 		"decircular": "^1.0.0",
 		"dedent": "^1.5.3",
-		"package-manager-detector": "^0.2.2",
-		"empathic": "^1.0.0",
+		"magic-string": "^0.30.12",
 		"picocolors": "^1.1.0"
-	},
-	"dependencies": {
-		"@svelte-cli/ast-tooling": "workspace:*"
-	},
-	"bugs": "https://github.com/sveltejs/cli/issues",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/sveltejs/cli/tree/main/packages/core"
 	},
 	"keywords": [
 		"create",

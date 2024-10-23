@@ -2,12 +2,11 @@ import process from 'node:process';
 import pc from 'picocolors';
 import pkg from './package.json';
 import { exec } from 'tinyexec';
-import * as p from '@svelte-cli/clack-prompts';
-import { detect, AGENTS, type AgentName } from 'package-manager-detector';
+import * as p from '@sveltejs/clack-prompts';
+import { AGENTS, type AgentName, detectSync } from 'package-manager-detector';
 import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import type { AdderWithoutExplicitArgs, Precondition } from '@svelte-cli/core';
-import { detectPackageManager, getUserAgent } from '@svelte-cli/core/internal';
+import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
@@ -27,8 +26,6 @@ function formatDescription(arg: Option | Argument): string {
 
 type MaybePromise = () => Promise<void> | void;
 
-export let packageManager: AgentName | undefined;
-
 export async function runCommand(action: MaybePromise) {
 	try {
 		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
@@ -37,67 +34,64 @@ export async function runCommand(action: MaybePromise) {
 	} catch (e) {
 		p.cancel('Operation failed.');
 		if (e instanceof Error) {
-			console.error(e.message);
+			console.error(e.stack ?? e);
 		}
 	}
 }
 
-export async function formatFiles(cwd: string, paths: string[]): Promise<void> {
-	const pm = detectPackageManager(cwd);
-	const args = ['prettier', '--write', '--ignore-unknown', ...paths];
-	const cmd = resolveCommand(pm, 'execute-local', args)!;
-	await exec(cmd.command, cmd.args, {
-		nodeOptions: { cwd, stdio: 'pipe' }
+export async function formatFiles(options: {
+	packageManager: AgentName;
+	cwd: string;
+	paths: string[];
+}): Promise<void> {
+	const args = ['prettier', '--write', '--ignore-unknown', ...options.paths];
+	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
+	await exec(cmd.command, cmd.args, { nodeOptions: { cwd: options.cwd, stdio: 'pipe' } });
+}
+
+const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
+const agentOptions: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
+agentOptions.unshift({ label: 'None', value: undefined });
+
+type PackageManagerOptions = Array<{ value: AgentName | undefined; label: AgentName | 'None' }>;
+export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
+	const detected = detectSync({ cwd });
+	const agent = detected?.name ?? getUserAgent();
+
+	const pm = await p.select({
+		message: 'Which package manager do you want to install dependencies with?',
+		options: agentOptions,
+		initialValue: agent
 	});
-}
-
-type PackageManagerOptions = Array<{ value: AgentName | null; label: AgentName | 'None' }>;
-export async function suggestInstallingDependencies(cwd: string): Promise<'installed' | 'skipped'> {
-	const detectedPm = await detect({ cwd });
-	let selectedPm = detectedPm?.agent ?? null;
-
-	const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
-	const options: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
-	options.unshift({ label: 'None', value: null });
-
-	if (!selectedPm) {
-		const pm = await p.select({
-			message: 'Which package manager do you want to install dependencies with?',
-			options,
-			initialValue: getUserAgent()
-		});
-		if (p.isCancel(pm)) {
-			p.cancel('Operation cancelled.');
-			process.exit(1);
-		}
-
-		selectedPm = pm;
+	if (p.isCancel(pm)) {
+		p.cancel('Operation cancelled.');
+		process.exit(1);
 	}
 
-	if (!selectedPm || !COMMANDS[selectedPm]) {
-		return 'skipped';
-	}
-
-	const { command, args } = constructCommand(COMMANDS[selectedPm].install, [])!;
-
-	const loadingSpinner = p.spinner();
-	loadingSpinner.start('Installing dependencies...');
-
-	await installDependencies(command, args, cwd);
-
-	packageManager = command as AgentName;
-
-	loadingSpinner.stop('Successfully installed dependencies');
-	return 'installed';
+	return pm;
 }
 
-async function installDependencies(command: string, args: string[], cwd: string) {
+export async function installDependencies(agent: AgentName, cwd: string) {
+	const spinner = p.spinner();
+	spinner.start('Installing dependencies...');
 	try {
+		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
 		await exec(command, args, { nodeOptions: { cwd } });
+		spinner.stop('Successfully installed dependencies');
 	} catch (error) {
-		const typedError = error as Error;
-		throw new Error(`Unable to install dependencies: ${typedError.message}`);
+		spinner.stop('Failed to install dependencies', 2);
+		throw error;
 	}
+}
+
+export function getUserAgent(): AgentName | undefined {
+	const userAgent = process.env.npm_config_user_agent;
+	if (!userAgent) return undefined;
+
+	const pmSpec = userAgent.split(' ')[0]!;
+	const separatorPos = pmSpec.lastIndexOf('/');
+	const name = pmSpec.substring(0, separatorPos) as AgentName;
+	return AGENTS.includes(name) ? name : undefined;
 }
 
 type PreconditionCheck = { name: string; preconditions: Precondition[] };
@@ -135,21 +129,26 @@ export function getGlobalPreconditions(
 				name: 'supported environments',
 				run: () => {
 					const addersForInvalidEnvironment = adders.filter((a) => {
-						const supportedEnvironments = a.config.metadata.environments;
+						const supportedEnvironments = a.environments;
 						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
 						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
 
 						return false;
 					});
 
-					if (addersForInvalidEnvironment.length == 0) {
+					if (addersForInvalidEnvironment.length === 0) {
 						return { success: true, message: undefined };
 					}
 
-					const messages = addersForInvalidEnvironment.map(
-						(a) => `"${a.config.metadata.name}" does not support "${projectType}"`
-					);
-					return { success: false, message: messages.join(' / ') };
+					const messages = addersForInvalidEnvironment.map((a) => {
+						if (projectType === 'kit') {
+							return `'${a.id}' does not support SvelteKit`;
+						} else {
+							return `'${a.id}' requires SvelteKit`;
+						}
+					});
+
+					throw new Error(messages.join('\n'));
 				}
 			}
 		]

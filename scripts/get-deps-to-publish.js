@@ -1,6 +1,6 @@
 /**
  * This tool is used by the pr ci to determine the packages that need to be published to the pkg-pr-new registry.
- * In order to avoid situations where only @svelte-cli/core would be published, because it's the only modified package,
+ * In order to avoid situations where only @sveltejs/cli-core would be published, because it's the only modified package,
  * this tool will also determine the dependent packages and also publish those.
  * PR: https://github.com/svelte-add/svelte-add/pull/408
  */
@@ -15,7 +15,7 @@ if (!process.env.CHANGED_DIRS) throw new Error('CHANGED_DIRS is missing');
 
 const json = execSync('pnpm -r list --only-projects --json').toString('utf8');
 const repoPackages =
-	/** @type {Array<import('../packages/core/files/utils.js').Package & { path: string, private: boolean, peerDependencies?: Record<string, string> }>} */ (
+	/** @type {Array<import('../packages/cli/commands/add/utils.ts').Package & { path: string, private: boolean, peerDependencies?: Record<string, string> }>} */ (
 		JSON.parse(json)
 	);
 

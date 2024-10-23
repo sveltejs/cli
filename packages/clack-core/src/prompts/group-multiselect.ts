@@ -23,7 +23,7 @@ export default class GroupMultiSelectPrompt<T extends { value: any }> extends Pr
 	}
 
 	private toggleValue() {
-		const item = this.options[this.cursor];
+		const item = this.options[this.cursor]!;
 		if (item.group === true) {
 			const group = item.value;
 			const groupedItems = this.getGroupItems(group);
@@ -62,14 +62,14 @@ export default class GroupMultiSelectPrompt<T extends { value: any }> extends Pr
 				case 'left':
 				case 'up':
 					this.cursor = this.cursor === 0 ? this.options.length - 1 : this.cursor - 1;
-					if (!this.#selectableGroups && this.options[this.cursor].group === true) {
+					if (!this.#selectableGroups && this.options[this.cursor]!.group === true) {
 						this.cursor = this.cursor === 0 ? this.options.length - 1 : this.cursor - 1;
 					}
 					break;
 				case 'down':
 				case 'right':
 					this.cursor = this.cursor === this.options.length - 1 ? 0 : this.cursor + 1;
-					if (!this.#selectableGroups && this.options[this.cursor].group === true) {
+					if (!this.#selectableGroups && this.options[this.cursor]!.group === true) {
 						this.cursor = this.cursor === this.options.length - 1 ? 0 : this.cursor + 1;
 					}
 					break;

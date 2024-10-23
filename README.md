@@ -1,20 +1,14 @@
 [![Chat](https://img.shields.io/discord/457912077277855764?label=chat&logo=discord)](https://svelte.dev/chat)
 
-# sv - the Svelte scaffolding CLI
+# sv - the Svelte CLI
 
-Read the [SvelteKit documentation](https://kit.svelte.dev/docs) for more details about getting started with a newly created app.
+Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details about getting started with a newly created app.
 
 ### Packages
 
 | Package            | Changelog                              |
 | ------------------ | -------------------------------------- |
 | [sv](packages/cli) | [Changelog](packages/cli/CHANGELOG.md) |
-
-## Community adders
-
-Get started on [creating your own community adder](/community-adder-template/README.md).
-
-[Additional adders](https://www.sveltesociety.dev/packages?category=svelte-add) are maintained by the community.
 
 ## Contributing
 
@@ -29,3 +23,7 @@ Svelte is an MIT-licensed open source project with its ongoing development made 
 ## License
 
 [MIT](https://github.com/sveltejs/kit/blob/main/LICENSE)
+
+## Acknowledgements
+
+Thank you to [Christopher Brown](https://github.com/chbrown) who originally owned the `sv` name on npm for graciously allowing it to be used for the Svelte CLI. You can find the original `sv` package at [`@chbrown/sv`](https://www.npmjs.com/package/@chbrown/sv).

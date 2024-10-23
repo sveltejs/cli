@@ -110,7 +110,7 @@
 <h1 class="visually-hidden">Sverdle</h1>
 
 <form
-	method="POST"
+	method="post"
 	action="?/enter"
 	use:enhance={() => {
 		// prevent default callback from resetting the form

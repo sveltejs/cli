@@ -1,29 +1,14 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
-import type { FileType } from '../files/processors.ts';
-import type { Workspace } from '../files/workspace.ts';
+import type { FileType } from './processors.ts';
+import type { Workspace } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
 
-export type WebsiteMetadata = {
-	logo: string;
-	keywords: string[];
-	documentation: string;
-};
-
-export type AdderConfigEnvironments = {
+export type Environments = {
 	svelte: boolean;
 	kit: boolean;
-};
-
-export type AdderConfigMetadata = {
-	id: string;
-	alias?: string;
-	name: string;
-	description: string;
-	environments: AdderConfigEnvironments;
-	website?: WebsiteMetadata;
 };
 
 export type PackageDefinition<Args extends OptionDefinition> = {
@@ -40,14 +25,18 @@ export type Scripts<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
-export type AdderConfig<Args extends OptionDefinition> = {
-	metadata: AdderConfigMetadata;
+export type Adder<Args extends OptionDefinition> = {
+	id: string;
+	alias?: string;
+	environments: Environments;
+	homepage?: string;
 	options: Args;
-	runsAfter?: string[];
 	dependsOn?: string[];
 	packages: Array<PackageDefinition<Args>>;
 	scripts?: Array<Scripts<Args>>;
 	files: Array<FileType<Args>>;
+	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
+	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
@@ -60,32 +49,15 @@ export type Highlighter = {
 	command: (str: string) => string;
 	website: (str: string) => string;
 	route: (str: string) => string;
-	env: (str: string) => string;
+	env: (str: string) => string; // used for printing environment variable names
 };
 
-export function defineAdderConfig<Args extends OptionDefinition>(
-	config: AdderConfig<Args>
-): AdderConfig<Args> {
+export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>): Adder<Args> {
 	return config;
 }
 
-export type Adder<Args extends OptionDefinition> = {
-	config: AdderConfig<Args>;
-	checks: AdderCheckConfig<Args>;
-	tests?: AdderTestConfig<Args>;
-};
-
 export type AdderWithoutExplicitArgs = Adder<Record<string, Question>>;
-export type AdderConfigWithoutExplicitArgs = AdderConfig<Record<string, Question>>;
-
-export function defineAdder<Args extends OptionDefinition>(
-	config: AdderConfig<Args>,
-	checks: AdderCheckConfig<Args>,
-	tests?: AdderTestConfig<Args>
-): Adder<Args> {
-	const adder: Adder<Args> = { config, checks, tests };
-	return adder;
-}
+export type AdderConfigWithoutExplicitArgs = Adder<Record<string, Question>>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
@@ -130,14 +102,3 @@ export type Precondition = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
-
-export type AdderCheckConfig<Args extends OptionDefinition> = {
-	options: Args;
-	preconditions?: Precondition[];
-};
-
-export function defineAdderChecks<Args extends OptionDefinition>(
-	checks: AdderCheckConfig<Args>
-): AdderCheckConfig<Args> {
-	return checks;
-}

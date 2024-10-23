@@ -8,10 +8,10 @@ import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import dts from 'unplugin-isolated-decl/rollup';
 import esbuild from 'rollup-plugin-esbuild';
-import { buildTemplates } from '@svelte-cli/create/build';
+import { buildTemplates } from '@sveltejs/create/build';
 import MagicString from 'magic-string';
 
-/** @import { Package } from "./packages/core/files/utils.js" */
+/** @import { Package } from "./packages/cli/commands/add/utils" */
 /** @import { Plugin, RollupOptions } from "rollup" */
 /** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
 
@@ -29,10 +29,10 @@ function getConfig(project) {
 	if (project === 'core') {
 		inputs = {
 			index: `${projectRoot}/index.ts`,
-			internal: `${projectRoot}/internal.ts`,
 			css: `${projectRoot}/tooling/css/index.ts`,
 			html: `${projectRoot}/tooling/html/index.ts`,
-			js: `${projectRoot}/tooling/js/index.ts`
+			js: `${projectRoot}/tooling/js/index.ts`,
+			parsers: `${projectRoot}/tooling/parsers.ts`
 		};
 	} else if (project === 'cli') {
 		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/bin.ts`];
@@ -46,8 +46,8 @@ function getConfig(project) {
 	const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
 	const externalDeps = getExternalDeps(pkg);
 
-	// always externalizes `@svelte-cli/core` and any deps that are `dependencies` or `peerDependencies`
-	const external = [/@svelte-cli\/core\w*/g, ...externalDeps];
+	// always externalizes `@sveltejs/cli-core` and any deps that are `dependencies` or `peerDependencies`
+	const external = [...externalDeps];
 
 	/** @type {Plugin | undefined} */
 	let buildCliTemplatesPlugin;

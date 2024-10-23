@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { parseScript, serializeScript } from '@svelte-cli/ast-tooling';
+import { parseScript, serializeScript } from '@sveltejs/ast-tooling';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,14 +15,14 @@ for (const categoryDirectory of categoryDirectories) {
 				const testDirectoryPath = join(baseDir, categoryDirectory, testName);
 
 				const inputFilePath = join(testDirectoryPath, 'input.ts');
-				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath) : '';
-				const ast = parseScript(input.toString());
+				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath, 'utf8') : '';
+				const ast = parseScript(input);
 
 				// dynamic imports always need to provide the path inline for static analysis
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
 				module.run({ ast });
 
-				const output = serializeScript(ast);
+				const output = serializeScript(ast, input);
 				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
 			});
 		}

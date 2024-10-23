@@ -10,12 +10,12 @@ import {
 	SelectPrompt,
 	type State,
 	TextPrompt
-} from '@svelte-cli/clack-core';
+} from '@sveltejs/clack-core';
 import isUnicodeSupported from 'is-unicode-supported';
 import color from 'picocolors';
 import { cursor, erase } from 'sisteransi';
 
-export { isCancel } from '@svelte-cli/clack-core';
+export { isCancel } from '@sveltejs/clack-core';
 
 const unicode = isUnicodeSupported();
 const s = (c: string, fallback: string) => (unicode ? c : fallback);
@@ -244,10 +244,10 @@ export const select = <Value>(opts: SelectOptions<Value>) => {
 
 			switch (this.state) {
 				case 'submit':
-					return `${title}${color.gray(S_BAR)}  ${opt(this.options[this.cursor], 'selected')}`;
+					return `${title}${color.gray(S_BAR)}  ${opt(this.options[this.cursor]!, 'selected')}`;
 				case 'cancel':
 					return `${title}${color.gray(S_BAR)}  ${opt(
-						this.options[this.cursor],
+						this.options[this.cursor]!,
 						'cancelled'
 					)}\n${color.gray(S_BAR)}`;
 				default: {
@@ -296,7 +296,7 @@ export const selectKey = <Value extends string>(opts: SelectOptions<Value>) => {
 						'selected'
 					)}`;
 				case 'cancel':
-					return `${title}${color.gray(S_BAR)}  ${opt(this.options[0], 'cancelled')}\n${color.gray(
+					return `${title}${color.gray(S_BAR)}  ${opt(this.options[0]!, 'cancelled')}\n${color.gray(
 						S_BAR
 					)}`;
 				default: {
@@ -533,7 +533,7 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 							const groupActive =
 								!active &&
 								typeof option.group === 'string' &&
-								this.options[this.cursor].value === option.group;
+								this.options[this.cursor]!.value === option.group;
 							if (groupActive) {
 								return opt(option, selected ? 'group-active-selected' : 'group-active', options);
 							}
@@ -557,7 +557,7 @@ export const groupMultiselect = <Value>(opts: GroupMultiSelectOptions<Value>) =>
 							const groupActive =
 								!active &&
 								typeof option.group === 'string' &&
-								this.options[this.cursor].value === option.group;
+								this.options[this.cursor]!.value === option.group;
 							if (groupActive) {
 								return opt(option, selected ? 'group-active-selected' : 'group-active', options);
 							}

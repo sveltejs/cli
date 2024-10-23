@@ -1,5 +1,5 @@
-import { element, appendElement, insertElement } from '@svelte-cli/core/html';
-import type { HtmlFileEditor } from '@svelte-cli/core';
+import { element, appendElement, insertElement } from '@sveltejs/cli-core/html';
+import type { HtmlFileEditor } from '@sveltejs/cli-core';
 
 export function run({ ast }: HtmlFileEditor<any>): void {
 	const emptySpan = element('span');
