@@ -284,7 +284,7 @@ export async function runAddCommand(
 			.filter((a) => !!a);
 
 		const selected = await p.multiselect({
-			message: 'What would you like to add to your project?',
+			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
 			options: adderOptions,
 			required: false
 		});
