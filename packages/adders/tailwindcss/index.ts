@@ -1,4 +1,4 @@
-import { defineAdder, defineAdderOptions, type PackageDefinition } from '@sveltejs/cli-core';
+import { defineAdder, defineAdderOptions } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
 import { array, common, exports, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
@@ -38,13 +38,6 @@ const plugins: Plugin[] = [
 	}
 ];
 
-const pluginPackages: Array<PackageDefinition<typeof options>> = plugins.map((x) => ({
-	name: x.package,
-	version: x.version,
-	dev: true,
-	condition: ({ options }) => options.plugins.includes(x.id)
-}));
-
 export const options = defineAdderOptions({
 	plugins: {
 		type: 'multiselect',
@@ -60,112 +53,105 @@ export default defineAdder({
 	environments: { svelte: true, kit: true },
 	homepage: 'https://tailwindcss.com',
 	options,
-	packages: [
-		{ name: 'tailwindcss', version: '^3.4.9', dev: true },
-		{ name: 'autoprefixer', version: '^10.4.20', dev: true },
-		{
-			name: 'prettier-plugin-tailwindcss',
-			version: '^0.6.5',
-			dev: true,
-			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
-		},
-		...pluginPackages
-	],
-	files: [
-		{
-			name: ({ typescript }) => `tailwind.config.${typescript ? 'ts' : 'js'}`,
-			content: ({ options, typescript, content }) => {
-				const { ast, generateCode } = parseScript(content);
-				let root;
-				const rootExport = object.createEmpty();
-				if (typescript) {
-					imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
-					root = common.typeAnnotateExpression(rootExport, 'Config');
-				}
+	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
+		const ext = typescript ? 'ts' : 'js';
+		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-				const { astNode: exportDeclaration, value: node } = exports.defaultExport(
-					ast,
-					root ?? rootExport
-				);
+		sv.devDependency('tailwindcss', '^3.4.9');
+		sv.devDependency('autoprefixer', '^10.4.20');
 
-				const config = (
-					node.type === 'TSAsExpression' ? node.expression : node
-				) as AstTypes.ObjectExpression;
+		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.5');
 
-				if (!typescript) {
-					common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
-				}
+		for (const plugin of plugins) {
+			if (!options.plugins.includes(plugin.id)) continue;
 
-				const contentArray = object.property(config, 'content', array.createEmpty());
-				array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
+			sv.dependency(plugin.package, plugin.version);
+		}
 
-				const themeObject = object.property(config, 'theme', object.createEmpty());
-				object.property(themeObject, 'extend', object.createEmpty());
-
-				const pluginsArray = object.property(config, 'plugins', array.createEmpty());
-
-				for (const plugin of plugins) {
-					if (!options.plugins.includes(plugin.id)) continue;
-					imports.addDefault(ast, plugin.package, plugin.identifier);
-					array.push(pluginsArray, { type: 'Identifier', name: plugin.identifier });
-				}
-
-				return generateCode();
+		sv.file(`tailwind.config.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+			let root;
+			const rootExport = object.createEmpty();
+			if (typescript) {
+				imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
+				root = common.typeAnnotateExpression(rootExport, 'Config');
 			}
-		},
-		{
-			name: () => 'postcss.config.js',
-			content: ({ content }) => {
-				const { ast, generateCode } = parseScript(content);
-				const { value: rootObject } = exports.defaultExport(ast, object.createEmpty());
-				const pluginsObject = object.property(rootObject, 'plugins', object.createEmpty());
 
-				object.property(pluginsObject, 'tailwindcss', object.createEmpty());
-				object.property(pluginsObject, 'autoprefixer', object.createEmpty());
-				return generateCode();
+			const { astNode: exportDeclaration, value: node } = exports.defaultExport(
+				ast,
+				root ?? rootExport
+			);
+
+			const config = (
+				node.type === 'TSAsExpression' ? node.expression : node
+			) as AstTypes.ObjectExpression;
+
+			if (!typescript) {
+				common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
 			}
-		},
-		{
-			name: () => 'src/app.css',
-			content: ({ content }) => {
-				const { ast, generateCode } = parseCss(content);
-				const layerImports = ['base', 'components', 'utilities'].map(
-					(layer) => `"tailwindcss/${layer}"`
-				);
-				const originalFirst = ast.first;
 
-				const nodes = addImports(ast, layerImports);
+			const contentArray = object.property(config, 'content', array.createEmpty());
+			array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
 
-				if (
-					originalFirst !== ast.first &&
-					originalFirst?.type === 'atrule' &&
-					originalFirst.name === 'import'
-				) {
-					originalFirst.raws.before = '\n';
-				}
+			const themeObject = object.property(config, 'theme', object.createEmpty());
+			object.property(themeObject, 'extend', object.createEmpty());
 
-				// We remove the first node to avoid adding a newline at the top of the stylesheet
-				nodes.shift();
+			const pluginsArray = object.property(config, 'plugins', array.createEmpty());
 
-				// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
-				// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
-				nodes.forEach((n) => (n.raws.before = '\n'));
-
-				return generateCode();
+			for (const plugin of plugins) {
+				if (!options.plugins.includes(plugin.id)) continue;
+				imports.addDefault(ast, plugin.package, plugin.identifier);
+				array.push(pluginsArray, { type: 'Identifier', name: plugin.identifier });
 			}
-		},
-		{
-			name: () => 'src/App.svelte',
-			content: ({ content, typescript }) => {
+
+			return generateCode();
+		});
+
+		sv.file('postcss.config.js', (content) => {
+			const { ast, generateCode } = parseScript(content);
+			const { value: rootObject } = exports.defaultExport(ast, object.createEmpty());
+			const pluginsObject = object.property(rootObject, 'plugins', object.createEmpty());
+
+			object.property(pluginsObject, 'tailwindcss', object.createEmpty());
+			object.property(pluginsObject, 'autoprefixer', object.createEmpty());
+			return generateCode();
+		});
+
+		sv.file('src/app.css', (content) => {
+			const { ast, generateCode } = parseCss(content);
+			const layerImports = ['base', 'components', 'utilities'].map(
+				(layer) => `"tailwindcss/${layer}"`
+			);
+			const originalFirst = ast.first;
+
+			const nodes = addImports(ast, layerImports);
+
+			if (
+				originalFirst !== ast.first &&
+				originalFirst?.type === 'atrule' &&
+				originalFirst.name === 'import'
+			) {
+				originalFirst.raws.before = '\n';
+			}
+
+			// We remove the first node to avoid adding a newline at the top of the stylesheet
+			nodes.shift();
+
+			// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
+			// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
+			nodes.forEach((n) => (n.raws.before = '\n'));
+
+			return generateCode();
+		});
+
+		if (!kit) {
+			sv.file('src/App.svelte', (content) => {
 				const { script, generateCode } = parseSvelte(content, { typescript });
 				imports.addEmpty(script.ast, './app.css');
 				return generateCode({ script: script.generateCode() });
-			},
-			condition: ({ kit }) => !kit
-		},
-		{
-			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			content: ({ content, typescript, dependencyVersion }) => {
+			});
+		} else {
+			sv.file(`${kit?.routesDirectory}/+layout.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
 				imports.addEmpty(script.ast, '../app.css');
 
@@ -179,12 +165,11 @@ export default defineAdder({
 					script: script.generateCode(),
 					template: content.length === 0 ? template.generateCode() : undefined
 				});
-			},
-			condition: ({ kit }) => Boolean(kit)
-		},
-		{
-			name: () => '.prettierrc',
-			content: ({ content }) => {
+			});
+		}
+
+		if (dependencyVersion('prettier')) {
+			sv.file('.prettierrc', (content) => {
 				const { data, generateCode } = parseJson(content);
 				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
 
@@ -194,8 +179,7 @@ export default defineAdder({
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 
 				return generateCode();
-			},
-			condition: ({ dependencyVersion }) => Boolean(dependencyVersion('prettier'))
+			});
 		}
-	]
+	}
 });

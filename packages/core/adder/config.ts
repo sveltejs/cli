@@ -25,23 +25,30 @@ export type Scripts<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
+// todo: rename
+export type SvApi = {
+	file: (path: string, content: (content: string) => string) => string;
+	dependency: (pkg: string, version: string) => void;
+	devDependency: (pkg: string, version: string) => void;
+	dependsOn: (adder: string, options: Record<string, any>) => Promise<void>;
+
+	// todo: why make this an object, and all other params? Unify!
+	execute: (options: { args: string[]; stdio: 'inherit' | 'pipe' }) => Promise<void>;
+};
+
 export type Adder<Args extends OptionDefinition> = {
 	id: string;
 	alias?: string;
 	environments: Environments;
 	homepage?: string;
 	options: Args;
-	dependsOn?: string[];
-	packages: Array<PackageDefinition<Args>>;
-	scripts?: Array<Scripts<Args>>;
-	files: Array<FileType<Args>>;
-	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
-	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
 		} & Workspace<Args>
 	) => string[];
+
+	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
 };
 
 export type Highlighter = {
