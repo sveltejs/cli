@@ -1,6 +1,9 @@
-import { options } from './index.ts';
 import { defineAdderTests } from '@sveltejs/cli-core';
-import { parseSvelte, parseJson } from '@sveltejs/cli-core/parsers';
+import path from 'node:path';
+import url from 'node:url';
+import { execSync } from 'node:child_process';
+import { options } from './index.ts';
+import { parseSvelte } from '@sveltejs/cli-core/parsers';
 
 const defaultOptionValues = {
 	sqlite: options.sqlite.default,
@@ -8,6 +11,8 @@ const defaultOptionValues = {
 	postgresql: options.postgresql.default,
 	docker: options.docker.default
 };
+
+const dockerComposeCwd = path.resolve(url.fileURLToPath(import.meta.url), '..');
 
 export const tests = defineAdderTests({
 	options,
@@ -64,17 +69,31 @@ export const tests = defineAdderTests({
 			content: ({ content }) => {
 				return content.replace('strict: true,', '');
 			}
-		},
-		{
-			name: () => 'package.json',
-			content: ({ content }) => {
-				const { data, generateCode } = parseJson(content);
-				// executes after pnpm install
-				data.scripts['postinstall'] ??= 'pnpm run db:push';
-				return generateCode();
-			}
 		}
 	],
+	beforeAll: async (testType) => {
+		if (testType == 'snapshot') return;
+
+		console.log('Starting docker containers');
+		execSync('docker compose up --detach', { cwd: dockerComposeCwd, stdio: 'pipe' });
+
+		// the containers take some time to startup and be ready
+		// to accept any connections. As there is no standard / easy
+		// way of doing this for different containers (mysql / postgres)
+		// we are waiting for them to startup
+		await new Promise((x) => setTimeout(x, 15000));
+	},
+	afterAll: (testType) => {
+		if (testType == 'snapshot') return;
+
+		console.log('Stopping docker containers');
+		execSync('docker compose down --volumes', { cwd: dockerComposeCwd, stdio: 'pipe' });
+	},
+	beforeEach: (cwd, testType) => {
+		if (testType == 'snapshot') return;
+
+		execSync('pnpm db:push', { cwd, stdio: 'pipe' });
+	},
 	tests: [
 		{
 			name: 'queries database',
