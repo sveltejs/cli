@@ -12,7 +12,7 @@ const defaultOptionValues = {
 	docker: options.docker.default
 };
 
-const dockerComposeCwd = path.resolve(url.fileURLToPath(import.meta.url), '..', '..');
+const dockerComposeCwd = path.resolve(url.fileURLToPath(import.meta.url), '..');
 
 export const tests = defineAdderTests({
 	options,
