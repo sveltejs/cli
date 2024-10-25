@@ -94,7 +94,7 @@
 - fix: improve formatting on new script files ([#96](https://github.com/sveltejs/cli/pull/96))
 
 
-- fix: dont check preconditions if no integration selected ([#125](https://github.com/sveltejs/cli/pull/125))
+- fix: dont check preconditions if no add-on selected ([#125](https://github.com/sveltejs/cli/pull/125))
 
 
 - feat: improved homescreen for adding or creating projects ([#112](https://github.com/sveltejs/cli/pull/112))
@@ -109,4 +109,4 @@
 ### Patch Changes
 
 
-- feat: paraglide integration ([#67](https://github.com/sveltejs/cli/pull/67))
+- feat: paraglide add-on ([#67](https://github.com/sveltejs/cli/pull/67))

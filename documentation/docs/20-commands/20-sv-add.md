@@ -27,7 +27,7 @@ npx sv add tailwindcss --cwd ./my/path
 | --no-preconditions | -       | skips checking preconditions                 |
 | --no-preconditions | -       | skips checking preconditions                 |
 
-## Official integrations
+## Official add-ons
 
 - drizzle
 - eslint

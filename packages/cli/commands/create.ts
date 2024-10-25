@@ -25,7 +25,7 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 const ProjectPathSchema = v.string();
 const OptionsSchema = v.strictObject({
 	checkTypes: v.optional(v.picklist(langs)),
-	integrations: v.boolean(),
+	addOns: v.boolean(),
 	install: v.boolean(),
 	template: v.optional(v.picklist(templateChoices))
 });
@@ -36,14 +36,14 @@ export const create = new Command('create')
 	.argument('[path]', 'where the project will be created', process.cwd())
 	.addOption(langOption)
 	.addOption(templateOption)
-	.option('--no-integrations', 'skips interactive integration installer')
+	.option('--no-add-ons', 'skips interactive add-on installer')
 	.option('--no-install', 'skips installing dependencies')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
-			const { directory, integrationNextSteps, packageManager } = await createProject(cwd, options);
+			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
@@ -72,7 +72,7 @@ export const create = new Command('create')
 			];
 
 			p.box(steps.join('\n'), 'Project next steps');
-			if (integrationNextSteps) p.box(integrationNextSteps, 'Integration next steps');
+			if (addOnNextSteps) p.box(addOnNextSteps, 'Add-on next steps');
 		});
 	});
 
@@ -143,30 +143,30 @@ async function createProject(cwd: string, options: Options) {
 	p.log.success('Project created');
 
 	let packageManager: AgentName | undefined | null;
-	let integrationNextSteps: string | undefined;
+	let addOnNextSteps: string | undefined;
 	const installDeps = async () => {
 		packageManager = await common.packageManagerPrompt(projectPath);
 		if (packageManager) await common.installDependencies(packageManager, projectPath);
 	};
 
-	if (options.integrations) {
+	if (options.addOns) {
 		// `runAddCommand` includes installing dependencies
 		const { nextSteps, packageManager: pm } = await runAddCommand(
 			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
 			[]
 		);
 		packageManager = pm;
-		integrationNextSteps = nextSteps;
+		addOnNextSteps = nextSteps;
 	} else if (options.install) {
-		// `--no-integrations` was set, so we'll prompt to install deps manually
+		// `--no-add-ons` was set, so we'll prompt to install deps manually
 		await installDeps();
 	}
 
-	// no integrations were selected (which means the install prompt was skipped in `runAddCommand`),
+	// no add-ons were selected (which means the install prompt was skipped in `runAddCommand`),
 	// so we'll prompt to install
 	if (packageManager === null && options.install) {
 		await installDeps();
 	}
 
-	return { directory: projectPath, integrationNextSteps, packageManager };
+	return { directory: projectPath, addOnNextSteps, packageManager };
 }

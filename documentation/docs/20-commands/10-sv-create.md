@@ -2,7 +2,7 @@
 title: sv create
 ---
 
-`sv create` sets up a new SvelteKit project, with options to [setup additional functionality](sv-add#Official-integrations).
+`sv create` sets up a new SvelteKit project, with options to [setup additional functionality](sv-add#Official-add-ons).
 
 ## Usage
 
@@ -16,12 +16,12 @@ npx sv create ./my/path
 
 ## Available options
 
-| Option            | option values                 | default    | description                                                |
-| ----------------- | ----------------------------- | ---------- | ---------------------------------------------------------- |
-| --check-types     | typescript \| checkjs \| none | typescript | determine if type checking should be added to this project |
-| --template        | minimal \| library \| demo    | minimal    | project template                                           |
-| --no-integrations | -                             | -          | skips interactive integration installer                    |
-| --no-install      | -                             | -          | skips installing dependencies                              |
+| Option        | option values                 | default    | description                                                |
+| ------------- | ----------------------------- | ---------- | ---------------------------------------------------------- |
+| --check-types | typescript \| checkjs \| none | typescript | determine if type checking should be added to this project |
+| --template    | minimal \| library \| demo    | minimal    | project template                                           |
+| --no-add-ons  | -                             | -          | skips interactive add-on installer                         |
+| --no-install  | -                             | -          | skips installing dependencies                              |
 
 ## Programmatic interface
 
