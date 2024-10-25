@@ -30,8 +30,6 @@ export type SvApi = {
 	file: (path: string, content: (content: string) => string) => string;
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
-	dependsOn: (adder: string, options: Record<string, any>) => Promise<void>;
-
 	// todo: why make this an object, and all other params? Unify!
 	execute: (options: { args: string[]; stdio: 'inherit' | 'pipe' }) => Promise<void>;
 };
@@ -42,13 +40,13 @@ export type Adder<Args extends OptionDefinition> = {
 	environments: Environments;
 	homepage?: string;
 	options: Args;
+	dependsOn?: (workspace: Workspace<Args>) => string[];
+	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
 		} & Workspace<Args>
 	) => string[];
-
-	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
 };
 
 export type Highlighter = {

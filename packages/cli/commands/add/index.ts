@@ -297,25 +297,15 @@ export async function runAddCommand(
 
 	// add inter-adder dependencies
 	for (const { adder } of selectedAdders) {
-		const dependents =
-			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
-
 		const workspace = createWorkspace({ cwd: options.cwd });
-		for (const depId of dependents) {
+
+		const dependents = adder.dependsOn?.(workspace) ?? [];
+		const filteredDependents =
+			dependents.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
+
+		for (const depId of filteredDependents) {
 			const dependent = officialAdders.find((a) => a.id === depId) as AdderWithoutExplicitArgs;
-			if (!dependent) throw new Error(`Adder '${adder.id}' depends on an invalid '${depId}'`);
 
-			// check if the dependent adder has already been installed
-			const installed = false;
-			// todo: see discussion, how to solve this
-			// installed = dependent.packages.every(
-			// 	// we'll skip the conditions since we don't have any options to supply it
-			// 	(p) => p.condition !== undefined || !!workspace.dependencyVersion(p.name)
-			// );
-
-			if (installed) continue;
-
-			// prompt to install the dependent
 			const install = await p.confirm({
 				message: `The ${pc.bold(pc.cyan(adder.id))} integration requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
 			});
@@ -507,12 +497,15 @@ async function runAdders({
 	// this orders the adders to (ideally) have adders without dependencies run first
 	// and adders with dependencies runs later on, based on the adders they depend on.
 	// based on https://stackoverflow.com/a/72030336/16075084
+	const workspace = createWorkspace({ cwd, packageManager });
 	details.sort((a, b) => {
-		if (!a.dependsOn && !b.dependsOn) return 0;
-		if (!a.dependsOn) return -1;
-		if (!b.dependsOn) return 1;
+		const aDeps = a.dependsOn?.(workspace);
+		const bDeps = b.dependsOn?.(workspace);
+		if (!aDeps && !bDeps) return 0;
+		if (!aDeps) return -1;
+		if (!bDeps) return 1;
 
-		return a.dependsOn.includes(b.id) ? 1 : b.dependsOn.includes(a.id) ? -1 : 0;
+		return aDeps.includes(b.id) ? 1 : bDeps.includes(a.id) ? -1 : 0;
 	});
 
 	// apply adders

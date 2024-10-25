@@ -46,6 +46,10 @@ export default defineAdder({
 	environments: { svelte: false, kit: true },
 	homepage: 'https://lucia-auth.com',
 	options,
+	dependsOn: ({ dependencyVersion }) => {
+		if (dependencyVersion('drizzle-orm')) return [];
+		return ['drizzle'];
+	},
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 
@@ -56,9 +60,6 @@ export default defineAdder({
 			// password hashing for demo
 			sv.dependency('@node-rs/argon2', '^1.1.0');
 		}
-
-		// todo: depends on lucia. Is this the right way?
-		sv.dependsOn('drizzle', {});
 
 		sv.file(`drizzle.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
