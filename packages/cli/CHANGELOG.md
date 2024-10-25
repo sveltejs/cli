@@ -1,5 +1,14 @@
 # sv
 
+## 0.5.9
+### Patch Changes
+
+
+- fix: `tailwindcss` import insertions and execution order ([#221](https://github.com/sveltejs/cli/pull/221))
+
+
+- fix: adjusted next steps instructions for `create` ([#222](https://github.com/sveltejs/cli/pull/222))
+
 ## 0.5.8
 ### Patch Changes
 
