@@ -508,6 +508,7 @@ async function runAdders({
 	// and adders with dependencies runs later on, based on the adders they depend on.
 	// based on https://stackoverflow.com/a/72030336/16075084
 	details.sort((a, b) => {
+		if (!a.dependsOn && !b.dependsOn) return 0;
 		if (!a.dependsOn) return -1;
 		if (!b.dependsOn) return 1;
 
