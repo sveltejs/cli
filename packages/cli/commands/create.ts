@@ -51,16 +51,20 @@ export const create = new Command('create')
 			const relative = path.relative(process.cwd(), directory);
 			const pm = packageManager ?? detectSync({ cwd })?.name ?? common.getUserAgent() ?? 'npm';
 			if (relative !== '') {
-				initialSteps.push(`${i++}: ${highlight(`cd ${relative}`)}`);
+				const pathHasSpaces = relative.includes(' ');
+				initialSteps.push(
+					`${i++}: ${highlight(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
+				);
 			}
 			if (!packageManager) {
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 
+			const pmRun = pm === 'npm' ? 'npm run dev --' : `${pm} dev`;
 			const steps = [
 				...initialSteps,
 				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
-				`${i++}: ${highlight(`${pm} run dev -- --open`)}`,
+				`${i++}: ${highlight(`${pmRun} --open`)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`,
 				'',

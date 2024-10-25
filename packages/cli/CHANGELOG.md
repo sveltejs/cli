@@ -1,5 +1,26 @@
 # sv
 
+## 0.5.9
+### Patch Changes
+
+
+- fix: `tailwindcss` import insertions and execution order ([#221](https://github.com/sveltejs/cli/pull/221))
+
+
+- fix: adjusted next steps instructions for `create` ([#222](https://github.com/sveltejs/cli/pull/222))
+
+## 0.5.8
+### Patch Changes
+
+
+- fix: quotes in `cd` output if necessary ([#207](https://github.com/sveltejs/cli/pull/207))
+
+
+- chore: update documentation url hash ([#208](https://github.com/sveltejs/cli/pull/208))
+
+
+- chore: clarify cli instructions ([#212](https://github.com/sveltejs/cli/pull/212))
+
 ## 0.5.7
 ### Patch Changes
 

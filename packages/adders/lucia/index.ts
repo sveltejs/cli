@@ -44,7 +44,7 @@ export const options = defineAdderOptions({
 export default defineAdder({
 	id: 'lucia',
 	environments: { svelte: false, kit: true },
-	homepage: 'https://lucia-next.pages.dev',
+	homepage: 'https://lucia-auth.com',
 	options,
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
