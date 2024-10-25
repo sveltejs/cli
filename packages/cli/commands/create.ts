@@ -60,10 +60,11 @@ export const create = new Command('create')
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 
+			const pmRun = pm === 'npm' ? 'npm run dev --' : `${pm} dev`;
 			const steps = [
 				...initialSteps,
 				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
-				`${i++}: ${highlight(`${pm} run dev -- --open`)}`,
+				`${i++}: ${highlight(`${pmRun} --open`)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`,
 				'',
