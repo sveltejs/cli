@@ -530,8 +530,8 @@ async function runAdders({
 
 				return fileContent;
 			},
-			execute: async (script) => {
-				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
+			execute: async (commandArgs, stdio) => {
+				const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 				const adderPrefix = details.length > 1 ? `${adder.id}: ` : '';
 				const executedCommandDisplayName = `${command} ${args.join(' ')}`;
 				p.log.step(
@@ -542,7 +542,7 @@ async function runAdders({
 				if (workspace.packageManager === 'npm') args.unshift('--yes');
 
 				try {
-					await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio: script.stdio } });
+					await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio } });
 				} catch (error) {
 					const typedError = error as Error;
 					throw new Error(

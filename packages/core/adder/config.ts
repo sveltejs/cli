@@ -25,13 +25,11 @@ export type Scripts<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
-// todo: rename
 export type SvApi = {
 	file: (path: string, content: (content: string) => string) => string;
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
-	// todo: why make this an object, and all other params? Unify!
-	execute: (options: { args: string[]; stdio: 'inherit' | 'pipe' }) => Promise<void>;
+	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 };
 
 export type Adder<Args extends OptionDefinition> = {
