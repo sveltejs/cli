@@ -128,13 +128,18 @@ export default defineAdder({
 		{
 			name: () => 'src/app.css',
 			content: ({ content }) => {
-				const { ast, generateCode } = parseCss(content);
 				const layerImports = ['base', 'components', 'utilities'].map(
-					(layer) => `"tailwindcss/${layer}"`
+					(layer) => `tailwindcss/${layer}`
 				);
+				if (layerImports.every((i) => content.includes(i))) {
+					return content;
+				}
+
+				const { ast, generateCode } = parseCss(content);
 				const originalFirst = ast.first;
 
-				const nodes = addImports(ast, layerImports);
+				const specifiers = layerImports.map((i) => `'${i}'`);
+				const nodes = addImports(ast, specifiers);
 
 				if (
 					originalFirst !== ast.first &&
