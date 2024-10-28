@@ -7,23 +7,38 @@ title: sv create
 ## Usage
 
 ```bash
-npx sv create
+npx sv create [options] [path]
 ```
 
-```bash
-npx sv create ./my/path
-```
+## Options
 
-## Available options
+<!-- TODO this flag should probably just be '--types', and the options should be 'ts' or 'jsdoc' -->
 
-| Option        | option values                 | default    | description                                                |
-| ------------- | ----------------------------- | ---------- | ---------------------------------------------------------- |
-| --check-types | typescript \| checkjs \| none | typescript | determine if type checking should be added to this project |
-| --template    | minimal \| library \| demo    | minimal    | project template                                           |
-| --no-add-ons  | -                             | -          | skips interactive add-on installer                         |
-| --no-install  | -                             | -          | skips installing dependencies                              |
+### `--check-types <option>`
 
-## Programmatic interface
+Whether and how to add typechecking to the project:
+
+- `typescript` — default to `.ts` files and use `lang="ts"` for `.svelte` components
+- `checkjs` — use [JSDoc syntax](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) for types
+- `none` — no typechecking. Not recommended!
+
+### `--template <name>`
+
+Which project template to use:
+
+- `minimal` — barebones scaffolding for your new app
+- `demo` — showcase app with a word guessing game that works without JavaScript
+- `library` — template for a Svelte library, set up with `svelte-package`
+
+### `--no-add-ons`
+
+Run the command without the interactive add-ons prompt
+
+### `--no-install`
+
+Skip dependency installation
+
+<!-- ## Programmatic interface
 
 ```js
 // TODO: this gives type checking errors in the docs site when not commented out. Need to release sv, install it in the site, and uncomment this.
@@ -35,3 +50,4 @@ npx sv create ./my/path
 // 	// todo: list available option
 // });
 ```
+-->
