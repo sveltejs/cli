@@ -31,8 +31,9 @@ if [ "$CI" ]; then
 	git config user.name '[bot]'
 fi
 
-# commit the new files
-git add -A
-git commit -m "version $npm_package_version"
-
-git push git@github.com:sveltejs/kit-template-default.git main -f
+# commit when there are new files
+if [[ `git status --porcelain` ]]; then
+	git add -A
+	git commit -m "version $npm_package_version"
+	git push git@github.com:sveltejs/kit-template-default.git main -f
+fi
