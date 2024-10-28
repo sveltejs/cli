@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.5.10",
+	"version": "0.5.9",
 	"type": "module",
 	"description": "A CLI for creating and updating SvelteKit projects",
 	"license": "MIT",
@@ -13,8 +13,7 @@
 	"scripts": {
 		"check": "tsc",
 		"format": "pnpm lint --write",
-		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
-		"postpublish": "pnpm -F @sveltejs/create update-template-repo"
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
 	},
 	"files": [
 		"dist"
