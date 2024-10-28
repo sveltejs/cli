@@ -54,7 +54,7 @@ export function typeAnnotateExpression(
 	return expression;
 }
 
-export function typeAnnotateSatisfiesExpression(
+export function satisfiesExpression(
 	node: AstKinds.ExpressionKind,
 	type: string
 ): AstTypes.TSSatisfiesExpression {

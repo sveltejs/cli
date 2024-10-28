@@ -80,7 +80,7 @@ export default defineAdder({
 				const rootExport = object.createEmpty();
 				if (typescript) {
 					imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
-					root = common.typeAnnotateSatisfiesExpression(rootExport, 'Config');
+					root = common.satisfiesExpression(rootExport, 'Config');
 				}
 
 				const { astNode: exportDeclaration, value: node } = exports.defaultExport(
