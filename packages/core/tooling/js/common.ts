@@ -54,6 +54,19 @@ export function typeAnnotateExpression(
 	return expression;
 }
 
+export function typeAnnotateSatisfiesExpression(
+	node: AstKinds.ExpressionKind,
+	type: string
+): AstTypes.TSSatisfiesExpression {
+	const expression: AstTypes.TSSatisfiesExpression = {
+		type: 'TSSatisfiesExpression',
+		expression: node,
+		typeAnnotation: { type: 'TSTypeReference', typeName: { type: 'Identifier', name: type } }
+	};
+
+	return expression;
+}
+
 export function createSpreadElement(expression: AstKinds.ExpressionKind): AstTypes.SpreadElement {
 	return {
 		type: 'SpreadElement',
