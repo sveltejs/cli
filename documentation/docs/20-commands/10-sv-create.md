@@ -14,7 +14,7 @@ npx sv create [options] [path]
 
 <!-- TODO this flag should probably just be '--types', and the options should be 'ts' or 'jsdoc' -->
 
-### `--check-types=<option>`
+### `--check-types <option>`
 
 Whether and how to add typechecking to the project:
 
@@ -22,7 +22,7 @@ Whether and how to add typechecking to the project:
 - `checkjs` — use [JSDoc syntax](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) for types
 - `none` — no typechecking. Not recommended!
 
-### `--template=<name>`
+### `--template <name>`
 
 Which project template to use:
 
