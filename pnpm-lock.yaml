@@ -103,8 +103,8 @@ importers:
         specifier: ^7.24.7
         version: 7.25.3
       ast-types:
-        specifier: ^0.14.2
-        version: 0.14.2
+        specifier: ^0.16.1
+        version: 0.16.1
       dom-serializer:
         specifier: ^2.0.0
         version: 2.0.0
@@ -890,10 +890,6 @@ packages:
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
-
-  ast-types@0.14.2:
-    resolution: {integrity: sha512-O0yuUDnZeQDL+ncNGlJ78BiO4jnYI3bvMsD5prT0/nsgijG/LpNBIr63gTjVTNsiGkgQhiyCShTgxt8oXOrklA==}
-    engines: {node: '>=4'}
 
   ast-types@0.16.1:
     resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
@@ -2894,10 +2890,6 @@ snapshots:
   array-union@2.1.0: {}
 
   assertion-error@2.0.1: {}
-
-  ast-types@0.14.2:
-    dependencies:
-      tslib: 2.6.3
 
   ast-types@0.16.1:
     dependencies:
