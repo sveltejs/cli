@@ -16,7 +16,7 @@ import {
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
 import type { namedTypes as AstTypes } from 'ast-types';
-import * as AstKinds from 'ast-types/gen/kinds';
+import type * as AstKinds from 'ast-types/gen/kinds';
 
 /**
  * Most of the AST tooling is pretty big in bundle size and bundling takes forever.
