@@ -88,9 +88,10 @@ export default defineAdder({
 					root ?? rootExport
 				);
 
-				const config = (
-					node.type === 'TSAsExpression' ? node.expression : node
-				) as AstTypes.ObjectExpression;
+				const config = node.type === 'TSSatisfiesExpression' ? node.expression : node;
+				if (config.type !== 'ObjectExpression') {
+					throw new Error(`Unexpected tailwind config shape: ${config.type}`);
+				}
 
 				if (!typescript) {
 					common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
