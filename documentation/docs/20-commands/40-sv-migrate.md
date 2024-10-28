@@ -2,26 +2,34 @@
 title: sv migrate
 ---
 
-A CLI for migrating Svelte(Kit) codebases.
+`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://github.com/sveltejs/kit/blob/main/packages/migrate) package.
 
-Run it using
+Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
-```
+## Usage
+
+```bash
 npx sv migrate [migration]
 ```
 
 ## Migrations
 
-| Migration     | From                  | To                    | Guide                                                           |
-| ------------- | --------------------- | --------------------- | --------------------------------------------------------------- |
-| `svelte-5`    | Svelte 4              | Svelte 5              | [Website](https://svelte.dev/docs/svelte/v5-migration-guide)           |
-| `sveltekit-2` | SvelteKit 1.0         | SvelteKit 2.0         | [Website](https://svelte.dev/docs/kit/migrating-to-sveltekit-2) |
-| `svelte-4`    | Svelte 3              | Svelte 4              | [Website](https://svelte.dev/docs/svelte/v4-migration-guide)           |
-| `package`     | `@sveltejs/package@1` | `@sveltejs/package@2` | [#8922](https://github.com/sveltejs/kit/pull/8922)              |
-| `routes`      | SvelteKit pre-1.0     | SvelteKit 1.0         | [#5774](https://github.com/sveltejs/kit/discussions/5774)       |
+### `svelte-5`
 
-Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
+Upgrades a Svelte 4 app to use Svelte 5, and updates individual components to use [runes](../svelte/what-are-runes) and other Svelte 5 syntax ([see migration guide](../svelte/v5-migration-guide)).
 
-## Changelog
+### `svelte-4`
 
-[The Changelog for this package is available on GitHub](https://github.com/sveltejs/kit/blob/main/packages/migrate/CHANGELOG.md).
+Upgrades a Svelte 3 app to use Svelte 4 ([see migration guide](../svelte/v4-migration-guide)).
+
+### `sveltekit-2`
+
+Upgrades a SvelteKit 1 app to SvelteKit 2 ([see migration guide](../kit/migrating-to-sveltekit-2)).
+
+### `package`
+
+Upgrades a library using `@sveltejs/package` version 1 to version 2. See the [pull request](https://github.com/sveltejs/kit/pull/8922) for more details.
+
+### `routes`
+
+Upgrades a pre-release SvelteKit app to use the filesystem routing conventions in SvelteKit 1. See the [pull request](https://github.com/sveltejs/kit/discussions/5774) for more details.

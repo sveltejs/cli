@@ -12,6 +12,8 @@ npx sv create [options] [path]
 
 ## Options
 
+<!-- TODO this flag should probably just be '--types', and the options should be 'ts' or 'jsdoc' -->
+
 ### `--check-types=<option>`
 
 Whether and how to add typechecking to the project:
@@ -29,6 +31,8 @@ Which project template to use:
 - `library` — template for a Svelte library, set up with `svelte-package`
 
 ### `--no-integrations`
+
+<!-- TODO should be renamed to `--no-addons` -->
 
 Run the command without the interactive add-ons prompt
 
