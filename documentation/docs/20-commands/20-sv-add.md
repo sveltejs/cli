@@ -2,7 +2,7 @@
 title: sv add
 ---
 
-`sv add` updates your code to add new functionality to an existing project.
+`sv add` updates an existing project with new functionality.
 
 ## Usage
 
@@ -11,32 +11,29 @@ npx sv add
 ```
 
 ```bash
-npx sv add tailwindcss
+npx sv add [add-ons]
 ```
 
-```bash
-npx sv add tailwindcss --cwd ./my/path
-```
+You can select multiple space-separated add-ons from [the list below](#Official-add-ons), or you can use the interactive prompt.
 
-## Available options
+## Options
 
-| Option             | default | description                                  |
-| ------------------ | ------- | -------------------------------------------- |
-| -C, --cwd          | ./      | path to the root of your svelte(kit) project |
-| --no-install       | -       | skips installing dependencies                |
-| --no-preconditions | -       | skips checking preconditions                 |
-| --no-preconditions | -       | skips checking preconditions                 |
+- `-C`, `--cwd` — path to the root of your Svelte(Kit) project
+- `--no-preconditions` — skip checking preconditions <!-- TODO what does this mean? -->
+- `--no-install` — skip dependency installation
 
-## Official integrations
+## Official add-ons
 
-- drizzle
-- eslint
-- lucia
-- mdsvex
-- paraglide
-- playwright
-- prettier
-- routify
-- storybook
-- tailwindcss
-- vitest
+<!-- TODO this should be a separate section, each of these should have their own page -->
+
+- `drizzle`
+- `eslint`
+- `lucia`
+- `mdsvex`
+- `paraglide`
+- `playwright`
+- `prettier`
+- `routify`
+- `storybook`
+- `tailwindcss`
+- `vitest`
