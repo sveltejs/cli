@@ -1,5 +1,17 @@
 # sv
 
+## 0.5.10
+### Patch Changes
+
+
+- chore: replace mention of `create-svelte` in newly created `README.md` ([#230](https://github.com/sveltejs/cli/pull/230))
+
+
+- fix: log error when dependency installs fail ([#228](https://github.com/sveltejs/cli/pull/228))
+
+
+- fix: use `satisfies` instead of `as` in `tailwindcss` config ([#231](https://github.com/sveltejs/cli/pull/231))
+
 ## 0.5.9
 ### Patch Changes
 
