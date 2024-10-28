@@ -13,7 +13,8 @@
 	"scripts": {
 		"check": "tsc",
 		"format": "pnpm lint --write",
-		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"postpublish": "pnpm -F @sveltejs/create update-template-repo"
 	},
 	"files": [
 		"dist"
