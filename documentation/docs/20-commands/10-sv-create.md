@@ -23,6 +23,7 @@ npx sv create ./my/path
 | --no-integrations | -                             | -          | skips interactive integration installer                    |
 | --no-install      | -                             | -          | skips installing dependencies                              |
 
+<!--
 ## Programmatic interface
 
 ```js
@@ -35,3 +36,4 @@ npx sv create ./my/path
 // 	// todo: list available option
 // });
 ```
+-->
