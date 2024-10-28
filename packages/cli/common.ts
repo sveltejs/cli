@@ -76,8 +76,7 @@ export async function installDependencies(agent: AgentName, cwd: string) {
 	spinner.start('Installing dependencies...');
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
-		const { stderr } = await exec(command, args, { nodeOptions: { cwd } });
-		if (stderr) throw new Error(stderr);
+		await exec(command, args, { nodeOptions: { cwd } });
 
 		spinner.stop('Successfully installed dependencies');
 	} catch (error) {

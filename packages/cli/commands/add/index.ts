@@ -545,10 +545,7 @@ async function runAdders({
 				if (workspace.packageManager === 'npm') args.unshift('--yes');
 
 				try {
-					const { stderr } = await exec(command, args, {
-						nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
-					});
-					if (stderr) throw new Error(stderr);
+					await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio: script.stdio } });
 				} catch (error) {
 					const typedError = error as Error;
 					throw new Error(
