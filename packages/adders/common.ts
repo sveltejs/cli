@@ -17,7 +17,7 @@ export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Q
 	let svelteImportName: string;
 	for (const specifier of sveltePluginImport?.specifiers ?? []) {
 		if (specifier.type === 'ImportDefaultSpecifier' && specifier.local?.name) {
-			svelteImportName = specifier.local.name;
+			svelteImportName = specifier.local.name as string;
 		}
 	}
 

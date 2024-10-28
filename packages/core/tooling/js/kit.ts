@@ -85,7 +85,7 @@ export function addHooksHandle(
 			if (handleSpecifier) {
 				isSpecifier = true;
 				// we'll search for the local name in case it's aliased (e.g. `export { foo as handle }`)
-				handleName = handleSpecifier.local?.name ?? handleSpecifier.exported.name;
+				handleName = (handleSpecifier.local?.name ?? handleSpecifier.exported.name) as string;
 
 				// find the definition
 				const handleFunc = ast.body.find((n) => isFunctionDeclaration(n, handleName));
