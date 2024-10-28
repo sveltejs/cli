@@ -1,6 +1,6 @@
 import { defineAdder, defineAdderOptions, type PackageDefinition } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
-import { array, common, exports, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { array, common, exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
