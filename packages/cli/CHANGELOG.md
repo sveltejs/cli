@@ -1,5 +1,11 @@
 # sv
 
+## 0.5.11
+### Patch Changes
+
+
+- fix: revert logging dependency install errors ([#244](https://github.com/sveltejs/cli/pull/244))
+
 ## 0.5.10
 ### Patch Changes
 
