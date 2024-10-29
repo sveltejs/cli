@@ -8,6 +8,7 @@ import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-dete
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 
+const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
 
 function getLongFlag(flags: string) {
@@ -21,8 +22,23 @@ export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
 	optionDescription: formatDescription,
 	visibleOptions(cmd) {
+		// hack so that we can access existing options in `optionTerm`
 		options = cmd.options;
-		return cmd.options.filter((o) => !o.hidden);
+
+		const visible = cmd.options.filter((o) => !o.hidden);
+		const show: Option[] = [];
+		// hide any `--no-` flag variants if there's an existing flag of a similar name
+		// e.g. `--types` and `--no-types` will combine into a single `--[no-]types` flag
+		for (const option of visible) {
+			const flag = getLongFlag(option.flags);
+			if (flag?.startsWith(NO_PREFIX)) {
+				const stripped = flag.slice(NO_PREFIX.length);
+				const isNoVariant = visible.some((o) => getLongFlag(o.flags)?.startsWith(`--${stripped}`));
+				if (isNoVariant) continue;
+			}
+			show.push(option);
+		}
+		return show;
 	},
 	optionTerm(option) {
 		const longFlag = getLongFlag(option.flags);
