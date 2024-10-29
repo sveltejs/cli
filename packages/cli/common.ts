@@ -25,14 +25,15 @@ export const helpConfig: HelpConfiguration = {
 		return cmd.options.filter((o) => !o.hidden);
 	},
 	optionTerm(option) {
-		const flag = getLongFlag(option.flags)?.split(' ').at(0);
-		if (!flag) return option.flags;
+		const longFlag = getLongFlag(option.flags);
+		const flag = longFlag?.split(' ').at(0);
+		if (!flag || !longFlag) return option.flags;
 
 		// check if there's a `--no-{flag}` variant
 		const noVariant = `--no-${flag.slice(2)}`;
 		const hasVariant = options.some((o) => getLongFlag(o.flags) === noVariant);
 		if (hasVariant) {
-			return `--[no-]${flag.slice(2)}`;
+			return `--[no-]${longFlag.slice(2)}`;
 		}
 
 		return option.flags;
