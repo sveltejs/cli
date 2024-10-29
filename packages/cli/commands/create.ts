@@ -22,7 +22,7 @@ const langMap: Record<string, LanguageType | undefined> = {
 	false: 'none'
 };
 const templateChoices = templates.map((t) => t.name);
-const langOption = new Option('--types <lang>', 'adds type checking').choices(langs);
+const langOption = new Option('--types <lang>', 'add type checking').choices(langs);
 const templateOption = new Option('--template <type>', 'template to scaffold').choices(
 	templateChoices
 );
@@ -43,10 +43,10 @@ export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
 	.argument('[path]', 'where the project will be created', process.cwd())
 	.addOption(templateOption)
+	.addOption(new Option('--no-types').hideHelp())
 	.addOption(langOption)
-	.option('--no-types')
-	.option('--no-integrations', 'skips interactive integration installer')
-	.option('--no-install', 'skips installing dependencies')
+	.option('--no-integrations', 'skip interactive integration installer')
+	.option('--no-install', 'skip installing dependencies')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
