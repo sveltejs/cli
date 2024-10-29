@@ -8,9 +8,35 @@ import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-dete
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 
+let options: readonly Option[] = [];
+
+function getLongFlag(flags: string) {
+	return flags
+		.split(',')
+		.map((f) => f.trim())
+		.find((f) => f.startsWith('--'));
+}
+
 export const helpConfig: HelpConfiguration = {
 	argumentDescription: formatDescription,
-	optionDescription: formatDescription
+	optionDescription: formatDescription,
+	visibleOptions(cmd) {
+		options = cmd.options;
+		return cmd.options.filter((o) => !o.hidden);
+	},
+	optionTerm(option) {
+		const flag = getLongFlag(option.flags)?.split(' ').at(0);
+		if (!flag) return option.flags;
+
+		// check if there's a `--no-{flag}` variant
+		const noVariant = `--no-${flag.slice(2)}`;
+		const hasVariant = options.some((o) => getLongFlag(o.flags) === noVariant);
+		if (hasVariant) {
+			return `--[no-]${flag.slice(2)}`;
+		}
+
+		return option.flags;
+	}
 };
 
 function formatDescription(arg: Option | Argument): string {
