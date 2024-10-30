@@ -298,7 +298,7 @@ export default defineAdder({
 				}
 				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
 					const sessionType =
-						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
+						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSessionToken>>;';
 					ms.append(`\n\n${sessionType}`);
 				}
 				if (!ms.original.includes('async function invalidateSession')) {
