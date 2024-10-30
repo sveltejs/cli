@@ -255,18 +255,8 @@ export default defineAdder({
 						}`;
 					ms.append(`\n\n${createSession}`);
 				}
-				if (!ms.original.includes('async function invalidateSession')) {
-					const invalidateSession = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {string} sessionId')}
-						${ts('', ' */')}
-						export async function invalidateSession(sessionId${ts(': string')}) {
-							await db.delete(table.session).where(eq(table.session.id, sessionId));
-						}`;
-					ms.append(`\n\n${invalidateSession}`);
-				}
 				if (!ms.original.includes('async function validateSession')) {
-					const validateSession = dedent`					
+					const validateSessionToken = dedent`					
 						${ts('', '/** @param {string} token */')}
 						export async function validateSessionToken(token${ts(': string')}) {
 							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
@@ -302,7 +292,7 @@ export default defineAdder({
 	
 							return { session, user };
 						}`;
-					ms.append(`\n\n${validateSession}`);
+					ms.append(`\n\n${validateSessionToken}`);
 				}
 				if (!ms.original.includes('async function invalidateSession')) {
 					const invalidateSession = dedent`					
@@ -315,7 +305,7 @@ export default defineAdder({
 					ms.append(`\n\n${invalidateSession}`);
 				}
 				if (typescript && !ms.original.includes('export function setSessionTokenCookie')) {
-					const invalidateSession = dedent`					
+					const setSessionTokenCookie = dedent`					
 						${ts('', '/**')}
 						${ts('', ' * @param {import("@sveltejs/kit").RequestEvent} event')}
 						${ts('', ' * @param {string} token')}
@@ -327,10 +317,10 @@ export default defineAdder({
 								path: '/'
 							});
 						}`;
-					ms.append(`\n\n${invalidateSession}`);
+					ms.append(`\n\n${setSessionTokenCookie}`);
 				}
 				if (typescript && !ms.original.includes('export function deleteSessionTokenCookie')) {
-					const invalidateSession = dedent`					
+					const deleteSessionTokenCookie = dedent`					
 						${ts('', '/**')}
 						${ts('', ' * @param {import("@sveltejs/kit").RequestEvent} event')}
 						${ts('', ' * @param {string} token')}
@@ -342,7 +332,7 @@ export default defineAdder({
 								path: '/'
 							});
 						}`;
-					ms.append(`\n\n${invalidateSession}`);
+					ms.append(`\n\n${deleteSessionTokenCookie}`);
 				}
 				return ms.toString();
 			}
