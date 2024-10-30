@@ -365,7 +365,6 @@ export default defineAdder({
 			content: ({ content, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
 				imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
-				imports.addNamed(ast, '$app/environment', { dev: 'dev' });
 				kit.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
 				return generateCode();
 			}
@@ -394,7 +393,6 @@ export default defineAdder({
 					import { encodeBase32LowerCaseNoPadding } from '@oslojs/encoding';
 					import { fail, redirect } from '@sveltejs/kit';
 					import { eq } from 'drizzle-orm';
-					import { dev } from '$app/environment';
 					import * as auth from '$lib/server/auth';
 					import { db } from '$lib/server/db';
 					import * as table from '$lib/server/db/schema';
