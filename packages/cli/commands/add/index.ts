@@ -49,8 +49,8 @@ export const add = new Command('add')
 	.description('applies specified add-ons into a project')
 	.argument('[add-on...]', 'add-ons to install')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
-	.option('--no-install', 'skips installing dependencies')
-	.option('--no-preconditions', 'skips validating preconditions')
+	.option('--no-install', 'skip installing dependencies')
+	.option('--no-preconditions', 'skip validating preconditions')
 	//.option('--community [adder...]', 'community adders to install')
 	.configureHelp(common.helpConfig)
 	.action((adderArgs, opts) => {
@@ -545,10 +545,7 @@ async function runAdders({
 				if (workspace.packageManager === 'npm') args.unshift('--yes');
 
 				try {
-					const { stderr } = await exec(command, args, {
-						nodeOptions: { cwd: workspace.cwd, stdio: script.stdio }
-					});
-					if (stderr) throw new Error(stderr);
+					await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio: script.stdio } });
 				} catch (error) {
 					const typedError = error as Error;
 					throw new Error(

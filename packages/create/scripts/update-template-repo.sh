@@ -1,10 +1,17 @@
 #!/bin/bash
 
+set -e
+
 get_abs_filename() {
   # $1 : relative filename
   echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 }
 
+get_sv_version() {
+	pnpm -F sv exec node -p "require('./package.json').version"
+}
+
+VERSION=$(get_sv_version)
 DIR=$(get_abs_filename $(dirname "$0"))
 TMP=$(get_abs_filename "$DIR/../node_modules/.tmp")
 
@@ -29,8 +36,9 @@ if [ "$CI" ]; then
 	git config user.name '[bot]'
 fi
 
-# commit the new files
-git add -A
-git commit -m "version $npm_package_version"
-
-git push git@github.com:sveltejs/kit-template-default.git main -f
+# commit when there are new files
+if [[ `git status --porcelain` ]]; then
+	git add -A
+	git commit -m "version $VERSION"
+	git push git@github.com:sveltejs/kit-template-default.git main -f
+fi

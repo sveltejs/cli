@@ -33,7 +33,6 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 - `paraglide`
 - `playwright`
 - `prettier`
-- `routify`
 - `storybook`
 - `tailwindcss`
 - `vitest`
