@@ -63,9 +63,11 @@ const DEFAULT_INLANG_PROJECT = {
 
 export default defineAdder({
 	id: 'paraglide',
-	environments: { svelte: false, kit: true },
 	homepage: 'https://inlang.com',
 	options,
+	setup: ({ kit, unavailable }) => {
+		if (!kit) unavailable();
+	},
 	run: ({ sv, cwd, options, typescript, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) throw new Error('SvelteKit is required');

@@ -50,7 +50,6 @@ export const options = defineAdderOptions({
 export default defineAdder({
 	id: 'tailwindcss',
 	alias: 'tailwind',
-	environments: { svelte: true, kit: true },
 	homepage: 'https://tailwindcss.com',
 	options,
 	run: ({ sv, options, typescript, kit, dependencyVersion }) => {

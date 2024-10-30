@@ -65,9 +65,11 @@ export const options = defineAdderOptions({
 
 export default defineAdder({
 	id: 'drizzle',
-	environments: { svelte: false, kit: true },
 	homepage: 'https://orm.drizzle.team',
 	options,
+	setup: ({ kit, unavailable }) => {
+		if (!kit) unavailable();
+	},
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 

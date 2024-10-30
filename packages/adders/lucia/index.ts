@@ -43,12 +43,11 @@ export const options = defineAdderOptions({
 
 export default defineAdder({
 	id: 'lucia',
-	environments: { svelte: false, kit: true },
 	homepage: 'https://lucia-auth.com',
 	options,
-	dependsOn: ({ dependencyVersion }) => {
-		if (dependencyVersion('drizzle-orm')) return [];
-		return ['drizzle'];
+	setup: ({ kit, dependencyVersion, unavailable, dependsOn }) => {
+		if (!kit) unavailable();
+		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
 	},
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';

@@ -6,7 +6,6 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAdder({
 	id: 'playwright',
-	environments: { svelte: true, kit: true },
 	homepage: 'https://playwright.dev',
 	options: {},
 	run: ({ sv, cwd, typescript }) => {

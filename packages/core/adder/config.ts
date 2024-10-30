@@ -6,11 +6,6 @@ export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
 
-export type Environments = {
-	svelte: boolean;
-	kit: boolean;
-};
-
 export type PackageDefinition<Args extends OptionDefinition> = {
 	name: string;
 	version: string;
@@ -35,10 +30,11 @@ export type SvApi = {
 export type Adder<Args extends OptionDefinition> = {
 	id: string;
 	alias?: string;
-	environments: Environments;
 	homepage?: string;
 	options: Args;
-	dependsOn?: (workspace: Workspace<Args>) => string[];
+	setup?: (
+		workspace: Workspace<Args> & { dependsOn: (name: string) => void; unavailable: () => void }
+	) => MaybePromise<void>;
 	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
