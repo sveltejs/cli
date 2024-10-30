@@ -327,9 +327,8 @@ export default defineAdder({
 				if (!ms.original.includes('export function deleteSessionTokenCookie')) {
 					const deleteSessionTokenCookie = dedent`					
 						${ts('', '/** @param {import("@sveltejs/kit").RequestEvent} event */')}
-						export function deleteSessionTokenCookie(event${ts(': RequestEvent')}, token${ts(': string')}, expiresAt${ts(': Date')}) {
-							event.cookies.set(sessionCookieName, '', {
-								expires: expiresAt,
+						export function deleteSessionTokenCookie(event${ts(': RequestEvent')}) {
+							event.cookies.delete(sessionCookieName, {
 								path: '/'
 							});
 						}`;
