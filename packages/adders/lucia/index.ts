@@ -257,7 +257,7 @@ export default defineAdder({
 						}`;
 					ms.append(`\n\n${createSession}`);
 				}
-				if (!ms.original.includes('async function validateSession')) {
+				if (!ms.original.includes('async function validateSessionToken')) {
 					const validateSessionToken = dedent`					
 						${ts('', '/** @param {string} token */')}
 						export async function validateSessionToken(token${ts(': string')}) {
@@ -295,6 +295,11 @@ export default defineAdder({
 							return { session, user };
 						}`;
 					ms.append(`\n\n${validateSessionToken}`);
+				}
+				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
+					const sessionType =
+						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
+					ms.append(`\n\n${sessionType}`);
 				}
 				if (!ms.original.includes('async function invalidateSession')) {
 					const invalidateSession = dedent`					
