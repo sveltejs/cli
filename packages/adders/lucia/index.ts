@@ -304,7 +304,7 @@ export default defineAdder({
 				if (!ms.original.includes('async function invalidateSession')) {
 					const invalidateSession = dedent`					
 						${ts('', '/** @param {string} sessionId */')}
-						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
+						export async function invalidateSession(sessionId${ts(': string')}) {
 							await db.delete(table.session).where(eq(table.session.id, sessionId));
 						}`;
 					ms.append(`\n\n${invalidateSession}`);
