@@ -230,9 +230,9 @@ export default defineAdder({
 				if (!ms.original.includes('export const sessionCookieName')) {
 					ms.append("\n\nexport const sessionCookieName = 'auth-session';");
 				}
-				if (!ms.original.includes('function generateSessionToken')) {
+				if (!ms.original.includes('export function generateSessionToken')) {
 					const generateSessionToken = dedent`					
-						function generateSessionToken() {
+						export function generateSessionToken() {
 							const bytes = crypto.getRandomValues(new Uint8Array(20));
 							const token = encodeBase32LowerCaseNoPadding(bytes);
 							return token;
