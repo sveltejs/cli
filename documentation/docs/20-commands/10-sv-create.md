@@ -2,7 +2,7 @@
 title: sv create
 ---
 
-`sv create` sets up a new SvelteKit project, with options to [setup additional functionality](sv-add#Official-integrations).
+`sv create` sets up a new SvelteKit project, with options to [setup additional functionality](sv-add#Official-add-ons).
 
 ## Usage
 
@@ -12,16 +12,6 @@ npx sv create [options] [path]
 
 ## Options
 
-<!-- TODO this flag should probably just be '--types', and the options should be 'ts' or 'jsdoc' -->
-
-### `--check-types <option>`
-
-Whether and how to add typechecking to the project:
-
-- `typescript` — default to `.ts` files and use `lang="ts"` for `.svelte` components
-- `checkjs` — use [JSDoc syntax](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) for types
-- `none` — no typechecking. Not recommended!
-
 ### `--template <name>`
 
 Which project template to use:
@@ -29,6 +19,17 @@ Which project template to use:
 - `minimal` — barebones scaffolding for your new app
 - `demo` — showcase app with a word guessing game that works without JavaScript
 - `library` — template for a Svelte library, set up with `svelte-package`
+
+### `--types <option>`
+
+Whether and how to add typechecking to the project:
+
+- `ts` — default to `.ts` files and use `lang="ts"` for `.svelte` components
+- `jsdoc` — use [JSDoc syntax](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) for types
+
+### `--no-types`
+
+Prevent typechecking from being added. Not recommended!
 
 ### `--no-integrations`
 
