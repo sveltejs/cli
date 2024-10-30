@@ -15,16 +15,24 @@ import * as common from '../common.js';
 import { runAddCommand } from './add/index.ts';
 import { detectSync, type AgentName } from 'package-manager-detector';
 
-const langs = ['typescript', 'checkjs', 'none'] as const;
+const langs = ['ts', 'jsdoc'] as const;
+const langMap: Record<string, LanguageType | undefined> = {
+	ts: 'typescript',
+	jsdoc: 'checkjs',
+	false: 'none'
+};
 const templateChoices = templates.map((t) => t.name);
-const langOption = new Option('--check-types <lang>', 'add type checking').choices(langs);
+const langOption = new Option('--types <lang>', 'add type checking').choices(langs);
 const templateOption = new Option('--template <type>', 'template to scaffold').choices(
 	templateChoices
 );
 
 const ProjectPathSchema = v.string();
 const OptionsSchema = v.strictObject({
-	checkTypes: v.optional(v.picklist(langs)),
+	types: v.pipe(
+		v.optional(v.union([v.picklist(langs), v.boolean()])),
+		v.transform((lang) => langMap[String(lang)])
+	),
 	integrations: v.boolean(),
 	install: v.boolean(),
 	template: v.optional(v.picklist(templateChoices))
@@ -34,10 +42,11 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
 	.argument('[path]', 'where the project will be created', process.cwd())
-	.addOption(langOption)
 	.addOption(templateOption)
-	.option('--no-integrations', 'skips interactive integration installer')
-	.option('--no-install', 'skips installing dependencies')
+	.addOption(langOption)
+	.option('--no-types')
+	.option('--no-integrations', 'skip interactive integration installer')
+	.option('--no-install', 'skip installing dependencies')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
@@ -113,7 +122,7 @@ async function createProject(cwd: string, options: Options) {
 				});
 			},
 			language: () => {
-				if (options.checkTypes) return Promise.resolve(options.checkTypes);
+				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
 					message: 'Add type checking with Typescript?',
 					initialValue: 'typescript',

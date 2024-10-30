@@ -1,6 +1,6 @@
 import { defineAdder, defineAdderOptions } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
-import { array, common, exports, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { array, common, exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
@@ -74,7 +74,7 @@ export default defineAdder({
 			const rootExport = object.createEmpty();
 			if (typescript) {
 				imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
-				root = common.typeAnnotateExpression(rootExport, 'Config');
+				root = common.satisfiesExpression(rootExport, 'Config');
 			}
 
 			const { astNode: exportDeclaration, value: node } = exports.defaultExport(
@@ -82,9 +82,10 @@ export default defineAdder({
 				root ?? rootExport
 			);
 
-			const config = (
-				node.type === 'TSAsExpression' ? node.expression : node
-			) as AstTypes.ObjectExpression;
+			const config = node.type === 'TSSatisfiesExpression' ? node.expression : node;
+			if (config.type !== 'ObjectExpression') {
+				throw new Error(`Unexpected tailwind config shape: ${config.type}`);
+			}
 
 			if (!typescript) {
 				common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");

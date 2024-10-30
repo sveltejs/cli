@@ -83,7 +83,7 @@ export default defineAdder({
 				const importSpecifier = defineConfigImportDecl?.specifiers?.find(
 					(sp) => sp.type === 'ImportSpecifier' && sp.imported.name === 'defineConfig'
 				);
-				const defineConfigAlias = importSpecifier?.local?.name ?? 'defineConfig';
+				const defineConfigAlias = (importSpecifier?.local?.name ?? 'defineConfig') as string;
 				imports.addNamed(ast, 'vitest/config', { defineConfig: defineConfigAlias });
 
 				object.properties(defaultExport.value.arguments[0], { test });

@@ -25,7 +25,7 @@
 	},
 	"devDependencies": {
 		"@babel/parser": "^7.24.7",
-		"ast-types": "^0.14.2",
+		"ast-types": "^0.16.1",
 		"dom-serializer": "^2.0.0",
 		"domhandler": "^5.0.3",
 		"domutils": "^3.1.0",
