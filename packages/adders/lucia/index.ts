@@ -304,7 +304,7 @@ export default defineAdder({
 						}`;
 					ms.append(`\n\n${invalidateSession}`);
 				}
-				if (typescript && !ms.original.includes('export function setSessionTokenCookie')) {
+				if (!ms.original.includes('export function setSessionTokenCookie')) {
 					const setSessionTokenCookie = dedent`					
 						${ts('', '/**')}
 						${ts('', ' * @param {import("@sveltejs/kit").RequestEvent} event')}
@@ -319,7 +319,7 @@ export default defineAdder({
 						}`;
 					ms.append(`\n\n${setSessionTokenCookie}`);
 				}
-				if (typescript && !ms.original.includes('export function deleteSessionTokenCookie')) {
+				if (!ms.original.includes('export function deleteSessionTokenCookie')) {
 					const deleteSessionTokenCookie = dedent`					
 						${ts('', '/** @param {import("@sveltejs/kit").RequestEvent} event */')}
 						export function deleteSessionTokenCookie(event${ts(': RequestEvent')}, token${ts(': string')}, expiresAt${ts(': Date')}) {
