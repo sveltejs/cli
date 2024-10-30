@@ -31,9 +31,7 @@ Whether and how to add typechecking to the project:
 
 Prevent typechecking from being added. Not recommended!
 
-### `--no-integrations`
-
-<!-- TODO should be renamed to `--no-addons` -->
+### `--no-add-ons`
 
 Run the command without the interactive add-ons prompt
 

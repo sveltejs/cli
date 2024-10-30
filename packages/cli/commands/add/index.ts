@@ -46,8 +46,8 @@ const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 
 export const add = new Command('add')
-	.description('applies specified integrations into a project')
-	.argument('[integration...]', 'integrations to install')
+	.description('applies specified add-ons into a project')
+	.argument('[add-on...]', 'add-ons to install')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skip installing dependencies')
 	.option('--no-preconditions', 'skip validating preconditions')
@@ -317,7 +317,7 @@ export async function runAddCommand(
 
 			// prompt to install the dependent
 			const install = await p.confirm({
-				message: `The ${pc.bold(pc.cyan(adder.id))} integration requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
+				message: `The ${pc.bold(pc.cyan(adder.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
 			});
 			if (install !== true) {
 				p.cancel('Operation cancelled.');
@@ -430,7 +430,7 @@ export async function runAddCommand(
 
 	// apply adders
 	const filesToFormat = await runAdders({ cwd: options.cwd, packageManager, official, community });
-	p.log.success('Successfully setup integrations');
+	p.log.success('Successfully setup add-ons');
 
 	// install dependencies
 	if (packageManager && options.install) {
@@ -589,7 +589,7 @@ function getAdderOptionFlags(): Option[] {
 		const preset = defaults.join(', ') || 'none';
 		const option = new Option(
 			`--${id} [options...]`,
-			`${id} integration options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
+			`${id} add-on options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
 		)
 			// presets are applied when `--adder` is specified with no options
 			.preset(preset)
