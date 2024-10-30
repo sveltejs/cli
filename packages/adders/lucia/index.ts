@@ -240,9 +240,11 @@ export default defineAdder({
 					ms.append(`\n\n${generateSessionToken}`);
 				}
 				if (!ms.original.includes('async function createSession')) {
-					const createSession = dedent`					
-						${ts('', '/** @param {string} token */')}
-						${ts('', '/** @param {string} userId */')}
+					const createSession = dedent`
+						${ts('', '/**')}
+						${ts('', ' * @param {string} token')}
+						${ts('', ' * @param {string} userId')}
+						${ts('', ' */')}
 						export async function createSession(token${ts(': string')}, userId${ts(': string')}) {
 							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 							const session${ts(': table.Session')} = {
@@ -296,9 +298,7 @@ export default defineAdder({
 				}
 				if (!ms.original.includes('async function invalidateSession')) {
 					const invalidateSession = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {string} sessionId')}
-						${ts('', ' */')}
+						${ts('', '/** @param {string} sessionId */')}
 						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
 							await db.delete(table.session).where(eq(table.session.id, sessionId));
 						}`;
@@ -321,11 +321,7 @@ export default defineAdder({
 				}
 				if (typescript && !ms.original.includes('export function deleteSessionTokenCookie')) {
 					const deleteSessionTokenCookie = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {import("@sveltejs/kit").RequestEvent} event')}
-						${ts('', ' * @param {string} token')}
-						${ts('', ' * @param {Date} expiresAt')}
-						${ts('', ' */')}
+						${ts('', '/** @param {import("@sveltejs/kit").RequestEvent} event */')}
 						export function deleteSessionTokenCookie(event${ts(': RequestEvent')}, token${ts(': string')}, expiresAt${ts(': Date')}) {
 							event.cookies.set(sessionCookieName, '', {
 								expires: expiresAt,
