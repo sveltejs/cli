@@ -212,11 +212,14 @@ export default defineAdder({
 				imports.addNamespace(ast, '$lib/server/db/schema', 'table');
 				imports.addNamed(ast, '$lib/server/db', { db: 'db' });
 				imports.addNamed(ast, '@oslojs/encoding', {
-					encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',
+					encodeBase64url: 'encodeBase64url',
 					encodeHexLowerCase: 'encodeHexLowerCase'
 				});
 				imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
 				imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
+				if (typescript) {
+					imports.addNamed(ast, '@sveltejs/kit', { RequestEvent: 'RequestEvent' }, true);
+				}
 
 				const ms = new MagicString(generateCode().trim());
 				const [ts] = utils.createPrinter(typescript);
@@ -227,21 +230,22 @@ export default defineAdder({
 				if (!ms.original.includes('export const sessionCookieName')) {
 					ms.append("\n\nexport const sessionCookieName = 'auth-session';");
 				}
-				if (!ms.original.includes('function generateSessionToken')) {
+				if (!ms.original.includes('export function generateSessionToken')) {
 					const generateSessionToken = dedent`					
-						${ts('', '/** @returns {string} */')}
-						function generateSessionToken()${ts(': string')} {
-							const bytes = crypto.getRandomValues(new Uint8Array(20));
-							const token = encodeBase32LowerCaseNoPadding(bytes);
+						export function generateSessionToken() {
+							const bytes = crypto.getRandomValues(new Uint8Array(18));
+							const token = encodeBase64url(bytes);
 							return token;
 						}`;
 					ms.append(`\n\n${generateSessionToken}`);
 				}
 				if (!ms.original.includes('async function createSession')) {
-					const createSession = dedent`					
-						${ts('', '/** @param {string} userId */')}
-						export async function createSession(userId${ts(': string')})${ts(': Promise<table.Session>')} {
-							const token = generateSessionToken();
+					const createSession = dedent`
+						${ts('', '/**')}
+						${ts('', ' * @param {string} token')}
+						${ts('', ' * @param {string} userId')}
+						${ts('', ' */')}
+						export async function createSession(token${ts(': string')}, userId${ts(': string')}) {
 							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 							const session${ts(': table.Session')} = {
 								id: sessionId,
@@ -253,21 +257,11 @@ export default defineAdder({
 						}`;
 					ms.append(`\n\n${createSession}`);
 				}
-				if (!ms.original.includes('async function invalidateSession')) {
-					const invalidateSession = dedent`					
-						${ts('', '/**')}
-						${ts('', ' * @param {string} sessionId')}
-						${ts('', ' * @returns {Promise<void>}')}
-						${ts('', ' */')}
-						export async function invalidateSession(sessionId${ts(': string')})${ts(': Promise<void>')} {
-							await db.delete(table.session).where(eq(table.session.id, sessionId));
-						}`;
-					ms.append(`\n\n${invalidateSession}`);
-				}
-				if (!ms.original.includes('async function validateSession')) {
-					const validateSession = dedent`					
-						${ts('', '/** @param {string} sessionId */')}
-						export async function validateSession(sessionId${ts(': string')}) {
+				if (!ms.original.includes('async function validateSessionToken')) {
+					const validateSessionToken = dedent`					
+						${ts('', '/** @param {string} token */')}
+						export async function validateSessionToken(token${ts(': string')}) {
+							const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 							const [result] = await db
 								.select({
 									// Adjust user table here to tweak returned data
@@ -300,14 +294,46 @@ export default defineAdder({
 	
 							return { session, user };
 						}`;
-					ms.append(`\n\n${validateSession}`);
+					ms.append(`\n\n${validateSessionToken}`);
 				}
 				if (typescript && !ms.original.includes('export type SessionValidationResult')) {
 					const sessionType =
-						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSession>>;';
+						'export type SessionValidationResult = Awaited<ReturnType<typeof validateSessionToken>>;';
 					ms.append(`\n\n${sessionType}`);
 				}
-
+				if (!ms.original.includes('async function invalidateSession')) {
+					const invalidateSession = dedent`					
+						${ts('', '/** @param {string} sessionId */')}
+						export async function invalidateSession(sessionId${ts(': string')}) {
+							await db.delete(table.session).where(eq(table.session.id, sessionId));
+						}`;
+					ms.append(`\n\n${invalidateSession}`);
+				}
+				if (!ms.original.includes('export function setSessionTokenCookie')) {
+					const setSessionTokenCookie = dedent`					
+						${ts('', '/**')}
+						${ts('', ' * @param {import("@sveltejs/kit").RequestEvent} event')}
+						${ts('', ' * @param {string} token')}
+						${ts('', ' * @param {Date} expiresAt')}
+						${ts('', ' */')}
+						export function setSessionTokenCookie(event${ts(': RequestEvent')}, token${ts(': string')}, expiresAt${ts(': Date')}) {
+							event.cookies.set(sessionCookieName, token, {
+								expires: expiresAt,
+								path: '/'
+							});
+						}`;
+					ms.append(`\n\n${setSessionTokenCookie}`);
+				}
+				if (!ms.original.includes('export function deleteSessionTokenCookie')) {
+					const deleteSessionTokenCookie = dedent`					
+						${ts('', '/** @param {import("@sveltejs/kit").RequestEvent} event */')}
+						export function deleteSessionTokenCookie(event${ts(': RequestEvent')}) {
+							event.cookies.delete(sessionCookieName, {
+								path: '/'
+							});
+						}`;
+					ms.append(`\n\n${deleteSessionTokenCookie}`);
+				}
 				return ms.toString();
 			}
 		},
@@ -339,7 +365,6 @@ export default defineAdder({
 			content: ({ content, typescript }) => {
 				const { ast, generateCode } = parseScript(content);
 				imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
-				imports.addNamed(ast, '$app/environment', { dev: 'dev' });
 				kit.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
 				return generateCode();
 			}
@@ -365,10 +390,9 @@ export default defineAdder({
 				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { hash, verify } from '@node-rs/argon2';
-					import { generateRandomString } from '@oslojs/crypto/random';
+					import { encodeBase64url } from '@oslojs/encoding';
 					import { fail, redirect } from '@sveltejs/kit';
 					import { eq } from 'drizzle-orm';
-					import { dev } from '$app/environment';
 					import * as auth from '$lib/server/auth';
 					import { db } from '$lib/server/db';
 					import * as table from '$lib/server/db/schema';
@@ -413,14 +437,9 @@ export default defineAdder({
 								return fail(400, { message: 'Incorrect username or password' });
 							}
 
-							const session = await auth.createSession(existingUser.id);
-							event.cookies.set(auth.sessionCookieName, session.id, {
-								path: '/',
-								sameSite: 'lax',
-								httpOnly: true,
-								expires: session.expiresAt,
-								secure: !dev
-							});
+							const sessionToken = auth.generateSessionToken();
+							const session = await auth.createSession(sessionToken, existingUser.id);
+							auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
 							return redirect(302, '/demo/lucia');
 						},
@@ -448,14 +467,9 @@ export default defineAdder({
 							try {
 								await db.insert(table.user).values({ id: userId, username, passwordHash });
 
-								const session = await auth.createSession(userId);
-								event.cookies.set(auth.sessionCookieName, session.id, {
-									path: '/',
-									sameSite: 'lax',
-									httpOnly: true,
-									expires: session.expiresAt,
-									secure: !dev
-								});
+								const sessionToken = auth.generateSessionToken();
+								const session = await auth.createSession(sessionToken, userId);
+								auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 							} catch (e) {
 								return fail(500, { message: 'An error has occurred' });
 							}
@@ -463,10 +477,11 @@ export default defineAdder({
 						},
 					};
 
-					const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
-
-					function generateUserId(length = 21)${ts(': string')} {
-						return generateRandomString({ read: (bytes) => crypto.getRandomValues(bytes) }, alphabet, length);
+					function generateUserId() {
+						// ID with 120 bits of entropy, or about the same as UUID v4.
+						const bytes = crypto.getRandomValues(new Uint8Array(15));
+						const id = encodeBase64url(bytes);
+						return id;
 					}
 
 					function validateUsername(username${ts(': unknown')})${ts(': username is string')} {
@@ -554,7 +569,7 @@ export default defineAdder({
 								return fail(401);
 							}
 							await auth.invalidateSession(event.locals.session.id);
-							event.cookies.delete(auth.sessionCookieName, { path: '/' });
+							auth.deleteSessionTokenCookie(event);
 
 							return redirect(302, '/demo/lucia/login');
 						},
@@ -636,24 +651,18 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 function getAuthHandleContent() {
 	return `
 		async ({ event, resolve }) => {
-			const sessionId = event.cookies.get(auth.sessionCookieName);
-			if (!sessionId) {
+			const sessionToken = event.cookies.get(auth.sessionCookieName);
+			if (!sessionToken) {
 				event.locals.user = null;
 				event.locals.session = null;
 				return resolve(event);
 			}
 
-			const { session, user } = await auth.validateSession(sessionId);
+			const { session, user } = await auth.validateSessionToken(sessionToken);
 			if (session) {
-				event.cookies.set(auth.sessionCookieName, session.id, {
-					path: '/',
-					sameSite: 'lax',
-					httpOnly: true,
-					expires: session.expiresAt,
-					secure: !dev
-				});
+				auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 			} else {
-				event.cookies.delete(auth.sessionCookieName, { path: '/' });
+				auth.deleteSessionTokenCookie(event);
 			}
 
 			event.locals.user = user;
