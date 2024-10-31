@@ -1,5 +1,20 @@
 # sv
 
+## 0.6.0
+### Minor Changes
+
+
+- chore: remove routify ([#252](https://github.com/sveltejs/cli/pull/252))
+
+
+- feat: rename `--check-types <typescript|checkjs|none>` to `--types <ts|js>` with a `--no-types` flag ([#249](https://github.com/sveltejs/cli/pull/249))
+
+
+### Patch Changes
+
+
+- fix: update lucia add-on ([#254](https://github.com/sveltejs/cli/pull/254))
+
 ## 0.5.11
 ### Patch Changes
 
