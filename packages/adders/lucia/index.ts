@@ -212,7 +212,7 @@ export default defineAdder({
 				imports.addNamespace(ast, '$lib/server/db/schema', 'table');
 				imports.addNamed(ast, '$lib/server/db', { db: 'db' });
 				imports.addNamed(ast, '@oslojs/encoding', {
-					encodeBase32LowerCaseNoPadding: 'encodeBase32LowerCaseNoPadding',
+					encodeBase64url: 'encodeBase64url',
 					encodeHexLowerCase: 'encodeHexLowerCase'
 				});
 				imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
@@ -233,8 +233,8 @@ export default defineAdder({
 				if (!ms.original.includes('export function generateSessionToken')) {
 					const generateSessionToken = dedent`					
 						export function generateSessionToken() {
-							const bytes = crypto.getRandomValues(new Uint8Array(20));
-							const token = encodeBase32LowerCaseNoPadding(bytes);
+							const bytes = crypto.getRandomValues(new Uint8Array(18));
+							const token = encodeBase64url(bytes);
 							return token;
 						}`;
 					ms.append(`\n\n${generateSessionToken}`);
@@ -390,7 +390,7 @@ export default defineAdder({
 				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { hash, verify } from '@node-rs/argon2';
-					import { encodeBase32LowerCaseNoPadding } from '@oslojs/encoding';
+					import { encodeBase64url } from '@oslojs/encoding';
 					import { fail, redirect } from '@sveltejs/kit';
 					import { eq } from 'drizzle-orm';
 					import * as auth from '$lib/server/auth';
@@ -480,7 +480,7 @@ export default defineAdder({
 					function generateUserId() {
 						// ID with 120 bits of entropy, or about the same as UUID v4.
 						const bytes = crypto.getRandomValues(new Uint8Array(15));
-						const id = encodeBase32LowerCaseNoPadding(bytes);
+						const id = encodeBase64url(bytes);
 						return id;
 					}
 
