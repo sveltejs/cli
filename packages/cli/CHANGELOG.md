@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.1
+### Patch Changes
+
+
+- fix: use base32 IDs in lucia add-on ([#262](https://github.com/sveltejs/cli/pull/262))
+
 ## 0.6.0
 ### Minor Changes
 
