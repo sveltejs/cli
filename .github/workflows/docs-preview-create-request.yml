@@ -19,8 +19,8 @@ jobs:
           client-payload: |-
             {
               "package": "cli",
-              "owner": ${{ github.event.pull_request.user }},
-              "branch": ${{ github.ref_name }},
-              "repo": ${{ github.repository }},
+              "repo": "${{ github.repository }}",
+              "owner": "${{ github.event.pull_request.head.repo.owner.login }}",
+              "branch": ${{ github.event.pull_request.head.ref }},
               "pr": ${{ github.event.pull_request.number }}
             }
