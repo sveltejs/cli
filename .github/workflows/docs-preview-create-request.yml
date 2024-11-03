@@ -21,6 +21,6 @@ jobs:
               "package": "cli",
               "repo": "${{ github.repository }}",
               "owner": "${{ github.event.pull_request.head.repo.owner.login }}",
-              "branch": ${{ github.event.pull_request.head.ref }},
+              "branch": "${{ github.event.pull_request.head.ref }}",
               "pr": ${{ github.event.pull_request.number }}
             }
