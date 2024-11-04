@@ -21,12 +21,14 @@ export function createOrUpdateFiles<Args extends OptionDefinition>(
 			let content = exists ? readFile(workspace.cwd, fileDetails.name(workspace)) : '';
 			// process file
 			content = fileDetails.content({ content, ...workspace });
+			if (!content) continue;
 
 			writeFile(workspace, fileDetails.name(workspace), content);
 			changedFiles.push(fileDetails.name(workspace));
 		} catch (e) {
-			if (e instanceof Error)
+			if (e instanceof Error) {
 				throw new Error(`Unable to process '${fileDetails.name(workspace)}'. Reason: ${e.message}`);
+			}
 			throw e;
 		}
 	}
