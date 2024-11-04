@@ -6,9 +6,7 @@
 	"type": "module",
 	"exports": "./src/index.js",
 	"keywords": [
-		"sv-adder",
-		"sv-add",
-		"sv-integration",
+		"svelte-add-on",
 		"sv"
 	],
 	"scripts": {

@@ -1,5 +1,26 @@
 # sv
 
+## 0.6.1
+### Patch Changes
+
+
+- fix: use base32 IDs in lucia add-on ([#262](https://github.com/sveltejs/cli/pull/262))
+
+## 0.6.0
+### Minor Changes
+
+
+- chore: remove routify ([#252](https://github.com/sveltejs/cli/pull/252))
+
+
+- feat: rename `--check-types <typescript|checkjs|none>` to `--types <ts|js>` with a `--no-types` flag ([#249](https://github.com/sveltejs/cli/pull/249))
+
+
+### Patch Changes
+
+
+- fix: update lucia add-on ([#254](https://github.com/sveltejs/cli/pull/254))
+
 ## 0.5.11
 ### Patch Changes
 
@@ -112,7 +133,7 @@
 - fix: improve formatting on new script files ([#96](https://github.com/sveltejs/cli/pull/96))
 
 
-- fix: dont check preconditions if no integration selected ([#125](https://github.com/sveltejs/cli/pull/125))
+- fix: dont check preconditions if no add-on selected ([#125](https://github.com/sveltejs/cli/pull/125))
 
 
 - feat: improved homescreen for adding or creating projects ([#112](https://github.com/sveltejs/cli/pull/112))
@@ -127,4 +148,4 @@
 ### Patch Changes
 
 
-- feat: paraglide integration ([#67](https://github.com/sveltejs/cli/pull/67))
+- feat: paraglide add-on ([#67](https://github.com/sveltejs/cli/pull/67))

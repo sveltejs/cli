@@ -46,7 +46,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Update Template Repo
-        if: steps.changesets.outputs.published
+        if: steps.changesets.outputs.published == 'true'
         run: pnpm -F @sveltejs/create update-template-repo
         env:
           UPDATE_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_TEMPLATE_SSH_KEY }}
