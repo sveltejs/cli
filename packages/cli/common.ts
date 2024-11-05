@@ -6,7 +6,7 @@ import * as p from '@sveltejs/clack-prompts';
 import { AGENTS, type AgentName, detectSync } from 'package-manager-detector';
 import { COMMANDS, constructCommand, resolveCommand } from 'package-manager-detector/commands';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
+import type { AdderSetupResult, AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -142,7 +142,8 @@ type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
 	cwd: string,
 	projectType: 'svelte' | 'kit',
-	adders: AdderWithoutExplicitArgs[]
+	adders: AdderWithoutExplicitArgs[],
+	adderSetupResults: Record<string, AdderSetupResult>
 ): PreconditionCheck {
 	return {
 		name: 'global checks',
@@ -173,11 +174,7 @@ export function getGlobalPreconditions(
 				name: 'supported environments',
 				run: () => {
 					const addersForInvalidEnvironment = adders.filter((a) => {
-						const supportedEnvironments = a.environments;
-						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
-						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
-
-						return false;
+						return !adderSetupResults[a.id].available;
 					});
 
 					if (addersForInvalidEnvironment.length === 0) {

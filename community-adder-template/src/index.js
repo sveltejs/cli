@@ -12,8 +12,10 @@ export const options = defineAdderOptions({
 
 export const adder = defineAdder({
 	id: 'community-adder-template',
-	environments: { kit: true, svelte: true },
 	options,
+	setup: ({ kit, unavailable }) => {
+		if (!kit) unavailable();
+	},
 	run: ({ sv }) => {
 		sv.file('adder-template-demo.txt', (content) => {
 			if (options.demo) {

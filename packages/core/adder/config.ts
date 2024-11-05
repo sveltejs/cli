@@ -55,6 +55,8 @@ export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>):
 	return config;
 }
 
+export type AdderSetupResult = { dependsOn: string[]; available: boolean };
+
 export type AdderWithoutExplicitArgs = Adder<Record<string, Question>>;
 export type AdderConfigWithoutExplicitArgs = Adder<Record<string, Question>>;
 

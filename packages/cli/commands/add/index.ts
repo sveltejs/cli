@@ -14,7 +14,12 @@ import {
 	communityAdderIds,
 	getCommunityAdder
 } from '@sveltejs/adders';
-import type { AdderWithoutExplicitArgs, OptionValues, SvApi } from '@sveltejs/cli-core';
+import type {
+	AdderSetupResult,
+	AdderWithoutExplicitArgs,
+	OptionValues,
+	SvApi
+} from '@sveltejs/cli-core';
 import * as common from '../../common.ts';
 import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
 import { createWorkspace } from './workspace.ts';
@@ -90,7 +95,10 @@ for (const option of addersOptions) {
 	add.addOption(option);
 }
 
-type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
+type SelectedAdder = {
+	type: 'official' | 'community';
+	adder: AdderWithoutExplicitArgs;
+};
 export async function runAddCommand(
 	options: Options,
 	selectedAdderIds: string[]
@@ -264,15 +272,29 @@ export async function runAddCommand(
 		}
 	}
 
+	// prepare official adders
+	let workspace = createWorkspace({ cwd: options.cwd });
+	const adderSetupResults: Record<AdderId, AdderSetupResult> = {};
+	for (const officialAdder of officialAdders) {
+		const setupResult: AdderSetupResult = {
+			available: true,
+			dependsOn: []
+		};
+		officialAdder.setup?.({
+			...workspace,
+			dependsOn: (name) => setupResult.dependsOn.push(name),
+			unavailable: () => (setupResult.available = false)
+		});
+		adderSetupResults[officialAdder.id] = setupResult;
+	}
+
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
-		const workspace = createWorkspace({ cwd: options.cwd });
-		const projectType = workspace.kit ? 'kit' : 'svelte';
 		const adderOptions = officialAdders
 			.map((adder) => {
 				// we'll only display adders within their respective project types
-				if (projectType === 'kit' && !adder.environments.kit) return;
-				if (projectType === 'svelte' && !adder.environments.svelte) return;
+				const adderSetupResult = adderSetupResults[adder.id];
+				if (!adderSetupResult.available) return;
 
 				return {
 					label: adder.id,
@@ -292,14 +314,17 @@ export async function runAddCommand(
 			process.exit(1);
 		}
 
-		selected.forEach((id) => selectedAdders.push({ type: 'official', adder: getAdderDetails(id) }));
+		selected.forEach((id) =>
+			selectedAdders.push({ type: 'official', adder: officialAdders.find((x) => x.id == id)! })
+		);
 	}
 
 	// add inter-adder dependencies
 	for (const { adder } of selectedAdders) {
-		const workspace = createWorkspace({ cwd: options.cwd });
+		workspace = createWorkspace({ cwd: options.cwd });
+		const adderSetupResult = adderSetupResults[adder.id];
 
-		const dependents = adder.dependsOn?.(workspace) ?? [];
+		const dependents = adderSetupResult.dependsOn;
 		const filteredDependents =
 			dependents.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
 
@@ -323,7 +348,12 @@ export async function runAddCommand(
 		const { kit } = createWorkspace({ cwd: options.cwd });
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
-		const { preconditions } = common.getGlobalPreconditions(options.cwd, projectType, adders);
+		const { preconditions } = common.getGlobalPreconditions(
+			options.cwd,
+			projectType,
+			adders,
+			adderSetupResults
+		);
 
 		const fails: Array<{ name: string; message?: string }> = [];
 		for (const condition of preconditions) {
@@ -419,7 +449,13 @@ export async function runAddCommand(
 	}
 
 	// apply adders
-	const filesToFormat = await runAdders({ cwd: options.cwd, packageManager, official, community });
+	const filesToFormat = await runAdders({
+		cwd: options.cwd,
+		packageManager,
+		official,
+		community,
+		adderSetupResults
+	});
 	p.log.success('Successfully setup add-ons');
 
 	// install dependencies
@@ -428,7 +464,7 @@ export async function runAddCommand(
 	}
 
 	// format modified/created files with prettier (if available)
-	const workspace = createWorkspace({ cwd: options.cwd, packageManager });
+	workspace = createWorkspace({ cwd: options.cwd, packageManager });
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
@@ -476,6 +512,7 @@ export type InstallAdderOptions = {
 	packageManager?: AgentName;
 	official?: AdderOption;
 	community?: AdderOption;
+	adderSetupResults: Record<AdderId, AdderSetupResult>;
 };
 
 /**
@@ -485,7 +522,8 @@ async function runAdders({
 	cwd,
 	official = {},
 	community = {},
-	packageManager
+	packageManager,
+	adderSetupResults = {}
 }: InstallAdderOptions): Promise<string[]> {
 	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
 	const commDetails = Object.keys(community).map(
@@ -497,10 +535,9 @@ async function runAdders({
 	// this orders the adders to (ideally) have adders without dependencies run first
 	// and adders with dependencies runs later on, based on the adders they depend on.
 	// based on https://stackoverflow.com/a/72030336/16075084
-	const workspace = createWorkspace({ cwd, packageManager });
 	details.sort((a, b) => {
-		const aDeps = a.dependsOn?.(workspace);
-		const bDeps = b.dependsOn?.(workspace);
+		const aDeps = adderSetupResults[a.id].dependsOn;
+		const bDeps = adderSetupResults[b.id].dependsOn;
 		if (!aDeps && !bDeps) return 0;
 		if (!aDeps) return -1;
 		if (!bDeps) return 1;
