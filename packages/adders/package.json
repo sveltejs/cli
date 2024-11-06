@@ -6,14 +6,10 @@
 	"scripts": {
 		"check": "tsc",
 		"format": "pnpm lint --write",
-		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"test": "vitest"
 	},
-	"exports": {
-		".": {
-			"types": "./index.ts",
-			"default": "./index.ts"
-		}
-	},
+	"exports": "./index.ts",
 	"dependencies": {
 		"@sveltejs/cli-core": "workspace:*"
 	}
