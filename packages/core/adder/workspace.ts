@@ -14,5 +14,7 @@ export type Workspace<Args extends OptionDefinition> = {
 	dependencyVersion: (pkg: string) => string | undefined;
 	typescript: boolean;
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
-	packageManager: 'npm' | 'yarn' | 'pnpm' | 'bun';
+	packageManager: PackageManager;
 };
+
+export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun';
