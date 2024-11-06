@@ -25,7 +25,7 @@ type Dialect = 'mysql' | 'postgresql' | 'sqlite';
 let drizzleDialect: Dialect;
 let schemaPath: string;
 
-export const options = defineAdderOptions({
+const options = defineAdderOptions({
 	demo: {
 		type: 'boolean',
 		default: true,
