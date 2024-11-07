@@ -7,6 +7,7 @@ import { getUserAgent } from '../common.ts';
 export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')
 	.argument('<migration>', 'migration to run')
+	.argument('[path]', 'component path or directory to migrate')
 	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
 	.configureHelp({
 		formatHelp() {
@@ -15,8 +16,11 @@ export const migrate = new Command('migrate')
 			return '';
 		}
 	})
-	.action((migration, options) => {
-		runMigrate(options.cwd, [migration]);
+	.action((migration, path, options) => {
+		const args = [migration];
+		if (path) args.push(path);
+
+		runMigrate(options.cwd, args);
 	});
 
 function runMigrate(cwd: string, args: string[]) {
