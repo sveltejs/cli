@@ -7,7 +7,6 @@ const ONE_MINUTE = 1000 * 60;
 export default defineConfig({
 	test: {
 		include: ['_tests/**/test.{js,ts}'],
-		exclude: ['_tests/{_setups,_fixtures}/**/*'],
 		testTimeout: ONE_MINUTE * 2,
 		hookTimeout: ONE_MINUTE * 3,
 		maxConcurrency: cpus().length,
