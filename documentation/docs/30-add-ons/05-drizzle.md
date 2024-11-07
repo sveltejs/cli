@@ -39,6 +39,8 @@ The sql client to use, depends on `database`:
 npx sv add --drizzle=postgresql,postgres.js
 ```
 
+Drizzle is compatible with well over a dozen database drivers. We just offer a few of the most common ones here for simplicity, but if you'd like to use another one you can choose one as a placeholder and swap it out for another after setup by choosing from [Drizzle's full list of compatible drivers](https://orm.drizzle.team/docs/connect-overview#next-steps).
+
 ### docker
 
 Whether to add docker compose configuration. Only available for [`database`](#Options-database) `postgresql` or `mysql`
