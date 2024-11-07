@@ -4,8 +4,6 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import degit from 'degit';
 import terminate from 'terminate';
 import { create } from '@sveltejs/create';
-import { resolveCommand } from 'package-manager-detector';
-import type { PackageManager } from '@sveltejs/cli-core';
 
 export type ProjectVariant = (typeof variants)[number];
 export const variants = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'] as const;
@@ -73,15 +71,14 @@ export function createProject({ cwd, testName, templatesDir }: CreateOptions): C
 	};
 }
 
-type PreviewOptions = { cwd: string; packageManager?: PackageManager };
-export async function startPreview({ cwd, packageManager = 'npm' }: PreviewOptions): Promise<{
+type PreviewOptions = { cwd: string; command?: string };
+export async function startPreview({ cwd, command = 'npm run preview' }: PreviewOptions): Promise<{
 	url: string;
 	server: ChildProcessWithoutNullStreams;
 	close: () => void;
 }> {
-	const { command, args } = resolveCommand(packageManager, 'run', ['preview'])!;
-
-	const process = spawn(command, args, { stdio: 'pipe', shell: true, cwd, timeout: 120_000 });
+	const [cmd, ...args] = command.split(' ');
+	const process = spawn(cmd, args, { stdio: 'pipe', shell: true, cwd, timeout: 120_000 });
 	const close = () => {
 		if (!process.pid) return;
 		terminate(process.pid);

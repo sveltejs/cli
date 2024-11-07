@@ -63,7 +63,7 @@ async function runAddon(workspace: Workspace<any>, addon: Addon): Promise<string
 		try {
 			const { args, command } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
 			if (workspace.packageManager === 'npm') args.unshift('--yes');
-			await exec(command, script.args, { nodeOptions: { cwd: workspace.cwd, stdio: 'pipe' } });
+			await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio: 'pipe' } });
 		} catch (error) {
 			const typedError = error as Error;
 			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);

@@ -68,22 +68,37 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 	return { test, variants, prepareServer };
 }
 
+type PrepareServerOptions = {
+	cwd: string;
+	page: Page;
+	previewCommand?: string;
+	buildCommand?: string;
+	installCommand?: string;
+};
 // installs dependencies, builds the project, and spins up the preview server
 async function prepareServer(
-	{ cwd, page }: { cwd: string; page: Page },
+	{
+		cwd,
+		page,
+		previewCommand = 'npm run preview',
+		buildCommand = 'npm run build',
+		installCommand = 'pnpm install'
+	}: PrepareServerOptions,
 	afterInstall?: () => Promise<any> | any
 ) {
 	// install deps
-	await exec('pnpm', ['i'], { nodeOptions: { cwd } });
+	const [installCmd, ...installArgs] = installCommand.split(' ');
+	await exec(installCmd, installArgs, { nodeOptions: { cwd } });
 
 	// ...do commands and any other extra stuff
 	await afterInstall?.();
 
 	// build project
-	await exec('npm', ['run', 'build'], { nodeOptions: { cwd } });
+	const [buildCmd, ...buildArgs] = buildCommand.split(' ');
+	await exec(buildCmd, buildArgs, { nodeOptions: { cwd } });
 
 	// start preview server `vite preview`
-	const { url, close } = await startPreview({ cwd });
+	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
 	// navigate to the page
 	await page.goto(url);
