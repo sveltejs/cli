@@ -5,6 +5,7 @@ import { parseSvelte } from '@sveltejs/cli-core/parsers';
 import { imports } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
 import { setupTest } from '../_setup/suite.ts';
+import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';
 
 const { test, variants, prepareServer } = setupTest({ mdsvex });
@@ -23,18 +24,6 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 	expect(await page.$('.mdsvex h2')).toBeTruthy();
 	expect(await page.$('.mdsvex p')).toBeTruthy();
 });
-
-const fixture = `
----
-title: Svex up your markdown
----
-
-# { title }
-
-## Good stuff in your markdown
-
-Markdown is pretty good but sometimes you just need more.
-`;
 
 function addFixture(cwd: string, variant: string) {
 	let page;
@@ -62,5 +51,5 @@ function addFixture(cwd: string, variant: string) {
 	});
 
 	fs.writeFileSync(page, content, 'utf8');
-	fs.writeFileSync(svx, fixture, 'utf8');
+	fs.writeFileSync(svx, svxFile, 'utf8');
 }
