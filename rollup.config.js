@@ -35,7 +35,7 @@ function getConfig(project) {
 			parsers: `${projectRoot}/tooling/parsers.ts`
 		};
 	} else if (project === 'cli') {
-		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/bin.ts`];
+		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/testing.ts`, `${projectRoot}/bin.ts`];
 	} else {
 		inputs = [`${projectRoot}/index.ts`];
 	}
@@ -107,7 +107,10 @@ function getConfig(project) {
 		external,
 		plugins: [
 			preserveShebangs(),
-			'exports' in pkg && dts({ include: project === 'cli' ? [inputs[0]] : undefined }),
+			'exports' in pkg &&
+				dts({
+					include: project === 'cli' ? [inputs[0], inputs[1], `${projectRoot}/lib/*`] : undefined
+				}),
 			esbuild(),
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),
