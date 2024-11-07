@@ -4,8 +4,7 @@ import eslint from '../../eslint/index.ts';
 
 const { test, variants, prepareServer } = setupTest({ eslint });
 
-const kitOnly = variants.filter((v) => v.includes('kit'));
-test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
+test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { eslint: {} });
 
 	const { close } = await prepareServer({ cwd, page });
