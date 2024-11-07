@@ -4,7 +4,7 @@ import { expect } from '@playwright/test';
 import { parseSvelte } from '@sveltejs/cli-core/parsers';
 import { imports } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
-import { setupTest } from '../_setup/setup.ts';
+import { setupTest } from '../_setup/suite.ts';
 import mdsvex from '../../mdsvex/index.ts';
 
 const { test, variants, prepareServer } = setupTest({ mdsvex });

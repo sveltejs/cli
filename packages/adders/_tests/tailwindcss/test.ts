@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/setup.ts';
+import { setupTest } from '../_setup/suite.ts';
 import tailwindcss from '../../tailwindcss/index.ts';
 
 const { test, variants, prepareServer } = setupTest({ tailwindcss });

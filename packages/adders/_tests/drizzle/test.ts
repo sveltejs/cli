@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import * as vi from 'vitest';
 import { expect } from '@playwright/test';
 import { exec } from 'tinyexec';
-import { setupTest } from '../_setup/setup.ts';
+import { setupTest } from '../_setup/suite.ts';
 import drizzle from '../../drizzle/index.ts';
 import { pageServer, pageComp } from './fixtures.ts';
 

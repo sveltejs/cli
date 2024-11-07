@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { expect } from '@playwright/test';
-import { fixture, setupTest } from './setup/index.js';
+import { fixture, setupTest } from './setup/suite.js';
 import addon from '../src/index.js';
 
 const id = addon.id;

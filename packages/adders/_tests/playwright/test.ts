@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/setup.ts';
+import { setupTest } from '../_setup/suite.ts';
 import playwright from '../../playwright/index.ts';
 
 const { test, variants, prepareServer } = setupTest({ playwright });
