@@ -17,8 +17,6 @@ test.concurrent.for(variants)('storybook loaded - %s', async (variant, { page, .
 	// kill server process when we're done
 	ctx.onTestFinished(() => close());
 
-	await page.goto(`http://localhost:${port}`);
-
 	expect(await page.$('main .sb-bar')).toBeTruthy();
 	expect(await page.$('#storybook-preview-wrapper')).toBeTruthy();
 });
