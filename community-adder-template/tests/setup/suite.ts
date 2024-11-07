@@ -11,7 +11,7 @@ const cwd = vi.inject('testDir');
 const templatesDir = vi.inject('templatesDir');
 const variants = vi.inject('variants');
 
-const SETUP_DIR = path.dirname(fileURLToPath(import.meta.url));
+const SETUP_DIR = fileURLToPath(new URL('.', import.meta.url));
 
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
