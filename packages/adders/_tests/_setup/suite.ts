@@ -82,7 +82,7 @@ async function prepareServer(
 		page,
 		previewCommand = 'npm run preview',
 		buildCommand = 'npm run build',
-		installCommand = 'pnpm install'
+		installCommand = 'pnpm install --no-frozen-lockfile'
 	}: PrepareServerOptions,
 	afterInstall?: () => Promise<any> | any
 ) {

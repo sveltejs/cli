@@ -80,7 +80,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
  */
 async function prepareServer({ cwd, page }: { cwd: string; page: Page }) {
 	// install deps
-	execSync('pnpm install', { cwd, stdio: 'pipe' });
+	execSync('pnpm install --no-frozen-lockfile', { cwd, stdio: 'pipe' });
 
 	// ...do commands and any other extra stuff
 
