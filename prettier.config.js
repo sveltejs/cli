@@ -65,7 +65,10 @@ export default {
 			}
 		},
 		{
-			files: ['**/CHANGELOG.md'],
+			files: [
+				'**/CHANGELOG.md',
+				"packages/migrate/migrations/routes/*/samples.md"
+			],
 			options: {
 				requirePragma: true
 			}
