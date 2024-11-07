@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import * as vi from 'vitest';
-import { exec } from 'tinyexec';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/test';
 import { chromium, type Browser, type Page } from '@playwright/test';
@@ -87,15 +87,13 @@ async function prepareServer(
 	afterInstall?: () => Promise<any> | any
 ) {
 	// install deps
-	const [installCmd, ...installArgs] = installCommand.split(' ');
-	await exec(installCmd, installArgs, { nodeOptions: { cwd } });
+	execSync(installCommand, { cwd, stdio: 'pipe' });
 
 	// ...do commands and any other extra stuff
 	await afterInstall?.();
 
 	// build project
-	const [buildCmd, ...buildArgs] = buildCommand.split(' ');
-	await exec(buildCmd, buildArgs, { nodeOptions: { cwd } });
+	execSync(buildCommand, { cwd, stdio: 'pipe' });
 
 	// start preview server `vite preview`
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
