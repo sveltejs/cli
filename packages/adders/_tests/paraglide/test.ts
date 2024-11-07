@@ -5,8 +5,7 @@ import paraglide from '../../paraglide/index.ts';
 const { test, variants, prepareServer } = setupTest({ paraglide });
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
-// TODO: figure out why this is failing
-test.todo.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
+test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { paraglide: { demo: true, availableLanguageTags: 'en' } });
 
 	const { close } = await prepareServer({ cwd, page });

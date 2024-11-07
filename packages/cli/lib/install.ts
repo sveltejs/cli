@@ -40,22 +40,26 @@ export async function installAddon<Addons extends AddonMap>({
 	return Array.from(filesToFormat);
 }
 
-async function runAddon(workspace: Workspace<any>, addon: Addon): Promise<string[]> {
+async function runAddon(
+	workspace: Workspace<any>,
+	addon: Adder<Record<string, Question>>
+): Promise<string[]> {
 	const files = new Set<string>();
 
-	// TODO: figure out why this is wrongly typed
 	// apply default adder options
-	for (const [, question] of Object.entries(addon.options as Record<string, Question>)) {
+	for (const [, question] of Object.entries(addon.options)) {
 		// we'll only apply defaults to options that don't explicitly fail their conditions
 		if (question.condition?.(workspace.options) !== false) {
 			workspace.options ??= question.default;
 		}
 	}
 
+	await addon.preInstall?.(workspace);
 	const pkgPath = installPackages(addon, workspace);
 	files.add(pkgPath);
 	const changedFiles = createOrUpdateFiles(addon.files, workspace);
 	changedFiles.forEach((file) => files.add(file));
+	await addon.postInstall?.(workspace);
 
 	for (const script of addon.scripts ?? []) {
 		if (script.condition?.(workspace) === false) continue;
