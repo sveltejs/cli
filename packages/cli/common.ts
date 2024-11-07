@@ -69,7 +69,7 @@ function formatDescription(arg: Option | Argument): string {
 
 type MaybePromise = () => Promise<void> | void;
 
-export async function runCommand(action: MaybePromise) {
+export async function runCommand(action: MaybePromise): Promise<void> {
 	try {
 		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
 		await action();
@@ -114,7 +114,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	return pm;
 }
 
-export async function installDependencies(agent: AgentName, cwd: string) {
+export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
 	const spinner = p.spinner();
 	spinner.start('Installing dependencies...');
 	try {
