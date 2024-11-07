@@ -2,25 +2,28 @@
 	"name": "community-adder-template",
 	"private": true,
 	"version": "0.0.0",
-	"license": "MIT",
 	"type": "module",
-	"exports": "./src/index.js",
-	"keywords": [
-		"svelte-add-on",
-		"sv"
-	],
+	"license": "MIT",
 	"scripts": {
+		"create-temp": "sv create temp --types ts --template minimal --no-add-ons --no-install",
 		"start": "sv add -C temp --community file:../",
-		"create-temp": "sv create temp --check-types typescript --template skeleton --no-adders --no-install"
-	},
-	"dependencies": {
-		"@sveltejs/cli-core": "workspace:*"
-	},
-	"devDependencies": {
-		"sv": "workspace:*"
+		"test": "vitest"
 	},
 	"files": [
 		"src",
 		"!src/**/*.test.*"
+	],
+	"exports": "./src/index.js",
+	"dependencies": {
+		"@sveltejs/cli-core": "workspace:*"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.48.2",
+		"sv": "workspace:*",
+		"vitest": "^2.0.5"
+	},
+	"keywords": [
+		"svelte-add-on",
+		"sv"
 	]
 }
