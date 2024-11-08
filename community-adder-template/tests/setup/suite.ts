@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
-import * as vi from 'vitest';
+import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/test';
 import { chromium, type Browser, type Page } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 
-const cwd = vi.inject('testDir');
-const templatesDir = vi.inject('templatesDir');
-const variants = vi.inject('variants');
+const cwd = vitest.inject('testDir');
+const templatesDir = vitest.inject('templatesDir');
+const variants = vitest.inject('variants');
 
 const SETUP_DIR = fileURLToPath(new URL('.', import.meta.url));
 
@@ -22,16 +22,16 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 	let create: CreateProject;
 	let browser: Browser;
 
-	const test = vi.test.extend<Fixtures<Addons>>({} as any);
+	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
 
-	vi.beforeAll(async () => {
+	vitest.beforeAll(async () => {
 		browser = await chromium.launch();
 		return async () => {
 			await browser.close();
 		};
 	});
 
-	vi.beforeAll(({ name }) => {
+	vitest.beforeAll(({ name }) => {
 		const testName = path.parse(name).name.replace('.test', '');
 
 		// constructs a builder for create test projects
@@ -46,7 +46,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 	});
 
 	// runs before each test case
-	vi.beforeEach<Fixtures<Addons>>(async (ctx) => {
+	vitest.beforeEach<Fixtures<Addons>>(async (ctx) => {
 		const browserCtx = await browser.newContext();
 		ctx.page = await browserCtx.newPage();
 		ctx.run = async (variant, options) => {

@@ -1,14 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
-import * as vi from 'vitest';
+import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/test';
 import { chromium, type Browser, type Page } from '@playwright/test';
 
-const cwd = vi.inject('testDir');
-const templatesDir = vi.inject('templatesDir');
-const variants = vi.inject('variants');
+const cwd = vitest.inject('testDir');
+const templatesDir = vitest.inject('templatesDir');
+const variants = vitest.inject('variants');
 
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
@@ -16,19 +16,19 @@ type Fixtures<Addons extends AddonMap> = {
 };
 
 export function setupTest<Addons extends AddonMap>(addons: Addons) {
-	const test = vi.test.extend<Fixtures<Addons>>({} as any);
+	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
 
 	let create: CreateProject;
 	let browser: Browser;
 
-	vi.beforeAll(async () => {
+	vitest.beforeAll(async () => {
 		browser = await chromium.launch();
 		return async () => {
 			await browser.close();
 		};
 	});
 
-	vi.beforeAll(({ name }) => {
+	vitest.beforeAll(({ name }) => {
 		const testName = path.dirname(name).split(path.sep).at(-1)!;
 
 		// constructs a builder for create test projects
@@ -43,7 +43,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 	});
 
 	// runs before each test case
-	vi.beforeEach<Fixtures<Addons>>(async (ctx) => {
+	vitest.beforeEach<Fixtures<Addons>>(async (ctx) => {
 		const browserCtx = await browser.newContext();
 		ctx.page = await browserCtx.newPage();
 		ctx.run = async (variant, options) => {

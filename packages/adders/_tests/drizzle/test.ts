@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import * as vi from 'vitest';
+import * as vitest from 'vitest';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import drizzle from '../../drizzle/index.ts';
@@ -10,7 +10,7 @@ import { pageServer, pageComp } from './fixtures.ts';
 
 const { test, variants, prepareServer } = setupTest({ drizzle });
 
-vi.beforeAll(() => {
+vitest.beforeAll(() => {
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
 
