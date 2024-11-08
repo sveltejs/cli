@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
@@ -47,7 +48,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 		const browserCtx = await browser.newContext();
 		ctx.page = await browserCtx.newPage();
 		ctx.run = async (variant, options) => {
-			const cwd = create({ testId: ctx.task.id, variant });
+			const cwd = create({ testId: ctx.task.id, variant, clean: process.platform !== 'win32' });
 
 			// test metadata
 			const metaPath = path.resolve(cwd, 'meta.json');
