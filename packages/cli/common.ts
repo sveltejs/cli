@@ -89,7 +89,10 @@ export async function formatFiles(options: {
 }): Promise<void> {
 	const args = ['prettier', '--write', '--ignore-unknown', ...options.paths];
 	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
-	await exec(cmd.command, cmd.args, { nodeOptions: { cwd: options.cwd, stdio: 'pipe' } });
+	await exec(cmd.command, cmd.args, {
+		nodeOptions: { cwd: options.cwd, stdio: 'pipe' },
+		throwOnError: true
+	});
 }
 
 const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
@@ -119,7 +122,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 	spinner.start('Installing dependencies...');
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
-		await exec(command, args, { nodeOptions: { cwd } });
+		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
 
 		spinner.stop('Successfully installed dependencies');
 	} catch (error) {
@@ -157,7 +160,10 @@ export function getGlobalPreconditions(
 						// there are no pending changes. If the below command is run outside of a git repository,
 						// git will exit with a failing exit code, which will trigger the catch statement.
 						// also see https://remarkablemark.org/blog/2017/10/12/check-git-dirty/#git-status
-						const { stdout } = await exec('git', ['status', '--short'], { nodeOptions: { cwd } });
+						const { stdout } = await exec('git', ['status', '--short'], {
+							nodeOptions: { cwd },
+							throwOnError: true
+						});
 
 						if (stdout) {
 							return { success: false, message: 'Found modified files' };
