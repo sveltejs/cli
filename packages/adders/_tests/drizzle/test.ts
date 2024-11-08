@@ -1,25 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'node:child_process';
 import * as vi from 'vitest';
 import { expect } from '@playwright/test';
-import { exec } from 'tinyexec';
 import { setupTest } from '../_setup/suite.ts';
 import drizzle from '../../drizzle/index.ts';
 import { pageServer, pageComp } from './fixtures.ts';
 
 const { test, variants, prepareServer } = setupTest({ drizzle });
 
-vi.beforeAll(async () => {
+vi.beforeAll(() => {
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
-	await exec('docker', ['compose', 'up', '--detach'], {
-		nodeOptions: { cwd, stdio: 'pipe' }
-	});
+	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
 
-	return async () => {
-		await exec('docker', ['compose', 'down', '--volumes'], {
-			nodeOptions: { cwd, stdio: 'pipe' }
-		});
+	return () => {
+		execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
 	};
 });
 
@@ -51,8 +47,8 @@ test.concurrent.for(testCases)(
 		const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
 		fs.writeFileSync(pageServerPath, pageServer, 'utf8');
 
-		const { close } = await prepareServer({ cwd, page }, async () => {
-			await exec('npm', ['run', 'db:push'], { nodeOptions: { cwd, stdio: 'pipe' } });
+		const { close } = await prepareServer({ cwd, page }, () => {
+			execSync('npm run db:push', { cwd, stdio: 'pipe' });
 		});
 		// kill server process when we're done
 		ctx.onTestFinished(() => close());

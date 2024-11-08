@@ -12,8 +12,5 @@
 	"exports": "./index.ts",
 	"dependencies": {
 		"@sveltejs/cli-core": "workspace:*"
-	},
-	"devDependencies": {
-		"tinyexec": "^0.3.1"
 	}
 }
