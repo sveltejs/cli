@@ -37,7 +37,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 		// creates a pnpm workspace in each addon dir
 		fs.writeFileSync(
 			path.resolve(cwd, testName, 'pnpm-workspace.yaml'),
-			`packages:\n  - '**/*'`,
+			"packages:\n  - '**/*'",
 			'utf8'
 		);
 	});

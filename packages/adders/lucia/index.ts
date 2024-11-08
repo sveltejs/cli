@@ -121,21 +121,21 @@ export default defineAdder({
 						integer: 'integer'
 					});
 					object.overrideProperties(userAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`)
+						id: common.expressionFromString("text('id').primaryKey()")
 					});
 					if (options.demo) {
 						object.overrideProperties(userAttributes, {
-							username: common.expressionFromString(`text('username').notNull().unique()`),
-							passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
+							username: common.expressionFromString("text('username').notNull().unique()"),
+							passwordHash: common.expressionFromString("text('password_hash').notNull()")
 						});
 					}
 					object.overrideProperties(sessionAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`),
+						id: common.expressionFromString("text('id').primaryKey()"),
 						userId: common.expressionFromString(
-							`text('user_id').notNull().references(() => user.id)`
+							"text('user_id').notNull().references(() => user.id)"
 						),
 						expiresAt: common.expressionFromString(
-							`integer('expires_at', { mode: 'timestamp' }).notNull()`
+							"integer('expires_at', { mode: 'timestamp' }).notNull()"
 						)
 					});
 				}
@@ -146,24 +146,24 @@ export default defineAdder({
 						datetime: 'datetime'
 					});
 					object.overrideProperties(userAttributes, {
-						id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`)
+						id: common.expressionFromString("varchar('id', { length: 255 }).primaryKey()")
 					});
 					if (options.demo) {
 						object.overrideProperties(userAttributes, {
 							username: common.expressionFromString(
-								`varchar('username', { length: 32 }).notNull().unique()`
+								"varchar('username', { length: 32 }).notNull().unique()"
 							),
 							passwordHash: common.expressionFromString(
-								`varchar('password_hash', { length: 255 }).notNull()`
+								"varchar('password_hash', { length: 255 }).notNull()"
 							)
 						});
 					}
 					object.overrideProperties(sessionAttributes, {
-						id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`),
+						id: common.expressionFromString("varchar('id', { length: 255 }).primaryKey()"),
 						userId: common.expressionFromString(
-							`varchar('user_id', { length: 255 }).notNull().references(() => user.id)`
+							"varchar('user_id', { length: 255 }).notNull().references(() => user.id)"
 						),
-						expiresAt: common.expressionFromString(`datetime('expires_at').notNull()`)
+						expiresAt: common.expressionFromString("datetime('expires_at').notNull()")
 					});
 				}
 				if (drizzleDialect === 'postgresql') {
@@ -173,21 +173,21 @@ export default defineAdder({
 						timestamp: 'timestamp'
 					});
 					object.overrideProperties(userAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`)
+						id: common.expressionFromString("text('id').primaryKey()")
 					});
 					if (options.demo) {
 						object.overrideProperties(userAttributes, {
-							username: common.expressionFromString(`text('username').notNull().unique()`),
-							passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
+							username: common.expressionFromString("text('username').notNull().unique()"),
+							passwordHash: common.expressionFromString("text('password_hash').notNull()")
 						});
 					}
 					object.overrideProperties(sessionAttributes, {
-						id: common.expressionFromString(`text('id').primaryKey()`),
+						id: common.expressionFromString("text('id').primaryKey()"),
 						userId: common.expressionFromString(
-							`text('user_id').notNull().references(() => user.id)`
+							"text('user_id').notNull().references(() => user.id)"
 						),
 						expiresAt: common.expressionFromString(
-							`timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()`
+							"timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()"
 						)
 					});
 				}
@@ -396,7 +396,7 @@ export default defineAdder({
 					import * as auth from '$lib/server/auth';
 					import { db } from '$lib/server/db';
 					import * as table from '$lib/server/db/schema';
-					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
+					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/lucia');
@@ -516,9 +516,9 @@ export default defineAdder({
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
-					<script ${ts(`lang='ts'`)}>
+					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
-						${ts(`import type { ActionData } from './$types';\n`)}
+						${ts("import type { ActionData } from './$types';\n")}
 						${s5(`let { form }${ts(': { form: ActionData }')} = $props();`, `export let form${ts(': ActionData')};`)}
 					</script>
 
@@ -555,7 +555,7 @@ export default defineAdder({
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
-					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
+					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/lucia/login');
@@ -590,9 +590,9 @@ export default defineAdder({
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
-					<script ${ts(`lang='ts'`)}>
+					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
-						${ts(`import type { PageServerData } from './$types';\n`)}
+						${ts("import type { PageServerData } from './$types';\n")}
 						${s5(`let { data }${ts(': { data: PageServerData }')} = $props();`, `export let data${ts(': PageServerData')};`)}
 					</script>
 
