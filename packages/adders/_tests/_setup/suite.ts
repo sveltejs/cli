@@ -29,7 +29,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 	});
 
 	vitest.beforeAll(({ name }) => {
-		const testName = path.dirname(name).split(path.sep).at(-1)!;
+		const testName = path.dirname(name).split('/').at(-1)!;
 
 		// constructs a builder for create test projects
 		create = createProject({ cwd, templatesDir, testName });
