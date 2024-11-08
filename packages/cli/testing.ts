@@ -5,8 +5,7 @@ import degit from 'degit';
 import terminate from 'terminate';
 import { create } from '@sveltejs/create';
 
-export type ProjectVariant = (typeof variants)[number];
-export const variants = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'] as const;
+export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 
 const TEMPLATES_DIR = '.templates';
 

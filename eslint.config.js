@@ -33,7 +33,7 @@ export default [
 			'**/dist/*',
 			'packages/**/tests/**/{output,input}.ts',
 			'rollup.config.js',
-			'community-adder-template/*'
+			'community-adder-template/tests/*'
 		]
 	}
 ];

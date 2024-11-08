@@ -95,7 +95,7 @@ async function prepareServer(
 	// build project
 	execSync(buildCommand, { cwd, stdio: 'pipe' });
 
-	// start preview server `vite preview`
+	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
 	// navigate to the page
