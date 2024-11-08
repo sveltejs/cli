@@ -8,5 +8,4 @@ vite.config.js.timestamp-*
 /packages/create-svelte/template/CHANGELOG.md
 .test-tmp
 .test-output
-
 *storybook.log
