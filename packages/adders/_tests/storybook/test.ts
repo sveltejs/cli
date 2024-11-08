@@ -12,7 +12,7 @@ test.concurrent.for(variants)('storybook loaded - %s', async (variant, { page, .
 		cwd,
 		page,
 		previewCommand: `pnpm storybook -p ${++port} --ci`,
-		buildCommand: 'echo'
+		buildCommand: ''
 	});
 	// kill server process when we're done
 	ctx.onTestFinished(() => close());

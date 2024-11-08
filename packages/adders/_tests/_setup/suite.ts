@@ -88,13 +88,13 @@ async function prepareServer(
 	afterInstall?: () => Promise<any> | any
 ) {
 	// install deps
-	execSync(installCommand, { cwd, stdio: 'pipe' });
+	if (installCommand) execSync(installCommand, { cwd, stdio: 'pipe' });
 
 	// ...do commands and any other extra stuff
 	await afterInstall?.();
 
 	// build project
-	execSync(buildCommand, { cwd, stdio: 'pipe' });
+	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
 
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
