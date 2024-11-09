@@ -45,7 +45,6 @@
 		"ps-tree": "^1.2.0",
 		"tar-fs": "^3.0.6",
 		"tinyexec": "^0.3.1",
-		"tinypool": "^1.0.1",
 		"valibot": "^0.41.0"
 	},
 	"keywords": [
