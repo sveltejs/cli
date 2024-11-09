@@ -128,7 +128,16 @@ async function terminate(pid: number) {
 	for (let i = children.length - 1; i >= 0; i--) {
 		const child = children[i];
 		const pid = Number(child.PID);
-		process.kill(pid);
+		try {
+			process.kill(pid);
+		} catch {
+			// this can happen if a process has been automatically terminated.
+		}
 	}
-	process.kill(pid);
+
+	try {
+		process.kill(pid);
+	} catch {
+		// this can happen if a process has been automatically terminated.
+	}
 }
