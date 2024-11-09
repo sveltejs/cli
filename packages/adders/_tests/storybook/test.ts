@@ -5,7 +5,7 @@ import storybook from '../../storybook/index.ts';
 const { test, variants, prepareServer } = setupTest({ storybook });
 
 let port = 6006;
-test.concurrent.skip.for(variants)('storybook loaded - %s', async (variant, { page, ...ctx }) => {
+test.concurrent.for(variants)('storybook loaded - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { storybook: {} });
 
 	const { close } = await prepareServer({
