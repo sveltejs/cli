@@ -49,7 +49,16 @@ export async function setup({
 			// TODO: should probably point this to a specific commit hash (ex: `#1234abcd`)
 			const template = degit(`vitejs/vite/packages/create-vite/${name}`, { force: true });
 			await template.clone(templatePath);
-		} else throw new Error(`Unknown project variant: ${variant}`);
+
+			// vite templates have their gitignore file named as `_gitignore`
+			const gitignorePath = path.resolve(templatePath, '_gitignore');
+			if (fs.existsSync(gitignorePath)) {
+				const fixedPath = path.resolve(templatePath, '.gitignore');
+				fs.renameSync(gitignorePath, fixedPath);
+			}
+		} else {
+			throw new Error(`Unknown project variant: ${variant}`);
+		}
 	}
 
 	return { templatesDir };
