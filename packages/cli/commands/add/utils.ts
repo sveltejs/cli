@@ -15,7 +15,11 @@ export type Package = {
 	workspaces?: string[];
 };
 
-export function getPackageJson(cwd: string) {
+export function getPackageJson(cwd: string): {
+	source: string;
+	data: Package;
+	generateCode: () => string;
+} {
 	const packageText = readFile(cwd, commonFilePaths.packageJson);
 	if (!packageText) {
 		const pkgPath = path.join(cwd, commonFilePaths.packageJson);

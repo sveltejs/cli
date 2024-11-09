@@ -1,0 +1,53 @@
+{
+	"name": "svelte-migrate",
+	"version": "1.6.8",
+	"type": "module",
+	"description": "A CLI for migrating Svelte(Kit) codebases",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sveltejs/cli",
+		"directory": "packages/migrate"
+	},
+	"homepage": "https://svelte.dev",
+	"scripts": {
+		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check .",
+		"test": "vitest run"
+	},
+	"files": [
+		"bin.js",
+		"migrations",
+		"utils.js",
+		"!migrations/**/*.spec.js",
+		"!migrations/**/samples.md"
+	],
+	"bin": {
+		"svelte-migrate": "./bin.js"
+	},
+	"dependencies": {
+		"import-meta-resolve": "^4.1.0",
+		"kleur": "^4.1.5",
+		"magic-string": "^0.30.5",
+		"prompts": "^2.4.2",
+		"semver": "^7.5.4",
+		"tiny-glob": "^0.2.9",
+		"ts-morph": "^24.0.0",
+		"typescript": "^5.3.3",
+		"zimmerframe": "^1.1.2"
+	},
+	"devDependencies": {
+		"@types/node": "^18.19.48",
+		"@types/prompts": "^2.4.9",
+		"@types/semver": "^7.5.6",
+		"svelte": "^4.2.10"
+	},
+	"keywords": [
+		"migration",
+		"upgrade",
+		"svelte",
+		"sveltekit",
+		"tool"
+	]
+}

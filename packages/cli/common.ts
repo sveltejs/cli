@@ -69,7 +69,7 @@ function formatDescription(arg: Option | Argument): string {
 
 type MaybePromise = () => Promise<void> | void;
 
-export async function runCommand(action: MaybePromise) {
+export async function runCommand(action: MaybePromise): Promise<void> {
 	try {
 		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
 		await action();
@@ -89,7 +89,10 @@ export async function formatFiles(options: {
 }): Promise<void> {
 	const args = ['prettier', '--write', '--ignore-unknown', ...options.paths];
 	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
-	await exec(cmd.command, cmd.args, { nodeOptions: { cwd: options.cwd, stdio: 'pipe' } });
+	await exec(cmd.command, cmd.args, {
+		nodeOptions: { cwd: options.cwd, stdio: 'pipe' },
+		throwOnError: true
+	});
 }
 
 const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
@@ -114,12 +117,12 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	return pm;
 }
 
-export async function installDependencies(agent: AgentName, cwd: string) {
+export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
 	const spinner = p.spinner();
 	spinner.start('Installing dependencies...');
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
-		await exec(command, args, { nodeOptions: { cwd } });
+		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
 
 		spinner.stop('Successfully installed dependencies');
 	} catch (error) {
@@ -158,7 +161,10 @@ export function getGlobalPreconditions(
 						// there are no pending changes. If the below command is run outside of a git repository,
 						// git will exit with a failing exit code, which will trigger the catch statement.
 						// also see https://remarkablemark.org/blog/2017/10/12/check-git-dirty/#git-status
-						const { stdout } = await exec('git', ['status', '--short'], { nodeOptions: { cwd } });
+						const { stdout } = await exec('git', ['status', '--short'], {
+							nodeOptions: { cwd },
+							throwOnError: true
+						});
 
 						if (stdout) {
 							return { success: false, message: 'Found modified files' };

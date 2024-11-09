@@ -5,6 +5,6 @@ export default defineAdder({
 	homepage: 'https://storybook.js.org',
 	options: {},
 	run: ({ sv }) => {
-		sv.execute(['storybook@latest', 'init', '--skip-install', '--no-dev'], 'inherit');
+		sv.execute(['storybook@8.3.6', 'init', '--skip-install', '--no-dev'], 'inherit');
 	}
 });

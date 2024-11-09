@@ -10,13 +10,14 @@ export const options = defineAdderOptions({
 	}
 });
 
-export const adder = defineAdder({
-	id: 'community-adder-template',
+export default defineAdder({
+	id: 'community-addon',
+	environments: { kit: true, svelte: true },
 	options,
 	setup: ({ kit, unavailable }) => {
 		if (!kit) unavailable();
 	},
-	run: ({ sv }) => {
+	run: ({ sv, options }) => {
 		sv.file('adder-template-demo.txt', (content) => {
 			if (options.demo) {
 				return 'This is a text file made by the Community Adder Template demo!';
@@ -25,9 +26,10 @@ export const adder = defineAdder({
 		});
 
 		sv.file('src/DemoComponent.svelte', (content) => {
-			const { script, generateCode } = parseSvelte(content);
-			imports.addDefault(script.ast, '../adder-template-demo.txt?raw', 'Demo');
-			return generateCode({ script: script.generateCode() });
+			if (!options.demo) return content;
+			const { script, generateCode } = parseSvelte(content, { typescript });
+			imports.addDefault(script.ast, '../adder-template-demo.txt?raw', 'demo');
+			return generateCode({ script: script.generateCode(), template: '{demo}' });
 		});
 	}
 });

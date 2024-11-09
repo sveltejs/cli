@@ -16,7 +16,23 @@ import * as html from '@sveltejs/cli-core/html';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
 
-export const options = defineAdderOptions({
+const DEFAULT_INLANG_PROJECT = {
+	$schema: 'https://inlang.com/schema/project-settings',
+	modules: [
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0/dist/index.js'
+	],
+	'plugin.inlang.messageFormat': {
+		pathPattern: './messages/{languageTag}.json'
+	}
+};
+
+const options = defineAdderOptions({
 	availableLanguageTags: {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
@@ -44,22 +60,6 @@ export const options = defineAdderOptions({
 		question: 'Do you want to include a demo?'
 	}
 });
-
-const DEFAULT_INLANG_PROJECT = {
-	$schema: 'https://inlang.com/schema/project-settings',
-	modules: [
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0/dist/index.js'
-	],
-	'plugin.inlang.messageFormat': {
-		pathPattern: './messages/{languageTag}.json'
-	}
-};
 
 export default defineAdder({
 	id: 'paraglide',

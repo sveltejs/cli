@@ -9,7 +9,7 @@ import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
 import storybook from '../storybook/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
-import vitest from '../vitest/index.ts';
+import vitest from '../vitest-addon/index.ts';
 
 // The order of adders here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity

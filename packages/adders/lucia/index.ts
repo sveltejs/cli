@@ -33,7 +33,7 @@ type Dialect = 'mysql' | 'postgresql' | 'sqlite';
 let drizzleDialect: Dialect;
 let schemaPath: string;
 
-export const options = defineAdderOptions({
+const options = defineAdderOptions({
 	demo: {
 		type: 'boolean',
 		default: true,
@@ -392,7 +392,7 @@ export default defineAdder({
 					import * as auth from '$lib/server/auth';
 					import { db } from '$lib/server/db';
 					import * as table from '$lib/server/db/schema';
-					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
+					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/lucia');
@@ -509,9 +509,9 @@ export default defineAdder({
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
-					<script ${ts(`lang='ts'`)}>
+					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
-						${ts(`import type { ActionData } from './$types';\n`)}
+						${ts("import type { ActionData } from './$types';\n")}
 						${s5(`let { form }${ts(': { form: ActionData }')} = $props();`, `export let form${ts(': ActionData')};`)}
 					</script>
 
@@ -543,7 +543,7 @@ export default defineAdder({
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
-					${ts(`import type { Actions, PageServerLoad } from './$types';\n`)}
+					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/lucia/login');
@@ -575,9 +575,9 @@ export default defineAdder({
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
-					<script ${ts(`lang='ts'`)}>
+					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
-						${ts(`import type { PageServerData } from './$types';\n`)}
+						${ts("import type { PageServerData } from './$types';\n")}
 						${s5(`let { data }${ts(': { data: PageServerData }')} = $props();`, `export let data${ts(': PageServerData')};`)}
 					</script>
 
