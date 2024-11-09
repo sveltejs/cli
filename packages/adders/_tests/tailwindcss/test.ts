@@ -13,7 +13,7 @@ test.concurrent.for(variants)('none - %s', async (variant, { page, ...ctx }) => 
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
-	ctx.onTestFinished(() => close());
+	ctx.onTestFinished(async () => await close());
 
 	const el = page.getByTestId('base');
 	await expect(el).toHaveCSS('background-color', 'rgb(71, 85, 105)');
@@ -30,7 +30,7 @@ test.concurrent.for(variants)('typography - %s', async (variant, { page, ...ctx 
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
-	ctx.onTestFinished(() => close());
+	ctx.onTestFinished(async () => await close());
 
 	const el = page.getByTestId('typography');
 	await expect(el).toHaveCSS('font-size', '18px');

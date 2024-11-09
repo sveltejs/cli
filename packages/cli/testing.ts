@@ -1,9 +1,10 @@
 import fs from 'node:fs';
+import process from 'node:process';
 import path from 'node:path';
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import degit from 'degit';
-import terminate from 'terminate';
+import { exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
+import pstree, { type PS } from 'ps-tree';
 
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 
@@ -71,20 +72,26 @@ export function createProject({ cwd, testName, templatesDir }: CreateOptions): C
 }
 
 type PreviewOptions = { cwd: string; command?: string };
-export async function startPreview({ cwd, command = 'npm run preview' }: PreviewOptions): Promise<{
-	url: string;
-	server: ChildProcessWithoutNullStreams;
-	close: () => void;
-}> {
+export async function startPreview({
+	cwd,
+	command = 'npm run preview'
+}: PreviewOptions): Promise<{ url: string; close: () => Promise<void> }> {
 	const [cmd, ...args] = command.split(' ');
-	const process = spawn(cmd, args, { stdio: 'pipe', shell: true, cwd, timeout: 120_000 });
-	const close = () => {
-		if (!process.pid) return;
-		terminate(process.pid);
+	const proc = exec(cmd, args, {
+		nodeOptions: { cwd, stdio: 'pipe' },
+		throwOnError: true,
+		timeout: 60_000
+	});
+
+	const close = async () => {
+		if (!proc.pid) return;
+		await terminate(proc.pid);
 	};
 
-	return await new Promise((resolve) => {
-		process.stdout.on('data', (data: Buffer) => {
+	return await new Promise((resolve, reject) => {
+		if (!proc.process?.stdout) return reject('impossible state');
+
+		proc.process.stdout.on('data', (data: Buffer) => {
 			const value = data.toString();
 
 			// extract dev server url from console output
@@ -99,8 +106,29 @@ export async function startPreview({ cwd, command = 'npm run preview' }: Preview
 
 			if (urls && urls.length > 0) {
 				const url = urls[0];
-				resolve({ url, server: process, close });
+				resolve({ url, close });
 			}
 		});
 	});
+}
+
+async function getProcessTree(pid: number) {
+	return new Promise<readonly PS[]>((res, rej) => {
+		pstree(pid, (err, children) => {
+			if (err) rej(err);
+			res(children);
+		});
+	});
+}
+
+async function terminate(pid: number) {
+	const children = await getProcessTree(pid);
+	// the process tree is ordered from parents -> children,
+	// so we'll iterate in the reverse order to terminate the children first
+	for (let i = children.length - 1; i >= 0; i--) {
+		const child = children[i];
+		const pid = Number(child.PID);
+		process.kill(pid);
+	}
+	process.kill(pid);
 }

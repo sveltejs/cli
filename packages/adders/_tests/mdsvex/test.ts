@@ -18,7 +18,7 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
-	ctx.onTestFinished(() => close());
+	ctx.onTestFinished(async () => await close());
 
 	expect(await page.$('.mdsvex h1')).toBeTruthy();
 	expect(await page.$('.mdsvex h2')).toBeTruthy();

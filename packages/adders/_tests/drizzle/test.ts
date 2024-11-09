@@ -51,7 +51,7 @@ test.concurrent.for(testCases)(
 			execSync('npm run db:push', { cwd, stdio: 'pipe' });
 		});
 		// kill server process when we're done
-		ctx.onTestFinished(() => close());
+		ctx.onTestFinished(async () => await close());
 
 		expect(await page.$('[data-testid]')).toBeTruthy();
 	}
