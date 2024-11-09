@@ -98,8 +98,14 @@ async function prepareServer(
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
-	// navigate to the page
-	await page.goto(url);
+	try {
+		// navigate to the page
+		await page.goto(url);
+	} catch (e) {
+		// cleanup in the instance of a timeout
+		await close();
+		throw e;
+	}
 
 	return { url, close };
 }
