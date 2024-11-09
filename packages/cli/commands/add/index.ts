@@ -557,15 +557,23 @@ async function runAdders({
 		const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 		const sv: SvApi = {
 			file: (path, content) => {
-				const exists = fileExists(workspace.cwd, path);
-				let fileContent = exists ? readFile(workspace.cwd, path) : '';
-				// process file
-				fileContent = content(fileContent);
+				try {
+					const exists = fileExists(workspace.cwd, path);
+					let fileContent = exists ? readFile(workspace.cwd, path) : '';
+					// process file
+					fileContent = content(fileContent);
+					if (!fileContent) return fileContent;
 
-				writeFile(workspace, path, fileContent);
-				filesToFormat.add(path);
+					writeFile(workspace, path, fileContent);
+					filesToFormat.add(path);
 
-				return fileContent;
+					return fileContent;
+				} catch (e) {
+					if (e instanceof Error) {
+						throw new Error(`Unable to process '${path}'. Reason: ${e.message}`);
+					}
+					throw e;
+				}
 			},
 			execute: async (commandArgs, stdio) => {
 				const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
@@ -580,7 +588,7 @@ async function runAdders({
 
 				try {
 					await exec(command, args, {
-						nodeOptions: { cwd: workspace.cwd, stdio: script.stdio },
+						nodeOptions: { cwd: workspace.cwd, stdio },
 						throwOnError: true
 					});
 				} catch (error) {
