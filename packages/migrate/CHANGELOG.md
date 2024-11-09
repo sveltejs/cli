@@ -1,5 +1,14 @@
 # svelte-migrate
 
+## 1.6.9
+### Patch Changes
+
+
+- fix: update `@sveltejs/package` to avoid `peerDependencies` warning ([#282](https://github.com/sveltejs/cli/pull/282))
+
+
+- chore: update repository information ([#274](https://github.com/sveltejs/cli/pull/274))
+
 ## 1.6.8
 ### Patch Changes
 
