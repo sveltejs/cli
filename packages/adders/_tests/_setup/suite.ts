@@ -98,6 +98,10 @@ async function prepareServer(
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
+	// default navigation timeout is 30 seconds. When running many tests at once as we are doing
+	// this is not always enough. Increase it to 60 seconds.
+	page.setDefaultNavigationTimeout(60_0000);
+
 	try {
 		// navigate to the page
 		await page.goto(url);
