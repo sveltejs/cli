@@ -14,7 +14,7 @@
 		"check": "tsc",
 		"format": "pnpm lint --write",
 		"lint": "prettier --check .",
-		"test": "vitest run --silent"
+		"test": "vitest run"
 	},
 	"files": [
 		"bin.js",

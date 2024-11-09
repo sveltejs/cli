@@ -1,8 +1,8 @@
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { setup, type ProjectVariant } from 'sv/test';
 import type { GlobalSetupContext } from 'vitest/node';
 
-const TEST_DIR = path.resolve('.test-output');
+const TEST_DIR = fileURLToPath(new URL('../../../../.test-output/adders/', import.meta.url));
 const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 
 export default async function ({ provide }: GlobalSetupContext) {

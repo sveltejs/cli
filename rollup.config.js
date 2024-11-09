@@ -68,6 +68,7 @@ function getConfig(project) {
 				console.log('building templates');
 				const start = performance.now();
 				await buildTemplates(path.resolve('packages', 'cli', 'dist'));
+				await buildTemplates(path.resolve('packages', 'create', 'dist'));
 				const end = performance.now();
 				console.log(`finished building templates: ${Math.round(end - start)}ms`);
 			}

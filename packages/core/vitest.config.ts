@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
-		dir: './tests',
-		include: ['./**/index.ts']
+		name: 'core',
+		include: ['./tests/**/index.ts']
 	}
 });

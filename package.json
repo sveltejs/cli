@@ -14,7 +14,8 @@
 		"dev": "rollup --config --watch",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
-		"test": "pnpm --parallel test"
+		"test": "pnpm vitest run --silent",
+		"test:ui": "pnpm vitest --ui"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.9",

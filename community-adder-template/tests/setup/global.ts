@@ -1,9 +1,9 @@
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { setup, type ProjectVariant } from 'sv/test';
 import type { GlobalSetupContext } from 'vitest/node';
 
 const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
-const TEST_DIR = path.resolve('.test-output');
+const TEST_DIR = fileURLToPath(new URL('./.test-output/', import.meta.url));
 
 export default async function ({ provide }: GlobalSetupContext) {
 	// global setup (e.g. spin up docker containers)

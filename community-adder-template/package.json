@@ -7,7 +7,7 @@
 	"scripts": {
 		"create-temp": "sv create temp --types ts --template minimal --no-add-ons --no-install",
 		"start": "sv add -C temp --community file:../",
-		"test": "vitest"
+		"test": "vitest run"
 	},
 	"files": [
 		"src",
