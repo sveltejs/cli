@@ -21,11 +21,11 @@
 	"bin": "./dist/bin.js",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
+			"types": "./dist/lib/index.d.ts",
 			"default": "./dist/index.js"
 		},
-		"./test": {
-			"types": "./dist/testing.d.ts",
+		"./testing": {
+			"types": "./dist/lib/testing.d.ts",
 			"default": "./dist/testing.js"
 		}
 	},

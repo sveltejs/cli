@@ -15,11 +15,13 @@ import {
 	getCommunityAdder
 } from '@sveltejs/adders';
 import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
-import * as common from '../../common.ts';
-import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
+import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
-import { getHighlighter, installPackages } from './utils.ts';
 import { createOrUpdateFiles } from './processor.ts';
+import { getGlobalPreconditions } from './preconditions.ts';
+import { formatFiles, getHighlighter, installPackages } from './utils.ts';
+import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
+import { installDependencies, packageManagerPrompt } from '../../utils/package-manager.ts';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -333,7 +335,7 @@ export async function runAddCommand(
 		const { kit } = createWorkspace({ cwd: options.cwd });
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
-		const { preconditions } = common.getGlobalPreconditions(options.cwd, projectType, adders);
+		const { preconditions } = getGlobalPreconditions(options.cwd, projectType, adders);
 
 		const fails: Array<{ name: string; message?: string }> = [];
 		for (const condition of preconditions) {
@@ -425,7 +427,7 @@ export async function runAddCommand(
 	// prompt for package manager
 	let packageManager: AgentName | undefined;
 	if (options.install) {
-		packageManager = await common.packageManagerPrompt(options.cwd);
+		packageManager = await packageManagerPrompt(options.cwd);
 	}
 
 	// apply adders
@@ -434,7 +436,7 @@ export async function runAddCommand(
 
 	// install dependencies
 	if (packageManager && options.install) {
-		await common.installDependencies(packageManager, options.cwd);
+		await installDependencies(packageManager, options.cwd);
 	}
 
 	// format modified/created files with prettier (if available)
@@ -443,7 +445,7 @@ export async function runAddCommand(
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
 		try {
-			await common.formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
+			await formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
 			stop('Successfully formatted modified files');
 		} catch (e) {
 			stop('Failed to format files');

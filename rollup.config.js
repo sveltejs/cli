@@ -35,7 +35,11 @@ function getConfig(project) {
 			parsers: `${projectRoot}/tooling/parsers.ts`
 		};
 	} else if (project === 'cli') {
-		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/testing.ts`, `${projectRoot}/bin.ts`];
+		inputs = [
+			`${projectRoot}/lib/index.ts`,
+			`${projectRoot}/lib/testing.ts`,
+			`${projectRoot}/bin.ts`
+		];
 	} else {
 		inputs = [`${projectRoot}/index.ts`];
 	}
@@ -109,9 +113,7 @@ function getConfig(project) {
 		plugins: [
 			preserveShebangs(),
 			'exports' in pkg &&
-				dts({
-					include: project === 'cli' ? [inputs[0], inputs[1], `${projectRoot}/lib/*`] : undefined
-				}),
+				dts({ include: project === 'cli' ? [`${projectRoot}/lib/*`] : undefined }),
 			esbuild(),
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),
@@ -119,7 +121,7 @@ function getConfig(project) {
 			dynamicImportVars({
 				// since we're relying on the usage of standard dynamic imports for community adders, we need to
 				// prevent this plugin from transforming these cases
-				exclude: ['packages/cli/utils/fetch-packages.ts']
+				exclude: ['packages/cli/commands/add/fetch-packages.ts']
 			}),
 			buildCliTemplatesPlugin,
 			communityAdderIdsPlugin

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import process from 'node:process';
 import path from 'node:path';
+import process from 'node:process';
 import degit from 'degit';
 import { exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
@@ -137,13 +137,12 @@ async function terminate(pid: number) {
 	for (let i = children.length - 1; i >= 0; i--) {
 		const child = children[i];
 		const pid = Number(child.PID);
-		try {
-			process.kill(pid);
-		} catch {
-			// this can happen if a process has been automatically terminated.
-		}
+		kill(pid);
 	}
+	kill(pid);
+}
 
+function kill(pid: number) {
 	try {
 		process.kill(pid);
 	} catch {

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
-import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/test';
+import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/testing';
 import { chromium, type Browser, type Page } from '@playwright/test';
 
 const cwd = vitest.inject('testDir');
