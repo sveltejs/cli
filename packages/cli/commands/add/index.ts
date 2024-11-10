@@ -2,11 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
-import { exec } from 'tinyexec';
 import { Command, Option } from 'commander';
 import * as p from '@sveltejs/clack-prompts';
 import * as pkg from 'empathic/package';
-import { resolveCommand, type AgentName } from 'package-manager-detector';
+import { type AgentName } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
 	officialAdders,
@@ -14,17 +13,14 @@ import {
 	communityAdderIds,
 	getCommunityAdder
 } from '@sveltejs/adders';
-import type {
-	AdderSetupResult,
-	AdderWithoutExplicitArgs,
-	OptionValues,
-	SvApi
-} from '@sveltejs/cli-core';
+import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
 import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
-import { formatFiles, getHighlighter, installPackages } from './utils.ts';
+import { formatFiles, getHighlighter } from './utils.ts';
 import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
 import { installDependencies, packageManagerPrompt } from '../../utils/package-manager.ts';
+import { getGlobalPreconditions } from './preconditions.ts';
+import { type AddonMap, installAddon, setupAddons } from '../../lib/install.ts';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -275,19 +271,7 @@ export async function runAddCommand(
 
 	// prepare official adders
 	let workspace = createWorkspace({ cwd: options.cwd });
-	const adderSetupResults: Record<AdderId, AdderSetupResult> = {};
-	for (const officialAdder of officialAdders) {
-		const setupResult: AdderSetupResult = {
-			available: true,
-			dependsOn: []
-		};
-		officialAdder.setup?.({
-			...workspace,
-			dependsOn: (name) => setupResult.dependsOn.push(name),
-			unavailable: () => (setupResult.available = false)
-		});
-		adderSetupResults[officialAdder.id] = setupResult;
-	}
+	const adderSetupResults = setupAddons(officialAdders, options.cwd);
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
@@ -349,7 +333,7 @@ export async function runAddCommand(
 		const { kit } = createWorkspace({ cwd: options.cwd });
 		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
-		const { preconditions } = common.getGlobalPreconditions(
+		const { preconditions } = getGlobalPreconditions(
 			options.cwd,
 			projectType,
 			adders,
@@ -450,13 +434,25 @@ export async function runAddCommand(
 	}
 
 	// apply adders
-	const filesToFormat = await runAdders({
-		cwd: options.cwd,
-		packageManager,
-		official,
-		community,
+	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
+	const commDetails = Object.keys(community).map(
+		(id) => communityDetails.find((a) => a.id === id)!
+	);
+	const details = adderDetails.concat(commDetails);
+
+	// todo simplify
+	const map: AddonMap = details.reduce((map, x) => {
+		map[x.id] = x;
+		return map;
+	}, {} as AddonMap);
+	const filesToFormat = await installAddon({
+		cwd: workspace.cwd,
+		packageManager: workspace.packageManager,
+		addons: map,
+		options: official,
 		adderSetupResults
 	});
+
 	p.log.success('Successfully setup add-ons');
 
 	// install dependencies
@@ -513,106 +509,7 @@ export type InstallAdderOptions = {
 	packageManager?: AgentName;
 	official?: AdderOption;
 	community?: AdderOption;
-	adderSetupResults: Record<AdderId, AdderSetupResult>;
 };
-
-/**
- * @returns a list of paths of modified files
- */
-async function runAdders({
-	cwd,
-	official = {},
-	community = {},
-	packageManager,
-	adderSetupResults = {}
-}: InstallAdderOptions): Promise<string[]> {
-	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
-	const commDetails = Object.keys(community).map(
-		(id) => communityDetails.find((a) => a.id === id)!
-	);
-	const details = adderDetails.concat(commDetails);
-
-	// adders might specify that they should be executed after another adder.
-	// this orders the adders to (ideally) have adders without dependencies run first
-	// and adders with dependencies runs later on, based on the adders they depend on.
-	// based on https://stackoverflow.com/a/72030336/16075084
-	details.sort((a, b) => {
-		const aDeps = adderSetupResults[a.id].dependsOn;
-		const bDeps = adderSetupResults[b.id].dependsOn;
-		if (!aDeps && !bDeps) return 0;
-		if (!aDeps) return -1;
-		if (!bDeps) return 1;
-
-		return aDeps.includes(b.id) ? 1 : bDeps.includes(a.id) ? -1 : 0;
-	});
-
-	// apply adders
-	const filesToFormat = new Set<string>();
-	for (const adder of details) {
-		const adderId = adder.id;
-		const workspace = createWorkspace({ cwd, packageManager });
-
-		workspace.options = official[adderId] ?? community[adderId]!;
-
-		// execute adders
-		const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
-		const sv: SvApi = {
-			file: (path, content) => {
-				try {
-					const exists = fileExists(workspace.cwd, path);
-					let fileContent = exists ? readFile(workspace.cwd, path) : '';
-					// process file
-					fileContent = content(fileContent);
-					if (!fileContent) return fileContent;
-
-					writeFile(workspace, path, fileContent);
-					filesToFormat.add(path);
-
-					return fileContent;
-				} catch (e) {
-					if (e instanceof Error) {
-						throw new Error(`Unable to process '${path}'. Reason: ${e.message}`);
-					}
-					throw e;
-				}
-			},
-			execute: async (commandArgs, stdio) => {
-				const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
-				const adderPrefix = details.length > 1 ? `${adder.id}: ` : '';
-				const executedCommandDisplayName = `${command} ${args.join(' ')}`;
-				p.log.step(
-					`${adderPrefix}Running external command ${pc.gray(`(${executedCommandDisplayName})`)}`
-				);
-
-				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-				if (workspace.packageManager === 'npm') args.unshift('--yes');
-
-				try {
-					await exec(command, args, {
-						nodeOptions: { cwd: workspace.cwd, stdio },
-						throwOnError: true
-					});
-				} catch (error) {
-					const typedError = error as Error;
-					throw new Error(
-						`Failed to execute scripts '${executedCommandDisplayName}': ` + typedError.message
-					);
-				}
-			},
-			dependency: (pkg, version) => {
-				dependencies.push({ pkg, version, dev: false });
-			},
-			devDependency: (pkg, version) => {
-				dependencies.push({ pkg, version, dev: true });
-			}
-		};
-		await adder.run({ ...workspace, sv });
-
-		installPackages(dependencies, workspace);
-	}
-
-	return Array.from(filesToFormat);
-}
 
 /**
  * Dedupes and transforms aliases into their respective adder id

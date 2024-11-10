@@ -1,11 +1,12 @@
 import { exec } from 'tinyexec';
-import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
+import type { AdderSetupResult, AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 
 type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
 	cwd: string,
 	projectType: 'svelte' | 'kit',
-	adders: AdderWithoutExplicitArgs[]
+	adders: AdderWithoutExplicitArgs[],
+	adderSetupResult: Record<string, AdderSetupResult>
 ): PreconditionCheck {
 	return {
 		name: 'global checks',
@@ -38,13 +39,9 @@ export function getGlobalPreconditions(
 			{
 				name: 'supported environments',
 				run: () => {
-					const addersForInvalidEnvironment = adders.filter((a) => {
-						const supportedEnvironments = a.environments;
-						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
-						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
-
-						return false;
-					});
+					const addersForInvalidEnvironment = adders.filter(
+						(a) => !adderSetupResult[a.id].available
+					);
 
 					if (addersForInvalidEnvironment.length === 0) {
 						return { success: true, message: undefined };

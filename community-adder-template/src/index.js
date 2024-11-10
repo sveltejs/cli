@@ -12,12 +12,11 @@ export const options = defineAdderOptions({
 
 export default defineAdder({
 	id: 'community-addon',
-	environments: { kit: true, svelte: true },
 	options,
 	setup: ({ kit, unavailable }) => {
 		if (!kit) unavailable();
 	},
-	run: ({ sv, options }) => {
+	run: ({ sv, options, typescript }) => {
 		sv.file('adder-template-demo.txt', (content) => {
 			if (options.demo) {
 				return 'This is a text file made by the Community Adder Template demo!';

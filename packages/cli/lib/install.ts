@@ -1,9 +1,19 @@
 import { exec } from 'tinyexec';
 import { resolveCommand } from 'package-manager-detector';
-import type { Adder, Workspace, PackageManager, OptionValues, Question } from '@sveltejs/cli-core';
-import { installPackages } from '../commands/add/utils.ts';
+import type {
+	Adder,
+	Workspace,
+	PackageManager,
+	OptionValues,
+	Question,
+	SvApi,
+	AdderSetupResult,
+	AdderWithoutExplicitArgs
+} from '@sveltejs/cli-core';
+import { fileExists, installPackages, readFile, writeFile } from '../commands/add/utils.ts';
 import { createWorkspace } from '../commands/add/workspace.ts';
-import { createOrUpdateFiles } from '../commands/add/processor.ts';
+import * as p from '@sveltejs/clack-prompts';
+import pc from 'picocolors';
 
 type Addon = Adder<any>;
 export type InstallOptions<Addons extends AddonMap> = {
@@ -11,6 +21,7 @@ export type InstallOptions<Addons extends AddonMap> = {
 	addons: Addons;
 	options: OptionMap<Addons>;
 	packageManager: PackageManager;
+	adderSetupResults?: Record<string, AdderSetupResult>;
 };
 
 export type AddonMap = Record<string, Addon>;
@@ -22,27 +33,55 @@ export async function installAddon<Addons extends AddonMap>({
 	addons,
 	cwd,
 	options,
-	packageManager = 'npm'
+	packageManager = 'npm',
+	adderSetupResults
 }: InstallOptions<Addons>): Promise<string[]> {
 	const filesToFormat = new Set<string>();
 
+	adderSetupResults ??= setupAddons(Object.values(addons), cwd, packageManager);
+
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
-	const ordered = orderAddons(mapped);
+	const ordered = orderAddons(mapped, adderSetupResults);
 
 	for (const addon of ordered) {
 		const workspace = createWorkspace({ cwd, packageManager });
 		workspace.options = options[addon.id];
 
-		const files = await runAddon(workspace, addon);
+		const files = await runAddon(workspace, addon, ordered.length > 1);
 		files.forEach((f) => filesToFormat.add(f));
 	}
 
 	return Array.from(filesToFormat);
 }
 
+export function setupAddons(
+	addons: AdderWithoutExplicitArgs[],
+	cwd: string,
+	packageManager?: PackageManager
+): Record<string, AdderSetupResult> {
+	const adderSetupResults: Record<string, AdderSetupResult> = {};
+	const workspace = createWorkspace({ cwd, packageManager });
+
+	for (const addon of addons) {
+		const setupResult: AdderSetupResult = {
+			available: true,
+			dependsOn: []
+		};
+		addon.setup?.({
+			...workspace,
+			dependsOn: (name) => setupResult.dependsOn.push(name),
+			unavailable: () => (setupResult.available = false)
+		});
+		adderSetupResults[addon.id] = setupResult;
+	}
+
+	return adderSetupResults;
+}
+
 async function runAddon(
 	workspace: Workspace<any>,
-	addon: Adder<Record<string, Question>>
+	addon: Adder<Record<string, Question>>,
+	applyMultipleAddons: boolean
 ): Promise<string[]> {
 	const files = new Set<string>();
 
@@ -54,41 +93,77 @@ async function runAddon(
 		}
 	}
 
-	await addon.preInstall?.(workspace);
-	const pkgPath = installPackages(addon, workspace);
-	files.add(pkgPath);
-	const changedFiles = createOrUpdateFiles(addon.files, workspace);
-	changedFiles.forEach((file) => files.add(file));
-	await addon.postInstall?.(workspace);
+	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+	const sv: SvApi = {
+		file: (path, content) => {
+			try {
+				const exists = fileExists(workspace.cwd, path);
+				let fileContent = exists ? readFile(workspace.cwd, path) : '';
+				// process file
+				fileContent = content(fileContent);
+				if (!fileContent) return fileContent;
 
-	for (const script of addon.scripts ?? []) {
-		if (script.condition?.(workspace) === false) continue;
+				writeFile(workspace, path, fileContent);
+				files.add(path);
 
-		try {
-			const { args, command } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
+				return fileContent;
+			} catch (e) {
+				if (e instanceof Error) {
+					throw new Error(`Unable to process '${path}'. Reason: ${e.message}`);
+				}
+				throw e;
+			}
+		},
+		execute: async (commandArgs, stdio) => {
+			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
+			const adderPrefix = applyMultipleAddons ? `${addon.id}: ` : '';
+			const executedCommandDisplayName = `${command} ${args.join(' ')}`;
+			p.log.step(
+				`${adderPrefix}Running external command ${pc.gray(`(${executedCommandDisplayName})`)}`
+			);
+
+			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
 			if (workspace.packageManager === 'npm') args.unshift('--yes');
-			await exec(command, args, {
-				nodeOptions: { cwd: workspace.cwd, stdio: 'pipe' },
-				throwOnError: true
-			});
-		} catch (error) {
-			const typedError = error as Error;
-			throw new Error(`Failed to execute scripts '${script.description}': ` + typedError.message);
+
+			try {
+				await exec(command, args, {
+					nodeOptions: { cwd: workspace.cwd, stdio },
+					throwOnError: true
+				});
+			} catch (error) {
+				const typedError = error as Error;
+				throw new Error(
+					`Failed to execute scripts '${executedCommandDisplayName}': ` + typedError.message
+				);
+			}
+		},
+		dependency: (pkg, version) => {
+			dependencies.push({ pkg, version, dev: false });
+		},
+		devDependency: (pkg, version) => {
+			dependencies.push({ pkg, version, dev: true });
 		}
-	}
+	};
+	await addon.run({ ...workspace, sv });
+
+	const pkgPath = installPackages(dependencies, workspace);
+	files.add(pkgPath);
 
 	return Array.from(files);
 }
 
 // sorts them to their execution order
-function orderAddons(addons: Addon[]) {
+function orderAddons(addons: Addon[], adderSetupResults: Record<string, AdderSetupResult>) {
 	return Array.from(addons).sort((a, b) => {
-		if (!a.dependsOn && !b.dependsOn) return 0;
-		if (!a.dependsOn) return -1;
-		if (!b.dependsOn) return 1;
+		const aDeps = adderSetupResults[a.id].dependsOn;
+		const bDeps = adderSetupResults[b.id].dependsOn;
 
-		if (a.dependsOn.includes(b.id)) return 1;
-		if (b.dependsOn.includes(a.id)) return -1;
+		if (!aDeps && !bDeps) return 0;
+		if (!aDeps) return -1;
+		if (!bDeps) return 1;
+
+		if (aDeps.includes(b.id)) return 1;
+		if (bDeps.includes(a.id)) return -1;
 
 		return 0;
 	});
