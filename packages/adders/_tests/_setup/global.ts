@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { setup, type ProjectVariant } from 'sv/test';
+import { setup, type ProjectVariant } from 'sv/testing';
 import type { GlobalSetupContext } from 'vitest/node';
 
 const TEST_DIR = fileURLToPath(new URL('../../../../.test-output/adders/', import.meta.url));

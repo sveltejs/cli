@@ -1,9 +1,9 @@
 import { exec } from 'tinyexec';
 import { resolveCommand } from 'package-manager-detector';
 import type { Adder, Workspace, PackageManager, OptionValues, Question } from '@sveltejs/cli-core';
+import { installPackages } from '../commands/add/utils.ts';
 import { createWorkspace } from '../commands/add/workspace.ts';
 import { createOrUpdateFiles } from '../commands/add/processor.ts';
-import { installPackages } from '../commands/add/utils.ts';
 
 type Addon = Adder<any>;
 export type InstallOptions<Addons extends AddonMap> = {

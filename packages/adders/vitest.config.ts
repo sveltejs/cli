@@ -7,10 +7,10 @@ export default defineConfig({
 	test: {
 		name: 'adders',
 		include: ['_tests/**/test.{js,ts}'],
+		globalSetup: ['_tests/_setup/global.ts'],
 		testTimeout: ONE_MINUTE * 3,
 		hookTimeout: ONE_MINUTE * 3,
-		maxConcurrency: 10,
-		globalSetup: ['_tests/_setup/global.ts'],
-		retry: env.CI ? 3 : 0
+		retry: env.CI ? 3 : 0,
+		pool: 'threads'
 	}
 });

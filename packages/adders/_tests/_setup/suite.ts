@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
-import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/test';
+import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/testing';
 import { chromium, type Browser, type Page } from '@playwright/test';
 
 const cwd = vitest.inject('testDir');
@@ -98,9 +98,8 @@ async function prepareServer(
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
-	// default navigation timeout is 30 seconds. When running many tests at once as we are doing
-	// this is not always enough. Increase it to 60 seconds.
-	page.setDefaultNavigationTimeout(60_0000);
+	// increases timeout as 30s is not always enough when running the full suite
+	page.setDefaultNavigationTimeout(60_000);
 
 	try {
 		// navigate to the page

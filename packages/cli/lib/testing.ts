@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import process from 'node:process';
 import path from 'node:path';
+import process from 'node:process';
 import degit from 'degit';
 import { exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
@@ -49,7 +49,16 @@ export async function setup({
 			// TODO: should probably point this to a specific commit hash (ex: `#1234abcd`)
 			const template = degit(`vitejs/vite/packages/create-vite/${name}`, { force: true });
 			await template.clone(templatePath);
-		} else throw new Error(`Unknown project variant: ${variant}`);
+
+			// vite templates have their gitignore file named as `_gitignore`
+			const gitignorePath = path.resolve(templatePath, '_gitignore');
+			if (fs.existsSync(gitignorePath)) {
+				const fixedPath = path.resolve(templatePath, '.gitignore');
+				fs.renameSync(gitignorePath, fixedPath);
+			}
+		} else {
+			throw new Error(`Unknown project variant: ${variant}`);
+		}
 	}
 
 	return { templatesDir };
@@ -128,13 +137,12 @@ async function terminate(pid: number) {
 	for (let i = children.length - 1; i >= 0; i--) {
 		const child = children[i];
 		const pid = Number(child.PID);
-		try {
-			process.kill(pid);
-		} catch {
-			// this can happen if a process has been automatically terminated.
-		}
+		kill(pid);
 	}
+	kill(pid);
+}
 
+function kill(pid: number) {
 	try {
 		process.kill(pid);
 	} catch {
