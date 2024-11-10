@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 // path to the `node_modules` directory of `sv`
-const NODE_MODULES = fileURLToPath(new URL('../../../node_modules', import.meta.url));
+const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
 const REGISTRY = 'https://registry.npmjs.org';
 export const Directive = { file: 'file:', npm: 'npm:' };
 
