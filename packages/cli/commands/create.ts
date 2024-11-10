@@ -161,7 +161,7 @@ async function createProject(cwd: string, options: Options) {
 	if (options.addOns) {
 		// `runAddCommand` includes installing dependencies
 		const { nextSteps, packageManager: pm } = await runAddCommand(
-			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
+			{ cwd: projectPath, install: options.install, preconditions: false, community: [] },
 			[]
 		);
 		packageManager = pm;
