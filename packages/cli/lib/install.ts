@@ -14,6 +14,7 @@ import { fileExists, installPackages, readFile, writeFile } from '../commands/ad
 import { createWorkspace } from '../commands/add/workspace.ts';
 import * as p from '@sveltejs/clack-prompts';
 import pc from 'picocolors';
+import { TESTING } from '../utils/env.ts';
 
 type Addon = Adder<any>;
 export type InstallOptions<Addons extends AddonMap> = {
@@ -116,11 +117,14 @@ async function runAddon(
 		},
 		execute: async (commandArgs, stdio) => {
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
+
 			const adderPrefix = applyMultipleAddons ? `${addon.id}: ` : '';
 			const executedCommandDisplayName = `${command} ${args.join(' ')}`;
-			p.log.step(
-				`${adderPrefix}Running external command ${pc.gray(`(${executedCommandDisplayName})`)}`
-			);
+			if (!TESTING) {
+				p.log.step(
+					`${adderPrefix}Running external command ${pc.gray(`(${executedCommandDisplayName})`)}`
+				);
+			}
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
 			if (workspace.packageManager === 'npm') args.unshift('--yes');
