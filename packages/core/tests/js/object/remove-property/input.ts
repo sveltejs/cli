@@ -1,4 +1,4 @@
 const test = {
-    foo: 1,
-    bar: 'string'
-}
+	foo: 1,
+	bar: 'string'
+};

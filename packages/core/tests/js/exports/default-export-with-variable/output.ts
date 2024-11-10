@@ -1,5 +1,5 @@
 const object = {
-  test: 'string'
+	test: 'string'
 };
 
 export default object;
