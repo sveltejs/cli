@@ -249,7 +249,6 @@ export default defineAdder({
 					${ts('', ' * @param {string} userId')}
 					${ts('', ' */')}
 					export async function createSession(token${ts(': string')}, userId${ts(': string')}) {
-						const token = generateSessionToken();
 						const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 						const session${ts(': table.Session')} = {
 							id: sessionId,
