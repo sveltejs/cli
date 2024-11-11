@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
@@ -10,7 +11,11 @@ import { pageServer, pageComp } from './fixtures.ts';
 
 const { test, variants, prepareServer } = setupTest({ drizzle });
 
+// only linux is supported for running docker containers in github runners
+const noDocker = process.env.CI && process.platform !== 'linux';
+
 vitest.beforeAll(() => {
+	if (noDocker) return;
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
 
@@ -33,6 +38,7 @@ const testCases = [
 test.concurrent.for(testCases)(
 	'queries database - $name - $variant',
 	async ({ options, variant }, { page, ...ctx }) => {
+		if (options.docker && noDocker) ctx.skip();
 		const cwd = await ctx.run(variant, { drizzle: options as any });
 
 		const ts = variant === 'kit-ts';
