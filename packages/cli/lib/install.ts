@@ -65,7 +65,7 @@ async function runAddon(
 		if (script.condition?.(workspace) === false) continue;
 
 		try {
-			const { args, command } = resolveCommand('npm', 'execute', script.args)!;
+			const { args, command } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
 			if (workspace.packageManager === 'npm') args.unshift('--yes');
 			await exec(command, args, {
 				nodeOptions: { cwd: workspace.cwd, stdio: 'inherit' },
