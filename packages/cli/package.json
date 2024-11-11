@@ -31,7 +31,7 @@
 		"@sveltejs/cli-core": "workspace:*",
 		"@sveltejs/create": "workspace:*",
 		"@types/tar-fs": "^2.0.4",
-		"commander": "^12.1.0",
+		"commander": "github:shadowspawn/commander.js#feature/colour-help",
 		"empathic": "^1.0.0",
 		"package-manager-detector": "^0.2.2",
 		"picocolors": "^1.1.0",

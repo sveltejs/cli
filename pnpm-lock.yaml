@@ -175,8 +175,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
       commander:
-        specifier: ^12.1.0
-        version: 12.1.0
+        specifier: github:shadowspawn/commander.js#feature/colour-help
+        version: https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c
       empathic:
         specifier: ^1.0.0
         version: 1.0.0
@@ -1040,19 +1040,20 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
-  commander@12.1.0:
-    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
-    engines: {node: '>=18'}
-
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
+
+  commander@https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c:
+    resolution: {tarball: https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c}
+    version: 12.1.0
+    engines: {node: '>=18'}
 
   commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
 
   concat-map@0.0.1:
-    resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=}
+    resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
   cross-spawn@5.1.0:
     resolution: {integrity: sha512-pTgQJ5KC0d2hcY8eyL1IzlBPYjTkyH72XRZPnLyKus2mBfNjQs3klqbJU2VILqZryAZUt9JOb3h/mWMy23/f5A==}
@@ -3120,9 +3121,9 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  commander@12.1.0: {}
-
   commander@4.1.1: {}
+
+  commander@https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c: {}
 
   commondir@1.0.1: {}
 
