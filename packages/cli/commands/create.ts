@@ -49,14 +49,14 @@ export const create = new Command('create')
 	.option('--no-install', 'skip installing dependencies')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
-		const userProvidedPath = !!projectPath;
+		const customPathProvided = !!projectPath;
 		const cwd = v.parse(ProjectPathSchema, projectPath) ?? process.cwd();
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
 			const { directory, addOnNextSteps, packageManager } = await createProject(
 				cwd,
 				options,
-				userProvidedPath
+				customPathProvided
 			);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
@@ -90,12 +90,12 @@ export const create = new Command('create')
 		});
 	});
 
-async function createProject(cwd: string, options: Options, userProvidedPath: boolean) {
+async function createProject(cwd: string, options: Options, customPathProvided: boolean) {
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
 				const relativePath = path.relative(process.cwd(), cwd);
-				if (relativePath || userProvidedPath) return Promise.resolve(relativePath);
+				if (relativePath || customPathProvided) return Promise.resolve(relativePath);
 				const defaultPath = './';
 				return p.text({
 					message: 'Where would you like your project to be created?',
