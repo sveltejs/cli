@@ -27,7 +27,7 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 	templateChoices
 );
 
-const ProjectPathSchema = v.string();
+const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
 	types: v.pipe(
 		v.optional(v.union([v.picklist(langs), v.boolean()])),
@@ -41,7 +41,7 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 
 export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
-	.argument('[path]', 'where the project will be created', process.cwd())
+	.argument('[path]', 'where the project will be created')
 	.addOption(templateOption)
 	.addOption(langOption)
 	.option('--no-types')
@@ -49,10 +49,15 @@ export const create = new Command('create')
 	.option('--no-install', 'skip installing dependencies')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
-		const cwd = v.parse(ProjectPathSchema, projectPath);
+		const userProvidedPath = !!projectPath;
+		const cwd = v.parse(ProjectPathSchema, projectPath) ?? process.cwd();
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
-			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
+			const { directory, addOnNextSteps, packageManager } = await createProject(
+				cwd,
+				options,
+				userProvidedPath
+			);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
@@ -85,12 +90,12 @@ export const create = new Command('create')
 		});
 	});
 
-async function createProject(cwd: string, options: Options) {
+async function createProject(cwd: string, options: Options, userProvidedPath: boolean) {
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
 				const relativePath = path.relative(process.cwd(), cwd);
-				if (relativePath) return Promise.resolve(relativePath);
+				if (relativePath || userProvidedPath) return Promise.resolve(relativePath);
 				const defaultPath = './';
 				return p.text({
 					message: 'Where would you like your project to be created?',
