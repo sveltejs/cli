@@ -45,7 +45,7 @@ const pluginPackages: Array<PackageDefinition<typeof options>> = plugins.map((x)
 	condition: ({ options }) => options.plugins.includes(x.id)
 }));
 
-export const options = defineAdderOptions({
+const options = defineAdderOptions({
 	plugins: {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',

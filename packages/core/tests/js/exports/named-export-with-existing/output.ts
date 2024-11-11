@@ -1,4 +1,4 @@
 export const named = {
-    test: 'string',
-    test2: "string2"
+	test: 'string',
+	test2: 'string2'
 };

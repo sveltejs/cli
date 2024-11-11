@@ -8,7 +8,7 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-export const options = defineAdderOptions({
+const options = defineAdderOptions({
 	database: {
 		question: 'Which database would you like to use?',
 		type: 'select',
@@ -204,7 +204,7 @@ export default defineAdder({
 				imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
 				const envCheckStatement = common.statementFromString(
-					`if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`
+					"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
 				);
 				common.addStatement(ast, envCheckStatement);
 
@@ -306,7 +306,7 @@ export default defineAdder({
 
 				// env var checks
 				const dbURLCheck = common.statementFromString(
-					`if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');`
+					"if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
 				);
 				common.addStatement(ast, dbURLCheck);
 
@@ -326,7 +326,7 @@ export default defineAdder({
 						imports.addNamed(ast, '$app/environment', { dev: 'dev' });
 						// auth token check in prod
 						const authTokenCheck = common.statementFromString(
-							`if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');`
+							"if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
 						);
 						common.addStatement(ast, authTokenCheck);
 

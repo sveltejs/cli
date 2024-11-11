@@ -4,5 +4,6 @@
 		"checkJs": false,
 		"isolatedDeclarations": true,
 		"declaration": true
-	}
+	},
+	"include": ["index.ts"]
 }

@@ -11,9 +11,14 @@ import {
 	type LanguageType,
 	type TemplateType
 } from '@sveltejs/create';
-import * as common from '../common.js';
+import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
 import { detectSync, type AgentName } from 'package-manager-detector';
+import {
+	getUserAgent,
+	installDependencies,
+	packageManagerPrompt
+} from '../utils/package-manager.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -59,8 +64,7 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm =
-				packageManager ?? detectSync({ cwd: directory })?.name ?? common.getUserAgent() ?? 'npm';
+			const pm = packageManager ?? detectSync({ cwd: directory })?.name ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
@@ -157,8 +161,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let packageManager: AgentName | undefined | null;
 	let addOnNextSteps: string | undefined;
 	const installDeps = async () => {
-		packageManager = await common.packageManagerPrompt(projectPath);
-		if (packageManager) await common.installDependencies(packageManager, projectPath);
+		packageManager = await packageManagerPrompt(projectPath);
+		if (packageManager) await installDependencies(packageManager, projectPath);
 	};
 
 	if (options.addOns) {

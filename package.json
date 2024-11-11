@@ -1,20 +1,25 @@
 {
 	"name": "sv-monorepo",
-	"version": "0.0.1",
-	"description": "monorepo for sv and friends",
 	"private": true,
+	"version": "0.0.1",
 	"type": "module",
+	"description": "monorepo for sv and friends",
+	"engines": {
+		"pnpm": "^9.0.0"
+	},
 	"scripts": {
-		"check": "pnpm --parallel check",
-		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
-		"format": "pnpm --parallel format",
-		"dev": "rollup --config --watch",
 		"build": "rollup -c",
-		"test": "pnpm --parallel test",
-		"changeset:publish": "changeset publish"
+		"changeset:publish": "changeset publish",
+		"check": "pnpm --parallel check",
+		"dev": "rollup --config --watch",
+		"format": "pnpm --parallel format",
+		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
+		"test": "vitest run --silent",
+		"test:ui": "vitest --ui"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.9",
+		"@playwright/test": "^1.48.2",
 		"@rollup/plugin-commonjs": "^26.0.1",
 		"@rollup/plugin-dynamic-import-vars": "^2.1.2",
 		"@rollup/plugin-json": "^6.1.0",
@@ -23,7 +28,7 @@
 		"@sveltejs/eslint-config": "^8.1.0",
 		"@svitejs/changesets-changelog-github-compact": "^1.1.0",
 		"@types/node": "^22.3.0",
-		"@vitest/ui": "^2.0.5",
+		"@vitest/ui": "^2.1.4",
 		"eslint": "^9.10.0",
 		"magic-string": "^0.30.11",
 		"prettier": "^3.3.3",
@@ -37,10 +42,7 @@
 		"typescript": "^5.6.2",
 		"typescript-eslint": "^8.5.0",
 		"unplugin-isolated-decl": "^0.6.5",
-		"vitest": "^2.0.5"
+		"vitest": "^2.1.4"
 	},
-	"packageManager": "pnpm@9.7.0",
-	"engines": {
-		"pnpm": "^9.0.0"
-	}
+	"packageManager": "pnpm@9.7.0"
 }

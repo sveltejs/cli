@@ -32,7 +32,7 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-export const options = defineAdderOptions({
+const options = defineAdderOptions({
 	availableLanguageTags: {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
