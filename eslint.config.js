@@ -28,7 +28,6 @@ export default [
 			'packages/create/scripts/**/*',
 			'packages/create/templates/**/*',
 			'**/temp/*',
-			'.test-tmp/*',
 			'**/.test-output/*',
 			'**/dist/*',
 			'packages/**/tests/**/{output,input}.ts',
