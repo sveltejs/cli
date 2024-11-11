@@ -1,7 +1,7 @@
 export const variable = {
-  test: 'string'
+	test: 'string'
 };
 
 export const variable2 = {
-  test2: 'string2'
+	test2: 'string2'
 };
