@@ -98,7 +98,7 @@ function matches_condition(condition: Condition, options: Options) {
 	if (condition === 'demo' || condition === 'minimal' || condition === 'library') {
 		return options.template === condition;
 	}
-	if (condition === 'typescript' || condition === 'checkjs') {
+	if (condition === 'typescript' || condition === 'checkjs' || condition === 'none') {
 		return options.types === condition;
 	}
 	return !!options[condition];
