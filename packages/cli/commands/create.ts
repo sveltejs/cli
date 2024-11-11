@@ -38,6 +38,7 @@ const OptionsSchema = v.strictObject({
 	template: v.optional(v.picklist(templateChoices))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
+type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
 
 export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
@@ -49,21 +50,17 @@ export const create = new Command('create')
 	.option('--no-install', 'skip installing dependencies')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
-		const customPathProvided = !!projectPath;
-		const cwd = v.parse(ProjectPathSchema, projectPath) ?? process.cwd();
+		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
-			const { directory, addOnNextSteps, packageManager } = await createProject(
-				cwd,
-				options,
-				customPathProvided
-			);
+			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = packageManager ?? detectSync({ cwd })?.name ?? common.getUserAgent() ?? 'npm';
+			const pm =
+				packageManager ?? detectSync({ cwd: directory })?.name ?? common.getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
@@ -90,12 +87,13 @@ export const create = new Command('create')
 		});
 	});
 
-async function createProject(cwd: string, options: Options, customPathProvided: boolean) {
+async function createProject(cwd: ProjectPath, options: Options) {
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
-				const relativePath = path.relative(process.cwd(), cwd);
-				if (relativePath || customPathProvided) return Promise.resolve(relativePath);
+				if (cwd) {
+					return Promise.resolve(path.resolve(cwd));
+				}
 				const defaultPath = './';
 				return p.text({
 					message: 'Where would you like your project to be created?',
