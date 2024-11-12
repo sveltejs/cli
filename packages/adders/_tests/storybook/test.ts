@@ -6,7 +6,7 @@ const { test, variants, prepareServer } = setupTest({ storybook });
 
 let port = 6006;
 
-test.concurrent.for(variants)('storybook loaded - %s', async (variant, { page, ...ctx }) => {
+test.for(variants)('storybook loaded - %s', async (variant, { page, ...ctx }) => {
 	try {
 		const cwd = await ctx.run(variant, { storybook: {} });
 
@@ -22,6 +22,7 @@ test.concurrent.for(variants)('storybook loaded - %s', async (variant, { page, .
 		expect(await page.$('main .sb-bar')).toBeTruthy();
 		expect(await page.$('#storybook-preview-wrapper')).toBeTruthy();
 	} catch (e) {
-		console.error(e);
+		console.error(e.message);
+		console.error(e.cause);
 	}
 });
