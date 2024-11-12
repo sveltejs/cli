@@ -92,10 +92,7 @@ for (const option of addersOptions) {
 	add.addOption(option);
 }
 
-type SelectedAdder = {
-	type: 'official' | 'community';
-	adder: AdderWithoutExplicitArgs;
-};
+type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
 export async function runAddCommand(
 	options: Options,
 	selectedAdderIds: string[]
@@ -316,6 +313,7 @@ export async function runAddCommand(
 		for (const depId of filteredDependents) {
 			const dependent = officialAdders.find((a) => a.id === depId) as AdderWithoutExplicitArgs;
 
+			// prompt to install the dependent
 			const install = await p.confirm({
 				message: `The ${pc.bold(pc.cyan(adder.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
 			});
@@ -440,15 +438,14 @@ export async function runAddCommand(
 	);
 	const details = adderDetails.concat(commDetails);
 
-	// todo simplify
-	const map: AddonMap = details.reduce((map, x) => {
+	const addonMap = details.reduce((map, x) => {
 		map[x.id] = x;
 		return map;
 	}, {} as AddonMap);
 	const filesToFormat = await installAddon({
 		cwd: workspace.cwd,
 		packageManager: workspace.packageManager,
-		addons: map,
+		addons: addonMap,
 		options: official,
 		adderSetupResults
 	});
