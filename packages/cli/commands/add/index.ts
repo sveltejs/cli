@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { Command, Option } from 'commander';
 import * as p from '@sveltejs/clack-prompts';
 import * as pkg from 'empathic/package';
-import { type AgentName } from 'package-manager-detector';
+import type { AgentName } from 'package-manager-detector';
 import pc from 'picocolors';
 import {
 	officialAdders,

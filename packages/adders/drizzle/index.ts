@@ -8,7 +8,7 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-export const options = defineAdderOptions({
+const options = defineAdderOptions({
 	database: {
 		question: 'Which database would you like to use?',
 		type: 'select',

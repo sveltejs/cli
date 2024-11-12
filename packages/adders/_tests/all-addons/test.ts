@@ -6,7 +6,8 @@ import { officialAdders } from '../../index.ts';
 const windowsCI = process.env.CI && process.platform === 'win32';
 const addons = officialAdders.reduce((addonMap, addon) => {
 	if (addon.id === 'storybook' && windowsCI) return addonMap;
-	return (addonMap[addon.id] = addon);
+	addonMap[addon.id] = addon;
+	return addonMap;
 }, {} as any);
 
 const defaultOptions = officialAdders.reduce((options, addon) => {
