@@ -1,4 +1,4 @@
-import { exec } from 'tinyexec';
+import { exec, NonZeroExitError } from 'tinyexec';
 import { resolveCommand } from 'package-manager-detector';
 import type {
 	Adder,
@@ -135,7 +135,8 @@ async function runAddon(
 					throwOnError: true
 				});
 			} catch (error) {
-				const typedError = error as Error;
+				const typedError = error as NonZeroExitError;
+				console.error(typedError);
 				throw new Error(
 					`Failed to execute scripts '${executedCommandDisplayName}': ` + typedError.message
 				);
