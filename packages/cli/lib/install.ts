@@ -131,7 +131,7 @@ async function runAddon(
 
 			try {
 				await exec(command, args, {
-					nodeOptions: { cwd: workspace.cwd, stdio },
+					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
 					throwOnError: true
 				});
 			} catch (error) {
