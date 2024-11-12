@@ -131,7 +131,7 @@ export default defineAdder({
 		});
 
 		if (prettierInstalled) {
-			sv.file('', addEslintConfigPrettier);
+			sv.file('eslint.config.js', addEslintConfigPrettier);
 		}
 	}
 });
