@@ -136,9 +136,8 @@ async function runAddon(
 				});
 			} catch (error) {
 				const typedError = error as NonZeroExitError;
-				console.error(typedError);
 				throw new Error(
-					`Failed to execute scripts '${executedCommandDisplayName}': ` + typedError.message
+					`Failed to execute scripts '${executedCommandDisplayName}': ${typedError.message}\n${typedError.output?.stderr}`
 				);
 			}
 		},
