@@ -48,7 +48,13 @@ export const helpConfig: HelpConfiguration = {
 		}
 
 		return option.flags;
-	}
+	},
+	styleTitle: (str) => pc.underline(str),
+	styleCommandText: (str) => pc.red(str),
+	styleItemDescription: (str) => pc.gray(str),
+	styleOptionText: (str) => pc.white(str),
+	styleArgumentText: (str) => pc.white(str),
+	styleSubcommandText: (str) => pc.red(str)
 };
 
 function formatDescription(arg: Option | Argument): string {
