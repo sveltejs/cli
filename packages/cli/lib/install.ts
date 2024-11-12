@@ -87,10 +87,10 @@ async function runAddon(
 	const files = new Set<string>();
 
 	// apply default adder options
-	for (const [, question] of Object.entries(addon.options)) {
+	for (const [id, question] of Object.entries(addon.options)) {
 		// we'll only apply defaults to options that don't explicitly fail their conditions
 		if (question.condition?.(workspace.options) !== false) {
-			workspace.options ??= question.default;
+			workspace.options[id] ??= question.default;
 		}
 	}
 

@@ -13,13 +13,6 @@ const addons = officialAdders.reduce<AddonMap>((addonMap, addon) => {
 
 const defaultOptions = officialAdders.reduce<OptionMap<typeof addons>>((options, addon) => {
 	options[addon.id] = {};
-	// TODO: we shouldn't have to apply defaults here
-	// applies defaults
-	for (const [id, question] of Object.entries(addon.options)) {
-		if (question.condition?.(options[addon.id]) !== false) {
-			options[addon.id][id] ??= question.default;
-		}
-	}
 	return options;
 }, {});
 
