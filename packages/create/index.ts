@@ -3,9 +3,10 @@ import path from 'node:path';
 import { mkdirp, copy, dist } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
-export type LanguageType = 'typescript' | 'checkjs' | 'none';
+export type LanguageType = (typeof languageTypes)[number];
 
 const templateTypes = ['minimal', 'demo', 'library'] as const;
+const languageTypes = ['typescript', 'checkjs', 'none'] as const;
 
 export type Options = {
 	name: string;
@@ -18,7 +19,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = Exclude<TemplateType | LanguageType, 'none'>;
+export type Condition = TemplateType | LanguageType;
 
 export type Common = {
 	files: Array<{
@@ -42,7 +43,7 @@ export const templates: TemplateMetadata[] = templateTypes.map((dir) => {
 	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
 
 	return {
-		name: dir as TemplateType,
+		name: dir,
 		title,
 		description
 	};
@@ -95,13 +96,13 @@ function write_common_files(cwd: string, options: Options, name: string) {
 }
 
 function matches_condition(condition: Condition, options: Options) {
-	if (condition === 'demo' || condition === 'minimal' || condition === 'library') {
+	if (templateTypes.includes(condition as TemplateType)) {
 		return options.template === condition;
 	}
-	if (condition === 'typescript' || condition === 'checkjs') {
+	if (languageTypes.includes(condition as LanguageType)) {
 		return options.types === condition;
 	}
-	return !!options[condition];
+	return Boolean(options[condition as never]);
 }
 
 function merge(target: any, source: any) {
@@ -144,8 +145,6 @@ function sort_keys(obj: Record<string, any>) {
 /**
  * Sort files so that those which apply more generically come first so they
  * can be overwritten by files for more precise cases later.
- *
- * @param {import('./types/internal.js').Common['files']} files
  */
 function sort_files(files: Common['files']) {
 	return files.sort((f1, f2) => {
