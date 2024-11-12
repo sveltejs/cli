@@ -158,6 +158,10 @@ importers:
         version: 1.0.5
 
   packages/cli:
+    dependencies:
+      commander:
+        specifier: github:shadowspawn/commander.js#feature/colour-help
+        version: https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c
     devDependencies:
       '@sveltejs/adders':
         specifier: workspace:*
@@ -174,9 +178,6 @@ importers:
       '@types/tar-fs':
         specifier: ^2.0.4
         version: 2.0.4
-      commander:
-        specifier: github:shadowspawn/commander.js#feature/colour-help
-        version: https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c
       empathic:
         specifier: ^1.0.0
         version: 1.0.0

@@ -54,7 +54,7 @@ export const helpConfig: HelpConfiguration = {
 
 		return option.flags;
 	},
-	styleTitle: (str) => pc.bgWhite(pc.black(` ${str} `)),
+	styleTitle: (str) => pc.underline(str),
 	styleCommandText: (str) => pc.red(str),
 	styleItemDescription: (str) => pc.gray(str),
 	styleOptionText: (str) => pc.white(str),
