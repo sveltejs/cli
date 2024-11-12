@@ -19,6 +19,7 @@ export function update_pkg_json_content(content) {
 		['svelte-preprocess', '^6.0.0'],
 		['@sveltejs/enhanced-img', '^0.3.9'],
 		['@sveltejs/kit', '^2.5.27'],
+		['@sveltejs/package', '^2.3.7'],
 		['@sveltejs/vite-plugin-svelte', '^4.0.0'],
 		[
 			'svelte-loader',

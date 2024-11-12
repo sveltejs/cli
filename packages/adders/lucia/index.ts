@@ -126,21 +126,21 @@ export default defineAdder({
 					integer: 'integer'
 				});
 				object.overrideProperties(userAttributes, {
-					id: common.expressionFromString(`text('id').primaryKey()`)
+					id: common.expressionFromString("text('id').primaryKey()")
 				});
 				if (options.demo) {
 					object.overrideProperties(userAttributes, {
-						username: common.expressionFromString(`text('username').notNull().unique()`),
-						passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
+						username: common.expressionFromString("text('username').notNull().unique()"),
+						passwordHash: common.expressionFromString("text('password_hash').notNull()")
 					});
 				}
 				object.overrideProperties(sessionAttributes, {
-					id: common.expressionFromString(`text('id').primaryKey()`),
+					id: common.expressionFromString("text('id').primaryKey()"),
 					userId: common.expressionFromString(
-						`text('user_id').notNull().references(() => user.id)`
+						"text('user_id').notNull().references(() => user.id)"
 					),
 					expiresAt: common.expressionFromString(
-						`integer('expires_at', { mode: 'timestamp' }).notNull()`
+						"integer('expires_at', { mode: 'timestamp' }).notNull()"
 					)
 				});
 			}
@@ -151,24 +151,24 @@ export default defineAdder({
 					datetime: 'datetime'
 				});
 				object.overrideProperties(userAttributes, {
-					id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`)
+					id: common.expressionFromString("varchar('id', { length: 255 }).primaryKey()")
 				});
 				if (options.demo) {
 					object.overrideProperties(userAttributes, {
 						username: common.expressionFromString(
-							`varchar('username', { length: 32 }).notNull().unique()`
+							"varchar('username', { length: 32 }).notNull().unique()"
 						),
 						passwordHash: common.expressionFromString(
-							`varchar('password_hash', { length: 255 }).notNull()`
+							"varchar('password_hash', { length: 255 }).notNull()"
 						)
 					});
 				}
 				object.overrideProperties(sessionAttributes, {
-					id: common.expressionFromString(`varchar('id', { length: 255 }).primaryKey()`),
+					id: common.expressionFromString("varchar('id', { length: 255 }).primaryKey()"),
 					userId: common.expressionFromString(
-						`varchar('user_id', { length: 255 }).notNull().references(() => user.id)`
+						"varchar('user_id', { length: 255 }).notNull().references(() => user.id)"
 					),
-					expiresAt: common.expressionFromString(`datetime('expires_at').notNull()`)
+					expiresAt: common.expressionFromString("datetime('expires_at').notNull()")
 				});
 			}
 			if (drizzleDialect === 'postgresql') {
@@ -178,21 +178,21 @@ export default defineAdder({
 					timestamp: 'timestamp'
 				});
 				object.overrideProperties(userAttributes, {
-					id: common.expressionFromString(`text('id').primaryKey()`)
+					id: common.expressionFromString("text('id').primaryKey()")
 				});
 				if (options.demo) {
 					object.overrideProperties(userAttributes, {
-						username: common.expressionFromString(`text('username').notNull().unique()`),
-						passwordHash: common.expressionFromString(`text('password_hash').notNull()`)
+						username: common.expressionFromString("text('username').notNull().unique()"),
+						passwordHash: common.expressionFromString("text('password_hash').notNull()")
 					});
 				}
 				object.overrideProperties(sessionAttributes, {
-					id: common.expressionFromString(`text('id').primaryKey()`),
+					id: common.expressionFromString("text('id').primaryKey()"),
 					userId: common.expressionFromString(
-						`text('user_id').notNull().references(() => user.id)`
+						"text('user_id').notNull().references(() => user.id)"
 					),
 					expiresAt: common.expressionFromString(
-						`timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()`
+						"timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()"
 					)
 				});
 			}

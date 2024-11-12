@@ -32,7 +32,7 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 	templateChoices
 );
 
-const ProjectPathSchema = v.string();
+const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
 	types: v.pipe(
 		v.optional(v.union([v.picklist(langs), v.boolean()])),
@@ -43,10 +43,11 @@ const OptionsSchema = v.strictObject({
 	template: v.optional(v.picklist(templateChoices))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
+type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
 
 export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
-	.argument('[path]', 'where the project will be created', process.cwd())
+	.argument('[path]', 'where the project will be created')
 	.addOption(templateOption)
 	.addOption(langOption)
 	.option('--no-types')
@@ -63,7 +64,7 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = packageManager ?? detectSync({ cwd })?.name ?? getUserAgent() ?? 'npm';
+			const pm = packageManager ?? detectSync({ cwd: directory })?.name ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
@@ -90,12 +91,13 @@ export const create = new Command('create')
 		});
 	});
 
-async function createProject(cwd: string, options: Options) {
+async function createProject(cwd: ProjectPath, options: Options) {
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
-				const relativePath = path.relative(process.cwd(), cwd);
-				if (relativePath) return Promise.resolve(relativePath);
+				if (cwd) {
+					return Promise.resolve(path.resolve(cwd));
+				}
 				const defaultPath = './';
 				return p.text({
 					message: 'Where would you like your project to be created?',
@@ -166,7 +168,7 @@ async function createProject(cwd: string, options: Options) {
 	if (options.addOns) {
 		// `runAddCommand` includes installing dependencies
 		const { nextSteps, packageManager: pm } = await runAddCommand(
-			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
+			{ cwd: projectPath, install: options.install, preconditions: false, community: [] },
 			[]
 		);
 		packageManager = pm;
