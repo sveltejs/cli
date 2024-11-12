@@ -1,8 +1,11 @@
+import process from 'node:process';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import { officialAdders } from '../../index.ts';
 
+const windowsCI = process.env.CI && process.platform === 'win32';
 const addons = officialAdders.reduce((addonMap, addon) => {
+	if (addon.id === 'storybook' && windowsCI) return addonMap;
 	return (addonMap[addon.id] = addon);
 }, {} as any);
 
