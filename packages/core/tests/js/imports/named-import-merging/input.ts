@@ -1,1 +1,1 @@
-import { namedOne } from "package";
+import { namedOne } from 'package';

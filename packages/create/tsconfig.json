@@ -6,5 +6,5 @@
 		"declaration": true
 	},
 	// overrides the root tsconfig `exclude` field so we're not ignoring the `test` dir
-	"exclude": ["templates/**", "shared/**", "dist/**"]
+	"exclude": ["templates/**", "shared/**", "dist/**", "vitest.config.ts"]
 }

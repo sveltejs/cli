@@ -1,11 +1,16 @@
-import { describe, expect, test } from 'vitest';
-import { parseScript, serializeScript } from '@sveltejs/ast-tooling';
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import prettier from 'prettier';
+import { describe, expect, test } from 'vitest';
+import { parseScript, serializeScript } from '@sveltejs/ast-tooling';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
 const categoryDirectories = getDirectoryNames(baseDir);
+
+const prettierConfig = await prettier.resolveConfig(import.meta.url);
+if (!prettierConfig) throw new Error('Failed to resolve prettier config');
+prettierConfig.filepath = 'output.ts';
 
 for (const categoryDirectory of categoryDirectories) {
 	describe(categoryDirectory, () => {
@@ -23,7 +28,8 @@ for (const categoryDirectory of categoryDirectories) {
 				module.run({ ast });
 
 				const output = serializeScript(ast, input);
-				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
+				const formattedOutput = await prettier.format(output, prettierConfig);
+				await expect(formattedOutput).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
 			});
 		}
 	});

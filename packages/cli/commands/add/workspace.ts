@@ -3,11 +3,11 @@ import path from 'node:path';
 import * as find from 'empathic/find';
 import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
-import { TESTING } from '../../env.ts';
-import { getUserAgent } from '../../common.ts';
-import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import type { Workspace } from '@sveltejs/cli-core';
 import type { AgentName } from 'package-manager-detector';
+import { TESTING } from '../../utils/env.ts';
+import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
+import { getUserAgent } from '../../utils/package-manager.ts';
 
 type CreateWorkspaceOptions = { cwd: string; packageManager?: AgentName };
 export function createWorkspace({ cwd, packageManager }: CreateWorkspaceOptions): Workspace<any> {

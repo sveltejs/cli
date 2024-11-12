@@ -6,5 +6,5 @@
 		"declaration": true
 	},
 	// we'll only want to enforce `isolatedDeclarations` on the library portion of the CLI
-	"include": ["index.ts"]
+	"include": ["lib/index.ts", "lib/testing.ts"]
 }

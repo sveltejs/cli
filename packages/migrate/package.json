@@ -14,7 +14,7 @@
 		"check": "tsc",
 		"format": "pnpm lint --write",
 		"lint": "prettier --check .",
-		"test": "vitest run --silent"
+		"test": "vitest run"
 	},
 	"files": [
 		"bin.js",
@@ -41,8 +41,7 @@
 		"@types/node": "^18.19.48",
 		"@types/prompts": "^2.4.9",
 		"@types/semver": "^7.5.6",
-		"svelte": "^4.2.10",
-		"vitest": "^2.0.1"
+		"svelte": "^4.2.10"
 	},
 	"keywords": [
 		"migration",
