@@ -1,5 +1,17 @@
 # sv
 
+## 0.6.2
+### Patch Changes
+
+
+- fix: ignore path prompt if user provided path in `create` ([#292](https://github.com/sveltejs/cli/pull/292))
+
+
+- feat: add `jsconfig.json` to the 'no type checking' template ([#290](https://github.com/sveltejs/cli/pull/290))
+
+
+- fix: disable add-on preconditions during `create` ([#288](https://github.com/sveltejs/cli/pull/288))
+
 ## 0.6.1
 ### Patch Changes
 
