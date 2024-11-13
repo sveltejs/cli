@@ -61,6 +61,7 @@ const options = defineAddonOptions({
 
 export default defineAddon({
 	id: 'paraglide',
+	shortDescription: 'i18n',
 	homepage: 'https://inlang.com',
 	options,
 	setup: ({ kit, unsupported }) => {

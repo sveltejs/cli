@@ -14,6 +14,7 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAddon({
 	id: 'eslint',
+	shortDescription: 'linter',
 	homepage: 'https://eslint.org',
 	options: {},
 	run: ({ sv, typescript, dependencyVersion }) => {
