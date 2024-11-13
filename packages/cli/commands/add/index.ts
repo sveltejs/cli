@@ -1,18 +1,18 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as v from 'valibot';
-import { Command, Option } from 'commander';
-import * as p from '@sveltejs/clack-prompts';
-import * as pkg from 'empathic/package';
-import type { AgentName } from 'package-manager-detector';
 import pc from 'picocolors';
+import * as v from 'valibot';
+import * as pkg from 'empathic/package';
+import * as p from '@sveltejs/clack-prompts';
+import { Command, Option } from 'commander';
 import {
 	officialAdders,
 	getAdderDetails,
 	communityAdderIds,
 	getCommunityAdder
 } from '@sveltejs/adders';
+import type { AgentName } from 'package-manager-detector';
 import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
 import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
@@ -306,12 +306,14 @@ export async function runAddCommand(
 		workspace = createWorkspace({ cwd: options.cwd });
 		const adderSetupResult = adderSetupResults[adder.id];
 
-		const dependents = adderSetupResult.dependsOn;
-		const filteredDependents =
-			dependents.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
+		const missingDependencies = adderSetupResult.dependsOn.filter(
+			(depId) => !selectedAdders.some((a) => a.adder.id === depId)
+		);
 
-		for (const depId of filteredDependents) {
-			const dependent = officialAdders.find((a) => a.id === depId) as AdderWithoutExplicitArgs;
+		for (const depId of missingDependencies) {
+			// TODO: this will have to be adjusted when we work on community add-ons
+			const dependency = officialAdders.find((a) => a.id === depId);
+			if (!dependency) throw new Error(`'${adder.id}' depends on an invalid add-on: '${depId}'`);
 
 			// prompt to install the dependent
 			const install = await p.confirm({
@@ -321,7 +323,7 @@ export async function runAddCommand(
 				p.cancel('Operation cancelled.');
 				process.exit(1);
 			}
-			selectedAdders.push({ type: 'official', adder: dependent });
+			selectedAdders.push({ type: 'official', adder: dependency });
 		}
 	}
 
@@ -438,10 +440,10 @@ export async function runAddCommand(
 	);
 	const details = adderDetails.concat(commDetails);
 
-	const addonMap = details.reduce((map, x) => {
+	const addonMap = details.reduce<AddonMap>((map, x) => {
 		map[x.id] = x;
 		return map;
-	}, {} as AddonMap);
+	}, {});
 	const filesToFormat = await installAddon({
 		cwd: workspace.cwd,
 		packageManager: workspace.packageManager,

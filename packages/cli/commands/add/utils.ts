@@ -3,8 +3,8 @@ import path from 'node:path';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
 import { parseJson } from '@sveltejs/cli-core/parsers';
-import type { Highlighter, Workspace } from '@sveltejs/cli-core';
 import { resolveCommand, type AgentName } from 'package-manager-detector';
+import type { Highlighter, Workspace } from '@sveltejs/cli-core';
 
 export type Package = {
 	name: string;

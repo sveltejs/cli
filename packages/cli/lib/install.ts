@@ -1,5 +1,3 @@
-import { exec, NonZeroExitError } from 'tinyexec';
-import { resolveCommand } from 'package-manager-detector';
 import type {
 	Adder,
 	Workspace,
@@ -10,11 +8,13 @@ import type {
 	AdderSetupResult,
 	AdderWithoutExplicitArgs
 } from '@sveltejs/cli-core';
-import { fileExists, installPackages, readFile, writeFile } from '../commands/add/utils.ts';
-import { createWorkspace } from '../commands/add/workspace.ts';
-import * as p from '@sveltejs/clack-prompts';
 import pc from 'picocolors';
+import * as p from '@sveltejs/clack-prompts';
+import { exec, NonZeroExitError } from 'tinyexec';
+import { resolveCommand } from 'package-manager-detector';
 import { TESTING } from '../utils/env.ts';
+import { createWorkspace } from '../commands/add/workspace.ts';
+import { fileExists, installPackages, readFile, writeFile } from '../commands/add/utils.ts';
 
 type Addon = Adder<any>;
 export type InstallOptions<Addons extends AddonMap> = {
