@@ -13,8 +13,8 @@ export const options = defineAdderOptions({
 export default defineAdder({
 	id: 'community-addon',
 	options,
-	setup: ({ kit, unavailable }) => {
-		if (!kit) unavailable();
+	setup: ({ kit, unsupported }) => {
+		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, typescript }) => {
 		sv.file('adder-template-demo.txt', (content) => {

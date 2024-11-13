@@ -4,7 +4,6 @@ import type { AdderSetupResult, AdderWithoutExplicitArgs, Precondition } from '@
 type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
 	cwd: string,
-	projectType: 'svelte' | 'kit',
 	adders: AdderWithoutExplicitArgs[],
 	adderSetupResult: Record<string, AdderSetupResult>
 ): PreconditionCheck {
@@ -37,23 +36,15 @@ export function getGlobalPreconditions(
 				}
 			},
 			{
-				name: 'supported environments',
+				name: 'unspported adders',
 				run: () => {
-					const addersForInvalidEnvironment = adders.filter(
-						(a) => !adderSetupResult[a.id].available
+					const messages = adders.flatMap((a) =>
+						adderSetupResult[a.id].unsupported.map((reason) => `${a.id}: ${reason}`)
 					);
 
-					if (addersForInvalidEnvironment.length === 0) {
+					if (messages.length === 0) {
 						return { success: true, message: undefined };
 					}
-
-					const messages = addersForInvalidEnvironment.map((a) => {
-						if (projectType === 'kit') {
-							return `'${a.id}' does not support SvelteKit`;
-						} else {
-							return `'${a.id}' requires SvelteKit`;
-						}
-					});
 
 					throw new Error(messages.join('\n'));
 				}

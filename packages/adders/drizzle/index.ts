@@ -67,8 +67,8 @@ export default defineAdder({
 	id: 'drizzle',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unavailable }) => {
-		if (!kit) unavailable();
+	setup: ({ kit, unsupported }) => {
+		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';

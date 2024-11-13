@@ -65,13 +65,13 @@ export function setupAddons(
 
 	for (const addon of addons) {
 		const setupResult: AdderSetupResult = {
-			available: true,
+			unsupported: [],
 			dependsOn: []
 		};
 		addon.setup?.({
 			...workspace,
 			dependsOn: (name) => setupResult.dependsOn.push(name),
-			unavailable: () => (setupResult.available = false)
+			unsupported: (reason) => setupResult.unsupported.push(reason)
 		});
 		adderSetupResults[addon.id] = setupResult;
 	}

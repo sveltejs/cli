@@ -33,7 +33,10 @@ export type Adder<Args extends OptionDefinition> = {
 	homepage?: string;
 	options: Args;
 	setup?: (
-		workspace: Workspace<Args> & { dependsOn: (name: string) => void; unavailable: () => void }
+		workspace: Workspace<Args> & {
+			dependsOn: (name: string) => void;
+			unsupported: (reason: string) => void;
+		}
 	) => MaybePromise<void>;
 	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
 	nextSteps?: (
@@ -55,7 +58,7 @@ export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>):
 	return config;
 }
 
-export type AdderSetupResult = { dependsOn: string[]; available: boolean };
+export type AdderSetupResult = { dependsOn: string[]; unsupported: string[] };
 
 export type AdderWithoutExplicitArgs = Adder<Record<string, Question>>;
 export type AdderConfigWithoutExplicitArgs = Adder<Record<string, Question>>;

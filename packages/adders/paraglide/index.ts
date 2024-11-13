@@ -65,8 +65,8 @@ export default defineAdder({
 	id: 'paraglide',
 	homepage: 'https://inlang.com',
 	options,
-	setup: ({ kit, unavailable }) => {
-		if (!kit) unavailable();
+	setup: ({ kit, unsupported }) => {
+		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, cwd, options, typescript, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';

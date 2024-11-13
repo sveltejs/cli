@@ -276,7 +276,7 @@ export async function runAddCommand(
 			.map((adder) => {
 				// we'll only display adders within their respective project types
 				const adderSetupResult = adderSetupResults[adder.id];
-				if (!adderSetupResult.available) return;
+				if (adderSetupResult.unsupported.length > 0) return;
 
 				return {
 					label: adder.id,
@@ -330,15 +330,8 @@ export async function runAddCommand(
 	// run precondition checks
 	if (options.preconditions && selectedAdders.length > 0) {
 		// add global checks
-		const { kit } = createWorkspace({ cwd: options.cwd });
-		const projectType = kit ? 'kit' : 'svelte';
 		const adders = selectedAdders.map(({ adder }) => adder);
-		const { preconditions } = getGlobalPreconditions(
-			options.cwd,
-			projectType,
-			adders,
-			adderSetupResults
-		);
+		const { preconditions } = getGlobalPreconditions(options.cwd, adders, adderSetupResults);
 
 		const fails: Array<{ name: string; message?: string }> = [];
 		for (const condition of preconditions) {

@@ -45,8 +45,8 @@ export default defineAdder({
 	id: 'lucia',
 	homepage: 'https://lucia-auth.com',
 	options,
-	setup: ({ kit, dependencyVersion, unavailable, dependsOn }) => {
-		if (!kit) unavailable();
+	setup: ({ kit, dependencyVersion, unsupported, dependsOn }) => {
+		if (!kit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
 	},
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
