@@ -106,8 +106,6 @@ async function runAddon(
 
 				writeFile(workspace, path, fileContent);
 				files.add(path);
-
-				return fileContent;
 			} catch (e) {
 				if (e instanceof Error) {
 					throw new Error(`Unable to process '${path}'. Reason: ${e.message}`);
