@@ -9,7 +9,7 @@ export default defineAdder({
 	scripts: [
 		{
 			description: 'applies storybook',
-			args: ['storybook@8.3.6', 'init', '--skip-install', '--no-dev'],
+			args: ['storybook@8.4.0', 'init', '--skip-install', '--no-dev'],
 			stdio: 'inherit'
 		}
 	],
