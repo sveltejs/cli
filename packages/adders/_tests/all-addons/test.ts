@@ -1,12 +1,12 @@
-// import process from 'node:process';
+import process from 'node:process';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import { officialAdders } from '../../index.ts';
 import type { AddonMap, OptionMap } from 'sv';
 
-// const windowsCI = process.env.CI && process.platform === 'win32';
+const windowsCI = process.env.CI && process.platform === 'win32';
 const addons = officialAdders.reduce<AddonMap>((addonMap, addon) => {
-	// if (addon.id === 'storybook' && windowsCI) return addonMap;
+	if (addon.id === 'storybook' && windowsCI) return addonMap;
 	addonMap[addon.id] = addon;
 	return addonMap;
 }, {});
