@@ -1,5 +1,6 @@
 import { exec } from 'tinyexec';
 import type { AdderSetupResult, AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
+import { UnsupportedError } from '../../utils/errors.ts';
 
 type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
@@ -36,17 +37,17 @@ export function getGlobalPreconditions(
 				}
 			},
 			{
-				name: 'unspported adders',
+				name: 'unsupported adders',
 				run: () => {
-					const messages = adders.flatMap((a) =>
-						adderSetupResult[a.id].unsupported.map((reason) => `${a.id}: ${reason}`)
+					const reasons = adders.flatMap((a) =>
+						adderSetupResult[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
 					);
 
-					if (messages.length === 0) {
+					if (reasons.length === 0) {
 						return { success: true, message: undefined };
 					}
 
-					throw new Error(messages.join('\n'));
+					throw new UnsupportedError(reasons);
 				}
 			}
 		]
