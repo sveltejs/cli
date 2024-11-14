@@ -8,7 +8,6 @@ export default defineConfig({
 		exclude: ['tests/setup/*'],
 		testTimeout: ONE_MINUTE * 3,
 		hookTimeout: ONE_MINUTE * 3,
-		maxConcurrency: 10,
 		globalSetup: ['tests/setup/global.ts']
 	}
 });
