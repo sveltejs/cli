@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import MagicString from 'magic-string';
 import { colors, dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
@@ -10,7 +8,7 @@ import {
 	object,
 	variables,
 	exports,
-	kit
+	kit as kitJs
 } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
@@ -37,7 +35,7 @@ const options = defineAdderOptions({
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en',
-		validate(input: any) {
+		validate(input) {
 			const { invalidLanguageTags, validLanguageTags } = parseLanguageTagInput(input);
 
 			if (invalidLanguageTags.length > 0) {
@@ -63,186 +61,160 @@ const options = defineAdderOptions({
 
 export default defineAdder({
 	id: 'paraglide',
-	environments: { svelte: false, kit: true },
 	homepage: 'https://inlang.com',
 	options,
-	packages: [
-		{
-			name: '@inlang/paraglide-sveltekit',
-			version: '^0.11.1',
-			dev: false
-		}
-	],
-	files: [
-		{
-			// create an inlang project if it doesn't exist yet
-			name: () => 'project.inlang/settings.json',
-			condition: ({ cwd }) => !fs.existsSync(path.join(cwd, 'project.inlang/settings.json')),
-			content: ({ options, content }) => {
-				const { data, generateCode } = parseJson(content);
+	setup: ({ kit, unsupported }) => {
+		if (!kit) unsupported('Requires SvelteKit');
+	},
+	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
+		const ext = typescript ? 'ts' : 'js';
+		if (!kit) throw new Error('SvelteKit is required');
 
-				for (const key in DEFAULT_INLANG_PROJECT) {
-					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
-				}
-				const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
-				const sourceLanguageTag = validLanguageTags[0];
+		sv.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
 
-				data.sourceLanguageTag = sourceLanguageTag;
-				data.languageTags = validLanguageTags;
+		sv.file('project.inlang/settings.json', (content) => {
+			if (content) return content;
 
-				return generateCode();
+			const { data, generateCode } = parseJson(content);
+
+			for (const key in DEFAULT_INLANG_PROJECT) {
+				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
 			}
-		},
-		{
-			// add the vite plugin
-			name: ({ typescript }) => `vite.config.${typescript ? 'ts' : 'js'}`,
-			content: ({ content }) => {
-				const { ast, generateCode } = parseScript(content);
+			const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
+			const sourceLanguageTag = validLanguageTags[0];
 
-				const vitePluginName = 'paraglide';
-				imports.addNamed(ast, '@inlang/paraglide-sveltekit/vite', { paraglide: vitePluginName });
+			data.sourceLanguageTag = sourceLanguageTag;
+			data.languageTags = validLanguageTags;
 
-				const { value: rootObject } = exports.defaultExport(
-					ast,
-					functions.call('defineConfig', [])
+			return generateCode();
+		});
+
+		// add the vite plugin
+		sv.file(`vite.config.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+
+			const vitePluginName = 'paraglide';
+			imports.addNamed(ast, '@inlang/paraglide-sveltekit/vite', { paraglide: vitePluginName });
+
+			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
+			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
+
+			const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
+			const pluginFunctionCall = functions.call(vitePluginName, []);
+			const pluginConfig = object.create({
+				project: common.createLiteral('./project.inlang'),
+				outdir: common.createLiteral('./src/lib/paraglide')
+			});
+			functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
+			array.push(pluginsArray, pluginFunctionCall);
+
+			return generateCode();
+		});
+
+		// src/lib/i18n file
+		sv.file(`src/lib/i18n.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+
+			imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
+			imports.addDefault(ast, '$lib/paraglide/runtime', '* as runtime');
+
+			const createI18nExpression = common.expressionFromString('createI18n(runtime)');
+			const i18n = variables.declaration(ast, 'const', 'i18n', createI18nExpression);
+
+			const existingExport = exports.namedExport(ast, 'i18n', i18n);
+			if (existingExport.declaration !== i18n) {
+				log.warn('Setting up $lib/i18n failed because it already exports an i18n function');
+			}
+
+			return generateCode();
+		});
+
+		// reroute hook
+		sv.file(`src/hooks.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+
+			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
+
+			const expression = common.expressionFromString('i18n.reroute()');
+			const rerouteIdentifier = variables.declaration(ast, 'const', 'reroute', expression);
+
+			const existingExport = exports.namedExport(ast, 'reroute', rerouteIdentifier);
+			if (existingExport.declaration !== rerouteIdentifier) {
+				log.warn('Adding the reroute hook automatically failed. Add it manually');
+			}
+
+			return generateCode();
+		});
+
+		// handle hook
+		sv.file(`src/hooks.server.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+
+			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
+
+			const hookHandleContent = 'i18n.handle()';
+			kitJs.addHooksHandle(ast, typescript, 'handleParaglide', hookHandleContent);
+
+			return generateCode();
+		});
+
+		// add the <ParaglideJS> component to the layout
+		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
+			const { script, template, generateCode } = parseSvelte(content, { typescript });
+
+			const paraglideComponentName = 'ParaglideJS';
+			imports.addNamed(script.ast, '@inlang/paraglide-sveltekit', {
+				[paraglideComponentName]: paraglideComponentName
+			});
+			imports.addNamed(script.ast, '$lib/i18n', { i18n: 'i18n' });
+
+			if (template.source.length === 0) {
+				const svelteVersion = dependencyVersion('svelte');
+				if (!svelteVersion) throw new Error('Failed to determine svelte version');
+
+				html.addSlot(script.ast, template.ast, svelteVersion);
+			}
+
+			const templateCode = new MagicString(template.generateCode());
+			if (!templateCode.original.includes('<ParaglideJS')) {
+				templateCode.indent();
+				templateCode.prepend('<ParaglideJS {i18n}>\n');
+				templateCode.append('\n</ParaglideJS>');
+			}
+
+			return generateCode({ script: script.generateCode(), template: templateCode.toString() });
+		});
+
+		// add the text-direction and lang attribute placeholders to app.html
+		sv.file('src/app.html', (content) => {
+			const { ast, generateCode } = parseHtml(content);
+
+			const htmlNode = ast.children.find(
+				(child): child is html.HtmlElement =>
+					child.type === html.HtmlElementType.Tag && child.name === 'html'
+			);
+			if (!htmlNode) {
+				log.warn(
+					"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
 				);
-				const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
-
-				const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
-				const pluginFunctionCall = functions.call(vitePluginName, []);
-				const pluginConfig = object.create({
-					project: common.createLiteral('./project.inlang'),
-					outdir: common.createLiteral('./src/lib/paraglide')
-				});
-				functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
-				array.push(pluginsArray, pluginFunctionCall);
-
 				return generateCode();
 			}
-		},
-		{
-			// src/lib/i18n file
-			name: ({ typescript }) => `src/lib/i18n.${typescript ? 'ts' : 'js'}`,
-			content({ content }) {
-				const { ast, generateCode } = parseScript(content);
+			htmlNode.attribs = {
+				...htmlNode.attribs,
+				lang: '%paraglide.lang%',
+				dir: '%paraglide.textDirection%'
+			};
 
-				imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
-				imports.addDefault(ast, '$lib/paraglide/runtime', '* as runtime');
+			return generateCode();
+		});
 
-				const createI18nExpression = common.expressionFromString('createI18n(runtime)');
-				const i18n = variables.declaration(ast, 'const', 'i18n', createI18nExpression);
+		if (options.demo) {
+			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
+				return addToDemoPage(content, 'paraglide');
+			});
 
-				const existingExport = exports.namedExport(ast, 'i18n', i18n);
-				if (existingExport.declaration != i18n) {
-					log.warn('Setting up $lib/i18n failed because it already exports an i18n function');
-				}
-
-				return generateCode();
-			}
-		},
-		{
-			// reroute hook
-			name: ({ typescript }) => `src/hooks.${typescript ? 'ts' : 'js'}`,
-			content({ content }) {
-				const { ast, generateCode } = parseScript(content);
-
-				imports.addNamed(ast, '$lib/i18n', {
-					i18n: 'i18n'
-				});
-
-				const expression = common.expressionFromString('i18n.reroute()');
-				const rerouteIdentifier = variables.declaration(ast, 'const', 'reroute', expression);
-
-				const existingExport = exports.namedExport(ast, 'reroute', rerouteIdentifier);
-				if (existingExport.declaration != rerouteIdentifier) {
-					log.warn('Adding the reroute hook automatically failed. Add it manually');
-				}
-
-				return generateCode();
-			}
-		},
-		{
-			// handle hook
-			name: ({ typescript }) => `src/hooks.server.${typescript ? 'ts' : 'js'}`,
-			content({ content, typescript }) {
-				const { ast, generateCode } = parseScript(content);
-
-				imports.addNamed(ast, '$lib/i18n', {
-					i18n: 'i18n'
-				});
-
-				const hookHandleContent = 'i18n.handle()';
-				kit.addHooksHandle(ast, typescript, 'handleParaglide', hookHandleContent);
-
-				return generateCode();
-			}
-		},
-		{
-			// add the <ParaglideJS> component to the layout
-			name: ({ kit }) => `${kit?.routesDirectory}/+layout.svelte`,
-			content: ({ content, dependencyVersion, typescript }) => {
-				const { script, template, generateCode } = parseSvelte(content, { typescript });
-
-				const paraglideComponentName = 'ParaglideJS';
-				imports.addNamed(script.ast, '@inlang/paraglide-sveltekit', {
-					[paraglideComponentName]: paraglideComponentName
-				});
-				imports.addNamed(script.ast, '$lib/i18n', {
-					i18n: 'i18n'
-				});
-
-				if (template.source.length === 0) {
-					const svelteVersion = dependencyVersion('svelte');
-					if (!svelteVersion) throw new Error('Failed to determine svelte version');
-
-					html.addSlot(script.ast, template.ast, svelteVersion);
-				}
-
-				const templateCode = new MagicString(template.generateCode());
-				if (!templateCode.original.includes('<ParaglideJS')) {
-					templateCode.indent();
-					templateCode.prepend('<ParaglideJS {i18n}>\n');
-					templateCode.append('\n</ParaglideJS>');
-				}
-
-				return generateCode({ script: script.generateCode(), template: templateCode.toString() });
-			}
-		},
-		{
-			// add the text-direction and lang attribute placeholders to app.html
-			name: () => 'src/app.html',
-			content: ({ content }) => {
-				const { ast, generateCode } = parseHtml(content);
-
-				const htmlNode = ast.children.find(
-					(child): child is html.HtmlElement =>
-						child.type === html.HtmlElementType.Tag && child.name === 'html'
-				);
-				if (!htmlNode) {
-					log.warn(
-						"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
-					);
-					return generateCode();
-				}
-				htmlNode.attribs = {
-					...htmlNode.attribs,
-					lang: '%paraglide.lang%',
-					dir: '%paraglide.textDirection%'
-				};
-
-				return generateCode();
-			}
-		},
-		{
-			name: ({ kit }) => `${kit?.routesDirectory}/demo/+page.svelte`,
-			condition: ({ options }) => options.demo,
-			content: (editor) => addToDemoPage(editor, 'paraglide')
-		},
-		{
 			// add usage example
-			name: ({ kit }) => `${kit?.routesDirectory}/demo/paraglide/+page.svelte`,
-			condition: ({ options }) => options.demo,
-			content({ content, options, typescript }) {
+			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
 				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
@@ -265,15 +237,15 @@ export default defineAdder({
 					scriptCode.trim();
 					scriptCode.append('\n\n');
 					scriptCode.append(dedent`
-					${ts('', '/**')} 
-					${ts('', '* @param import("$lib/paraglide/runtime").AvailableLanguageTag newLanguage')} 
-					${ts('', '*/')} 
-					function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
-						const canonicalPath = i18n.route($page.url.pathname);
-						const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
-						goto(localisedPath);
-					}
-				`);
+						${ts('', '/**')} 
+						${ts('', '* @param import("$lib/paraglide/runtime").AvailableLanguageTag newLanguage')} 
+						${ts('', '*/')} 
+						function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
+							const canonicalPath = i18n.route($page.url.pathname);
+							const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
+							goto(localisedPath);
+						}
+					`);
 				}
 
 				const templateCode = new MagicString(template.source);
@@ -293,26 +265,21 @@ export default defineAdder({
 				templateCode.append(`<div>\n${links}\n</div>`);
 
 				return generateCode({ script: scriptCode.toString(), template: templateCode.toString() });
-			}
+			});
 		}
-	],
-	postInstall: ({ cwd, options }) => {
-		const jsonData: Record<string, string> = {};
-		jsonData['$schema'] = 'https://inlang.com/schema/inlang-message-format';
 
 		const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
 		for (const languageTag of validLanguageTags) {
-			jsonData.hello_world = `Hello, {name} from ${languageTag}!`;
+			sv.file(`messages/${languageTag}.json`, (content) => {
+				const { data, generateCode } = parseJson(content);
+				data['$schema'] = 'https://inlang.com/schema/inlang-message-format';
+				data.hello_world = `Hello, {name} from ${languageTag}!`;
 
-			const filePath = `messages/${languageTag}.json`;
-			const directoryPath = path.dirname(filePath);
-			const fullDirectoryPath = path.join(cwd, directoryPath);
-			const fullFilePath = path.join(cwd, filePath);
-
-			fs.mkdirSync(fullDirectoryPath, { recursive: true });
-			fs.writeFileSync(fullFilePath, JSON.stringify(jsonData, null, 2) + '\n');
+				return generateCode();
+			});
 		}
 	},
+
 	nextSteps: ({ highlighter }) => {
 		const steps = [
 			`Edit your messages in ${highlighter.path('messages/en.json')}`,

@@ -1,9 +1,9 @@
 import { env } from 'node:process';
-import { defineConfig } from 'vitest/config';
+import { defineProject } from 'vitest/config';
 
 const ONE_MINUTE = 1000 * 60;
 
-export default defineConfig({
+export default defineProject({
 	test: {
 		name: 'adders',
 		include: ['_tests/**/test.{js,ts}'],

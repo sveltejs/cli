@@ -12,27 +12,23 @@ export const options = defineAdderOptions({
 
 export default defineAdder({
 	id: 'community-addon',
-	environments: { kit: true, svelte: true },
 	options,
-	packages: [],
-	files: [
-		{
-			name: () => 'adder-template-demo.txt',
-			content: ({ content, options }) => {
-				if (options.demo) {
-					return 'This is a text file made by the Community Adder Template demo!';
-				}
-				return content;
+	setup: ({ kit, unsupported }) => {
+		if (!kit) unsupported('Requires SvelteKit');
+	},
+	run: ({ sv, options, typescript }) => {
+		sv.file('adder-template-demo.txt', (content) => {
+			if (options.demo) {
+				return 'This is a text file made by the Community Adder Template demo!';
 			}
-		},
-		{
-			name: () => 'src/DemoComponent.svelte',
-			content: ({ content, options, typescript }) => {
-				if (!options.demo) return content;
-				const { script, generateCode } = parseSvelte(content, { typescript });
-				imports.addDefault(script.ast, '../adder-template-demo.txt?raw', 'demo');
-				return generateCode({ script: script.generateCode(), template: '{demo}' });
-			}
-		}
-	]
+			return content;
+		});
+
+		sv.file('src/DemoComponent.svelte', (content) => {
+			if (!options.demo) return content;
+			const { script, generateCode } = parseSvelte(content, { typescript });
+			imports.addDefault(script.ast, '../adder-template-demo.txt?raw', 'demo');
+			return generateCode({ script: script.generateCode(), template: '{demo}' });
+		});
+	}
 });

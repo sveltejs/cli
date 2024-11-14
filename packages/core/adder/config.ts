@@ -6,11 +6,6 @@ export type ConditionDefinition<Args extends OptionDefinition> = (
 	Workspace: Workspace<Args>
 ) => boolean;
 
-export type Environments = {
-	svelte: boolean;
-	kit: boolean;
-};
-
 export type PackageDefinition<Args extends OptionDefinition> = {
 	name: string;
 	version: string;
@@ -25,18 +20,25 @@ export type Scripts<Args extends OptionDefinition> = {
 	condition?: ConditionDefinition<Args>;
 };
 
+export type SvApi = {
+	file: (path: string, edit: (content: string) => string) => void;
+	dependency: (pkg: string, version: string) => void;
+	devDependency: (pkg: string, version: string) => void;
+	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
+};
+
 export type Adder<Args extends OptionDefinition> = {
 	id: string;
 	alias?: string;
-	environments: Environments;
 	homepage?: string;
 	options: Args;
-	dependsOn?: string[];
-	packages: Array<PackageDefinition<Args>>;
-	scripts?: Array<Scripts<Args>>;
-	files: Array<FileType<Args>>;
-	preInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
-	postInstall?: (workspace: Workspace<Args>) => MaybePromise<void>;
+	setup?: (
+		workspace: Workspace<Args> & {
+			dependsOn: (name: string) => void;
+			unsupported: (reason: string) => void;
+		}
+	) => MaybePromise<void>;
+	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
@@ -55,6 +57,8 @@ export type Highlighter = {
 export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>): Adder<Args> {
 	return config;
 }
+
+export type AdderSetupResult = { dependsOn: string[]; unsupported: string[] };
 
 export type AdderWithoutExplicitArgs = Adder<Record<string, Question>>;
 export type AdderConfigWithoutExplicitArgs = Adder<Record<string, Question>>;

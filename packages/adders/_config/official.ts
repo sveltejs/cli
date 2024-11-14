@@ -24,7 +24,7 @@ export const officialAdders = [
 	mdsvex,
 	paraglide,
 	storybook
-];
+] as AdderWithoutExplicitArgs[];
 
 export function getAdderDetails(id: string): AdderWithoutExplicitArgs {
 	const details = officialAdders.find((a) => a.id === id);
