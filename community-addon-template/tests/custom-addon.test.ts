@@ -24,5 +24,5 @@ test.concurrent.for(variants)('demo - %s', async (variant, { page, ...ctx }) => 
 
 	// expectations
 	const textContent = await page.getByTestId('demo').textContent();
-	expect(textContent).toContain('This is a text file made by the Community Adder Template demo!');
+	expect(textContent).toContain('This is a text file made by the Community Addon Template demo!');
 });

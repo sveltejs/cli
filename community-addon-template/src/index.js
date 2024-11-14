@@ -17,9 +17,9 @@ export default defineAddon({
 		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, typescript }) => {
-		sv.file('adder-template-demo.txt', (content) => {
+		sv.file('addon-template-demo.txt', (content) => {
 			if (options.demo) {
-				return 'This is a text file made by the Community Adder Template demo!';
+				return 'This is a text file made by the Community Addon Template demo!';
 			}
 			return content;
 		});
@@ -27,7 +27,7 @@ export default defineAddon({
 		sv.file('src/DemoComponent.svelte', (content) => {
 			if (!options.demo) return content;
 			const { script, generateCode } = parseSvelte(content, { typescript });
-			imports.addDefault(script.ast, '../adder-template-demo.txt?raw', 'demo');
+			imports.addDefault(script.ast, '../addon-template-demo.txt?raw', 'demo');
 			return generateCode({ script: script.generateCode(), template: '{demo}' });
 		});
 	}
