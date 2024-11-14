@@ -1,12 +1,12 @@
 import type {
-	Adder,
+	Addon,
 	Workspace,
 	PackageManager,
 	OptionValues,
 	Question,
 	SvApi,
-	AdderSetupResult,
-	AdderWithoutExplicitArgs
+	AddonSetupResult,
+	AddonWithoutExplicitArgs
 } from '@sveltejs/cli-core';
 import pc from 'picocolors';
 import * as p from '@sveltejs/clack-prompts';
@@ -16,7 +16,6 @@ import { TESTING } from '../utils/env.ts';
 import { createWorkspace } from '../commands/add/workspace.ts';
 import { fileExists, installPackages, readFile, writeFile } from '../commands/add/utils.ts';
 
-type Addon = Adder<any>;
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
 	addons: Addons;
@@ -24,7 +23,7 @@ export type InstallOptions<Addons extends AddonMap> = {
 	packageManager?: PackageManager;
 };
 
-export type AddonMap = Record<string, Addon>;
+export type AddonMap = Record<string, Addon<any>>;
 export type OptionMap<Addons extends AddonMap> = {
 	[K in keyof Addons]: Partial<OptionValues<Addons[K]['options']>>;
 };
@@ -36,27 +35,27 @@ export async function installAddon<Addons extends AddonMap>({
 	packageManager = 'npm'
 }: InstallOptions<Addons>): Promise<string[]> {
 	const workspace = createWorkspace({ cwd, packageManager });
-	const adderSetupResults = setupAddons(Object.values(addons), workspace);
+	const addonSetupResults = setupAddons(Object.values(addons), workspace);
 
-	return await applyAddons({ addons, workspace, options, adderSetupResults });
+	return await applyAddons({ addons, workspace, options, addonSetupResults });
 }
 
 export type ApplyAddonOptions = {
 	addons: AddonMap;
 	options: OptionMap<AddonMap>;
 	workspace: Workspace<any>;
-	adderSetupResults: Record<string, AdderSetupResult>;
+	addonSetupResults: Record<string, AddonSetupResult>;
 };
 export async function applyAddons({
 	addons,
 	workspace,
-	adderSetupResults,
+	addonSetupResults,
 	options
 }: ApplyAddonOptions): Promise<string[]> {
 	const filesToFormat = new Set<string>();
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
-	const ordered = orderAddons(mapped, adderSetupResults);
+	const ordered = orderAddons(mapped, addonSetupResults);
 
 	for (const addon of ordered) {
 		workspace = createWorkspace({ ...workspace, options: options[addon.id] });
@@ -69,33 +68,33 @@ export async function applyAddons({
 }
 
 export function setupAddons(
-	addons: AdderWithoutExplicitArgs[],
+	addons: AddonWithoutExplicitArgs[],
 	workspace: Workspace<any>
-): Record<string, AdderSetupResult> {
-	const adderSetupResults: Record<string, AdderSetupResult> = {};
+): Record<string, AddonSetupResult> {
+	const addonSetupResults: Record<string, AddonSetupResult> = {};
 
 	for (const addon of addons) {
-		const setupResult: AdderSetupResult = { unsupported: [], dependsOn: [] };
+		const setupResult: AddonSetupResult = { unsupported: [], dependsOn: [] };
 		addon.setup?.({
 			...workspace,
 			dependsOn: (name) => setupResult.dependsOn.push(name),
 			unsupported: (reason) => setupResult.unsupported.push(reason)
 		});
-		adderSetupResults[addon.id] = setupResult;
+		addonSetupResults[addon.id] = setupResult;
 	}
 
-	return adderSetupResults;
+	return addonSetupResults;
 }
 
 type RunAddon = {
 	workspace: Workspace<any>;
-	addon: Adder<Record<string, Question>>;
+	addon: Addon<Record<string, Question>>;
 	multiple: boolean;
 };
 async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<string[]> {
 	const files = new Set<string>();
 
-	// apply default adder options
+	// apply default addon options
 	for (const [id, question] of Object.entries(addon.options)) {
 		// we'll only apply defaults to options that don't explicitly fail their conditions
 		if (question.condition?.(workspace.options) !== false) {
@@ -125,10 +124,10 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 		execute: async (commandArgs, stdio) => {
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
-			const adderPrefix = multiple ? `${addon.id}: ` : '';
+			const addonPrefix = multiple ? `${addon.id}: ` : '';
 			const executedCommand = `${command} ${args.join(' ')}`;
 			if (!TESTING) {
-				p.log.step(`${adderPrefix}Running external command ${pc.gray(`(${executedCommand})`)}`);
+				p.log.step(`${addonPrefix}Running external command ${pc.gray(`(${executedCommand})`)}`);
 			}
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
@@ -162,7 +161,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 }
 
 // sorts them to their execution order
-function orderAddons(addons: Addon[], setupResults: Record<string, AdderSetupResult>) {
+function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
 	return Array.from(addons).sort((a, b) => {
 		const aDeps = setupResults[a.id].dependsOn;
 		const bDeps = setupResults[b.id].dependsOn;
