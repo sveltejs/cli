@@ -619,8 +619,7 @@ export const taskLog = (title: string) => {
 	const clear = (buffer = 0): void => {
 		if (!output) return;
 		const lines = output.split('\n').length + buffer;
-		process.stdout.write(cursor.up(lines));
-		process.stdout.write(erase.down(lines));
+		process.stdout.write(erase.lines(lines + 1));
 	};
 
 	// logs the output
@@ -638,7 +637,6 @@ export const taskLog = (title: string) => {
 			output += data;
 			print();
 		},
-
 		fail(message: string): void {
 			clear(1); // includes clearing the `title`
 			process.stdout.write(`${ERROR}  ${message}\n`);
