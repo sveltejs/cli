@@ -21,8 +21,7 @@ export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
 	addons: Addons;
 	options: OptionMap<Addons>;
-	packageManager: PackageManager;
-	adderSetupResults?: Record<string, AdderSetupResult>;
+	packageManager?: PackageManager;
 };
 
 export type AddonMap = Record<string, Addon>;
@@ -34,19 +33,33 @@ export async function installAddon<Addons extends AddonMap>({
 	addons,
 	cwd,
 	options,
-	packageManager = 'npm',
-	adderSetupResults
+	packageManager = 'npm'
 }: InstallOptions<Addons>): Promise<string[]> {
-	const filesToFormat = new Set<string>();
+	const workspace = createWorkspace({ cwd, packageManager });
+	const adderSetupResults = setupAddons(Object.values(addons), workspace);
 
-	adderSetupResults ??= setupAddons(Object.values(addons), cwd, packageManager);
+	return await applyAddons({ addons, workspace, options, adderSetupResults });
+}
+
+export type ApplyAddonOptions = {
+	addons: AddonMap;
+	options: OptionMap<AddonMap>;
+	workspace: Workspace<any>;
+	adderSetupResults: Record<string, AdderSetupResult>;
+};
+export async function applyAddons({
+	addons,
+	workspace,
+	adderSetupResults,
+	options
+}: ApplyAddonOptions): Promise<string[]> {
+	const filesToFormat = new Set<string>();
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, adderSetupResults);
 
 	for (const addon of ordered) {
-		const workspace = createWorkspace({ cwd, packageManager });
-		workspace.options = options[addon.id];
+		workspace = createWorkspace({ ...workspace, options: options[addon.id] });
 
 		const files = await runAddon(workspace, addon, ordered.length > 1);
 		files.forEach((f) => filesToFormat.add(f));
@@ -57,17 +70,12 @@ export async function installAddon<Addons extends AddonMap>({
 
 export function setupAddons(
 	addons: AdderWithoutExplicitArgs[],
-	cwd: string,
-	packageManager?: PackageManager
+	workspace: Workspace<any>
 ): Record<string, AdderSetupResult> {
 	const adderSetupResults: Record<string, AdderSetupResult> = {};
-	const workspace = createWorkspace({ cwd, packageManager });
 
 	for (const addon of addons) {
-		const setupResult: AdderSetupResult = {
-			unsupported: [],
-			dependsOn: []
-		};
+		const setupResult: AdderSetupResult = { unsupported: [], dependsOn: [] };
 		addon.setup?.({
 			...workspace,
 			dependsOn: (name) => setupResult.dependsOn.push(name),
@@ -117,11 +125,9 @@ async function runAddon(
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
 			const adderPrefix = applyMultipleAddons ? `${addon.id}: ` : '';
-			const executedCommandDisplayName = `${command} ${args.join(' ')}`;
+			const executedCommand = `${command} ${args.join(' ')}`;
 			if (!TESTING) {
-				p.log.step(
-					`${adderPrefix}Running external command ${pc.gray(`(${executedCommandDisplayName})`)}`
-				);
+				p.log.step(`${adderPrefix}Running external command ${pc.gray(`(${executedCommand})`)}`);
 			}
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
@@ -134,10 +140,9 @@ async function runAddon(
 				});
 			} catch (error) {
 				const typedError = error as NonZeroExitError;
-				throw new Error(
-					`Failed to execute scripts '${executedCommandDisplayName}': ${typedError.message}`,
-					{ cause: typedError.output }
-				);
+				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
+					cause: typedError.output
+				});
 			}
 		},
 		dependency: (pkg, version) => {
@@ -156,10 +161,10 @@ async function runAddon(
 }
 
 // sorts them to their execution order
-function orderAddons(addons: Addon[], adderSetupResults: Record<string, AdderSetupResult>) {
+function orderAddons(addons: Addon[], setupResults: Record<string, AdderSetupResult>) {
 	return Array.from(addons).sort((a, b) => {
-		const aDeps = adderSetupResults[a.id].dependsOn;
-		const bDeps = adderSetupResults[b.id].dependsOn;
+		const aDeps = setupResults[a.id].dependsOn;
+		const bDeps = setupResults[b.id].dependsOn;
 
 		if (!aDeps && !bDeps) return 0;
 		if (!aDeps) return -1;

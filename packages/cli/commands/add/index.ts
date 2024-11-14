@@ -13,14 +13,14 @@ import {
 	getCommunityAdder
 } from '@sveltejs/adders';
 import type { AgentName } from 'package-manager-detector';
-import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
+import type { AdderWithoutExplicitArgs, OptionValues, PackageManager } from '@sveltejs/cli-core';
 import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
 import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
 import { installDependencies, packageManagerPrompt } from '../../utils/package-manager.ts';
 import { getGlobalPreconditions } from './preconditions.ts';
-import { type AddonMap, installAddon, setupAddons } from '../../lib/install.ts';
+import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
 const AddersSchema = v.array(v.string());
 const AdderOptionFlagsSchema = v.object({
@@ -101,6 +101,11 @@ export async function runAddCommand(
 		type: 'official',
 		adder: getAdderDetails(id)
 	}));
+
+	type AdderId = string;
+	type QuestionValues = OptionValues<any>;
+	type AdderOption = Record<AdderId, QuestionValues>;
+
 	const official: AdderOption = {};
 	const community: AdderOption = {};
 
@@ -268,23 +273,14 @@ export async function runAddCommand(
 
 	// prepare official adders
 	let workspace = createWorkspace({ cwd: options.cwd });
-	const adderSetupResults = setupAddons(officialAdders, options.cwd);
+	const adderSetupResults = setupAddons(officialAdders, workspace);
 
 	// prompt which adders to apply
 	if (selectedAdders.length === 0) {
 		const adderOptions = officialAdders
-			.map((adder) => {
-				// we'll only display adders within their respective project types
-				const adderSetupResult = adderSetupResults[adder.id];
-				if (adderSetupResult.unsupported.length > 0) return;
-
-				return {
-					label: adder.id,
-					value: adder.id,
-					hint: adder.homepage
-				};
-			})
-			.filter((a) => !!a);
+			// only display supported adders relative to the current environment
+			.filter(({ id }) => adderSetupResults[id].unsupported.length === 0)
+			.map(({ id, homepage }) => ({ label: id, value: id, hint: homepage }));
 
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
@@ -296,17 +292,18 @@ export async function runAddCommand(
 			process.exit(1);
 		}
 
-		selected.forEach((id) =>
-			selectedAdders.push({ type: 'official', adder: officialAdders.find((x) => x.id == id)! })
-		);
+		for (const id of selected) {
+			const adder = officialAdders.find((adder) => adder.id === id)!;
+			selectedAdders.push({ type: 'official', adder });
+		}
 	}
 
 	// add inter-adder dependencies
 	for (const { adder } of selectedAdders) {
-		workspace = createWorkspace({ cwd: options.cwd });
-		const adderSetupResult = adderSetupResults[adder.id];
+		workspace = createWorkspace(workspace);
 
-		const missingDependencies = adderSetupResult.dependsOn.filter(
+		const setupResult = adderSetupResults[adder.id];
+		const missingDependencies = setupResult.dependsOn.filter(
 			(depId) => !selectedAdders.some((a) => a.adder.id === depId)
 		);
 
@@ -421,28 +418,25 @@ export async function runAddCommand(
 	if (selectedAdders.length === 0) return { packageManager: null };
 
 	// prompt for package manager
-	let packageManager: AgentName | undefined;
+	let packageManager: PackageManager | undefined;
 	if (options.install) {
 		packageManager = await packageManagerPrompt(options.cwd);
+		if (packageManager) workspace.packageManager = packageManager;
 	}
 
 	// apply adders
-	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
+	const officialDetails = Object.keys(official).map((id) => getAdderDetails(id));
 	const commDetails = Object.keys(community).map(
 		(id) => communityDetails.find((a) => a.id === id)!
 	);
-	const details = adderDetails.concat(commDetails);
+	const details = officialDetails.concat(commDetails);
 
-	const addonMap = details.reduce<AddonMap>((map, x) => {
-		map[x.id] = x;
-		return map;
-	}, {});
-	const filesToFormat = await installAddon({
-		cwd: workspace.cwd,
-		packageManager: workspace.packageManager,
+	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
+	const filesToFormat = await applyAddons({
+		workspace,
+		adderSetupResults,
 		addons: addonMap,
-		options: official,
-		adderSetupResults
+		options: official
 	});
 
 	p.log.success('Successfully setup add-ons');
@@ -453,7 +447,7 @@ export async function runAddCommand(
 	}
 
 	// format modified/created files with prettier (if available)
-	workspace = createWorkspace({ cwd: options.cwd, packageManager });
+	workspace = createWorkspace(workspace);
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
@@ -491,17 +485,6 @@ export async function runAddCommand(
 
 	return { nextSteps, packageManager };
 }
-
-type AdderId = string;
-type QuestionValues = OptionValues<any>;
-export type AdderOption = Record<AdderId, QuestionValues>;
-
-export type InstallAdderOptions = {
-	cwd: string;
-	packageManager?: AgentName;
-	official?: AdderOption;
-	community?: AdderOption;
-};
 
 /**
  * Dedupes and transforms aliases into their respective adder id
