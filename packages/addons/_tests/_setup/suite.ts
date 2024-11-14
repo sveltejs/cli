@@ -53,7 +53,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 			const metaPath = path.resolve(cwd, 'meta.json');
 			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
 
-			// run adder
+			// run addon
 			await installAddon({ cwd, addons, options, packageManager: 'pnpm' });
 
 			return cwd;

@@ -1,5 +1,2 @@
-export { officialAdders, getAdderDetails } from './official.ts';
-export {
-	getCommunityAddon as getCommunityAdder,
-	communityAddonIds as communityAdderIds
-} from './community.ts';
+export { officialAddons, getAddonDetails } from './official.ts';
+export { getCommunityAddon, communityAddonIds } from './community.ts';

@@ -1,4 +1,4 @@
-import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
+import type { AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
@@ -11,9 +11,9 @@ import storybook from '../storybook/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest-addon/index.ts';
 
-// The order of adders here determines the order they are displayed inside the CLI
+// The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity
-export const officialAdders = [
+export const officialAddons = [
 	prettier,
 	eslint,
 	vitest,
@@ -24,13 +24,13 @@ export const officialAdders = [
 	mdsvex,
 	paraglide,
 	storybook
-] as AdderWithoutExplicitArgs[];
+] as AddonWithoutExplicitArgs[];
 
-export function getAdderDetails(id: string): AdderWithoutExplicitArgs {
-	const details = officialAdders.find((a) => a.id === id);
+export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
+	const details = officialAddons.find((a) => a.id === id);
 	if (!details) {
-		throw new Error(`Invalid adder: ${id}`);
+		throw new Error(`Invalid addon: ${id}`);
 	}
 
-	return details as AdderWithoutExplicitArgs;
+	return details as AddonWithoutExplicitArgs;
 }

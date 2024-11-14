@@ -91,7 +91,7 @@ export default defineAddon({
 				object.properties(defaultExport.value, { test });
 			} else {
 				// unexpected config shape
-				log.warn('Unexpected vite config for vitest adder. Could not update.');
+				log.warn('Unexpected vite config for vitest addon. Could not update.');
 			}
 
 			return generateCode();
