@@ -88,10 +88,10 @@ function getConfig(project) {
 			transform(code, id) {
 				if (id.endsWith(`_config${path.sep}community.ts`)) {
 					const ms = new MagicString(code, { filename: id });
-					const start = code.indexOf('export const communityAdderIds');
+					const start = code.indexOf('export const communityAddonIds');
 					const end = code.indexOf(';', start);
 					const ids = fs.readdirSync('community-addons').map((p) => path.parse(p).name);
-					const generated = `export const communityAdderIds = ${JSON.stringify(ids)};`;
+					const generated = `export const communityAddonIds = ${JSON.stringify(ids)};`;
 					ms.overwrite(start, end, generated);
 					return {
 						code: ms.toString(),
