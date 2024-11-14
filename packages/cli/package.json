@@ -30,7 +30,7 @@
 		}
 	},
 	"devDependencies": {
-		"@sveltejs/adders": "workspace:*",
+		"@sveltejs/addons": "workspace:*",
 		"@sveltejs/clack-prompts": "workspace:*",
 		"@sveltejs/cli-core": "workspace:*",
 		"@sveltejs/create": "workspace:*",

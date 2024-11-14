@@ -11,7 +11,7 @@ import {
 	getAdderDetails,
 	communityAdderIds,
 	getCommunityAdder
-} from '@sveltejs/adders';
+} from '@sveltejs/addons';
 import type { AgentName } from 'package-manager-detector';
 import type { AdderWithoutExplicitArgs, OptionValues, PackageManager } from '@sveltejs/cli-core';
 import * as common from '../../utils/common.ts';
