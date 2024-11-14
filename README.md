@@ -13,7 +13,7 @@ Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details
 
 ## Contributing
 
-Please file an issue for discussion before sending a PR for a new adder. Most new adders will likely be recommended to be implemented as community adders. This repository will only hold a very limited number of adders at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
+Please file an issue for discussion before sending a PR for a new addon. Most new addons will likely be recommended to be implemented as community addons. This repository will only hold a very limited number of addons at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
 
 ## Supporting Svelte
 

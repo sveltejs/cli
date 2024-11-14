@@ -82,7 +82,7 @@ function getConfig(project) {
 	/** @type {Plugin | undefined} */
 	let communityAddonIdsPlugin;
 	if (project === 'cli') {
-		// Evaluates the ids of available community adders at build time
+		// Evaluates the ids of available community addons at build time
 		communityAddonIdsPlugin = {
 			name: 'evaluate-community-addon-ids',
 			transform(code, id) {
@@ -119,7 +119,7 @@ function getConfig(project) {
 			commonjs(),
 			json(),
 			dynamicImportVars({
-				// since we're relying on the usage of standard dynamic imports for community adders, we need to
+				// since we're relying on the usage of standard dynamic imports for community addons, we need to
 				// prevent this plugin from transforming these cases
 				exclude: ['packages/cli/commands/add/fetch-packages.ts']
 			}),
