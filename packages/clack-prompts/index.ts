@@ -640,13 +640,13 @@ export const taskLog = (title: string) => {
 		},
 
 		fail(message: string): void {
-			clear(1);
+			clear(1); // includes clearing the `title`
 			process.stdout.write(`${ERROR}  ${message}\n`);
 			// log the output on failure
 			print();
 		},
 		success(message: string): void {
-			clear(1);
+			clear(1); // includes clearing the `title`
 			process.stdout.write(`${SUCCESS}  ${message}\n`);
 		}
 	};
