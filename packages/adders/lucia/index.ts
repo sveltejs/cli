@@ -84,8 +84,8 @@ export default defineAdder({
 			const userDecl = js.variables.declaration(ast, 'const', 'user', createTable('user'));
 			const sessionDecl = js.variables.declaration(ast, 'const', 'session', createTable('session'));
 
-			const user = exports.namedExport(ast, 'user', userDecl);
-			const session = exports.namedExport(ast, 'session', sessionDecl);
+			const user = js.exports.namedExport(ast, 'user', userDecl);
+			const session = js.exports.namedExport(ast, 'session', sessionDecl);
 
 			const userTable = getCallExpression(user);
 			const sessionTable = getCallExpression(session);
