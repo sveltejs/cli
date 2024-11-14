@@ -80,18 +80,18 @@ function getConfig(project) {
 	}
 
 	/** @type {Plugin | undefined} */
-	let communityAdderIdsPlugin;
+	let communityAddonIdsPlugin;
 	if (project === 'cli') {
-		// Evaluates the ids of available community adders at build time
-		communityAdderIdsPlugin = {
-			name: 'evaluate-community-adder-ids',
+		// Evaluates the ids of available community addons at build time
+		communityAddonIdsPlugin = {
+			name: 'evaluate-community-addon-ids',
 			transform(code, id) {
 				if (id.endsWith(`_config${path.sep}community.ts`)) {
 					const ms = new MagicString(code, { filename: id });
-					const start = code.indexOf('export const communityAdderIds');
+					const start = code.indexOf('export const communityAddonIds');
 					const end = code.indexOf(';', start);
-					const ids = fs.readdirSync('community-adders').map((p) => path.parse(p).name);
-					const generated = `export const communityAdderIds = ${JSON.stringify(ids)};`;
+					const ids = fs.readdirSync('community-addons').map((p) => path.parse(p).name);
+					const generated = `export const communityAddonIds = ${JSON.stringify(ids)};`;
 					ms.overwrite(start, end, generated);
 					return {
 						code: ms.toString(),
@@ -119,12 +119,12 @@ function getConfig(project) {
 			commonjs(),
 			json(),
 			dynamicImportVars({
-				// since we're relying on the usage of standard dynamic imports for community adders, we need to
+				// since we're relying on the usage of standard dynamic imports for community addons, we need to
 				// prevent this plugin from transforming these cases
 				exclude: ['packages/cli/commands/add/fetch-packages.ts']
 			}),
 			buildCliTemplatesPlugin,
-			communityAdderIdsPlugin
+			communityAddonIdsPlugin
 		]
 	};
 }

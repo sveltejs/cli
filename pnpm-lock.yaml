@@ -84,7 +84,7 @@ importers:
         specifier: ^2.1.4
         version: 2.1.4(@types/node@22.9.0)(@vitest/ui@2.1.4)
 
-  community-adder-template:
+  community-addon-template:
     dependencies:
       '@sveltejs/cli-core':
         specifier: workspace:*
@@ -100,7 +100,7 @@ importers:
         specifier: ^2.1.4
         version: 2.1.4(@types/node@22.9.0)(@vitest/ui@2.1.4)
 
-  packages/adders:
+  packages/addons:
     dependencies:
       '@sveltejs/cli-core':
         specifier: workspace:*
@@ -168,9 +168,9 @@ importers:
 
   packages/cli:
     devDependencies:
-      '@sveltejs/adders':
+      '@sveltejs/addons':
         specifier: workspace:*
-        version: link:../adders
+        version: link:../addons
       '@sveltejs/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts

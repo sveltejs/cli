@@ -1,0 +1,17 @@
+{
+	"name": "@sveltejs/addons",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"check": "tsc",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"test": "vitest run",
+		"test:ui": "vitest --ui"
+	},
+	"exports": "./index.ts",
+	"dependencies": {
+		"@sveltejs/cli-core": "workspace:*"
+	}
+}

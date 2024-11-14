@@ -1,12 +1,12 @@
 import { exec } from 'tinyexec';
-import type { AdderSetupResult, AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
+import type { AddonSetupResult, AddonWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 import { UnsupportedError } from '../../utils/errors.ts';
 
 type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
 	cwd: string,
-	adders: AdderWithoutExplicitArgs[],
-	adderSetupResult: Record<string, AdderSetupResult>
+	addons: AddonWithoutExplicitArgs[],
+	addonSetupResult: Record<string, AddonSetupResult>
 ): PreconditionCheck {
 	return {
 		name: 'global checks',
@@ -37,10 +37,10 @@ export function getGlobalPreconditions(
 				}
 			},
 			{
-				name: 'unsupported adders',
+				name: 'unsupported add-ons',
 				run: () => {
-					const reasons = adders.flatMap((a) =>
-						adderSetupResult[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
+					const reasons = addons.flatMap((a) =>
+						addonSetupResult[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
 					);
 
 					if (reasons.length === 0) {

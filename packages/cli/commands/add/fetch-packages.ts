@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
-import { extract } from 'tar-fs';
 import { fileURLToPath } from 'node:url';
-import type { AdderWithoutExplicitArgs } from '@sveltejs/cli-core';
+import { pipeline } from 'node:stream/promises';
+import { extract } from 'tar-fs';
+import type { AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
@@ -13,18 +13,18 @@ export const Directive = { file: 'file:', npm: 'npm:' };
 
 function verifyPackage(pkg: Record<string, any>, specifier: string) {
 	const deps = { ...pkg.dependencies, ...pkg.peerDependencies };
-	// valid adders should always have a dependency on `core`
+	// valid addons should always have a dependency on `core`
 	if (!deps['@sveltejs/cli-core']) {
 		throw new Error(
-			`Invalid adder package specified: '${specifier}' is missing a dependency on '@sveltejs/cli-core' in its 'package.json'`
+			`Invalid add-on package specified: '${specifier}' is missing a dependency on '@sveltejs/cli-core' in its 'package.json'`
 		);
 	}
-	// adders should never have any external dependencies outside of `core`.
-	// if the adder does have an external dependency, then we'll throw a helpful error guiding them to the solution
+	// addons should never have any external dependencies outside of `core`.
+	// if the addon does have an external dependency, then we'll throw a helpful error guiding them to the solution
 	for (const dep of Object.keys(deps)) {
 		if (dep === '@sveltejs/cli-core') continue;
 		throw new Error(
-			`Invalid adder package detected: '${specifier}'\nCommunity adders should not have any external 'dependencies' besides '@sveltejs/cli-core'. Consider bundling your dependencies if they are necessary`
+			`Invalid add-on package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides '@sveltejs/cli-core'. Consider bundling your dependencies if they are necessary`
 		);
 	}
 }
@@ -32,9 +32,9 @@ function verifyPackage(pkg: Record<string, any>, specifier: string) {
 type DownloadOptions = { path?: string; pkg: any };
 /**
  * Downloads and installs the package into the `node_modules` of `sv`.
- * @returns the details of the downloaded adder
+ * @returns the details of the downloaded addon
  */
-export async function downloadPackage(options: DownloadOptions): Promise<AdderWithoutExplicitArgs> {
+export async function downloadPackage(options: DownloadOptions): Promise<AddonWithoutExplicitArgs> {
 	const { pkg } = options;
 	if (options.path) {
 		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
