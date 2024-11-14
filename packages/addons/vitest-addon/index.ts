@@ -1,8 +1,8 @@
-import { dedent, defineAdder, log } from '@sveltejs/cli-core';
+import { dedent, defineAddon, log } from '@sveltejs/cli-core';
 import { common, exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
-export default defineAdder({
+export default defineAddon({
 	id: 'vitest',
 	homepage: 'https://vitest.dev',
 	options: {},

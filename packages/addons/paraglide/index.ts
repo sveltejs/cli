@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { colors, dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
+import { colors, dedent, defineAddon, defineAddonOptions, log, utils } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -30,7 +30,7 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-const options = defineAdderOptions({
+const options = defineAddonOptions({
 	availableLanguageTags: {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
@@ -59,7 +59,7 @@ const options = defineAdderOptions({
 	}
 });
 
-export default defineAdder({
+export default defineAddon({
 	id: 'paraglide',
 	homepage: 'https://inlang.com',
 	options,

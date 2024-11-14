@@ -1,8 +1,8 @@
-import { defineAdder, defineAdderOptions } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
 import { imports } from '@sveltejs/cli-core/js';
 import { parseSvelte } from '@sveltejs/cli-core/parsers';
 
-export const options = defineAdderOptions({
+export const options = defineAddonOptions({
 	demo: {
 		question: 'Do you want to use a demo?',
 		type: 'boolean',
@@ -10,7 +10,7 @@ export const options = defineAdderOptions({
 	}
 });
 
-export default defineAdder({
+export default defineAddon({
 	id: 'community-addon',
 	options,
 	setup: ({ kit, unsupported }) => {

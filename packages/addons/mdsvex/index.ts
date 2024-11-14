@@ -1,8 +1,8 @@
-import { defineAdder } from '@sveltejs/cli-core';
+import { defineAddon } from '@sveltejs/cli-core';
 import { array, exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
-export default defineAdder({
+export default defineAddon({
 	id: 'mdsvex',
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},

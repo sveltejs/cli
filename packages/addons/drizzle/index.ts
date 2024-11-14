@@ -1,5 +1,5 @@
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
-import { defineAdder, defineAdderOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const PORTS = {
@@ -8,7 +8,7 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-const options = defineAdderOptions({
+const options = defineAddonOptions({
 	database: {
 		question: 'Which database would you like to use?',
 		type: 'select',
@@ -63,7 +63,7 @@ const options = defineAdderOptions({
 	}
 });
 
-export default defineAdder({
+export default defineAddon({
 	id: 'drizzle',
 	homepage: 'https://orm.drizzle.team',
 	options,

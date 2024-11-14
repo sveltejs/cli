@@ -1,6 +1,6 @@
-import { defineAdder } from '@sveltejs/cli-core';
+import { defineAddon } from '@sveltejs/cli-core';
 
-export default defineAdder({
+export default defineAddon({
 	id: 'storybook',
 	homepage: 'https://storybook.js.org',
 	options: {},

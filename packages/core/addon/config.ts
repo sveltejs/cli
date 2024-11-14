@@ -1,5 +1,4 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
-import type { FileType } from './processors.ts';
 import type { Workspace } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
@@ -27,7 +26,7 @@ export type SvApi = {
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 };
 
-export type Adder<Args extends OptionDefinition> = {
+export type Addon<Args extends OptionDefinition> = {
 	id: string;
 	alias?: string;
 	homepage?: string;
@@ -54,14 +53,14 @@ export type Highlighter = {
 	env: (str: string) => string; // used for printing environment variable names
 };
 
-export function defineAdder<Args extends OptionDefinition>(config: Adder<Args>): Adder<Args> {
+export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>): Addon<Args> {
 	return config;
 }
 
-export type AdderSetupResult = { dependsOn: string[]; unsupported: string[] };
+export type AddonSetupResult = { dependsOn: string[]; unsupported: string[] };
 
-export type AdderWithoutExplicitArgs = Adder<Record<string, Question>>;
-export type AdderConfigWithoutExplicitArgs = Adder<Record<string, Question>>;
+export type AddonWithoutExplicitArgs = Addon<Record<string, Question>>;
+export type AddonConfigWithoutExplicitArgs = Addon<Record<string, Question>>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
@@ -76,22 +75,7 @@ export type TestDefinition<Args extends OptionDefinition> = {
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 
-export type AdderTestConfig<Args extends OptionDefinition> = {
-	files: Array<FileType<Args>>;
-	options: Args;
-	optionValues: Array<OptionValues<Args>>;
-	runSynchronously?: boolean;
-	command?: string;
-	tests: Array<TestDefinition<Args>>;
-};
-
-export function defineAdderTests<Args extends OptionDefinition>(
-	tests: AdderTestConfig<Args>
-): AdderTestConfig<Args> {
-	return tests;
-}
-
-export function defineAdderOptions<const Args extends OptionDefinition>(options: Args): Args {
+export function defineAddonOptions<const Args extends OptionDefinition>(options: Args): Args {
 	return options;
 }
 

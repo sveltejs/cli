@@ -2,8 +2,8 @@ import MagicString from 'magic-string';
 import {
 	colors,
 	dedent,
-	defineAdder,
-	defineAdderOptions,
+	defineAddon,
+	defineAddonOptions,
 	log,
 	utils,
 	Walker
@@ -24,7 +24,7 @@ type Dialect = 'mysql' | 'postgresql' | 'sqlite';
 let drizzleDialect: Dialect;
 let schemaPath: string;
 
-const options = defineAdderOptions({
+const options = defineAddonOptions({
 	demo: {
 		type: 'boolean',
 		default: true,
@@ -32,7 +32,7 @@ const options = defineAdderOptions({
 	}
 });
 
-export default defineAdder({
+export default defineAddon({
 	id: 'lucia',
 	homepage: 'https://lucia-auth.com',
 	options,

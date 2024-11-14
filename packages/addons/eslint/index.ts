@@ -1,5 +1,5 @@
 import { addEslintConfigPrettier } from '../common.ts';
-import { defineAdder, log } from '@sveltejs/cli-core';
+import { defineAddon, log } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -12,7 +12,7 @@ import {
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
-export default defineAdder({
+export default defineAddon({
 	id: 'eslint',
 	homepage: 'https://eslint.org',
 	options: {},

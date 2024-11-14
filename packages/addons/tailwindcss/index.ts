@@ -1,4 +1,4 @@
-import { defineAdder, defineAdderOptions } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
 import { array, common, exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
@@ -38,7 +38,7 @@ const plugins: Plugin[] = [
 	}
 ];
 
-const options = defineAdderOptions({
+const options = defineAddonOptions({
 	plugins: {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
@@ -47,7 +47,7 @@ const options = defineAdderOptions({
 	}
 });
 
-export default defineAdder({
+export default defineAddon({
 	id: 'tailwindcss',
 	alias: 'tailwind',
 	homepage: 'https://tailwindcss.com',
