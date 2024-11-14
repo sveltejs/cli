@@ -32,7 +32,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
-	const box = p.taskLog(`Installing dependencies with ${agent}`);
+	const box = p.taskLog(`Installing dependencies with ${agent}...`);
 
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;

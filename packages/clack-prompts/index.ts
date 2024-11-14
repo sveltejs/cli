@@ -605,7 +605,7 @@ export const note = (message = '', title = ''): void => buildBox(message, title,
 export const box = (message = '', title = ''): void => buildBox(message, title, false);
 export const taskLog = (title: string) => {
 	const BAR = color.dim(S_BAR);
-	const ACTIVE = color.green(S_STEP_ACTIVE);
+	const ACTIVE = color.green(S_STEP_SUBMIT);
 	const SUCCESS = color.green(S_SUCCESS);
 	const ERROR = color.red(S_ERROR);
 
