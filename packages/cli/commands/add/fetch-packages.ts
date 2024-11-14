@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
-import { extract } from 'tar-fs';
 import { fileURLToPath } from 'node:url';
+import { pipeline } from 'node:stream/promises';
+import { extract } from 'tar-fs';
 import type { AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 // path to the `node_modules` directory of `sv`
@@ -16,7 +16,7 @@ function verifyPackage(pkg: Record<string, any>, specifier: string) {
 	// valid addons should always have a dependency on `core`
 	if (!deps['@sveltejs/cli-core']) {
 		throw new Error(
-			`Invalid addon package specified: '${specifier}' is missing a dependency on '@sveltejs/cli-core' in its 'package.json'`
+			`Invalid add-on package specified: '${specifier}' is missing a dependency on '@sveltejs/cli-core' in its 'package.json'`
 		);
 	}
 	// addons should never have any external dependencies outside of `core`.
@@ -24,7 +24,7 @@ function verifyPackage(pkg: Record<string, any>, specifier: string) {
 	for (const dep of Object.keys(deps)) {
 		if (dep === '@sveltejs/cli-core') continue;
 		throw new Error(
-			`Invalid addon package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides '@sveltejs/cli-core'. Consider bundling your dependencies if they are necessary`
+			`Invalid add-on package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides '@sveltejs/cli-core'. Consider bundling your dependencies if they are necessary`
 		);
 	}
 }

@@ -67,7 +67,7 @@ export default defineAddon({
 				object.properties(defaultExport.value, config);
 			} else {
 				// unexpected config shape
-				log.warn('Unexpected playwright config for playwright addon. Could not update.');
+				log.warn('Unexpected playwright config for playwright add-on. Could not update.');
 			}
 			return generateCode();
 		});

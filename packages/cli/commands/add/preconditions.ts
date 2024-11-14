@@ -37,7 +37,7 @@ export function getGlobalPreconditions(
 				}
 			},
 			{
-				name: 'unsupported addons',
+				name: 'unsupported add-ons',
 				run: () => {
 					const reasons = addons.flatMap((a) =>
 						addonSetupResult[a.id].unsupported.map((reason) => ({ id: a.id, reason }))

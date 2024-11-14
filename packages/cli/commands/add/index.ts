@@ -52,7 +52,7 @@ export const add = new Command('add')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skip installing dependencies')
 	.option('--no-preconditions', 'skip validating preconditions')
-	//.option('--community [addon...]', 'community addons to install')
+	//.option('--community [add-on...]', 'community addons to install')
 	.configureHelp(common.helpConfig)
 	.action((addonArgs, opts) => {
 		// validate workspace
@@ -76,7 +76,7 @@ export const add = new Command('add')
 			(a) => !addonIds.includes(a) && !aliases.includes(a)
 		);
 		if (invalidAddons.length > 0) {
-			console.error(`Invalid addons specified: ${invalidAddons.join(', ')}`);
+			console.error(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
 			process.exit(1);
 		}
 
@@ -200,7 +200,7 @@ export async function runAddCommand(
 			p.cancel('Operation cancelled.');
 			process.exit(1);
 		} else if (selected.length === 0) {
-			p.cancel('No addons selected. Exiting.');
+			p.cancel('No add-ons selected. Exiting.');
 			process.exit(1);
 		}
 
@@ -218,7 +218,7 @@ export async function runAddCommand(
 			const validAddon = communityAddonIds.includes(id);
 			if (!validAddon) {
 				throw new Error(
-					`Invalid community addon specified: '${id}'\nAvailable options: ${communityAddonIds.join(', ')}`
+					`Invalid community add-on specified: '${id}'\nAvailable options: ${communityAddonIds.join(', ')}`
 				);
 			}
 			return id;
@@ -227,16 +227,16 @@ export async function runAddCommand(
 		// get addon details from remote addons
 		const { start, stop } = p.spinner();
 		try {
-			start('Resolving community addon packages');
+			start('Resolving community add-on packages');
 			const pkgs = await Promise.all(
 				addons.map(async (id) => {
 					return await getPackageJSON({ cwd: options.cwd, packageName: id });
 				})
 			);
-			stop('Resolved community addon packages');
+			stop('Resolved community add-on packages');
 
 			p.log.warn(
-				'The Svelte maintainers have not reviewed community addons for malicious code. Use at your discretion.'
+				'The Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
 			);
 
 			const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
@@ -256,7 +256,7 @@ export async function runAddCommand(
 				process.exit(1);
 			}
 
-			start('Downloading community addon packages');
+			start('Downloading community add-on packages');
 			const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
 			for (const addon of details) {
 				const id = addon.id;
@@ -264,9 +264,9 @@ export async function runAddCommand(
 				communityDetails.push(addon);
 				selectedAddons.push({ type: 'community', addon });
 			}
-			stop('Downloaded community addon packages');
+			stop('Downloaded community add-on packages');
 		} catch (err) {
-			stop('Failed to resolve community addon packages', 1);
+			stop('Failed to resolve community add-on packages', 1);
 			throw err;
 		}
 	}
@@ -518,7 +518,7 @@ function getAddonOptionFlags(): Option[] {
 			`--${id} [options...]`,
 			`${id} add-on options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
 		)
-			// presets are applied when `--addon` is specified with no options
+			// presets are applied when `--{addonName}` is specified with no options
 			.preset(preset)
 			.argParser((value, prev: string[]) => {
 				prev ??= [];

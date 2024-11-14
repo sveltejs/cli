@@ -29,7 +29,7 @@ export const officialAddons = [
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
 	const details = officialAddons.find((a) => a.id === id);
 	if (!details) {
-		throw new Error(`Invalid addon: ${id}`);
+		throw new Error(`Invalid add-on: ${id}`);
 	}
 
 	return details as AddonWithoutExplicitArgs;
