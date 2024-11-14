@@ -603,6 +603,52 @@ function buildBox(message = '', title = '', dimmed = true) {
 
 export const note = (message = '', title = ''): void => buildBox(message, title, true);
 export const box = (message = '', title = ''): void => buildBox(message, title, false);
+export const taskLog = (title: string) => {
+	const BAR = color.dim(S_BAR);
+	const ACTIVE = color.green(S_STEP_SUBMIT);
+	const SUCCESS = color.green(S_SUCCESS);
+	const ERROR = color.red(S_ERROR);
+
+	// heading
+	process.stdout.write(`${BAR}\n`);
+	process.stdout.write(`${ACTIVE}  ${title}\n`);
+
+	let output = '';
+
+	// clears previous output
+	const clear = (buffer = 0): void => {
+		if (!output) return;
+		const lines = output.split('\n').length + buffer;
+		process.stdout.write(erase.lines(lines + 1));
+	};
+
+	// logs the output
+	const print = (): void => {
+		const lines = output.split('\n');
+		for (const line of lines) {
+			const msg = color.dim(`${BAR}  ${line}\n`);
+			process.stdout.write(msg);
+		}
+	};
+
+	return {
+		set text(data: string) {
+			clear();
+			output += data;
+			print();
+		},
+		fail(message: string): void {
+			clear(1); // includes clearing the `title`
+			process.stdout.write(`${ERROR}  ${message}\n`);
+			// log the output on failure
+			print();
+		},
+		success(message: string): void {
+			clear(1); // includes clearing the `title`
+			process.stdout.write(`${SUCCESS}  ${message}\n`);
+		}
+	};
+};
 
 export const cancel = (message = ''): void => {
 	process.stdout.write(`${color.gray(S_BAR_END)}  ${color.red(message)}\n\n`);
