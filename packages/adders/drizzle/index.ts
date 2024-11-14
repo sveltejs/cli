@@ -150,7 +150,7 @@ export default defineAdder({
 		});
 
 		if (options.database === 'sqlite') {
-			sv.file('.gitgnore', (content) => {
+			sv.file('.gitignore', (content) => {
 				// Adds the db file to the gitignore if an ignore is present
 				if (content.length === 0) return content;
 

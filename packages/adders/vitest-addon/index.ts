@@ -35,7 +35,7 @@ export default defineAdder({
 						expect(1 + 2).toBe(3);
 					});
 				});
-		`;
+			`;
 		});
 
 		sv.file(`vite.config.${ext}`, (content) => {

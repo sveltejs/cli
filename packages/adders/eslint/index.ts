@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { addEslintConfigPrettier } from '../common.ts';
 import { defineAdder, log } from '@sveltejs/cli-core';
 import {
@@ -18,7 +16,7 @@ export default defineAdder({
 	id: 'eslint',
 	homepage: 'https://eslint.org',
 	options: {},
-	run: ({ sv, typescript, cwd, dependencyVersion }) => {
+	run: ({ sv, typescript, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('eslint', '^9.7.0');
@@ -40,16 +38,16 @@ export default defineAdder({
 			return generateCode();
 		});
 
-		if (fs.existsSync(path.join(cwd, '.vscode', 'settings.json'))) {
-			sv.file('.vscode/settings.json', (content) => {
-				const { data, generateCode } = parseJson(content);
-				const validate: string[] | undefined = data['eslint.validate'];
-				if (validate && !validate.includes('svelte')) {
-					validate.push('svelte');
-				}
-				return generateCode();
-			});
-		}
+		sv.file('.vscode/settings.json', (content) => {
+			if (!content) return content;
+
+			const { data, generateCode } = parseJson(content);
+			const validate: string[] | undefined = data['eslint.validate'];
+			if (validate && !validate.includes('svelte')) {
+				validate.push('svelte');
+			}
+			return generateCode();
+		});
 
 		sv.file('eslint.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);

@@ -8,16 +8,7 @@ import {
 	utils,
 	Walker
 } from '@sveltejs/cli-core';
-import {
-	common,
-	exports,
-	imports,
-	variables,
-	object,
-	functions,
-	kit as kitJs
-} from '@sveltejs/cli-core/js';
-// eslint-disable-next-line no-duplicate-imports
+import * as js from '@sveltejs/cli-core/js';
 import type { AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
@@ -88,10 +79,10 @@ export default defineAdder({
 
 		sv.file(schemaPath, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			const createTable = (name: string) => functions.call(TABLE_TYPE[drizzleDialect], [name]);
+			const createTable = (name: string) => js.functions.call(TABLE_TYPE[drizzleDialect], [name]);
 
-			const userDecl = variables.declaration(ast, 'const', 'user', createTable('user'));
-			const sessionDecl = variables.declaration(ast, 'const', 'session', createTable('session'));
+			const userDecl = js.variables.declaration(ast, 'const', 'user', createTable('user'));
+			const sessionDecl = js.variables.declaration(ast, 'const', 'session', createTable('session'));
 
 			const user = exports.namedExport(ast, 'user', userDecl);
 			const session = exports.namedExport(ast, 'session', sessionDecl);
@@ -104,10 +95,10 @@ export default defineAdder({
 			}
 
 			if (userTable.arguments.length === 1) {
-				userTable.arguments.push(object.createEmpty());
+				userTable.arguments.push(js.object.createEmpty());
 			}
 			if (sessionTable.arguments.length === 1) {
-				sessionTable.arguments.push(object.createEmpty());
+				sessionTable.arguments.push(js.object.createEmpty());
 			}
 
 			const userAttributes = userTable.arguments[1];
@@ -120,78 +111,78 @@ export default defineAdder({
 			}
 
 			if (drizzleDialect === 'sqlite') {
-				imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
+				js.imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
 					sqliteTable: 'sqliteTable',
 					text: 'text',
 					integer: 'integer'
 				});
-				object.overrideProperties(userAttributes, {
-					id: common.expressionFromString("text('id').primaryKey()")
+				js.object.overrideProperties(userAttributes, {
+					id: js.common.expressionFromString("text('id').primaryKey()")
 				});
 				if (options.demo) {
-					object.overrideProperties(userAttributes, {
-						username: common.expressionFromString("text('username').notNull().unique()"),
-						passwordHash: common.expressionFromString("text('password_hash').notNull()")
+					js.object.overrideProperties(userAttributes, {
+						username: js.common.expressionFromString("text('username').notNull().unique()"),
+						passwordHash: js.common.expressionFromString("text('password_hash').notNull()")
 					});
 				}
-				object.overrideProperties(sessionAttributes, {
-					id: common.expressionFromString("text('id').primaryKey()"),
-					userId: common.expressionFromString(
+				js.object.overrideProperties(sessionAttributes, {
+					id: js.common.expressionFromString("text('id').primaryKey()"),
+					userId: js.common.expressionFromString(
 						"text('user_id').notNull().references(() => user.id)"
 					),
-					expiresAt: common.expressionFromString(
+					expiresAt: js.common.expressionFromString(
 						"integer('expires_at', { mode: 'timestamp' }).notNull()"
 					)
 				});
 			}
 			if (drizzleDialect === 'mysql') {
-				imports.addNamed(ast, 'drizzle-orm/mysql-core', {
+				js.imports.addNamed(ast, 'drizzle-orm/mysql-core', {
 					mysqlTable: 'mysqlTable',
 					varchar: 'varchar',
 					datetime: 'datetime'
 				});
-				object.overrideProperties(userAttributes, {
-					id: common.expressionFromString("varchar('id', { length: 255 }).primaryKey()")
+				js.object.overrideProperties(userAttributes, {
+					id: js.common.expressionFromString("varchar('id', { length: 255 }).primaryKey()")
 				});
 				if (options.demo) {
-					object.overrideProperties(userAttributes, {
-						username: common.expressionFromString(
+					js.object.overrideProperties(userAttributes, {
+						username: js.common.expressionFromString(
 							"varchar('username', { length: 32 }).notNull().unique()"
 						),
-						passwordHash: common.expressionFromString(
+						passwordHash: js.common.expressionFromString(
 							"varchar('password_hash', { length: 255 }).notNull()"
 						)
 					});
 				}
-				object.overrideProperties(sessionAttributes, {
-					id: common.expressionFromString("varchar('id', { length: 255 }).primaryKey()"),
-					userId: common.expressionFromString(
+				js.object.overrideProperties(sessionAttributes, {
+					id: js.common.expressionFromString("varchar('id', { length: 255 }).primaryKey()"),
+					userId: js.common.expressionFromString(
 						"varchar('user_id', { length: 255 }).notNull().references(() => user.id)"
 					),
-					expiresAt: common.expressionFromString("datetime('expires_at').notNull()")
+					expiresAt: js.common.expressionFromString("datetime('expires_at').notNull()")
 				});
 			}
 			if (drizzleDialect === 'postgresql') {
-				imports.addNamed(ast, 'drizzle-orm/pg-core', {
+				js.imports.addNamed(ast, 'drizzle-orm/pg-core', {
 					pgTable: 'pgTable',
 					text: 'text',
 					timestamp: 'timestamp'
 				});
-				object.overrideProperties(userAttributes, {
-					id: common.expressionFromString("text('id').primaryKey()")
+				js.object.overrideProperties(userAttributes, {
+					id: js.common.expressionFromString("text('id').primaryKey()")
 				});
 				if (options.demo) {
-					object.overrideProperties(userAttributes, {
-						username: common.expressionFromString("text('username').notNull().unique()"),
-						passwordHash: common.expressionFromString("text('password_hash').notNull()")
+					js.object.overrideProperties(userAttributes, {
+						username: js.common.expressionFromString("text('username').notNull().unique()"),
+						passwordHash: js.common.expressionFromString("text('password_hash').notNull()")
 					});
 				}
-				object.overrideProperties(sessionAttributes, {
-					id: common.expressionFromString("text('id').primaryKey()"),
-					userId: common.expressionFromString(
+				js.object.overrideProperties(sessionAttributes, {
+					id: js.common.expressionFromString("text('id').primaryKey()"),
+					userId: js.common.expressionFromString(
 						"text('user_id').notNull().references(() => user.id)"
 					),
-					expiresAt: common.expressionFromString(
+					expiresAt: js.common.expressionFromString(
 						"timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull()"
 					)
 				});
@@ -212,16 +203,16 @@ export default defineAdder({
 		sv.file(`${kit?.libDirectory}/server/auth.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamespace(ast, '$lib/server/db/schema', 'table');
-			imports.addNamed(ast, '$lib/server/db', { db: 'db' });
-			imports.addNamed(ast, '@oslojs/encoding', {
+			js.imports.addNamespace(ast, '$lib/server/db/schema', 'table');
+			js.imports.addNamed(ast, '$lib/server/db', { db: 'db' });
+			js.imports.addNamed(ast, '@oslojs/encoding', {
 				encodeBase64url: 'encodeBase64url',
 				encodeHexLowerCase: 'encodeHexLowerCase'
 			});
-			imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
-			imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
+			js.imports.addNamed(ast, '@oslojs/crypto/sha2', { sha256: 'sha256' });
+			js.imports.addNamed(ast, 'drizzle-orm', { eq: 'eq' });
 			if (typescript) {
-				imports.addNamed(ast, '@sveltejs/kit', { RequestEvent: 'RequestEvent' }, true);
+				js.imports.addNamed(ast, '@sveltejs/kit', { RequestEvent: 'RequestEvent' }, true);
 			}
 
 			const ms = new MagicString(generateCode().trim());
@@ -345,13 +336,13 @@ export default defineAdder({
 			sv.file('src/app.d.ts', (content) => {
 				const { ast, generateCode } = parseScript(content);
 
-				const locals = kitJs.addGlobalAppInterface(ast, 'Locals');
+				const locals = js.kit.addGlobalAppInterface(ast, 'Locals');
 				if (!locals) {
 					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 				}
 
-				const user = locals.body.body.find((prop) => common.hasTypeProp('user', prop));
-				const session = locals.body.body.find((prop) => common.hasTypeProp('session', prop));
+				const user = locals.body.body.find((prop) => js.common.hasTypeProp('user', prop));
+				const session = locals.body.body.find((prop) => js.common.hasTypeProp('session', prop));
 
 				if (!user) {
 					locals.body.body.push(createLuciaType('user'));
@@ -365,8 +356,8 @@ export default defineAdder({
 
 		sv.file(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
-			kitJs.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
+			js.imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
+			js.kit.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
 			return generateCode();
 		});
 

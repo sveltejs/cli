@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import MagicString from 'magic-string';
 import { colors, dedent, defineAdder, defineAdderOptions, log, utils } from '@sveltejs/cli-core';
 import {
@@ -68,28 +66,28 @@ export default defineAdder({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, cwd, options, typescript, kit, dependencyVersion }) => {
+	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) throw new Error('SvelteKit is required');
 
 		sv.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
 
-		if (!fs.existsSync(path.join(cwd, 'project.inlang/settings.json'))) {
-			sv.file('project.inlang/settings.json', (content) => {
-				const { data, generateCode } = parseJson(content);
+		sv.file('project.inlang/settings.json', (content) => {
+			if (content) return content;
 
-				for (const key in DEFAULT_INLANG_PROJECT) {
-					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
-				}
-				const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
-				const sourceLanguageTag = validLanguageTags[0];
+			const { data, generateCode } = parseJson(content);
 
-				data.sourceLanguageTag = sourceLanguageTag;
-				data.languageTags = validLanguageTags;
+			for (const key in DEFAULT_INLANG_PROJECT) {
+				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
+			}
+			const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
+			const sourceLanguageTag = validLanguageTags[0];
 
-				return generateCode();
-			});
-		}
+			data.sourceLanguageTag = sourceLanguageTag;
+			data.languageTags = validLanguageTags;
+
+			return generateCode();
+		});
 
 		// add the vite plugin
 		sv.file(`vite.config.${ext}`, (content) => {

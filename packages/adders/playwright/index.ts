@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import { join } from 'node:path';
 import { dedent, defineAdder, log } from '@sveltejs/cli-core';
 import { common, exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
@@ -8,7 +6,7 @@ export default defineAdder({
 	id: 'playwright',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, cwd, typescript }) => {
+	run: ({ sv, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
 
 		sv.devDependency('@playwright/test', '^1.45.3');
@@ -25,12 +23,11 @@ export default defineAdder({
 			return generateCode();
 		});
 
-		if (fs.existsSync(join(cwd, '.gitignore'))) {
-			sv.file('.gitignore', (content) => {
-				if (content.includes('test-results')) return content;
-				return 'test-results\n' + content.trim();
-			});
-		}
+		sv.file('.gitignore', (content) => {
+			if (!content) return content;
+			if (content.includes('test-results')) return content;
+			return 'test-results\n' + content.trim();
+		});
 
 		sv.file(`e2e/demo.test.${ext}`, (content) => {
 			if (content) return content;

@@ -7,12 +7,8 @@ export default defineAdder({
 	homepage: 'https://prettier.io',
 	options: {},
 	run: ({ sv, dependencyVersion }) => {
-		const eslintInstalled = hasEslint(dependencyVersion);
-
 		sv.devDependency('prettier', '^3.3.2');
 		sv.devDependency('prettier-plugin-svelte', '^3.2.6');
-
-		if (eslintInstalled) sv.devDependency('eslint-config-prettier', '^9.1.0');
 
 		sv.file('.prettierignore', (content) => {
 			if (content) return content;
@@ -51,6 +47,9 @@ export default defineAdder({
 			return generateCode();
 		});
 
+		const eslintVersion = dependencyVersion('eslint');
+		const eslintInstalled = hasEslint(eslintVersion);
+
 		sv.file('package.json', (content) => {
 			const { data, generateCode } = parseJson(content);
 
@@ -59,7 +58,7 @@ export default defineAdder({
 			const CHECK_CMD = 'prettier --check .';
 			scripts['format'] ??= 'prettier --write .';
 
-			if (hasEslint(dependencyVersion)) {
+			if (eslintInstalled) {
 				scripts['lint'] ??= `${CHECK_CMD} && eslint .`;
 				if (!scripts['lint'].includes(CHECK_CMD)) scripts['lint'] += ` && ${CHECK_CMD}`;
 			} else {
@@ -68,14 +67,16 @@ export default defineAdder({
 			return generateCode();
 		});
 
-		if (dependencyVersion('eslint')?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
+		if (eslintVersion?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
 			log.warn(
 				`An older major version of ${colors.yellow(
 					'eslint'
 				)} was detected. Skipping ${colors.yellow('eslint-config-prettier')} installation.`
 			);
 		}
+
 		if (eslintInstalled) {
+			sv.devDependency('eslint-config-prettier', '^9.1.0');
 			sv.file('eslint.config.js', addEslintConfigPrettier);
 		}
 	}
@@ -83,7 +84,6 @@ export default defineAdder({
 
 const SUPPORTED_ESLINT_VERSION = '9';
 
-function hasEslint(dependencyVersion: (pkg: string) => string | undefined): boolean {
-	const version = dependencyVersion('eslint');
+function hasEslint(version: string | undefined): boolean {
 	return !!version && version.startsWith(SUPPORTED_ESLINT_VERSION);
 }

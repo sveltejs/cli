@@ -38,7 +38,7 @@ const plugins: Plugin[] = [
 	}
 ];
 
-export const options = defineAdderOptions({
+const options = defineAdderOptions({
 	plugins: {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',

@@ -61,7 +61,7 @@ export async function applyAddons({
 	for (const addon of ordered) {
 		workspace = createWorkspace({ ...workspace, options: options[addon.id] });
 
-		const files = await runAddon(workspace, addon, ordered.length > 1);
+		const files = await runAddon({ workspace, addon, multiple: ordered.length > 1 });
 		files.forEach((f) => filesToFormat.add(f));
 	}
 
@@ -87,11 +87,12 @@ export function setupAddons(
 	return adderSetupResults;
 }
 
-async function runAddon(
-	workspace: Workspace<any>,
-	addon: Adder<Record<string, Question>>,
-	applyMultipleAddons: boolean
-): Promise<string[]> {
+type RunAddon = {
+	workspace: Workspace<any>;
+	addon: Adder<Record<string, Question>>;
+	multiple: boolean;
+};
+async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<string[]> {
 	const files = new Set<string>();
 
 	// apply default adder options
@@ -124,7 +125,7 @@ async function runAddon(
 		execute: async (commandArgs, stdio) => {
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
-			const adderPrefix = applyMultipleAddons ? `${addon.id}: ` : '';
+			const adderPrefix = multiple ? `${addon.id}: ` : '';
 			const executedCommand = `${command} ${args.join(' ')}`;
 			if (!TESTING) {
 				p.log.step(`${adderPrefix}Running external command ${pc.gray(`(${executedCommand})`)}`);
