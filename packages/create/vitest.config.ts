@@ -1,7 +1,7 @@
 import { env } from 'node:process';
-import { defineConfig } from 'vitest/config';
+import { defineProject } from 'vitest/config';
 
-export default defineConfig({
+export default defineProject({
 	test: {
 		name: 'create',
 		include: ['test/*.ts'],

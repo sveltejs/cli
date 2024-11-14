@@ -1,5 +1,5 @@
 import process from 'node:process';
-import { exec } from 'tinyexec';
+import { exec, NonZeroExitError } from 'tinyexec';
 import * as p from '@sveltejs/clack-prompts';
 import {
 	AGENTS,
@@ -41,6 +41,12 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		spinner.stop('Successfully installed dependencies');
 	} catch (error) {
 		spinner.stop('Failed to install dependencies', 2);
+
+		if (error instanceof NonZeroExitError) {
+			const stderr = error.output?.stderr;
+			if (stderr) p.log.error(stderr);
+		}
+
 		throw error;
 	}
 }

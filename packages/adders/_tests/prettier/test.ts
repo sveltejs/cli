@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import prettier from '../../prettier/index.ts';
@@ -11,5 +14,12 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
-	expect(true).toBe(true);
+	const unformattedFile = 'const foo = "bar"';
+	fs.writeFileSync(path.resolve(cwd, 'foo.js'), unformattedFile, 'utf8');
+
+	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).toThrowError();
+
+	expect(() => execSync('pnpm format', { cwd, stdio: 'pipe' })).not.toThrowError();
+
+	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).not.toThrowError();
 });

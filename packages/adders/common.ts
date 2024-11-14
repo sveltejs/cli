@@ -1,8 +1,7 @@
 import { imports, exports, common } from '@sveltejs/cli-core/js';
-import { type Question, type FileEditor } from '@sveltejs/cli-core';
 import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
-export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Question>>): string {
+export function addEslintConfigPrettier(content: string): string {
 	const { ast, generateCode } = parseScript(content);
 
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
@@ -65,10 +64,7 @@ export function addEslintConfigPrettier({ content }: FileEditor<Record<string, Q
 	return generateCode();
 }
 
-export function addToDemoPage(
-	{ content }: FileEditor<Record<string, Question>>,
-	path: string
-): string {
+export function addToDemoPage(content: string, path: string): string {
 	const { template, generateCode } = parseSvelte(content);
 
 	for (const node of template.ast.childNodes) {
