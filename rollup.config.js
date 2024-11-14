@@ -80,17 +80,17 @@ function getConfig(project) {
 	}
 
 	/** @type {Plugin | undefined} */
-	let communityAdderIdsPlugin;
+	let communityAddonIdsPlugin;
 	if (project === 'cli') {
 		// Evaluates the ids of available community adders at build time
-		communityAdderIdsPlugin = {
-			name: 'evaluate-community-adder-ids',
+		communityAddonIdsPlugin = {
+			name: 'evaluate-community-addon-ids',
 			transform(code, id) {
 				if (id.endsWith(`_config${path.sep}community.ts`)) {
 					const ms = new MagicString(code, { filename: id });
 					const start = code.indexOf('export const communityAdderIds');
 					const end = code.indexOf(';', start);
-					const ids = fs.readdirSync('community-adders').map((p) => path.parse(p).name);
+					const ids = fs.readdirSync('community-addons').map((p) => path.parse(p).name);
 					const generated = `export const communityAdderIds = ${JSON.stringify(ids)};`;
 					ms.overwrite(start, end, generated);
 					return {
@@ -124,7 +124,7 @@ function getConfig(project) {
 				exclude: ['packages/cli/commands/add/fetch-packages.ts']
 			}),
 			buildCliTemplatesPlugin,
-			communityAdderIdsPlugin
+			communityAddonIdsPlugin
 		]
 	};
 }
