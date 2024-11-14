@@ -1,5 +1,5 @@
 import process from 'node:process';
-import { exec, NonZeroExitError } from 'tinyexec';
+import { exec } from 'tinyexec';
 import * as p from '@sveltejs/clack-prompts';
 import {
 	AGENTS,
@@ -32,22 +32,29 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
-	const spinner = p.spinner();
-	spinner.start('Installing dependencies...');
+	const box = p.taskLog(`Installing dependencies with ${agent}`);
+
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
-		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
+		const proc = exec(command, args, {
+			nodeOptions: { cwd, stdio: 'pipe' },
+			throwOnError: true
+		});
 
-		spinner.stop('Successfully installed dependencies');
-	} catch (error) {
-		spinner.stop('Failed to install dependencies', 2);
+		proc.process?.stdout?.on('data', (data) => {
+			box.text = data;
+		});
+		proc.process?.stderr?.on('data', (data) => {
+			box.text = data;
+		});
 
-		if (error instanceof NonZeroExitError) {
-			const stderr = error.output?.stderr;
-			if (stderr) p.log.error(stderr);
-		}
+		await proc;
 
-		throw error;
+		box.success('Successfully installed dependencies');
+	} catch {
+		box.fail('Failed to install dependencies');
+		p.cancel('Operation failed.');
+		process.exit(2);
 	}
 }
 
