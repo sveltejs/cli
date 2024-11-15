@@ -29,7 +29,7 @@ export type SvApi = {
 export type Addon<Args extends OptionDefinition> = {
 	id: string;
 	alias?: string;
-	shortDescription: string;
+	shortDescription?: string;
 	homepage?: string;
 	options: Args;
 	setup?: (
