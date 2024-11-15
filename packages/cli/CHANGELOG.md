@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.4
+### Patch Changes
+
+
+- fix: limit window height of dependency install's output ([#307](https://github.com/sveltejs/cli/pull/307))
+
 ## 0.6.3
 ### Patch Changes
 
