@@ -611,34 +611,44 @@ export const taskLog = (title: string) => {
 
 	// heading
 	process.stdout.write(`${BAR}\n`);
-	process.stdout.write(cursor.save);
 	process.stdout.write(`${ACTIVE}  ${title}\n`);
 
 	let output = '';
+	let frame = '';
 
 	// clears previous output
 	const clear = (eraseTitle = false): void => {
-		process.stdout.write(cursor.restore);
-		if (!eraseTitle) process.stdout.write(cursor.down(1));
-		const height = process.stdout.rows;
-		process.stdout.write(erase.down(height));
+		if (!frame) return;
+		const terminalWidth = process.stdout.columns;
+		const frameHeight = frame.split('\n').reduce((height, line) => {
+			// accounts for line wraps
+			height += Math.ceil(line.length / terminalWidth);
+			return height;
+		}, 0);
+		const lines = frameHeight + (eraseTitle ? 1 : 0);
+
+		process.stdout.write(cursor.up(lines));
+		process.stdout.write(erase.down());
 	};
 
 	// logs the output
 	const print = (limit = 0): void => {
 		const lines = output.split('\n').slice(-limit);
+		// reset frame
+		frame = '';
 		for (const line of lines) {
-			const msg = color.dim(`${BAR}  ${line}\n`);
-			process.stdout.write(msg);
+			frame += `${BAR}  ${line}\n`;
 		}
+		process.stdout.write(color.dim(frame));
 	};
 
 	return {
 		set text(data: string) {
 			clear();
 			output += data;
-			const windowHeight = process.stdout.rows - 5;
-			print(windowHeight);
+			// half the height of the terminal
+			const frameHeight = Math.ceil(process.stdout.rows / 2);
+			print(frameHeight);
 		},
 		fail(message: string): void {
 			clear(true);
