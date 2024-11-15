@@ -1,5 +1,14 @@
 # sv
 
+## 0.6.3
+### Patch Changes
+
+
+- feat: display package manager output during dependency installs ([#305](https://github.com/sveltejs/cli/pull/305))
+
+
+- chore: rename `adder` to `add-on` ([#303](https://github.com/sveltejs/cli/pull/303))
+
 ## 0.6.2
 ### Patch Changes
 
