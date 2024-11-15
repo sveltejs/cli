@@ -54,7 +54,7 @@ export default defineAddon({
 					describe('/+page.svelte',()=>{
 						test('should render h1',()=>{
 							render(Page);
-							expect(screen.getByRole('heading',{level:1})).toBeInTheDocument();
+							expect(screen.getByRole('heading', {level:1})).toBeInTheDocument();
 						})
 					})
 				`;
