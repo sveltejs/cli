@@ -47,7 +47,7 @@ export default defineAddon({
 				if (content) return content;
 
 				return dedent`
-					import { describe,test, expect } from "vitest";
+					import { describe,test, expect } from 'vitest';
 					import { render, screen } from '@testing-library/svelte';
 					import Page from  './+page.svelte';
 
@@ -79,15 +79,15 @@ export default defineAddon({
 				const clientObjectExpression = object.create({
 					extends: common.createLiteral(`./vite.config.${ext}`),
 					plugins: common.expressionFromString(
-						'[svelteTesting({resolveBrowser: true,autoCleanup: true})]'
+						'[svelteTesting({ resolveBrowser: true, autoCleanup: true })]'
 					),
 					test: object.create({
 						name: common.createLiteral('client'),
 						environment: common.createLiteral('jsdom'),
 						clearMocks: common.expressionFromString('true'),
-						include: common.expressionFromString('["src/**/*.svelte.{test,spec}.{js,ts}"]'),
-						exclude: common.expressionFromString('["src/lib/server/**"]'),
-						setupFiles: common.expressionFromString('["./vitest-setup-client.ts"]')
+						include: common.expressionFromString("['src/**/*.svelte.{test,spec}.{js,ts}']"),
+						exclude: common.expressionFromString("['src/lib/server/**']"),
+						setupFiles: common.expressionFromString("['./vitest-setup-client.ts']")
 					})
 				});
 				const serverObjectExpression = object.create({
@@ -95,8 +95,8 @@ export default defineAddon({
 					test: object.create({
 						name: common.createLiteral('server'),
 						environment: common.createLiteral('node'),
-						include: common.expressionFromString('["src/**/*.{test,spec}.{js,ts}"]'),
-						exclude: common.expressionFromString('["src/**/*.svelte.{test,spec}.{js,ts}"]')
+						include: common.expressionFromString("['src/**/*.{test,spec}.{js,ts}']"),
+						exclude: common.expressionFromString("['src/**/*.svelte.{test,spec}.{js,ts}']")
 					})
 				});
 
@@ -120,7 +120,7 @@ export default defineAddon({
 			sv.file(`vite.config.${ext}`, (content) => {
 				const { ast, generateCode } = parseScript(content);
 
-				// find `defineConfig` import declaration for "vite"
+				// find `defineConfig` import declaration for 'vite'
 				const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
 				const defineConfigImportDecl = importDecls.find(
 					(importDecl) =>
@@ -132,8 +132,8 @@ export default defineAddon({
 						)
 				);
 
-				// we'll need to replace the "vite" import for a "vitest/config" import.
-				// if `defineConfig` is the only specifier in that "vite" import, remove the entire import declaration
+				// we'll need to replace the 'vite' import for a 'vitest/config' import.
+				// if `defineConfig` is the only specifier in that 'vite' import, remove the entire import declaration
 				if (defineConfigImportDecl?.specifiers?.length === 1) {
 					const idxToRemove = ast.body.indexOf(defineConfigImportDecl);
 					ast.body.splice(idxToRemove, 1);
@@ -157,7 +157,7 @@ export default defineAddon({
 					defaultExport.value.type === 'CallExpression' &&
 					defaultExport.value.arguments[0]?.type === 'ObjectExpression'
 				) {
-					// if the previous `defineConfig` was aliased, reuse the alias for the "vitest/config" import
+					// if the previous `defineConfig` was aliased, reuse the alias for the 'vitest/config' import
 					const importSpecifier = defineConfigImportDecl?.specifiers?.find(
 						(sp) => sp.type === 'ImportSpecifier' && sp.imported.name === 'defineConfig'
 					);
