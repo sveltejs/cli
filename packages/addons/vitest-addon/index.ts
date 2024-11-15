@@ -104,7 +104,7 @@ export default defineAddon({
 					clearMocks: common.expressionFromString('true'),
 					include: common.expressionFromString("['src/**/*.svelte.{test,spec}.{js,ts}']"),
 					exclude: common.expressionFromString("['src/lib/server/**']"),
-					setupFiles: common.expressionFromString("['./vitest-setup-client.ts']")
+					setupFiles: common.expressionFromString(`['./vitest-setup-client.${ext}']`)
 				})
 			});
 			const serverObjectExpression = object.create({
