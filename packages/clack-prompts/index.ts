@@ -611,20 +611,22 @@ export const taskLog = (title: string) => {
 
 	// heading
 	process.stdout.write(`${BAR}\n`);
+	process.stdout.write(cursor.save);
 	process.stdout.write(`${ACTIVE}  ${title}\n`);
 
 	let output = '';
 
 	// clears previous output
-	const clear = (buffer = 0): void => {
-		if (!output) return;
-		const lines = output.split('\n').length + buffer;
-		process.stdout.write(erase.lines(lines + 1));
+	const clear = (eraseTitle = false): void => {
+		process.stdout.write(cursor.restore);
+		if (!eraseTitle) process.stdout.write(cursor.down(1));
+		const height = process.stdout.rows;
+		process.stdout.write(erase.down(height));
 	};
 
 	// logs the output
-	const print = (): void => {
-		const lines = output.split('\n');
+	const print = (limit = 0): void => {
+		const lines = output.split('\n').slice(-limit);
 		for (const line of lines) {
 			const msg = color.dim(`${BAR}  ${line}\n`);
 			process.stdout.write(msg);
@@ -635,16 +637,16 @@ export const taskLog = (title: string) => {
 		set text(data: string) {
 			clear();
 			output += data;
-			print();
+			const windowHeight = process.stdout.rows - 5;
+			print(windowHeight);
 		},
 		fail(message: string): void {
-			clear(1); // includes clearing the `title`
+			clear(true);
 			process.stdout.write(`${ERROR}  ${message}\n`);
-			// log the output on failure
-			print();
+			print(); // log the output on failure
 		},
 		success(message: string): void {
-			clear(1); // includes clearing the `title`
+			clear(true);
 			process.stdout.write(`${SUCCESS}  ${message}\n`);
 		}
 	};
