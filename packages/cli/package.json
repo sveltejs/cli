@@ -40,7 +40,7 @@
 		"commander": "^12.1.0",
 		"degit": "^2.8.4",
 		"empathic": "^1.0.0",
-		"package-manager-detector": "^0.2.2",
+		"package-manager-detector": "^0.2.4",
 		"picocolors": "^1.1.0",
 		"ps-tree": "^1.2.0",
 		"tar-fs": "^3.0.6",
