@@ -15,7 +15,8 @@
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"test": "vitest run --silent",
-		"test:ui": "vitest --ui"
+		"test:ui": "vitest --ui",
+		"update-dependencies": "node ./scripts/update-dependencies.js"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.27.9",
