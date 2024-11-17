@@ -2,8 +2,13 @@ import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 
 async function updateDependencies() {
+	// update all packages present in `package.json`
 	execSync('pnpm update --recursive', { stdio: 'inherit' });
+
+	// update all packages that are used during scaffolding of `addons`
 	await updateAddonDependencies();
+
+	// re-install all dependencies
 	execSync('pnpm install', { stdio: 'inherit' });
 }
 
