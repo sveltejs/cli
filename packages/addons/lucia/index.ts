@@ -34,7 +34,7 @@ const options = defineAddonOptions({
 
 export default defineAddon({
 	id: 'lucia',
-	shortDescription: 'auth guid',
+	shortDescription: 'auth guide',
 	homepage: 'https://lucia-auth.com',
 	options,
 	setup: ({ kit, dependencyVersion, unsupported, dependsOn }) => {
