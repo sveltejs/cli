@@ -283,7 +283,7 @@ export async function runAddCommand(
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
-				hint: shortDescription + '. ' + homepage
+				hint: `${shortDescription} - ${homepage}`
 			}));
 
 		const selected = await p.multiselect({
