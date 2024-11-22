@@ -4,6 +4,7 @@ import { parseJson } from '@sveltejs/cli-core/parsers';
 
 export default defineAddon({
 	id: 'prettier',
+	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
 	run: ({ sv, dependencyVersion }) => {

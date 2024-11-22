@@ -50,6 +50,7 @@ const options = defineAddonOptions({
 export default defineAddon({
 	id: 'tailwindcss',
 	alias: 'tailwind',
+	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
 	run: ({ sv, options, typescript, kit, dependencyVersion }) => {

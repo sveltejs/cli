@@ -280,7 +280,11 @@ export async function runAddCommand(
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
 			.filter(({ id }) => addonSetupResults[id].unsupported.length === 0)
-			.map(({ id, homepage }) => ({ label: id, value: id, hint: homepage }));
+			.map(({ id, homepage, shortDescription }) => ({
+				label: id,
+				value: id,
+				hint: `${shortDescription} - ${homepage}`
+			}));
 
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
