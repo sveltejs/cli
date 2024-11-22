@@ -1,5 +1,17 @@
 # sv
 
+## 0.6.5
+### Patch Changes
+
+
+- chore: remove `@types/eslint` package from `eslint` add-on ([#323](https://github.com/sveltejs/cli/pull/323))
+
+
+- chore: remove `aspect-ratio` plugin from `tailwindcss` add-on ([#322](https://github.com/sveltejs/cli/pull/322))
+
+
+- feat: add short descriptions for each add-on ([#299](https://github.com/sveltejs/cli/pull/299))
+
 ## 0.6.4
 ### Patch Changes
 
