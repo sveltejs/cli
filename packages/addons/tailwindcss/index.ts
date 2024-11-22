@@ -29,12 +29,6 @@ const plugins: Plugin[] = [
 		package: '@tailwindcss/container-queries',
 		version: '^0.1.1',
 		identifier: 'containerQueries'
-	},
-	{
-		id: 'aspect-ratio',
-		package: '@tailwindcss/aspect-ratio',
-		version: '^0.4.2',
-		identifier: 'aspectRatio'
 	}
 ];
 
