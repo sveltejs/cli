@@ -78,8 +78,8 @@ importers:
         specifier: ^8.5.0
         version: 8.5.0(eslint@9.10.0)(typescript@5.6.3)
       unplugin-isolated-decl:
-        specifier: 0.8.1
-        version: 0.8.1(rollup@4.22.4)(typescript@5.6.3)
+        specifier: ^0.8.3
+        version: 0.8.3(rollup@4.22.4)(typescript@5.6.3)
       vitest:
         specifier: ^2.1.4
         version: 2.1.4(@types/node@22.9.0)(@vitest/ui@2.1.4)
@@ -2393,8 +2393,8 @@ packages:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
     engines: {node: '>= 4.0.0'}
 
-  unplugin-isolated-decl@0.8.1:
-    resolution: {integrity: sha512-sdaVyb8GVkRz/88fqcEHMxB62YYEz8B40qAvAAacgbonzQVq/VLuZ+gjSagtPy9aN9w9LH8x1qTwXP3xApu39g==}
+  unplugin-isolated-decl@0.8.3:
+    resolution: {integrity: sha512-LYtDV91NRRbWBk1wrhTRcXIuK9kM7IQ0Kd+QlKZ2UV3xJ20hQRwuIPEyQbFPRPyN+pct1RZR0C1BrnflbV5jdQ==}
     engines: {node: '>=18.12.0'}
     peerDependencies:
       '@swc/core': ^1.6.6
@@ -4592,7 +4592,7 @@ snapshots:
 
   universalify@0.1.2: {}
 
-  unplugin-isolated-decl@0.8.1(rollup@4.22.4)(typescript@5.6.3):
+  unplugin-isolated-decl@0.8.3(rollup@4.22.4)(typescript@5.6.3):
     dependencies:
       '@rollup/pluginutils': 5.1.3(rollup@4.22.4)
       debug: 4.3.7

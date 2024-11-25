@@ -113,7 +113,10 @@ function getConfig(project) {
 		plugins: [
 			preserveShebangs(),
 			'exports' in pkg &&
-				dts({ include: project === 'cli' ? [`${projectRoot}/lib/*`] : undefined }),
+				dts({
+					include: project === 'cli' ? [`${projectRoot}/lib/*`] : undefined,
+					inputBase: project === 'cli' ? path.resolve(projectRoot, 'lib') : undefined
+				}),
 			esbuild(),
 			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
 			commonjs(),
