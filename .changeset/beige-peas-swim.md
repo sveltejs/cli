@@ -2,4 +2,4 @@
 '@sveltejs/addons': patch
 ---
 
-Add `.vercel` to eslint ignore directories.
+Add `@sveltejs/<adapter>` out directories to eslint ignores.
