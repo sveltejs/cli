@@ -1,5 +1,7 @@
 # sv - the Svelte CLI
 
+[Documentation](https://svelte.dev/docs/cli/overview)
+
 A command line interface (CLI) for creating and maintaining [Svelte](https://svelte.dev) applications. Just run:
 
 ```bash

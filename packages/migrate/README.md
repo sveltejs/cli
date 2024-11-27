@@ -1,6 +1,6 @@
 # svelte-migrate
 
-A CLI for migrating Svelte(Kit) codebases.
+A CLI for migrating Svelte(Kit) codebases. [Documentation](https://svelte.dev/docs/cli/sv-migrate)
 
 Run it directly using:
 
