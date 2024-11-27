@@ -95,7 +95,7 @@ export default defineAddon({
 			const ignores = ['build/', '.svelte-kit/', 'dist/', '.vercel/', '.netlify/'];
 
 			const ignoresConfig = object.create({
-				ignores: common.expressionFromString(`[${ignores.join(', ')}]`)
+				ignores: common.expressionFromString(`[${ignores.map((i) => `"${i}"`).join(', ')}]`)
 			});
 			eslintConfigs.push(ignoresConfig);
 
