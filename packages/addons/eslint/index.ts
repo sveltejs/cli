@@ -21,6 +21,7 @@ export default defineAddon({
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('eslint', '^9.7.0');
+		sv.devDependency('@eslint/compat', '^1.2.3');
 		sv.devDependency('globals', '^15.0.0');
 		sv.devDependency('eslint-plugin-svelte', '^2.36.0');
 
@@ -55,6 +56,11 @@ export default defineAddon({
 			const eslintConfigs: Array<
 				AstKinds.ExpressionKind | AstTypes.SpreadElement | AstTypes.ObjectExpression
 			> = [];
+
+			const gitIgnorePathStatement = common.statementFromString(
+				'const gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));'
+			);
+			common.addStatement(ast, gitIgnorePathStatement);
 
 			const jsConfig = common.expressionFromString('js.configs.recommended');
 			eslintConfigs.push(jsConfig);
@@ -92,11 +98,7 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			}
 
-			const ignores = ['build/', '.svelte-kit/', 'dist/', '.vercel/', '.netlify/', '.wrangler/'];
-
-			const ignoresConfig = object.create({
-				ignores: common.expressionFromString(`[${ignores.map((i) => `"${i}"`).join(', ')}]`)
-			});
+			const ignoresConfig = common.expressionFromString('includeIgnoreFile(gitignorePath)');
 			eslintConfigs.push(ignoresConfig);
 
 			let exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression;
@@ -123,8 +125,10 @@ export default defineAddon({
 
 			// imports
 			if (typescript) imports.addDefault(ast, 'typescript-eslint', 'ts');
+			imports.addNamed(ast, 'node:url', { fileURLToPath: 'fileURLToPath' });
 			imports.addDefault(ast, 'globals', 'globals');
 			imports.addDefault(ast, 'eslint-plugin-svelte', 'svelte');
+			imports.addNamed(ast, '@eslint/compat', { includeIgnoreFile: 'includeIgnoreFile' });
 			imports.addDefault(ast, '@eslint/js', 'js');
 
 			return generateCode();
