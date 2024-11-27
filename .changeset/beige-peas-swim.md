@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat: add `@sveltejs/<adapter>` out directories to eslint ignores
+feat: respect `.gitignore` in eslint addon
