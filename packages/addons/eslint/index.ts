@@ -92,7 +92,7 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			}
 
-			const ignores = ['build/', '.svelte-kit/', 'dist/', '.vercel/', '.netlify/'];
+			const ignores = ['build/', '.svelte-kit/', 'dist/', '.vercel/', '.netlify/', '.wrangler/'];
 
 			const ignoresConfig = object.create({
 				ignores: common.expressionFromString(`[${ignores.map((i) => `"${i}"`).join(', ')}]`)
