@@ -1,6 +1,6 @@
 # svelte-migrate
 
-A CLI for migrating Svelte(Kit) codebases. [Documentation](https://svelte.dev/docs/cli/sv-migrate)
+A CLI for migrating Svelte(Kit) codebases.
 
 Run it directly using:
 
@@ -25,6 +25,10 @@ npx sv migrate [migration]
 | `routes`      | SvelteKit pre-1.0     | SvelteKit 1.0         | [#5774](https://github.com/sveltejs/kit/discussions/5774)       |
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
+
+## Documentation
+
+[Documentation](https://svelte.dev/docs/cli/sv-migrate)
 
 ## Changelog
 
