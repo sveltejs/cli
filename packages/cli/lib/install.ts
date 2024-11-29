@@ -122,9 +122,6 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 			}
 		},
 		execute: async (commandArgs, stdio) => {
-			// Deno requires the package to be prepended with the `npm:` protocol
-			if (workspace.packageManager === 'deno') commandArgs[0] = `npm:${commandArgs[0]}`;
-
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
