@@ -239,7 +239,7 @@ export default defineAddon({
 					scriptCode.append('\n\n');
 					scriptCode.append(dedent`
 						${ts('', '/**')} 
-						${ts('', '* @param import("$lib/paraglide/runtime").AvailableLanguageTag newLanguage')} 
+						${ts('', '* @param {import("$lib/paraglide/runtime").AvailableLanguageTag} newLanguage')} 
 						${ts('', '*/')} 
 						function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
 							const canonicalPath = i18n.route($page.url.pathname);
