@@ -58,9 +58,12 @@ export default defineAddon({
 			> = [];
 
 			const gitIgnorePathStatement = common.statementFromString(
-				'const gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));'
+				'\nconst gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));'
 			);
 			common.addStatement(ast, gitIgnorePathStatement);
+
+			const ignoresConfig = common.expressionFromString('includeIgnoreFile(gitignorePath)');
+			eslintConfigs.push(ignoresConfig);
 
 			const jsConfig = common.expressionFromString('js.configs.recommended');
 			eslintConfigs.push(jsConfig);
@@ -97,9 +100,6 @@ export default defineAddon({
 				});
 				eslintConfigs.push(svelteTSParserConfig);
 			}
-
-			const ignoresConfig = common.expressionFromString('includeIgnoreFile(gitignorePath)');
-			eslintConfigs.push(ignoresConfig);
 
 			let exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression;
 			if (typescript) {
