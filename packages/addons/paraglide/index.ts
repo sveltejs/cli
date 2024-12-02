@@ -71,6 +71,8 @@ export default defineAddon({
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) throw new Error('SvelteKit is required');
 
+		const paraglideOutDir = 'src/lib/paraglide';
+
 		sv.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
 
 		sv.file('project.inlang/settings.json', (content) => {
@@ -104,7 +106,7 @@ export default defineAddon({
 			const pluginFunctionCall = functions.call(vitePluginName, []);
 			const pluginConfig = object.create({
 				project: common.createLiteral('./project.inlang'),
-				outdir: common.createLiteral('./src/lib/paraglide')
+				outdir: common.createLiteral(`./${paraglideOutDir}`)
 			});
 			functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
 			array.push(pluginsArray, pluginFunctionCall);
@@ -207,6 +209,15 @@ export default defineAddon({
 			};
 
 			return generateCode();
+		});
+
+		sv.file('.gitignore', (content) => {
+			if (!content) return content;
+
+			if (!content.includes(`\n${paraglideOutDir}`)) {
+				content = content.trimEnd() + `\n\n# Paraglide\n${paraglideOutDir}`;
+			}
+			return content;
 		});
 
 		if (options.demo) {
