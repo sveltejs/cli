@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat: respect `.gitignore` in eslint addon
+feat: respect `.gitignore` in `eslint` add-on
