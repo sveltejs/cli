@@ -1,5 +1,20 @@
 # sv
 
+## 0.6.6
+### Patch Changes
+
+
+- feat: respect `.gitignore` in `eslint` add-on ([#335](https://github.com/sveltejs/cli/pull/335))
+
+
+- feat: update `create` templates to Vite 6 ([#340](https://github.com/sveltejs/cli/pull/340))
+
+
+- fix: add paraglide output directory to `.gitignore` ([#338](https://github.com/sveltejs/cli/pull/338))
+
+
+- chore: replace svelte-5-preview link ([#327](https://github.com/sveltejs/cli/pull/327))
+
 ## 0.6.5
 ### Patch Changes
 
