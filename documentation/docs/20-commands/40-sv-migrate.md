@@ -2,7 +2,7 @@
 title: sv migrate
 ---
 
-`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://github.com/sveltejs/kit/blob/main/packages/migrate) package.
+`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate) package.
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
