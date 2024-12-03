@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: `create` mark created apps as private
+feat: set app templates to `private` by default
