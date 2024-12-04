@@ -4,6 +4,7 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAddon({
 	id: 'vitest',
+	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options: {},
 	run: ({ sv, typescript }) => {

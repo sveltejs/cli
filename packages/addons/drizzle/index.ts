@@ -65,6 +65,7 @@ const options = defineAddonOptions({
 
 export default defineAddon({
 	id: 'drizzle',
+	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
 	setup: ({ kit, unsupported }) => {

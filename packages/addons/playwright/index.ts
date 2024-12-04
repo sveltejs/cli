@@ -4,6 +4,7 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAddon({
 	id: 'playwright',
+	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
 	run: ({ sv, typescript }) => {

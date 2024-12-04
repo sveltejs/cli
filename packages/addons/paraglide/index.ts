@@ -61,6 +61,7 @@ const options = defineAddonOptions({
 
 export default defineAddon({
 	id: 'paraglide',
+	shortDescription: 'i18n',
 	homepage: 'https://inlang.com',
 	options,
 	setup: ({ kit, unsupported }) => {
@@ -69,6 +70,8 @@ export default defineAddon({
 	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) throw new Error('SvelteKit is required');
+
+		const paraglideOutDir = 'src/lib/paraglide';
 
 		sv.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
 
@@ -103,7 +106,7 @@ export default defineAddon({
 			const pluginFunctionCall = functions.call(vitePluginName, []);
 			const pluginConfig = object.create({
 				project: common.createLiteral('./project.inlang'),
-				outdir: common.createLiteral('./src/lib/paraglide')
+				outdir: common.createLiteral(`./${paraglideOutDir}`)
 			});
 			functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
 			array.push(pluginsArray, pluginFunctionCall);
@@ -208,6 +211,15 @@ export default defineAddon({
 			return generateCode();
 		});
 
+		sv.file('.gitignore', (content) => {
+			if (!content) return content;
+
+			if (!content.includes(`\n${paraglideOutDir}`)) {
+				content = content.trimEnd() + `\n\n# Paraglide\n${paraglideOutDir}`;
+			}
+			return content;
+		});
+
 		if (options.demo) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'paraglide');
@@ -238,7 +250,7 @@ export default defineAddon({
 					scriptCode.append('\n\n');
 					scriptCode.append(dedent`
 						${ts('', '/**')} 
-						${ts('', '* @param import("$lib/paraglide/runtime").AvailableLanguageTag newLanguage')} 
+						${ts('', '* @param {import("$lib/paraglide/runtime").AvailableLanguageTag} newLanguage')} 
 						${ts('', '*/')} 
 						function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
 							const canonicalPath = i18n.route($page.url.pathname);

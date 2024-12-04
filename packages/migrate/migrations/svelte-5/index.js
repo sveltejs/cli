@@ -190,10 +190,7 @@ export async function migrate() {
 		"install the updated dependencies ('npm i' / 'pnpm i' / etc) " +
 			'(note that there may be peer dependency issues when not all your libraries officially support Svelte 5 yet. In this case try installing with the --force option)',
 		use_git && cyan('git commit -m "migration to Svelte 5"'),
-		'Review the breaking changes at https://svelte-5-preview.vercel.app/docs/breaking-changes'
-		// replace with this once it's live:
-		// 'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide',
-		// 'Read the updated docs at https://svelte.dev/docs/svelte'
+		'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide'
 	].filter(Boolean);
 
 	tasks.forEach((task, i) => {

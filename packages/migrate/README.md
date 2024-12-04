@@ -26,6 +26,10 @@ npx sv migrate [migration]
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
+## Documentation
+
+[Documentation](https://svelte.dev/docs/cli/sv-migrate)
+
 ## Changelog
 
 [The Changelog for this package is available on GitHub](https://github.com/sveltejs/kit/blob/main/packages/migrate/CHANGELOG.md).
