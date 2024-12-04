@@ -17,4 +17,4 @@ export type Workspace<Args extends OptionDefinition> = {
 	packageManager: PackageManager;
 };
 
-export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun';
+export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun' | 'deno';
