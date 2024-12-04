@@ -28,8 +28,7 @@ const options = defineAddonOptions({
 
 export default defineAddon({
 	id: 'sveltekit-adapter',
-	// TODO: description?
-	shortDescription: '',
+	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
 	options,
 	setup: ({ kit, unsupported }) => {
@@ -38,7 +37,6 @@ export default defineAddon({
 	run: ({ sv, options }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
-		// TODO: should we do this?
 		// removes previously installed adapters
 		sv.file('package.json', (content) => {
 			const { data, generateCode } = parseJson(content);
