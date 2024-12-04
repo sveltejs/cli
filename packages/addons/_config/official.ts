@@ -2,6 +2,7 @@ import type { AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
+import sveltekitAdapter from '../sveltekit-adapter/index.ts';
 import lucia from '../lucia/index.ts';
 import mdsvex from '../mdsvex/index.ts';
 import paraglide from '../paraglide/index.ts';
@@ -19,6 +20,7 @@ export const officialAddons = [
 	vitest,
 	playwright,
 	tailwindcss,
+	sveltekitAdapter,
 	drizzle,
 	lucia,
 	mdsvex,
