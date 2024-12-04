@@ -19,23 +19,39 @@ async function updateAddonDependencies() {
 		let content = fs.readFileSync(filePath, { encoding: 'utf8' });
 
 		// regex to extract package name and version from `sv.dependency` and `sv.devDependency`
-		const regex = /sv\.(?:dependency|devDependency)\(['"]([^'"]+)['"],\s*['"]([^'"]+)['"]\)/g;
-		const matches = Array.from(content.matchAll(regex));
+		const svDepRegex = /sv\.(?:dependency|devDependency)\(['"]([^'"]+)['"],\s*['"]([^'"]+)['"]\)/g;
+		// regex to extract from object literal properties `{ package: '...', version: '...' }` (ex: tailwind add-on)
+		const objectLiteralRegex = /package:\s*'([^']+)',\s*version:\s*'([^']+)'/g;
 
-		for (const match of matches) {
-			const [fullMatch, name, version] = match;
-			const newVersion = `^${await getLatestVersion(name)}`;
-			const updatedMatch = fullMatch.replace(version, newVersion);
-			if (fullMatch !== updatedMatch) {
-				content = content.replace(fullMatch, updatedMatch);
-				console.log(
-					`  - ${styleText('blue', name + ':').padEnd(40)} ${styleText('red', version.padEnd(7))} -> ${styleText('green', newVersion)}`
-				);
-			}
-		}
+		const svDepMatches = Array.from(content.matchAll(svDepRegex));
+		const objectLiteralMatches = Array.from(content.matchAll(objectLiteralRegex));
+
+		content = await replaceDeps(content, svDepMatches);
+		content = await replaceDeps(content, objectLiteralMatches);
 
 		fs.writeFileSync(filePath, content);
 	}
+}
+
+/**
+ * Replaces the matched versions with their latest.
+ * @param {string} content
+ * @param {RegExpExecArray[]} matches
+ * @returns {Promise<string>}
+ */
+async function replaceDeps(content, matches) {
+	for (const match of matches) {
+		const [fullMatch, name, version] = match;
+		const newVersion = `^${await getLatestVersion(name)}`;
+		const updatedMatch = fullMatch.replace(version, newVersion);
+		if (fullMatch !== updatedMatch) {
+			content = content.replace(fullMatch, updatedMatch);
+			console.log(
+				`  - ${styleText('blue', name + ':').padEnd(40)} ${styleText('red', version.padEnd(7))} -> ${styleText('green', newVersion)}`
+			);
+		}
+	}
+	return content;
 }
 
 /**
