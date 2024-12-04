@@ -19,7 +19,7 @@ async function updateAddonDependencies() {
 		let content = fs.readFileSync(filePath, { encoding: 'utf8' });
 
 		// regex to extract package name and version from `sv.dependency` and `sv.devDependency`
-		const svDepRegex = /sv\.(?:dependency|devDependency)\(['"]([^'"]+)['"],\s*['"]([^'"]+)['"]\)/g;
+		const svDepRegex = /sv\.(?:dependency|devDependency)\('([^']+)',\s*'([^']+)'\)/g;
 		// regex to extract from object literal properties `{ package: '...', version: '...' }` (ex: tailwind add-on)
 		const objectLiteralRegex = /package:\s*'([^']+)',\s*version:\s*'([^']+)'/g;
 
