@@ -27,7 +27,7 @@ async function updateAddonDependencies() {
 			const updatedMatch = fullMatch.replace(version, `^${newVersion}`);
 			if (fullMatch !== updatedMatch) {
 				content = content.replace(fullMatch, updatedMatch);
-				console.log(`  => '${name}': ${version} to ^${newVersion}`);
+				console.log(`  - '${name}': ${version} -> ^${newVersion}`);
 			}
 		}
 
