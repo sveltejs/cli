@@ -1,5 +1,17 @@
 # sv
 
+## 0.6.7
+### Patch Changes
+
+
+- fix: updated jsdoc type for `paraglide` demo ([#337](https://github.com/sveltejs/cli/pull/337))
+
+
+- feat: set app templates to `private` by default ([#343](https://github.com/sveltejs/cli/pull/343))
+
+
+- chore: upgrade `package-manager-detector` to add Deno support ([#313](https://github.com/sveltejs/cli/pull/313))
+
 ## 0.6.6
 ### Patch Changes
 
