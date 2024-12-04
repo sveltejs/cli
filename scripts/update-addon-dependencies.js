@@ -1,30 +1,19 @@
-import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-
-async function updateDependencies() {
-	// update all packages present in `package.json`
-	execSync('pnpm update --recursive', { stdio: 'inherit' });
-
-	// update all packages that are used during scaffolding of `addons`
-	await updateAddonDependencies();
-
-	// re-install all dependencies
-	execSync('pnpm install', { stdio: 'inherit' });
-}
+import path from 'node:path';
 
 async function updateAddonDependencies() {
-	const addonsBasePath = './packages/addons/';
+	const addonsBasePath = path.resolve('packages', 'addons');
 	const addonFolders = fs
 		.readdirSync(addonsBasePath, { withFileTypes: true })
 		.filter((item) => item.isDirectory())
 		.map((item) => item.name)
-		.filter((x) => x != 'node_modules' && !x.startsWith('_'));
+		.filter((x) => x !== 'node_modules' && !x.startsWith('_'));
 
 	for (const addonFolder of addonFolders) {
 		const filePath = `${addonsBasePath}/${addonFolder}/index.ts`;
 		if (!fs.existsSync(filePath)) continue;
 
-		console.log(`Checking deps for ${addonFolder} addon`);
+		console.log(`Checking deps for '${addonFolder}' addon`);
 
 		let content = fs.readFileSync(filePath, { encoding: 'utf8' });
 
@@ -36,7 +25,10 @@ async function updateAddonDependencies() {
 			const [fullMatch, name, version] = match;
 			const newVersion = await getLatestVersion(name);
 			const updatedMatch = fullMatch.replace(version, `^${newVersion}`);
-			content = content.replace(fullMatch, updatedMatch);
+			if (fullMatch !== updatedMatch) {
+				content = content.replace(fullMatch, updatedMatch);
+				console.log(`  => '${name}': ${version} to ^${newVersion}`);
+			}
 		}
 
 		fs.writeFileSync(filePath, content);
@@ -54,4 +46,4 @@ async function getLatestVersion(name) {
 	return json.version;
 }
 
-updateDependencies();
+await updateAddonDependencies();
