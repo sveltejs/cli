@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { styleText } from 'node:util';
 
 async function updateAddonDependencies() {
 	const addonsBasePath = path.resolve('packages', 'addons');
@@ -13,7 +14,7 @@ async function updateAddonDependencies() {
 		const filePath = `${addonsBasePath}/${addonFolder}/index.ts`;
 		if (!fs.existsSync(filePath)) continue;
 
-		console.log(`Checking deps for '${addonFolder}' addon`);
+		console.log(`Checking deps for ${styleText(['cyanBright', 'bold'], addonFolder)} add-on`);
 
 		let content = fs.readFileSync(filePath, { encoding: 'utf8' });
 
@@ -23,11 +24,13 @@ async function updateAddonDependencies() {
 
 		for (const match of matches) {
 			const [fullMatch, name, version] = match;
-			const newVersion = await getLatestVersion(name);
-			const updatedMatch = fullMatch.replace(version, `^${newVersion}`);
+			const newVersion = `^${await getLatestVersion(name)}`;
+			const updatedMatch = fullMatch.replace(version, newVersion);
 			if (fullMatch !== updatedMatch) {
 				content = content.replace(fullMatch, updatedMatch);
-				console.log(`  - '${name}': ${version} -> ^${newVersion}`);
+				console.log(
+					`  - ${styleText('blue', name + ':').padEnd(40)} ${styleText('red', version.padEnd(7))} -> ${styleText('green', newVersion)}`
+				);
 			}
 		}
 
