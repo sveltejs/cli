@@ -27,8 +27,9 @@ const addonsOptions = getAddonOptionFlags();
 const communityDetails: AddonWithoutExplicitArgs[] = [];
 
 const OptionFlagSchema = v.optional(v.array(v.string()));
+
 const addonOptionFlags = addonsOptions.reduce(
-	(flags, opt) => ({ ...flags, [opt.attributeName()]: OptionFlagSchema }),
+	(flags, opt) => Object.assign(flags, { [opt.attributeName()]: OptionFlagSchema }),
 	{}
 );
 
