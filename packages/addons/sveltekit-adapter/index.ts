@@ -28,6 +28,7 @@ const options = defineAddonOptions({
 
 export default defineAddon({
 	id: 'sveltekit-adapter',
+	alias: 'adapater',
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
 	options,
