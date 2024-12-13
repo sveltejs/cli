@@ -53,6 +53,27 @@ is_navigating: {navigating.current}
 	);
 });
 
+test('Updates $app/store #3', () => {
+	const result = transform_svelte_code(
+		`<script>
+	import { page as _page } from '$app/stores';
+</script>
+
+{$_page.data}
+`,
+		{}
+	);
+	assert.equal(
+		result,
+		`<script>
+	import { page as _page } from '$app/state';
+</script>
+
+{_page.data}
+`
+	);
+});
+
 test('Does not update $app/store #1', () => {
 	const input = `<script>
 	import { page } from '$app/stores';

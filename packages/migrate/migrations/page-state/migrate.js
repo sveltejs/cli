@@ -32,20 +32,24 @@ export function transform_svelte_code(code, options) {
 	const import_match = code.match(/import\s*{([^}]+)}\s*from\s*("|')\$app\/stores\2/);
 	if (!import_match) return code; // nothing to do
 
-	const stores = import_match[1].split(',').map((i) => i.trim());
+	const stores = import_match[1].split(',').map((i) => {
+		const str = i.trim();
+		const [name, alias] = str.split(' as ').map((s) => s.trim());
+		return [name, alias || name];
+	});
 	let modified = code.replace('$app/stores', '$app/state');
 
-	for (const store of stores) {
+	for (let [store, alias] of stores) {
 		// if someone uses that they're deep into stores and we better not touch this file
 		if (store === 'getStores') return code;
 
-		const regex = new RegExp(`\\b${store}\\b`, 'g');
+		const regex = new RegExp(`\\b${alias}\\b`, 'g');
 		let match;
 		let count_removed = 0;
 
 		while ((match = regex.exec(modified)) !== null) {
 			const before = modified.slice(0, match.index);
-			const after = modified.slice(match.index + store.length);
+			const after = modified.slice(match.index + alias.length);
 
 			if (before.slice(-1) !== '$') {
 				if (/[_'"]/.test(before.slice(-1))) continue; // false positive
@@ -65,7 +69,7 @@ export function transform_svelte_code(code, options) {
 				return code;
 			}
 
-			modified = before.slice(0, -1) + store + (store === 'page' ? '' : '.current') + after;
+			modified = before.slice(0, -1) + alias + (store === 'page' ? '' : '.current') + after;
 			count_removed++;
 		}
 	}
