@@ -14,6 +14,10 @@ npx sv migrate [migration]
 
 ## Migrations
 
+### `page-state`
+
+Migrates `$app/store` usage to `$app/state` in `.svelte` files. See the [pull request](https://github.com/sveltejs/kit/pull/13140) for more details.
+
 ### `svelte-5`
 
 Upgrades a Svelte 4 app to use Svelte 5, and updates individual components to use [runes](../svelte/what-are-runes) and other Svelte 5 syntax ([see migration guide](../svelte/v5-migration-guide)).
