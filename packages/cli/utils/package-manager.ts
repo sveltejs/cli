@@ -32,16 +32,29 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
-	const spinner = p.spinner();
-	spinner.start('Installing dependencies...');
+	const task = p.taskLog(`Installing dependencies with ${agent}...`);
+
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
-		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
+		const proc = exec(command, args, {
+			nodeOptions: { cwd, stdio: 'pipe' },
+			throwOnError: true
+		});
 
-		spinner.stop('Successfully installed dependencies');
-	} catch (error) {
-		spinner.stop('Failed to install dependencies', 2);
-		throw error;
+		proc.process?.stdout?.on('data', (data) => {
+			task.text = data;
+		});
+		proc.process?.stderr?.on('data', (data) => {
+			task.text = data;
+		});
+
+		await proc;
+
+		task.success('Successfully installed dependencies');
+	} catch {
+		task.fail('Failed to install dependencies');
+		p.cancel('Operation failed.');
+		process.exit(2);
 	}
 }
 

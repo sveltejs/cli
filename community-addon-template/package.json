@@ -1,0 +1,29 @@
+{
+	"name": "community-addon-template",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"license": "MIT",
+	"scripts": {
+		"create-temp": "sv create temp --types ts --template minimal --no-add-ons --no-install",
+		"start": "sv add -C temp --community file:../",
+		"test": "vitest run"
+	},
+	"files": [
+		"src",
+		"!src/**/*.test.*"
+	],
+	"exports": "./src/index.js",
+	"dependencies": {
+		"@sveltejs/cli-core": "workspace:*"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.48.2",
+		"sv": "workspace:*",
+		"vitest": "^2.1.4"
+	},
+	"keywords": [
+		"svelte-add-on",
+		"sv"
+	]
+}

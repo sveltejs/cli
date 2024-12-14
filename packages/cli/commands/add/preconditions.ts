@@ -1,11 +1,12 @@
 import { exec } from 'tinyexec';
-import type { AdderWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
+import type { AddonSetupResult, AddonWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
+import { UnsupportedError } from '../../utils/errors.ts';
 
 type PreconditionCheck = { name: string; preconditions: Precondition[] };
 export function getGlobalPreconditions(
 	cwd: string,
-	projectType: 'svelte' | 'kit',
-	adders: AdderWithoutExplicitArgs[]
+	addons: AddonWithoutExplicitArgs[],
+	addonSetupResult: Record<string, AddonSetupResult>
 ): PreconditionCheck {
 	return {
 		name: 'global checks',
@@ -36,29 +37,17 @@ export function getGlobalPreconditions(
 				}
 			},
 			{
-				name: 'supported environments',
+				name: 'unsupported add-ons',
 				run: () => {
-					const addersForInvalidEnvironment = adders.filter((a) => {
-						const supportedEnvironments = a.environments;
-						if (projectType === 'kit' && !supportedEnvironments.kit) return true;
-						if (projectType === 'svelte' && !supportedEnvironments.svelte) return true;
+					const reasons = addons.flatMap((a) =>
+						addonSetupResult[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
+					);
 
-						return false;
-					});
-
-					if (addersForInvalidEnvironment.length === 0) {
+					if (reasons.length === 0) {
 						return { success: true, message: undefined };
 					}
 
-					const messages = addersForInvalidEnvironment.map((a) => {
-						if (projectType === 'kit') {
-							return `'${a.id}' does not support SvelteKit`;
-						} else {
-							return `'${a.id}' requires SvelteKit`;
-						}
-					});
-
-					throw new Error(messages.join('\n'));
+					throw new UnsupportedError(reasons);
 				}
 			}
 		]

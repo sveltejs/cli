@@ -1,5 +1,71 @@
 # sv
 
+## 0.6.7
+### Patch Changes
+
+
+- fix: updated jsdoc type for `paraglide` demo ([#337](https://github.com/sveltejs/cli/pull/337))
+
+
+- feat: set app templates to `private` by default ([#343](https://github.com/sveltejs/cli/pull/343))
+
+
+- chore: upgrade `package-manager-detector` to add Deno support ([#313](https://github.com/sveltejs/cli/pull/313))
+
+## 0.6.6
+### Patch Changes
+
+
+- feat: respect `.gitignore` in `eslint` add-on ([#335](https://github.com/sveltejs/cli/pull/335))
+
+
+- feat: update `create` templates to Vite 6 ([#340](https://github.com/sveltejs/cli/pull/340))
+
+
+- fix: add paraglide output directory to `.gitignore` ([#338](https://github.com/sveltejs/cli/pull/338))
+
+
+- chore: replace svelte-5-preview link ([#327](https://github.com/sveltejs/cli/pull/327))
+
+## 0.6.5
+### Patch Changes
+
+
+- chore: remove `@types/eslint` package from `eslint` add-on ([#323](https://github.com/sveltejs/cli/pull/323))
+
+
+- chore: remove `aspect-ratio` plugin from `tailwindcss` add-on ([#322](https://github.com/sveltejs/cli/pull/322))
+
+
+- feat: add short descriptions for each add-on ([#299](https://github.com/sveltejs/cli/pull/299))
+
+## 0.6.4
+### Patch Changes
+
+
+- fix: limit window height of dependency install's output ([#307](https://github.com/sveltejs/cli/pull/307))
+
+## 0.6.3
+### Patch Changes
+
+
+- feat: display package manager output during dependency installs ([#305](https://github.com/sveltejs/cli/pull/305))
+
+
+- chore: rename `adder` to `add-on` ([#303](https://github.com/sveltejs/cli/pull/303))
+
+## 0.6.2
+### Patch Changes
+
+
+- fix: ignore path prompt if user provided path in `create` ([#292](https://github.com/sveltejs/cli/pull/292))
+
+
+- feat: add `jsconfig.json` to the 'no type checking' template ([#290](https://github.com/sveltejs/cli/pull/290))
+
+
+- fix: disable add-on preconditions during `create` ([#288](https://github.com/sveltejs/cli/pull/288))
+
 ## 0.6.1
 ### Patch Changes
 

@@ -2,7 +2,7 @@
 title: sv migrate
 ---
 
-`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://github.com/sveltejs/kit/blob/main/packages/migrate) package.
+`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate) package.
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
@@ -17,6 +17,10 @@ npx sv migrate [migration]
 ### `svelte-5`
 
 Upgrades a Svelte 4 app to use Svelte 5, and updates individual components to use [runes](../svelte/what-are-runes) and other Svelte 5 syntax ([see migration guide](../svelte/v5-migration-guide)).
+
+### `self-closing-tags`
+
+Replaces all the self-closing non-void elements in your `.svelte` files. See the [pull request](https://github.com/sveltejs/kit/pull/12128) for more details.
 
 ### `svelte-4`
 

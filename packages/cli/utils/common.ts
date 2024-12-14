@@ -2,6 +2,7 @@ import pc from 'picocolors';
 import pkg from '../package.json';
 import * as p from '@sveltejs/clack-prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
+import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -76,9 +77,22 @@ export async function runCommand(action: MaybePromise): Promise<void> {
 		await action();
 		p.outro("You're all set!");
 	} catch (e) {
-		p.cancel('Operation failed.');
-		if (e instanceof Error) {
-			console.error(e.stack ?? e);
+		if (e instanceof UnsupportedError) {
+			const padding = getPadding(e.reasons.map((r) => r.id));
+			const message = e.reasons
+				.map((r) => `  ${r.id.padEnd(padding)}  ${pc.red(r.reason)}`)
+				.join('\n');
+			p.log.error(`${e.name}\n\n${message}`);
+			p.log.message();
+		} else if (e instanceof Error) {
+			p.log.error(e.stack ?? String(e));
+			p.log.message();
 		}
+		p.cancel('Operation failed.');
 	}
+}
+
+export function getPadding(lines: string[]) {
+	const lengths = lines.map((s) => s.length);
+	return Math.max(...lengths);
 }
