@@ -17,9 +17,8 @@ export function update_pkg_json_content(content) {
 
 /**
  * @param {string} code
- * @param {{ filename?: string  }} options
  */
-export function transform_svelte_code(code, options) {
+export function transform_svelte_code(code) {
 	// Quick check if nothing to do
 	if (!code.includes('$app/stores')) return code;
 
@@ -39,7 +38,7 @@ export function transform_svelte_code(code, options) {
 	});
 	let modified = code.replace('$app/stores', '$app/state');
 
-	for (let [store, alias] of stores) {
+	for (const [store, alias] of stores) {
 		// if someone uses that they're deep into stores and we better not touch this file
 		if (store === 'getStores') return code;
 

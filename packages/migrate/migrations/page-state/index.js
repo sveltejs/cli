@@ -92,7 +92,7 @@ export async function migrate() {
 		update_svelte_file(
 			file,
 			(code) => code,
-			(code) => transform_svelte_code(code, { filename: file })
+			(code) => transform_svelte_code(code)
 		);
 	}
 
