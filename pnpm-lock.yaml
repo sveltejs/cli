@@ -167,10 +167,6 @@ importers:
         version: 1.0.5
 
   packages/cli:
-    dependencies:
-      commander:
-        specifier: github:shadowspawn/commander.js#feature/colour-help
-        version: https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c
     devDependencies:
       '@sveltejs/addons':
         specifier: workspace:*
@@ -193,6 +189,9 @@ importers:
       '@types/tar-fs':
         specifier: ^2.0.4
         version: 2.0.4
+      commander:
+        specifier: 13.0.0-0
+        version: 13.0.0-0
       degit:
         specifier: ^2.8.4
         version: 2.8.4
@@ -1098,20 +1097,19 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
+  commander@13.0.0-0:
+    resolution: {integrity: sha512-3CshrHCF8M4mJhtBruqZvYzMoRplFO1NmsIzF6uaIxZpzvW+ZI6xU/fx5LmprLNYB5sH5F2CnjTkXflGfkYgkQ==}
+    engines: {node: '>=18'}
+
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
-
-  commander@https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c:
-    resolution: {tarball: https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c}
-    version: 12.1.0
-    engines: {node: '>=18'}
 
   commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
 
   concat-map@0.0.1:
-    resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=}
+    resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
   cross-spawn@5.1.0:
     resolution: {integrity: sha512-pTgQJ5KC0d2hcY8eyL1IzlBPYjTkyH72XRZPnLyKus2mBfNjQs3klqbJU2VILqZryAZUt9JOb3h/mWMy23/f5A==}
@@ -3085,6 +3083,10 @@ snapshots:
     dependencies:
       acorn: 8.12.1
 
+  acorn-jsx@5.3.2(acorn@8.14.0):
+    dependencies:
+      acorn: 8.14.0
+
   acorn-typescript@1.4.13(acorn@8.12.1):
     dependencies:
       acorn: 8.12.1
@@ -3220,9 +3222,9 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  commander@4.1.1: {}
+  commander@13.0.0-0: {}
 
-  commander@https://codeload.github.com/shadowspawn/commander.js/tar.gz/1f92f3575e502ddce803d6b31ec696beee8d1d6c: {}
+  commander@4.1.1: {}
 
   commondir@1.0.1: {}
 
@@ -3461,8 +3463,8 @@ snapshots:
 
   espree@9.6.1:
     dependencies:
-      acorn: 8.12.1
-      acorn-jsx: 5.3.2(acorn@8.12.1)
+      acorn: 8.14.0
+      acorn-jsx: 5.3.2(acorn@8.14.0)
       eslint-visitor-keys: 3.4.3
 
   esprima@4.0.1: {}
