@@ -16,7 +16,7 @@ npx sv migrate [migration]
 
 ### `page-state`
 
-Migrates `$app/store` usage to `$app/state` in `.svelte` files. See the [pull request](https://github.com/sveltejs/kit/pull/13140) for more details.
+Migrates `$app/store` usage to `$app/state` in `.svelte` files. See the [migration guide](/docs/kit/migrating-to-sveltekit-2#SvelteKit-2.12:-$app-stores-deprecated) for more details.
 
 ### `svelte-5`
 
