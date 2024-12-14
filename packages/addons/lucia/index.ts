@@ -49,7 +49,7 @@ export default defineAddon({
 
 		if (options.demo) {
 			// password hashing for demo
-			sv.dependency('@node-rs/argon2', '^1.1.0');
+			sv.dependency('@node-rs/argon2', '^2.0.2');
 		}
 
 		sv.file(`drizzle.config.${ext}`, (content) => {

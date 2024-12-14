@@ -8,8 +8,8 @@ export default defineAddon({
 	homepage: 'https://prettier.io',
 	options: {},
 	run: ({ sv, dependencyVersion }) => {
-		sv.devDependency('prettier', '^3.3.2');
-		sv.devDependency('prettier-plugin-svelte', '^3.2.6');
+		sv.devDependency('prettier', '^3.4.2');
+		sv.devDependency('prettier-plugin-svelte', '^3.3.2');
 
 		sv.file('.prettierignore', (content) => {
 			if (content) return content;
