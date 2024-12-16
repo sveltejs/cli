@@ -11,8 +11,8 @@
 	],
 	"compilerOptions": {
 		"checkJs": true,
-		"moduleResolution": "Node16",
-		"module": "Node16",
+		"moduleResolution": "NodeNext",
+		"module": "NodeNext",
 		"allowImportingTsExtensions": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,

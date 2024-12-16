@@ -1,5 +1,5 @@
 import pc from 'picocolors';
-import pkg from '../package.json';
+import pkg from '../package.json' with { type: 'json' };
 import * as p from '@sveltejs/clack-prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';

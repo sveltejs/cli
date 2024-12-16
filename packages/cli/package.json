@@ -41,7 +41,7 @@
 		"degit": "^2.8.4",
 		"empathic": "^1.0.0",
 		"package-manager-detector": "^0.2.7",
-		"picocolors": "^1.1.0",
+		"picocolors": "^1.1.1",
 		"ps-tree": "^1.2.0",
 		"tar-fs": "^3.0.6",
 		"tinyexec": "^0.3.1",
