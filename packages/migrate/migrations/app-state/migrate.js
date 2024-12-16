@@ -38,6 +38,8 @@ export function transform_svelte_code(code) {
 	});
 	let modified = code.replace('$app/stores', '$app/state');
 
+	let needs_navigating_migration_task = false;
+
 	for (const [store, alias] of stores) {
 		// if someone uses that they're deep into stores and we better not touch this file
 		if (store === 'getStores') return code;
@@ -68,9 +70,17 @@ export function transform_svelte_code(code) {
 				return code;
 			}
 
+			if (store === 'navigating' && after[0] !== '.') {
+				needs_navigating_migration_task = true;
+			}
+
 			modified = before.slice(0, -1) + alias + (store === 'updated' ? '.current' : '') + after;
 			count_removed++;
 		}
+	}
+
+	if (needs_navigating_migration_task) {
+		modified = `<!-- @migration task: review uses of \`navigating\` -->\n${modified}`;
 	}
 
 	return modified;

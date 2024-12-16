@@ -40,7 +40,7 @@ test('Updates $app/store #2', () => {
 	);
 	assert.equal(
 		result,
-		`<script>
+		`<!-- @migration task: review uses of \`navigating\` -->\n<script>
 	import { navigating, updated } from '$app/state';
 	updated.current;
 	updated.check();
