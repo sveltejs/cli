@@ -25,7 +25,7 @@ export default defineAddon({
 		sv.devDependency('globals', '^15.13.0');
 		sv.devDependency('eslint-plugin-svelte', '^2.46.1');
 
-		if (typescript) sv.devDependency('typescript-eslint', '^8.18.0');
+		if (typescript) sv.devDependency('typescript-eslint', '^8.18.1');
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^9.1.0');
 
