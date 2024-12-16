@@ -19,6 +19,7 @@ import {
 	installDependencies,
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
+import { gitInitPrompt, initGitRepo } from '../utils/git.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -40,7 +41,8 @@ const OptionsSchema = v.strictObject({
 	),
 	addOns: v.boolean(),
 	install: v.boolean(),
-	template: v.optional(v.picklist(templateChoices))
+	template: v.optional(v.picklist(templateChoices)),
+	git: v.boolean()
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -53,12 +55,16 @@ export const create = new Command('create')
 	.option('--no-types')
 	.option('--no-add-ons', 'skips interactive add-on installer')
 	.option('--no-install', 'skip installing dependencies')
+	.option('--no-git', 'skip initializing a git repository')
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
-			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
+			const { directory, addOnNextSteps, packageManager, gitInit } = await createProject(
+				cwd,
+				options
+			);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
@@ -75,10 +81,13 @@ export const create = new Command('create')
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 
+			if (gitInit) {
+				initialSteps.push(`${i++}: ${highlight('git commit -m "Initial commit"')}`);
+			}
+
 			const pmRun = pm === 'npm' ? 'npm run dev --' : `${pm} dev`;
 			const steps = [
 				...initialSteps,
-				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
 				`${i++}: ${highlight(`${pmRun} --open`)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`,
@@ -184,5 +193,14 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		await installDeps();
 	}
 
-	return { directory: projectPath, addOnNextSteps, packageManager };
+	let gitInit = false;
+	if (options.git) {
+		const shouldInit = await gitInitPrompt(projectPath);
+		if (shouldInit) {
+			initGitRepo(projectPath);
+			gitInit = true;
+		}
+	}
+
+	return { directory: projectPath, addOnNextSteps, packageManager, gitInit };
 }
