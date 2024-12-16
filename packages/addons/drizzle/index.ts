@@ -179,7 +179,6 @@ export default defineAddon({
 			const objExpression = exportDefault.arguments?.[0];
 			if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
 
-			const driver = options.sqlite === 'turso' ? common.createLiteral('turso') : undefined;
 			const authToken =
 				options.sqlite === 'turso'
 					? common.expressionFromString('process.env.DATABASE_AUTH_TOKEN')
@@ -192,12 +191,12 @@ export default defineAddon({
 					authToken
 				}),
 				verbose: { type: 'BooleanLiteral', value: true },
-				strict: { type: 'BooleanLiteral', value: true },
-				driver
+				strict: { type: 'BooleanLiteral', value: true }
 			});
 
+			const dialect = options.sqlite === 'turso' ? 'turso' : options.database;
 			object.overrideProperties(objExpression, {
-				dialect: common.createLiteral(options.database)
+				dialect: common.createLiteral(dialect)
 			});
 
 			// The `driver` property is only required for _some_ sqlite DBs.
