@@ -36,7 +36,7 @@ test('Updates $app/store #2', () => {
 	updated.check();
 </script>
 
-is_navigating: {$navigating}
+{$navigating?.to?.url.pathname}
 `,
 		{}
 	);
@@ -48,7 +48,7 @@ is_navigating: {$navigating}
 	updated.check();
 </script>
 
-is_navigating: {navigating.current}
+{navigating?.to?.url.pathname}
 `
 	);
 });

@@ -68,7 +68,7 @@ export function transform_svelte_code(code) {
 				return code;
 			}
 
-			modified = before.slice(0, -1) + alias + (store === 'page' ? '' : '.current') + after;
+			modified = before.slice(0, -1) + alias + (store === 'updated' ? '.current' : '') + after;
 			count_removed++;
 		}
 	}
