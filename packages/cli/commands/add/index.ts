@@ -22,13 +22,19 @@ import { installDependencies, packageManagerPrompt } from '../../utils/package-m
 import { getGlobalPreconditions } from './preconditions.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
+const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
+const addonsOptions = getAddonOptionFlags();
+const communityDetails: AddonWithoutExplicitArgs[] = [];
+
+const OptionFlagSchema = v.optional(v.array(v.string()));
+
+const addonOptionFlags = addonsOptions.reduce(
+	(flags, opt) => Object.assign(flags, { [opt.attributeName()]: OptionFlagSchema }),
+	{}
+);
+
 const AddonsSchema = v.array(v.string());
-const AddonOptionFlagsSchema = v.object({
-	tailwindcss: v.optional(v.array(v.string())),
-	drizzle: v.optional(v.array(v.string())),
-	lucia: v.optional(v.array(v.string())),
-	paraglide: v.optional(v.array(v.string()))
-});
+const AddonOptionFlagsSchema = v.object(addonOptionFlags);
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
@@ -37,10 +43,6 @@ const OptionsSchema = v.strictObject({
 	...AddonOptionFlagsSchema.entries
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
-
-const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
-const addonsOptions = getAddonOptionFlags();
-const communityDetails: AddonWithoutExplicitArgs[] = [];
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
@@ -111,8 +113,10 @@ export async function runAddCommand(
 
 	// apply specified options from flags
 	for (const addonOption of addonsOptions) {
-		const addonId = addonOption.attributeName() as keyof Options;
-		const specifiedOptions = options[addonId] as string[] | undefined;
+		const addonId = addonOption.name() as keyof Options;
+		// if the add-on flag contains a `-`, it'll be camelcased (e.g. `sveltekit-adapter` is `sveltekitAdapter`)
+		const aliased = addonOption.attributeName() as keyof Options;
+		const specifiedOptions = (options[addonId] || options[aliased]) as string[] | undefined;
 		if (!specifiedOptions) continue;
 
 		const details = getAddonDetails(addonId);

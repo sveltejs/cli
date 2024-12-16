@@ -7,10 +7,9 @@ const { test, variants, prepareServer } = setupTest({ storybook });
 
 let port = 6006;
 
-const windowsCI = process.env.CI && process.platform === 'win32';
 test.for(variants)(
 	'storybook loaded - %s',
-	{ concurrent: !windowsCI },
+	{ concurrent: !process.env.CI },
 	async (variant, { page, ...ctx }) => {
 		const cwd = await ctx.run(variant, { storybook: {} });
 
