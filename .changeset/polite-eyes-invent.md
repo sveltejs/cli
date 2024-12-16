@@ -2,4 +2,4 @@
 'svelte-migrate': minor
 ---
 
-feat: add page-state migration
+feat: add app-state migration

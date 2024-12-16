@@ -18,7 +18,7 @@ npx sv migrate [migration]
 
 | Migration           | From                  | To                    | Guide                                                           |
 | ------------------- | --------------------- | --------------------- | --------------------------------------------------------------- |
-| `page-state`        | `$app/stores`         | `$app/state`          | [#13140](https://github.com/sveltejs/kit/pull/13140)            |
+| `app-state`         | `$app/stores`         | `$app/state`          | [#13140](https://github.com/sveltejs/kit/pull/13140)            |
 | `svelte-5`          | Svelte 4              | Svelte 5              | [Website](https://svelte.dev/docs/svelte/v5-migration-guide)    |
 | `self-closing-tags` | Svelte 4              | Svelte 4              | [#12128](https://github.com/sveltejs/kit/pull/12128)            |
 | `svelte-4`          | Svelte 3              | Svelte 4              | [Website](https://svelte.dev/docs/svelte/v4-migration-guide)    |
