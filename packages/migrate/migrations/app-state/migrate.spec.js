@@ -11,8 +11,7 @@ test('Updates $app/store #1', () => {
 <button onclick={() => {
 	console.log($page.state);
 }}></button>
-`,
-		{}
+`
 	);
 	assert.equal(
 		result,
@@ -37,8 +36,7 @@ test('Updates $app/store #2', () => {
 </script>
 
 {$navigating?.to?.url.pathname}
-`,
-		{}
+`
 	);
 	assert.equal(
 		result,
@@ -60,8 +58,7 @@ test('Updates $app/store #3', () => {
 </script>
 
 {$_page.data}
-`,
-		{}
+`
 	);
 	assert.equal(
 		result,
@@ -82,7 +79,7 @@ test('Does not update $app/store #1', () => {
 
 {x}
 `;
-	const result = transform_svelte_code(input, {});
+	const result = transform_svelte_code(input);
 	assert.equal(result, input);
 });
 
@@ -95,7 +92,7 @@ test('Does not update $app/store #2', () => {
 
 {$url}
 `;
-	const result = transform_svelte_code(input, {});
+	const result = transform_svelte_code(input);
 	assert.equal(result, input);
 });
 
@@ -107,6 +104,6 @@ test('Does not update $app/store #3', () => {
 
 {$page.url}
 `;
-	const result = transform_svelte_code(input, {});
+	const result = transform_svelte_code(input);
 	assert.equal(result, input);
 });
