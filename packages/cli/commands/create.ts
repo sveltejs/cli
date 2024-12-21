@@ -75,7 +75,7 @@ export const create = new Command('create')
 				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
 			}
 
-			const pmRun = pm === 'npm' ? 'npm run dev --' : `${pm} dev`;
+			const pmRun = pm === 'npm' ? 'npm run dev --' : pm === 'deno' ? 'deno task dev' : `${pm} dev`;
 			const steps = [
 				...initialSteps,
 				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
