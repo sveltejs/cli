@@ -84,9 +84,26 @@ export default defineAddon({
 			if (content) return content;
 
 			return dedent`
-					import '@testing-library/jest-dom/vitest'
+					import '@testing-library/jest-dom/vitest';
+					import {vi} from 'vitest';
 
 					// add global mocks here, i.e. for sveltekit '$app/stores'
+
+					// needed for svelte/motion that exports new MediaQuery which calls window.matchMedia eagerly
+					Object.defineProperty(window, "matchMedia", {
+						writable: true,
+						enumerable: true,
+						value: vi.fn().mockImplementation((query) => ({
+							matches: false,
+							media: query,
+							onchange: null,
+							addListener: vi.fn(), // deprecated
+							removeListener: vi.fn(), // deprecated
+							addEventListener: vi.fn(),
+							removeEventListener: vi.fn(),
+							dispatchEvent: vi.fn(),
+						})),
+					});
 				`;
 		});
 
