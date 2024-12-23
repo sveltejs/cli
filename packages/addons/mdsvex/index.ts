@@ -4,6 +4,7 @@ import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAddon({
 	id: 'mdsvex',
+	shortDescription: 'svelte + markdown',
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
 	run: ({ sv }) => {

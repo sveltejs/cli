@@ -1,5 +1,56 @@
 # sv
 
+## 0.6.9
+### Patch Changes
+
+
+- fix: use `vite@5` again due to compatability issues with `vitest@2` (#341) ([#353](https://github.com/sveltejs/cli/pull/353))
+
+## 0.6.8
+### Patch Changes
+
+
+- feat: add `sveltekit-adapter` add-on ([#346](https://github.com/sveltejs/cli/pull/346))
+
+## 0.6.7
+### Patch Changes
+
+
+- fix: updated jsdoc type for `paraglide` demo ([#337](https://github.com/sveltejs/cli/pull/337))
+
+
+- feat: set app templates to `private` by default ([#343](https://github.com/sveltejs/cli/pull/343))
+
+
+- chore: upgrade `package-manager-detector` to add Deno support ([#313](https://github.com/sveltejs/cli/pull/313))
+
+## 0.6.6
+### Patch Changes
+
+
+- feat: respect `.gitignore` in `eslint` add-on ([#335](https://github.com/sveltejs/cli/pull/335))
+
+
+- feat: update `create` templates to Vite 6 ([#340](https://github.com/sveltejs/cli/pull/340))
+
+
+- fix: add paraglide output directory to `.gitignore` ([#338](https://github.com/sveltejs/cli/pull/338))
+
+
+- chore: replace svelte-5-preview link ([#327](https://github.com/sveltejs/cli/pull/327))
+
+## 0.6.5
+### Patch Changes
+
+
+- chore: remove `@types/eslint` package from `eslint` add-on ([#323](https://github.com/sveltejs/cli/pull/323))
+
+
+- chore: remove `aspect-ratio` plugin from `tailwindcss` add-on ([#322](https://github.com/sveltejs/cli/pull/322))
+
+
+- feat: add short descriptions for each add-on ([#299](https://github.com/sveltejs/cli/pull/299))
+
 ## 0.6.4
 ### Patch Changes
 

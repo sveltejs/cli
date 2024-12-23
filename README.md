@@ -6,10 +6,10 @@ Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details
 
 ### Packages
 
-| Package                            | Changelog                                  |
-| ---------------------------------- | ------------------------------------------ |
-| [sv](packages/cli)                 | [Changelog](packages/cli/CHANGELOG.md)     |
-| [svelte-migrate](packages/migrate) | [Changelog](packages/migrate/CHANGELOG.md) |
+| Package                            | Changelog                                  | Documentation                                           |
+| ---------------------------------- | ------------------------------------------ | ------------------------------------------------------- |
+| [sv](packages/cli)                 | [Changelog](packages/cli/CHANGELOG.md)     | [Documentation](https://svelte.dev/docs/cli/overview)   |
+| [svelte-migrate](packages/migrate) | [Changelog](packages/migrate/CHANGELOG.md) | [Documentation](https://svelte.dev/docs/cli/sv-migrate) |
 
 ## Contributing
 

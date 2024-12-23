@@ -29,12 +29,6 @@ const plugins: Plugin[] = [
 		package: '@tailwindcss/container-queries',
 		version: '^0.1.1',
 		identifier: 'containerQueries'
-	},
-	{
-		id: 'aspect-ratio',
-		package: '@tailwindcss/aspect-ratio',
-		version: '^0.4.2',
-		identifier: 'aspectRatio'
 	}
 ];
 
@@ -50,6 +44,7 @@ const options = defineAddonOptions({
 export default defineAddon({
 	id: 'tailwindcss',
 	alias: 'tailwind',
+	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
 	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
