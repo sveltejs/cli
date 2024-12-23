@@ -13,7 +13,7 @@ import {
 } from '@sveltejs/create';
 import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
-import { detectSync, type AgentName } from 'package-manager-detector';
+import { detectSync, resolveCommand, type AgentName } from 'package-manager-detector';
 import {
 	getUserAgent,
 	installDependencies,
@@ -72,14 +72,16 @@ export const create = new Command('create')
 				);
 			}
 			if (!packageManager) {
-				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
+				const { args, command } = resolveCommand(pm, 'install', [])!;
+				initialSteps.push(`${i++}: ${highlight(`${command} ${args.join(' ')}`)}`);
 			}
 
-			const pmRun = pm === 'npm' ? 'npm run dev --' : `${pm} dev`;
+			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
+			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
 				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
-				`${i++}: ${highlight(`${pmRun} --open`)}`,
+				`${i++}: ${highlight(pmRunCmd)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`,
 				'',
