@@ -51,7 +51,7 @@ export default defineAddon({
 		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^3.4.16');
+		sv.devDependency('tailwindcss', '^3.4.17');
 		sv.devDependency('autoprefixer', '^10.4.20');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.9');
