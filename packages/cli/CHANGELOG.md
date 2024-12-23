@@ -1,5 +1,17 @@
 # sv
 
+## 0.6.9
+### Patch Changes
+
+
+- fix: use `vite@5` again due to compatability issues with `vitest@2` (#341) ([#353](https://github.com/sveltejs/cli/pull/353))
+
+## 0.6.8
+### Patch Changes
+
+
+- feat: add `sveltekit-adapter` add-on ([#346](https://github.com/sveltejs/cli/pull/346))
+
 ## 0.6.7
 ### Patch Changes
 
