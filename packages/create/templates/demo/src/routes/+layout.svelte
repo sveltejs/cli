@@ -6,6 +6,8 @@
 	let { children } = $props();
 </script>
 
+<svelte:html lang="en" />
+
 <div class="app">
 	<Header />
 
