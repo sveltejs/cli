@@ -1,5 +1,17 @@
 # sv
 
+## 0.6.10
+### Patch Changes
+
+
+- fix: correctly resolve package manager commands in `create`'s next-steps ([#360](https://github.com/sveltejs/cli/pull/360))
+
+
+- chore: update-dependencies ([#356](https://github.com/sveltejs/cli/pull/356))
+
+
+- fix: make `lucia` validation error messages more descriptive ([#363](https://github.com/sveltejs/cli/pull/363))
+
 ## 0.6.9
 ### Patch Changes
 
