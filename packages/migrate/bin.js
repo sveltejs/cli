@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import colors from 'kleur';
+import pc from 'picocolors';
 
 const migration = process.argv[2];
 const dir = fileURLToPath(new URL('.', import.meta.url));
@@ -16,12 +16,12 @@ if (migrations.includes(migration)) {
 	migrate();
 } else {
 	console.error(
-		colors
-			.bold()
-			.red(
+		pc.bold(
+			pc.red(
 				`You must specify one of the following migrations: ${migrations.join(', ')}\n` +
 					'If you expected this to work, try re-running the command with the latest svelte-migrate version:\n' +
 					`  npx svelte-migrate@latest ${migration}`
 			)
+		)
 	);
 }

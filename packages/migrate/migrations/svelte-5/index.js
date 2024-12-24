@@ -1,5 +1,5 @@
 import { resolve } from 'import-meta-resolve';
-import colors from 'kleur';
+import pc from 'picocolors';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
 import fs from 'node:fs';
@@ -27,11 +27,11 @@ export async function migrate() {
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
 	if (svelte_dep && semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
 		console.log(
-			colors
-				.bold()
-				.yellow(
+			pc.bold(
+				pc.yellow(
 					'\nDetected Svelte 3. You need to upgrade to Svelte version 4 first (`npx sv migrate svelte-4`).\n'
 				)
+			)
 		);
 		const response = await prompts({
 			type: 'confirm',
@@ -44,11 +44,11 @@ export async function migrate() {
 		} else {
 			await migrate_svelte_4();
 			console.log(
-				colors
-					.bold()
-					.green(
+				pc.bold(
+					pc.green(
 						'svelte-4 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.\n'
 					)
+				)
 			);
 			process.exit(0);
 		}
@@ -57,11 +57,11 @@ export async function migrate() {
 	const kit_dep = pkg.devDependencies?.['@sveltejs/kit'] ?? pkg.dependencies?.['@sveltejs/kit'];
 	if (kit_dep && semver.validRange(kit_dep) && semver.gtr('2.0.0', kit_dep)) {
 		console.log(
-			colors
-				.bold()
-				.yellow(
+			pc.bold(
+				pc.yellow(
 					'\nDetected SvelteKit 1. You need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).\n'
 				)
+			)
 		);
 		const response = await prompts({
 			type: 'confirm',
@@ -74,11 +74,11 @@ export async function migrate() {
 		} else {
 			await migrate_sveltekit_2();
 			console.log(
-				colors
-					.bold()
-					.green(
+				pc.bold(
+					pc.green(
 						'sveltekit-2 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.\n'
 					)
+				)
 			);
 			process.exit(0);
 		}
@@ -100,22 +100,22 @@ export async function migrate() {
 	} catch (e) {
 		console.log(e);
 		console.log(
-			colors
-				.bold()
-				.red(
+			pc.bold(
+				pc.red(
 					'❌ Could not install Svelte. Manually bump the dependency to version 5 in your package.json, install it, then try again.'
 				)
+			)
 		);
 		return;
 	}
 
 	console.log(
-		colors
-			.bold()
-			.yellow(
+		pc.bold(
+			pc.yellow(
 				'\nThis will update files in the current directory\n' +
 					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently.\n"
 			)
+		)
 	);
 
 	const use_git = check_git();
@@ -180,11 +180,12 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
+	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
 
 	console.log('\nRecommended next steps:\n');
 
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		"install the updated dependencies ('npm i' / 'pnpm i' / etc) " +

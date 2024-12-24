@@ -1,4 +1,4 @@
-import colors from 'kleur';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
 import prompts from 'prompts';
@@ -17,9 +17,9 @@ export async function migrate() {
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
 	if (svelte_dep && semver.validRange(svelte_dep) && semver.gtr('5.0.0', svelte_dep)) {
 		console.log(
-			colors
-				.bold()
-				.red('\nYou need to upgrade to Svelte version 5 first (`npx sv migrate svelte-5`).\n')
+			pc.bold(
+				pc.red('\nYou need to upgrade to Svelte version 5 first (`npx sv migrate svelte-5`).\n')
+			)
 		);
 		process.exit(1);
 	}
@@ -27,20 +27,22 @@ export async function migrate() {
 	const kit_dep = pkg.devDependencies?.['@sveltejs/kit'] ?? pkg.dependencies?.['@sveltejs/kit'];
 	if (kit_dep && semver.validRange(kit_dep) && semver.gtr('2.0.0', kit_dep)) {
 		console.log(
-			colors
-				.bold()
-				.red('\nYou need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).\n')
+			pc.bold(
+				pc.red(
+					'\nYou need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).\n'
+				)
+			)
 		);
 		process.exit(1);
 	}
 
 	console.log(
-		colors
-			.bold()
-			.yellow(
+		pc.bold(
+			pc.yellow(
 				'\nThis will update files in the current directory\n' +
 					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently.\n"
 			)
+		)
 	);
 
 	const use_git = check_git();
@@ -96,11 +98,12 @@ export async function migrate() {
 		);
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
+	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
 
 	console.log('\nRecommended next steps:\n');
 
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		"install the updated dependencies ('npm i' / 'pnpm i' / etc) " + use_git &&

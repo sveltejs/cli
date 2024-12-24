@@ -1,4 +1,4 @@
-import colors from 'kleur';
+import pc from 'picocolors';
 import MagicString from 'magic-string';
 import { execFileSync, execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -9,7 +9,7 @@ import ts from 'typescript';
 
 /** @param {string} message */
 export function bail(message) {
-	console.error(colors.bold().red(message));
+	console.error(pc.bold(pc.red(message)));
 	process.exit(1);
 }
 
@@ -153,14 +153,14 @@ export function check_git() {
 			if (status) {
 				const message =
 					'Your git working directory is dirty — we recommend committing your changes before running this migration.\n';
-				console.log(colors.bold().red(message));
+				console.log(pc.bold(pc.red(message)));
 			}
 		} catch {
 			// would be weird to have a .git folder if git is not installed,
 			// but always expect the unexpected
 			const message =
 				'Could not detect a git installation. If this is unexpected, please raise an issue: https://github.com/sveltejs/kit.\n';
-			console.log(colors.bold().red(message));
+			console.log(pc.bold(pc.red(message)));
 			use_git = false;
 		}
 	}

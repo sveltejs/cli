@@ -1,4 +1,4 @@
-import colors from 'kleur';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
 import prompts from 'prompts';
@@ -29,12 +29,12 @@ export async function migrate() {
 	}
 
 	console.log(
-		colors
-			.bold()
-			.yellow(
+		pc.bold(
+			pc.yellow(
 				'\nThis will update files in the current directory\n' +
 					"If you're inside a monorepo, run this in individual project directories rather than the workspace root.\n"
 			)
+		)
 	);
 
 	const use_git = check_git();
@@ -58,11 +58,11 @@ export async function migrate() {
 
 	if (semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
 		console.log(
-			colors
-				.bold()
-				.yellow(
+			pc.bold(
+				pc.yellow(
 					'\nSvelteKit 2 requires Svelte 4 or newer. We recommend running the `svelte-4` migration first (`npx sv migrate svelte-4`).\n'
 				)
+			)
 		);
 		const response = await prompts({
 			type: 'confirm',
@@ -75,9 +75,7 @@ export async function migrate() {
 		} else {
 			await migrate_svelte_4();
 			console.log(
-				colors
-					.bold()
-					.green('`svelte-4` migration complete. Continue with `sveltekit-2` migration?\n')
+				pc.bold(pc.green('`svelte-4` migration complete. Continue with `sveltekit-2` migration?\n'))
 			);
 			const response = await prompts({
 				type: 'confirm',
@@ -142,11 +140,12 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
+	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
 
 	console.log('\nRecommended next steps:\n');
 
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		'Run npm install (or the corresponding installation command of your package manager)',

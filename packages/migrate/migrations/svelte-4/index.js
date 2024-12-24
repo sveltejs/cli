@@ -1,4 +1,4 @@
-import colors from 'kleur';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
 import prompts from 'prompts';
@@ -12,12 +12,12 @@ export async function migrate() {
 	}
 
 	console.log(
-		colors
-			.bold()
-			.yellow(
+		pc.bold(
+			pc.yellow(
 				'\nThis will update files in the current directory\n' +
 					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently.\n"
 			)
+		)
 	);
 
 	const use_git = check_git();
@@ -88,11 +88,12 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
+	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
 
 	console.log('\nRecommended next steps:\n');
 
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		use_git && cyan('git commit -m "migration to Svelte 4"'),

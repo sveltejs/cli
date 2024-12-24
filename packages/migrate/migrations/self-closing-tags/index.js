@@ -1,4 +1,4 @@
-import colors from 'kleur';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
 import prompts from 'prompts';
@@ -12,12 +12,12 @@ export async function migrate() {
 	try {
 		compiler = await import_from_cwd('svelte/compiler');
 	} catch {
-		console.log(colors.bold().red('❌ Could not find a local Svelte installation.'));
+		console.log(pc.bold(pc.red('❌ Could not find a local Svelte installation.')));
 		return;
 	}
 
 	console.log(
-		colors.bold().yellow('\nThis will update .svelte files inside the current directory\n')
+		pc.bold(pc.yellow('\nThis will update .svelte files inside the current directory\n'))
 	);
 
 	const response = await prompts({
@@ -44,7 +44,7 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been updated'));
+	console.log(pc.bold(pc.green('✔ Your project has been updated')));
 	console.log('  If using Prettier, please upgrade to the latest prettier-plugin-svelte version');
 }
 
