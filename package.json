@@ -8,10 +8,10 @@
 		"pnpm": "^9.0.0"
 	},
 	"scripts": {
-		"build": "rollup -c",
+		"build": "rolldown --config",
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
-		"dev": "rollup --config --watch",
+		"dev": "rolldown --watch --config",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"test": "vitest run --silent",
@@ -35,7 +35,7 @@
 		"prettier": "^3.4.2",
 		"prettier-plugin-packagejson": "^2.5.6",
 		"prettier-plugin-svelte": "^3.3.2",
-		"rollup": "^4.28.1",
+		"rolldown": "^0.15.1",
 		"rollup-plugin-esbuild": "^6.1.1",
 		"rollup-plugin-preserve-shebangs": "^0.2.0",
 		"sv": "workspace:*",

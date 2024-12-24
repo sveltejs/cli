@@ -1,18 +1,12 @@
 // @ts-check
 import fs from 'node:fs';
 import path from 'node:path';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import json from '@rollup/plugin-json';
-import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
-import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
-import dts from 'unplugin-isolated-decl/rollup';
-import esbuild from 'rollup-plugin-esbuild';
+import dts from 'unplugin-isolated-decl/rolldown';
 import { buildTemplates } from '@sveltejs/create/build';
 import MagicString from 'magic-string';
 
-/** @import { Package } from "./packages/cli/commands/add/utils" */
-/** @import { Plugin, RollupOptions } from "rollup" */
+/** @import { Package } from "./packages/cli/commands/add/utils.ts" */
+/** @import { Plugin, RollupOptions } from "rolldown" */
 /** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
 
 /**
@@ -104,6 +98,7 @@ function getConfig(project) {
 
 	return {
 		input: inputs,
+		platform: 'node',
 		output: {
 			dir: outDir,
 			format: 'esm',
@@ -111,21 +106,11 @@ function getConfig(project) {
 		},
 		external,
 		plugins: [
-			preserveShebangs(),
 			'exports' in pkg &&
 				dts({
 					include: project === 'cli' ? [`${projectRoot}/lib/*`] : undefined,
 					inputBase: project === 'cli' ? path.resolve(projectRoot, 'lib') : undefined
 				}),
-			esbuild(),
-			nodeResolve({ preferBuiltins: true, rootDir: projectRoot }),
-			commonjs(),
-			json(),
-			dynamicImportVars({
-				// since we're relying on the usage of standard dynamic imports for community addons, we need to
-				// prevent this plugin from transforming these cases
-				exclude: ['packages/cli/commands/add/fetch-packages.ts']
-			}),
 			buildCliTemplatesPlugin,
 			communityAddonIdsPlugin
 		]

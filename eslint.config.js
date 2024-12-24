@@ -31,7 +31,7 @@ export default [
 			'**/.test-output/*',
 			'**/dist/*',
 			'packages/**/tests/**/{output,input}.ts',
-			'rollup.config.js',
+			'rolldown.config.js',
 			'community-addon-template/tests/*'
 		]
 	}

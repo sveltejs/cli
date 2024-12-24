@@ -7,7 +7,7 @@
 		"packages/create/shared/**",
 		// Ignoring the rollup config so that the imported plugins can resolve their types correctly
 		// (setting `moduleResolution: Node16` breaks them)
-		"rollup.config.js"
+		"rolldown.config.js"
 	],
 	"compilerOptions": {
 		"checkJs": true,
