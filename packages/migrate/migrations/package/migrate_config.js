@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import colors from 'kleur';
+import pc from 'picocolors';
 import MagicString from 'magic-string';
 import ts from 'typescript';
 
@@ -9,9 +9,11 @@ export function migrate_config() {
 		fs.writeFileSync('svelte.config.js', remove_package_from_config(content));
 	} catch {
 		console.log(
-			colors
-				.bold()
-				.yellow('Could not remove package config from svelte.config.js, please remove it manually')
+			pc.bold(
+				pc.yellow(
+					'Could not remove package config from svelte.config.js, please remove it manually'
+				)
+			)
 		);
 	}
 }

@@ -1,7 +1,7 @@
-import colors from 'kleur';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
 import {
@@ -28,25 +28,24 @@ export async function migrate() {
 		bail('Please re-run this script in a directory with a svelte.config.js');
 	}
 
-	console.log(
-		colors
-			.bold()
-			.yellow(
-				'\nThis will update files in the current directory\n' +
-					"If you're inside a monorepo, run this in individual project directories rather than the workspace root.\n"
+	p.log.warning(
+		pc.bold(pc.yellow('This will update files in the current directory.')) +
+			'\n' +
+			pc.bold(
+				pc.yellow(
+					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently."
+				)
 			)
 	);
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
@@ -58,44 +57,36 @@ export async function migrate() {
 
 	if (semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
 		console.log(
-			colors
-				.bold()
-				.yellow(
+			pc.bold(
+				pc.yellow(
 					'\nSvelteKit 2 requires Svelte 4 or newer. We recommend running the `svelte-4` migration first (`npx sv migrate svelte-4`).\n'
 				)
+			)
 		);
-		const response = await prompts({
-			type: 'confirm',
-			name: 'value',
+		const response = await p.confirm({
 			message: 'Run `svelte-4` migration now?',
-			initial: false
+			initialValue: false
 		});
-		if (!response.value) {
+		if (p.isCancel(response) || !response) {
 			process.exit(1);
 		} else {
 			await migrate_svelte_4();
 			console.log(
-				colors
-					.bold()
-					.green('`svelte-4` migration complete. Continue with `sveltekit-2` migration?\n')
+				pc.bold(pc.green('`svelte-4` migration complete. Continue with `sveltekit-2` migration?\n'))
 			);
-			const response = await prompts({
-				type: 'confirm',
-				name: 'value',
+			const response = await p.confirm({
 				message: 'Continue?',
-				initial: false
+				initialValue: false
 			});
-			if (!response.value) {
+			if (p.isCancel(response) || !response) {
 				process.exit(1);
 			}
 		}
 	}
 
-	const folders = await prompts({
-		type: 'multiselect',
-		name: 'value',
+	const folders = await p.multiselect({
 		message: 'Which folders should be migrated?',
-		choices: fs
+		options: fs
 			.readdirSync('.')
 			.filter(
 				(dir) =>
@@ -107,7 +98,7 @@ export async function migrate() {
 			.map((dir) => ({ title: dir, value: dir, selected: dir === 'src' }))
 	});
 
-	if (!folders.value?.length) {
+	if (p.isCancel(folders) || !folders?.length) {
 		process.exit(1);
 	}
 
@@ -124,8 +115,8 @@ export async function migrate() {
 		'.svelte'
 	];
 	const extensions = [...svelte_extensions, '.ts', '.js'];
-	// For some reason {folders.value.join(',')} as part of the glob doesn't work and returns less files
-	const files = folders.value.flatMap(
+	// For some reason {folders.join(',')} as part of the glob doesn't work and returns less files
+	const files = folders.flatMap(
 		/** @param {string} folder */ (folder) =>
 			glob(`${folder}/**`, { filesOnly: true, dot: true })
 				.map((file) => file.replace(/\\/g, '/'))
@@ -142,11 +133,12 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
+	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
 
 	console.log('\nRecommended next steps:\n');
 
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		'Run npm install (or the corresponding installation command of your package manager)',

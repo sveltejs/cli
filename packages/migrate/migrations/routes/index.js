@@ -1,8 +1,8 @@
 import fs from 'node:fs';
-import colors from 'kleur';
+import pc from 'picocolors';
 import path from 'node:path';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import glob from 'tiny-glob/sync.js';
 import { pathToFileURL } from 'node:url';
 import { migrate_scripts } from './migrate_scripts/index.js';
@@ -56,18 +56,16 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().yellow('\nThis will overwrite files in the current directory!\n'));
+	console.log(pc.bold(pc.yellow('\nThis will overwrite files in the current directory!\n')));
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
@@ -185,11 +183,12 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
+	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
 
 	console.log('\nRecommended next steps:\n');
 
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		use_git && cyan('git commit -m "svelte-migrate: renamed files"'),
