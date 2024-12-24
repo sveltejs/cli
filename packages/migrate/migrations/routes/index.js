@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import pc from 'picocolors';
 import path from 'node:path';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import glob from 'tiny-glob/sync.js';
 import { pathToFileURL } from 'node:url';
 import { migrate_scripts } from './migrate_scripts/index.js';
@@ -60,14 +60,12 @@ export async function migrate() {
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 

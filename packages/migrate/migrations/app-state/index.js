@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
 import { bail, check_git, update_svelte_file } from '../../utils.js';
@@ -47,22 +47,18 @@ export async function migrate() {
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
-	const folders = await prompts({
-		type: 'multiselect',
-		name: 'value',
+	const folders = await p.multiselect({
 		message: 'Which folders should be migrated?',
-		choices: fs
+		options: fs
 			.readdirSync('.')
 			.filter(
 				(dir) => fs.statSync(dir).isDirectory() && dir !== 'node_modules' && !dir.startsWith('.')
@@ -70,14 +66,14 @@ export async function migrate() {
 			.map((dir) => ({ title: dir, value: dir, selected: true }))
 	});
 
-	if (!folders.value?.length) {
+	if (p.isCancel(folders) || !folders?.length) {
 		process.exit(1);
 	}
 
 	update_pkg_json();
 
 	// For some reason {folders.value.join(',')} as part of the glob doesn't work and returns less files
-	const files = folders.value.flatMap(
+	const files = folders.flatMap(
 		/** @param {string} folder */ (folder) =>
 			glob(`${folder}/**`, { filesOnly: true, dot: true })
 				.map((file) => file.replace(/\\/g, '/'))

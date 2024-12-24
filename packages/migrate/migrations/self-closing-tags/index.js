@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import glob from 'tiny-glob/sync.js';
 import { remove_self_closing_tags } from './migrate.js';
 import { pathToFileURL } from 'node:url';
@@ -20,14 +20,12 @@ export async function migrate() {
 		pc.bold(pc.yellow('\nThis will update .svelte files inside the current directory\n'))
 	);
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 

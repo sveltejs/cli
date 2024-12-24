@@ -1,7 +1,7 @@
 import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
 import {
@@ -39,14 +39,12 @@ export async function migrate() {
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
@@ -64,36 +62,30 @@ export async function migrate() {
 				)
 			)
 		);
-		const response = await prompts({
-			type: 'confirm',
-			name: 'value',
+		const response = await p.confirm({
 			message: 'Run `svelte-4` migration now?',
-			initial: false
+			initialValue: false
 		});
-		if (!response.value) {
+		if (p.isCancel(response) || !response) {
 			process.exit(1);
 		} else {
 			await migrate_svelte_4();
 			console.log(
 				pc.bold(pc.green('`svelte-4` migration complete. Continue with `sveltekit-2` migration?\n'))
 			);
-			const response = await prompts({
-				type: 'confirm',
-				name: 'value',
+			const response = await p.confirm({
 				message: 'Continue?',
-				initial: false
+				initialValue: false
 			});
-			if (!response.value) {
+			if (p.isCancel(response) || !response) {
 				process.exit(1);
 			}
 		}
 	}
 
-	const folders = await prompts({
-		type: 'multiselect',
-		name: 'value',
+	const folders = await p.multiselect({
 		message: 'Which folders should be migrated?',
-		choices: fs
+		options: fs
 			.readdirSync('.')
 			.filter(
 				(dir) =>
@@ -105,7 +97,7 @@ export async function migrate() {
 			.map((dir) => ({ title: dir, value: dir, selected: dir === 'src' }))
 	});
 
-	if (!folders.value?.length) {
+	if (p.isCancel(folders) || !folders?.length) {
 		process.exit(1);
 	}
 
@@ -122,8 +114,8 @@ export async function migrate() {
 		'.svelte'
 	];
 	const extensions = [...svelte_extensions, '.ts', '.js'];
-	// For some reason {folders.value.join(',')} as part of the glob doesn't work and returns less files
-	const files = folders.value.flatMap(
+	// For some reason {folders.join(',')} as part of the glob doesn't work and returns less files
+	const files = folders.flatMap(
 		/** @param {string} folder */ (folder) =>
 			glob(`${folder}/**`, { filesOnly: true, dot: true })
 				.map((file) => file.replace(/\\/g, '/'))
