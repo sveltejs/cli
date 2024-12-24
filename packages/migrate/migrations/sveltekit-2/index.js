@@ -28,13 +28,14 @@ export async function migrate() {
 		bail('Please re-run this script in a directory with a svelte.config.js');
 	}
 
-	console.log(
-		pc.bold(
-			pc.yellow(
-				'\nThis will update files in the current directory\n' +
-					"If you're inside a monorepo, run this in individual project directories rather than the workspace root.\n"
+	p.log.warning(
+		pc.bold(pc.yellow('This will update files in the current directory.')) +
+			'\n' +
+			pc.bold(
+				pc.yellow(
+					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently."
+				)
 			)
-		)
 	);
 
 	const use_git = check_git();
