@@ -1,5 +1,11 @@
 # svelte-migrate
 
+## 1.7.1
+### Patch Changes
+
+
+- chore: update-dependencies ([#356](https://github.com/sveltejs/cli/pull/356))
+
 ## 1.7.0
 ### Minor Changes
 
