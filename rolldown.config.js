@@ -6,18 +6,18 @@ import { buildTemplates } from '@sveltejs/create/build';
 import MagicString from 'magic-string';
 
 /** @import { Package } from "./packages/cli/commands/add/utils.ts" */
-/** @import { Plugin, RollupOptions } from "rolldown" */
+/** @import { Plugin, RolldownOptions } from "rolldown" */
 /** @typedef {Package & { peerDependencies: Record<string, string> }} PackageJson */
 
 /**
  * @param {string} project
- * @returns {RollupOptions}
+ * @returns {RolldownOptions}
  */
 function getConfig(project) {
 	const projectRoot = `./packages/${project}`;
 	const outDir = `${projectRoot}/dist`;
 
-	/** @type {RollupOptions["input"]} */
+	/** @type {RolldownOptions["input"]} */
 	let inputs;
 
 	if (project === 'core') {
@@ -51,7 +51,7 @@ function getConfig(project) {
 	let buildCliTemplatesPlugin;
 	if (project === 'create') {
 		// This plugin is used to build the templates and place them inside the
-		// `dist` folder after every rollup build. This is necessary as we're
+		// `dist` folder after every rolldown build. This is necessary as we're
 		// clearing the output directory and thus also removes the template files
 		buildCliTemplatesPlugin = {
 			name: 'build-cli-templates',
@@ -117,7 +117,7 @@ function getConfig(project) {
 	};
 }
 
-/** @type {RollupOptions[]} */
+/** @type {RolldownOptions[]} */
 export default [
 	getConfig('clack-core'),
 	getConfig('clack-prompts'),
