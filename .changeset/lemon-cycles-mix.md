@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: properly add ESLint dependency
+fix: properly add `eslint` dependency
