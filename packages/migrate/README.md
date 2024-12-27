@@ -5,10 +5,8 @@ A CLI for migrating Svelte(Kit) codebases.
 Run it directly using:
 
 ```
-npx svelte-migrate [migration]
+npx sv migrate
 ```
-
-Or via the unified Svlete CLI with:
 
 ```
 npx sv migrate [migration]
