@@ -102,7 +102,7 @@ function getConfig(project) {
 		output: {
 			dir: outDir,
 			format: 'esm',
-			sourcemap: true
+			sourcemap: !process.env.CI
 		},
 		external,
 		plugins: [
