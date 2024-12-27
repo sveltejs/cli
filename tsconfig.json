@@ -5,7 +5,7 @@
 		"**/core/tests/**",
 		"packages/create/templates/**",
 		"packages/create/shared/**",
-		// Ignoring the rollup config so that the imported plugins can resolve their types correctly
+		// Ignoring the rolldown config so that the imported plugins can resolve their types correctly
 		// (setting `moduleResolution: Node16` breaks them)
 		"rolldown.config.js"
 	],
