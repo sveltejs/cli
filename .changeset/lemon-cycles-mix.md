@@ -2,4 +2,4 @@
 '@sveltejs/addons': patch
 ---
 
-Properly add ESLint dependency
+fix: properly add ESLint dependency
