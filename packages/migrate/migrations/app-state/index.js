@@ -4,7 +4,7 @@ import process from 'node:process';
 import * as p from '@clack/prompts';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
-import { bail, check_git, update_svelte_file } from '../../utils.js';
+import { bail, check_git, migration_succeeded, update_svelte_file } from '../../utils.js';
 import { transform_svelte_code, update_pkg_json } from './migrate.js';
 
 export async function migrate() {
@@ -16,21 +16,17 @@ export async function migrate() {
 
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
 	if (svelte_dep && semver.validRange(svelte_dep) && semver.gtr('5.0.0', svelte_dep)) {
-		console.log(
-			pc.bold(
-				pc.red('\nYou need to upgrade to Svelte version 5 first (`npx sv migrate svelte-5`).\n')
-			)
+		p.log.error(
+			pc.bold(pc.red('You need to upgrade to Svelte version 5 first (`npx sv migrate svelte-5`).'))
 		);
 		process.exit(1);
 	}
 
 	const kit_dep = pkg.devDependencies?.['@sveltejs/kit'] ?? pkg.dependencies?.['@sveltejs/kit'];
 	if (kit_dep && semver.validRange(kit_dep) && semver.gtr('2.0.0', kit_dep)) {
-		console.log(
+		p.log.error(
 			pc.bold(
-				pc.red(
-					'\nYou need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).\n'
-				)
+				pc.red('You need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).')
 			)
 		);
 		process.exit(1);
@@ -95,25 +91,14 @@ export async function migrate() {
 		);
 	}
 
-	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
-
-	console.log('\nRecommended next steps:\n');
-
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
-	const tasks = [
-		"install the updated dependencies ('npm i' / 'pnpm i' / etc) " + use_git &&
-			cyan('git commit -m "migration to $app/state"')
-	].filter(Boolean);
-
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
+	const tasks = ["install the updated dependencies ('npm i' / 'pnpm i' / etc)"];
 	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
+		tasks.push(cyan('git commit -m "migration to $app/state"'));
+		tasks.push(`Run ${cyan('git diff')} to review changes.`);
 	}
+
+	migration_succeeded(tasks);
 }

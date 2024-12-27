@@ -6,17 +6,18 @@ import glob from 'tiny-glob/sync.js';
 import { remove_self_closing_tags } from './migrate.js';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'import-meta-resolve';
+import { migration_succeeded } from '../../utils.js';
 
 export async function migrate() {
 	let compiler;
 	try {
 		compiler = await import_from_cwd('svelte/compiler');
 	} catch {
-		console.log(pc.bold(pc.red('❌ Could not find a local Svelte installation.')));
+		p.log.error(pc.bold(pc.red('❌ Could not find a local Svelte installation.')));
 		return;
 	}
 
-	console.log(
+	p.log.warning(
 		pc.bold(pc.yellow('\nThis will update .svelte files inside the current directory\n'))
 	);
 
@@ -42,8 +43,9 @@ export async function migrate() {
 		}
 	}
 
-	console.log(pc.bold(pc.green('✔ Your project has been updated')));
-	console.log('  If using Prettier, please upgrade to the latest prettier-plugin-svelte version');
+	const tasks = ['If using Prettier, please upgrade to the latest prettier-plugin-svelte version'];
+
+	migration_succeeded(tasks);
 }
 
 /** @param {string} name */

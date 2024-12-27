@@ -3,7 +3,13 @@ import fs from 'node:fs';
 import process from 'node:process';
 import * as p from '@clack/prompts';
 import glob from 'tiny-glob/sync.js';
-import { bail, check_git, update_js_file, update_svelte_file } from '../../utils.js';
+import {
+	bail,
+	check_git,
+	migration_succeeded,
+	update_js_file,
+	update_svelte_file
+} from '../../utils.js';
 import { transform_code, transform_svelte_code, update_pkg_json } from './migrate.js';
 
 export async function migrate() {
@@ -87,26 +93,15 @@ export async function migrate() {
 		}
 	}
 
-	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
-
-	console.log('\nRecommended next steps:\n');
-
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		use_git && cyan('git commit -m "migration to Svelte 4"'),
 		'Review the migration guide at https://svelte.dev/docs/svelte/v4-migration-guide',
-		'Read the updated docs at https://svelte.dev/docs/svelte'
+		'Read the updated docs at https://svelte.dev/docs/svelte',
+		use_git && `Run ${cyan('git diff')} to review changes.`
 	].filter(Boolean);
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded(tasks);
 }

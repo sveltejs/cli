@@ -8,7 +8,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as p from '@clack/prompts';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
-import { bail, check_git, update_js_file, update_svelte_file } from '../../utils.js';
+import {
+	bail,
+	check_git,
+	migration_succeeded,
+	update_js_file,
+	update_svelte_file
+} from '../../utils.js';
 import { migrate as migrate_svelte_4 } from '../svelte-4/index.js';
 import { migrate as migrate_sveltekit_2 } from '../sveltekit-2/index.js';
 import { transform_module_code, transform_svelte_code, update_pkg_json } from './migrate.js';
@@ -18,7 +24,7 @@ export async function migrate() {
 		bail('Please re-run this script in a directory with a package.json');
 	}
 
-	console.log(
+	p.log.warning(
 		'This migration is experimental — please report any bugs to https://github.com/sveltejs/svelte/issues'
 	);
 
@@ -26,10 +32,10 @@ export async function migrate() {
 
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
 	if (svelte_dep && semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
-		console.log(
+		p.log.warning(
 			pc.bold(
 				pc.yellow(
-					'\nDetected Svelte 3. You need to upgrade to Svelte version 4 first (`npx sv migrate svelte-4`).\n'
+					'Detected Svelte 3. You need to upgrade to Svelte version 4 first (`npx sv migrate svelte-4`).'
 				)
 			)
 		);
@@ -41,10 +47,10 @@ export async function migrate() {
 			process.exit(1);
 		} else {
 			await migrate_svelte_4();
-			console.log(
+			p.log.success(
 				pc.bold(
 					pc.green(
-						'svelte-4 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.\n'
+						'svelte-4 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.'
 					)
 				)
 			);
@@ -54,10 +60,10 @@ export async function migrate() {
 
 	const kit_dep = pkg.devDependencies?.['@sveltejs/kit'] ?? pkg.dependencies?.['@sveltejs/kit'];
 	if (kit_dep && semver.validRange(kit_dep) && semver.gtr('2.0.0', kit_dep)) {
-		console.log(
+		p.log.warning(
 			pc.bold(
 				pc.yellow(
-					'\nDetected SvelteKit 1. You need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).\n'
+					'Detected SvelteKit 1. You need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).'
 				)
 			)
 		);
@@ -69,10 +75,10 @@ export async function migrate() {
 			process.exit(1);
 		} else {
 			await migrate_sveltekit_2();
-			console.log(
+			p.log.success(
 				pc.bold(
 					pc.green(
-						'sveltekit-2 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.\n'
+						'sveltekit-2 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.'
 					)
 				)
 			);
@@ -95,7 +101,7 @@ export async function migrate() {
 		}
 	} catch (e) {
 		console.log(e);
-		console.log(
+		p.log.error(
 			pc.bold(
 				pc.red(
 					'❌ Could not install Svelte. Manually bump the dependency to version 5 in your package.json, install it, then try again.'
@@ -173,10 +179,6 @@ export async function migrate() {
 		}
 	}
 
-	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
-
-	console.log('\nRecommended next steps:\n');
-
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
@@ -184,18 +186,11 @@ export async function migrate() {
 		"install the updated dependencies ('npm i' / 'pnpm i' / etc) " +
 			'(note that there may be peer dependency issues when not all your libraries officially support Svelte 5 yet. In this case try installing with the --force option)',
 		use_git && cyan('git commit -m "migration to Svelte 5"'),
-		'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide'
+		'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide',
+		`Run ${cyan('git diff')} to review changes.`
 	].filter(Boolean);
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded(tasks);
 }
 
 /** @param {string} name */

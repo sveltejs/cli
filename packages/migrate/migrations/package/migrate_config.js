@@ -1,3 +1,4 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import pc from 'picocolors';
 import MagicString from 'magic-string';
@@ -8,7 +9,7 @@ export function migrate_config() {
 		const content = fs.readFileSync('svelte.config.js', 'utf8');
 		fs.writeFileSync('svelte.config.js', remove_package_from_config(content));
 	} catch {
-		console.log(
+		p.log.warning(
 			pc.bold(
 				pc.yellow(
 					'Could not remove package config from svelte.config.js, please remove it manually'

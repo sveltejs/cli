@@ -7,6 +7,7 @@ import glob from 'tiny-glob/sync.js';
 import {
 	bail,
 	check_git,
+	migration_succeeded,
 	update_js_file,
 	update_svelte_file,
 	update_tsconfig
@@ -56,10 +57,10 @@ export async function migrate() {
 	}
 
 	if (semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
-		console.log(
+		p.log.warning(
 			pc.bold(
 				pc.yellow(
-					'\nSvelteKit 2 requires Svelte 4 or newer. We recommend running the `svelte-4` migration first (`npx sv migrate svelte-4`).\n'
+					'SvelteKit 2 requires Svelte 4 or newer. We recommend running the `svelte-4` migration first (`npx sv migrate svelte-4`).'
 				)
 			)
 		);
@@ -71,7 +72,7 @@ export async function migrate() {
 			process.exit(1);
 		} else {
 			await migrate_svelte_4();
-			console.log(
+			p.log.success(
 				pc.bold(pc.green('`svelte-4` migration complete. Continue with `sveltekit-2` migration?\n'))
 			);
 			const response = await p.confirm({
@@ -133,10 +134,6 @@ export async function migrate() {
 		}
 	}
 
-	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
-
-	console.log('\nRecommended next steps:\n');
-
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
@@ -144,16 +141,9 @@ export async function migrate() {
 		'Run npm install (or the corresponding installation command of your package manager)',
 		use_git && cyan('git commit -m "migration to SvelteKit 2"'),
 		'Review the migration guide at https://svelte.dev/docs/kit/migrating-to-sveltekit-2',
-		'Read the updated docs at https://svelte.dev/docs/kit'
+		'Read the updated docs at https://svelte.dev/docs/kit',
+		use_git && `Run ${cyan('git diff')} to review changes.`
 	].filter(Boolean);
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded(tasks);
 }

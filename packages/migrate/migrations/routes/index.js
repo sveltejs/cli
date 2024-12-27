@@ -10,7 +10,7 @@ import { migrate_page } from './migrate_page_js/index.js';
 import { migrate_page_server } from './migrate_page_server/index.js';
 import { migrate_server } from './migrate_server/index.js';
 import { adjust_imports, task } from './utils.js';
-import { bail, relative, move_file, check_git } from '../../utils.js';
+import { bail, relative, move_file, check_git, migration_succeeded } from '../../utils.js';
 
 export async function migrate() {
 	if (!fs.existsSync('svelte.config.js')) {
@@ -56,7 +56,7 @@ export async function migrate() {
 		}
 	}
 
-	console.log(pc.bold(pc.yellow('\nThis will overwrite files in the current directory!\n')));
+	p.log.warning(pc.bold(pc.yellow('This will overwrite files in the current directory!')));
 
 	const use_git = check_git();
 
@@ -183,10 +183,6 @@ export async function migrate() {
 		}
 	}
 
-	console.log(pc.bold(pc.green('✔ Your project has been migrated')));
-
-	console.log('\nRecommended next steps:\n');
-
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
@@ -195,16 +191,9 @@ export async function migrate() {
 		'Review the migration guide at https://github.com/sveltejs/kit/discussions/5774',
 		`Search codebase for ${cyan('"@migration"')} and manually complete migration tasks`,
 		use_git && cyan('git add -A'),
-		use_git && cyan('git commit -m "svelte-migrate: updated files"')
+		use_git && cyan('git commit -m "svelte-migrate: updated files"'),
+		use_git && `Run ${cyan('git diff')} to review changes.`
 	].filter(Boolean);
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded(tasks);
 }

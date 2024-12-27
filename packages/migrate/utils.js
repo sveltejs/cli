@@ -10,7 +10,7 @@ import ts from 'typescript';
 
 /** @param {string} message */
 export function bail(message) {
-	console.error(pc.bold(pc.red(message)));
+	p.log.error(pc.bold(pc.red(message)));
 	process.exit(1);
 }
 
@@ -419,4 +419,26 @@ export function add_named_import(source, _import, method) {
 			namedImports: [method]
 		});
 	}
+}
+
+/**
+ * @param {(string | false)[]} next_steps
+ */
+export function migration_succeeded(next_steps) {
+	p.log.success(pc.bold(pc.green('✔ Your project has been migrated')));
+
+	if (!next_steps || next_steps.length === 0) {
+		return;
+	}
+
+	/** @type {string[]} */
+	const messages = [];
+
+	next_steps.forEach((step, i) => {
+		if (!step) return;
+
+		messages.push(`${i + 1}: ${step}`);
+	});
+
+	p.note(messages.join('\n'), 'Recommended next steps:');
 }
