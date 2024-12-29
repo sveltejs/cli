@@ -1,6 +1,5 @@
 import { Document, Element, type ChildNode } from 'domhandler';
 import { ElementType, parseDocument } from 'htmlparser2';
-import { removeElement, textContent } from 'domutils';
 import serializeDom from 'dom-serializer';
 import {
 	Root as CssAst,
@@ -158,36 +157,6 @@ export type SvelteAst = {
 	htmlAst: Document;
 	cssAst: CssAst;
 };
-
-export function parseSvelte(content: string): SvelteAst {
-	const htmlAst = parseHtml(content);
-
-	let scriptTag, styleTag;
-	for (const node of htmlAst.childNodes) {
-		if (node.type === ElementType.Script) {
-			scriptTag = node;
-			removeElement(scriptTag);
-		} else if (node.type === ElementType.Style) {
-			styleTag = node;
-			removeElement(styleTag);
-		}
-	}
-
-	if (!scriptTag) {
-		scriptTag = new Element('script', {}, undefined, ElementType.ElementType.Script);
-	}
-	if (!styleTag) {
-		styleTag = new Element('style', {}, undefined, ElementType.ElementType.Style);
-	}
-
-	const css = textContent(styleTag);
-	const cssAst = parseCss(css);
-
-	const scriptValue = textContent(scriptTag);
-	const jsAst = parseScript(scriptValue);
-
-	return { jsAst, htmlAst, cssAst };
-}
 
 export function parseJson(content: string): any {
 	// some of the files we need to process contain comments. The default
