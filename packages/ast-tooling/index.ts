@@ -117,7 +117,7 @@ export function stripAst<T>(node: T, propToRemove: string): T {
 }
 
 export type SvelteAst = {
-	jsAst: AstTypes.Program;
+	jsAst: TsEstree.Program;
 	htmlAst: Document;
 	cssAst: CssAst;
 };

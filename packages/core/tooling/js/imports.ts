@@ -8,7 +8,8 @@ export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
 			type: 'Literal',
 			value: importFrom
 		},
-		specifiers: []
+		specifiers: [],
+		importKind: 'value'
 	};
 
 	addImportIfNecessary(ast, expectedImportDeclaration);
@@ -44,7 +45,8 @@ export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: 
 					name: importAs
 				}
 			}
-		]
+		],
+		importKind: 'value'
 	};
 
 	addImportIfNecessary(ast, expectedImportDeclaration);
@@ -73,7 +75,7 @@ export function addNamed(
 
 	let importDecl: AstTypes.ImportDeclaration | undefined;
 	// prettier-ignore
-	Walker.walk(ast as AstTypes.ASTNode, {}, {
+	Walker.walk(ast as AstTypes.Node, {}, {
 		ImportDeclaration(node) {
 			if (node.source.value === importFrom && node.specifiers) {
 				importDecl = node;
@@ -89,6 +91,8 @@ export function addNamed(
 					(existingSpecifier) =>
 						existingSpecifier.type === 'ImportSpecifier' &&
 						existingSpecifier.local?.name !== specifierToAdd.local?.name &&
+						existingSpecifier.imported.type == 'Identifier' &&
+						specifierToAdd.imported.type == 'Identifier' &&
 						existingSpecifier.imported.name !== specifierToAdd.imported.name
 				)
 			) {
@@ -105,7 +109,7 @@ export function addNamed(
 			value: importFrom
 		},
 		specifiers,
-		importKind: isType ? 'type' : undefined
+		importKind: isType ? 'type' : 'value'
 	};
 
 	ast.body.unshift(expectedImportDeclaration);
