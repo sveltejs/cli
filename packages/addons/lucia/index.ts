@@ -54,7 +54,7 @@ export default defineAddon({
 
 		sv.file(`drizzle.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			const isProp = (name: string, node: AstTypes.ObjectProperty) =>
+			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
 			// prettier-ignore
@@ -648,7 +648,7 @@ function getAuthHandleContent() {
 		};`;
 }
 
-function getCallExpression(ast: AstTypes.ASTNode): AstTypes.CallExpression | undefined {
+function getCallExpression(ast: AstTypes.Node): AstTypes.CallExpression | undefined {
 	let callExpression;
 
 	// prettier-ignore

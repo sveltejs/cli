@@ -191,8 +191,8 @@ export default defineAddon({
 					url: common.expressionFromString('process.env.DATABASE_URL'),
 					authToken
 				}),
-				verbose: { type: 'BooleanLiteral', value: true },
-				strict: { type: 'BooleanLiteral', value: true },
+				verbose: { type: 'Literal', value: true },
+				strict: { type: 'Literal', value: true },
 				driver
 			});
 
