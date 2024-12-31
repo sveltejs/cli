@@ -58,12 +58,12 @@ export default defineAddon({
 				node.key.type === 'Identifier' && node.key.name === name;
 
 			// prettier-ignore
-			Walker.walk(ast as AstTypes.ASTNode, {}, {
-				ObjectProperty(node) {
-					if (isProp('dialect', node) && node.value.type === 'StringLiteral') {
+			Walker.walk(ast as AstTypes.Node, {}, {
+				Property(node) {
+					if (isProp('dialect', node) && node.value.type === 'Literal' && node.value.value === typeof 'string') {
 						drizzleDialect = node.value.value as Dialect;
 					}
-					if (isProp('schema', node) && node.value.type === 'StringLiteral') {
+					if (isProp('schema', node) && node.value.type === 'Literal'  && node.value.value === typeof 'string') {
 						schemaPath = node.value.value;
 					}
 				}
@@ -600,13 +600,14 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 			type: 'Identifier',
 			name
 		},
+		computed: false,
 		typeAnnotation: {
 			type: 'TSTypeAnnotation',
 			typeAnnotation: {
 				type: 'TSIndexedAccessType',
 				objectType: {
 					type: 'TSImportType',
-					argument: { type: 'StringLiteral', value: '$lib/server/auth' },
+					argument: { type: 'Literal', value: '$lib/server/auth' },
 					qualifier: {
 						type: 'Identifier',
 						name: 'SessionValidationResult'
@@ -615,7 +616,7 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 				indexType: {
 					type: 'TSLiteralType',
 					literal: {
-						type: 'StringLiteral',
+						type: 'Literal',
 						value: name
 					}
 				}

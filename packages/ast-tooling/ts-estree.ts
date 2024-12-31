@@ -4,7 +4,7 @@ declare module 'estree' {
 	// new types
 	interface TSTypeAnnotation {
 		type: 'TSTypeAnnotation';
-		typeAnnotation: TSStringKeyword | TSTypeReference | TSUnionType;
+		typeAnnotation: TSStringKeyword | TSTypeReference | TSUnionType | TSIndexedAccessType;
 	}
 	interface TSStringKeyword {
 		type: 'TSStringKeyword';
@@ -59,6 +59,20 @@ declare module 'estree' {
 		argument: Literal;
 		qualifier: Identifier;
 	}
+	interface TSIndexedAccessType {
+		type: 'TSIndexedAccessType';
+		objectType: TSImportType;
+		indexType: TSLiteralType;
+	}
+	interface TSLiteralType {
+		type: 'TSLiteralType';
+		literal: Literal;
+	}
+	interface TSSatisfiesExpression extends BaseNode {
+		type: 'TSSatisfiesExpression';
+		expression: Expression;
+		typeAnnotation: TSTypeAnnotation['typeAnnotation'];
+	}
 
 	// enhanced types
 	interface Identifier {
@@ -66,6 +80,7 @@ declare module 'estree' {
 	}
 	interface ExpressionMap {
 		TSAsExpression: TSAsExpression;
+		TSSatisfiesExpression: TSSatisfiesExpression;
 	}
 	interface NodeMap {
 		TSModuleDeclaration: TSModuleDeclaration;

@@ -9,7 +9,7 @@ import decircular from 'decircular';
 import dedent from 'dedent';
 
 export function addJsDocTypeComment(node: AstTypes.Node, type: string): void {
-	const comment: AstTypes.CommentBlock = {
+	const comment: AstTypes.Comment = {
 		type: 'Line',
 		value: `* @type {${type}} `
 	};
@@ -23,21 +23,18 @@ export function addJsDocComment(node: AstTypes.Node, params: Record<string, stri
 		commentLines.push(`@param {${key}} ${value}`);
 	}
 
-	const comment: AstTypes.CommentBlock = {
-		type: 'CommentBlock',
-		value: `*\n * ${commentLines.join('\n * ')}\n `,
-		leading: true
+	const comment: AstTypes.Comment = {
+		type: 'Block',
+		value: `*\n * ${commentLines.join('\n * ')}\n `
 	};
 
 	addComment(node, comment);
 }
 
-function addComment(node: AstTypes.Node, comment: AstTypes.CommentBlock) {
+function addComment(node: AstTypes.Node, comment: AstTypes.Comment) {
 	node.leadingComments ??= [];
 
-	const found = node.leadingComments.find(
-		(n) => n.type === 'CommentBlock' && n.value === comment.value
-	);
+	const found = node.leadingComments.find((n) => n.type === 'Block' && n.value === comment.value);
 	if (!found) node.leadingComments.push(comment);
 }
 
@@ -55,7 +52,7 @@ export function typeAnnotateExpression(
 }
 
 export function satisfiesExpression(
-	node: AstKinds.ExpressionKind,
+	node: AstTypes.Expression,
 	type: string
 ): AstTypes.TSSatisfiesExpression {
 	const expression: AstTypes.TSSatisfiesExpression = {
