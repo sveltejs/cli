@@ -1,5 +1,23 @@
 # svelte-migrate
 
+## 1.7.1
+### Patch Changes
+
+
+- chore: update-dependencies ([#356](https://github.com/sveltejs/cli/pull/356))
+
+## 1.7.0
+### Minor Changes
+
+
+- feat: add app-state migration ([#354](https://github.com/sveltejs/cli/pull/354))
+
+
+### Patch Changes
+
+
+- docs: add `self-closing-tags` migration ([#349](https://github.com/sveltejs/cli/pull/349))
+
 ## 1.6.9
 ### Patch Changes
 
