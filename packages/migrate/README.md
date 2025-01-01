@@ -9,6 +9,7 @@ npx sv migrate
 ```
 
 You can also specify a migration directly via the CLI:
+
 ```bash
 npx sv migrate [migration]
 ```
