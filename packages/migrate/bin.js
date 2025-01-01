@@ -22,7 +22,7 @@ if (migrations.includes(migration)) {
 	if (migration) p.log.warning(pc.yellow(`Invalid migration "${migration}" provided.`));
 
 	const selectedMigration = await p.select({
-		message: 'Which migration should be run?',
+		message: 'Which migration would you like to run?',
 		options: migrations.map((x) => ({ value: x, label: x }))
 	});
 
