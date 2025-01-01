@@ -94,6 +94,7 @@ export async function migrate() {
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
+	// TODO: use package-manager-detector here
 	const tasks = ["install the updated dependencies ('npm i' / 'pnpm i' / etc)"];
 	if (use_git) {
 		tasks.push(cyan('git commit -m "migration to $app/state"'));
