@@ -190,8 +190,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
       commander:
-        specifier: 13.0.0-0
-        version: 13.0.0-0
+        specifier: 13.0.0
+        version: 13.0.0
       degit:
         specifier: ^2.8.4
         version: 2.8.4
@@ -1107,8 +1107,8 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
-  commander@13.0.0-0:
-    resolution: {integrity: sha512-3CshrHCF8M4mJhtBruqZvYzMoRplFO1NmsIzF6uaIxZpzvW+ZI6xU/fx5LmprLNYB5sH5F2CnjTkXflGfkYgkQ==}
+  commander@13.0.0:
+    resolution: {integrity: sha512-oPYleIY8wmTVzkvQq10AEok6YcTC4sRUBl8F9gVuwchGVUCTbl/vhLTaQqutuuySYOsu8YTgV+OxKc/8Yvx+mQ==}
     engines: {node: '>=18'}
 
   commander@4.1.1:
@@ -3184,7 +3184,7 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  commander@13.0.0-0: {}
+  commander@13.0.0: {}
 
   commander@4.1.1: {}
 
@@ -3321,7 +3321,7 @@ snapshots:
   eslint-plugin-es-x@7.8.0(eslint@9.17.0):
     dependencies:
       '@eslint-community/eslint-utils': 4.4.1(eslint@9.17.0)
-      '@eslint-community/regexpp': 4.11.0
+      '@eslint-community/regexpp': 4.12.1
       eslint: 9.17.0
       eslint-compat-utils: 0.5.1(eslint@9.17.0)
 
