@@ -4,11 +4,12 @@ A CLI for migrating Svelte(Kit) codebases.
 
 Run it directly using:
 
-```
+```bash
 npx sv migrate
 ```
 
-```
+You can also specify a migration directly via the CLI:
+```bash
 npx sv migrate [migration]
 ```
 

@@ -2,4 +2,4 @@
 'svelte-migrate': patch
 ---
 
-chore: unify svelte-migrate to sv
+chore: align dependencies with `sv`
