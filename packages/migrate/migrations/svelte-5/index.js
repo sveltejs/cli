@@ -128,48 +128,48 @@ export async function migrate() {
 		process.exit(1);
 	}
 
-	const folders = await p.multiselect({
+	const dirs = fs
+		.readdirSync('.')
+		.filter(
+			(dir) => fs.statSync(dir).isDirectory() && dir !== 'node_modules' && !dir.startsWith('.')
+		);
+
+	let folders = await p.multiselect({
 		message: 'Which folders should be migrated?',
-		options: fs
-			.readdirSync('.')
-			.filter(
-				(dir) => fs.statSync(dir).isDirectory() && dir !== 'node_modules' && !dir.startsWith('.')
-			)
-			.map((dir) => ({ title: dir, value: dir, selected: true }))
+		options: dirs
+			.map((dir) => ({ label: dir, value: dir }))
 			.concat([
 				{
-					title: 'custom (overrides selection, allows to specify sub folders)',
-					value: ',', // a value that definitely isn't a valid folder name so it cannot clash
-					selected: false
+					label: 'custom (overrides selection, allows to specify sub folders)',
+					value: ',' // a value that definitely isn't a valid folder name so it cannot clash
 				}
-			])
+			]),
+		initialValues: dirs
 	});
 
 	if (p.isCancel(folders) || !folders?.length) {
 		process.exit(1);
 	}
 
-	if (folders.value.includes(',')) {
-		const custom = await prompts({
-			type: 'list',
-			name: 'value',
+	if (folders.includes(',')) {
+		const custom = await p.text({
 			message: 'Specify folder paths (comma separated)'
 		});
 
-		if (!custom.value) {
+		if (p.isCancel(custom) || !custom) {
 			process.exit(1);
 		}
 
-		folders.value = custom.value.map((/** @type {string} */ folder) => (folder = folder.trim()));
+		folders = custom.split(',').map((/** @type {string} */ folder) => (folder = folder.trim()));
 	}
 
-	const do_migration = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const do_migration = await p.confirm({
 		message:
 			'Do you want to use the migration tool to convert your Svelte components to the new syntax? (You can also do this per component or sub path later)',
-		initial: true
+		initialValue: true
 	});
+
+	if (p.isCancel(do_migration)) process.exit(1);
 
 	update_pkg_json();
 
@@ -195,7 +195,7 @@ export async function migrate() {
 	for (const file of files) {
 		if (extensions.some((ext) => file.endsWith(ext))) {
 			if (svelte_extensions.some((ext) => file.endsWith(ext))) {
-				if (do_migration.value) {
+				if (do_migration) {
 					update_svelte_file(file, transform_module_code, (code) =>
 						transform_svelte_code(code, migrate, { filename: file, use_ts })
 					);
