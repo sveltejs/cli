@@ -110,7 +110,10 @@ export function parseScript(content: string): TsEstree.Program {
 }
 
 export function serializeScript(ast: TsEstree.Node): string {
-	const { code } = esrapPrint(ast, {});
+	const { code } = esrapPrint(ast, {
+		indent: '\t',
+		quotes: 'single'
+	});
 	return code;
 }
 
