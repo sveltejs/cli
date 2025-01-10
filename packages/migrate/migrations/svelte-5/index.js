@@ -140,7 +140,7 @@ export async function migrate() {
 			.concat([
 				{
 					title: 'custom (overrides selection, allows to specify sub folders)',
-					value: ',',
+					value: ',', // a value that definitely isn't a valid folder name so it cannot clash
 					selected: false
 				}
 			])
@@ -154,7 +154,7 @@ export async function migrate() {
 		const custom = await prompts({
 			type: 'list',
 			name: 'value',
-			message: 'Specify folders (comma separated)'
+			message: 'Specify folder paths (comma separated)'
 		});
 
 		if (!custom.value) {
