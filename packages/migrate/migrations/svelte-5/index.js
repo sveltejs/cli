@@ -18,10 +18,6 @@ export async function migrate() {
 		bail('Please re-run this script in a directory with a package.json');
 	}
 
-	console.log(
-		'This migration is experimental — please report any bugs to https://github.com/sveltejs/svelte/issues'
-	);
-
 	const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
@@ -141,11 +137,40 @@ export async function migrate() {
 				(dir) => fs.statSync(dir).isDirectory() && dir !== 'node_modules' && !dir.startsWith('.')
 			)
 			.map((dir) => ({ title: dir, value: dir, selected: true }))
+			.concat([
+				{
+					title: 'custom (overrides selection, allows to specify sub folders)',
+					value: ',', // a value that definitely isn't a valid folder name so it cannot clash
+					selected: false
+				}
+			])
 	});
 
 	if (!folders.value?.length) {
 		process.exit(1);
 	}
+
+	if (folders.value.includes(',')) {
+		const custom = await prompts({
+			type: 'list',
+			name: 'value',
+			message: 'Specify folder paths (comma separated)'
+		});
+
+		if (!custom.value) {
+			process.exit(1);
+		}
+
+		folders.value = custom.value.map((/** @type {string} */ folder) => (folder = folder.trim()));
+	}
+
+	const do_migration = await prompts({
+		type: 'confirm',
+		name: 'value',
+		message:
+			'Do you want to use the migration tool to convert your Svelte components to the new syntax? (You can also do this per component or sub path later)',
+		initial: true
+	});
 
 	update_pkg_json();
 
@@ -171,9 +196,11 @@ export async function migrate() {
 	for (const file of files) {
 		if (extensions.some((ext) => file.endsWith(ext))) {
 			if (svelte_extensions.some((ext) => file.endsWith(ext))) {
-				update_svelte_file(file, transform_module_code, (code) =>
-					transform_svelte_code(code, migrate, { filename: file, use_ts })
-				);
+				if (do_migration.value) {
+					update_svelte_file(file, transform_module_code, (code) =>
+						transform_svelte_code(code, migrate, { filename: file, use_ts })
+					);
+				}
 			} else {
 				update_js_file(file, transform_module_code);
 			}
