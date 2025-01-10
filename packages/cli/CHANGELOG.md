@@ -1,5 +1,14 @@
 # sv
 
+## 0.6.11
+### Patch Changes
+
+
+- fix: properly add `eslint` dependency ([#375](https://github.com/sveltejs/cli/pull/375))
+
+
+- feat: migrate to `$app/state` ([#358](https://github.com/sveltejs/cli/pull/358))
+
 ## 0.6.10
 ### Patch Changes
 
