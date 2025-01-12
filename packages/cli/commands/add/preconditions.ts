@@ -1,4 +1,5 @@
-import { exec } from 'tinyexec';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import type { AddonSetupResult, AddonWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 import { UnsupportedError } from '../../utils/errors.ts';
 
@@ -21,9 +22,9 @@ export function getGlobalPreconditions(
 						// there are no pending changes. If the below command is run outside of a git repository,
 						// git will exit with a failing exit code, which will trigger the catch statement.
 						// also see https://remarkablemark.org/blog/2017/10/12/check-git-dirty/#git-status
-						const { stdout } = await exec('git', ['status', '--short'], {
-							nodeOptions: { cwd },
-							throwOnError: true
+						const asyncExec = promisify(exec);
+						const { stdout } = await asyncExec('git statzs --short', {
+							cwd
 						});
 
 						if (stdout) {
