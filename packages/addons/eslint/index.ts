@@ -28,7 +28,7 @@ export default defineAddon({
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.0.0');
 
-		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^9.1.0');
+		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.0.1');
 
 		sv.file('package.json', (content) => {
 			const { data, generateCode } = parseJson(content);
