@@ -1,5 +1,26 @@
 # sv
 
+## 0.6.12
+### Patch Changes
+
+
+- fix: git detection inside preconditions failed ([#406](https://github.com/sveltejs/cli/pull/406))
+
+
+- chore: update addon dependencies ([#406](https://github.com/sveltejs/cli/pull/406))
+
+
+- chore: utilize prepack lifecycle script ([#406](https://github.com/sveltejs/cli/pull/406))
+
+
+- chore: improve cli help menu ([#294](https://github.com/sveltejs/cli/pull/294))
+
+
+- fix: use modern `Spring` and `MediaQuery` implementation ([#406](https://github.com/sveltejs/cli/pull/406))
+
+
+- fix: tailwind plugins as dev dependencies ([#406](https://github.com/sveltejs/cli/pull/406))
+
 ## 0.6.11
 ### Patch Changes
 
