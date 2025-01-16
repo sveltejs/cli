@@ -1,6 +1,6 @@
 {
 	"name": "svelte-migrate",
-	"version": "1.6.9",
+	"version": "1.8.0",
 	"type": "module",
 	"description": "A CLI for migrating Svelte(Kit) codebases",
 	"license": "MIT",
@@ -29,19 +29,19 @@
 	"dependencies": {
 		"import-meta-resolve": "^4.1.0",
 		"kleur": "^4.1.5",
-		"magic-string": "^0.30.5",
+		"magic-string": "^0.30.15",
 		"prompts": "^2.4.2",
-		"semver": "^7.5.4",
+		"semver": "^7.6.3",
 		"tiny-glob": "^0.2.9",
 		"ts-morph": "^24.0.0",
-		"typescript": "^5.3.3",
+		"typescript": "^5.7.2",
 		"zimmerframe": "^1.1.2"
 	},
 	"devDependencies": {
-		"@types/node": "^18.19.48",
+		"@types/node": "^18.19.68",
 		"@types/prompts": "^2.4.9",
-		"@types/semver": "^7.5.6",
-		"svelte": "^4.2.10"
+		"@types/semver": "^7.5.8",
+		"svelte": "^4.2.19"
 	},
 	"keywords": [
 		"migration",

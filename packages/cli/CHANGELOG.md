@@ -1,5 +1,41 @@
 # sv
 
+## 0.6.11
+### Patch Changes
+
+
+- fix: properly add `eslint` dependency ([#375](https://github.com/sveltejs/cli/pull/375))
+
+
+- feat: migrate to `$app/state` ([#358](https://github.com/sveltejs/cli/pull/358))
+
+## 0.6.10
+### Patch Changes
+
+
+- fix: correctly resolve package manager commands in `create`'s next-steps ([#360](https://github.com/sveltejs/cli/pull/360))
+
+
+- fix: don't generate sourcemaps for release ([#373](https://github.com/sveltejs/cli/pull/373))
+
+
+- chore: update-dependencies ([#356](https://github.com/sveltejs/cli/pull/356))
+
+
+- fix: make `lucia` validation error messages more descriptive ([#363](https://github.com/sveltejs/cli/pull/363))
+
+## 0.6.9
+### Patch Changes
+
+
+- fix: use `vite@5` again due to compatability issues with `vitest@2` (#341) ([#353](https://github.com/sveltejs/cli/pull/353))
+
+## 0.6.8
+### Patch Changes
+
+
+- feat: add `sveltekit-adapter` add-on ([#346](https://github.com/sveltejs/cli/pull/346))
+
 ## 0.6.7
 ### Patch Changes
 
