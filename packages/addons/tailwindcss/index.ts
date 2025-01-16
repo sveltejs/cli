@@ -59,7 +59,7 @@ export default defineAddon({
 		for (const plugin of plugins) {
 			if (!options.plugins.includes(plugin.id)) continue;
 
-			sv.dependency(plugin.package, plugin.version);
+			sv.devDependency(plugin.package, plugin.version);
 		}
 
 		sv.file(`tailwind.config.${ext}`, (content) => {
