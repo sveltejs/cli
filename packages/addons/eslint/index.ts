@@ -20,15 +20,15 @@ export default defineAddon({
 	run: ({ sv, typescript, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('eslint', '^9.17.0');
-		sv.devDependency('@eslint/compat', '^1.2.4');
+		sv.devDependency('eslint', '^9.18.0');
+		sv.devDependency('@eslint/compat', '^1.2.5');
 		sv.devDependency('globals', '^15.14.0');
 		sv.devDependency('eslint-plugin-svelte', '^2.46.1');
-    sv.devDependency('@eslint/js', '^9.17.0');
+    sv.devDependency('@eslint/js', '^9.18.0');
 
-		if (typescript) sv.devDependency('typescript-eslint', '^8.18.1');
+		if (typescript) sv.devDependency('typescript-eslint', '^8.20.0');
 
-		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^9.1.0');
+		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.0.1');
 
 		sv.file('package.json', (content) => {
 			const { data, generateCode } = parseJson(content);

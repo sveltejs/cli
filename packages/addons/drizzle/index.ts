@@ -74,11 +74,11 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('drizzle-orm', '^0.38.2');
-		sv.devDependency('drizzle-kit', '^0.30.1');
+		sv.dependency('drizzle-orm', '^0.38.4');
+		sv.devDependency('drizzle-kit', '^0.30.2');
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.11.5');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
@@ -87,7 +87,7 @@ export default defineAddon({
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
-			sv.dependency('better-sqlite3', '^11.7.0');
+			sv.dependency('better-sqlite3', '^11.8.0');
 			sv.devDependency('@types/better-sqlite3', '^7.6.12');
 		}
 
