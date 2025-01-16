@@ -8,7 +8,7 @@ export default defineAddon({
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
 	run: ({ sv }) => {
-		sv.devDependency('mdsvex', '^0.11.2');
+		sv.devDependency('mdsvex', '^0.12.3');
 
 		sv.file('svelte.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);
