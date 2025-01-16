@@ -1,5 +1,5 @@
 ---
-'@sveltejs/create': patch
+'sv': patch
 ---
 
 chore: utilize prepack lifecycle script
