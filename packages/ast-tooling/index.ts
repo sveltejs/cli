@@ -1,8 +1,5 @@
-import { parse as tsParse } from 'recast/parsers/typescript.js';
-import { parse as recastParse, print as recastPrint, type Options as RecastOptions } from 'recast';
 import { Document, Element, type ChildNode } from 'domhandler';
 import { ElementType, parseDocument } from 'htmlparser2';
-import { removeElement, textContent } from 'domutils';
 import serializeDom from 'dom-serializer';
 import {
 	Root as CssAst,
@@ -15,8 +12,12 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
-import type { namedTypes as AstTypes } from 'ast-types';
-import type * as AstKinds from 'ast-types/gen/kinds';
+// todo: why is this file only generated during `dev` startup, if it's prefixed with type?
+// @ts-expect-error
+import { TsEstree } from './ts-estree.ts';
+import { print as esrapPrint } from 'esrap';
+import * as acorn from 'acorn';
+import { tsPlugin } from 'acorn-typescript';
 
 /**
  * Most of the AST tooling is pretty big in bundle size and bundling takes forever.
@@ -48,34 +49,72 @@ export type {
 	ChildNode as HtmlChildNode,
 
 	// js
-	AstTypes,
-	AstKinds,
+	TsEstree as AstTypes,
 
 	//css
 	CssChildNode
 };
 
-export function parseScript(content: string): AstTypes.Program {
-	const recastOutput: { program: AstTypes.Program } = recastParse(content, {
-		parser: {
-			parse: tsParse
+export function parseScript(content: string): TsEstree.Program {
+	const comments: any[] = [];
+
+	// @ts-expect-error
+	const acornTs = acorn.Parser.extend(tsPlugin({ allowSatisfies: true }));
+
+	const ast = acornTs.parse(content, {
+		ecmaVersion: 'latest',
+		sourceType: 'module',
+		locations: true,
+		onComment: (block, value, start, end) => {
+			if (block && /\n/.test(value)) {
+				let a = start;
+				while (a > 0 && content[a - 1] !== '\n') a -= 1;
+
+				let b = a;
+				while (/[ \t]/.test(content[b])) b += 1;
+
+				const indentation = content.slice(a, b);
+				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
+			}
+
+			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
 		}
 	});
 
-	return recastOutput.program;
+	Walker.walk(ast, null, {
+		_(node, { next }) {
+			const commentNode /** @type {import('../../src/types').NodeWithComments} */ =
+				/** @type {any} */ node;
+			let comment;
+
+			while (comments[0] && comments[0].start < node.start) {
+				comment = comments.shift();
+				// @ts-expect-error
+				(commentNode.leadingComments ||= []).push(comment);
+			}
+
+			next();
+
+			if (comments[0]) {
+				const slice = content.slice(node.end, comments[0].start);
+
+				if (/^[,) \t]*$/.test(slice)) {
+					// @ts-expect-error
+					commentNode.trailingComments = [comments.shift()];
+				}
+			}
+		}
+	});
+
+	return ast as TsEstree.Program;
 }
 
-export function serializeScript(ast: AstTypes.ASTNode, previousContent?: string): string {
-	let options: RecastOptions | undefined;
-	if (!previousContent) {
-		// provide sensible defaults if we generate a new file
-		options = {
-			quote: 'single',
-			useTabs: true
-		};
-	}
-
-	return recastPrint(ast, options).code;
+export function serializeScript(ast: TsEstree.Node): string {
+	const { code } = esrapPrint(ast, {
+		indent: '\t',
+		quotes: 'single'
+	});
+	return code;
 }
 
 export function parseCss(content: string): CssAst {
@@ -117,40 +156,10 @@ export function stripAst<T>(node: T, propToRemove: string): T {
 }
 
 export type SvelteAst = {
-	jsAst: AstTypes.Program;
+	jsAst: TsEstree.Program;
 	htmlAst: Document;
 	cssAst: CssAst;
 };
-
-export function parseSvelte(content: string): SvelteAst {
-	const htmlAst = parseHtml(content);
-
-	let scriptTag, styleTag;
-	for (const node of htmlAst.childNodes) {
-		if (node.type === ElementType.Script) {
-			scriptTag = node;
-			removeElement(scriptTag);
-		} else if (node.type === ElementType.Style) {
-			styleTag = node;
-			removeElement(styleTag);
-		}
-	}
-
-	if (!scriptTag) {
-		scriptTag = new Element('script', {}, undefined, ElementType.ElementType.Script);
-	}
-	if (!styleTag) {
-		styleTag = new Element('style', {}, undefined, ElementType.ElementType.Style);
-	}
-
-	const css = textContent(styleTag);
-	const cssAst = parseCss(css);
-
-	const scriptValue = textContent(scriptTag);
-	const jsAst = parseScript(scriptValue);
-
-	return { jsAst, htmlAst, cssAst };
-}
 
 export function parseJson(content: string): any {
 	// some of the files we need to process contain comments. The default

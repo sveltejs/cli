@@ -78,8 +78,8 @@ export default defineAddon({
 
 			const { value: config } = exports.defaultExport(ast, object.createEmpty());
 			const kitConfig = config.properties.find(
-				(p) => p.type === 'ObjectProperty' && p.key.type === 'Identifier' && p.key.name === 'kit'
-			) as AstTypes.ObjectProperty | undefined;
+				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
+			) as AstTypes.Property | undefined;
 
 			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
 				// only overrides the `adapter` property so we can reset it's args
