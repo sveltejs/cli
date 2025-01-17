@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.13
+### Patch Changes
+
+
+- chore: update `adapter-auto` and `adapter-cloudflare` ([#401](https://github.com/sveltejs/cli/pull/401))
+
 ## 0.6.12
 ### Patch Changes
 
