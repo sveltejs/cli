@@ -3,4 +3,4 @@
 '@sveltejs/create': patch
 ---
 
-chore: bump adapter auto, cloudflare
+chore: update `adapter-auto` and `adapter-cloudflare`
