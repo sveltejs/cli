@@ -6,7 +6,8 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"preprepare": "svelte-kit sync"
 	},
 	"devDependencies": {
 		"@fontsource/fira-mono": "^5.0.0",
