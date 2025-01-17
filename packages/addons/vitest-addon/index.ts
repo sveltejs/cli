@@ -10,7 +10,7 @@ export default defineAddon({
 	run: ({ sv, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.devDependency('vitest', '^2.0.4');
+		sv.devDependency('vitest', '^2.1.8');
 
 		sv.file('package.json', (content) => {
 			const { data, generateCode } = parseJson(content);
