@@ -1,6 +1,5 @@
 ---
-'@sveltejs/addons': patch
-'@sveltejs/create': patch
+'sv': patch
 ---
 
 chore: update `adapter-auto` and `adapter-cloudflare`
