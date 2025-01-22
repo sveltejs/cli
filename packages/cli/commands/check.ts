@@ -43,7 +43,6 @@ function runCheck(cwd: string, args: string[]) {
 		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
 		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
 	} catch (error) {
-		// TypeScript lore
 		if (
 			error &&
 			typeof error === 'object' &&
