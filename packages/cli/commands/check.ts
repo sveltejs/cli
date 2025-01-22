@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getUserAgent } from '../utils/package-manager.ts';
+import { forwardExitCode } from '../utils/common.js';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
@@ -43,15 +44,6 @@ function runCheck(cwd: string, args: string[]) {
 		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
 		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
 	} catch (error) {
-		if (
-			error &&
-			typeof error === 'object' &&
-			'status' in error &&
-			typeof error.status == 'number'
-		) {
-			process.exit(error.status);
-		} else {
-			process.exit(1);
-		}
+		forwardExitCode(error);
 	}
 }
