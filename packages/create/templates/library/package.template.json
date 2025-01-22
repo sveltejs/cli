@@ -23,12 +23,12 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^4.0.0",
-		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/package": "^2.0.0",
-		"@sveltejs/vite-plugin-svelte": "^4.0.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"publint": "^0.3.2",
 		"svelte": "^5.0.0",
 		"typescript": "^5.3.2",
-		"vite": "^5.4.11"
+		"vite": "^6.0.0"
 	}
 }
