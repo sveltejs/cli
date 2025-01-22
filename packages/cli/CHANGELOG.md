@@ -1,5 +1,14 @@
 # sv
 
+## 0.6.14
+### Patch Changes
+
+
+- chore: update `vite@6` and related packages ([#410](https://github.com/sveltejs/cli/pull/410))
+
+
+- fix: forward exit code of external package commands ([#412](https://github.com/sveltejs/cli/pull/412))
+
 ## 0.6.13
 ### Patch Changes
 
