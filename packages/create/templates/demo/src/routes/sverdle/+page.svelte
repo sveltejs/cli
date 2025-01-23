@@ -99,7 +99,7 @@
 
 		document
 			.querySelector(`[data-key="${event.key}" i]`)
-			?.dispatchEvent(new MouseEvent('click', { cancelable: true }));
+			?.dispatchEvent(new MouseEvent('click', { cancelable: true, bubbles: true }));
 	}
 </script>
 
