@@ -1,5 +1,5 @@
 ---
-'@sveltejs/create': patch
+'sv': patch
 ---
 
 fix: ensure Sverdle keyboard events modify game state without a trip to the server if client-side JavaScript is enabled
