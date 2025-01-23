@@ -32,7 +32,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'tailwindcss';
-			imports.addNamed(ast, '@tailwindcss/vite', { tailwindcss: vitePluginName });
+			imports.addDefault(ast, '@tailwindcss/vite', vitePluginName);
 
 			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
 			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
