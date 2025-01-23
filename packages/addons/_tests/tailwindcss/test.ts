@@ -23,7 +23,7 @@ test.concurrent.for(variants)('none - %s', async (variant, { page, ...ctx }) => 
 });
 
 test.concurrent.for(variants)('typography - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { tailwindcss: { plugins: ['typography'] } });
+	const cwd = await ctx.run(variant, { tailwindcss });
 
 	// ...add files
 	addFixture(cwd, variant);

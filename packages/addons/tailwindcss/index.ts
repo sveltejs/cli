@@ -4,41 +4,41 @@ import { array, common, exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
-type Plugin = {
-	id: string;
-	package: string;
-	version: string;
-	identifier: string;
-};
+// type Plugin = {
+// 	id: string;
+// 	package: string;
+// 	version: string;
+// 	identifier: string;
+// };
 
-const plugins: Plugin[] = [
-	{
-		id: 'typography',
-		package: '@tailwindcss/typography',
-		version: '^0.5.16',
-		identifier: 'typography'
-	},
-	{
-		id: 'forms',
-		package: '@tailwindcss/forms',
-		version: '^0.5.10',
-		identifier: 'forms'
-	},
-	{
-		id: 'container-queries',
-		package: '@tailwindcss/container-queries',
-		version: '^0.1.1',
-		identifier: 'containerQueries'
-	}
-];
+// const plugins: Plugin[] = [
+// 	{
+// 		id: 'typography',
+// 		package: '@tailwindcss/typography',
+// 		version: '^0.5.16',
+// 		identifier: 'typography'
+// 	},
+// 	{
+// 		id: 'forms',
+// 		package: '@tailwindcss/forms',
+// 		version: '^0.5.10',
+// 		identifier: 'forms'
+// 	},
+// 	{
+// 		id: 'container-queries',
+// 		package: '@tailwindcss/container-queries',
+// 		version: '^0.1.1',
+// 		identifier: 'containerQueries'
+// 	}
+// ];
 
 const options = defineAddonOptions({
-	plugins: {
-		type: 'multiselect',
-		question: 'Which plugins would you like to add?',
-		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: []
-	}
+	// plugins: {
+	// 	type: 'multiselect',
+	// 	question: 'Which plugins would you like to add?',
+	// 	options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
+	// 	default: []
+	// }
 });
 
 export default defineAddon({
@@ -51,71 +51,63 @@ export default defineAddon({
 		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^3.4.17');
-		sv.devDependency('autoprefixer', '^10.4.20');
+		sv.devDependency('@tailwindcss/vite', '^4.0.0');
+		sv.devDependency('tailwindcss', '^4.0.0');
 
-		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.10');
+		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
 
-		for (const plugin of plugins) {
-			if (!options.plugins.includes(plugin.id)) continue;
+		// sv.file(`tailwind.config.${ext}`, (content) => {
+		// 	const { ast, generateCode } = parseScript(content);
+		// 	let root;
+		// 	const rootExport = object.createEmpty();
+		// 	if (typescript) {
+		// 		imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
+		// 		root = common.satisfiesExpression(rootExport, 'Config');
+		// 	}
 
-			sv.devDependency(plugin.package, plugin.version);
-		}
+		// 	const { astNode: exportDeclaration, value: node } = exports.defaultExport(
+		// 		ast,
+		// 		root ?? rootExport
+		// 	);
 
-		sv.file(`tailwind.config.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
-			let root;
-			const rootExport = object.createEmpty();
-			if (typescript) {
-				imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
-				root = common.satisfiesExpression(rootExport, 'Config');
-			}
+		// 	const config = node.type === 'TSSatisfiesExpression' ? node.expression : node;
+		// 	if (config.type !== 'ObjectExpression') {
+		// 		throw new Error(`Unexpected tailwind config shape: ${config.type}`);
+		// 	}
 
-			const { astNode: exportDeclaration, value: node } = exports.defaultExport(
-				ast,
-				root ?? rootExport
-			);
+		// 	if (!typescript) {
+		// 		common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
+		// 	}
 
-			const config = node.type === 'TSSatisfiesExpression' ? node.expression : node;
-			if (config.type !== 'ObjectExpression') {
-				throw new Error(`Unexpected tailwind config shape: ${config.type}`);
-			}
+		// 	const contentArray = object.property(config, 'content', array.createEmpty());
+		// 	array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
 
-			if (!typescript) {
-				common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
-			}
+		// 	const themeObject = object.property(config, 'theme', object.createEmpty());
+		// 	object.property(themeObject, 'extend', object.createEmpty());
 
-			const contentArray = object.property(config, 'content', array.createEmpty());
-			array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
+		// 	const pluginsArray = object.property(config, 'plugins', array.createEmpty());
 
-			const themeObject = object.property(config, 'theme', object.createEmpty());
-			object.property(themeObject, 'extend', object.createEmpty());
+		// 	for (const plugin of plugins) {
+		// 		if (!options.plugins.includes(plugin.id)) continue;
+		// 		imports.addDefault(ast, plugin.package, plugin.identifier);
+		// 		array.push(pluginsArray, { type: 'Identifier', name: plugin.identifier });
+		// 	}
 
-			const pluginsArray = object.property(config, 'plugins', array.createEmpty());
+		// 	return generateCode();
+		// });
 
-			for (const plugin of plugins) {
-				if (!options.plugins.includes(plugin.id)) continue;
-				imports.addDefault(ast, plugin.package, plugin.identifier);
-				array.push(pluginsArray, { type: 'Identifier', name: plugin.identifier });
-			}
+		// sv.file('postcss.config.js', (content) => {
+		// 	const { ast, generateCode } = parseScript(content);
+		// 	const { value: rootObject } = exports.defaultExport(ast, object.createEmpty());
+		// 	const pluginsObject = object.property(rootObject, 'plugins', object.createEmpty());
 
-			return generateCode();
-		});
-
-		sv.file('postcss.config.js', (content) => {
-			const { ast, generateCode } = parseScript(content);
-			const { value: rootObject } = exports.defaultExport(ast, object.createEmpty());
-			const pluginsObject = object.property(rootObject, 'plugins', object.createEmpty());
-
-			object.property(pluginsObject, 'tailwindcss', object.createEmpty());
-			object.property(pluginsObject, 'autoprefixer', object.createEmpty());
-			return generateCode();
-		});
+		// 	object.property(pluginsObject, 'tailwindcss', object.createEmpty());
+		// 	object.property(pluginsObject, 'autoprefixer', object.createEmpty());
+		// 	return generateCode();
+		// });
 
 		sv.file('src/app.css', (content) => {
-			const layerImports = ['base', 'components', 'utilities'].map(
-				(layer) => `tailwindcss/${layer}`
-			);
+			const layerImports = ['tailwindcss'];
 			if (layerImports.every((i) => content.includes(i))) {
 				return content;
 			}
