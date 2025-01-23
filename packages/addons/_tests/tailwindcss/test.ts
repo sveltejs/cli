@@ -16,8 +16,8 @@ test.concurrent.for(variants)('none - %s', async (variant, { page, ...ctx }) => 
 	ctx.onTestFinished(async () => await close());
 
 	const el = page.getByTestId('base');
-	await expect(el).toHaveCSS('background-color', 'rgb(71, 85, 105)');
-	await expect(el).toHaveCSS('border-color', 'rgb(249, 250, 251)');
+	await expect(el).toHaveCSS('background-color', 'oklch(0.446 0.043 257.281)');
+	await expect(el).toHaveCSS('border-color', 'oklch(0.984 0.003 247.858)');
 	await expect(el).toHaveCSS('border-width', '4px');
 	await expect(el).toHaveCSS('margin-top', '4px');
 });
