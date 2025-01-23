@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.16
+### Patch Changes
+
+
+- fix: ensure Sverdle keyboard events modify game state without a trip to the server if client-side JavaScript is enabled ([#416](https://github.com/sveltejs/cli/pull/416))
+
 ## 0.6.15
 ### Patch Changes
 
