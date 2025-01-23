@@ -1,7 +1,15 @@
 import { defineAddon } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
-import { imports } from '@sveltejs/cli-core/js';
-import { parseCss, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
+import {
+	array,
+	common,
+	functions,
+	imports,
+	object,
+	variables,
+	exports
+} from '@sveltejs/cli-core/js';
+import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
 export default defineAddon({
@@ -11,12 +19,30 @@ export default defineAddon({
 	homepage: 'https://tailwindcss.com',
 	options: {},
 	run: ({ sv, typescript, kit, dependencyVersion }) => {
+		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('@tailwindcss/vite', '^4.0.0');
 		sv.devDependency('tailwindcss', '^4.0.0');
+		sv.devDependency('@tailwindcss/vite', '^4.0.0');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
+
+		// add the vite plugin
+		sv.file(`vite.config.${ext}`, (content) => {
+			const { ast, generateCode } = parseScript(content);
+
+			const vitePluginName = 'tailwindcss';
+			imports.addNamed(ast, '@tailwindcss/vite', { tailwindcss: vitePluginName });
+
+			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
+			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
+
+			const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
+			const pluginFunctionCall = functions.call(vitePluginName, []);
+			array.push(pluginsArray, pluginFunctionCall);
+
+			return generateCode();
+		});
 
 		sv.file('src/app.css', (content) => {
 			if (content.includes('tailwindcss')) {
