@@ -53,4 +53,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm build
-      - run: pnpm test tailwindcss
+      - run: pnpm test
