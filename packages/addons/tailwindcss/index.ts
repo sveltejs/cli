@@ -1,14 +1,6 @@
 import { defineAddon } from '@sveltejs/cli-core';
 import { addImports } from '@sveltejs/cli-core/css';
-import {
-	array,
-	common,
-	functions,
-	imports,
-	object,
-	variables,
-	exports
-} from '@sveltejs/cli-core/js';
+import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
