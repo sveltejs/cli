@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.15
+### Patch Changes
+
+
+- chore: add prepare script to run `svelte-kit sync` ([#409](https://github.com/sveltejs/cli/pull/409))
+
 ## 0.6.14
 ### Patch Changes
 
