@@ -19,16 +19,14 @@ export default defineAddon({
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
 
 		sv.file('src/app.css', (content) => {
-			const layerImports = ['tailwindcss'];
-			if (layerImports.every((i) => content.includes(i))) {
+			if (content.includes('tailwindcss')) {
 				return content;
 			}
 
 			const { ast, generateCode } = parseCss(content);
 			const originalFirst = ast.first;
 
-			const specifiers = layerImports.map((i) => `'${i}'`);
-			const nodes = addImports(ast, specifiers);
+			const nodes = addImports(ast, ["'tailwindcss'"]);
 
 			if (
 				originalFirst !== ast.first &&
