@@ -11,6 +11,7 @@ export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
 	// flags that we'll want to pass to `svelte-check`
 	.allowUnknownOption(true)
+	.allowExcessArguments(true)
 	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
 	.configureHelp({
 		formatHelp() {
