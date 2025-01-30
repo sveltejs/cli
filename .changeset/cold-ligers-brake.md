@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: sv check not allowing any arguments
+fix: properly pass through arguments to `sv check`
