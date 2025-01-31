@@ -1,5 +1,14 @@
 # sv
 
+## 0.6.17
+### Patch Changes
+
+
+- fix: properly pass through arguments to `sv check` ([#420](https://github.com/sveltejs/cli/pull/420))
+
+
+- chore: use `rolldown` instead of `rollup` ([#371](https://github.com/sveltejs/cli/pull/371))
+
 ## 0.6.16
 ### Patch Changes
 
