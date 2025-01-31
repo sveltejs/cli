@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.18
+### Patch Changes
+
+
+- fix: `checkjs` library template ([#428](https://github.com/sveltejs/cli/pull/428))
+
 ## 0.6.17
 ### Patch Changes
 
