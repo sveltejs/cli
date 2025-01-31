@@ -1,5 +1,5 @@
 ---
-'@sveltejs/create': patch
+'sv': patch
 ---
 
 fix: `checkjs` library template
