@@ -246,17 +246,10 @@ importers:
         version: 4.1.0
       magic-string:
         specifier: ^0.30.15
-<<<<<<< HEAD
-        version: 0.30.15
+        version: 0.30.17
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
-=======
-        version: 0.30.17
-      prompts:
-        specifier: ^2.4.2
-        version: 2.4.2
->>>>>>> main
       semver:
         specifier: ^7.6.3
         version: 7.6.3
@@ -371,22 +364,14 @@ packages:
   '@changesets/write@0.3.2':
     resolution: {integrity: sha512-kDxDrPNpUgsjDbWBvUo27PzKX4gqeKOlhibaOXDJA6kuBisGqNHv/HwGJrAu8U/dSf8ZEFIeHIPtvSlZI1kULw==}
 
-<<<<<<< HEAD
   '@clack/core@0.4.0':
     resolution: {integrity: sha512-YJCYBsyJfNDaTbvDUVSJ3SgSuPrcujarRgkJ5NLjexDZKvaOiVVJvAQYx8lIgG0qRT8ff0fPgqyBCVivanIZ+A==}
 
   '@clack/prompts@0.9.0':
     resolution: {integrity: sha512-nGsytiExgUr4FL0pR/LeqxA28nz3E0cW7eLTSh3Iod9TGrbBt8Y7BHbV3mmkNC4G0evdYyQ3ZsbiBkk7ektArA==}
 
-  '@esbuild/aix-ppc64@0.21.5':
-    resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
-    engines: {node: '>=12'}
-    cpu: [ppc64]
-    os: [aix]
-=======
   '@emnapi/core@1.3.1':
     resolution: {integrity: sha512-pVGjBIt1Y6gg3EJN8jTcfpP/+uuRksIo055oE/OBkDNcjZqVbfkWCksG1Jp4yZnj3iKWyWX8fdG/j6UDYPbFog==}
->>>>>>> main
 
   '@emnapi/runtime@1.3.1':
     resolution: {integrity: sha512-kEBmG8KyqtxJZv+ygbEim+KCGtIq1fC22Ms3S4ziXmYKm8uyoLX0MHONVKwp+9opg390VaKRNt4a7A9NwmpNhw==}
@@ -2525,7 +2510,6 @@ snapshots:
       human-id: 1.0.2
       prettier: 2.8.8
 
-<<<<<<< HEAD
   '@clack/core@0.4.0':
     dependencies:
       picocolors: 1.1.1
@@ -2537,13 +2521,10 @@ snapshots:
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
-  '@esbuild/aix-ppc64@0.21.5':
-=======
   '@emnapi/core@1.3.1':
     dependencies:
       '@emnapi/wasi-threads': 1.0.1
       tslib: 2.8.1
->>>>>>> main
     optional: true
 
   '@emnapi/runtime@1.3.1':
