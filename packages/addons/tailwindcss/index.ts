@@ -15,13 +15,13 @@ const plugins: Plugin[] = [
 	{
 		id: 'typography',
 		package: '@tailwindcss/typography',
-		version: '^0.5.15',
+		version: '^0.5.16',
 		identifier: 'typography'
 	},
 	{
 		id: 'forms',
 		package: '@tailwindcss/forms',
-		version: '^0.5.9',
+		version: '^0.5.10',
 		identifier: 'forms'
 	},
 	{
@@ -51,15 +51,15 @@ export default defineAddon({
 		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^3.4.9');
+		sv.devDependency('tailwindcss', '^3.4.17');
 		sv.devDependency('autoprefixer', '^10.4.20');
 
-		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.5');
+		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.10');
 
 		for (const plugin of plugins) {
 			if (!options.plugins.includes(plugin.id)) continue;
 
-			sv.dependency(plugin.package, plugin.version);
+			sv.devDependency(plugin.package, plugin.version);
 		}
 
 		sv.file(`tailwind.config.${ext}`, (content) => {

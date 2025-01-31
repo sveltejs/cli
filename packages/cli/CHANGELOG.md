@@ -1,5 +1,62 @@
 # sv
 
+## 0.6.16
+### Patch Changes
+
+
+- fix: ensure Sverdle keyboard events modify game state without a trip to the server if client-side JavaScript is enabled ([#416](https://github.com/sveltejs/cli/pull/416))
+
+## 0.6.15
+### Patch Changes
+
+
+- chore: add prepare script to run `svelte-kit sync` ([#409](https://github.com/sveltejs/cli/pull/409))
+
+## 0.6.14
+### Patch Changes
+
+
+- chore: update `vite@6` and related packages ([#410](https://github.com/sveltejs/cli/pull/410))
+
+
+- fix: forward exit code of external package commands ([#412](https://github.com/sveltejs/cli/pull/412))
+
+## 0.6.13
+### Patch Changes
+
+
+- chore: update `adapter-auto` and `adapter-cloudflare` ([#401](https://github.com/sveltejs/cli/pull/401))
+
+## 0.6.12
+### Patch Changes
+
+
+- fix: git detection inside preconditions failed ([#394](https://github.com/sveltejs/cli/pull/394))
+
+
+- chore: update addon dependencies ([#357](https://github.com/sveltejs/cli/pull/357))
+
+
+- chore: utilize prepack lifecycle script ([#396](https://github.com/sveltejs/cli/pull/396))
+
+
+- chore: improve cli help menu ([#294](https://github.com/sveltejs/cli/pull/294))
+
+
+- fix: use modern `Spring` and `MediaQuery` implementation ([#361](https://github.com/sveltejs/cli/pull/361))
+
+
+- fix: tailwind plugins as dev dependencies ([#400](https://github.com/sveltejs/cli/pull/400))
+
+## 0.6.11
+### Patch Changes
+
+
+- fix: properly add `eslint` dependency ([#375](https://github.com/sveltejs/cli/pull/375))
+
+
+- feat: migrate to `$app/state` ([#358](https://github.com/sveltejs/cli/pull/358))
+
 ## 0.6.10
 ### Patch Changes
 

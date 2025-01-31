@@ -73,7 +73,7 @@ export default defineAddon({
 
 		const paraglideOutDir = 'src/lib/paraglide';
 
-		sv.dependency('@inlang/paraglide-sveltekit', '^0.11.1');
+		sv.dependency('@inlang/paraglide-sveltekit', '^0.15.5');
 
 		sv.file('project.inlang/settings.json', (content) => {
 			if (content) return content;
@@ -231,7 +231,7 @@ export default defineAddon({
 
 				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
 				imports.addNamed(script.ast, '$app/navigation', { goto: 'goto' });
-				imports.addNamed(script.ast, '$app/stores', { page: 'page' });
+				imports.addNamed(script.ast, '$app/state', { page: 'page' });
 				imports.addNamed(script.ast, '$lib/i18n', { i18n: 'i18n' });
 				if (typescript) {
 					imports.addNamed(
@@ -253,7 +253,7 @@ export default defineAddon({
 						${ts('', '* @param {import("$lib/paraglide/runtime").AvailableLanguageTag} newLanguage')} 
 						${ts('', '*/')} 
 						function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
-							const canonicalPath = i18n.route($page.url.pathname);
+							const canonicalPath = i18n.route(page.url.pathname);
 							const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
 							goto(localisedPath);
 						}

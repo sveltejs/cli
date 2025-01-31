@@ -1,5 +1,11 @@
 # svelte-migrate
 
+## 1.8.0
+### Minor Changes
+
+
+- feat: allow sub path migration or none at all for Svelte 5 migration ([#391](https://github.com/sveltejs/cli/pull/391))
+
 ## 1.7.1
 ### Patch Changes
 
