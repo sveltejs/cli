@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { confetti } from '@neoconfetti/svelte';
 	import type { ActionData, PageData } from './$types';
-	import { reducedMotion } from './reduced-motion';
+	import { MediaQuery } from 'svelte/reactivity';
 
 	interface Props {
 		data: PageData;
@@ -18,6 +18,9 @@
 	 * @type {Props}
 	 */
 	let { data, form = $bindable() }: Props = $props();
+
+	/** Whether the user prefers reduced motion */
+	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
 	/** Whether or not the user has won */
 	let won = $derived(data.answers.at(-1) === 'xxxxx');
@@ -96,7 +99,7 @@
 
 		document
 			.querySelector(`[data-key="${event.key}" i]`)
-			?.dispatchEvent(new MouseEvent('click', { cancelable: true }));
+			?.dispatchEvent(new MouseEvent('click', { cancelable: true, bubbles: true }));
 	}
 </script>
 
@@ -203,7 +206,7 @@
 	<div
 		style="position: absolute; left: 50%; top: 30%"
 		use:confetti={{
-			particleCount: $reducedMotion ? 0 : undefined,
+			particleCount: reducedMotion.current ? 0 : undefined,
 			force: 0.7,
 			stageWidth: window.innerWidth,
 			stageHeight: window.innerHeight,
