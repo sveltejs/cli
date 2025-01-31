@@ -1,5 +1,5 @@
 ---
-'@sveltejs/addons': patch
+'sv': minor
 ---
 
-using tailwindcss 4.0.0
+feat: update to `tailwindcss` v4.0.0
