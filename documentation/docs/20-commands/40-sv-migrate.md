@@ -9,6 +9,11 @@ Some migrations may annotate your codebase with tasks for completion that you ca
 ## Usage
 
 ```bash
+npx sv migrate
+```
+
+You can also specify a migration directly via the CLI:
+```bash
 npx sv migrate [migration]
 ```
 

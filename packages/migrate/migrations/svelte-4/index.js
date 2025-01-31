@@ -1,9 +1,15 @@
-import colors from 'kleur';
+import pc from 'picocolors';
 import fs from 'node:fs';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import glob from 'tiny-glob/sync.js';
-import { bail, check_git, update_js_file, update_svelte_file } from '../../utils.js';
+import {
+	bail,
+	check_git,
+	migration_succeeded,
+	update_js_file,
+	update_svelte_file
+} from '../../utils.js';
 import { transform_code, transform_svelte_code, update_pkg_json } from './migrate.js';
 
 export async function migrate() {
@@ -11,33 +17,30 @@ export async function migrate() {
 		bail('Please re-run this script in a directory with a package.json');
 	}
 
-	console.log(
-		colors
-			.bold()
-			.yellow(
-				'\nThis will update files in the current directory\n' +
-					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently.\n"
+	p.log.warning(
+		pc.bold(pc.yellow('This will update files in the current directory.')) +
+			'\n' +
+			pc.bold(
+				pc.yellow(
+					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently."
+				)
 			)
 	);
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
-	const folders = await prompts({
-		type: 'multiselect',
-		name: 'value',
+	const folders = await p.multiselect({
 		message: 'Which folders should be migrated?',
-		choices: fs
+		options: fs
 			.readdirSync('.')
 			.filter(
 				(dir) => fs.statSync(dir).isDirectory() && dir !== 'node_modules' && !dir.startsWith('.')
@@ -45,17 +48,19 @@ export async function migrate() {
 			.map((dir) => ({ title: dir, value: dir, selected: true }))
 	});
 
-	if (!folders.value?.length) {
+	if (p.isCancel(folders) || !folders?.length) {
 		process.exit(1);
 	}
 
-	const migrate_transition = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const migrate_transition = await p.confirm({
 		message:
 			'Add the `|global` modifier to currently global transitions for backwards compatibility? More info at https://svelte.dev/docs/svelte/v4-migration-guide#transitions-are-local-by-default',
-		initial: true
+		initialValue: true
 	});
+
+	if (p.isCancel(migrate_transition)) {
+		process.exit(1);
+	}
 
 	update_pkg_json();
 
@@ -68,8 +73,8 @@ export async function migrate() {
 		'.svelte'
 	];
 	const extensions = [...svelte_extensions, '.ts', '.js'];
-	// For some reason {folders.value.join(',')} as part of the glob doesn't work and returns less files
-	const files = folders.value.flatMap(
+	// For some reason {folders.join(',')} as part of the glob doesn't work and returns less files
+	const files = folders.flatMap(
 		/** @param {string} folder */ (folder) =>
 			glob(`${folder}/**`, { filesOnly: true, dot: true })
 				.map((file) => file.replace(/\\/g, '/'))
@@ -80,7 +85,7 @@ export async function migrate() {
 		if (extensions.some((ext) => file.endsWith(ext))) {
 			if (svelte_extensions.some((ext) => file.endsWith(ext))) {
 				update_svelte_file(file, transform_code, (code) =>
-					transform_svelte_code(code, migrate_transition.value)
+					transform_svelte_code(code, migrate_transition)
 				);
 			} else {
 				update_js_file(file, transform_code);
@@ -88,25 +93,15 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
-
-	console.log('\nRecommended next steps:\n');
-
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		use_git && cyan('git commit -m "migration to Svelte 4"'),
 		'Review the migration guide at https://svelte.dev/docs/svelte/v4-migration-guide',
-		'Read the updated docs at https://svelte.dev/docs/svelte'
+		'Read the updated docs at https://svelte.dev/docs/svelte',
+		use_git && `Run ${cyan('git diff')} to review changes.`
 	].filter(Boolean);
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded(tasks);
 }
