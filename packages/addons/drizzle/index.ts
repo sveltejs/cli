@@ -89,6 +89,7 @@ export default defineAddon({
 		if (options.sqlite === 'better-sqlite3') {
 			sv.dependency('better-sqlite3', '^11.8.0');
 			sv.devDependency('@types/better-sqlite3', '^7.6.12');
+			sv.allowPostinstallScript('better-sqlite3');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')

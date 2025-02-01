@@ -437,12 +437,13 @@ export async function runAddCommand(
 	const details = officialDetails.concat(commDetails);
 
 	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
-	const filesToFormat = await applyAddons({
-		workspace,
-		addonSetupResults,
-		addons: addonMap,
-		options: official
-	});
+	const { filesToFormat, allowedPostinstallScripts: allowedAddonPostinstallScripts } =
+		await applyAddons({
+			workspace,
+			addonSetupResults,
+			addons: addonMap,
+			options: official
+		});
 
 	p.log.success('Successfully setup add-ons');
 
@@ -454,7 +455,10 @@ export async function runAddCommand(
 		if (packageManager) {
 			workspace.packageManager = packageManager;
 
-			allowExecutingPostinstallScripts(workspace.cwd, packageManager, ['esbuild']);
+			allowExecutingPostinstallScripts(workspace.cwd, packageManager, [
+				'esbuild',
+				...allowedAddonPostinstallScripts
+			]);
 
 			await installDependencies(packageManager, options.cwd);
 		}

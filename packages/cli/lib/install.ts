@@ -33,7 +33,7 @@ export async function installAddon<Addons extends AddonMap>({
 	cwd,
 	options,
 	packageManager = 'npm'
-}: InstallOptions<Addons>): Promise<string[]> {
+}: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>> {
 	const workspace = createWorkspace({ cwd, packageManager });
 	const addonSetupResults = setupAddons(Object.values(addons), workspace);
 
@@ -51,8 +51,12 @@ export async function applyAddons({
 	workspace,
 	addonSetupResults,
 	options
-}: ApplyAddonOptions): Promise<string[]> {
+}: ApplyAddonOptions): Promise<{
+	filesToFormat: string[];
+	allowedPostinstallScripts: string[];
+}> {
 	const filesToFormat = new Set<string>();
+	const allowedPostinstallScripts: string[] = [];
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, addonSetupResults);
@@ -60,11 +64,20 @@ export async function applyAddons({
 	for (const addon of ordered) {
 		workspace = createWorkspace({ ...workspace, options: options[addon.id] });
 
-		const files = await runAddon({ workspace, addon, multiple: ordered.length > 1 });
+		const { files, allowPostinstallScripts } = await runAddon({
+			workspace,
+			addon,
+			multiple: ordered.length > 1
+		});
+
 		files.forEach((f) => filesToFormat.add(f));
+		allowPostinstallScripts.forEach((s) => allowedPostinstallScripts.push(s));
 	}
 
-	return Array.from(filesToFormat);
+	return {
+		filesToFormat: Array.from(filesToFormat),
+		allowedPostinstallScripts
+	};
 }
 
 export function setupAddons(
@@ -91,7 +104,7 @@ type RunAddon = {
 	addon: Addon<Record<string, Question>>;
 	multiple: boolean;
 };
-async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<string[]> {
+async function runAddon({ addon, multiple, workspace }: RunAddon) {
 	const files = new Set<string>();
 
 	// apply default addon options
@@ -103,6 +116,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 	}
 
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+	const allowPostinstallScripts: string[] = [];
 	const sv: SvApi = {
 		file: (path, content) => {
 			try {
@@ -150,6 +164,9 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 		},
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
+		},
+		allowPostinstallScript: (pkg) => {
+			allowPostinstallScripts.push(pkg);
 		}
 	};
 	await addon.run({ ...workspace, sv });
@@ -157,7 +174,10 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 	const pkgPath = installPackages(dependencies, workspace);
 	files.add(pkgPath);
 
-	return Array.from(files);
+	return {
+		files: Array.from(files),
+		allowPostinstallScripts
+	};
 }
 
 // sorts them to their execution order

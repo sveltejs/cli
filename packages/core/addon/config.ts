@@ -20,10 +20,11 @@ export type Scripts<Args extends OptionDefinition> = {
 };
 
 export type SvApi = {
-	file: (path: string, edit: (content: string) => string) => void;
+	allowPostinstallScript: (pkg: string) => void;
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
+	file: (path: string, edit: (content: string) => string) => void;
 };
 
 export type Addon<Args extends OptionDefinition> = {
