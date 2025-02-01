@@ -5,6 +5,7 @@ import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/testing';
 import { chromium, type Browser, type Page } from '@playwright/test';
+import { allowExecutingPostinstallScripts } from '../../../cli/utils/package-manager.ts';
 
 const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');
@@ -54,7 +55,13 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
 
 			// run addon
-			await installAddon({ cwd, addons, options, packageManager: 'pnpm' });
+			const { allowedPostinstallScripts } = await installAddon({
+				cwd,
+				addons,
+				options,
+				packageManager: 'pnpm'
+			});
+			allowExecutingPostinstallScripts(cwd, 'pnpm', ['esbuild', ...allowedPostinstallScripts]);
 
 			return cwd;
 		};
