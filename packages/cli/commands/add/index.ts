@@ -18,7 +18,11 @@ import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
 import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
-import { installDependencies, packageManagerPrompt } from '../../utils/package-manager.ts';
+import {
+	allowExecutingPostinstallScripts,
+	installDependencies,
+	packageManagerPrompt
+} from '../../utils/package-manager.ts';
 import { getGlobalPreconditions } from './preconditions.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
@@ -425,13 +429,6 @@ export async function runAddCommand(
 	// indicating that installing deps was skipped and no PM was selected
 	if (selectedAddons.length === 0) return { packageManager: null };
 
-	// prompt for package manager
-	let packageManager: PackageManager | undefined;
-	if (options.install) {
-		packageManager = await packageManagerPrompt(options.cwd);
-		if (packageManager) workspace.packageManager = packageManager;
-	}
-
 	// apply addons
 	const officialDetails = Object.keys(official).map((id) => getAddonDetails(id));
 	const commDetails = Object.keys(community).map(
@@ -449,9 +446,18 @@ export async function runAddCommand(
 
 	p.log.success('Successfully setup add-ons');
 
-	// install dependencies
-	if (packageManager && options.install) {
-		await installDependencies(packageManager, options.cwd);
+	// prompt for package manager and install dependencies
+	let packageManager: PackageManager | undefined;
+	if (options.install) {
+		packageManager = await packageManagerPrompt(options.cwd);
+
+		if (packageManager) {
+			workspace.packageManager = packageManager;
+
+			allowExecutingPostinstallScripts(workspace.cwd, packageManager, ['esbuild']);
+
+			await installDependencies(packageManager, options.cwd);
+		}
 	}
 
 	// format modified/created files with prettier (if available)

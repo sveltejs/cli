@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 import { exec } from 'tinyexec';
 import * as p from '@sveltejs/clack-prompts';
@@ -8,6 +10,7 @@ import {
 	detectSync,
 	type AgentName
 } from 'package-manager-detector';
+import { parseJson } from '@sveltejs/cli-core/parsers';
 
 const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
 const agentOptions: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
@@ -66,4 +69,29 @@ export function getUserAgent(): AgentName | undefined {
 	const separatorPos = pmSpec.lastIndexOf('/');
 	const name = pmSpec.substring(0, separatorPos) as AgentName;
 	return AGENTS.includes(name) ? name : undefined;
+}
+
+export function allowExecutingPostinstallScripts(
+	cwd: string,
+	packageManager: AgentName | null | undefined,
+	allowedPackages: string[]
+) {
+	// currently we only need to explicitly allow running postinstall
+	// scripts for pnpm. It's possible that this sets precedence for
+	// other package managers tho, therefore this has been extracted here.
+	if (!packageManager || packageManager !== 'pnpm') return;
+
+	const pkgPath = path.join(cwd, 'package.json');
+	const content = fs.readFileSync(pkgPath, 'utf-8');
+	const { data, generateCode } = parseJson(content);
+
+	data.pnpm ??= {};
+	data.pnpm.onlyBuiltDependencies ??= [];
+	for (const allowedPackage of allowedPackages) {
+		if (data.pnpm.onlyBuiltDependencies.includes(allowedPackage)) continue;
+		data.pnpm.onlyBuiltDependencies.push(allowedPackage);
+	}
+
+	const newContent = generateCode();
+	fs.writeFileSync(pkgPath, newContent);
 }
