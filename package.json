@@ -14,7 +14,7 @@
 		"dev": "rolldown --watch --config",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
-		"test": "vitest run",
+		"test": "vitest run --silent",
 		"test:ui": "vitest --ui",
 		"update-addon-deps": "node ./scripts/update-addon-dependencies.js"
 	},
