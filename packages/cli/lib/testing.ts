@@ -5,7 +5,9 @@ import degit from 'degit';
 import { exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
 import pstree, { type PS } from 'ps-tree';
+import { allowExecutingPostinstallScripts } from '../utils/package-manager.ts';
 
+export { allowExecutingPostinstallScripts };
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 
 const TEMPLATES_DIR = '.templates';
