@@ -19,7 +19,7 @@ import { createWorkspace } from './workspace.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
 import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
 import {
-	allowExecutingPostinstallScripts,
+	addPnpmBuildDependendencies,
 	installDependencies,
 	packageManagerPrompt
 } from '../../utils/package-manager.ts';
@@ -437,13 +437,12 @@ export async function runAddCommand(
 	const details = officialDetails.concat(commDetails);
 
 	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
-	const { filesToFormat, allowedPostinstallScripts: allowedAddonPostinstallScripts } =
-		await applyAddons({
-			workspace,
-			addonSetupResults,
-			addons: addonMap,
-			options: official
-		});
+	const { filesToFormat, pnpmBuildDependencies: addonPnpmBuildDependencies } = await applyAddons({
+		workspace,
+		addonSetupResults,
+		addons: addonMap,
+		options: official
+	});
 
 	p.log.success('Successfully setup add-ons');
 
@@ -455,9 +454,9 @@ export async function runAddCommand(
 		if (packageManager) {
 			workspace.packageManager = packageManager;
 
-			allowExecutingPostinstallScripts(workspace.cwd, packageManager, [
+			addPnpmBuildDependendencies(workspace.cwd, packageManager, [
 				'esbuild',
-				...allowedAddonPostinstallScripts
+				...addonPnpmBuildDependencies
 			]);
 
 			await installDependencies(packageManager, options.cwd);

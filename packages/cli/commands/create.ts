@@ -15,7 +15,7 @@ import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
 import { detectSync, resolveCommand, type AgentName } from 'package-manager-detector';
 import {
-	allowExecutingPostinstallScripts,
+	addPnpmBuildDependendencies,
 	getUserAgent,
 	installDependencies,
 	packageManagerPrompt
@@ -165,7 +165,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnNextSteps: string | undefined;
 	const installDeps = async () => {
 		packageManager = await packageManagerPrompt(projectPath);
-		allowExecutingPostinstallScripts(projectPath, packageManager, ['esbuild']);
+		addPnpmBuildDependendencies(projectPath, packageManager, ['esbuild']);
 		if (packageManager) await installDependencies(packageManager, projectPath);
 	};
 

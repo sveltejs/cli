@@ -6,7 +6,7 @@ import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import {
 	createProject,
 	startPreview,
-	allowExecutingPostinstallScripts,
+	addPnpmBuildDependendencies,
 	type CreateProject,
 	type ProjectVariant
 } from 'sv/testing';
@@ -69,13 +69,13 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
 
 			// run addon
-			const { allowedPostinstallScripts } = await installAddon({
+			const { pnpmBuildDependencies } = await installAddon({
 				cwd,
 				addons,
 				options,
 				packageManager: 'pnpm'
 			});
-			allowExecutingPostinstallScripts(cwd, 'pnpm', ['esbuild', ...allowedPostinstallScripts]);
+			addPnpmBuildDependendencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 
 			return cwd;
 		};

@@ -72,24 +72,24 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export function allowExecutingPostinstallScripts(
+export function addPnpmBuildDependendencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	allowedPackages: string[]
 ) {
-	// currently we only need to explicitly allow running postinstall
-	// scripts for pnpm. It's possible that this sets precedence for
-	// other package managers tho, therefore this has been extracted here.
+	// other package managers are currently not affected by this change
 	if (!packageManager || packageManager !== 'pnpm') return;
 
 	// find the workspace root
 	const pnpmWorkspacePath = find.up('pnpm-workspace.yaml', { cwd });
 	if (!pnpmWorkspacePath) return;
 
+	// load the package.json
 	const pkgPath = path.join(path.dirname(pnpmWorkspacePath), 'package.json');
 	const content = fs.readFileSync(pkgPath, 'utf-8');
 	const { data, generateCode } = parseJson(content);
 
+	// add the packages where we want the postinstall scripts to be run
 	data.pnpm ??= {};
 	data.pnpm.onlyBuiltDependencies ??= [];
 	for (const allowedPackage of allowedPackages) {
@@ -97,6 +97,7 @@ export function allowExecutingPostinstallScripts(
 		data.pnpm.onlyBuiltDependencies.push(allowedPackage);
 	}
 
+	// save the updated package.json
 	const newContent = generateCode();
 	fs.writeFileSync(pkgPath, newContent);
 }

@@ -53,10 +53,10 @@ export async function applyAddons({
 	options
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
-	allowedPostinstallScripts: string[];
+	pnpmBuildDependencies: string[];
 }> {
 	const filesToFormat = new Set<string>();
-	const allowedPostinstallScripts: string[] = [];
+	const allPnpmBuildDependencies: string[] = [];
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, addonSetupResults);
@@ -64,19 +64,19 @@ export async function applyAddons({
 	for (const addon of ordered) {
 		workspace = createWorkspace({ ...workspace, options: options[addon.id] });
 
-		const { files, allowPostinstallScripts } = await runAddon({
+		const { files, pnpmBuildDependencies } = await runAddon({
 			workspace,
 			addon,
 			multiple: ordered.length > 1
 		});
 
 		files.forEach((f) => filesToFormat.add(f));
-		allowPostinstallScripts.forEach((s) => allowedPostinstallScripts.push(s));
+		pnpmBuildDependencies.forEach((s) => allPnpmBuildDependencies.push(s));
 	}
 
 	return {
 		filesToFormat: Array.from(filesToFormat),
-		allowedPostinstallScripts
+		pnpmBuildDependencies: allPnpmBuildDependencies
 	};
 }
 
@@ -116,7 +116,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 	}
 
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
-	const allowPostinstallScripts: string[] = [];
+	const pnpmBuildDependencies: string[] = [];
 	const sv: SvApi = {
 		file: (path, content) => {
 			try {
@@ -165,8 +165,8 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
 		},
-		allowPostinstallScript: (pkg) => {
-			allowPostinstallScripts.push(pkg);
+		pnpmBuildDependendency: (pkg) => {
+			pnpmBuildDependencies.push(pkg);
 		}
 	};
 	await addon.run({ ...workspace, sv });
@@ -176,7 +176,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 
 	return {
 		files: Array.from(files),
-		allowPostinstallScripts
+		pnpmBuildDependencies
 	};
 }
 

@@ -20,7 +20,7 @@ export type Scripts<Args extends OptionDefinition> = {
 };
 
 export type SvApi = {
-	allowPostinstallScript: (pkg: string) => void;
+	pnpmBuildDependendency: (pkg: string) => void;
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
