@@ -5,9 +5,8 @@ import degit from 'degit';
 import { exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
 import pstree, { type PS } from 'ps-tree';
-import { addPnpmBuildDependendencies } from '../utils/package-manager.ts';
 
-export { addPnpmBuildDependendencies };
+export { addPnpmBuildDependendencies } from '../utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 
 const TEMPLATES_DIR = '.templates';
