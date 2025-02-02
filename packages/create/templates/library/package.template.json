@@ -5,6 +5,7 @@
 		"dev": "vite dev",
 		"build": "vite build && npm run prepack",
 		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
 		"prepack": "svelte-kit sync && svelte-package && publint"
 	},
 	"files": ["dist", "!dist/**/*.test.*", "!dist/**/*.spec.*"],
@@ -22,13 +23,13 @@
 		"svelte": "^5.0.0"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^3.0.0",
-		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/adapter-auto": "^4.0.0",
+		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/package": "^2.0.0",
-		"@sveltejs/vite-plugin-svelte": "^4.0.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"publint": "^0.3.2",
 		"svelte": "^5.0.0",
 		"typescript": "^5.3.2",
-		"vite": "^5.4.11"
+		"vite": "^6.0.0"
 	}
 }
