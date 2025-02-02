@@ -41,6 +41,15 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 			"packages:\n  - '**/*'",
 			'utf8'
 		);
+
+		// creates a barebones package.json in each addon dir
+		fs.writeFileSync(
+			path.resolve(cwd, testName, 'package.json'),
+			JSON.stringify({
+				name: `${testName}-workspace-root`,
+				private: true
+			})
+		);
 	});
 
 	// runs before each test case

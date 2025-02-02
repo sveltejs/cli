@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import * as find from 'empathic/find';
 import { exec } from 'tinyexec';
 import * as p from '@sveltejs/clack-prompts';
 import {
@@ -81,7 +82,11 @@ export function allowExecutingPostinstallScripts(
 	// other package managers tho, therefore this has been extracted here.
 	if (!packageManager || packageManager !== 'pnpm') return;
 
-	const pkgPath = path.join(cwd, 'package.json');
+	// find the workspace root
+	const pnpmWorkspacePath = find.up('pnpm-workspace.yaml', { cwd });
+	if (!pnpmWorkspacePath) return;
+
+	const pkgPath = path.join(path.dirname(pnpmWorkspacePath), 'package.json');
 	const content = fs.readFileSync(pkgPath, 'utf-8');
 	const { data, generateCode } = parseJson(content);
 
