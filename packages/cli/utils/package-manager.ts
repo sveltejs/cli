@@ -89,7 +89,7 @@ export function addPnpmBuildDependendencies(
 	const content = fs.readFileSync(pkgPath, 'utf-8');
 	const { data, generateCode } = parseJson(content);
 
-	// add the packages where we want the postinstall scripts to be run
+	// add the packages where we install scripts should be executed
 	data.pnpm ??= {};
 	data.pnpm.onlyBuiltDependencies ??= [];
 	for (const allowedPackage of allowedPackages) {
