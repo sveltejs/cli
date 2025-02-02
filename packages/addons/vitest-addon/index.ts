@@ -47,17 +47,17 @@ export default defineAddon({
 				if (content) return content;
 
 				return dedent`
-						import { describe,test, expect } from 'vitest';
-						import '@testing-library/jest-dom';
+						import { describe, test, expect } from 'vitest';
+						import '@testing-library/jest-dom/vitest';
 						import { render, screen } from '@testing-library/svelte';
-						import Page from  './+page.svelte';
+						import Page from './+page.svelte';
 	
 						describe('/+page.svelte', () => {
 							test('should render h1', () => {
 								render(Page);
-								expect(screen.getByRole('heading', {level:1})).toBeInTheDocument();
-							})
-						})
+								expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+							});
+						});
 					`;
 			});
 		} else {
@@ -65,17 +65,17 @@ export default defineAddon({
 				if (content) return content;
 
 				return dedent`
-						import { describe,test, expect } from 'vitest';
-						import '@testing-library/jest-dom';
+						import { describe, test, expect } from 'vitest';
+						import '@testing-library/jest-dom/vitest';
 						import { render, screen } from '@testing-library/svelte';
-						import App from  './App.svelte';
+						import App from './App.svelte';
 	
 						describe('App.svelte', () => {
 							test('should render h1', () => {
 								render(App);
-								expect(screen.getByRole('heading', {level:1})).toBeInTheDocument();
-							})
-						})
+								expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+							});
+						});
 					`;
 			});
 		}
@@ -85,9 +85,9 @@ export default defineAddon({
 
 			return dedent`
 					import '@testing-library/jest-dom/vitest';
-					import {vi} from 'vitest';
+					import { vi } from 'vitest';
 
-					// add global mocks here, i.e. for sveltekit '$app/stores'
+					// add global mocks here, i.e. for sveltekit '$app/state'
 
 					// needed for svelte/motion that exports new MediaQuery which calls window.matchMedia eagerly
 					Object.defineProperty(window, "matchMedia", {
