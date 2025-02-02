@@ -41,10 +41,6 @@ test.concurrent.for(testCases)(
 		if (options.docker && noDocker) ctx.skip();
 		const cwd = await ctx.run(variant, { drizzle: options as any });
 
-		const packageConfig = path.resolve(cwd, 'package.json');
-		const pkg = fs.readFileSync(packageConfig, 'utf-8');
-		console.log(pkg);
-
 		const ts = variant === 'kit-ts';
 		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);
 		const content = fs.readFileSync(drizzleConfig, 'utf8').replace('strict: true,', '');
