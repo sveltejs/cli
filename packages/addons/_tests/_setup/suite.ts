@@ -3,7 +3,13 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
-import { createProject, startPreview, type CreateProject, type ProjectVariant } from 'sv/testing';
+import {
+	createProject,
+	startPreview,
+	addPnpmBuildDependendencies,
+	type CreateProject,
+	type ProjectVariant
+} from 'sv/testing';
 import { chromium, type Browser, type Page } from '@playwright/test';
 
 const cwd = vitest.inject('testDir');
@@ -40,6 +46,15 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 			"packages:\n  - '**/*'",
 			'utf8'
 		);
+
+		// creates a barebones package.json in each addon dir
+		fs.writeFileSync(
+			path.resolve(cwd, testName, 'package.json'),
+			JSON.stringify({
+				name: `${testName}-workspace-root`,
+				private: true
+			})
+		);
 	});
 
 	// runs before each test case
@@ -54,7 +69,13 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
 
 			// run addon
-			await installAddon({ cwd, addons, options, packageManager: 'pnpm' });
+			const { pnpmBuildDependencies } = await installAddon({
+				cwd,
+				addons,
+				options,
+				packageManager: 'pnpm'
+			});
+			addPnpmBuildDependendencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 
 			return cwd;
 		};
