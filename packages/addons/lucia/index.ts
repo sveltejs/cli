@@ -16,10 +16,11 @@ import { addToDemoPage } from '../common.ts';
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',
 	postgresql: 'pgTable',
-	sqlite: 'sqliteTable'
+	sqlite: 'sqliteTable',
+	turso: 'sqliteTable'
 };
 
-type Dialect = 'mysql' | 'postgresql' | 'sqlite';
+type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
 let drizzleDialect: Dialect;
 let schemaPath: string;
@@ -111,7 +112,7 @@ export default defineAddon({
 				throw new Error('unexpected shape of `user` or `session` table definition');
 			}
 
-			if (drizzleDialect === 'sqlite') {
+			if (drizzleDialect === 'sqlite' || drizzleDialect === 'turso') {
 				js.imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
 					sqliteTable: 'sqliteTable',
 					text: 'text',
