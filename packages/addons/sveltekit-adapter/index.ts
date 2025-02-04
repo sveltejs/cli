@@ -82,6 +82,14 @@ export default defineAddon({
 			) as AstTypes.ObjectProperty | undefined;
 
 			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
+				const adapterProp = kitConfig.value.properties.find(
+					(p) =>
+						p.type === 'ObjectProperty' && p.key.type === 'Identifier' && p.key.name === 'adapter'
+				);
+				if (adapterProp) {
+					adapterProp.comments = [];
+				}
+
 				// only overrides the `adapter` property so we can reset it's args
 				object.overrideProperties(kitConfig.value, {
 					adapter: functions.callByIdentifier(adapterName, [])
