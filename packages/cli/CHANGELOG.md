@@ -1,5 +1,14 @@
 # sv
 
+## 0.6.19
+### Patch Changes
+
+
+- feat: update to `tailwindcss` v4.0.0 ([#422](https://github.com/sveltejs/cli/pull/422))
+
+
+- feat: support `pnpm` version `10` ([#432](https://github.com/sveltejs/cli/pull/432))
+
 ## 0.6.18
 ### Patch Changes
 
