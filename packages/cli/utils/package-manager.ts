@@ -80,12 +80,15 @@ export function addPnpmBuildDependendencies(
 	// other package managers are currently not affected by this change
 	if (!packageManager || packageManager !== 'pnpm') return;
 
-	// find the workspace root
+	// find the workspace root (if present)
 	const pnpmWorkspacePath = find.up('pnpm-workspace.yaml', { cwd });
-	if (!pnpmWorkspacePath) return;
+	let packageDirectory;
+
+	if (pnpmWorkspacePath) packageDirectory = path.dirname(pnpmWorkspacePath);
+	else packageDirectory = cwd;
 
 	// load the package.json
-	const pkgPath = path.join(path.dirname(pnpmWorkspacePath), 'package.json');
+	const pkgPath = path.join(packageDirectory, 'package.json');
 	const content = fs.readFileSync(pkgPath, 'utf-8');
 	const { data, generateCode } = parseJson(content);
 
