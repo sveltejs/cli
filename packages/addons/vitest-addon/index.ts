@@ -87,30 +87,29 @@ export default defineAddon({
 					import '@testing-library/jest-dom/vitest';
 					import { vi } from 'vitest';
 
-					// add global mocks here, i.e. for sveltekit '$app/state'
+					// required for svelte5 + jsdom as jsdom does not support matchMedia
+					if(typeof window != undefined && !window.matchMedia) {
+						Object.defineProperty(window, 'matchMedia', {
+							writable: true,
+							enumerable: true,
+							value: vi.fn().mockImplementation(query => ({
+								matches: false,
+								media: query,
+								onchange: null,
+								addEventListener: vi.fn(),
+								removeEventListener: vi.fn(),
+								dispatchEvent: vi.fn(),
+							})),
+						})
+					}
 
-					// needed for svelte/motion that exports new MediaQuery which calls window.matchMedia eagerly
-					Object.defineProperty(window, "matchMedia", {
-						writable: true,
-						enumerable: true,
-						value: vi.fn().mockImplementation((query) => ({
-							matches: false,
-							media: query,
-							onchange: null,
-							addListener: vi.fn(), // deprecated
-							removeListener: vi.fn(), // deprecated
-							addEventListener: vi.fn(),
-							removeEventListener: vi.fn(),
-							dispatchEvent: vi.fn(),
-						})),
-					});
+					// add more mocks here if you need them
 				`;
 		});
 
-		sv.file(`vitest.workspace.${ext}`, (content) => {
+		sv.file(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, 'vitest/config', { defineWorkspace: 'defineWorkspace' });
 			imports.addNamed(ast, '@testing-library/svelte/vite', { svelteTesting: 'svelteTesting' });
 
 			const clientObjectExpression = object.create({
@@ -135,13 +134,16 @@ export default defineAddon({
 				})
 			});
 
-			const defineWorkspaceFallback = functions.call('defineWorkspace', []);
-			const { value: defineWorkspaceCall } = exports.defaultExport(ast, defineWorkspaceFallback);
+			const defineConfigFallback = functions.call('defineConfig', []);
+			const { value: defineWorkspaceCall } = exports.defaultExport(ast, defineConfigFallback);
 			if (defineWorkspaceCall.type !== 'CallExpression') {
-				log.warn('Unexpected vite config for vitest add-on. Could not update.');
+				log.warn('Unexpected vite config. Could not update.');
 			}
 
-			const workspaceArray = functions.argumentByIndex(defineWorkspaceCall, 0, array.createEmpty());
+			const vitestConfig = functions.argumentByIndex(defineWorkspaceCall, 0, object.createEmpty());
+			const testObject = object.property(vitestConfig, 'test', object.createEmpty());
+
+			const workspaceArray = object.property(testObject, 'workspace', array.createEmpty());
 			array.push(workspaceArray, clientObjectExpression);
 			array.push(workspaceArray, serverObjectExpression);
 
