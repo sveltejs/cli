@@ -1,5 +1,17 @@
 # sv
 
+## 0.6.20
+### Patch Changes
+
+
+- Remove comment about adapter-auto once a specific sveltekit adapter is chosen ([#436](https://github.com/sveltejs/cli/pull/436))
+
+
+- fix: `onlyBuiltDependencies` not added on new projects ([#439](https://github.com/sveltejs/cli/pull/439))
+
+
+- fix: generate correct table defintion for `turso` in `lucia` demo ([#433](https://github.com/sveltejs/cli/pull/433))
+
 ## 0.6.19
 ### Patch Changes
 
