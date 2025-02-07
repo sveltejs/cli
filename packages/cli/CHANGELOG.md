@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.21
+### Patch Changes
+
+
+- feat: `vitest` use client and server side testing for `kit` ([#311](https://github.com/sveltejs/cli/pull/311))
+
 ## 0.6.20
 ### Patch Changes
 
