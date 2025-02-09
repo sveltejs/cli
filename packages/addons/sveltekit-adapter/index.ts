@@ -83,10 +83,10 @@ export default defineAddon({
 
 			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
 				const adapterProp = kitConfig.value.properties.find(
-					(p) =>
-						p.type === 'ObjectProperty' && p.key.type === 'Identifier' && p.key.name === 'adapter'
+					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
 				);
 				if (adapterProp) {
+					// @ts-expect-error comment nodes unknown in estree
 					adapterProp.comments = [];
 				}
 

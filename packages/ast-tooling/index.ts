@@ -12,9 +12,7 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
-// todo: why is this file only generated during `dev` startup, if it's prefixed with type?
-// @ts-expect-error
-import { TsEstree } from './ts-estree.ts';
+import type { TsEstree } from './ts-estree.ts';
 import { print as esrapPrint } from 'esrap';
 import * as acorn from 'acorn';
 import { tsPlugin } from 'acorn-typescript';
