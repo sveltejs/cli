@@ -70,6 +70,9 @@ export default defineAddon({
 			if (adapterImportDecl) {
 				// replaces the import's source with the new adapter
 				adapterImportDecl.source.value = adapter.package;
+				// reset raw value, so that the string is re-generated
+				adapterImportDecl.source.raw = undefined;
+
 				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
 					?.local?.name as string;
 			} else {
@@ -86,8 +89,7 @@ export default defineAddon({
 					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
 				);
 				if (adapterProp) {
-					// @ts-expect-error comment nodes unknown in estree
-					adapterProp.comments = [];
+					adapterProp.leadingComments = [];
 				}
 
 				// only overrides the `adapter` property so we can reset it's args
