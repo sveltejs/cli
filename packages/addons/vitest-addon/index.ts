@@ -144,66 +144,6 @@ export default defineAddon({
 			const workspaceArray = object.property(testObject, 'workspace', array.createEmpty());
 			array.push(workspaceArray, clientObjectExpression);
 			array.push(workspaceArray, serverObjectExpression);
-			// find `defineConfig` import declaration for "vite"
-			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
-			const defineConfigImportDecl = importDecls.find(
-				(importDecl) =>
-					(importDecl.source.value === 'vite' || importDecl.source.value === 'vitest/config') &&
-					importDecl.importKind === 'value' &&
-					importDecl.specifiers?.some(
-						(specifier) =>
-							specifier.type === 'ImportSpecifier' &&
-							specifier.imported.type == 'Identifier' &&
-							specifier.imported.name === 'defineConfig'
-					)
-			);
-
-			// we'll need to replace the "vite" import for a "vitest/config" import.
-			// if `defineConfig` is the only specifier in that "vite" import, remove the entire import declaration
-			if (defineConfigImportDecl?.specifiers?.length === 1) {
-				const idxToRemove = ast.body.indexOf(defineConfigImportDecl);
-				ast.body.splice(idxToRemove, 1);
-			} else {
-				// otherwise, just remove the `defineConfig` specifier
-				const idxToRemove = defineConfigImportDecl?.specifiers?.findIndex(
-					(s) =>
-						s.type === 'ImportSpecifier' &&
-						s.imported.type == 'Identifier' &&
-						s.imported.name === 'defineConfig'
-				);
-				if (idxToRemove) defineConfigImportDecl?.specifiers?.splice(idxToRemove, 1);
-			}
-
-			const config = common.expressionFromString('defineConfig({})');
-			const defaultExport = exports.defaultExport(ast, config);
-
-			const test = object.create({
-				include: common.expressionFromString("['src/**/*.{test,spec}.{js,ts}']")
-			});
-
-			// uses the `defineConfig` helper
-			if (
-				defaultExport.value.type === 'CallExpression' &&
-				defaultExport.value.arguments[0]?.type === 'ObjectExpression'
-			) {
-				// if the previous `defineConfig` was aliased, reuse the alias for the "vitest/config" import
-				const importSpecifier = defineConfigImportDecl?.specifiers?.find(
-					(sp) =>
-						sp.type === 'ImportSpecifier' &&
-						sp.imported.type == 'Identifier' &&
-						sp.imported.name === 'defineConfig'
-				);
-				const defineConfigAlias = (importSpecifier?.local?.name ?? 'defineConfig') as string;
-				imports.addNamed(ast, 'vitest/config', { defineConfig: defineConfigAlias });
-
-				object.properties(defaultExport.value.arguments[0], { test });
-			} else if (defaultExport.value.type === 'ObjectExpression') {
-				// if the config is just an object expression, just add the property
-				object.properties(defaultExport.value, { test });
-			} else {
-				// unexpected config shape
-				log.warn('Unexpected vite config for vitest add-on. Could not update.');
-			}
 
 			return generateCode();
 		});
