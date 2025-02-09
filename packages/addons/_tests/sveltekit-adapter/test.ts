@@ -1,6 +1,8 @@
 import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/suite.ts';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import sveltekitAdapter from '../../sveltekit-adapter/index.ts';
+import { setupTest } from '../_setup/suite.ts';
 
 const addonId = sveltekitAdapter.id;
 const { test, variants, prepareServer } = setupTest({ [addonId]: sveltekitAdapter });
@@ -13,5 +15,5 @@ test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
-	expect(true).toBe(true);
+	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
 });

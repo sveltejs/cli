@@ -74,25 +74,26 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('drizzle-orm', '^0.33.0');
-		sv.devDependency('drizzle-kit', '^0.22.0');
+		sv.dependency('drizzle-orm', '^0.38.4');
+		sv.devDependency('drizzle-kit', '^0.30.2');
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.11.0');
-		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.18.0');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
+		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
-		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^0.9.4');
-		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.4');
+		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^0.10.4');
+		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.5');
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
-			sv.dependency('better-sqlite3', '^11.1.2');
-			sv.devDependency('@types/better-sqlite3', '^7.6.11');
+			sv.dependency('better-sqlite3', '^11.8.0');
+			sv.devDependency('@types/better-sqlite3', '^7.6.12');
+			sv.pnpmBuildDependendency('better-sqlite3');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
-			sv.dependency('@libsql/client', '^0.9.0');
+			sv.dependency('@libsql/client', '^0.14.0');
 
 		sv.file('.env', (content) => generateEnvFileContent(content, options));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));
@@ -179,7 +180,6 @@ export default defineAddon({
 			const objExpression = exportDefault.arguments?.[0];
 			if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
 
-			const driver = options.sqlite === 'turso' ? common.createLiteral('turso') : undefined;
 			const authToken =
 				options.sqlite === 'turso'
 					? common.expressionFromString('process.env.DATABASE_AUTH_TOKEN')
@@ -192,12 +192,12 @@ export default defineAddon({
 					authToken
 				}),
 				verbose: { type: 'Literal', value: true },
-				strict: { type: 'Literal', value: true },
-				driver
+				strict: { type: 'Literal', value: true }
 			});
 
+			const dialect = options.sqlite === 'turso' ? 'turso' : options.database;
 			object.overrideProperties(objExpression, {
-				dialect: common.createLiteral(options.database)
+				dialect: common.createLiteral(dialect)
 			});
 
 			// The `driver` property is only required for _some_ sqlite DBs.

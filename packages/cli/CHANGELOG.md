@@ -1,5 +1,95 @@
 # sv
 
+## 0.6.21
+### Patch Changes
+
+
+- feat: `vitest` use client and server side testing for `kit` ([#311](https://github.com/sveltejs/cli/pull/311))
+
+## 0.6.20
+### Patch Changes
+
+
+- Remove comment about adapter-auto once a specific sveltekit adapter is chosen ([#436](https://github.com/sveltejs/cli/pull/436))
+
+
+- fix: `onlyBuiltDependencies` not added on new projects ([#439](https://github.com/sveltejs/cli/pull/439))
+
+
+- fix: generate correct table defintion for `turso` in `lucia` demo ([#433](https://github.com/sveltejs/cli/pull/433))
+
+## 0.6.19
+### Patch Changes
+
+
+- feat: update to `tailwindcss` v4.0.0 ([#422](https://github.com/sveltejs/cli/pull/422))
+
+
+- feat: support `pnpm` version `10` ([#432](https://github.com/sveltejs/cli/pull/432))
+
+## 0.6.18
+### Patch Changes
+
+
+- fix: `checkjs` library template ([#428](https://github.com/sveltejs/cli/pull/428))
+
+## 0.6.17
+### Patch Changes
+
+
+- fix: properly pass through arguments to `sv check` ([#420](https://github.com/sveltejs/cli/pull/420))
+
+
+- chore: use `rolldown` instead of `rollup` ([#371](https://github.com/sveltejs/cli/pull/371))
+
+## 0.6.16
+### Patch Changes
+
+
+- fix: ensure Sverdle keyboard events modify game state without a trip to the server if client-side JavaScript is enabled ([#416](https://github.com/sveltejs/cli/pull/416))
+
+## 0.6.15
+### Patch Changes
+
+
+- chore: add prepare script to run `svelte-kit sync` ([#409](https://github.com/sveltejs/cli/pull/409))
+
+## 0.6.14
+### Patch Changes
+
+
+- chore: update `vite@6` and related packages ([#410](https://github.com/sveltejs/cli/pull/410))
+
+
+- fix: forward exit code of external package commands ([#412](https://github.com/sveltejs/cli/pull/412))
+
+## 0.6.13
+### Patch Changes
+
+
+- chore: update `adapter-auto` and `adapter-cloudflare` ([#401](https://github.com/sveltejs/cli/pull/401))
+
+## 0.6.12
+### Patch Changes
+
+
+- fix: git detection inside preconditions failed ([#394](https://github.com/sveltejs/cli/pull/394))
+
+
+- chore: update addon dependencies ([#357](https://github.com/sveltejs/cli/pull/357))
+
+
+- chore: utilize prepack lifecycle script ([#396](https://github.com/sveltejs/cli/pull/396))
+
+
+- chore: improve cli help menu ([#294](https://github.com/sveltejs/cli/pull/294))
+
+
+- fix: use modern `Spring` and `MediaQuery` implementation ([#361](https://github.com/sveltejs/cli/pull/361))
+
+
+- fix: tailwind plugins as dev dependencies ([#400](https://github.com/sveltejs/cli/pull/400))
+
 ## 0.6.11
 ### Patch Changes
 

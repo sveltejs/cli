@@ -121,7 +121,7 @@ The first row is of type `START` and contains the workspace folder (wrapped in q
 1590680325583 START "/home/user/language-tools/packages/language-server/test/plugins/typescript/testfiles"
 ```
 
-Any number of `ERROR` or `WARNING` records may follow. Their structure is identical and depends on the output argoument.
+Any number of `ERROR` or `WARNING` records may follow. Their structure is identical and depends on the output argument.
 
 If the argument is `machine` it will tell us the filename, the starting line and column numbers, and the error message. The filename is relative to the workspace directory. The filename and the message are both wrapped in quotes. Example:
 

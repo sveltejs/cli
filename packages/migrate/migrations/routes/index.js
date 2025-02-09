@@ -1,8 +1,8 @@
 import fs from 'node:fs';
-import colors from 'kleur';
+import pc from 'picocolors';
 import path from 'node:path';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import glob from 'tiny-glob/sync.js';
 import { pathToFileURL } from 'node:url';
 import { migrate_scripts } from './migrate_scripts/index.js';
@@ -10,7 +10,7 @@ import { migrate_page } from './migrate_page_js/index.js';
 import { migrate_page_server } from './migrate_page_server/index.js';
 import { migrate_server } from './migrate_server/index.js';
 import { adjust_imports, task } from './utils.js';
-import { bail, relative, move_file, check_git } from '../../utils.js';
+import { bail, relative, move_file, check_git, migration_succeeded } from '../../utils.js';
 
 export async function migrate() {
 	if (!fs.existsSync('svelte.config.js')) {
@@ -56,18 +56,16 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().yellow('\nThis will overwrite files in the current directory!\n'));
+	p.log.warning(pc.bold(pc.yellow('This will overwrite files in the current directory!')));
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
@@ -185,27 +183,17 @@ export async function migrate() {
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
-
-	console.log('\nRecommended next steps:\n');
-
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		use_git && cyan('git commit -m "svelte-migrate: renamed files"'),
 		'Review the migration guide at https://github.com/sveltejs/kit/discussions/5774',
 		`Search codebase for ${cyan('"@migration"')} and manually complete migration tasks`,
 		use_git && cyan('git add -A'),
-		use_git && cyan('git commit -m "svelte-migrate: updated files"')
+		use_git && cyan('git commit -m "svelte-migrate: updated files"'),
+		use_git && `Run ${cyan('git diff')} to review changes.`
 	].filter(Boolean);
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded(tasks);
 }
