@@ -343,6 +343,10 @@ export default defineAddon({
 			steps.push(
 				`Run ${highlighter.command(`${packageManager} run db:start`)} to start the docker container`
 			);
+		} else {
+			steps.push(
+				`Check ${highlighter.env('DATABASE_URL')} in ${highlighter.path('.env')} and adjust it to your needs`
+			);
 		}
 		steps.push(
 			`Run ${highlighter.command(`${packageManager} run db:push`)} to update your database schema`
