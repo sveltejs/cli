@@ -153,12 +153,6 @@ export function stripAst<T>(node: T, propToRemove: string): T {
 	return node;
 }
 
-export type SvelteAst = {
-	jsAst: TsEstree.Program;
-	htmlAst: Document;
-	cssAst: CssAst;
-};
-
 export function parseJson(content: string): any {
 	// some of the files we need to process contain comments. The default
 	// node JSON.parse fails parsing those comments.
