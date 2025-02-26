@@ -78,7 +78,7 @@ export default defineAddon({
 				eslintConfigs.push(common.createSpreadElement(tsConfig));
 			}
 
-			const svelteConfig = common.expressionFromString('svelte.configs.recommended');
+			const svelteConfig = common.expressionFromString('svelte.configs["flat/recommended"]');
 			eslintConfigs.push(common.createSpreadElement(svelteConfig));
 
 			const globalsBrowser = common.createSpreadElement(
