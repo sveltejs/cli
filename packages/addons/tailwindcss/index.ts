@@ -1,5 +1,4 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { addAtRule, addImports } from '@sveltejs/cli-core/css';
 import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
@@ -74,37 +73,31 @@ export default defineAddon({
 		});
 
 		sv.file('src/app.css', (content) => {
-			if (content.includes('tailwindcss')) {
-				return content;
+			let code = content;
+
+			const importsTailwind = content.match(/@import ["']tailwindcss["']/);
+			if (!importsTailwind) {
+				code = "@import 'tailwindcss';\n" + code;
 			}
 
-			const { ast, generateCode } = parseCss(content);
-			const originalFirst = ast.first;
+			const lastAtRule = code.match(/@(import|plugin).*[;]/gm)?.at(-1);
+			if (!lastAtRule) throw new Error('Impossible condition: Missing `@import` atrule.');
+			const pluginPos = code.indexOf(lastAtRule) + lastAtRule.length;
 
-			const nodes = addImports(ast, ["'tailwindcss'"]);
-
+			const { ast } = parseCss(code);
+			const atRules = ast.nodes.filter((x) => x.type === 'atrule');
 			for (const plugin of plugins) {
 				if (!options.plugins.includes(plugin.id)) continue;
-
-				addAtRule(ast, 'plugin', `'${plugin.package}'`, true);
+				const atRule = atRules.find(
+					(x) => x.name === 'plugin' && x.params === `'${plugin.package}'`
+				);
+				if (!atRule) {
+					const pluginImport = `\n@plugin '${plugin.package}';`;
+					code = code.substring(0, pluginPos) + pluginImport + code.substring(pluginPos);
+				}
 			}
 
-			if (
-				originalFirst !== ast.first &&
-				originalFirst?.type === 'atrule' &&
-				originalFirst.name === 'import'
-			) {
-				originalFirst.raws.before = '\n';
-			}
-
-			// We remove the first node to avoid adding a newline at the top of the stylesheet
-			nodes.shift();
-
-			// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
-			// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
-			nodes.forEach((n) => (n.raws.before = '\n'));
-
-			return generateCode();
+			return code;
 		});
 
 		if (!kit) {
