@@ -27,6 +27,7 @@
 		"@types/estree": "^1.0.6",
 		"acorn": "^8.14.0",
 		"acorn-typescript": "^1.4.13",
+		"dedent": "^1.5.3",
 		"dom-serializer": "^2.0.0",
 		"domhandler": "^5.0.3",
 		"domutils": "^3.1.0",

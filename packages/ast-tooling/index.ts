@@ -13,6 +13,7 @@ import {
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
 import type { TsEstree } from './ts-estree.ts';
+import { guessIndentString } from './utils.ts';
 import { print as esrapPrint } from 'esrap';
 import * as acorn from 'acorn';
 import { tsPlugin } from 'acorn-typescript';
@@ -164,39 +165,11 @@ export function parseJson(content: string): any {
 export function serializeJson(originalInput: string, data: unknown): string {
 	// some of the files we need to process contain comments. The default
 	// node JSON.parse fails parsing those comments.
-	const spaces = guessIndentString(originalInput);
+	const indentString = guessIndentString(originalInput);
+	let spaces: undefined | number;
+
+	// if indentString contains whitesepaces, count them
+	if (indentString && indentString.includes(' ')) spaces = (indentString.match(/ /g) || []).length;
+
 	return fleece.stringify(data, { spaces });
-}
-
-// Sourced from `golden-fleece`
-// https://github.com/Rich-Harris/golden-fleece/blob/f2446f331640f325e13609ed99b74b6a45e755c2/src/patch.ts#L302
-function guessIndentString(str: string): number | undefined {
-	const lines = str.split('\n');
-
-	let tabs = 0;
-	let spaces = 0;
-	let minSpaces = 8;
-
-	lines.forEach((line) => {
-		const match = /^(?: +|\t+)/.exec(line);
-		if (!match) return;
-
-		const whitespace = match[0];
-		if (whitespace.length === line.length) return;
-
-		if (whitespace[0] === '\t') {
-			tabs += 1;
-		} else {
-			spaces += 1;
-			if (whitespace.length > 1 && whitespace.length < minSpaces) {
-				minSpaces = whitespace.length;
-			}
-		}
-	});
-
-	if (spaces > tabs) {
-		let result = '';
-		while (minSpaces--) result += ' ';
-		return result.length;
-	}
 }
