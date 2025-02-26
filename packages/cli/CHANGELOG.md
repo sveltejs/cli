@@ -1,5 +1,23 @@
 # sv
 
+## 0.6.22
+### Patch Changes
+
+
+- fix: make `drizzle` next steps more precise ([#447](https://github.com/sveltejs/cli/pull/447))
+
+
+- chore: update addon dependencies ([#450](https://github.com/sveltejs/cli/pull/450))
+
+
+- fix: allow selecting adapter auto ([#446](https://github.com/sveltejs/cli/pull/446))
+
+
+- feat: update `eslint-plugin-svelte` v3 ([#453](https://github.com/sveltejs/cli/pull/453))
+
+
+- fix: re-add `tailwindcss` plugins ([#448](https://github.com/sveltejs/cli/pull/448))
+
 ## 0.6.21
 ### Patch Changes
 
