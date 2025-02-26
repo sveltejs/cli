@@ -16,7 +16,7 @@ import type { TsEstree } from './ts-estree.ts';
 import { guessIndentString } from './utils.ts';
 import { print as esrapPrint } from 'esrap';
 import * as acorn from 'acorn';
-import { tsPlugin } from 'acorn-typescript';
+import { tsPlugin } from '@sveltejs/acorn-typescript';
 
 /**
  * Most of the AST tooling is pretty big in bundle size and bundling takes forever.
@@ -57,7 +57,6 @@ export type {
 export function parseScript(content: string): TsEstree.Program {
 	const comments: any[] = [];
 
-	// @ts-expect-error
 	const acornTs = acorn.Parser.extend(tsPlugin({ allowSatisfies: true }));
 
 	const ast = acornTs.parse(content, {
