@@ -22,7 +22,7 @@ export default defineAddon({
 
 		sv.devDependency('eslint', '^9.18.0');
 		sv.devDependency('@eslint/compat', '^1.2.5');
-		sv.devDependency('globals', '^15.14.0');
+		sv.devDependency('globals', '^16.0.0');
 		sv.devDependency('eslint-plugin-svelte', '^2.46.1');
 		sv.devDependency('@eslint/js', '^9.18.0');
 
