@@ -9,6 +9,7 @@ type Adapter = {
 };
 
 const adapters: Adapter[] = [
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^4.0.0' },
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.11' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.8' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.5.2' },
@@ -22,7 +23,7 @@ const options = defineAddonOptions({
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',
 		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: 'node'
+		default: 'auto'
 	}
 });
 

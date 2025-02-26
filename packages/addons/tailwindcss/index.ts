@@ -1,16 +1,47 @@
-import { defineAddon } from '@sveltejs/cli-core';
-import { addImports } from '@sveltejs/cli-core/css';
+import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import { addAtRule, addImports } from '@sveltejs/cli-core/css';
 import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
+
+type Plugin = {
+	id: string;
+	package: string;
+	version: string;
+	identifier: string;
+};
+
+const plugins: Plugin[] = [
+	{
+		id: 'typography',
+		package: '@tailwindcss/typography',
+		version: '^0.5.15',
+		identifier: 'typography'
+	},
+	{
+		id: 'forms',
+		package: '@tailwindcss/forms',
+		version: '^0.5.9',
+		identifier: 'forms'
+	}
+];
+
+const options = defineAddonOptions({
+	plugins: {
+		type: 'multiselect',
+		question: 'Which plugins would you like to add?',
+		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
+		default: []
+	}
+});
 
 export default defineAddon({
 	id: 'tailwindcss',
 	alias: 'tailwind',
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
-	options: {},
-	run: ({ sv, typescript, kit, dependencyVersion }) => {
+	options,
+	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
@@ -18,6 +49,12 @@ export default defineAddon({
 		sv.devDependency('@tailwindcss/vite', '^4.0.0');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
+
+		for (const plugin of plugins) {
+			if (!options.plugins.includes(plugin.id)) continue;
+
+			sv.devDependency(plugin.package, plugin.version);
+		}
 
 		// add the vite plugin
 		sv.file(`vite.config.${ext}`, (content) => {
@@ -45,6 +82,12 @@ export default defineAddon({
 			const originalFirst = ast.first;
 
 			const nodes = addImports(ast, ["'tailwindcss'"]);
+
+			for (const plugin of plugins) {
+				if (!options.plugins.includes(plugin.id)) continue;
+
+				addAtRule(ast, 'plugin', `'${plugin.package}'`, true);
+			}
 
 			if (
 				originalFirst !== ast.first &&

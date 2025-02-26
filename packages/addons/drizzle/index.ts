@@ -74,7 +74,7 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('drizzle-orm', '^0.38.4');
+		sv.dependency('drizzle-orm', '^0.40.0');
 		sv.devDependency('drizzle-kit', '^0.30.2');
 
 		// MySQL
@@ -342,6 +342,10 @@ export default defineAddon({
 		if (options.docker) {
 			steps.push(
 				`Run ${highlighter.command(`${packageManager} run db:start`)} to start the docker container`
+			);
+		} else {
+			steps.push(
+				`Check ${highlighter.env('DATABASE_URL')} in ${highlighter.path('.env')} and adjust it to your needs`
 			);
 		}
 		steps.push(

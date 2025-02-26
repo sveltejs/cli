@@ -13,7 +13,7 @@ export default defineAddon({
 		sv.devDependency('vitest', '^3.0.0');
 		sv.devDependency('@testing-library/svelte', '^5.2.4');
 		sv.devDependency('@testing-library/jest-dom', '^6.6.3');
-		sv.devDependency('jsdom', '^25.0.1');
+		sv.devDependency('jsdom', '^26.0.0');
 
 		sv.file('package.json', (content) => {
 			const { data, generateCode } = parseJson(content);
