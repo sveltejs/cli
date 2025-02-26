@@ -74,7 +74,7 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('drizzle-orm', '^0.39.3');
+		sv.dependency('drizzle-orm', '^0.40.0');
 		sv.devDependency('drizzle-kit', '^0.30.2');
 
 		// MySQL
