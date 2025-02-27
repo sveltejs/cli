@@ -87,10 +87,9 @@ export default defineAddon({
 			const importsTailwind = findAtRule('import', 'tailwindcss');
 			if (!importsTailwind) {
 				code = "@import 'tailwindcss';\n" + code;
+				// reparse to account for the newly added tailwindcss import
+				atRules = parseCss(code).ast.nodes.filter((node) => node.type === 'atrule');
 			}
-
-			// reparse to account for the newly added tailwindcss import
-			atRules = parseCss(code).ast.nodes.filter((node) => node.type === 'atrule');
 
 			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
 			const pluginPos = lastAtRule!.source!.end!.offset;
