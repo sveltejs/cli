@@ -73,29 +73,33 @@ export default defineAddon({
 		});
 
 		sv.file('src/app.css', (content) => {
-			let code = content;
+			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
 
-			const importsTailwind = content.match(/@import ["']tailwindcss["']/);
+			const findAtRule = (name: string, params: string) =>
+				atRules.find(
+					(rule) =>
+						rule.name === name &&
+						// checks for both double and single quote variants
+						rule.params.replace(/['"]/g, '') === params
+				);
+
+			let code = content;
+			const importsTailwind = findAtRule('import', 'tailwindcss');
 			if (!importsTailwind) {
 				code = "@import 'tailwindcss';\n" + code;
 			}
 
-			const lastAtRule = code.match(/@(import|plugin).*[;]/gm)?.at(-1);
-			if (!lastAtRule) throw new Error('Impossible condition: Missing `@import` atrule.');
-			const pluginPos = code.indexOf(lastAtRule) + lastAtRule.length;
+			// reparse to account for the newly added tailwindcss import
+			atRules = parseCss(code).ast.nodes.filter((node) => node.type === 'atrule');
 
-			const { ast } = parseCss(code);
-			const atRules = ast.nodes.filter((x) => x.type === 'atrule');
+			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
+			const pluginPos = lastAtRule!.source!.end!.offset;
+
 			for (const plugin of plugins) {
 				if (!options.plugins.includes(plugin.id)) continue;
 
-				const atRule = atRules.find(
-					(rule) =>
-						rule.name === 'plugin' &&
-						// Checks for both double and single quote variants
-						rule.params.replace(/['"]/g, '') === plugin.package
-				);
-				if (!atRule) {
+				const pluginRule = findAtRule('plugin', plugin.package);
+				if (!pluginRule) {
 					const pluginImport = `\n@plugin '${plugin.package}';`;
 					code = code.substring(0, pluginPos) + pluginImport + code.substring(pluginPos);
 				}
