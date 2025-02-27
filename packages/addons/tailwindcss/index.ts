@@ -1,5 +1,4 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { addAtRule, addImports } from '@sveltejs/cli-core/css';
 import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
@@ -74,37 +73,38 @@ export default defineAddon({
 		});
 
 		sv.file('src/app.css', (content) => {
-			if (content.includes('tailwindcss')) {
-				return content;
+			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
+
+			const findAtRule = (name: string, params: string) =>
+				atRules.find(
+					(rule) =>
+						rule.name === name &&
+						// checks for both double and single quote variants
+						rule.params.replace(/['"]/g, '') === params
+				);
+
+			let code = content;
+			const importsTailwind = findAtRule('import', 'tailwindcss');
+			if (!importsTailwind) {
+				code = "@import 'tailwindcss';\n" + code;
+				// reparse to account for the newly added tailwindcss import
+				atRules = parseCss(code).ast.nodes.filter((node) => node.type === 'atrule');
 			}
 
-			const { ast, generateCode } = parseCss(content);
-			const originalFirst = ast.first;
-
-			const nodes = addImports(ast, ["'tailwindcss'"]);
+			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
+			const pluginPos = lastAtRule!.source!.end!.offset;
 
 			for (const plugin of plugins) {
 				if (!options.plugins.includes(plugin.id)) continue;
 
-				addAtRule(ast, 'plugin', `'${plugin.package}'`, true);
+				const pluginRule = findAtRule('plugin', plugin.package);
+				if (!pluginRule) {
+					const pluginImport = `\n@plugin '${plugin.package}';`;
+					code = code.substring(0, pluginPos) + pluginImport + code.substring(pluginPos);
+				}
 			}
 
-			if (
-				originalFirst !== ast.first &&
-				originalFirst?.type === 'atrule' &&
-				originalFirst.name === 'import'
-			) {
-				originalFirst.raws.before = '\n';
-			}
-
-			// We remove the first node to avoid adding a newline at the top of the stylesheet
-			nodes.shift();
-
-			// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
-			// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
-			nodes.forEach((n) => (n.raws.before = '\n'));
-
-			return generateCode();
+			return code;
 		});
 
 		if (!kit) {
