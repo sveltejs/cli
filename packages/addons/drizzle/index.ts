@@ -261,6 +261,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
+			imports.addNamespace(ast, './schema', 'schema');
 
 			// env var checks
 			const dbURLCheck = common.statementFromString(
@@ -329,6 +330,11 @@ export default defineAddon({
 			common.addStatement(ast, clientIdentifier);
 
 			const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
+			drizzleCall.arguments.push(
+				object.create({
+					schema: variables.identifier('schema')
+				})
+			);
 			const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 			exports.namedExport(ast, 'db', db);
 
