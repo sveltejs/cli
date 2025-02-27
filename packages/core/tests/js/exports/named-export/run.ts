@@ -1,7 +1,6 @@
-import { common, variables, object, exports } from '@sveltejs/cli-core/js';
-import type { ScriptFileEditor } from '@sveltejs/cli-core';
+import { common, variables, object, exports, type AstTypes } from '@sveltejs/cli-core/js';
 
-export function run({ ast }: ScriptFileEditor<any>): void {
+export function run(ast: AstTypes.Program): void {
 	const object1 = object.create({
 		test: common.createLiteral('string')
 	});

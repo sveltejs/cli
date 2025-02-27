@@ -1,11 +1,11 @@
-import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '@sveltejs/ast-tooling';
 
 export type ExportDefaultReturn<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;
 	value: T;
 };
 
-export function defaultExport<T extends AstKinds.ExpressionKind>(
+export function defaultExport<T extends AstTypes.Expression>(
 	ast: AstTypes.Program,
 	fallbackDeclaration: T
 ): ExportDefaultReturn<T> {
@@ -72,7 +72,8 @@ export function namedExport(
 
 	namedExport = {
 		type: 'ExportNamedDeclaration',
-		declaration: fallback
+		declaration: fallback,
+		specifiers: []
 	};
 	ast.body.push(namedExport);
 	return namedExport;

@@ -1,7 +1,6 @@
-import { variables, common, object } from '@sveltejs/cli-core/js';
-import type { ScriptFileEditor } from '@sveltejs/cli-core';
+import { variables, common, object, type AstTypes } from '@sveltejs/cli-core/js';
 
-export function run({ ast }: ScriptFileEditor<any>): void {
+export function run(ast: AstTypes.Program): void {
 	const testNumberVariable = variables.declaration(
 		ast,
 		'const',
