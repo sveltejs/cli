@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.23
+### Patch Changes
+
+
+- fix: use `eslint-plugin-svelte` v3 ([#455](https://github.com/sveltejs/cli/pull/455))
+
 ## 0.6.22
 ### Patch Changes
 
