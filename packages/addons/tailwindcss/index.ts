@@ -89,9 +89,12 @@ export default defineAddon({
 			for (const plugin of plugins) {
 				if (!options.plugins.includes(plugin.id)) continue;
 
-				// Checks for both double and single quote variants
-				const pkgs = [`'${plugin.package}'`, `"${plugin.package}"`];
-				const atRule = atRules.find((x) => x.name === 'plugin' && pkgs.includes(x.params));
+				const atRule = atRules.find(
+					(rule) =>
+						rule.name === 'plugin' &&
+						// Checks for both double and single quote variants
+						rule.params.replace(/['"]/g, '') === plugin.package
+				);
 				if (!atRule) {
 					const pluginImport = `\n@plugin '${plugin.package}';`;
 					code = code.substring(0, pluginPos) + pluginImport + code.substring(pluginPos);
