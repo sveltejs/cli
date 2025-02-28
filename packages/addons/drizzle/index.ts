@@ -261,6 +261,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
+			imports.addNamespace(ast, './schema', 'schema');
 
 			// env var checks
 			const dbURLCheck = common.statementFromString(
@@ -269,7 +270,6 @@ export default defineAddon({
 			common.addStatement(ast, dbURLCheck);
 
 			let clientExpression;
-			let addSchema = true;
 			// SQLite
 			if (options.sqlite === 'better-sqlite3') {
 				imports.addDefault(ast, 'better-sqlite3', 'Database');
@@ -304,14 +304,12 @@ export default defineAddon({
 				clientExpression = common.expressionFromString(
 					'await mysql.createConnection(env.DATABASE_URL)'
 				);
-				addSchema = false;
 			}
 			if (options.mysql === 'planetscale') {
 				imports.addNamed(ast, '@planetscale/database', { Client: 'Client' });
 				imports.addNamed(ast, 'drizzle-orm/planetscale-serverless', { drizzle: 'drizzle' });
 
 				clientExpression = common.expressionFromString('new Client({ url: env.DATABASE_URL })');
-				addSchema = false;
 			}
 			// PostgreSQL
 			if (options.postgresql === 'neon') {
@@ -332,14 +330,11 @@ export default defineAddon({
 			common.addStatement(ast, clientIdentifier);
 
 			const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
-			if (addSchema) {
-				imports.addNamespace(ast, './schema', 'schema');
-				drizzleCall.arguments.push(
-					object.create({
-						schema: variables.identifier('schema')
-					})
-				);
-			}
+			drizzleCall.arguments.push(
+				object.create({
+					schema: variables.identifier('schema')
+				})
+			);
 			const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 			exports.namedExport(ast, 'db', db);
 
