@@ -261,6 +261,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
+			imports.addNamespace(ast, './schema', 'schema');
 
 			// env var checks
 			const dbURLCheck = common.statementFromString(
@@ -296,19 +297,13 @@ export default defineAddon({
 				}
 			}
 			// MySQL
-			if (options.mysql === 'mysql2') {
+			if (options.mysql === 'mysql2' || options.mysql === 'planetscale') {
 				imports.addDefault(ast, 'mysql2/promise', 'mysql');
 				imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
 				clientExpression = common.expressionFromString(
 					'await mysql.createConnection(env.DATABASE_URL)'
 				);
-			}
-			if (options.mysql === 'planetscale') {
-				imports.addNamed(ast, '@planetscale/database', { Client: 'Client' });
-				imports.addNamed(ast, 'drizzle-orm/planetscale-serverless', { drizzle: 'drizzle' });
-
-				clientExpression = common.expressionFromString('new Client({ url: env.DATABASE_URL })');
 			}
 			// PostgreSQL
 			if (options.postgresql === 'neon') {
@@ -328,7 +323,20 @@ export default defineAddon({
 			const clientIdentifier = variables.declaration(ast, 'const', 'client', clientExpression);
 			common.addStatement(ast, clientIdentifier);
 
+			// create drizzle function call
 			const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
+
+			// add schema to support `db.query`
+			const paramObject = object.create({
+				schema: variables.identifier('schema')
+			});
+			if (options.database == 'mysql') {
+				const mode = options.mysql == 'planetscale' ? 'planetscale' : 'default';
+				object.property(paramObject, 'mode', common.createLiteral(mode));
+			}
+			drizzleCall.arguments.push(paramObject);
+
+			// create `db` export
 			const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 			exports.namedExport(ast, 'db', db);
 
