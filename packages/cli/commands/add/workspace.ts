@@ -3,7 +3,7 @@ import path from 'node:path';
 import * as find from 'empathic/find';
 import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
-import { detectSync } from 'package-manager-detector';
+import { detect } from 'package-manager-detector';
 import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
 import { TESTING } from '../../utils/env.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
@@ -14,11 +14,11 @@ type CreateWorkspaceOptions = {
 	packageManager?: PackageManager;
 	options?: OptionValues<any>;
 };
-export function createWorkspace({
+export async function createWorkspace({
 	cwd,
 	options = {},
-	packageManager = detectSync({ cwd })?.name ?? getUserAgent() ?? 'npm'
-}: CreateWorkspaceOptions): Workspace<any> {
+	packageManager
+}: CreateWorkspaceOptions): Promise<Workspace<any>> {
 	const resolvedCwd = path.resolve(cwd);
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
 	let usesTypescript = fs.existsSync(viteConfigPath);
@@ -53,7 +53,7 @@ export function createWorkspace({
 	return {
 		cwd: resolvedCwd,
 		options,
-		packageManager,
+		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
 		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
 		dependencyVersion: (pkg) => dependencies[pkg]

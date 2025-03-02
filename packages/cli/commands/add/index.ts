@@ -280,7 +280,7 @@ export async function runAddCommand(
 	}
 
 	// prepare official addons
-	let workspace = createWorkspace({ cwd: options.cwd });
+	let workspace = await createWorkspace({ cwd: options.cwd });
 	const addonSetupResults = setupAddons(officialAddons, workspace);
 
 	// prompt which addons to apply
@@ -312,7 +312,7 @@ export async function runAddCommand(
 
 	// add inter-addon dependencies
 	for (const { addon } of selectedAddons) {
-		workspace = createWorkspace(workspace);
+		workspace = await createWorkspace(workspace);
 
 		const setupResult = addonSetupResults[addon.id];
 		const missingDependencies = setupResult.dependsOn.filter(
@@ -464,7 +464,7 @@ export async function runAddCommand(
 	}
 
 	// format modified/created files with prettier (if available)
-	workspace = createWorkspace(workspace);
+	workspace = await createWorkspace(workspace);
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
