@@ -134,11 +134,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			language: () => {
 				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
-					message: 'Add type checking with Typescript?',
+					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
 					options: [
-						{ label: 'Yes, using Typescript syntax', value: 'typescript' },
-						{ label: 'Yes, using Javascript with JSDoc comments', value: 'checkjs' },
+						{ label: 'Yes, using TypeScript syntax', value: 'typescript' },
+						{ label: 'Yes, using JavaScript with JSDoc comments', value: 'checkjs' },
 						{ label: 'No', value: 'none' }
 					]
 				});
