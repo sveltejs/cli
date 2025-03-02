@@ -184,12 +184,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 // This is a drastic simplification, as this could still cause some inconvenient cituations,
 // but works for now in contrary to the previouse implementation
 function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
-	return addons.sort((a, b) => {
-		const aDepends = setupResults[a.id]?.dependsOn?.length > 0;
-		const bDepends = setupResults[b.id]?.dependsOn?.length > 0;
-
-		if (aDepends && !bDepends) return 1;
-		if (!aDepends && bDepends) return -1;
-		return 0;
-	});
+	return addons.sort(
+		(a, b) => setupResults[a.id]?.dependsOn?.length - setupResults[b.id]?.dependsOn?.length
+	);
 }
