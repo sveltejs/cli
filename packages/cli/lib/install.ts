@@ -180,19 +180,16 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 	};
 }
 
-// sorts them to their execution order
+// orders addons by putting addons that don't require any other addon in the front.
+// This is a drastic simplification, as this could still cause some inconvenient cituations,
+// but works for now in contrary to the previouse implementation
 function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
-	return Array.from(addons).sort((a, b) => {
-		const aDeps = setupResults[a.id].dependsOn;
-		const bDeps = setupResults[b.id].dependsOn;
+	return addons.sort((a, b) => {
+		const aDepends = setupResults[a.id]?.dependsOn?.length > 0;
+		const bDepends = setupResults[b.id]?.dependsOn?.length > 0;
 
-		if (!aDeps && !bDeps) return 0;
-		if (!aDeps) return -1;
-		if (!bDeps) return 1;
-
-		if (aDeps.includes(b.id)) return 1;
-		if (bDeps.includes(a.id)) return -1;
-
+		if (aDepends && !bDepends) return 1;
+		if (!aDepends && bDepends) return -1;
 		return 0;
 	});
 }
