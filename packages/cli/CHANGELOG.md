@@ -1,5 +1,14 @@
 # sv
 
+## 0.6.24
+### Patch Changes
+
+
+- fix: use 'prettier' instead of ['flat/prettier'] ([#467](https://github.com/sveltejs/cli/pull/467))
+
+
+- fix: properly add tailwind plugins on subsequent add-on executions ([#456](https://github.com/sveltejs/cli/pull/456))
+
 ## 0.6.23
 ### Patch Changes
 
