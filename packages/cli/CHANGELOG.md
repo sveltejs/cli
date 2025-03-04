@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.25
+### Patch Changes
+
+
+- chore: add keys to `{#each}` blocks ([#466](https://github.com/sveltejs/cli/pull/466))
+
 ## 0.6.24
 ### Patch Changes
 
