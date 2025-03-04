@@ -34,7 +34,7 @@ export async function installAddon<Addons extends AddonMap>({
 	options,
 	packageManager = 'npm'
 }: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>> {
-	const workspace = createWorkspace({ cwd, packageManager });
+	const workspace = await createWorkspace({ cwd, packageManager });
 	const addonSetupResults = setupAddons(Object.values(addons), workspace);
 
 	return await applyAddons({ addons, workspace, options, addonSetupResults });
@@ -62,7 +62,7 @@ export async function applyAddons({
 	const ordered = orderAddons(mapped, addonSetupResults);
 
 	for (const addon of ordered) {
-		workspace = createWorkspace({ ...workspace, options: options[addon.id] });
+		workspace = await createWorkspace({ ...workspace, options: options[addon.id] });
 
 		const { files, pnpmBuildDependencies } = await runAddon({
 			workspace,
