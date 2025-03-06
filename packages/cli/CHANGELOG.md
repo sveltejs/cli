@@ -1,5 +1,20 @@
 # sv
 
+## 0.6.25
+### Patch Changes
+
+
+- chore: detect package manager asynchronously ([#465](https://github.com/sveltejs/cli/pull/465))
+
+
+- chore: add keys to `{#each}` blocks ([#466](https://github.com/sveltejs/cli/pull/466))
+
+
+- fix: pass `schema` to `drizzle` client for better type generation ([#459](https://github.com/sveltejs/cli/pull/459))
+
+
+- fix: addons executed in the wrong order in certain circumstances ([#462](https://github.com/sveltejs/cli/pull/462))
+
 ## 0.6.24
 ### Patch Changes
 
