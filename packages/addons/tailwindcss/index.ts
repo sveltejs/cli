@@ -1,16 +1,46 @@
-import { defineAddon } from '@sveltejs/cli-core';
-import { addImports } from '@sveltejs/cli-core/css';
+import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
 import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
+
+type Plugin = {
+	id: string;
+	package: string;
+	version: string;
+	identifier: string;
+};
+
+const plugins: Plugin[] = [
+	{
+		id: 'typography',
+		package: '@tailwindcss/typography',
+		version: '^0.5.15',
+		identifier: 'typography'
+	},
+	{
+		id: 'forms',
+		package: '@tailwindcss/forms',
+		version: '^0.5.9',
+		identifier: 'forms'
+	}
+];
+
+const options = defineAddonOptions({
+	plugins: {
+		type: 'multiselect',
+		question: 'Which plugins would you like to add?',
+		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
+		default: []
+	}
+});
 
 export default defineAddon({
 	id: 'tailwindcss',
 	alias: 'tailwind',
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
-	options: {},
-	run: ({ sv, typescript, kit, dependencyVersion }) => {
+	options,
+	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
@@ -18,6 +48,12 @@ export default defineAddon({
 		sv.devDependency('@tailwindcss/vite', '^4.0.0');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
+
+		for (const plugin of plugins) {
+			if (!options.plugins.includes(plugin.id)) continue;
+
+			sv.devDependency(plugin.package, plugin.version);
+		}
 
 		// add the vite plugin
 		sv.file(`vite.config.${ext}`, (content) => {
@@ -37,31 +73,38 @@ export default defineAddon({
 		});
 
 		sv.file('src/app.css', (content) => {
-			if (content.includes('tailwindcss')) {
-				return content;
+			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
+
+			const findAtRule = (name: string, params: string) =>
+				atRules.find(
+					(rule) =>
+						rule.name === name &&
+						// checks for both double and single quote variants
+						rule.params.replace(/['"]/g, '') === params
+				);
+
+			let code = content;
+			const importsTailwind = findAtRule('import', 'tailwindcss');
+			if (!importsTailwind) {
+				code = "@import 'tailwindcss';\n" + code;
+				// reparse to account for the newly added tailwindcss import
+				atRules = parseCss(code).ast.nodes.filter((node) => node.type === 'atrule');
 			}
 
-			const { ast, generateCode } = parseCss(content);
-			const originalFirst = ast.first;
+			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
+			const pluginPos = lastAtRule!.source!.end!.offset;
 
-			const nodes = addImports(ast, ["'tailwindcss'"]);
+			for (const plugin of plugins) {
+				if (!options.plugins.includes(plugin.id)) continue;
 
-			if (
-				originalFirst !== ast.first &&
-				originalFirst?.type === 'atrule' &&
-				originalFirst.name === 'import'
-			) {
-				originalFirst.raws.before = '\n';
+				const pluginRule = findAtRule('plugin', plugin.package);
+				if (!pluginRule) {
+					const pluginImport = `\n@plugin '${plugin.package}';`;
+					code = code.substring(0, pluginPos) + pluginImport + code.substring(pluginPos);
+				}
 			}
 
-			// We remove the first node to avoid adding a newline at the top of the stylesheet
-			nodes.shift();
-
-			// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
-			// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
-			nodes.forEach((n) => (n.raws.before = '\n'));
-
-			return generateCode();
+			return code;
 		});
 
 		if (!kit) {

@@ -31,9 +31,7 @@ export function addEslintConfigPrettier(content: string): string {
 		return content;
 
 	const prettier = common.expressionFromString('prettier');
-	const sveltePrettierConfig = common.expressionFromString(
-		`${svelteImportName}.configs['flat/prettier']`
-	);
+	const sveltePrettierConfig = common.expressionFromString(`${svelteImportName}.configs.prettier`);
 	const configSpread = common.createSpreadElement(sveltePrettierConfig);
 
 	const nodesToInsert = [];

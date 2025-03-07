@@ -8,7 +8,7 @@ import {
 	AGENTS,
 	COMMANDS,
 	constructCommand,
-	detectSync,
+	detect,
 	type AgentName
 } from 'package-manager-detector';
 import { parseJson } from '@sveltejs/cli-core/parsers';
@@ -19,7 +19,7 @@ agentOptions.unshift({ label: 'None', value: undefined });
 
 type PackageManagerOptions = Array<{ value: AgentName | undefined; label: AgentName | 'None' }>;
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
-	const detected = detectSync({ cwd });
+	const detected = await detect({ cwd });
 	const agent = detected?.name ?? getUserAgent();
 
 	const pm = await p.select({

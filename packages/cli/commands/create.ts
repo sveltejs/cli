@@ -13,7 +13,7 @@ import {
 } from '@sveltejs/create';
 import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
-import { detectSync, resolveCommand, type AgentName } from 'package-manager-detector';
+import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
 import {
 	addPnpmBuildDependendencies,
 	getUserAgent,
@@ -65,7 +65,8 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = packageManager ?? detectSync({ cwd: directory })?.name ?? getUserAgent() ?? 'npm';
+			const pm =
+				packageManager ?? (await detect({ cwd: directory }))?.name ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
@@ -134,11 +135,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			language: () => {
 				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
-					message: 'Add type checking with Typescript?',
+					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
 					options: [
-						{ label: 'Yes, using Typescript syntax', value: 'typescript' },
-						{ label: 'Yes, using Javascript with JSDoc comments', value: 'checkjs' },
+						{ label: 'Yes, using TypeScript syntax', value: 'typescript' },
+						{ label: 'Yes, using JavaScript with JSDoc comments', value: 'checkjs' },
 						{ label: 'No', value: 'none' }
 					]
 				});

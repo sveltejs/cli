@@ -21,8 +21,8 @@ export default defineAddon({
 
 		sv.devDependency('eslint', '^9.18.0');
 		sv.devDependency('@eslint/compat', '^1.2.5');
-		sv.devDependency('globals', '^15.14.0');
-		sv.devDependency('eslint-plugin-svelte', '^2.46.1');
+		sv.devDependency('eslint-plugin-svelte', '^3.0.0');
+		sv.devDependency('globals', '^16.0.0');
 		sv.devDependency('@eslint/js', '^9.18.0');
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.20.0');
@@ -57,6 +57,8 @@ export default defineAddon({
 				AstTypes.Expression | AstTypes.SpreadElement | AstTypes.ObjectExpression
 			> = [];
 
+			imports.addDefault(ast, './svelte.config.js', 'svelteConfig');
+
 			const gitIgnorePathStatement = common.statementFromString(
 				'\nconst gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));'
 			);
@@ -73,7 +75,7 @@ export default defineAddon({
 				eslintConfigs.push(common.createSpreadElement(tsConfig));
 			}
 
-			const svelteConfig = common.expressionFromString('svelte.configs["flat/recommended"]');
+			const svelteConfig = common.expressionFromString('svelte.configs.recommended');
 			eslintConfigs.push(common.createSpreadElement(svelteConfig));
 
 			const globalsBrowser = common.createSpreadElement(
@@ -91,10 +93,24 @@ export default defineAddon({
 
 			if (typescript) {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString('["**/*.svelte"]'),
+					files: common.expressionFromString('["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"]'),
+					ignores: common.expressionFromString('["eslint.config.js", "svelte.config.js"]'),
 					languageOptions: object.create({
 						parserOptions: object.create({
-							parser: common.expressionFromString('ts.parser')
+							projectService: common.expressionFromString('true'),
+							extraFileExtensions: common.expressionFromString("['.svelte']"),
+							parser: common.expressionFromString('ts.parser'),
+							svelteConfig: common.expressionFromString('svelteConfig')
+						})
+					})
+				});
+				eslintConfigs.push(svelteTSParserConfig);
+			} else {
+				const svelteTSParserConfig = object.create({
+					files: common.expressionFromString('["**/*.svelte", "**/*.svelte.js"]'),
+					languageOptions: object.create({
+						parserOptions: object.create({
+							svelteConfig: common.expressionFromString('svelteConfig')
 						})
 					})
 				});
