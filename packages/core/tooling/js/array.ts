@@ -29,13 +29,13 @@ function insertElement(
 ): void {
 	if (typeof data === 'string') {
 		const existingLiterals = ast.elements.filter((x) => x?.type === 'StringLiteral');
-		const literal = existingLiterals.find((x) => x.value === data) ?? {
-			type: 'StringLiteral',
-			value: data
-		};
+		let literal = existingLiterals.find((x) => x.value === data);
+		if (!literal) {
+			literal = { type: 'StringLiteral', value: data };
 
-		if (insertEnd) ast.elements.push(literal);
-		else ast.elements.unshift(literal);
+			if (insertEnd) ast.elements.push(literal);
+			else ast.elements.unshift(literal);
+		}
 	} else {
 		const elements = ast.elements as AstTypes.ASTNode[];
 		const anyNodeEquals = elements.some((node) => areNodesEqual(data, node));
