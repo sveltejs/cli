@@ -1,5 +1,11 @@
 # sv
 
+## 0.6.26
+### Patch Changes
+
+
+- chore: add keywords to library template ([#473](https://github.com/sveltejs/cli/pull/473))
+
 ## 0.6.25
 ### Patch Changes
 
