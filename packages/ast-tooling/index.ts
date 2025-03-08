@@ -54,6 +54,9 @@ export type {
 	CssChildNode
 };
 
+/**
+ * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
+ */
 export function parseScript(content: string): TsEstree.Program {
 	const comments: any[] = [];
 

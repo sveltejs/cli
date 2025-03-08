@@ -64,8 +64,8 @@ export default defineAddon({
 					if (isProp('dialect', node) && node.value.type === 'Literal' && typeof node.value.type === 'string') {
 						drizzleDialect = node.value.value as Dialect;
 					}
-					if (isProp('schema', node) && node.value.type === 'Literal' && typeof node.value.type === 'string') {
-						schemaPath = node.value.value as string;
+					if (isProp('schema', node) && node.value.type === 'Literal' && typeof node.value.value === 'string') {
+						schemaPath = node.value.value;
 					}
 				}
 			})
