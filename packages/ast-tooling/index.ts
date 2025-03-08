@@ -13,7 +13,7 @@ import {
 import * as fleece from 'silver-fleece';
 import * as Walker from 'zimmerframe';
 import type { TsEstree } from './ts-estree.ts';
-import { guessIndentString } from './utils.ts';
+import { guessIndentString, guessQuoteStyle } from './utils.ts';
 import { print as esrapPrint } from 'esrap';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
@@ -88,7 +88,7 @@ export function parseScript(content: string): TsEstree.Program {
 			while (comments[0] && comments[0].start < node.start) {
 				comment = comments.shift();
 				// @ts-expect-error
-				(commentNode.leadingComments ||= []).push(comment);
+				(commentNode.leadingComments ??= []).push(comment);
 			}
 
 			next();
@@ -107,10 +107,10 @@ export function parseScript(content: string): TsEstree.Program {
 	return ast as TsEstree.Program;
 }
 
-export function serializeScript(ast: TsEstree.Node): string {
+export function serializeScript(ast: TsEstree.Node, previousContent: string | undefined): string {
 	const { code } = esrapPrint(ast, {
-		indent: '\t',
-		quotes: 'single'
+		indent: guessIndentString(previousContent),
+		quotes: guessQuoteStyle(ast)
 	});
 	return code;
 }

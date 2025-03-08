@@ -89,7 +89,7 @@ export function areNodesEqual(ast1: AstTypes.Node, ast2: AstTypes.Node): boolean
 	// todo: can we simplify this duplicated call?
 	const ast1Clone = stripAst(stripAst(decircular(ast1), 'loc'), 'raw');
 	const ast2Clone = stripAst(stripAst(decircular(ast2), 'loc'), 'raw');
-	return serializeScript(ast1Clone) === serializeScript(ast2Clone);
+	return serializeScript(ast1Clone, undefined) === serializeScript(ast2Clone, undefined);
 }
 
 export function blockStatement(): AstTypes.BlockStatement {
