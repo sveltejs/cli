@@ -116,6 +116,10 @@ export default defineAddon({
 					dbSpecificContent = `
                       MYSQL_ROOT_PASSWORD: ${PASSWORD}
                       MYSQL_DATABASE: ${DB_NAME}
+                    volumes:
+                      - mysqldata:/var/lib/mysql
+                volumes:
+                  mysqldata:
                 `;
 				}
 				if (options.postgresql === 'postgres.js') {
@@ -123,6 +127,10 @@ export default defineAddon({
                       POSTGRES_USER: ${USER}
                       POSTGRES_PASSWORD: ${PASSWORD}
                       POSTGRES_DB: ${DB_NAME}
+                    volumes:
+                      - pgdata:/var/lib/postgresql/data
+                volumes:
+                  pgdata:
                 `;
 				}
 
