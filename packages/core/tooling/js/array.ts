@@ -71,5 +71,4 @@ export function unshift(
 			ast.elements.unshift(data);
 		}
 	}
-
 }
