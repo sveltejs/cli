@@ -7,7 +7,6 @@ import {
 	functions,
 	imports,
 	object,
-	type AstKinds,
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
@@ -55,13 +54,13 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const eslintConfigs: Array<
-				AstKinds.ExpressionKind | AstTypes.SpreadElement | AstTypes.ObjectExpression
+				AstTypes.Expression | AstTypes.SpreadElement | AstTypes.ObjectExpression
 			> = [];
 
 			imports.addDefault(ast, './svelte.config.js', 'svelteConfig');
 
 			const gitIgnorePathStatement = common.statementFromString(
-				'\nconst gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));'
+				"\nconst gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));"
 			);
 			common.addStatement(ast, gitIgnorePathStatement);
 
@@ -94,8 +93,8 @@ export default defineAddon({
 
 			if (typescript) {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString('["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"]'),
-					ignores: common.expressionFromString('["eslint.config.js", "svelte.config.js"]'),
+					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js']"),
+					ignores: common.expressionFromString("['eslint.config.js', 'svelte.config.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
 							projectService: common.expressionFromString('true'),
@@ -108,7 +107,7 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			} else {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString('["**/*.svelte", "**/*.svelte.js"]'),
+					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
 							svelteConfig: common.expressionFromString('svelteConfig')

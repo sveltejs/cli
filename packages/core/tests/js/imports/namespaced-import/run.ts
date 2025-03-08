@@ -1,6 +1,6 @@
 import { imports, type AstTypes } from '@sveltejs/cli-core/js';
 
-export function run({ ast }: { ast: AstTypes.Program }): void {
+export function run(ast: AstTypes.Program): void {
 	imports.addNamespace(ast, 'package', 'foo');
 
 	imports.addNamespace(ast, './some-file', 'bar');

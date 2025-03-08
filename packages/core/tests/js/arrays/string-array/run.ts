@@ -1,7 +1,6 @@
-import { array, variables } from '@sveltejs/cli-core/js';
-import type { ScriptFileEditor } from '@sveltejs/cli-core';
+import { array, variables, type AstTypes } from '@sveltejs/cli-core/js';
 
-export function run({ ast }: ScriptFileEditor<any>): void {
+export function run(ast: AstTypes.Program): void {
 	const array1 = array.createEmpty();
 	array.push(array1, 'test');
 	array.push(array1, 'test2');
