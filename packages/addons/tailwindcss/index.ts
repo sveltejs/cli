@@ -67,7 +67,7 @@ export default defineAddon({
 
 			const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
 			const pluginFunctionCall = functions.call(vitePluginName, []);
-			array.push(pluginsArray, pluginFunctionCall);
+			array.unshift(pluginsArray, pluginFunctionCall);
 
 			return generateCode();
 		});
