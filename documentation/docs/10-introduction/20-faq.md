@@ -2,7 +2,7 @@
 title: Frequently asked questions
 ---
 
-## How do i run the `sv` CLI?
+## How do I run the `sv` CLI?
 
 Running the `sv` cli differs for each package manager. Here is a list of the most common commands:
 
