@@ -1,4 +1,3 @@
-import type { Ast } from 'svelte/types/compiler/interfaces';
 import { areNodesEqual } from './common.ts';
 import type { AstTypes } from '@sveltejs/ast-tooling';
 
