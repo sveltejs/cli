@@ -1,5 +1,14 @@
 # sv
 
+## 0.6.26
+### Patch Changes
+
+
+- fix: insert the `tailwindcss` vite plugin at the start of the plugin array ([#478](https://github.com/sveltejs/cli/pull/478))
+
+
+- chore: add keywords to library template ([#473](https://github.com/sveltejs/cli/pull/473))
+
 ## 0.6.25
 ### Patch Changes
 
