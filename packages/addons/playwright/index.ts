@@ -16,9 +16,9 @@ export default defineAddon({
 			const { data, generateCode } = parseJson(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
-			const TEST_CMD = 'playwright test';
 			const RUN_TEST = 'npm run test:e2e';
-			scripts['test:e2e'] ??= TEST_CMD;
+			scripts['test:setup'] ??= 'playwright install';
+			scripts['test:e2e'] ??= 'playwright test';
 			scripts['test'] ??= RUN_TEST;
 			if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
 			return generateCode();
@@ -72,5 +72,12 @@ export default defineAddon({
 			}
 			return generateCode();
 		});
+	},
+	nextSteps: ({ highlighter, packageManager }) => {
+		const steps = [
+			`Run ${highlighter.command(`${packageManager} run test:setup`)} to install the browsers`
+		];
+
+		return steps;
 	}
 });
