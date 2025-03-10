@@ -1,7 +1,6 @@
 import { common, variables, object, exports, type AstTypes } from '@sveltejs/cli-core/js';
-import type { ScriptFileEditor } from '@sveltejs/cli-core';
 
-export function run({ ast }: ScriptFileEditor<any>): void {
+export function run(ast: AstTypes.Program): void {
 	const variableFallback = variables.declaration(ast, 'const', 'variable', object.createEmpty());
 
 	const existingExport = exports.namedExport(ast, 'named', variableFallback);

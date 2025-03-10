@@ -1,8 +1,1 @@
-const array = [
-	{
-		test2: 'string'
-	},
-	{
-		test: true
-	}
-];
+const array = [{ test2: 'string' }, { test: true }];
