@@ -1,46 +1,48 @@
 {
 	"name": "sv-monorepo",
-	"version": "0.0.1",
-	"description": "monorepo for sv and friends",
 	"private": true,
+	"version": "0.0.1",
 	"type": "module",
+	"description": "monorepo for sv and friends",
+	"engines": {
+		"pnpm": "^10.0.0"
+	},
 	"scripts": {
+		"build": "rolldown --config",
+		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
-		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
+		"dev": "rolldown --watch --config",
 		"format": "pnpm --parallel format",
-		"dev": "rollup --config --watch",
-		"build": "rollup -c",
-		"test": "pnpm --parallel test",
-		"changeset:publish": "changeset publish"
+		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
+		"test": "vitest run --silent",
+		"test:ui": "vitest --ui",
+		"update-addon-deps": "node ./scripts/update-addon-dependencies.js"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.27.9",
-		"@rollup/plugin-commonjs": "^26.0.1",
-		"@rollup/plugin-dynamic-import-vars": "^2.1.2",
-		"@rollup/plugin-json": "^6.1.0",
-		"@rollup/plugin-node-resolve": "^15.2.3",
+		"@changesets/cli": "^2.27.10",
+		"@playwright/test": "^1.49.1",
 		"@sveltejs/create": "workspace:*",
 		"@sveltejs/eslint-config": "^8.1.0",
-		"@svitejs/changesets-changelog-github-compact": "^1.1.0",
-		"@types/node": "^22.3.0",
-		"@vitest/ui": "^2.0.5",
-		"eslint": "^9.10.0",
-		"magic-string": "^0.30.11",
-		"prettier": "^3.3.3",
-		"prettier-plugin-packagejson": "^2.5.3",
-		"prettier-plugin-svelte": "^3.2.6",
-		"rollup": "^4.21.2",
-		"rollup-plugin-esbuild": "^6.1.1",
-		"rollup-plugin-preserve-shebangs": "^0.2.0",
+		"@svitejs/changesets-changelog-github-compact": "^1.2.0",
+		"@types/node": "^22.10.2",
+		"@vitest/ui": "^3.0.3",
+		"eslint": "^9.17.0",
+		"magic-string": "^0.30.15",
+		"prettier": "^3.4.2",
+		"prettier-plugin-packagejson": "^2.5.6",
+		"prettier-plugin-svelte": "^3.3.2",
+		"rolldown": "1.0.0-beta.1",
 		"sv": "workspace:*",
-		"svelte": "^5.0.0",
+		"svelte": "^5.12.0",
 		"typescript": "^5.6.2",
-		"typescript-eslint": "^8.5.0",
-		"unplugin-isolated-decl": "^0.6.5",
-		"vitest": "^2.0.5"
+		"typescript-eslint": "^8.18.0",
+		"unplugin-isolated-decl": "^0.8.3",
+		"vitest": "^3.0.5"
 	},
-	"packageManager": "pnpm@9.7.0",
-	"engines": {
-		"pnpm": "^9.0.0"
+	"packageManager": "pnpm@10.4.1",
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
 	}
 }

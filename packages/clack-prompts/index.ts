@@ -603,6 +603,64 @@ function buildBox(message = '', title = '', dimmed = true) {
 
 export const note = (message = '', title = ''): void => buildBox(message, title, true);
 export const box = (message = '', title = ''): void => buildBox(message, title, false);
+export const taskLog = (title: string) => {
+	const BAR = color.dim(S_BAR);
+	const ACTIVE = color.green(S_STEP_SUBMIT);
+	const SUCCESS = color.green(S_SUCCESS);
+	const ERROR = color.red(S_ERROR);
+
+	// heading
+	process.stdout.write(`${BAR}\n`);
+	process.stdout.write(`${ACTIVE}  ${title}\n`);
+
+	let output = '';
+	let frame = '';
+
+	// clears previous output
+	const clear = (eraseTitle = false): void => {
+		if (!frame) return;
+		const terminalWidth = process.stdout.columns;
+		const frameHeight = frame.split('\n').reduce((height, line) => {
+			// accounts for line wraps
+			height += Math.ceil(line.length / terminalWidth);
+			return height;
+		}, 0);
+		const lines = frameHeight + (eraseTitle ? 1 : 0);
+
+		process.stdout.write(cursor.up(lines));
+		process.stdout.write(erase.down());
+	};
+
+	// logs the output
+	const print = (limit = 0): void => {
+		const lines = output.split('\n').slice(-limit);
+		// reset frame
+		frame = '';
+		for (const line of lines) {
+			frame += `${BAR}  ${line}\n`;
+		}
+		process.stdout.write(color.dim(frame));
+	};
+
+	return {
+		set text(data: string) {
+			clear();
+			output += data;
+			// half the height of the terminal
+			const frameHeight = Math.ceil(process.stdout.rows / 2);
+			print(frameHeight);
+		},
+		fail(message: string): void {
+			clear(true);
+			process.stdout.write(`${ERROR}  ${message}\n`);
+			print(); // log the output on failure
+		},
+		success(message: string): void {
+			clear(true);
+			process.stdout.write(`${SUCCESS}  ${message}\n`);
+		}
+	};
+};
 
 export const cancel = (message = ''): void => {
 	process.stdout.write(`${color.gray(S_BAR_END)}  ${color.red(message)}\n\n`);

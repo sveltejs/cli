@@ -1,5 +1,4 @@
 /dist
-/.test-tmp
 
 # re-enable this once we're out of prerelease
 /cli/versions.js

@@ -28,6 +28,7 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 
 - `drizzle`
 - `eslint`
+- `sveltekit-adapter`
 - `lucia`
 - `mdsvex`
 - `paraglide`

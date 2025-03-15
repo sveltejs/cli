@@ -1,8 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
+import { exec } from 'tinyexec';
 import { parseJson } from '@sveltejs/cli-core/parsers';
-import type { Adder, Highlighter, Workspace } from '@sveltejs/cli-core';
+import { resolveCommand, type AgentName } from 'package-manager-detector';
+import type { Highlighter, Workspace } from '@sveltejs/cli-core';
 
 export type Package = {
 	name: string;
@@ -15,7 +17,11 @@ export type Package = {
 	workspaces?: string[];
 };
 
-export function getPackageJson(cwd: string) {
+export function getPackageJson(cwd: string): {
+	source: string;
+	data: Package;
+	generateCode: () => string;
+} {
 	const packageText = readFile(cwd, commonFilePaths.packageJson);
 	if (!packageText) {
 		const pkgPath = path.join(cwd, commonFilePaths.packageJson);
@@ -26,8 +32,21 @@ export function getPackageJson(cwd: string) {
 	return { source: packageText, data: data as Package, generateCode };
 }
 
+export async function formatFiles(options: {
+	packageManager: AgentName;
+	cwd: string;
+	paths: string[];
+}): Promise<void> {
+	const args = ['prettier', '--write', '--ignore-unknown', ...options.paths];
+	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
+	await exec(cmd.command, cmd.args, {
+		nodeOptions: { cwd: options.cwd, stdio: 'pipe' },
+		throwOnError: true
+	});
+}
+
 export function readFile(cwd: string, filePath: string): string {
-	const fullFilePath = getFilePath(cwd, filePath);
+	const fullFilePath = path.resolve(cwd, filePath);
 
 	if (!fileExists(cwd, filePath)) {
 		return '';
@@ -38,20 +57,19 @@ export function readFile(cwd: string, filePath: string): string {
 	return text;
 }
 
-export function installPackages(config: Adder<any>, workspace: Workspace<any>): string {
+export function installPackages(
+	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
+	workspace: Workspace<any>
+): string {
 	const { data, generateCode } = getPackageJson(workspace.cwd);
 
-	for (const dependency of config.packages) {
-		if (dependency.condition && !dependency.condition(workspace)) {
-			continue;
-		}
-
+	for (const dependency of dependencies) {
 		if (dependency.dev) {
 			data.devDependencies ??= {};
-			data.devDependencies[dependency.name] = dependency.version;
+			data.devDependencies[dependency.pkg] = dependency.version;
 		} else {
 			data.dependencies ??= {};
-			data.dependencies[dependency.name] = dependency.version;
+			data.dependencies[dependency.pkg] = dependency.version;
 		}
 	}
 
@@ -72,7 +90,7 @@ function alphabetizeProperties(obj: Record<string, string>) {
 }
 
 export function writeFile(workspace: Workspace<any>, filePath: string, content: string): void {
-	const fullFilePath = getFilePath(workspace.cwd, filePath);
+	const fullFilePath = path.resolve(workspace.cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
 	if (content && !content.endsWith('\n')) content += '\n';
@@ -85,12 +103,8 @@ export function writeFile(workspace: Workspace<any>, filePath: string, content: 
 }
 
 export function fileExists(cwd: string, filePath: string): boolean {
-	const fullFilePath = getFilePath(cwd, filePath);
+	const fullFilePath = path.resolve(cwd, filePath);
 	return fs.existsSync(fullFilePath);
-}
-
-export function getFilePath(cwd: string, fileName: string): string {
-	return path.join(cwd, fileName);
 }
 
 export const commonFilePaths = {

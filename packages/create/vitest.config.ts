@@ -1,7 +1,10 @@
-import { defineConfig, type UserConfig } from 'vitest/config';
+import { env } from 'node:process';
+import { defineProject } from 'vitest/config';
 
-const config: UserConfig = defineConfig({
-	test: { dir: './test', include: ['*.ts'] }
+export default defineProject({
+	test: {
+		name: 'create',
+		include: ['test/*.ts'],
+		retry: env.CI ? 3 : 0
+	}
 });
-
-export default config;

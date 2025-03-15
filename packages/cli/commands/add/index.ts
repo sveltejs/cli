@@ -1,45 +1,52 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as v from 'valibot';
-import { exec } from 'tinyexec';
-import { Command, Option } from 'commander';
-import * as p from '@sveltejs/clack-prompts';
-import * as pkg from 'empathic/package';
-import { resolveCommand, type AgentName } from 'package-manager-detector';
 import pc from 'picocolors';
+import * as v from 'valibot';
+import * as pkg from 'empathic/package';
+import * as p from '@sveltejs/clack-prompts';
+import { Command, Option } from 'commander';
 import {
-	officialAdders,
-	getAdderDetails,
-	communityAdderIds,
-	getCommunityAdder
-} from '@sveltejs/adders';
-import type { AdderWithoutExplicitArgs, OptionValues } from '@sveltejs/cli-core';
-import * as common from '../../common.ts';
-import { Directive, downloadPackage, getPackageJSON } from '../../utils/fetch-packages.ts';
+	officialAddons,
+	getAddonDetails,
+	communityAddonIds,
+	getCommunityAddon
+} from '@sveltejs/addons';
+import type { AgentName } from 'package-manager-detector';
+import type { AddonWithoutExplicitArgs, OptionValues, PackageManager } from '@sveltejs/cli-core';
+import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
-import { getHighlighter, installPackages } from './utils.ts';
-import { createOrUpdateFiles } from './processor.ts';
+import { formatFiles, getHighlighter } from './utils.ts';
+import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
+import {
+	addPnpmBuildDependendencies,
+	installDependencies,
+	packageManagerPrompt
+} from '../../utils/package-manager.ts';
+import { getGlobalPreconditions } from './preconditions.ts';
+import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
-const AddersSchema = v.array(v.string());
-const AdderOptionFlagsSchema = v.object({
-	tailwindcss: v.optional(v.array(v.string())),
-	drizzle: v.optional(v.array(v.string())),
-	lucia: v.optional(v.array(v.string())),
-	paraglide: v.optional(v.array(v.string()))
-});
+const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
+const addonsOptions = getAddonOptionFlags();
+const communityDetails: AddonWithoutExplicitArgs[] = [];
+
+const OptionFlagSchema = v.optional(v.array(v.string()));
+
+const addonOptionFlags = addonsOptions.reduce(
+	(flags, opt) => Object.assign(flags, { [opt.attributeName()]: OptionFlagSchema }),
+	{}
+);
+
+const AddonsSchema = v.array(v.string());
+const AddonOptionFlagsSchema = v.object(addonOptionFlags);
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.boolean(),
 	preconditions: v.boolean(),
-	community: v.optional(v.union([AddersSchema, v.boolean()])),
-	...AdderOptionFlagsSchema.entries
+	community: v.optional(v.union([AddonsSchema, v.boolean()])),
+	...AddonOptionFlagsSchema.entries
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
-
-const aliases = officialAdders.map((c) => c.alias).filter((v) => v !== undefined);
-const addersOptions = getAdderOptionFlags();
-const communityDetails: AdderWithoutExplicitArgs[] = [];
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
@@ -51,9 +58,9 @@ export const add = new Command('add')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-install', 'skip installing dependencies')
 	.option('--no-preconditions', 'skip validating preconditions')
-	//.option('--community [adder...]', 'community adders to install')
+	//.option('--community [add-on...]', 'community addons to install')
 	.configureHelp(common.helpConfig)
-	.action((adderArgs, opts) => {
+	.action((addonArgs, opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
 			console.error(
@@ -68,53 +75,60 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const specifiedAdders = v.parse(AddersSchema, adderArgs);
+		const specifiedAddons = v.parse(AddonsSchema, addonArgs);
 		const options = v.parse(OptionsSchema, opts);
-		const adderIds = officialAdders.map((adder) => adder.id);
-		const invalidAdders = specifiedAdders.filter(
-			(a) => !adderIds.includes(a) && !aliases.includes(a)
+		const addonIds = officialAddons.map((addon) => addon.id);
+		const invalidAddons = specifiedAddons.filter(
+			(a) => !addonIds.includes(a) && !aliases.includes(a)
 		);
-		if (invalidAdders.length > 0) {
-			console.error(`Invalid adders specified: ${invalidAdders.join(', ')}`);
+		if (invalidAddons.length > 0) {
+			console.error(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
 			process.exit(1);
 		}
 
-		const selectedAdders = transformAliases(specifiedAdders);
+		const selectedAddons = transformAliases(specifiedAddons);
 		common.runCommand(async () => {
-			const { nextSteps } = await runAddCommand(options, selectedAdders);
+			const { nextSteps } = await runAddCommand(options, selectedAddons);
 			if (nextSteps) p.box(nextSteps, 'Next steps');
 		});
 	});
 
-// adds adder specific option flags to the `add` command
-for (const option of addersOptions) {
+// adds addon specific option flags to the `add` command
+for (const option of addonsOptions) {
 	add.addOption(option);
 }
 
-type SelectedAdder = { type: 'official' | 'community'; adder: AdderWithoutExplicitArgs };
+type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
 export async function runAddCommand(
 	options: Options,
-	selectedAdderIds: string[]
+	selectedAddonIds: string[]
 ): Promise<{ nextSteps?: string; packageManager?: AgentName | null }> {
-	const selectedAdders: SelectedAdder[] = selectedAdderIds.map((id) => ({
+	const selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
 		type: 'official',
-		adder: getAdderDetails(id)
+		addon: getAddonDetails(id)
 	}));
-	const official: AdderOption = {};
-	const community: AdderOption = {};
+
+	type AddonId = string;
+	type QuestionValues = OptionValues<any>;
+	type AddonOption = Record<AddonId, QuestionValues>;
+
+	const official: AddonOption = {};
+	const community: AddonOption = {};
 
 	// apply specified options from flags
-	for (const adderOption of addersOptions) {
-		const adderId = adderOption.attributeName() as keyof Options;
-		const specifiedOptions = options[adderId] as string[] | undefined;
+	for (const addonOption of addonsOptions) {
+		const addonId = addonOption.name() as keyof Options;
+		// if the add-on flag contains a `-`, it'll be camelcased (e.g. `sveltekit-adapter` is `sveltekitAdapter`)
+		const aliased = addonOption.attributeName() as keyof Options;
+		const specifiedOptions = (options[addonId] || options[aliased]) as string[] | undefined;
 		if (!specifiedOptions) continue;
 
-		const details = getAdderDetails(adderId);
-		if (!selectedAdders.find((d) => d.adder === details)) {
-			selectedAdders.push({ type: 'official', adder: details });
+		const details = getAddonDetails(addonId);
+		if (!selectedAddons.find((d) => d.addon === details)) {
+			selectedAddons.push({ type: 'official', addon: details });
 		}
 
-		official[adderId] ??= {};
+		official[addonId] ??= {};
 
 		const optionEntries = Object.entries(details.options);
 		for (const specifiedOption of specifiedOptions) {
@@ -133,55 +147,55 @@ export async function runAddCommand(
 			if (!optionEntry) {
 				const { choices } = getOptionChoices(details);
 				throw new Error(
-					`Invalid '--${adderId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
+					`Invalid '--${addonId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
 				);
 			}
 
 			const [questionId, question] = optionEntry;
 
 			// validate that there are no conflicts
-			let existingOption = official[adderId][questionId];
+			let existingOption = official[addonId][questionId];
 			if (existingOption !== undefined) {
 				if (typeof existingOption === 'boolean') {
 					// need to transform the boolean back to `no-{id}` or `{id}`
 					existingOption = existingOption ? questionId : `no-${questionId}`;
 				}
 				throw new Error(
-					`Conflicting '--${adderId}' option: '${specifiedOption}' conflicts with '${existingOption}'`
+					`Conflicting '--${addonId}' option: '${specifiedOption}' conflicts with '${existingOption}'`
 				);
 			}
 
-			official[adderId][questionId] =
+			official[addonId][questionId] =
 				question.type === 'boolean' ? !specifiedOption.startsWith('no-') : specifiedOption;
 		}
 
 		// apply defaults to unspecified options
 		for (const [id, question] of Object.entries(details.options)) {
 			// we'll only apply defaults to options that don't explicitly fail their conditions
-			if (question.condition?.(official[adderId]) !== false) {
-				official[adderId][id] ??= question.default;
+			if (question.condition?.(official[addonId]) !== false) {
+				official[addonId][id] ??= question.default;
 			} else {
 				// we'll also error out if they specified an option that is incompatible with other options.
 				// (e.g. the client isn't available for a given database `--drizzle sqlite mysql2`)
-				if (official[adderId][id] !== undefined) {
+				if (official[addonId][id] !== undefined) {
 					throw new Error(
-						`Incompatible '--${adderId}' option specified: '${official[adderId][id]}'`
+						`Incompatible '--${addonId}' option specified: '${official[addonId][id]}'`
 					);
 				}
 			}
 		}
 	}
 
-	// we'll let the user choose community adders when `--community` is specified without args
+	// we'll let the user choose community addons when `--community` is specified without args
 	if (options.community === true) {
-		const communityAdders = await Promise.all(
-			communityAdderIds.map(async (id) => await getCommunityAdder(id))
+		const communityAddons = await Promise.all(
+			communityAddonIds.map(async (id) => await getCommunityAddon(id))
 		);
 
-		const promptOptions = communityAdders.map((adder) => ({
-			value: adder.id,
-			label: adder.id,
-			hint: 'https://www.npmjs.com/package/' + adder.id
+		const promptOptions = communityAddons.map((addon) => ({
+			value: addon.id,
+			label: addon.id,
+			hint: 'https://www.npmjs.com/package/' + addon.id
 		}));
 
 		const selected = await p.multiselect({
@@ -194,47 +208,47 @@ export async function runAddCommand(
 			p.cancel('Operation cancelled.');
 			process.exit(1);
 		} else if (selected.length === 0) {
-			p.cancel('No adders selected. Exiting.');
+			p.cancel('No add-ons selected. Exiting.');
 			process.exit(1);
 		}
 
 		options.community = selected;
 	}
 
-	// validate and download community adders
+	// validate and download community addons
 	if (Array.isArray(options.community) && options.community.length > 0) {
-		// validate adders
-		const adders = options.community.map((id) => {
+		// validate addons
+		const addons = options.community.map((id) => {
 			// ids with directives are passed unmodified so they can be processed during downloads
 			const hasDirective = Object.values(Directive).some((directive) => id.startsWith(directive));
 			if (hasDirective) return id;
 
-			const validAdder = communityAdderIds.includes(id);
-			if (!validAdder) {
+			const validAddon = communityAddonIds.includes(id);
+			if (!validAddon) {
 				throw new Error(
-					`Invalid community adder specified: '${id}'\nAvailable options: ${communityAdderIds.join(', ')}`
+					`Invalid community add-on specified: '${id}'\nAvailable options: ${communityAddonIds.join(', ')}`
 				);
 			}
 			return id;
 		});
 
-		// get adder details from remote adders
+		// get addon details from remote addons
 		const { start, stop } = p.spinner();
 		try {
-			start('Resolving community adder packages');
+			start('Resolving community add-on packages');
 			const pkgs = await Promise.all(
-				adders.map(async (id) => {
+				addons.map(async (id) => {
 					return await getPackageJSON({ cwd: options.cwd, packageName: id });
 				})
 			);
-			stop('Resolved community adder packages');
+			stop('Resolved community add-on packages');
 
 			p.log.warn(
-				'The Svelte maintainers have not reviewed community adders for malicious code. Use at your discretion.'
+				'The Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
 			);
 
-			const paddingName = getPadding(pkgs.map(({ pkg }) => pkg.name));
-			const paddingVersion = getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
+			const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
+			const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
 
 			const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
 				const name = pc.yellowBright(pkg.name.padEnd(paddingName));
@@ -250,42 +264,39 @@ export async function runAddCommand(
 				process.exit(1);
 			}
 
-			start('Downloading community adder packages');
+			start('Downloading community add-on packages');
 			const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
-			for (const adder of details) {
-				const id = adder.id;
+			for (const addon of details) {
+				const id = addon.id;
 				community[id] ??= {};
-				communityDetails.push(adder);
-				selectedAdders.push({ type: 'community', adder });
+				communityDetails.push(addon);
+				selectedAddons.push({ type: 'community', addon });
 			}
-			stop('Downloaded community adder packages');
+			stop('Downloaded community add-on packages');
 		} catch (err) {
-			stop('Failed to resolve community adder packages', 1);
+			stop('Failed to resolve community add-on packages', 1);
 			throw err;
 		}
 	}
 
-	// prompt which adders to apply
-	if (selectedAdders.length === 0) {
-		const workspace = createWorkspace({ cwd: options.cwd });
-		const projectType = workspace.kit ? 'kit' : 'svelte';
-		const adderOptions = officialAdders
-			.map((adder) => {
-				// we'll only display adders within their respective project types
-				if (projectType === 'kit' && !adder.environments.kit) return;
-				if (projectType === 'svelte' && !adder.environments.svelte) return;
+	// prepare official addons
+	let workspace = await createWorkspace({ cwd: options.cwd });
+	const addonSetupResults = setupAddons(officialAddons, workspace);
 
-				return {
-					label: adder.id,
-					value: adder.id,
-					hint: adder.homepage
-				};
-			})
-			.filter((a) => !!a);
+	// prompt which addons to apply
+	if (selectedAddons.length === 0) {
+		const addonOptions = officialAddons
+			// only display supported addons relative to the current environment
+			.filter(({ id }) => addonSetupResults[id].unsupported.length === 0)
+			.map(({ id, homepage, shortDescription }) => ({
+				label: id,
+				value: id,
+				hint: `${shortDescription} - ${homepage}`
+			}));
 
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
-			options: adderOptions,
+			options: addonOptions,
 			required: false
 		});
 		if (p.isCancel(selected)) {
@@ -293,47 +304,43 @@ export async function runAddCommand(
 			process.exit(1);
 		}
 
-		selected.forEach((id) => selectedAdders.push({ type: 'official', adder: getAdderDetails(id) }));
+		for (const id of selected) {
+			const addon = officialAddons.find((addon) => addon.id === id)!;
+			selectedAddons.push({ type: 'official', addon });
+		}
 	}
 
-	// add inter-adder dependencies
-	for (const { adder } of selectedAdders) {
-		const dependents =
-			adder.dependsOn?.filter((dep) => !selectedAdders.some((a) => a.adder.id === dep)) ?? [];
+	// add inter-addon dependencies
+	for (const { addon } of selectedAddons) {
+		workspace = await createWorkspace(workspace);
 
-		const workspace = createWorkspace({ cwd: options.cwd });
-		for (const depId of dependents) {
-			const dependent = officialAdders.find((a) => a.id === depId) as AdderWithoutExplicitArgs;
-			if (!dependent) throw new Error(`Adder '${adder.id}' depends on an invalid '${depId}'`);
+		const setupResult = addonSetupResults[addon.id];
+		const missingDependencies = setupResult.dependsOn.filter(
+			(depId) => !selectedAddons.some((a) => a.addon.id === depId)
+		);
 
-			// check if the dependent adder has already been installed
-			let installed = false;
-			installed = dependent.packages.every(
-				// we'll skip the conditions since we don't have any options to supply it
-				(p) => p.condition !== undefined || !!workspace.dependencyVersion(p.name)
-			);
-
-			if (installed) continue;
+		for (const depId of missingDependencies) {
+			// TODO: this will have to be adjusted when we work on community add-ons
+			const dependency = officialAddons.find((a) => a.id === depId);
+			if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
 
 			// prompt to install the dependent
 			const install = await p.confirm({
-				message: `The ${pc.bold(pc.cyan(adder.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
+				message: `The ${pc.bold(pc.cyan(addon.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
 			});
 			if (install !== true) {
 				p.cancel('Operation cancelled.');
 				process.exit(1);
 			}
-			selectedAdders.push({ type: 'official', adder: dependent });
+			selectedAddons.push({ type: 'official', addon: dependency });
 		}
 	}
 
 	// run precondition checks
-	if (options.preconditions && selectedAdders.length > 0) {
+	if (options.preconditions && selectedAddons.length > 0) {
 		// add global checks
-		const { kit } = createWorkspace({ cwd: options.cwd });
-		const projectType = kit ? 'kit' : 'svelte';
-		const adders = selectedAdders.map(({ adder }) => adder);
-		const { preconditions } = common.getGlobalPreconditions(options.cwd, projectType, adders);
+		const addons = selectedAddons.map(({ addon }) => addon);
+		const { preconditions } = getGlobalPreconditions(options.cwd, addons, addonSetupResults);
 
 		const fails: Array<{ name: string; message?: string }> = [];
 		for (const condition of preconditions) {
@@ -360,21 +367,21 @@ export async function runAddCommand(
 	}
 
 	// ask remaining questions
-	for (const { adder, type } of selectedAdders) {
-		const adderId = adder.id;
-		const questionPrefix = selectedAdders.length > 1 ? `${adder.id}: ` : '';
+	for (const { addon, type } of selectedAddons) {
+		const addonId = addon.id;
+		const questionPrefix = selectedAddons.length > 1 ? `${addon.id}: ` : '';
 
 		let values: QuestionValues = {};
 		if (type === 'official') {
-			official[adderId] ??= {};
-			values = official[adderId];
+			official[addonId] ??= {};
+			values = official[addonId];
 		}
 		if (type === 'community') {
-			community[adderId] ??= {};
-			values = community[adderId];
+			community[addonId] ??= {};
+			values = community[addonId];
 		}
 
-		for (const [questionId, question] of Object.entries(adder.options)) {
+		for (const [questionId, question] of Object.entries(addon.options)) {
 			const shouldAsk = question.condition?.(values);
 			if (shouldAsk === false || values[questionId] !== undefined) continue;
 
@@ -418,32 +425,51 @@ export async function runAddCommand(
 		}
 	}
 
-	// we'll return early when no adders are selected,
+	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAdders.length === 0) return { packageManager: null };
+	if (selectedAddons.length === 0) return { packageManager: null };
 
-	// prompt for package manager
-	let packageManager: AgentName | undefined;
-	if (options.install) {
-		packageManager = await common.packageManagerPrompt(options.cwd);
-	}
+	// apply addons
+	const officialDetails = Object.keys(official).map((id) => getAddonDetails(id));
+	const commDetails = Object.keys(community).map(
+		(id) => communityDetails.find((a) => a.id === id)!
+	);
+	const details = officialDetails.concat(commDetails);
 
-	// apply adders
-	const filesToFormat = await runAdders({ cwd: options.cwd, packageManager, official, community });
+	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
+	const { filesToFormat, pnpmBuildDependencies: addonPnpmBuildDependencies } = await applyAddons({
+		workspace,
+		addonSetupResults,
+		addons: addonMap,
+		options: official
+	});
+
 	p.log.success('Successfully setup add-ons');
 
-	// install dependencies
-	if (packageManager && options.install) {
-		await common.installDependencies(packageManager, options.cwd);
+	// prompt for package manager and install dependencies
+	let packageManager: PackageManager | undefined;
+	if (options.install) {
+		packageManager = await packageManagerPrompt(options.cwd);
+
+		if (packageManager) {
+			workspace.packageManager = packageManager;
+
+			addPnpmBuildDependendencies(workspace.cwd, packageManager, [
+				'esbuild',
+				...addonPnpmBuildDependencies
+			]);
+
+			await installDependencies(packageManager, options.cwd);
+		}
 	}
 
 	// format modified/created files with prettier (if available)
-	const workspace = createWorkspace({ cwd: options.cwd, packageManager });
+	workspace = await createWorkspace(workspace);
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
 		try {
-			await common.formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
+			await formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
 			stop('Successfully formatted modified files');
 		} catch (e) {
 			stop('Failed to format files');
@@ -455,21 +481,21 @@ export async function runAddCommand(
 
 	// print next steps
 	const nextSteps =
-		selectedAdders
-			.filter(({ adder }) => adder.nextSteps)
-			.map(({ adder }) => {
-				let adderMessage = '';
-				if (selectedAdders.length > 1) {
-					adderMessage = `${pc.green(adder.id)}:\n`;
+		selectedAddons
+			.filter(({ addon }) => addon.nextSteps)
+			.map(({ addon }) => {
+				let addonMessage = '';
+				if (selectedAddons.length > 1) {
+					addonMessage = `${pc.green(addon.id)}:\n`;
 				}
 
-				const adderNextSteps = adder.nextSteps!({
+				const addonNextSteps = addon.nextSteps!({
 					...workspace,
-					options: official[adder.id]!,
+					options: official[addon.id]!,
 					highlighter
 				});
-				adderMessage += `- ${adderNextSteps.join('\n- ')}`;
-				return adderMessage;
+				addonMessage += `- ${addonNextSteps.join('\n- ')}`;
+				return addonMessage;
 			})
 			// instead of returning an empty string, we'll return `undefined`
 			.join('\n\n') || undefined;
@@ -477,97 +503,15 @@ export async function runAddCommand(
 	return { nextSteps, packageManager };
 }
 
-type AdderId = string;
-type QuestionValues = OptionValues<any>;
-export type AdderOption = Record<AdderId, QuestionValues>;
-
-export type InstallAdderOptions = {
-	cwd: string;
-	packageManager?: AgentName;
-	official?: AdderOption;
-	community?: AdderOption;
-};
-
 /**
- * @returns a list of paths of modified files
- */
-async function runAdders({
-	cwd,
-	official = {},
-	community = {},
-	packageManager
-}: InstallAdderOptions): Promise<string[]> {
-	const adderDetails = Object.keys(official).map((id) => getAdderDetails(id));
-	const commDetails = Object.keys(community).map(
-		(id) => communityDetails.find((a) => a.id === id)!
-	);
-	const details = adderDetails.concat(commDetails);
-
-	// adders might specify that they should be executed after another adder.
-	// this orders the adders to (ideally) have adders without dependencies run first
-	// and adders with dependencies runs later on, based on the adders they depend on.
-	// based on https://stackoverflow.com/a/72030336/16075084
-	details.sort((a, b) => {
-		if (!a.dependsOn && !b.dependsOn) return 0;
-		if (!a.dependsOn) return -1;
-		if (!b.dependsOn) return 1;
-
-		return a.dependsOn.includes(b.id) ? 1 : b.dependsOn.includes(a.id) ? -1 : 0;
-	});
-
-	// apply adders
-	const filesToFormat = new Set<string>();
-	for (const config of details) {
-		const adderId = config.id;
-		const workspace = createWorkspace({ cwd, packageManager });
-
-		workspace.options = official[adderId] ?? community[adderId]!;
-
-		// execute adders
-		await config.preInstall?.(workspace);
-		const pkgPath = installPackages(config, workspace);
-		filesToFormat.add(pkgPath);
-		const changedFiles = createOrUpdateFiles(config.files, workspace);
-		changedFiles.forEach((file) => filesToFormat.add(file));
-		await config.postInstall?.(workspace);
-
-		if (config.scripts && config.scripts.length > 0) {
-			for (const script of config.scripts) {
-				if (script.condition?.(workspace) === false) continue;
-
-				const { command, args } = resolveCommand(workspace.packageManager, 'execute', script.args)!;
-				const adderPrefix = details.length > 1 ? `${config.id}: ` : '';
-				p.log.step(
-					`${adderPrefix}Running external command ${pc.gray(`(${command} ${args.join(' ')})`)}`
-				);
-
-				// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-				if (workspace.packageManager === 'npm') args.unshift('--yes');
-
-				try {
-					await exec(command, args, { nodeOptions: { cwd: workspace.cwd, stdio: script.stdio } });
-				} catch (error) {
-					const typedError = error as Error;
-					throw new Error(
-						`Failed to execute scripts '${script.description}': ` + typedError.message
-					);
-				}
-			}
-		}
-	}
-
-	return Array.from(filesToFormat);
-}
-
-/**
- * Dedupes and transforms aliases into their respective adder id
+ * Dedupes and transforms aliases into their respective addon id
  */
 function transformAliases(ids: string[]): string[] {
 	const set = new Set<string>();
 	for (const id of ids) {
 		if (aliases.includes(id)) {
-			const adder = officialAdders.find((a) => a.alias === id)!;
-			set.add(adder.id);
+			const addon = officialAddons.find((a) => a.alias === id)!;
+			set.add(addon.id);
 		} else {
 			set.add(id);
 		}
@@ -575,11 +519,11 @@ function transformAliases(ids: string[]): string[] {
 	return Array.from(set);
 }
 
-function getAdderOptionFlags(): Option[] {
+function getAddonOptionFlags(): Option[] {
 	const options: Option[] = [];
-	for (const adder of officialAdders) {
-		const id = adder.id;
-		const details = getAdderDetails(id);
+	for (const addon of officialAddons) {
+		const id = addon.id;
+		const details = getAddonDetails(id);
 		if (Object.values(details.options).length === 0) continue;
 
 		const { defaults, groups } = getOptionChoices(details);
@@ -591,7 +535,7 @@ function getAdderOptionFlags(): Option[] {
 			`--${id} [options...]`,
 			`${id} add-on options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
 		)
-			// presets are applied when `--adder` is specified with no options
+			// presets are applied when `--{addonName}` is specified with no options
 			.preset(preset)
 			.argParser((value, prev: string[]) => {
 				prev ??= [];
@@ -604,7 +548,7 @@ function getAdderOptionFlags(): Option[] {
 	return options;
 }
 
-function getOptionChoices(details: AdderWithoutExplicitArgs) {
+function getOptionChoices(details: AddonWithoutExplicitArgs) {
 	const choices: string[] = [];
 	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
@@ -642,9 +586,4 @@ function getOptionChoices(details: AdderWithoutExplicitArgs) {
 		groups[groupId].push(...values);
 	}
 	return { choices, defaults, groups };
-}
-
-function getPadding(lines: string[]) {
-	const lengths = lines.map((s) => s.length);
-	return Math.max(...lengths);
 }

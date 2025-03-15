@@ -1,5 +1,8 @@
-import { defineConfig, type UserConfig } from 'vitest/config';
+import { defineProject } from 'vitest/config';
 
-export default defineConfig({
-	test: { dir: './tests', include: ['./**/index.ts'] }
-}) as UserConfig;
+export default defineProject({
+	test: {
+		name: 'core',
+		include: ['./tests/**/index.ts']
+	}
+});

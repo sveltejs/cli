@@ -2,21 +2,34 @@
 title: sv migrate
 ---
 
-`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://github.com/sveltejs/kit/blob/main/packages/migrate) package.
+`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate) package.
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
 ## Usage
 
 ```bash
+npx sv migrate
+```
+
+You can also specify a migration directly via the CLI:
+```bash
 npx sv migrate [migration]
 ```
 
 ## Migrations
 
+### `app-state`
+
+Migrates `$app/stores` usage to `$app/state` in `.svelte` files. See the [migration guide](/docs/kit/migrating-to-sveltekit-2#SvelteKit-2.12:-$app-stores-deprecated) for more details.
+
 ### `svelte-5`
 
 Upgrades a Svelte 4 app to use Svelte 5, and updates individual components to use [runes](../svelte/what-are-runes) and other Svelte 5 syntax ([see migration guide](../svelte/v5-migration-guide)).
+
+### `self-closing-tags`
+
+Replaces all the self-closing non-void elements in your `.svelte` files. See the [pull request](https://github.com/sveltejs/kit/pull/12128) for more details.
 
 ### `svelte-4`
 

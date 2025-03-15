@@ -11,9 +11,15 @@ import {
 	type LanguageType,
 	type TemplateType
 } from '@sveltejs/create';
-import * as common from '../common.js';
+import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
-import { detectSync, type AgentName } from 'package-manager-detector';
+import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
+import {
+	addPnpmBuildDependendencies,
+	getUserAgent,
+	installDependencies,
+	packageManagerPrompt
+} from '../utils/package-manager.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -27,7 +33,7 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 	templateChoices
 );
 
-const ProjectPathSchema = v.string();
+const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
 	types: v.pipe(
 		v.optional(v.union([v.picklist(langs), v.boolean()])),
@@ -38,10 +44,11 @@ const OptionsSchema = v.strictObject({
 	template: v.optional(v.picklist(templateChoices))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
+type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
 
 export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
-	.argument('[path]', 'where the project will be created', process.cwd())
+	.argument('[path]', 'where the project will be created')
 	.addOption(templateOption)
 	.addOption(langOption)
 	.option('--no-types')
@@ -58,7 +65,8 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = packageManager ?? detectSync({ cwd })?.name ?? common.getUserAgent() ?? 'npm';
+			const pm =
+				packageManager ?? (await detect({ cwd: directory }))?.name ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
@@ -66,14 +74,16 @@ export const create = new Command('create')
 				);
 			}
 			if (!packageManager) {
-				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
+				const { args, command } = resolveCommand(pm, 'install', [])!;
+				initialSteps.push(`${i++}: ${highlight(`${command} ${args.join(' ')}`)}`);
 			}
 
-			const pmRun = pm === 'npm' ? 'npm run dev --' : `${pm} dev`;
+			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
+			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
 				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
-				`${i++}: ${highlight(`${pmRun} --open`)}`,
+				`${i++}: ${highlight(pmRunCmd)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`,
 				'',
@@ -85,12 +95,13 @@ export const create = new Command('create')
 		});
 	});
 
-async function createProject(cwd: string, options: Options) {
+async function createProject(cwd: ProjectPath, options: Options) {
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
-				const relativePath = path.relative(process.cwd(), cwd);
-				if (relativePath) return Promise.resolve(relativePath);
+				if (cwd) {
+					return Promise.resolve(path.resolve(cwd));
+				}
 				const defaultPath = './';
 				return p.text({
 					message: 'Where would you like your project to be created?',
@@ -124,11 +135,11 @@ async function createProject(cwd: string, options: Options) {
 			language: () => {
 				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
-					message: 'Add type checking with Typescript?',
+					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
 					options: [
-						{ label: 'Yes, using Typescript syntax', value: 'typescript' },
-						{ label: 'Yes, using Javascript with JSDoc comments', value: 'checkjs' },
+						{ label: 'Yes, using TypeScript syntax', value: 'typescript' },
+						{ label: 'Yes, using JavaScript with JSDoc comments', value: 'checkjs' },
 						{ label: 'No', value: 'none' }
 					]
 				});
@@ -154,14 +165,15 @@ async function createProject(cwd: string, options: Options) {
 	let packageManager: AgentName | undefined | null;
 	let addOnNextSteps: string | undefined;
 	const installDeps = async () => {
-		packageManager = await common.packageManagerPrompt(projectPath);
-		if (packageManager) await common.installDependencies(packageManager, projectPath);
+		packageManager = await packageManagerPrompt(projectPath);
+		addPnpmBuildDependendencies(projectPath, packageManager, ['esbuild']);
+		if (packageManager) await installDependencies(packageManager, projectPath);
 	};
 
 	if (options.addOns) {
 		// `runAddCommand` includes installing dependencies
 		const { nextSteps, packageManager: pm } = await runAddCommand(
-			{ cwd: projectPath, install: options.install, preconditions: true, community: [] },
+			{ cwd: projectPath, install: options.install, preconditions: false, community: [] },
 			[]
 		);
 		packageManager = pm;

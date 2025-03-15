@@ -2,7 +2,7 @@
 
 This is the core of [sv](https://svelte-add.com). This package handles the following things (and a lot more)
 
-- ability to define new adders
+- ability to define new add-ons
 - detecting and / or creating svelte / kit project in the current working directory
 - installing new dependencies
-- parsing and serialization of files modified by the adders
+- parsing and serialization of files modified by the add-on

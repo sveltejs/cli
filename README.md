@@ -6,13 +6,14 @@ Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details
 
 ### Packages
 
-| Package            | Changelog                              |
-| ------------------ | -------------------------------------- |
-| [sv](packages/cli) | [Changelog](packages/cli/CHANGELOG.md) |
+| Package                            | Changelog                                  | Documentation                                           |
+| ---------------------------------- | ------------------------------------------ | ------------------------------------------------------- |
+| [sv](packages/cli)                 | [Changelog](packages/cli/CHANGELOG.md)     | [Documentation](https://svelte.dev/docs/cli/overview)   |
+| [svelte-migrate](packages/migrate) | [Changelog](packages/migrate/CHANGELOG.md) | [Documentation](https://svelte.dev/docs/cli/sv-migrate) |
 
 ## Contributing
 
-Please file an issue for discussion before sending a PR for a new adder. Most new adders will likely be recommended to be implemented as community adders. This repository will only hold a very limited number of adders at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
+Please file an issue for discussion before sending a PR for a new add-on. Most new add-ons will likely be recommended to be implemented as community add-ons. This repository will only hold a very limited number of add-ons at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
 
 ## Supporting Svelte
 

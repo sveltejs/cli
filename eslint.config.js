@@ -28,10 +28,11 @@ export default [
 			'packages/create/scripts/**/*',
 			'packages/create/templates/**/*',
 			'**/temp/*',
-			'.test-tmp/**/*',
+			'**/.test-output/*',
 			'**/dist/*',
 			'packages/**/tests/**/{output,input}.ts',
-			'rollup.config.js'
+			'rolldown.config.js',
+			'community-addon-template/tests/*'
 		]
 	}
 ];

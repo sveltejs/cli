@@ -1,6 +1,6 @@
 const empty = {};
 
 const created = {
-  foo: 1,
-  bar: 'string'
+	foo: 1,
+	bar: 'string'
 };

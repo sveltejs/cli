@@ -1,15 +1,17 @@
-import { execSync } from 'node:child_process';
 import process from 'node:process';
+import { execSync } from 'node:child_process';
 import pc from 'picocolors';
-import * as resolve from 'empathic/resolve';
 import { Command } from 'commander';
+import * as resolve from 'empathic/resolve';
 import { resolveCommand } from 'package-manager-detector/commands';
-import { getUserAgent } from '../common.ts';
+import { getUserAgent } from '../utils/package-manager.ts';
+import { forwardExitCode } from '../utils/common.js';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
 	// flags that we'll want to pass to `svelte-check`
 	.allowUnknownOption(true)
+	.allowExcessArguments(true)
 	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
 	.configureHelp({
 		formatHelp() {
@@ -42,5 +44,7 @@ function runCheck(cwd: string, args: string[]) {
 	try {
 		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
 		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
-	} catch {}
+	} catch (error) {
+		forwardExitCode(error);
+	}
 }
