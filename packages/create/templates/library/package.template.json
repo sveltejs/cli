@@ -32,5 +32,5 @@
 		"typescript": "^5.3.2",
 		"vite": "^6.0.0"
 	},
-	"keywords": ["svelte", "library"]
+	"keywords": ["svelte"]
 }
