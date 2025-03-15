@@ -110,7 +110,7 @@ export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions
 
 	return {
 		pkg,
-		// fallback to providing the NPM package URL
+		// fallback to providing the npm package URL
 		repo: pkg.repository?.url ?? `https://www.npmjs.com/package/${npm}`
 	};
 }

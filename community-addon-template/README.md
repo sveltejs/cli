@@ -37,7 +37,7 @@ npm start
 
 ## Sharing your add-on
 
-When you're ready to publish your add-on to NPM, run:
+When you're ready to publish your add-on to npm, run:
 
 ```shell
 npm publish
