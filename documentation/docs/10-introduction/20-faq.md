@@ -4,7 +4,7 @@ title: Frequently asked questions
 
 ## How do I run the `sv` CLI?
 
-Running the `sv` cli differs for each package manager. Here is a list of the most common commands:
+Running `sv` looks slightly different for each package manager. Here is a list of the most common commands:
 
 - **npm** : `npx sv create`
 - **pnpm** : `pnpx sv create` or `pnpm dlx sv create`
