@@ -6,11 +6,11 @@ title: Frequently asked questions
 
 Running the `sv` cli differs for each package manager. Here is a list of the most common commands:
 
-- **NPM** : `npx sv create`
-- **PNPM** : `pnpx sv create` or `pnpm dlx sv create`
-- **Yarn** : `yarn dlx sv create`
+- **npm** : `npx sv create`
+- **pnpm** : `pnpx sv create` or `pnpm dlx sv create`
 - **Bun** : `bunx sv create`
 - **Deno** : `deno run npm:sv create`
+- **Yarn** : `yarn dlx sv create`
 
 ## `npx sv` is not working
 
