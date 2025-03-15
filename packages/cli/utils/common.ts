@@ -1,8 +1,9 @@
 import pc from 'picocolors';
-import pkg from '../package.json';
+import pkg from '../package.json' with { type: 'json' };
 import * as p from '@sveltejs/clack-prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
+import process from 'node:process';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -49,7 +50,13 @@ export const helpConfig: HelpConfiguration = {
 		}
 
 		return option.flags;
-	}
+	},
+	styleTitle: (str) => pc.underline(str),
+	styleCommandText: (str) => pc.red(str),
+	styleDescriptionText: (str) => pc.gray(str),
+	styleOptionText: (str) => pc.white(str),
+	styleArgumentText: (str) => pc.white(str),
+	styleSubcommandText: (str) => pc.red(str)
 };
 
 function formatDescription(arg: Option | Argument): string {
@@ -89,4 +96,12 @@ export async function runCommand(action: MaybePromise): Promise<void> {
 export function getPadding(lines: string[]) {
 	const lengths = lines.map((s) => s.length);
 	return Math.max(...lengths);
+}
+
+export function forwardExitCode(error: unknown) {
+	if (error && typeof error === 'object' && 'status' in error && typeof error.status == 'number') {
+		process.exit(error.status);
+	} else {
+		process.exit(1);
+	}
 }

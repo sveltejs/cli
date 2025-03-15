@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import pkg from './package.json';
+import pkg from './package.json' with { type: 'json' };
 import { program } from 'commander';
 import { add } from './commands/add/index.ts';
 import { create } from './commands/create.ts';

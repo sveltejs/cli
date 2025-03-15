@@ -1,14 +1,20 @@
 import { resolve } from 'import-meta-resolve';
-import colors from 'kleur';
+import pc from 'picocolors';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
 import fs from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
-import { bail, check_git, update_js_file, update_svelte_file } from '../../utils.js';
+import {
+	bail,
+	check_git,
+	migration_succeeded,
+	update_js_file,
+	update_svelte_file
+} from '../../utils.js';
 import { migrate as migrate_svelte_4 } from '../svelte-4/index.js';
 import { migrate as migrate_sveltekit_2 } from '../sveltekit-2/index.js';
 import { transform_module_code, transform_svelte_code, update_pkg_json } from './migrate.js';
@@ -18,37 +24,31 @@ export async function migrate() {
 		bail('Please re-run this script in a directory with a package.json');
 	}
 
-	console.log(
-		'This migration is experimental — please report any bugs to https://github.com/sveltejs/svelte/issues'
-	);
-
 	const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
 	if (svelte_dep && semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
-		console.log(
-			colors
-				.bold()
-				.yellow(
-					'\nDetected Svelte 3. You need to upgrade to Svelte version 4 first (`npx sv migrate svelte-4`).\n'
+		p.log.warning(
+			pc.bold(
+				pc.yellow(
+					'Detected Svelte 3. You need to upgrade to Svelte version 4 first (`npx sv migrate svelte-4`).'
 				)
+			)
 		);
-		const response = await prompts({
-			type: 'confirm',
-			name: 'value',
+		const response = await p.confirm({
 			message: 'Run svelte-4 migration now?',
-			initial: false
+			initialValue: false
 		});
-		if (!response.value) {
+		if (p.isCancel(response) || !response) {
 			process.exit(1);
 		} else {
 			await migrate_svelte_4();
-			console.log(
-				colors
-					.bold()
-					.green(
-						'svelte-4 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.\n'
+			p.log.success(
+				pc.bold(
+					pc.green(
+						'svelte-4 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.'
 					)
+				)
 			);
 			process.exit(0);
 		}
@@ -56,29 +56,27 @@ export async function migrate() {
 
 	const kit_dep = pkg.devDependencies?.['@sveltejs/kit'] ?? pkg.dependencies?.['@sveltejs/kit'];
 	if (kit_dep && semver.validRange(kit_dep) && semver.gtr('2.0.0', kit_dep)) {
-		console.log(
-			colors
-				.bold()
-				.yellow(
-					'\nDetected SvelteKit 1. You need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).\n'
+		p.log.warning(
+			pc.bold(
+				pc.yellow(
+					'Detected SvelteKit 1. You need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).'
 				)
+			)
 		);
-		const response = await prompts({
-			type: 'confirm',
-			name: 'value',
+		const response = await p.confirm({
 			message: 'Run sveltekit-2 migration now?',
-			initial: false
+			initialValue: false
 		});
-		if (!response.value) {
+		if (p.isCancel(response) || !response) {
 			process.exit(1);
 		} else {
 			await migrate_sveltekit_2();
-			console.log(
-				colors
-					.bold()
-					.green(
-						'sveltekit-2 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.\n'
+			p.log.success(
+				pc.bold(
+					pc.green(
+						'sveltekit-2 migration complete. Check that everything is ok, then run `npx sv migrate svelte-5` again to continue the Svelte 5 migration.'
 					)
+				)
 			);
 			process.exit(0);
 		}
@@ -99,53 +97,79 @@ export async function migrate() {
 		}
 	} catch (e) {
 		console.log(e);
-		console.log(
-			colors
-				.bold()
-				.red(
+		p.log.error(
+			pc.bold(
+				pc.red(
 					'❌ Could not install Svelte. Manually bump the dependency to version 5 in your package.json, install it, then try again.'
 				)
+			)
 		);
 		return;
 	}
 
-	console.log(
-		colors
-			.bold()
-			.yellow(
-				'\nThis will update files in the current directory\n' +
-					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently.\n"
+	p.log.warning(
+		pc.bold(pc.yellow('This will update files in the current directory.')) +
+			'\n' +
+			pc.bold(
+				pc.yellow(
+					"If you're inside a monorepo, don't run this in the root directory, rather run it in all projects independently."
+				)
 			)
 	);
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
-	const folders = await prompts({
-		type: 'multiselect',
-		name: 'value',
+	const dirs = fs
+		.readdirSync('.')
+		.filter(
+			(dir) => fs.statSync(dir).isDirectory() && dir !== 'node_modules' && !dir.startsWith('.')
+		);
+
+	let folders = await p.multiselect({
 		message: 'Which folders should be migrated?',
-		choices: fs
-			.readdirSync('.')
-			.filter(
-				(dir) => fs.statSync(dir).isDirectory() && dir !== 'node_modules' && !dir.startsWith('.')
-			)
-			.map((dir) => ({ title: dir, value: dir, selected: true }))
+		options: dirs
+			.map((dir) => ({ label: dir, value: dir }))
+			.concat([
+				{
+					label: 'custom (overrides selection, allows to specify sub folders)',
+					value: ',' // a value that definitely isn't a valid folder name so it cannot clash
+				}
+			]),
+		initialValues: dirs
 	});
 
-	if (!folders.value?.length) {
+	if (p.isCancel(folders) || !folders?.length) {
 		process.exit(1);
 	}
+
+	if (folders.includes(',')) {
+		const custom = await p.text({
+			message: 'Specify folder paths (comma separated)'
+		});
+
+		if (p.isCancel(custom) || !custom) {
+			process.exit(1);
+		}
+
+		folders = custom.split(',').map((/** @type {string} */ folder) => (folder = folder.trim()));
+	}
+
+	const do_migration = await p.confirm({
+		message:
+			'Do you want to use the migration tool to convert your Svelte components to the new syntax? (You can also do this per component or sub path later)',
+		initialValue: true
+	});
+
+	if (p.isCancel(do_migration)) process.exit(1);
 
 	update_pkg_json();
 
@@ -161,7 +185,7 @@ export async function migrate() {
 	];
 	const extensions = [...svelte_extensions, '.ts', '.js'];
 	// For some reason {folders.value.join(',')} as part of the glob doesn't work and returns less files
-	const files = folders.value.flatMap(
+	const files = folders.flatMap(
 		/** @param {string} folder */ (folder) =>
 			glob(`${folder}/**`, { filesOnly: true, dot: true })
 				.map((file) => file.replace(/\\/g, '/'))
@@ -171,37 +195,29 @@ export async function migrate() {
 	for (const file of files) {
 		if (extensions.some((ext) => file.endsWith(ext))) {
 			if (svelte_extensions.some((ext) => file.endsWith(ext))) {
-				update_svelte_file(file, transform_module_code, (code) =>
-					transform_svelte_code(code, migrate, { filename: file, use_ts })
-				);
+				if (do_migration) {
+					update_svelte_file(file, transform_module_code, (code) =>
+						transform_svelte_code(code, migrate, { filename: file, use_ts })
+					);
+				}
 			} else {
 				update_js_file(file, transform_module_code);
 			}
 		}
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
-
-	console.log('\nRecommended next steps:\n');
-
-	const cyan = colors.bold().cyan;
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
 	const tasks = [
 		"install the updated dependencies ('npm i' / 'pnpm i' / etc) " +
 			'(note that there may be peer dependency issues when not all your libraries officially support Svelte 5 yet. In this case try installing with the --force option)',
 		use_git && cyan('git commit -m "migration to Svelte 5"'),
-		'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide'
+		'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide',
+		`Run ${cyan('git diff')} to review changes.`
 	].filter(Boolean);
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded(tasks);
 }
 
 /** @param {string} name */

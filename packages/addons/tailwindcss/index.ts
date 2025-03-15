@@ -1,7 +1,6 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { addImports } from '@sveltejs/cli-core/css';
-import { array, common, exports, imports, object } from '@sveltejs/cli-core/js';
-import { parseCss, parseScript, parseJson, parseSvelte } from '@sveltejs/cli-core/parsers';
+import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
+import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
 type Plugin = {
@@ -23,12 +22,6 @@ const plugins: Plugin[] = [
 		package: '@tailwindcss/forms',
 		version: '^0.5.9',
 		identifier: 'forms'
-	},
-	{
-		id: 'container-queries',
-		package: '@tailwindcss/container-queries',
-		version: '^0.1.1',
-		identifier: 'containerQueries'
 	}
 ];
 
@@ -51,97 +44,67 @@ export default defineAddon({
 		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^3.4.9');
-		sv.devDependency('autoprefixer', '^10.4.20');
+		sv.devDependency('tailwindcss', '^4.0.0');
+		sv.devDependency('@tailwindcss/vite', '^4.0.0');
 
-		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.5');
+		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
 
 		for (const plugin of plugins) {
 			if (!options.plugins.includes(plugin.id)) continue;
 
-			sv.dependency(plugin.package, plugin.version);
+			sv.devDependency(plugin.package, plugin.version);
 		}
 
-		sv.file(`tailwind.config.${ext}`, (content) => {
+		// add the vite plugin
+		sv.file(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			let root;
-			const rootExport = object.createEmpty();
-			if (typescript) {
-				imports.addNamed(ast, 'tailwindcss', { Config: 'Config' }, true);
-				root = common.satisfiesExpression(rootExport, 'Config');
-			}
 
-			const { astNode: exportDeclaration, value: node } = exports.defaultExport(
-				ast,
-				root ?? rootExport
-			);
+			const vitePluginName = 'tailwindcss';
+			imports.addDefault(ast, '@tailwindcss/vite', vitePluginName);
 
-			const config = node.type === 'TSSatisfiesExpression' ? node.expression : node;
-			if (config.type !== 'ObjectExpression') {
-				throw new Error(`Unexpected tailwind config shape: ${config.type}`);
-			}
+			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
+			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
 
-			if (!typescript) {
-				common.addJsDocTypeComment(exportDeclaration, "import('tailwindcss').Config");
-			}
+			const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
+			const pluginFunctionCall = functions.call(vitePluginName, []);
+			array.unshift(pluginsArray, pluginFunctionCall);
 
-			const contentArray = object.property(config, 'content', array.createEmpty());
-			array.push(contentArray, './src/**/*.{html,js,svelte,ts}');
-
-			const themeObject = object.property(config, 'theme', object.createEmpty());
-			object.property(themeObject, 'extend', object.createEmpty());
-
-			const pluginsArray = object.property(config, 'plugins', array.createEmpty());
-
-			for (const plugin of plugins) {
-				if (!options.plugins.includes(plugin.id)) continue;
-				imports.addDefault(ast, plugin.package, plugin.identifier);
-				array.push(pluginsArray, { type: 'Identifier', name: plugin.identifier });
-			}
-
-			return generateCode();
-		});
-
-		sv.file('postcss.config.js', (content) => {
-			const { ast, generateCode } = parseScript(content);
-			const { value: rootObject } = exports.defaultExport(ast, object.createEmpty());
-			const pluginsObject = object.property(rootObject, 'plugins', object.createEmpty());
-
-			object.property(pluginsObject, 'tailwindcss', object.createEmpty());
-			object.property(pluginsObject, 'autoprefixer', object.createEmpty());
 			return generateCode();
 		});
 
 		sv.file('src/app.css', (content) => {
-			const layerImports = ['base', 'components', 'utilities'].map(
-				(layer) => `tailwindcss/${layer}`
-			);
-			if (layerImports.every((i) => content.includes(i))) {
-				return content;
+			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
+
+			const findAtRule = (name: string, params: string) =>
+				atRules.find(
+					(rule) =>
+						rule.name === name &&
+						// checks for both double and single quote variants
+						rule.params.replace(/['"]/g, '') === params
+				);
+
+			let code = content;
+			const importsTailwind = findAtRule('import', 'tailwindcss');
+			if (!importsTailwind) {
+				code = "@import 'tailwindcss';\n" + code;
+				// reparse to account for the newly added tailwindcss import
+				atRules = parseCss(code).ast.nodes.filter((node) => node.type === 'atrule');
 			}
 
-			const { ast, generateCode } = parseCss(content);
-			const originalFirst = ast.first;
+			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
+			const pluginPos = lastAtRule!.source!.end!.offset;
 
-			const specifiers = layerImports.map((i) => `'${i}'`);
-			const nodes = addImports(ast, specifiers);
+			for (const plugin of plugins) {
+				if (!options.plugins.includes(plugin.id)) continue;
 
-			if (
-				originalFirst !== ast.first &&
-				originalFirst?.type === 'atrule' &&
-				originalFirst.name === 'import'
-			) {
-				originalFirst.raws.before = '\n';
+				const pluginRule = findAtRule('plugin', plugin.package);
+				if (!pluginRule) {
+					const pluginImport = `\n@plugin '${plugin.package}';`;
+					code = code.substring(0, pluginPos) + pluginImport + code.substring(pluginPos);
+				}
 			}
 
-			// We remove the first node to avoid adding a newline at the top of the stylesheet
-			nodes.shift();
-
-			// Each node is prefixed with single newline, ensuring the imports will always be single spaced.
-			// Without this, the CSS printer will vary the spacing depending on the current state of the stylesheet
-			nodes.forEach((n) => (n.raws.before = '\n'));
-
-			return generateCode();
+			return code;
 		});
 
 		if (!kit) {

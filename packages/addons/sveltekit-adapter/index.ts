@@ -9,11 +9,12 @@ type Adapter = {
 };
 
 const adapters: Adapter[] = [
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.9' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.6' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.5.0' },
-	{ id: 'cloudflare-pages', package: '@sveltejs/adapter-cloudflare', version: '^4.8.0' },
-	{ id: 'cloudflare-workers', package: '@sveltejs/adapter-cloudflare-workers', version: '^2.6.0' },
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^4.0.0' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.11' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.8' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.5.2' },
+	{ id: 'cloudflare-pages', package: '@sveltejs/adapter-cloudflare', version: '^5.0.1' },
+	{ id: 'cloudflare-workers', package: '@sveltejs/adapter-cloudflare-workers', version: '^2.7.0' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^4.4.0' }
 ];
 
@@ -22,7 +23,7 @@ const options = defineAddonOptions({
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',
 		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: 'node'
+		default: 'auto'
 	}
 });
 
@@ -82,6 +83,14 @@ export default defineAddon({
 			) as AstTypes.ObjectProperty | undefined;
 
 			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
+				const adapterProp = kitConfig.value.properties.find(
+					(p) =>
+						p.type === 'ObjectProperty' && p.key.type === 'Identifier' && p.key.name === 'adapter'
+				);
+				if (adapterProp) {
+					adapterProp.comments = [];
+				}
+
 				// only overrides the `adapter` property so we can reset it's args
 				object.overrideProperties(kitConfig.value, {
 					adapter: functions.callByIdentifier(adapterName, [])

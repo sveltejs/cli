@@ -37,7 +37,7 @@ const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[
 for (const template of templates) {
 	if (template[0] === '.') continue;
 
-	for (const types of ['checkjs', 'typescript'] as LanguageType[]) {
+	for (const types of ['checkjs', 'typescript', 'none'] as LanguageType[]) {
 		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 

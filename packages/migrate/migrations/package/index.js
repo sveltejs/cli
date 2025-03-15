@@ -1,10 +1,10 @@
 import fs from 'node:fs';
-import colors from 'kleur';
+import pc from 'picocolors';
 import path from 'node:path';
 import process from 'node:process';
-import prompts from 'prompts';
+import * as p from '@clack/prompts';
 import { pathToFileURL } from 'node:url';
-import { bail, check_git } from '../../utils.js';
+import { bail, check_git, migration_succeeded } from '../../utils.js';
 import { migrate_config } from './migrate_config.js';
 import { migrate_pkg } from './migrate_pkg.js';
 
@@ -16,24 +16,20 @@ export async function migrate() {
 		bail('Please re-run this script in a directory with a package.json');
 	}
 
-	console.log(
-		colors
-			.bold()
-			.yellow(
-				'\nThis will update your svelte.config.js and package.json in the current directory\n'
-			)
+	p.log.warning(
+		pc.bold(
+			pc.yellow('This will update your svelte.config.js and package.json in the current directory')
+		)
 	);
 
 	const use_git = check_git();
 
-	const response = await prompts({
-		type: 'confirm',
-		name: 'value',
+	const response = await p.confirm({
 		message: 'Continue?',
-		initial: false
+		initialValue: false
 	});
 
-	if (!response.value) {
+	if (p.isCancel(response) || !response) {
 		process.exit(1);
 	}
 
@@ -57,25 +53,16 @@ export async function migrate() {
 		migrate_config();
 	}
 
-	console.log(colors.bold().green('✔ Your project has been migrated'));
+	/** @type {(s: string) => string} */
+	const cyan = (s) => pc.bold(pc.cyan(s));
 
-	console.log('\nRecommended next steps:\n');
+	/** @type {string[]} */
+	const tasks = [];
 
-	const cyan = colors.bold().cyan;
+	if (use_git) tasks.push(cyan('git commit -m "migration to @sveltejs/package v2"'));
 
-	const tasks = [
-		use_git && cyan('git commit -m "migration to @sveltejs/package v2"'),
-		'Review the migration guide at https://github.com/sveltejs/kit/pull/8922',
-		'Read the updated docs at https://svelte.dev/docs/kit/packaging'
-	].filter(Boolean);
+	tasks.push('Review the migration guide at https://github.com/sveltejs/kit/pull/8922');
+	tasks.push('Read the updated docs at https://svelte.dev/docs/kit/packaging');
 
-	tasks.forEach((task, i) => {
-		console.log(`  ${i + 1}: ${task}`);
-	});
-
-	console.log('');
-
-	if (use_git) {
-		console.log(`Run ${cyan('git diff')} to review changes.\n`);
-	}
+	migration_succeeded;
 }

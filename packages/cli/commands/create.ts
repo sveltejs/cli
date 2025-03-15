@@ -13,8 +13,9 @@ import {
 } from '@sveltejs/create';
 import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
-import { detectSync, type AgentName } from 'package-manager-detector';
+import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
 import {
+	addPnpmBuildDependendencies,
 	getUserAgent,
 	installDependencies,
 	packageManagerPrompt
@@ -64,7 +65,8 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps: string[] = [];
 			const relative = path.relative(process.cwd(), directory);
-			const pm = packageManager ?? detectSync({ cwd: directory })?.name ?? getUserAgent() ?? 'npm';
+			const pm =
+				packageManager ?? (await detect({ cwd: directory }))?.name ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
@@ -72,14 +74,16 @@ export const create = new Command('create')
 				);
 			}
 			if (!packageManager) {
-				initialSteps.push(`${i++}: ${highlight(`${pm} install`)}`);
+				const { args, command } = resolveCommand(pm, 'install', [])!;
+				initialSteps.push(`${i++}: ${highlight(`${command} ${args.join(' ')}`)}`);
 			}
 
-			const pmRun = pm === 'npm' ? 'npm run dev --' : `${pm} dev`;
+			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
+			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
 				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
-				`${i++}: ${highlight(`${pmRun} --open`)}`,
+				`${i++}: ${highlight(pmRunCmd)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`,
 				'',
@@ -131,11 +135,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			language: () => {
 				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
-					message: 'Add type checking with Typescript?',
+					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
 					options: [
-						{ label: 'Yes, using Typescript syntax', value: 'typescript' },
-						{ label: 'Yes, using Javascript with JSDoc comments', value: 'checkjs' },
+						{ label: 'Yes, using TypeScript syntax', value: 'typescript' },
+						{ label: 'Yes, using JavaScript with JSDoc comments', value: 'checkjs' },
 						{ label: 'No', value: 'none' }
 					]
 				});
@@ -162,6 +166,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnNextSteps: string | undefined;
 	const installDeps = async () => {
 		packageManager = await packageManagerPrompt(projectPath);
+		addPnpmBuildDependendencies(projectPath, packageManager, ['esbuild']);
 		if (packageManager) await installDependencies(packageManager, projectPath);
 	};
 

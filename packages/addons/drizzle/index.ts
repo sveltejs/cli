@@ -74,25 +74,26 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('drizzle-orm', '^0.33.0');
-		sv.devDependency('drizzle-kit', '^0.22.0');
+		sv.dependency('drizzle-orm', '^0.40.0');
+		sv.devDependency('drizzle-kit', '^0.30.2');
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.11.0');
-		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.18.0');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
+		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
-		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^0.9.4');
-		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.4');
+		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^0.10.4');
+		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.5');
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
-			sv.dependency('better-sqlite3', '^11.1.2');
-			sv.devDependency('@types/better-sqlite3', '^7.6.11');
+			sv.dependency('better-sqlite3', '^11.8.0');
+			sv.devDependency('@types/better-sqlite3', '^7.6.12');
+			sv.pnpmBuildDependendency('better-sqlite3');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
-			sv.dependency('@libsql/client', '^0.9.0');
+			sv.dependency('@libsql/client', '^0.14.0');
 
 		sv.file('.env', (content) => generateEnvFileContent(content, options));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));
@@ -179,7 +180,6 @@ export default defineAddon({
 			const objExpression = exportDefault.arguments?.[0];
 			if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
 
-			const driver = options.sqlite === 'turso' ? common.createLiteral('turso') : undefined;
 			const authToken =
 				options.sqlite === 'turso'
 					? common.expressionFromString('process.env.DATABASE_AUTH_TOKEN')
@@ -192,12 +192,12 @@ export default defineAddon({
 					authToken
 				}),
 				verbose: { type: 'BooleanLiteral', value: true },
-				strict: { type: 'BooleanLiteral', value: true },
-				driver
+				strict: { type: 'BooleanLiteral', value: true }
 			});
 
+			const dialect = options.sqlite === 'turso' ? 'turso' : options.database;
 			object.overrideProperties(objExpression, {
-				dialect: common.createLiteral(options.database)
+				dialect: common.createLiteral(dialect)
 			});
 
 			// The `driver` property is only required for _some_ sqlite DBs.
@@ -261,6 +261,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
+			imports.addNamespace(ast, './schema', 'schema');
 
 			// env var checks
 			const dbURLCheck = common.statementFromString(
@@ -296,19 +297,13 @@ export default defineAddon({
 				}
 			}
 			// MySQL
-			if (options.mysql === 'mysql2') {
+			if (options.mysql === 'mysql2' || options.mysql === 'planetscale') {
 				imports.addDefault(ast, 'mysql2/promise', 'mysql');
 				imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
 				clientExpression = common.expressionFromString(
 					'await mysql.createConnection(env.DATABASE_URL)'
 				);
-			}
-			if (options.mysql === 'planetscale') {
-				imports.addNamed(ast, '@planetscale/database', { Client: 'Client' });
-				imports.addNamed(ast, 'drizzle-orm/planetscale-serverless', { drizzle: 'drizzle' });
-
-				clientExpression = common.expressionFromString('new Client({ url: env.DATABASE_URL })');
 			}
 			// PostgreSQL
 			if (options.postgresql === 'neon') {
@@ -328,7 +323,20 @@ export default defineAddon({
 			const clientIdentifier = variables.declaration(ast, 'const', 'client', clientExpression);
 			common.addStatement(ast, clientIdentifier);
 
+			// create drizzle function call
 			const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
+
+			// add schema to support `db.query`
+			const paramObject = object.create({
+				schema: variables.identifier('schema')
+			});
+			if (options.database == 'mysql') {
+				const mode = options.mysql == 'planetscale' ? 'planetscale' : 'default';
+				object.property(paramObject, 'mode', common.createLiteral(mode));
+			}
+			drizzleCall.arguments.push(paramObject);
+
+			// create `db` export
 			const db = variables.declaration(ast, 'const', 'db', drizzleCall);
 			exports.namedExport(ast, 'db', db);
 
@@ -342,6 +350,10 @@ export default defineAddon({
 		if (options.docker) {
 			steps.push(
 				`Run ${highlighter.command(`${packageManager} run db:start`)} to start the docker container`
+			);
+		} else {
+			steps.push(
+				`Check ${highlighter.env('DATABASE_URL')} in ${highlighter.path('.env')} and adjust it to your needs`
 			);
 		}
 		steps.push(

@@ -1,5 +1,182 @@
 # sv
 
+## 0.6.26
+### Patch Changes
+
+
+- fix: insert the `tailwindcss` vite plugin at the start of the plugin array ([#478](https://github.com/sveltejs/cli/pull/478))
+
+
+- chore: add keywords to library template ([#473](https://github.com/sveltejs/cli/pull/473))
+
+## 0.6.25
+### Patch Changes
+
+
+- chore: detect package manager asynchronously ([#465](https://github.com/sveltejs/cli/pull/465))
+
+
+- chore: add keys to `{#each}` blocks ([#466](https://github.com/sveltejs/cli/pull/466))
+
+
+- fix: pass `schema` to `drizzle` client for better type generation ([#459](https://github.com/sveltejs/cli/pull/459))
+
+
+- fix: addons executed in the wrong order in certain circumstances ([#462](https://github.com/sveltejs/cli/pull/462))
+
+## 0.6.24
+### Patch Changes
+
+
+- fix: use 'prettier' instead of ['flat/prettier'] ([#467](https://github.com/sveltejs/cli/pull/467))
+
+
+- fix: properly add tailwind plugins on subsequent add-on executions ([#456](https://github.com/sveltejs/cli/pull/456))
+
+## 0.6.23
+### Patch Changes
+
+
+- fix: use `eslint-plugin-svelte` v3 ([#455](https://github.com/sveltejs/cli/pull/455))
+
+## 0.6.22
+### Patch Changes
+
+
+- fix: make `drizzle` next steps more precise ([#447](https://github.com/sveltejs/cli/pull/447))
+
+
+- chore: update addon dependencies ([#450](https://github.com/sveltejs/cli/pull/450))
+
+
+- fix: allow selecting adapter auto ([#446](https://github.com/sveltejs/cli/pull/446))
+
+
+- feat: update `eslint-plugin-svelte` v3 ([#453](https://github.com/sveltejs/cli/pull/453))
+
+
+- fix: re-add `tailwindcss` plugins ([#448](https://github.com/sveltejs/cli/pull/448))
+
+## 0.6.21
+### Patch Changes
+
+
+- feat: `vitest` use client and server side testing for `kit` ([#311](https://github.com/sveltejs/cli/pull/311))
+
+## 0.6.20
+### Patch Changes
+
+
+- Remove comment about adapter-auto once a specific sveltekit adapter is chosen ([#436](https://github.com/sveltejs/cli/pull/436))
+
+
+- fix: `onlyBuiltDependencies` not added on new projects ([#439](https://github.com/sveltejs/cli/pull/439))
+
+
+- fix: generate correct table defintion for `turso` in `lucia` demo ([#433](https://github.com/sveltejs/cli/pull/433))
+
+## 0.6.19
+### Patch Changes
+
+
+- feat: update to `tailwindcss` v4.0.0 ([#422](https://github.com/sveltejs/cli/pull/422))
+
+
+- feat: support `pnpm` version `10` ([#432](https://github.com/sveltejs/cli/pull/432))
+
+## 0.6.18
+### Patch Changes
+
+
+- fix: `checkjs` library template ([#428](https://github.com/sveltejs/cli/pull/428))
+
+## 0.6.17
+### Patch Changes
+
+
+- fix: properly pass through arguments to `sv check` ([#420](https://github.com/sveltejs/cli/pull/420))
+
+
+- chore: use `rolldown` instead of `rollup` ([#371](https://github.com/sveltejs/cli/pull/371))
+
+## 0.6.16
+### Patch Changes
+
+
+- fix: ensure Sverdle keyboard events modify game state without a trip to the server if client-side JavaScript is enabled ([#416](https://github.com/sveltejs/cli/pull/416))
+
+## 0.6.15
+### Patch Changes
+
+
+- chore: add prepare script to run `svelte-kit sync` ([#409](https://github.com/sveltejs/cli/pull/409))
+
+## 0.6.14
+### Patch Changes
+
+
+- chore: update `vite@6` and related packages ([#410](https://github.com/sveltejs/cli/pull/410))
+
+
+- fix: forward exit code of external package commands ([#412](https://github.com/sveltejs/cli/pull/412))
+
+## 0.6.13
+### Patch Changes
+
+
+- chore: update `adapter-auto` and `adapter-cloudflare` ([#401](https://github.com/sveltejs/cli/pull/401))
+
+## 0.6.12
+### Patch Changes
+
+
+- fix: git detection inside preconditions failed ([#394](https://github.com/sveltejs/cli/pull/394))
+
+
+- chore: update addon dependencies ([#357](https://github.com/sveltejs/cli/pull/357))
+
+
+- chore: utilize prepack lifecycle script ([#396](https://github.com/sveltejs/cli/pull/396))
+
+
+- chore: improve cli help menu ([#294](https://github.com/sveltejs/cli/pull/294))
+
+
+- fix: use modern `Spring` and `MediaQuery` implementation ([#361](https://github.com/sveltejs/cli/pull/361))
+
+
+- fix: tailwind plugins as dev dependencies ([#400](https://github.com/sveltejs/cli/pull/400))
+
+## 0.6.11
+### Patch Changes
+
+
+- fix: properly add `eslint` dependency ([#375](https://github.com/sveltejs/cli/pull/375))
+
+
+- feat: migrate to `$app/state` ([#358](https://github.com/sveltejs/cli/pull/358))
+
+## 0.6.10
+### Patch Changes
+
+
+- fix: correctly resolve package manager commands in `create`'s next-steps ([#360](https://github.com/sveltejs/cli/pull/360))
+
+
+- fix: don't generate sourcemaps for release ([#373](https://github.com/sveltejs/cli/pull/373))
+
+
+- chore: update-dependencies ([#356](https://github.com/sveltejs/cli/pull/356))
+
+
+- fix: make `lucia` validation error messages more descriptive ([#363](https://github.com/sveltejs/cli/pull/363))
+
+## 0.6.9
+### Patch Changes
+
+
+- fix: use `vite@5` again due to compatability issues with `vitest@2` (#341) ([#353](https://github.com/sveltejs/cli/pull/353))
+
 ## 0.6.8
 ### Patch Changes
 

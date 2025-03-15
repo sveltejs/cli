@@ -1,5 +1,29 @@
 # svelte-migrate
 
+## 1.9.0
+### Minor Changes
+
+
+- feat: add ability to select migration to run ([#376](https://github.com/sveltejs/cli/pull/376))
+
+
+### Patch Changes
+
+
+- chore: align dependencies with `sv` ([#376](https://github.com/sveltejs/cli/pull/376))
+
+## 1.8.0
+### Minor Changes
+
+
+- feat: allow sub path migration or none at all for Svelte 5 migration ([#391](https://github.com/sveltejs/cli/pull/391))
+
+## 1.7.1
+### Patch Changes
+
+
+- chore: update-dependencies ([#356](https://github.com/sveltejs/cli/pull/356))
+
 ## 1.7.0
 ### Minor Changes
 

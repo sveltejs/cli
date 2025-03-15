@@ -33,8 +33,8 @@ export async function installAddon<Addons extends AddonMap>({
 	cwd,
 	options,
 	packageManager = 'npm'
-}: InstallOptions<Addons>): Promise<string[]> {
-	const workspace = createWorkspace({ cwd, packageManager });
+}: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>> {
+	const workspace = await createWorkspace({ cwd, packageManager });
 	const addonSetupResults = setupAddons(Object.values(addons), workspace);
 
 	return await applyAddons({ addons, workspace, options, addonSetupResults });
@@ -51,20 +51,33 @@ export async function applyAddons({
 	workspace,
 	addonSetupResults,
 	options
-}: ApplyAddonOptions): Promise<string[]> {
+}: ApplyAddonOptions): Promise<{
+	filesToFormat: string[];
+	pnpmBuildDependencies: string[];
+}> {
 	const filesToFormat = new Set<string>();
+	const allPnpmBuildDependencies: string[] = [];
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, addonSetupResults);
 
 	for (const addon of ordered) {
-		workspace = createWorkspace({ ...workspace, options: options[addon.id] });
+		workspace = await createWorkspace({ ...workspace, options: options[addon.id] });
 
-		const files = await runAddon({ workspace, addon, multiple: ordered.length > 1 });
+		const { files, pnpmBuildDependencies } = await runAddon({
+			workspace,
+			addon,
+			multiple: ordered.length > 1
+		});
+
 		files.forEach((f) => filesToFormat.add(f));
+		pnpmBuildDependencies.forEach((s) => allPnpmBuildDependencies.push(s));
 	}
 
-	return Array.from(filesToFormat);
+	return {
+		filesToFormat: Array.from(filesToFormat),
+		pnpmBuildDependencies: allPnpmBuildDependencies
+	};
 }
 
 export function setupAddons(
@@ -91,7 +104,7 @@ type RunAddon = {
 	addon: Addon<Record<string, Question>>;
 	multiple: boolean;
 };
-async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<string[]> {
+async function runAddon({ addon, multiple, workspace }: RunAddon) {
 	const files = new Set<string>();
 
 	// apply default addon options
@@ -103,6 +116,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 	}
 
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+	const pnpmBuildDependencies: string[] = [];
 	const sv: SvApi = {
 		file: (path, content) => {
 			try {
@@ -150,6 +164,9 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 		},
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
+		},
+		pnpmBuildDependendency: (pkg) => {
+			pnpmBuildDependencies.push(pkg);
 		}
 	};
 	await addon.run({ ...workspace, sv });
@@ -157,22 +174,17 @@ async function runAddon({ addon, multiple, workspace }: RunAddon): Promise<strin
 	const pkgPath = installPackages(dependencies, workspace);
 	files.add(pkgPath);
 
-	return Array.from(files);
+	return {
+		files: Array.from(files),
+		pnpmBuildDependencies
+	};
 }
 
-// sorts them to their execution order
+// orders addons by putting addons that don't require any other addon in the front.
+// This is a drastic simplification, as this could still cause some inconvenient cituations,
+// but works for now in contrary to the previouse implementation
 function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
-	return Array.from(addons).sort((a, b) => {
-		const aDeps = setupResults[a.id].dependsOn;
-		const bDeps = setupResults[b.id].dependsOn;
-
-		if (!aDeps && !bDeps) return 0;
-		if (!aDeps) return -1;
-		if (!bDeps) return 1;
-
-		if (aDeps.includes(b.id)) return 1;
-		if (bDeps.includes(a.id)) return -1;
-
-		return 0;
-	});
+	return addons.sort(
+		(a, b) => setupResults[a.id]?.dependsOn?.length - setupResults[b.id]?.dependsOn?.length
+	);
 }

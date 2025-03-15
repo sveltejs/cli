@@ -1,4 +1,5 @@
-import colors from 'kleur';
+import * as p from '@clack/prompts';
+import pc from 'picocolors';
 import MagicString from 'magic-string';
 import { execFileSync, execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -9,7 +10,7 @@ import ts from 'typescript';
 
 /** @param {string} message */
 export function bail(message) {
-	console.error(colors.bold().red(message));
+	p.log.error(pc.bold(pc.red(message)));
 	process.exit(1);
 }
 
@@ -152,15 +153,15 @@ export function check_git() {
 
 			if (status) {
 				const message =
-					'Your git working directory is dirty — we recommend committing your changes before running this migration.\n';
-				console.log(colors.bold().red(message));
+					'Your git working directory is dirty — we recommend committing your changes before running this migration.';
+				p.log.warning(pc.bold(pc.red(message)));
 			}
 		} catch {
 			// would be weird to have a .git folder if git is not installed,
 			// but always expect the unexpected
 			const message =
-				'Could not detect a git installation. If this is unexpected, please raise an issue: https://github.com/sveltejs/kit.\n';
-			console.log(colors.bold().red(message));
+				'Could not detect a git installation. If this is unexpected, please raise an issue: https://github.com/sveltejs/cli.\n';
+			p.log.warning(pc.bold(pc.red(message)));
 			use_git = false;
 		}
 	}
@@ -418,4 +419,26 @@ export function add_named_import(source, _import, method) {
 			namedImports: [method]
 		});
 	}
+}
+
+/**
+ * @param {(string | false)[]} next_steps
+ */
+export function migration_succeeded(next_steps) {
+	p.log.success(pc.bold(pc.green('✔ Your project has been migrated')));
+
+	if (!next_steps || next_steps.length === 0) {
+		return;
+	}
+
+	/** @type {string[]} */
+	const messages = [];
+
+	next_steps.forEach((step, i) => {
+		if (!step) return;
+
+		messages.push(`${i + 1}: ${step}`);
+	});
+
+	p.note(messages.join('\n'), 'Recommended next steps:');
 }
