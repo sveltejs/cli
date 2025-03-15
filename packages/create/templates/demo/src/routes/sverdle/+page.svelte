@@ -179,9 +179,9 @@
 					back
 				</button>
 
-				{#each ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'] as row}
+				{#each ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'] as row (row)}
 					<div class="row">
-						{#each row as letter}
+						{#each row as letter, index (index)}
 							<button
 								onclick={update}
 								data-key={letter}

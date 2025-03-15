@@ -1,5 +1,38 @@
 # sv
 
+## 0.6.26
+### Patch Changes
+
+
+- fix: insert the `tailwindcss` vite plugin at the start of the plugin array ([#478](https://github.com/sveltejs/cli/pull/478))
+
+
+- chore: add keywords to library template ([#473](https://github.com/sveltejs/cli/pull/473))
+
+## 0.6.25
+### Patch Changes
+
+
+- chore: detect package manager asynchronously ([#465](https://github.com/sveltejs/cli/pull/465))
+
+
+- chore: add keys to `{#each}` blocks ([#466](https://github.com/sveltejs/cli/pull/466))
+
+
+- fix: pass `schema` to `drizzle` client for better type generation ([#459](https://github.com/sveltejs/cli/pull/459))
+
+
+- fix: addons executed in the wrong order in certain circumstances ([#462](https://github.com/sveltejs/cli/pull/462))
+
+## 0.6.24
+### Patch Changes
+
+
+- fix: use 'prettier' instead of ['flat/prettier'] ([#467](https://github.com/sveltejs/cli/pull/467))
+
+
+- fix: properly add tailwind plugins on subsequent add-on executions ([#456](https://github.com/sveltejs/cli/pull/456))
+
 ## 0.6.23
 ### Patch Changes
 
