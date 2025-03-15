@@ -13,30 +13,36 @@ export function push(
 	ast: AstTypes.ArrayExpression,
 	data: string | AstKinds.ExpressionKind | AstKinds.SpreadElementKind
 ): void {
-	if (typeof data === 'string') {
-		const existingLiterals = ast.elements.filter(
-			(x): x is AstTypes.StringLiteral => x?.type == 'StringLiteral'
-		);
-		let literal = existingLiterals.find((x) => x.value == data);
+	insertElement(ast, data, true);
+}
+export function unshift(
+	ast: AstTypes.ArrayExpression,
+	data: string | AstKinds.ExpressionKind | AstKinds.SpreadElementKind
+): void {
+	insertElement(ast, data, false);
+}
 
+function insertElement(
+	ast: AstTypes.ArrayExpression,
+	data: string | AstKinds.ExpressionKind | AstKinds.SpreadElementKind,
+	insertEnd: boolean
+): void {
+	if (typeof data === 'string') {
+		const existingLiterals = ast.elements.filter((x) => x?.type === 'StringLiteral');
+		let literal = existingLiterals.find((x) => x.value === data);
 		if (!literal) {
-			literal = {
-				type: 'StringLiteral',
-				value: data
-			};
-			ast.elements.push(literal);
+			literal = { type: 'StringLiteral', value: data };
+
+			if (insertEnd) ast.elements.push(literal);
+			else ast.elements.unshift(literal);
 		}
 	} else {
-		let anyNodeEquals = false;
 		const elements = ast.elements as AstTypes.ASTNode[];
-		for (const node of elements) {
-			if (areNodesEqual(data, node)) {
-				anyNodeEquals = true;
-			}
-		}
+		const anyNodeEquals = elements.some((node) => areNodesEqual(data, node));
 
 		if (!anyNodeEquals) {
-			ast.elements.push(data);
+			if (insertEnd) ast.elements.push(data);
+			else ast.elements.unshift(data);
 		}
 	}
 }
