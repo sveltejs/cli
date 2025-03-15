@@ -29,7 +29,7 @@ const options = defineAddonOptions({
 	availableLanguageTags: {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
-		default: 'en, de',
+		default: 'en, es',
 		validate(input) {
 			const { invalidLanguageTags, validLanguageTags } = parseLanguageTagInput(input);
 
