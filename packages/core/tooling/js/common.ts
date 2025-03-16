@@ -86,9 +86,8 @@ export function areNodesEqual(ast1: AstTypes.Node, ast2: AstTypes.Node): boolean
 	// These ASTs are also filled to the brim with circular references, which prevents
 	// us from using `structuredCloned` directly
 
-	// todo: can we simplify this duplicated call?
-	const ast1Clone = stripAst(stripAst(decircular(ast1), 'loc'), 'raw');
-	const ast2Clone = stripAst(stripAst(decircular(ast2), 'loc'), 'raw');
+	const ast1Clone = stripAst(decircular(ast1), ['loc', 'raw']);
+	const ast2Clone = stripAst(decircular(ast2), ['loc', 'raw']);
 	return serializeScript(ast1Clone, undefined) === serializeScript(ast2Clone, undefined);
 }
 

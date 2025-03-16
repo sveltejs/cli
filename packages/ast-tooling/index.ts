@@ -137,18 +137,22 @@ export function serializeHtml(ast: Document): string {
 	return serializeDom(ast, { encodeEntities: 'utf8', selfClosingTags: true });
 }
 
-export function stripAst<T>(node: T, propToRemove: string): T {
+export function stripAst<T>(node: T, propsToRemove: string[]): T {
 	if (typeof node !== 'object' || node === null) return node;
-	if (propToRemove in node) delete node[propToRemove as keyof T];
 
 	// node traversal
 	for (const key in node) {
+		if (propsToRemove.includes(key)) {
+			delete node[key as keyof T];
+			continue;
+		}
+
 		const child = node[key];
 		if (child && typeof child === 'object') {
 			if (Array.isArray(child)) {
-				child.forEach((element) => stripAst<unknown>(element, propToRemove));
+				child.forEach((element) => stripAst<unknown>(element, propsToRemove));
 			} else {
-				stripAst(child, propToRemove);
+				stripAst(child, propsToRemove);
 			}
 		}
 	}
