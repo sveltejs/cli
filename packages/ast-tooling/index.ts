@@ -58,7 +58,7 @@ export type {
  * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
  */
 export function parseScript(content: string): TsEstree.Program {
-	const comments: any[] = [];
+	const comments: TsEstree.Comment[] = [];
 
 	const acornTs = acorn.Parser.extend(tsPlugin({ allowSatisfies: true }));
 
@@ -80,34 +80,32 @@ export function parseScript(content: string): TsEstree.Program {
 
 			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
 		}
-	});
+	}) as TsEstree.Program;
 
-	Walker.walk(ast, null, {
-		_(node, { next }) {
-			const commentNode /** @type {import('../../src/types').NodeWithComments} */ =
-				/** @type {any} */ node;
-			let comment;
+	Walker.walk(ast as TsEstree.Node, null, {
+		_(commentNode, { next }) {
+			let comment = comments.shift();
 
-			while (comments[0] && comments[0].start < node.start) {
+			while (comment && comment.start! < commentNode.start!) {
+				commentNode.leadingComments ??= [];
+				commentNode.leadingComments.push(comment);
 				comment = comments.shift();
-				// @ts-expect-error
-				(commentNode.leadingComments ??= []).push(comment);
 			}
 
 			next();
 
-			if (comments[0]) {
-				const slice = content.slice(node.end, comments[0].start);
+			comment = comments.shift();
+			if (comment) {
+				const slice = content.slice(commentNode.end, comment.start);
 
 				if (/^[,) \t]*$/.test(slice)) {
-					// @ts-expect-error
-					commentNode.trailingComments = [comments.shift()];
+					commentNode.trailingComments = [comment];
 				}
 			}
 		}
 	});
 
-	return ast as TsEstree.Program;
+	return ast;
 }
 
 export function serializeScript(ast: TsEstree.Node, previousContent: string | undefined): string {

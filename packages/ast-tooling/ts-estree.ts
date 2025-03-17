@@ -1,6 +1,14 @@
 import type * as estree from 'estree';
 
+// Enhances existing nodes and adds new type nodes to estree.
 declare module 'estree' {
+	interface BaseNodeWithoutComments {
+		type: string;
+		loc?: SourceLocation | null | undefined;
+		range?: [number, number] | undefined;
+		start?: number;
+		end?: number;
+	}
 	// new types
 	interface TSTypeAnnotation {
 		type: 'TSTypeAnnotation';
