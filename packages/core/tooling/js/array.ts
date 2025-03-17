@@ -29,7 +29,7 @@ function insertElement(
 ): void {
 	if (typeof data === 'string') {
 		const existingLiterals = ast.elements.filter(
-			(x) => x != null && x.type === 'Literal' && typeof x.value == 'string'
+			(x) => x !== null && x.type === 'Literal' && typeof x.value === 'string'
 		) as AstTypes.Literal[];
 		let literal = existingLiterals.find((x) => x.value === data);
 		if (!literal) {

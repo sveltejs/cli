@@ -5,7 +5,7 @@ import { parseScript, serializeScript, type AstTypes } from '../index.ts';
 
 test('guessIndentString - one tab', () => {
 	const code = dedent`
-    foreach(const foo of bar) {
+    for(const foo of bar) {
     	console.log(foo)
     }
     `;
@@ -15,7 +15,7 @@ test('guessIndentString - one tab', () => {
 
 test('guessIndentString - two spaces', () => {
 	const code = dedent`
-    foreach(const foo of bar) {
+    for(const foo of bar) {
       console.log(foo)
     }
     `;
@@ -25,7 +25,7 @@ test('guessIndentString - two spaces', () => {
 
 test('guessIndentString - four spaces', () => {
 	const code = dedent`
-    foreach(const foo of bar) {
+    for(const foo of bar) {
         console.log(foo)
     }
     `;
@@ -35,7 +35,7 @@ test('guessIndentString - four spaces', () => {
 
 test('guessIndentString - eight spaces', () => {
 	const code = dedent`
-    foreach(const foo of bar) {
+    for(const foo of bar) {
             console.log(foo)
     }
     `;

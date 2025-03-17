@@ -63,7 +63,7 @@ export function guessQuoteStyle(ast: TsEstree.Node): 'single' | 'double' | undef
 		}
 	});
 
-	if (singleCount == 0 && doubleCount == 0) {
+	if (singleCount === 0 && doubleCount === 0) {
 		// new file or file without any quotes
 		return undefined;
 	}

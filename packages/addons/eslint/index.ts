@@ -53,9 +53,7 @@ export default defineAddon({
 		sv.file('eslint.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			const eslintConfigs: Array<
-				AstTypes.Expression | AstTypes.SpreadElement | AstTypes.ObjectExpression
-			> = [];
+			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 
 			imports.addDefault(ast, './svelte.config.js', 'svelteConfig');
 
