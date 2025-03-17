@@ -61,7 +61,7 @@ export default defineAddon({
 			// prettier-ignore
 			Walker.walk(ast as AstTypes.Node, {}, {
 				Property(node) {
-					if (isProp('dialect', node) && node.value.type === 'Literal' && typeof node.value.type === 'string') {
+					if (isProp('dialect', node) && node.value.type === 'Literal' && typeof node.value.value === 'string') {
 						drizzleDialect = node.value.value as Dialect;
 					}
 					if (isProp('schema', node) && node.value.type === 'Literal' && typeof node.value.value === 'string') {
