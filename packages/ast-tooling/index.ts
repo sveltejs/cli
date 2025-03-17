@@ -170,9 +170,9 @@ export function serializeJson(originalInput: string, data: unknown): string {
 	// some of the files we need to process contain comments. The default
 	// node JSON.parse fails parsing those comments.
 	const indentString = guessIndentString(originalInput);
-	let spaces: undefined | number;
+	let spaces: number | undefined;
 
-	// if indentString contains whitesepaces, count them
+	// if indentString contains whitespaces, count them
 	if (indentString && indentString.includes(' ')) spaces = (indentString.match(/ /g) || []).length;
 
 	return fleece.stringify(data, { spaces });
