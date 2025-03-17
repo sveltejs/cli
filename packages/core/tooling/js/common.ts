@@ -10,7 +10,7 @@ import dedent from 'dedent';
 
 export function addJsDocTypeComment(node: AstTypes.Node, type: string): void {
 	const comment: AstTypes.Comment = {
-		type: 'Line',
+		type: 'Block',
 		value: `* @type {${type}} `
 	};
 
