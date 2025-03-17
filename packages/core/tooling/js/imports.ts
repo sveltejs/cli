@@ -87,16 +87,15 @@ export function addNamed(
 	// merge the specifiers into a single import declaration if they share a source
 	if (importDecl) {
 		specifiers.forEach((specifierToAdd) => {
-			if (
-				importDecl?.specifiers?.every(
-					(existingSpecifier) =>
-						existingSpecifier.type === 'ImportSpecifier' &&
-						existingSpecifier.local?.name !== specifierToAdd.local?.name &&
-						existingSpecifier.imported.type === 'Identifier' &&
-						specifierToAdd.imported.type === 'Identifier' &&
-						existingSpecifier.imported.name !== specifierToAdd.imported.name
-				)
-			) {
+			const sourceExists = importDecl?.specifiers?.every(
+				(existingSpecifier) =>
+					existingSpecifier.type === 'ImportSpecifier' &&
+					existingSpecifier.local?.name !== specifierToAdd.local?.name &&
+					existingSpecifier.imported.type === 'Identifier' &&
+					specifierToAdd.imported.type === 'Identifier' &&
+					existingSpecifier.imported.name !== specifierToAdd.imported.name
+			);
+			if (sourceExists) {
 				importDecl?.specifiers?.push(specifierToAdd);
 			}
 		});

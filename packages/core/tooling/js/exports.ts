@@ -58,9 +58,7 @@ export function namedExport(
 	name: string,
 	fallback: AstTypes.VariableDeclaration
 ): AstTypes.ExportNamedDeclaration {
-	const namedExports = ast.body.filter(
-		(x): x is AstTypes.ExportNamedDeclaration => x.type === 'ExportNamedDeclaration'
-	);
+	const namedExports = ast.body.filter((x) => x.type === 'ExportNamedDeclaration');
 	let namedExport = namedExports.find((x) => {
 		const variableDeclaration = x.declaration as AstTypes.VariableDeclaration;
 		const variableDeclarator = variableDeclaration.declarations[0] as AstTypes.VariableDeclarator;

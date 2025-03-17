@@ -108,7 +108,7 @@ export function parseScript(content: string): TsEstree.Program {
 	return ast;
 }
 
-export function serializeScript(ast: TsEstree.Node, previousContent: string | undefined): string {
+export function serializeScript(ast: TsEstree.Node, previousContent?: string): string {
 	const { code } = esrapPrint(ast, {
 		indent: guessIndentString(previousContent),
 		quotes: guessQuoteStyle(ast)

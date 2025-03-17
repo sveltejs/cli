@@ -88,7 +88,7 @@ export function areNodesEqual(ast1: AstTypes.Node, ast2: AstTypes.Node): boolean
 
 	const ast1Clone = stripAst(decircular(ast1), ['loc', 'raw']);
 	const ast2Clone = stripAst(decircular(ast2), ['loc', 'raw']);
-	return serializeScript(ast1Clone, undefined) === serializeScript(ast2Clone, undefined);
+	return serializeScript(ast1Clone) === serializeScript(ast2Clone);
 }
 
 export function blockStatement(): AstTypes.BlockStatement {
