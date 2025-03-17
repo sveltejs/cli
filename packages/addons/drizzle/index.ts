@@ -330,8 +330,8 @@ export default defineAddon({
 			const paramObject = object.create({
 				schema: variables.identifier('schema')
 			});
-			if (options.database == 'mysql') {
-				const mode = options.mysql == 'planetscale' ? 'planetscale' : 'default';
+			if (options.database === 'mysql') {
+				const mode = options.mysql === 'planetscale' ? 'planetscale' : 'default';
 				object.property(paramObject, 'mode', common.createLiteral(mode));
 			}
 			drizzleCall.arguments.push(paramObject);

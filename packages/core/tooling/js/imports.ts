@@ -75,13 +75,13 @@ export function addNamed(
 	});
 
 	let importDecl: AstTypes.ImportDeclaration | undefined;
-	// prettier-ignore
-	Walker.walk(ast as AstTypes.Node, {}, {
+
+	Walker.walk(ast as AstTypes.Node, null, {
 		ImportDeclaration(node) {
 			if (node.source.value === importFrom && node.specifiers) {
 				importDecl = node;
 			}
-		},
+		}
 	});
 
 	// merge the specifiers into a single import declaration if they share a source
@@ -92,8 +92,8 @@ export function addNamed(
 					(existingSpecifier) =>
 						existingSpecifier.type === 'ImportSpecifier' &&
 						existingSpecifier.local?.name !== specifierToAdd.local?.name &&
-						existingSpecifier.imported.type == 'Identifier' &&
-						specifierToAdd.imported.type == 'Identifier' &&
+						existingSpecifier.imported.type === 'Identifier' &&
+						specifierToAdd.imported.type === 'Identifier' &&
 						existingSpecifier.imported.name !== specifierToAdd.imported.name
 				)
 			) {
@@ -120,7 +120,7 @@ function addImportIfNecessary(
 	ast: AstTypes.Program,
 	expectedImportDeclaration: AstTypes.ImportDeclaration
 ) {
-	const importDeclarations = ast.body.filter((x) => x.type == 'ImportDeclaration');
+	const importDeclarations = ast.body.filter((x) => x.type === 'ImportDeclaration');
 	const importDeclaration = importDeclarations.find((x) =>
 		areNodesEqual(x, expectedImportDeclaration)
 	);

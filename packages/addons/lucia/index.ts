@@ -58,17 +58,24 @@ export default defineAddon({
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
-			// prettier-ignore
-			Walker.walk(ast as AstTypes.Node, {}, {
+			Walker.walk(ast as AstTypes.Node, null, {
 				Property(node) {
-					if (isProp('dialect', node) && node.value.type === 'Literal' && typeof node.value.value === 'string') {
+					if (
+						isProp('dialect', node) &&
+						node.value.type === 'Literal' &&
+						typeof node.value.value === 'string'
+					) {
 						drizzleDialect = node.value.value as Dialect;
 					}
-					if (isProp('schema', node) && node.value.type === 'Literal' && typeof node.value.value === 'string') {
+					if (
+						isProp('schema', node) &&
+						node.value.type === 'Literal' &&
+						typeof node.value.value === 'string'
+					) {
 						schemaPath = node.value.value;
 					}
 				}
-			})
+			});
 
 			if (!drizzleDialect) {
 				throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
@@ -653,11 +660,10 @@ function getAuthHandleContent() {
 function getCallExpression(ast: AstTypes.Node): AstTypes.CallExpression | undefined {
 	let callExpression;
 
-	// prettier-ignore
-	Walker.walk(ast, {}, {
+	Walker.walk(ast, null, {
 		CallExpression(node) {
 			callExpression ??= node;
-		},
+		}
 	});
 
 	return callExpression;

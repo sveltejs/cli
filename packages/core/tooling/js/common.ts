@@ -151,9 +151,7 @@ export function addStatement(
 /** Returns `true` if the provided node exists in the AST */
 export function hasNode(ast: AstTypes.Node, nodeToMatch: AstTypes.Node): boolean {
 	let found = false;
-	// prettier-ignore
-	// this gets needlessly butchered by prettier
-	Walker.walk(ast, {}, {
+	Walker.walk(ast, null, {
 		_(node, { next, stop }) {
 			if (node.type === nodeToMatch.type) {
 				found = areNodesEqual(node, nodeToMatch);

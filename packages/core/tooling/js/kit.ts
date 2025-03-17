@@ -1,5 +1,5 @@
-import { Walker } from '@sveltejs/ast-tooling';
-import { type AstTypes, common, functions, imports, variables, exports } from '../js/index.ts';
+import { Walker, type AstTypes } from '@sveltejs/ast-tooling';
+import { common, functions, imports, variables, exports } from '../js/index.ts';
 
 export function addGlobalAppInterface(
 	ast: AstTypes.TSProgram,
@@ -21,8 +21,7 @@ export function addGlobalAppInterface(
 	let app: AstTypes.TSModuleDeclaration | undefined;
 	let interfaceNode: AstTypes.TSInterfaceDeclaration | undefined;
 
-	// prettier-ignore
-	Walker.walk(globalDecl as AstTypes.Node, {}, {
+	Walker.walk(globalDecl as AstTypes.Node, null, {
 		TSModuleDeclaration(node, { next }) {
 			if (node.id.type === 'Identifier' && node.id.name === 'App') {
 				app = node;
@@ -33,7 +32,7 @@ export function addGlobalAppInterface(
 			if (node.id.type === 'Identifier' && node.id.name === name) {
 				interfaceNode = node;
 			}
-		},
+		}
 	});
 
 	if (!app) {
@@ -73,14 +72,19 @@ export function addHooksHandle(
 	// This will grab export references for:
 	// `export { handle }` & `export { foo as handle }`
 	// `export const handle = ...`, & `export function handle() {...}`
-	// prettier-ignore
-	Walker.walk(ast as AstTypes.Node, {}, {
+	Walker.walk(ast as AstTypes.Node, null, {
 		ExportNamedDeclaration(node) {
- 			let maybeHandleDecl: AstTypes.Declaration | undefined;
+			let maybeHandleDecl: AstTypes.Declaration | undefined;
 
 			// `export { handle }` & `export { foo as handle }`
-			const handleSpecifier = node.specifiers?.find((s) => s.exported.type == 'Identifier' && s.exported.name === 'handle');
-			if (handleSpecifier && handleSpecifier.local.type == 'Identifier' && handleSpecifier.exported.type == 'Identifier') {
+			const handleSpecifier = node.specifiers?.find(
+				(s) => s.exported.type === 'Identifier' && s.exported.name === 'handle'
+			);
+			if (
+				handleSpecifier &&
+				handleSpecifier.local.type === 'Identifier' &&
+				handleSpecifier.exported.type === 'Identifier'
+			) {
 				isSpecifier = true;
 				// we'll search for the local name in case it's aliased (e.g. `export { foo as handle }`)
 				handleName = (handleSpecifier.local?.name ?? handleSpecifier.exported.name) as string;
@@ -105,7 +109,7 @@ export function addHooksHandle(
 				exportDecl = node;
 				originalHandleDecl = maybeHandleDecl;
 			}
-		},
+		}
 	});
 
 	const newHandle = common.expressionFromString(handleContent);

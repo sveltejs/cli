@@ -7,18 +7,18 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 ): T {
 	const objectExpression = ast;
 	const properties = objectExpression.properties.filter(
-		(x): x is AstTypes.Property => x.type == 'Property'
+		(x): x is AstTypes.Property => x.type === 'Property'
 	);
-	let property = properties.find((x) => (x.key as AstTypes.Identifier).name == name);
+	let property = properties.find((x) => (x.key as AstTypes.Identifier).name === name);
 	let propertyValue: T;
 
 	if (property) {
 		propertyValue = property.value as T;
 	} else {
 		let isShorthand = false;
-		if (fallback.type == 'Identifier') {
+		if (fallback.type === 'Identifier') {
 			const identifier: AstTypes.Identifier = fallback;
-			isShorthand = identifier.name == name;
+			isShorthand = identifier.name === name;
 		}
 
 		propertyValue = fallback;
@@ -48,9 +48,9 @@ export function overrideProperty<T extends AstTypes.Expression>(
 ): T {
 	const objectExpression = ast;
 	const properties = objectExpression.properties.filter(
-		(x): x is AstTypes.Property => x.type == 'Property'
+		(x): x is AstTypes.Property => x.type === 'Property'
 	);
-	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name == name);
+	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === name);
 
 	if (!prop) {
 		return property(ast, name, value);

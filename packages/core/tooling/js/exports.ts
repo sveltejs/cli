@@ -59,13 +59,13 @@ export function namedExport(
 	fallback: AstTypes.VariableDeclaration
 ): AstTypes.ExportNamedDeclaration {
 	const namedExports = ast.body.filter(
-		(x): x is AstTypes.ExportNamedDeclaration => x.type == 'ExportNamedDeclaration'
+		(x): x is AstTypes.ExportNamedDeclaration => x.type === 'ExportNamedDeclaration'
 	);
 	let namedExport = namedExports.find((x) => {
 		const variableDeclaration = x.declaration as AstTypes.VariableDeclaration;
 		const variableDeclarator = variableDeclaration.declarations[0] as AstTypes.VariableDeclarator;
 		const identifier = variableDeclarator.id as AstTypes.Identifier;
-		return identifier.name == name;
+		return identifier.name === name;
 	});
 
 	if (namedExport) return namedExport;

@@ -8,8 +8,8 @@ import {
 } from '@sveltejs/ast-tooling';
 
 export function addRule(ast: CssAst, selector: string): Rule {
-	const rules = ast.nodes.filter((x): x is Rule => x.type == 'rule');
-	let rule = rules.find((x) => x.selector == selector);
+	const rules = ast.nodes.filter((x): x is Rule => x.type === 'rule');
+	let rule = rules.find((x) => x.selector === selector);
 
 	if (!rule) {
 		rule = new Rule();
@@ -21,8 +21,8 @@ export function addRule(ast: CssAst, selector: string): Rule {
 }
 
 export function addDeclaration(ast: Rule | CssAst, property: string, value: string): void {
-	const declarations = ast.nodes.filter((x): x is Declaration => x.type == 'decl');
-	let declaration = declarations.find((x) => x.prop == property);
+	const declarations = ast.nodes.filter((x): x is Declaration => x.type === 'decl');
+	let declaration = declarations.find((x) => x.prop === property);
 
 	if (!declaration) {
 		declaration = new Declaration({ prop: property, value });
@@ -52,8 +52,8 @@ export function addImports(ast: Rule | CssAst, imports: string[]): CssChildNode[
 }
 
 export function addAtRule(ast: CssAst, name: string, params: string, append = false): AtRule {
-	const atRules = ast.nodes.filter((x): x is AtRule => x.type == 'atrule');
-	let atRule = atRules.find((x) => x.name == name && x.params == params);
+	const atRules = ast.nodes.filter((x): x is AtRule => x.type === 'atrule');
+	let atRule = atRules.find((x) => x.name === name && x.params === params);
 
 	if (atRule) {
 		return atRule;

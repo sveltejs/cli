@@ -7,13 +7,13 @@ export function declaration(
 	value: AstTypes.Expression
 ): AstTypes.VariableDeclaration {
 	const declarations =
-		ast.type == 'Program'
-			? ast.body.filter((x): x is AstTypes.VariableDeclaration => x.type == 'VariableDeclaration')
+		ast.type === 'Program'
+			? ast.body.filter((x): x is AstTypes.VariableDeclaration => x.type === 'VariableDeclaration')
 			: [ast as AstTypes.VariableDeclaration];
 	let declaration = declarations.find((x) => {
 		const declarator = x.declarations[0] as AstTypes.VariableDeclarator;
 		const identifier = declarator.id as AstTypes.Identifier;
-		return identifier.name == name;
+		return identifier.name === name;
 	});
 
 	if (declaration) return declaration;
