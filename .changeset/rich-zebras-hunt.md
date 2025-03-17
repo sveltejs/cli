@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-chore: disable `no-unused-vars` ESLint rule in TypeScript project
+chore: disable `no-undef` ESLint rule in TypeScript project

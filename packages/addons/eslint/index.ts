@@ -94,7 +94,7 @@ export default defineAddon({
 				}
 			];
 			const rules = object.create({
-				'"no-unused-vars"': off
+				'"no-undef"': off
 			});
 
 			const globalsConfig = object.create({
