@@ -138,7 +138,8 @@ export default defineAddon({
 				paraglideMiddleware: 'paraglideMiddleware'
 			});
 
-			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ locale }) => {
+			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
+		event.request = request;
 		return resolve(event, {
 			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
 		});
