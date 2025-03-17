@@ -28,9 +28,7 @@ function insertElement(
 	insertEnd: boolean
 ): void {
 	if (typeof data === 'string') {
-		const existingLiterals = ast.elements.filter(
-			(x) => x !== null && x.type === 'Literal' && typeof x.value === 'string'
-		) as AstTypes.Literal[];
+		const existingLiterals = ast.elements.filter((x) => x !== null && x.type === 'Literal');
 		let literal = existingLiterals.find((x) => x.value === data);
 		if (!literal) {
 			literal = { type: 'Literal', value: data };
@@ -39,8 +37,8 @@ function insertElement(
 			else ast.elements.unshift(literal);
 		}
 	} else {
-		const elements = ast.elements as AstTypes.Node[];
-		const anyNodeEquals = elements.some((node) => areNodesEqual(data, node));
+		const elements = ast.elements;
+		const anyNodeEquals = elements.some((node) => node && areNodesEqual(data, node));
 
 		if (!anyNodeEquals) {
 			if (insertEnd) ast.elements.push(data);
