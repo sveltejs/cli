@@ -76,6 +76,13 @@ declare module 'estree' {
 	}
 
 	// enhanced types
+	interface BaseNodeWithoutComments {
+		type: string;
+		loc?: SourceLocation | null | undefined;
+		range?: [number, number] | undefined;
+		start?: number;
+		end?: number;
+	}
 	interface Identifier {
 		typeAnnotation?: TSTypeAnnotation;
 	}
