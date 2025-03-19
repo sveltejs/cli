@@ -52,7 +52,7 @@ export function arrowFunction(
 		async,
 		body,
 		params: [],
-		expression: true
+		expression: body.type !== 'BlockStatement'
 	};
 
 	return arrowFunction;
