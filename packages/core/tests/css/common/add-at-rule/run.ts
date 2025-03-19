@@ -1,5 +1,4 @@
-import { addAtRule } from '@sveltejs/cli-core/css';
-import type { CssAst } from '@sveltejs/ast-tooling';
+import { addAtRule, type CssAst } from '@sveltejs/cli-core/css';
 
 export function run(ast: CssAst): void {
 	addAtRule(ast, 'tailwind', "'lib/path/file.ext'", false);
