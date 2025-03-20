@@ -6,6 +6,7 @@ import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
 import { bail, check_git, migration_succeeded, update_svelte_file } from '../../utils.js';
 import { transform_svelte_code, update_pkg_json } from './migrate.js';
+import { detect } from 'package-manager-detector';
 
 export async function migrate() {
 	if (!fs.existsSync('package.json')) {
@@ -94,8 +95,10 @@ export async function migrate() {
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
-	// TODO: use package-manager-detector here
-	const tasks = ["install the updated dependencies ('npm i' / 'pnpm i' / etc)"];
+	const detected = await detect({ cwd: process.cwd() });
+	const pm = detected?.name ?? 'npm';
+	
+	const tasks = [`Install the updated dependencies by running ${cyan(`${pm} install`)}`];
 	if (use_git) {
 		tasks.push(cyan('git commit -m "migration to $app/state"'));
 		tasks.push(`Run ${cyan('git diff')} to review changes.`);

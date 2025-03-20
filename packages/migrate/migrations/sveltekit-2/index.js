@@ -19,6 +19,7 @@ import {
 	update_svelte_config,
 	update_tsconfig_content
 } from './migrate.js';
+import { detect } from 'package-manager-detector';
 
 export async function migrate() {
 	if (!fs.existsSync('package.json')) {
@@ -137,8 +138,11 @@ export async function migrate() {
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
+	const detected = await detect({ cwd: process.cwd() });
+	const pm = detected?.name ?? 'npm';
+
 	const tasks = [
-		'Run npm install (or the corresponding installation command of your package manager)',
+		`Install the updated dependencies by running ${cyan(`${pm} install`)}`,
 		use_git && cyan('git commit -m "migration to SvelteKit 2"'),
 		'Review the migration guide at https://svelte.dev/docs/kit/migrating-to-sveltekit-2',
 		'Read the updated docs at https://svelte.dev/docs/kit',
