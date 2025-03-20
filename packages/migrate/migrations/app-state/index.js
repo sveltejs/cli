@@ -97,7 +97,7 @@ export async function migrate() {
 
 	const detected = await detect({ cwd: process.cwd() });
 	const pm = detected?.name ?? 'npm';
-	
+
 	const tasks = [`Install the updated dependencies by running ${cyan(`${pm} install`)}`];
 	if (use_git) {
 		tasks.push(cyan('git commit -m "migration to $app/state"'));

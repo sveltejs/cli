@@ -213,7 +213,8 @@ export async function migrate() {
 	const detected = await detect({ cwd: process.cwd() });
 	const pm = detected?.name ?? 'npm';
 
-	const tasks = [`Install the updated dependencies by running ${cyan(`${pm} install`)} ` +
+	const tasks = [
+		`Install the updated dependencies by running ${cyan(`${pm} install`)} ` +
 			'(note that there may be peer dependency issues when not all your libraries officially support Svelte 5 yet. In this case try installing with the --force option)',
 		use_git && cyan('git commit -m "migration to Svelte 5"'),
 		'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide',
