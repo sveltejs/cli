@@ -17,6 +17,7 @@ import {
 } from '../../utils.js';
 import { migrate as migrate_svelte_4 } from '../svelte-4/index.js';
 import { migrate as migrate_sveltekit_2 } from '../sveltekit-2/index.js';
+import { migrate as migrate_app_state } from '../app-state/index.js';
 import { transform_module_code, transform_svelte_code, update_pkg_json } from './migrate.js';
 
 export async function migrate() {
@@ -203,6 +204,26 @@ export async function migrate() {
 			} else {
 				update_js_file(file, transform_module_code);
 			}
+		}
+	}
+
+	if (kit_dep) {
+		try {
+			p.log.info(pc.bold(pc.blue('Running app-state migration for SvelteKit compatibility...')));
+			await migrate_app_state();
+			p.log.success(
+				pc.bold(
+					pc.green(
+						'app-state migration complete. $app/store imports have been updated to $app/state.'
+					)
+				)
+			);
+		} catch (e) {
+			console.log(e);
+			p.log.error(
+				pc.bold(
+					pc.red(
+						'❌ Error during app-state migration.')));
 		}
 	}
 
