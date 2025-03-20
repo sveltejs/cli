@@ -207,7 +207,6 @@ export async function migrate() {
 					update_svelte_file(file, transform_module_code, (code) =>
 						transform_svelte_code(code, migrate, { filename: file, use_ts })
 					);
-					
 				}
 			} else {
 				update_js_file(file, transform_module_code);
