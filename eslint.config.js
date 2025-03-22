@@ -17,6 +17,7 @@ export default [
 			}
 		},
 		rules: {
+			eqeqeq: 'error',
 			'@typescript-eslint/await-thenable': 'error',
 			'@typescript-eslint/no-unused-expressions': 'off',
 			'@typescript-eslint/require-await': 'error'

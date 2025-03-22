@@ -1,4 +1,1 @@
-const test = {
-	foo: 1,
-	bar: 'string'
-};
+const test = { foo: 1, bar: 'string' };

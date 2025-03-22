@@ -1,8 +1,8 @@
-import { Walker, type AstKinds } from '@sveltejs/ast-tooling';
-import { common, functions, imports, variables, exports, type AstTypes } from '../js/index.ts';
+import { Walker, type AstTypes } from '@sveltejs/ast-tooling';
+import { common, functions, imports, variables, exports } from '../js/index.ts';
 
 export function addGlobalAppInterface(
-	ast: AstTypes.Program,
+	ast: AstTypes.TSProgram,
 	name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform'
 ): AstTypes.TSInterfaceDeclaration {
 	let globalDecl = ast.body
@@ -10,7 +10,7 @@ export function addGlobalAppInterface(
 		.find((m) => m.global && m.declare);
 
 	if (!globalDecl) {
-		globalDecl = common.statementFromString('declare global {}') as AstTypes.TSModuleDeclaration;
+		globalDecl = common.fromString<AstTypes.TSModuleDeclaration>('declare global {}');
 		ast.body.push(globalDecl);
 	}
 
@@ -21,8 +21,7 @@ export function addGlobalAppInterface(
 	let app: AstTypes.TSModuleDeclaration | undefined;
 	let interfaceNode: AstTypes.TSInterfaceDeclaration | undefined;
 
-	// prettier-ignore
-	Walker.walk(globalDecl as AstTypes.ASTNode, {}, {
+	Walker.walk(globalDecl as AstTypes.Node, null, {
 		TSModuleDeclaration(node, { next }) {
 			if (node.id.type === 'Identifier' && node.id.name === 'App') {
 				app = node;
@@ -33,11 +32,11 @@ export function addGlobalAppInterface(
 			if (node.id.type === 'Identifier' && node.id.name === name) {
 				interfaceNode = node;
 			}
-		},
+		}
 	});
 
 	if (!app) {
-		app = common.statementFromString('namespace App {}') as AstTypes.TSModuleDeclaration;
+		app = common.fromString<AstTypes.TSModuleDeclaration>('namespace App {}');
 		globalDecl.body.body.push(app);
 	}
 
@@ -47,9 +46,7 @@ export function addGlobalAppInterface(
 
 	if (!interfaceNode) {
 		// add the interface if it's missing
-		interfaceNode = common.statementFromString(
-			`interface ${name} {}`
-		) as AstTypes.TSInterfaceDeclaration;
+		interfaceNode = common.fromString<AstTypes.TSInterfaceDeclaration>(`interface ${name} {}`);
 		app.body.body.push(interfaceNode);
 	}
 
@@ -69,20 +66,25 @@ export function addHooksHandle(
 	let isSpecifier: boolean = false;
 	let handleName = 'handle';
 	let exportDecl: AstTypes.ExportNamedDeclaration | undefined;
-	let originalHandleDecl: AstKinds.DeclarationKind | undefined;
+	let originalHandleDecl: AstTypes.Declaration | undefined;
 
 	// We'll first visit all of the named exports and grab their references if they export `handle`.
 	// This will grab export references for:
 	// `export { handle }` & `export { foo as handle }`
 	// `export const handle = ...`, & `export function handle() {...}`
-	// prettier-ignore
-	Walker.walk(ast as AstTypes.ASTNode, {}, {
+	Walker.walk(ast as AstTypes.Node, null, {
 		ExportNamedDeclaration(node) {
-			let maybeHandleDecl: AstKinds.DeclarationKind | undefined;
+			let maybeHandleDecl: AstTypes.Declaration | undefined;
 
 			// `export { handle }` & `export { foo as handle }`
-			const handleSpecifier = node.specifiers?.find((s) => s.exported.name === 'handle');
-			if (handleSpecifier) {
+			const handleSpecifier = node.specifiers?.find(
+				(s) => s.exported.type === 'Identifier' && s.exported.name === 'handle'
+			);
+			if (
+				handleSpecifier &&
+				handleSpecifier.local.type === 'Identifier' &&
+				handleSpecifier.exported.type === 'Identifier'
+			) {
 				isSpecifier = true;
 				// we'll search for the local name in case it's aliased (e.g. `export { foo as handle }`)
 				handleName = (handleSpecifier.local?.name ?? handleSpecifier.exported.name) as string;
@@ -107,7 +109,7 @@ export function addHooksHandle(
 				exportDecl = node;
 				originalHandleDecl = maybeHandleDecl;
 			}
-		},
+		}
 	});
 
 	const newHandle = common.expressionFromString(handleContent);
@@ -246,7 +248,7 @@ function usingSequence(node: AstTypes.VariableDeclarator, handleName: string) {
 }
 
 function isVariableDeclaration(
-	node: AstTypes.ASTNode,
+	node: AstTypes.Node,
 	variableName: string
 ): node is AstTypes.VariableDeclaration {
 	return (
@@ -264,7 +266,7 @@ function getVariableDeclarator(
 }
 
 function isFunctionDeclaration(
-	node: AstTypes.ASTNode,
+	node: AstTypes.Node,
 	funcName: string
 ): node is AstTypes.FunctionDeclaration {
 	return node.type === 'FunctionDeclaration' && node.id?.name === funcName;

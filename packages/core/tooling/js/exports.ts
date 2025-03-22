@@ -1,11 +1,11 @@
-import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '@sveltejs/ast-tooling';
 
 export type ExportDefaultReturn<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;
 	value: T;
 };
 
-export function defaultExport<T extends AstKinds.ExpressionKind>(
+export function defaultExport<T extends AstTypes.Expression>(
 	ast: AstTypes.Program,
 	fallbackDeclaration: T
 ): ExportDefaultReturn<T> {
@@ -58,21 +58,20 @@ export function namedExport(
 	name: string,
 	fallback: AstTypes.VariableDeclaration
 ): AstTypes.ExportNamedDeclaration {
-	const namedExports = ast.body.filter(
-		(x): x is AstTypes.ExportNamedDeclaration => x.type == 'ExportNamedDeclaration'
-	);
+	const namedExports = ast.body.filter((x) => x.type === 'ExportNamedDeclaration');
 	let namedExport = namedExports.find((x) => {
 		const variableDeclaration = x.declaration as AstTypes.VariableDeclaration;
 		const variableDeclarator = variableDeclaration.declarations[0] as AstTypes.VariableDeclarator;
 		const identifier = variableDeclarator.id as AstTypes.Identifier;
-		return identifier.name == name;
+		return identifier.name === name;
 	});
 
 	if (namedExport) return namedExport;
 
 	namedExport = {
 		type: 'ExportNamedDeclaration',
-		declaration: fallback
+		declaration: fallback,
+		specifiers: []
 	};
 	ast.body.push(namedExport);
 	return namedExport;

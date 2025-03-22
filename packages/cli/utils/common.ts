@@ -99,7 +99,7 @@ export function getPadding(lines: string[]) {
 }
 
 export function forwardExitCode(error: unknown) {
-	if (error && typeof error === 'object' && 'status' in error && typeof error.status == 'number') {
+	if (error && typeof error === 'object' && 'status' in error && typeof error.status === 'number') {
 		process.exit(error.status);
 	} else {
 		process.exit(1);

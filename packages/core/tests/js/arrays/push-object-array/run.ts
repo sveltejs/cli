@@ -1,7 +1,6 @@
-import { array, object, common, variables } from '@sveltejs/cli-core/js';
-import type { ScriptFileEditor } from '@sveltejs/cli-core';
+import { array, object, common, variables, type AstTypes } from '@sveltejs/cli-core/js';
 
-export function run({ ast }: ScriptFileEditor<any>): void {
+export function run(ast: AstTypes.Program): void {
 	const array1 = array.createEmpty();
 
 	const object1 = object.create({ test: common.expressionFromString('true') });

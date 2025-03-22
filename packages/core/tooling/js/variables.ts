@@ -1,19 +1,19 @@
-import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '@sveltejs/ast-tooling';
 
 export function declaration(
-	ast: AstTypes.Program | AstKinds.DeclarationKind,
+	ast: AstTypes.Program | AstTypes.Declaration,
 	kind: 'const' | 'let' | 'var',
 	name: string,
-	value: AstKinds.ExpressionKind
+	value: AstTypes.Expression
 ): AstTypes.VariableDeclaration {
 	const declarations =
-		ast.type == 'Program'
-			? ast.body.filter((x): x is AstTypes.VariableDeclaration => x.type == 'VariableDeclaration')
+		ast.type === 'Program'
+			? ast.body.filter((x): x is AstTypes.VariableDeclaration => x.type === 'VariableDeclaration')
 			: [ast as AstTypes.VariableDeclaration];
 	let declaration = declarations.find((x) => {
 		const declarator = x.declarations[0] as AstTypes.VariableDeclarator;
 		const identifier = declarator.id as AstTypes.Identifier;
-		return identifier.name == name;
+		return identifier.name === name;
 	});
 
 	if (declaration) return declaration;

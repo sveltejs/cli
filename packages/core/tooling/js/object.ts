@@ -1,35 +1,38 @@
-import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '@sveltejs/ast-tooling';
 
-export function property<T extends AstKinds.ExpressionKind | AstTypes.Identifier>(
+export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	ast: AstTypes.ObjectExpression,
 	name: string,
 	fallback: T
 ): T {
 	const objectExpression = ast;
 	const properties = objectExpression.properties.filter(
-		(x): x is AstTypes.ObjectProperty => x.type == 'ObjectProperty'
+		(x): x is AstTypes.Property => x.type === 'Property'
 	);
-	let property = properties.find((x) => (x.key as AstTypes.Identifier).name == name);
+	let property = properties.find((x) => (x.key as AstTypes.Identifier).name === name);
 	let propertyValue: T;
 
 	if (property) {
 		propertyValue = property.value as T;
 	} else {
 		let isShorthand = false;
-		if (fallback.type == 'Identifier') {
+		if (fallback.type === 'Identifier') {
 			const identifier: AstTypes.Identifier = fallback;
-			isShorthand = identifier.name == name;
+			isShorthand = identifier.name === name;
 		}
 
 		propertyValue = fallback;
 		property = {
-			type: 'ObjectProperty',
+			type: 'Property',
 			shorthand: isShorthand,
 			key: {
 				type: 'Identifier',
 				name
 			},
-			value: propertyValue
+			value: propertyValue,
+			kind: 'init',
+			computed: false,
+			method: false
 		};
 
 		objectExpression.properties.push(property);
@@ -38,16 +41,16 @@ export function property<T extends AstKinds.ExpressionKind | AstTypes.Identifier
 	return propertyValue;
 }
 
-export function overrideProperty<T extends AstKinds.ExpressionKind>(
+export function overrideProperty<T extends AstTypes.Expression>(
 	ast: AstTypes.ObjectExpression,
 	name: string,
 	value: T
 ): T {
 	const objectExpression = ast;
 	const properties = objectExpression.properties.filter(
-		(x): x is AstTypes.ObjectProperty => x.type == 'ObjectProperty'
+		(x): x is AstTypes.Property => x.type === 'Property'
 	);
-	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name == name);
+	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === name);
 
 	if (!prop) {
 		return property(ast, name, value);
@@ -58,7 +61,7 @@ export function overrideProperty<T extends AstKinds.ExpressionKind>(
 	return value;
 }
 
-export function overrideProperties<T extends AstKinds.ExpressionKind>(
+export function overrideProperties<T extends AstTypes.Expression>(
 	ast: AstTypes.ObjectExpression,
 	obj: Record<string, T | undefined>
 ): void {
@@ -68,7 +71,7 @@ export function overrideProperties<T extends AstKinds.ExpressionKind>(
 	}
 }
 
-export function properties<T extends AstKinds.ExpressionKind>(
+export function properties<T extends AstTypes.Expression>(
 	ast: AstTypes.ObjectExpression,
 	obj: Record<string, T | undefined>
 ): void {
@@ -79,9 +82,7 @@ export function properties<T extends AstKinds.ExpressionKind>(
 }
 
 export function removeProperty(ast: AstTypes.ObjectExpression, property: string): void {
-	const properties = ast.properties.filter(
-		(x): x is AstTypes.ObjectProperty => x.type === 'ObjectProperty'
-	);
+	const properties = ast.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	const propIdx = properties.findIndex((x) => (x.key as AstTypes.Identifier).name === property);
 
 	if (propIdx !== -1) {
@@ -89,7 +90,7 @@ export function removeProperty(ast: AstTypes.ObjectExpression, property: string)
 	}
 }
 
-export function create<T extends AstKinds.ExpressionKind>(
+export function create<T extends AstTypes.Expression>(
 	obj: Record<string, T | undefined>
 ): AstTypes.ObjectExpression {
 	const objExpression = createEmpty();

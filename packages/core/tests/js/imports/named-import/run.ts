@@ -1,7 +1,6 @@
-import { imports } from '@sveltejs/cli-core/js';
-import type { ScriptFileEditor } from '@sveltejs/cli-core';
+import { imports, type AstTypes } from '@sveltejs/cli-core/js';
 
-export function run({ ast }: ScriptFileEditor<any>): void {
+export function run(ast: AstTypes.Program): void {
 	imports.addNamed(ast, 'package', { namedOne: 'namedOne' }, false);
 
 	imports.addNamed(ast, '@sveltejs/kit', { Handle: 'Handle' }, false);
