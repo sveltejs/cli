@@ -4,7 +4,7 @@
 ### Patch Changes
 
 
-- Updates the Paraglide JS addon to setup v2 of Paraglide JS. ([#461](https://github.com/sveltejs/cli/pull/461))
+- chore: updates the paraglide-js addon to setup v2 of paraglide-js ([#461](https://github.com/sveltejs/cli/pull/461))
 
 
 - fix: add bun lockfiles to `.prettierignore` ([#492](https://github.com/sveltejs/cli/pull/492))
