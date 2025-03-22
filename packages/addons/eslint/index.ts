@@ -85,11 +85,31 @@ export default defineAddon({
 			const globalsNode = common.createSpreadElement(common.expressionFromString('globals.node'));
 			const globalsObjLiteral = object.createEmpty();
 			globalsObjLiteral.properties = [globalsBrowser, globalsNode];
+			const off = common.createLiteral('off');
+			const rules = object.create({
+				'"no-undef"': off
+			});
+
+			if (rules.properties[0].type !== 'ObjectProperty') {
+				throw new Error('rules.properties[0].type !== "ObjectProperty"');
+			}
+			rules.properties[0].key.comments = [
+				{
+					type: 'Block',
+					value:
+						'*\n   * typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.\n   * see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors\n ',
+					leading: true,
+					trailing: false
+				}
+			];
+
 			const globalsConfig = object.create({
 				languageOptions: object.create({
 					globals: globalsObjLiteral
-				})
+				}),
+				rules: typescript ? rules : undefined
 			});
+
 			eslintConfigs.push(globalsConfig);
 
 			if (typescript) {
