@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { colors, dedent, defineAddon, defineAddonOptions, log, utils } from '@sveltejs/cli-core';
+import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
 import {
 	array,
 	common,
@@ -17,16 +17,11 @@ import { addToDemoPage } from '../common.ts';
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
 	modules: [
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-empty-pattern@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-identical-pattern@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-missing-translation@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-without-source@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/message-lint-rule-valid-js-identifier@1/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@2/dist/index.js',
-		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@0/dist/index.js'
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@4/dist/index.js',
+		'https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@2/dist/index.js'
 	],
 	'plugin.inlang.messageFormat': {
-		pathPattern: './messages/{languageTag}.json'
+		pathPattern: './messages/{locale}.json'
 	}
 };
 
@@ -34,7 +29,7 @@ const options = defineAddonOptions({
 	availableLanguageTags: {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
-		default: 'en',
+		default: 'en, es',
 		validate(input) {
 			const { invalidLanguageTags, validLanguageTags } = parseLanguageTagInput(input);
 
@@ -62,18 +57,18 @@ const options = defineAddonOptions({
 export default defineAddon({
 	id: 'paraglide',
 	shortDescription: 'i18n',
-	homepage: 'https://inlang.com',
+	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
+	run: ({ sv, options, typescript, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
 
-		sv.dependency('@inlang/paraglide-sveltekit', '^0.15.5');
+		sv.dependency('@inlang/paraglide-js', '^2.0.0');
 
 		sv.file('project.inlang/settings.json', (content) => {
 			if (content) return content;
@@ -84,10 +79,10 @@ export default defineAddon({
 				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
 			}
 			const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
-			const sourceLanguageTag = validLanguageTags[0];
+			const baseLocale = validLanguageTags[0];
 
-			data.sourceLanguageTag = sourceLanguageTag;
-			data.languageTags = validLanguageTags;
+			data.baseLocale = baseLocale;
+			data.locales = validLanguageTags;
 
 			return generateCode();
 		});
@@ -96,8 +91,8 @@ export default defineAddon({
 		sv.file(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			const vitePluginName = 'paraglide';
-			imports.addNamed(ast, '@inlang/paraglide-sveltekit/vite', { paraglide: vitePluginName });
+			const vitePluginName = 'paraglideVitePlugin';
+			imports.addNamed(ast, '@inlang/paraglide-js', { paraglideVitePlugin: vitePluginName });
 
 			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
 			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
@@ -114,31 +109,17 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		// src/lib/i18n file
-		sv.file(`src/lib/i18n.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
-
-			imports.addNamed(ast, '@inlang/paraglide-sveltekit', { createI18n: 'createI18n' });
-			imports.addDefault(ast, '$lib/paraglide/runtime', '* as runtime');
-
-			const createI18nExpression = common.expressionFromString('createI18n(runtime)');
-			const i18n = variables.declaration(ast, 'const', 'i18n', createI18nExpression);
-
-			const existingExport = exports.namedExport(ast, 'i18n', i18n);
-			if (existingExport.declaration !== i18n) {
-				log.warn('Setting up $lib/i18n failed because it already exports an i18n function');
-			}
-
-			return generateCode();
-		});
-
 		// reroute hook
 		sv.file(`src/hooks.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
+			imports.addNamed(ast, '$lib/paraglide/runtime', {
+				deLocalizeUrl: 'deLocalizeUrl'
+			});
 
-			const expression = common.expressionFromString('i18n.reroute()');
+			const expression = common.expressionFromString(
+				'(request) => deLocalizeUrl(request.url).pathname'
+			);
 			const rerouteIdentifier = variables.declaration(ast, 'const', 'reroute', expression);
 
 			const existingExport = exports.namedExport(ast, 'reroute', rerouteIdentifier);
@@ -153,39 +134,19 @@ export default defineAddon({
 		sv.file(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, '$lib/i18n', { i18n: 'i18n' });
+			imports.addNamed(ast, '$lib/paraglide/server', {
+				paraglideMiddleware: 'paraglideMiddleware'
+			});
 
-			const hookHandleContent = 'i18n.handle()';
+			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
+		event.request = request;
+		return resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
+		});
+	});`;
 			kitJs.addHooksHandle(ast, typescript, 'handleParaglide', hookHandleContent);
 
 			return generateCode();
-		});
-
-		// add the <ParaglideJS> component to the layout
-		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
-			const { script, template, generateCode } = parseSvelte(content, { typescript });
-
-			const paraglideComponentName = 'ParaglideJS';
-			imports.addNamed(script.ast, '@inlang/paraglide-sveltekit', {
-				[paraglideComponentName]: paraglideComponentName
-			});
-			imports.addNamed(script.ast, '$lib/i18n', { i18n: 'i18n' });
-
-			if (template.source.length === 0) {
-				const svelteVersion = dependencyVersion('svelte');
-				if (!svelteVersion) throw new Error('Failed to determine svelte version');
-
-				html.addSlot(script.ast, template.ast, svelteVersion);
-			}
-
-			const templateCode = new MagicString(template.generateCode());
-			if (!templateCode.original.includes('<ParaglideJS')) {
-				templateCode.indent();
-				templateCode.prepend('<ParaglideJS {i18n}>\n');
-				templateCode.append('\n</ParaglideJS>');
-			}
-
-			return generateCode({ script: script.generateCode(), template: templateCode.toString() });
 		});
 
 		// add the text-direction and lang attribute placeholders to app.html
@@ -204,8 +165,7 @@ export default defineAddon({
 			}
 			htmlNode.attribs = {
 				...htmlNode.attribs,
-				lang: '%paraglide.lang%',
-				dir: '%paraglide.textDirection%'
+				lang: '%paraglide.lang%'
 			};
 
 			return generateCode();
@@ -229,36 +189,14 @@ export default defineAddon({
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
 
-				imports.addDefault(script.ast, '$lib/paraglide/messages.js', '* as m');
+				imports.addNamed(script.ast, '$lib/paraglide/messages.js', { m: 'm' });
 				imports.addNamed(script.ast, '$app/navigation', { goto: 'goto' });
 				imports.addNamed(script.ast, '$app/state', { page: 'page' });
-				imports.addNamed(script.ast, '$lib/i18n', { i18n: 'i18n' });
-				if (typescript) {
-					imports.addNamed(
-						script.ast,
-						'$lib/paraglide/runtime',
-						{ AvailableLanguageTag: 'AvailableLanguageTag' },
-						true
-					);
-				}
-
-				const [ts] = utils.createPrinter(typescript);
+				imports.addNamed(script.ast, '$lib/paraglide/runtime', {
+					setLocale: 'setLocale'
+				});
 
 				const scriptCode = new MagicString(script.generateCode());
-				if (!scriptCode.original.includes('function switchToLanguage')) {
-					scriptCode.trim();
-					scriptCode.append('\n\n');
-					scriptCode.append(dedent`
-						${ts('', '/**')} 
-						${ts('', '* @param {import("$lib/paraglide/runtime").AvailableLanguageTag} newLanguage')} 
-						${ts('', '*/')} 
-						function switchToLanguage(newLanguage${ts(': AvailableLanguageTag')}) {
-							const canonicalPath = i18n.route(page.url.pathname);
-							const localisedPath = i18n.resolveRoute(canonicalPath, newLanguage);
-							goto(localisedPath);
-						}
-					`);
-				}
 
 				const templateCode = new MagicString(template.source);
 
@@ -271,10 +209,14 @@ export default defineAddon({
 				const links = validLanguageTags
 					.map(
 						(x) =>
-							`${templateCode.getIndentString()}<button onclick={() => switchToLanguage('${x}')}>${x}</button>`
+							`${templateCode.getIndentString()}<button onclick={() => setLocale('${x}')}>${x}</button>`
 					)
 					.join('\n');
 				templateCode.append(`<div>\n${links}\n</div>`);
+
+				templateCode.append(
+					'<p>\nIf you use VSCode, install the <a href="https://marketplace.visualstudio.com/items?itemName=inlang.vs-code-extension" target="_blank">Sherlock i18n extension</a> for a better i18n experience.\n</p>'
+				);
 
 				return generateCode({ script: scriptCode.toString(), template: templateCode.toString() });
 			});
@@ -286,17 +228,13 @@ export default defineAddon({
 				const { data, generateCode } = parseJson(content);
 				data['$schema'] = 'https://inlang.com/schema/inlang-message-format';
 				data.hello_world = `Hello, {name} from ${languageTag}!`;
-
 				return generateCode();
 			});
 		}
 	},
 
 	nextSteps: ({ highlighter }) => {
-		const steps = [
-			`Edit your messages in ${highlighter.path('messages/en.json')}`,
-			'Consider installing the Sherlock IDE Extension'
-		];
+		const steps = [`Edit your messages in ${highlighter.path('messages/en.json')}`];
 		if (options.demo) {
 			steps.push(`Visit ${highlighter.route('/demo/paraglide')} route to view the demo`);
 		}
