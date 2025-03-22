@@ -64,7 +64,7 @@ importers:
         version: 0.8.3(rollup@4.34.5)(typescript@5.7.2)
       vitest:
         specifier: ^3.0.5
-        version: 3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3(vitest@3.0.5))
+        version: 3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3)
 
   community-addon-template:
     dependencies:
@@ -80,7 +80,7 @@ importers:
         version: link:../packages/cli
       vitest:
         specifier: ^3.0.5
-        version: 3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3(vitest@3.0.5))
+        version: 3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3)
 
   packages/addons:
     dependencies:
@@ -247,6 +247,9 @@ importers:
       magic-string:
         specifier: ^0.30.15
         version: 0.30.17
+      package-manager-detector:
+        specifier: ^0.2.7
+        version: 0.2.7
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
@@ -3079,7 +3082,7 @@ snapshots:
       sirv: 3.0.0
       tinyglobby: 0.2.10
       tinyrainbow: 2.0.0
-      vitest: 3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3(vitest@3.0.5))
+      vitest: 3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3)
 
   '@vitest/utils@3.0.3':
     dependencies:
@@ -4347,7 +4350,7 @@ snapshots:
       '@types/node': 22.10.2
       fsevents: 2.3.3
 
-  vitest@3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3(vitest@3.0.5)):
+  vitest@3.0.5(@types/node@22.10.2)(@vitest/ui@3.0.3):
     dependencies:
       '@vitest/expect': 3.0.5
       '@vitest/mocker': 3.0.5(vite@6.1.0(@types/node@22.10.2))
