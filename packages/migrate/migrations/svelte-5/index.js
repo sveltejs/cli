@@ -17,6 +17,7 @@ import {
 } from '../../utils.js';
 import { migrate as migrate_svelte_4 } from '../svelte-4/index.js';
 import { migrate as migrate_sveltekit_2 } from '../sveltekit-2/index.js';
+import { transform_svelte_code as transform_app_state_code } from '../app-state/migrate.js';
 import { transform_module_code, transform_svelte_code, update_pkg_json } from './migrate.js';
 
 export async function migrate() {
@@ -196,6 +197,13 @@ export async function migrate() {
 		if (extensions.some((ext) => file.endsWith(ext))) {
 			if (svelte_extensions.some((ext) => file.endsWith(ext))) {
 				if (do_migration) {
+					if (kit_dep) {
+						update_svelte_file(
+							file,
+							(code) => code,
+							(code) => transform_app_state_code(code)
+						);
+					}
 					update_svelte_file(file, transform_module_code, (code) =>
 						transform_svelte_code(code, migrate, { filename: file, use_ts })
 					);
