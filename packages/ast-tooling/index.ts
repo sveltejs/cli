@@ -56,12 +56,14 @@ export type {
 
 /**
  * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
+ * https://github.com/sveltejs/esrap/blob/9daf5dd43b31f17f596aa7da91678f2650666dd0/test/common.js#L12
  */
 export function parseScript(content: string): TsEstree.Program {
 	const comments: TsEstree.Comment[] = [];
 
 	const acornTs = acorn.Parser.extend(tsPlugin({ allowSatisfies: true }));
 
+	// Acorn doesn't add comments to the AST by itself. This factory returns the capabilities to add them after the fact.
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
