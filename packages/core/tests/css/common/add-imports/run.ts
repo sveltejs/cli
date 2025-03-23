@@ -1,6 +1,5 @@
-import { addImports } from '@sveltejs/cli-core/css';
-import type { CssFileEditor } from '@sveltejs/cli-core';
+import { addImports, type CssAst } from '@sveltejs/cli-core/css';
 
-export function run({ ast }: CssFileEditor<any>): void {
+export function run(ast: CssAst): void {
 	addImports(ast, ["'lib/path/file.css'"]);
 }

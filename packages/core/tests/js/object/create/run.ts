@@ -1,7 +1,6 @@
-import { variables, object, common } from '@sveltejs/cli-core/js';
-import type { ScriptFileEditor } from '@sveltejs/cli-core';
+import { variables, object, common, type AstTypes } from '@sveltejs/cli-core/js';
 
-export function run({ ast }: ScriptFileEditor<any>): void {
+export function run(ast: AstTypes.Program): void {
 	const emptyObject = object.createEmpty();
 	const emptyVariable = variables.declaration(ast, 'const', 'empty', emptyObject);
 	ast.body.push(emptyVariable);

@@ -7,7 +7,6 @@ import {
 	functions,
 	imports,
 	object,
-	type AstKinds,
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
@@ -54,14 +53,12 @@ export default defineAddon({
 		sv.file('eslint.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			const eslintConfigs: Array<
-				AstKinds.ExpressionKind | AstTypes.SpreadElement | AstTypes.ObjectExpression
-			> = [];
+			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 
 			imports.addDefault(ast, './svelte.config.js', 'svelteConfig');
 
 			const gitIgnorePathStatement = common.statementFromString(
-				'\nconst gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));'
+				"\nconst gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));"
 			);
 			common.addStatement(ast, gitIgnorePathStatement);
 
@@ -90,16 +87,19 @@ export default defineAddon({
 				'"no-undef"': off
 			});
 
-			if (rules.properties[0].type !== 'ObjectProperty') {
-				throw new Error('rules.properties[0].type !== "ObjectProperty"');
+			if (rules.properties[0].type !== 'Property') {
+				throw new Error('rules.properties[0].type !== "Property"');
 			}
-			rules.properties[0].key.comments = [
+			rules.properties[0].key.leadingComments = [
 				{
-					type: 'Block',
+					type: 'Line',
 					value:
-						'*\n   * typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.\n   * see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors\n ',
-					leading: true,
-					trailing: false
+						' typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.'
+				},
+				{
+					type: 'Line',
+					value:
+						' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'
 				}
 			];
 
@@ -114,8 +114,8 @@ export default defineAddon({
 
 			if (typescript) {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString('["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"]'),
-					ignores: common.expressionFromString('["eslint.config.js", "svelte.config.js"]'),
+					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js']"),
+					ignores: common.expressionFromString("['eslint.config.js', 'svelte.config.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
 							projectService: common.expressionFromString('true'),
@@ -128,7 +128,7 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			} else {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString('["**/*.svelte", "**/*.svelte.js"]'),
+					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
 							svelteConfig: common.expressionFromString('svelteConfig')
