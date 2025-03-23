@@ -87,16 +87,19 @@ export default defineAddon({
 				'"no-undef"': off
 			});
 
-			if (rules.properties[0].type !== 'ObjectProperty') {
-				throw new Error('rules.properties[0].type !== "ObjectProperty"');
+			if (rules.properties[0].type !== 'Property') {
+				throw new Error('rules.properties[0].type !== "Property"');
 			}
-			rules.properties[0].key.comments = [
+			rules.properties[0].key.leadingComments = [
 				{
-					type: 'Block',
+					type: 'Line',
 					value:
-						'*\n   * typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.\n   * see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors\n ',
-					leading: true,
-					trailing: false
+						' typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.'
+				},
+				{
+					type: 'Line',
+					value:
+						' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'
 				}
 			];
 
