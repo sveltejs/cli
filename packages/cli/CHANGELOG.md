@@ -1,5 +1,26 @@
 # sv
 
+## 0.7.0
+### Minor Changes
+
+
+- feat: enhanced code generation for more intuitive formatting ([#380](https://github.com/sveltejs/cli/pull/380))
+
+
+- chore: switch to `estree` compatible ast tooling ([#380](https://github.com/sveltejs/cli/pull/380))
+
+
+### Patch Changes
+
+
+- chore: use writable derived in sverdle `demo` project ([#500](https://github.com/sveltejs/cli/pull/500))
+
+
+- chore: disable `no-undef` ESLint rule in TypeScript project ([#483](https://github.com/sveltejs/cli/pull/483))
+
+
+- chore: replace `create-svelte` in library template readme ([#499](https://github.com/sveltejs/cli/pull/499))
+
 ## 0.6.27
 ### Patch Changes
 
