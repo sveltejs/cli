@@ -1,4 +1,4 @@
-import { type AstTypes, Walker, parseScript, serializeScript, stripAst } from '../tools.ts';
+import { type AstTypes, Walker, parseScript, serializeScript, stripAst } from '../utils.ts';
 import decircular from 'decircular';
 import dedent from 'dedent';
 

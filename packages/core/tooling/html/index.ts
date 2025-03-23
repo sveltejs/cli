@@ -5,7 +5,7 @@ import {
 	HtmlElement,
 	HtmlElementType,
 	parseHtml
-} from '../tools.ts';
+} from '../utils.ts';
 import { addFromString } from '../js/common.ts';
 
 export { HtmlElement, HtmlElementType };

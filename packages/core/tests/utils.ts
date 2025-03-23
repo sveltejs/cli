@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import dedent from 'dedent';
 import { guessIndentString, guessQuoteStyle } from '../../core/tooling/utils.ts';
-import { parseScript, serializeScript, type AstTypes } from '../tooling/tools.ts';
+import { parseScript, serializeScript, type AstTypes } from '../tooling/utils.ts';
 
 test('guessIndentString - one tab', () => {
 	const code = dedent`

@@ -1,4 +1,4 @@
-import type { AstTypes } from '../tools.ts';
+import type { AstTypes } from '../utils.ts';
 
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	ast: AstTypes.ObjectExpression,

@@ -1,4 +1,4 @@
-import type { AstTypes } from '../tools.ts';
+import type { AstTypes } from '../utils.ts';
 
 export type ExportDefaultReturn<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;

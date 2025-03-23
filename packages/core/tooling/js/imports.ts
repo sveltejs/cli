@@ -1,4 +1,4 @@
-import { Walker, type AstTypes } from '../tools.ts';
+import { Walker, type AstTypes } from '../utils.ts';
 import { areNodesEqual } from './common.ts';
 
 export function addEmpty(ast: AstTypes.Program, importFrom: string): void {

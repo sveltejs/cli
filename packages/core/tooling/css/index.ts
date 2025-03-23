@@ -1,4 +1,4 @@
-import { Declaration, Rule, AtRule, Comment, type CssAst, type CssChildNode } from '../tools.ts';
+import { Declaration, Rule, AtRule, Comment, type CssAst, type CssChildNode } from '../utils.ts';
 
 export type { CssAst };
 
