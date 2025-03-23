@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { describe, expect, test } from 'vitest';
-import { parseHtml, serializeHtml } from '@sveltejs/ast-tooling';
+import { parseHtml, serializeHtml } from '../../tooling/tools.ts';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
 const categoryDirectories = getDirectoryNames(baseDir);

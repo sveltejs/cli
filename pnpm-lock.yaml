@@ -88,45 +88,6 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  packages/ast-tooling:
-    devDependencies:
-      '@sveltejs/acorn-typescript':
-        specifier: ^1.0.1
-        version: 1.0.1(acorn@8.14.0)
-      '@types/estree':
-        specifier: ^1.0.6
-        version: 1.0.6
-      acorn:
-        specifier: ^8.14.0
-        version: 8.14.0
-      dedent:
-        specifier: ^1.5.3
-        version: 1.5.3
-      dom-serializer:
-        specifier: ^2.0.0
-        version: 2.0.0
-      domhandler:
-        specifier: ^5.0.3
-        version: 5.0.3
-      domutils:
-        specifier: ^3.1.0
-        version: 3.2.1
-      esrap:
-        specifier: ^1.4.5
-        version: 1.4.5
-      htmlparser2:
-        specifier: ^9.1.0
-        version: 9.1.0
-      postcss:
-        specifier: ^8.4.49
-        version: 8.5.3
-      silver-fleece:
-        specifier: ^1.2.1
-        version: 1.2.1
-      zimmerframe:
-        specifier: ^1.1.2
-        version: 1.1.2
-
   packages/clack-core:
     devDependencies:
       picocolors:
@@ -206,26 +167,55 @@ importers:
         version: 0.41.0(typescript@5.7.2)
 
   packages/core:
-    dependencies:
-      '@sveltejs/ast-tooling':
-        specifier: workspace:*
-        version: link:../ast-tooling
     devDependencies:
+      '@sveltejs/acorn-typescript':
+        specifier: ^1.0.1
+        version: 1.0.1(acorn@8.14.0)
       '@sveltejs/clack-prompts':
         specifier: workspace:*
         version: link:../clack-prompts
+      '@types/estree':
+        specifier: ^1.0.6
+        version: 1.0.6
+      acorn:
+        specifier: ^8.14.0
+        version: 8.14.0
       decircular:
         specifier: ^1.0.0
         version: 1.0.0
       dedent:
         specifier: ^1.5.3
         version: 1.5.3
+      dom-serializer:
+        specifier: ^2.0.0
+        version: 2.0.0
+      domhandler:
+        specifier: ^5.0.3
+        version: 5.0.3
+      domutils:
+        specifier: ^3.1.0
+        version: 3.2.1
+      esrap:
+        specifier: ^1.4.5
+        version: 1.4.5
+      htmlparser2:
+        specifier: ^9.1.0
+        version: 9.1.0
       magic-string:
         specifier: ^0.30.15
         version: 0.30.17
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
+      postcss:
+        specifier: ^8.4.49
+        version: 8.5.3
+      silver-fleece:
+        specifier: ^1.2.1
+        version: 1.2.1
+      zimmerframe:
+        specifier: ^1.1.2
+        version: 1.1.2
 
   packages/create:
     devDependencies:

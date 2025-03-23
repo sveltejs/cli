@@ -1,11 +1,4 @@
-import {
-	Declaration,
-	Rule,
-	AtRule,
-	Comment,
-	type CssAst,
-	type CssChildNode
-} from '@sveltejs/ast-tooling';
+import { Declaration, Rule, AtRule, Comment, type CssAst, type CssChildNode } from '../tools.ts';
 
 export type { CssAst };
 

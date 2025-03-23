@@ -1,4 +1,4 @@
-import * as tools from '@sveltejs/ast-tooling';
+import * as tools from './tools.ts';
 import MagicString from 'magic-string';
 
 type ParseBase = {

@@ -1,4 +1,4 @@
-import type { AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '../tools.ts';
 
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	ast: AstTypes.ObjectExpression,

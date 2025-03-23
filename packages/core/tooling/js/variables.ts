@@ -1,4 +1,4 @@
-import type { AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '../tools.ts';
 
 export function declaration(
 	ast: AstTypes.Program | AstTypes.Declaration,

@@ -1,4 +1,4 @@
-import type { AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '../tools.ts';
 
 export function call(name: string, args: string[]): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {
