@@ -22,6 +22,10 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	const detected = await detect({ cwd });
 	const agent = detected?.name ?? getUserAgent();
 
+	// If we are in a non interactive environment just go with the detected package manager.
+	// There is no need to prompt in that case.
+	if (!process.stdout.isTTY) return agent;
+
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
 		options: agentOptions,
