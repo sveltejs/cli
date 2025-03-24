@@ -1,5 +1,11 @@
 # sv
 
+## 0.7.1
+### Patch Changes
+
+
+- fix: package manager detection in non interactive environments ([#503](https://github.com/sveltejs/cli/pull/503))
+
 ## 0.7.0
 ### Minor Changes
 
