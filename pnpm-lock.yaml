@@ -253,6 +253,9 @@ importers:
       magic-string:
         specifier: ^0.30.15
         version: 0.30.17
+      package-manager-detector:
+        specifier: ^0.2.7
+        version: 0.2.8
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
