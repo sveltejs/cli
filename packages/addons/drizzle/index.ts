@@ -199,8 +199,8 @@ export default defineAddon({
 					url: common.expressionFromString('process.env.DATABASE_URL'),
 					authToken
 				}),
-				verbose: { type: 'BooleanLiteral', value: true },
-				strict: { type: 'BooleanLiteral', value: true }
+				verbose: { type: 'Literal', value: true },
+				strict: { type: 'Literal', value: true }
 			});
 
 			const dialect = options.sqlite === 'turso' ? 'turso' : options.database;
@@ -338,8 +338,8 @@ export default defineAddon({
 			const paramObject = object.create({
 				schema: variables.identifier('schema')
 			});
-			if (options.database == 'mysql') {
-				const mode = options.mysql == 'planetscale' ? 'planetscale' : 'default';
+			if (options.database === 'mysql') {
+				const mode = options.mysql === 'planetscale' ? 'planetscale' : 'default';
 				object.property(paramObject, 'mode', common.createLiteral(mode));
 			}
 			drizzleCall.arguments.push(paramObject);

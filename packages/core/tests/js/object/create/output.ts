@@ -1,6 +1,2 @@
 const empty = {};
-
-const created = {
-	foo: 1,
-	bar: 'string'
-};
+const created = { foo: 1, bar: 'string' };

@@ -1,6 +1,5 @@
-import { addComment } from '@sveltejs/cli-core/css';
-import type { CssFileEditor } from '@sveltejs/cli-core';
+import { addComment, type CssAst } from '@sveltejs/cli-core/css';
 
-export function run({ ast }: CssFileEditor<any>): void {
+export function run(ast: CssAst): void {
 	addComment(ast, 'foo comment');
 }

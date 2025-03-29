@@ -1,7 +1,6 @@
-import { div, appendElement, insertElement } from '@sveltejs/cli-core/html';
-import type { HtmlFileEditor } from '@sveltejs/cli-core';
+import { div, appendElement, insertElement, type HtmlDocument } from '@sveltejs/cli-core/html';
 
-export function run({ ast }: HtmlFileEditor<any>): void {
+export function run(ast: HtmlDocument): void {
 	const emptyDiv = div();
 	insertElement(ast.childNodes, emptyDiv);
 	appendElement(ast.childNodes, emptyDiv);
