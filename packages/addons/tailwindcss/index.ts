@@ -132,7 +132,7 @@ export default defineAddon({
 		}
 
 		if (dependencyVersion('prettier')) {
-			sv.file('.prettierrc', (content) => {
+			sv.file('.prettierrc.json', (content) => {
 				const { data, generateCode } = parseJson(content);
 				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
 

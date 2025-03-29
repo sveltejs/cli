@@ -23,7 +23,7 @@ export default defineAddon({
 			`;
 		});
 
-		sv.file('.prettierrc', (content) => {
+		sv.file('.prettierrc.json', (content) => {
 			const { data, generateCode } = parseJson(content);
 			if (Object.keys(data).length === 0) {
 				// we'll only set these defaults if there is no pre-existing config
