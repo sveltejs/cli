@@ -1,5 +1,11 @@
 # sv
 
+## 0.7.2
+### Patch Changes
+
+
+- chore: added GitHub official logo to demo template ([#508](https://github.com/sveltejs/cli/pull/508))
+
 ## 0.7.1
 ### Patch Changes
 

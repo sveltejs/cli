@@ -1,6 +1,6 @@
 {
 	"name": "svelte-migrate",
-	"version": "1.10.0",
+	"version": "1.10.1",
 	"type": "module",
 	"description": "A CLI for migrating Svelte(Kit) codebases",
 	"license": "MIT",
