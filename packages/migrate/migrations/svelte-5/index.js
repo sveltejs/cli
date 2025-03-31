@@ -17,7 +17,9 @@ import {
 } from '../../utils.js';
 import { migrate as migrate_svelte_4 } from '../svelte-4/index.js';
 import { migrate as migrate_sveltekit_2 } from '../sveltekit-2/index.js';
+import { transform_svelte_code as transform_app_state_code } from '../app-state/migrate.js';
 import { transform_module_code, transform_svelte_code, update_pkg_json } from './migrate.js';
+import { detect, resolveCommand } from 'package-manager-detector';
 
 export async function migrate() {
 	if (!fs.existsSync('package.json')) {
@@ -196,6 +198,13 @@ export async function migrate() {
 		if (extensions.some((ext) => file.endsWith(ext))) {
 			if (svelte_extensions.some((ext) => file.endsWith(ext))) {
 				if (do_migration) {
+					if (kit_dep) {
+						update_svelte_file(
+							file,
+							(code) => code,
+							(code) => transform_app_state_code(code)
+						);
+					}
 					update_svelte_file(file, transform_module_code, (code) =>
 						transform_svelte_code(code, migrate, { filename: file, use_ts })
 					);
@@ -209,8 +218,13 @@ export async function migrate() {
 	/** @type {(s: string) => string} */
 	const cyan = (s) => pc.bold(pc.cyan(s));
 
+	const detected = await detect({ cwd: process.cwd() });
+	const pm = detected?.name ?? 'npm';
+	const cmd = /** @type {import('package-manager-detector').ResolvedCommand} */ (
+		resolveCommand(pm, 'install', [])
+	);
 	const tasks = [
-		"install the updated dependencies ('npm i' / 'pnpm i' / etc) " +
+		`Install the updated dependencies by running ${cyan(`${cmd.command} ${cmd.args.join(' ')}`)} ` +
 			'(note that there may be peer dependency issues when not all your libraries officially support Svelte 5 yet. In this case try installing with the --force option)',
 		use_git && cyan('git commit -m "migration to Svelte 5"'),
 		'Review the migration guide at https://svelte.dev/docs/svelte/v5-migration-guide',

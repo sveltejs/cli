@@ -1,4 +1,4 @@
-import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '@sveltejs/ast-tooling';
 
 export function call(name: string, args: string[]): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {
@@ -7,7 +7,8 @@ export function call(name: string, args: string[]): AstTypes.CallExpression {
 			type: 'Identifier',
 			name
 		},
-		arguments: []
+		arguments: [],
+		optional: false
 	};
 
 	for (const argument of args) {
@@ -27,7 +28,8 @@ export function callByIdentifier(name: string, args: string[]): AstTypes.CallExp
 			type: 'Identifier',
 			name
 		},
-		arguments: []
+		arguments: [],
+		optional: false
 	};
 
 	for (const argument of args) {
@@ -43,19 +45,20 @@ export function callByIdentifier(name: string, args: string[]): AstTypes.CallExp
 
 export function arrowFunction(
 	async: boolean,
-	body: AstKinds.ExpressionKind | AstTypes.BlockStatement
+	body: AstTypes.Expression | AstTypes.BlockStatement
 ): AstTypes.ArrowFunctionExpression {
 	const arrowFunction: AstTypes.ArrowFunctionExpression = {
 		type: 'ArrowFunctionExpression',
 		async,
 		body,
-		params: []
+		params: [],
+		expression: body.type !== 'BlockStatement'
 	};
 
 	return arrowFunction;
 }
 
-export function argumentByIndex<T extends AstKinds.ExpressionKind>(
+export function argumentByIndex<T extends AstTypes.Expression>(
 	ast: AstTypes.CallExpression,
 	i: number,
 	fallback: T

@@ -1,5 +1,17 @@
 # svelte-migrate
 
+## 1.10.1
+### Patch Changes
+
+
+- fix: dynamically suggest package manager installation command in `migrate` scripts ([#495](https://github.com/sveltejs/cli/pull/495))
+
+## 1.10.0
+### Minor Changes
+
+
+- feat: added `app-state` migration into `svelte-5` migration ([#494](https://github.com/sveltejs/cli/pull/494))
+
 ## 1.9.0
 ### Minor Changes
 

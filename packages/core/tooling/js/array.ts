@@ -1,5 +1,5 @@
 import { areNodesEqual } from './common.ts';
-import type { AstKinds, AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '@sveltejs/ast-tooling';
 
 export function createEmpty(): AstTypes.ArrayExpression {
 	const arrayExpression: AstTypes.ArrayExpression = {
@@ -11,32 +11,38 @@ export function createEmpty(): AstTypes.ArrayExpression {
 
 export function push(
 	ast: AstTypes.ArrayExpression,
-	data: string | AstKinds.ExpressionKind | AstKinds.SpreadElementKind
+	data: string | AstTypes.Expression | AstTypes.SpreadElement
+): void {
+	insertElement(ast, data, true);
+}
+export function unshift(
+	ast: AstTypes.ArrayExpression,
+	data: string | AstTypes.Expression | AstTypes.SpreadElement
+): void {
+	insertElement(ast, data, false);
+}
+
+function insertElement(
+	ast: AstTypes.ArrayExpression,
+	data: string | AstTypes.Expression | AstTypes.SpreadElement,
+	insertEnd: boolean
 ): void {
 	if (typeof data === 'string') {
-		const existingLiterals = ast.elements.filter(
-			(x): x is AstTypes.StringLiteral => x?.type == 'StringLiteral'
-		);
-		let literal = existingLiterals.find((x) => x.value == data);
-
+		const existingLiterals = ast.elements.filter((x) => x !== null && x.type === 'Literal');
+		let literal = existingLiterals.find((x) => x.value === data);
 		if (!literal) {
-			literal = {
-				type: 'StringLiteral',
-				value: data
-			};
-			ast.elements.push(literal);
+			literal = { type: 'Literal', value: data };
+
+			if (insertEnd) ast.elements.push(literal);
+			else ast.elements.unshift(literal);
 		}
 	} else {
-		let anyNodeEquals = false;
-		const elements = ast.elements as AstTypes.ASTNode[];
-		for (const node of elements) {
-			if (areNodesEqual(data, node)) {
-				anyNodeEquals = true;
-			}
-		}
+		const elements = ast.elements;
+		const anyNodeEquals = elements.some((node) => node && areNodesEqual(data, node));
 
 		if (!anyNodeEquals) {
-			ast.elements.push(data);
+			if (insertEnd) ast.elements.push(data);
+			else ast.elements.unshift(data);
 		}
 	}
 }

@@ -25,7 +25,7 @@ for (const categoryDirectory of categoryDirectories) {
 
 				// dynamic imports always need to provide the path inline for static analysis
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
-				module.run({ ast });
+				module.run(ast);
 
 				const output = serializeCss(ast);
 				const formattedOutput = await prettier.format(output, prettierConfig);

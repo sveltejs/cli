@@ -9,6 +9,7 @@ type Adapter = {
 };
 
 const adapters: Adapter[] = [
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^4.0.0' },
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.11' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.8' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.5.2' },
@@ -22,7 +23,7 @@ const options = defineAddonOptions({
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',
 		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: 'node'
+		default: 'auto'
 	}
 });
 
@@ -70,6 +71,9 @@ export default defineAddon({
 			if (adapterImportDecl) {
 				// replaces the import's source with the new adapter
 				adapterImportDecl.source.value = adapter.package;
+				// reset raw value, so that the string is re-generated
+				adapterImportDecl.source.raw = undefined;
+
 				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
 					?.local?.name as string;
 			} else {
@@ -78,16 +82,15 @@ export default defineAddon({
 
 			const { value: config } = exports.defaultExport(ast, object.createEmpty());
 			const kitConfig = config.properties.find(
-				(p) => p.type === 'ObjectProperty' && p.key.type === 'Identifier' && p.key.name === 'kit'
-			) as AstTypes.ObjectProperty | undefined;
+				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
+			) as AstTypes.Property | undefined;
 
 			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
 				const adapterProp = kitConfig.value.properties.find(
-					(p) =>
-						p.type === 'ObjectProperty' && p.key.type === 'Identifier' && p.key.name === 'adapter'
+					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
 				);
 				if (adapterProp) {
-					adapterProp.comments = [];
+					adapterProp.leadingComments = [];
 				}
 
 				// only overrides the `adapter` property so we can reset it's args

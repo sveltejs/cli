@@ -29,12 +29,7 @@
 	let i = $derived(won ? -1 : data.answers.length);
 
 	/** The current guess */
-	// svelte-ignore state_referenced_locally
-	let currentGuess = $state(data.guesses[i] || '');
-
-	$effect(() => {
-		currentGuess = data.guesses[i] || '';
-	});
+	let currentGuess = $derived(data.guesses[i] || '');
 
 	/** Whether the current guess can be submitted */
 	let submittable = $derived(currentGuess.length === 5);
@@ -179,9 +174,9 @@
 					back
 				</button>
 
-				{#each ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'] as row}
+				{#each ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'] as row (row)}
 					<div class="row">
-						{#each row as letter}
+						{#each row as letter, index (index)}
 							<button
 								onclick={update}
 								data-key={letter}

@@ -31,9 +31,7 @@ export function addEslintConfigPrettier(content: string): string {
 		return content;
 
 	const prettier = common.expressionFromString('prettier');
-	const sveltePrettierConfig = common.expressionFromString(
-		`${svelteImportName}.configs['flat/prettier']`
-	);
+	const sveltePrettierConfig = common.expressionFromString(`${svelteImportName}.configs.prettier`);
 	const configSpread = common.createSpreadElement(sveltePrettierConfig);
 
 	const nodesToInsert = [];
@@ -41,7 +39,7 @@ export function addEslintConfigPrettier(content: string): string {
 	if (!common.hasNode(eslintConfig, configSpread)) nodesToInsert.push(configSpread);
 
 	const elements =
-		eslintConfig.type == 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
+		eslintConfig.type === 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
 	// finds index of `...svelte.configs["..."]`
 	const idx = elements.findIndex(
 		(el) =>

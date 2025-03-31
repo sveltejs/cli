@@ -6,4 +6,4 @@ export * as imports from './imports.ts';
 export * as variables from './variables.ts';
 export * as exports from './exports.ts';
 export * as kit from './kit.ts';
-export type { AstTypes, AstKinds } from '@sveltejs/ast-tooling';
+export type { AstTypes } from '@sveltejs/ast-tooling';

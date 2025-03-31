@@ -15,7 +15,7 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 	ctx.onTestFinished(async () => await close());
 
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
-	fs.writeFileSync(path.resolve(cwd, 'foo.js'), unlintedFile, 'utf8');
+	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');
 
 	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).toThrowError();
 

@@ -7,7 +7,6 @@ import {
 	functions,
 	imports,
 	object,
-	type AstKinds,
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
@@ -22,8 +21,8 @@ export default defineAddon({
 
 		sv.devDependency('eslint', '^9.18.0');
 		sv.devDependency('@eslint/compat', '^1.2.5');
-		sv.devDependency('globals', '^15.14.0');
-		sv.devDependency('eslint-plugin-svelte', '^2.46.1');
+		sv.devDependency('eslint-plugin-svelte', '^3.0.0');
+		sv.devDependency('globals', '^16.0.0');
 		sv.devDependency('@eslint/js', '^9.18.0');
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.20.0');
@@ -54,12 +53,12 @@ export default defineAddon({
 		sv.file('eslint.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			const eslintConfigs: Array<
-				AstKinds.ExpressionKind | AstTypes.SpreadElement | AstTypes.ObjectExpression
-			> = [];
+			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
+
+			imports.addDefault(ast, './svelte.config.js', 'svelteConfig');
 
 			const gitIgnorePathStatement = common.statementFromString(
-				'\nconst gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));'
+				"\nconst gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));"
 			);
 			common.addStatement(ast, gitIgnorePathStatement);
 
@@ -74,7 +73,7 @@ export default defineAddon({
 				eslintConfigs.push(common.createSpreadElement(tsConfig));
 			}
 
-			const svelteConfig = common.expressionFromString('svelte.configs["flat/recommended"]');
+			const svelteConfig = common.expressionFromString('svelte.configs.recommended');
 			eslintConfigs.push(common.createSpreadElement(svelteConfig));
 
 			const globalsBrowser = common.createSpreadElement(
@@ -83,19 +82,56 @@ export default defineAddon({
 			const globalsNode = common.createSpreadElement(common.expressionFromString('globals.node'));
 			const globalsObjLiteral = object.createEmpty();
 			globalsObjLiteral.properties = [globalsBrowser, globalsNode];
+			const off = common.createLiteral('off');
+			const rules = object.create({
+				'"no-undef"': off
+			});
+
+			if (rules.properties[0].type !== 'Property') {
+				throw new Error('rules.properties[0].type !== "Property"');
+			}
+			rules.properties[0].key.leadingComments = [
+				{
+					type: 'Line',
+					value:
+						' typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.'
+				},
+				{
+					type: 'Line',
+					value:
+						' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'
+				}
+			];
+
 			const globalsConfig = object.create({
 				languageOptions: object.create({
 					globals: globalsObjLiteral
-				})
+				}),
+				rules: typescript ? rules : undefined
 			});
+
 			eslintConfigs.push(globalsConfig);
 
 			if (typescript) {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString('["**/*.svelte"]'),
+					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js']"),
+					ignores: common.expressionFromString("['eslint.config.js', 'svelte.config.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
-							parser: common.expressionFromString('ts.parser')
+							projectService: common.expressionFromString('true'),
+							extraFileExtensions: common.expressionFromString("['.svelte']"),
+							parser: common.expressionFromString('ts.parser'),
+							svelteConfig: common.expressionFromString('svelteConfig')
+						})
+					})
+				});
+				eslintConfigs.push(svelteTSParserConfig);
+			} else {
+				const svelteTSParserConfig = object.create({
+					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.js']"),
+					languageOptions: object.create({
+						parserOptions: object.create({
+							svelteConfig: common.expressionFromString('svelteConfig')
 						})
 					})
 				});

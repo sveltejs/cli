@@ -1,5 +1,2 @@
 const testNumber = 2;
-
-const testObject = {
-	foo: 'bar'
-};
+const testObject = { foo: 'bar' };
