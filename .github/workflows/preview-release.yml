@@ -26,4 +26,4 @@ jobs:
         run: pnpm build
 
       - name: publish preview
-        run: pnpm dlx pkg-pr-new@0.0 publish --bin --pnpm './packages/*'
+        run: pnpm dlx pkg-pr-new@0.0.42 publish --bin --packageManager=pnpm './packages/*'
