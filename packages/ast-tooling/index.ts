@@ -61,7 +61,7 @@ export type {
 export function parseScript(content: string): TsEstree.Program {
 	const comments: TsEstree.Comment[] = [];
 
-	const acornTs = acorn.Parser.extend(tsPlugin({ allowSatisfies: true }));
+	const acornTs = acorn.Parser.extend(tsPlugin());
 
 	// Acorn doesn't add comments to the AST by itself. This factory returns the capabilities to add them after the fact.
 	const ast = acornTs.parse(content, {
