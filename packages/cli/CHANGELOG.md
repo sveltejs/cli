@@ -1,5 +1,20 @@
 # sv
 
+## 0.8.0
+### Minor Changes
+
+
+- feat: remove `adapter-cloudflare-workers` and upgrade other adapters ([#520](https://github.com/sveltejs/cli/pull/520))
+
+
+### Patch Changes
+
+
+- security: Upgrade Vite to avoid CVE-2025-31125 ([#517](https://github.com/sveltejs/cli/pull/517))
+
+
+- security: upgrade vite to avoid CVE-2025-31486 ([#522](https://github.com/sveltejs/cli/pull/522))
+
 ## 0.7.2
 ### Patch Changes
 
