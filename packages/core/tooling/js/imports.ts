@@ -9,6 +9,7 @@ export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
 			value: importFrom
 		},
 		specifiers: [],
+		attributes: [],
 		importKind: 'value'
 	};
 
@@ -25,7 +26,8 @@ export function addNamespace(ast: AstTypes.Program, importFrom: string, importAs
 				type: 'ImportNamespaceSpecifier',
 				local: { type: 'Identifier', name: importAs }
 			}
-		]
+		],
+		attributes: [],
 	};
 
 	addImportIfNecessary(ast, expectedImportDeclaration);
@@ -47,6 +49,7 @@ export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: 
 				}
 			}
 		],
+		attributes: [],
 		importKind: 'value'
 	};
 
@@ -109,6 +112,7 @@ export function addNamed(
 			value: importFrom
 		},
 		specifiers,
+		attributes: [],
 		importKind: isType ? 'type' : 'value'
 	};
 
