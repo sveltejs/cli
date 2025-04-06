@@ -8,7 +8,7 @@ export default defineAddon({
 	homepage: 'https://prettier.io',
 	options: {},
 	run: ({ sv, dependencyVersion }) => {
-		sv.devDependency('prettier', '^3.4.2');
+		sv.devDependency('prettier', '^3.5.3');
 		sv.devDependency('prettier-plugin-svelte', '^3.3.3');
 
 		sv.file('.prettierignore', (content) => {
@@ -79,7 +79,7 @@ export default defineAddon({
 		}
 
 		if (eslintInstalled) {
-			sv.devDependency('eslint-config-prettier', '^10.0.1');
+			sv.devDependency('eslint-config-prettier', '^10.1.1');
 			sv.file('eslint.config.js', addEslintConfigPrettier);
 		}
 	}

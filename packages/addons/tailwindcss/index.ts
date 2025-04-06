@@ -14,13 +14,13 @@ const plugins: Plugin[] = [
 	{
 		id: 'typography',
 		package: '@tailwindcss/typography',
-		version: '^0.5.15',
+		version: '^0.5.16',
 		identifier: 'typography'
 	},
 	{
 		id: 'forms',
 		package: '@tailwindcss/forms',
-		version: '^0.5.9',
+		version: '^0.5.10',
 		identifier: 'forms'
 	}
 ];
@@ -44,8 +44,8 @@ export default defineAddon({
 		const ext = typescript ? 'ts' : 'js';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^4.0.0');
-		sv.devDependency('@tailwindcss/vite', '^4.0.0');
+		sv.devDependency('tailwindcss', '^4.1.3');
+		sv.devDependency('@tailwindcss/vite', '^4.1.3');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
 

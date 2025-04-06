@@ -74,11 +74,11 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('drizzle-orm', '^0.40.0');
-		sv.devDependency('drizzle-kit', '^0.30.2');
+		sv.dependency('drizzle-orm', '^0.41.0');
+		sv.devDependency('drizzle-kit', '^0.30.6');
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.14.0');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
@@ -87,13 +87,13 @@ export default defineAddon({
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
-			sv.dependency('better-sqlite3', '^11.8.0');
-			sv.devDependency('@types/better-sqlite3', '^7.6.12');
+			sv.dependency('better-sqlite3', '^11.9.1');
+			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			sv.pnpmBuildDependendency('better-sqlite3');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
-			sv.dependency('@libsql/client', '^0.14.0');
+			sv.dependency('@libsql/client', '^0.15.2');
 
 		sv.file('.env', (content) => generateEnvFileContent(content, options));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));
