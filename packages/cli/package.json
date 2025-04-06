@@ -31,7 +31,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/addons": "workspace:*",
-		"@sveltejs/clack-prompts": "workspace:*",
+		"@clack/prompts": "https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@276",
 		"@sveltejs/cli-core": "workspace:*",
 		"@sveltejs/create": "workspace:*",
 		"@types/degit": "^2.8.6",

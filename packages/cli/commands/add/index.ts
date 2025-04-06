@@ -4,7 +4,7 @@ import process from 'node:process';
 import pc from 'picocolors';
 import * as v from 'valibot';
 import * as pkg from 'empathic/package';
-import * as p from '@sveltejs/clack-prompts';
+import * as p from '@clack/prompts';
 import { Command, Option } from 'commander';
 import {
 	officialAddons,

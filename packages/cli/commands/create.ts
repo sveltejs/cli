@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 import { Command, Option } from 'commander';
-import * as p from '@sveltejs/clack-prompts';
+import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import {
 	create as createKit,

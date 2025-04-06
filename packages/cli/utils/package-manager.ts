@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import * as find from 'empathic/find';
 import { exec } from 'tinyexec';
-import * as p from '@sveltejs/clack-prompts';
+import * as p from '@clack/prompts';
 import {
 	AGENTS,
 	COMMANDS,
@@ -40,7 +40,10 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
-	const task = p.taskLog(`Installing dependencies with ${agent}...`);
+	const task = p.taskLog({
+		message: `Installing dependencies with ${agent}...`,
+		limit: 5
+	});
 
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
@@ -50,17 +53,17 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		});
 
 		proc.process?.stdout?.on('data', (data) => {
-			task.text = data;
+			task.message(data);
 		});
 		proc.process?.stderr?.on('data', (data) => {
-			task.text = data;
+			task.message(data);
 		});
 
 		await proc;
 
 		task.success('Successfully installed dependencies');
-	} catch {
-		task.fail('Failed to install dependencies');
+	} catch (error) {
+		task.error('Failed to install dependencies' + error);
 		p.cancel('Operation failed.');
 		process.exit(2);
 	}
