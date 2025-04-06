@@ -27,7 +27,7 @@ export function addNamespace(ast: AstTypes.Program, importFrom: string, importAs
 				local: { type: 'Identifier', name: importAs }
 			}
 		],
-		attributes: [],
+		attributes: []
 	};
 
 	addImportIfNecessary(ast, expectedImportDeclaration);
