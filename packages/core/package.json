@@ -45,7 +45,7 @@
 		"@sveltejs/ast-tooling": "workspace:*"
 	},
 	"devDependencies": {
-		"@clack/prompts": "https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@276",
+		"@clack/prompts": "https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@69b0ca0",
 		"decircular": "^1.0.0",
 		"dedent": "^1.5.3",
 		"magic-string": "^0.30.15",

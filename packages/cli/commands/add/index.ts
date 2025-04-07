@@ -89,7 +89,7 @@ export const add = new Command('add')
 		const selectedAddons = transformAliases(specifiedAddons);
 		common.runCommand(async () => {
 			const { nextSteps } = await runAddCommand(options, selectedAddons);
-			if (nextSteps) p.box(nextSteps, 'Next steps');
+			if (nextSteps) p.note(nextSteps, 'Next steps');
 		});
 	});
 

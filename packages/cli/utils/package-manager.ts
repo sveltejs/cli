@@ -53,10 +53,10 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		});
 
 		proc.process?.stdout?.on('data', (data) => {
-			task.message(data);
+			task.message(data, { raw: true });
 		});
 		proc.process?.stderr?.on('data', (data) => {
-			task.message(data);
+			task.message(data, { raw: true });
 		});
 
 		await proc;

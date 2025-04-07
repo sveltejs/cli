@@ -90,8 +90,8 @@ export const create = new Command('create')
 				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
 			];
 
-			p.box(steps.join('\n'), 'Project next steps');
-			if (addOnNextSteps) p.box(addOnNextSteps, 'Add-on next steps');
+			p.note(steps.join('\n'), 'Project next steps');
+			if (addOnNextSteps) p.note(addOnNextSteps, 'Add-on next steps');
 		});
 	});
 
