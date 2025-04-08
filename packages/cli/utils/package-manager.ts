@@ -42,7 +42,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
 	const task = p.taskLog({
 		message: `Installing dependencies with ${agent}...`,
-		limit: process.stdout.rows / 2
+		limit: Math.ceil(process.stdout.rows / 2)
 	});
 
 	try {
@@ -62,8 +62,8 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		await proc;
 
 		task.success('Successfully installed dependencies');
-	} catch (error) {
-		task.error('Failed to install dependencies' + error);
+	} catch {
+		task.error('Failed to install dependencies');
 		p.cancel('Operation failed.');
 		process.exit(2);
 	}
