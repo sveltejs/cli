@@ -41,8 +41,10 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
 	const task = p.taskLog({
-		message: `Installing dependencies with ${agent}...`,
-		limit: Math.ceil(process.stdout.rows / 2)
+		title: `Installing dependencies with ${agent}...`,
+		limit: Math.ceil(process.stdout.rows / 2),
+		spacing: 0,
+		retainLog: true
 	});
 
 	try {
