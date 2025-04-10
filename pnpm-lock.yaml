@@ -130,8 +130,8 @@ importers:
   packages/cli:
     devDependencies:
       '@clack/prompts':
-        specifier: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@d4e8d14
-        version: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@d4e8d14
+        specifier: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
+        version: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
       '@sveltejs/addons':
         specifier: workspace:*
         version: link:../addons
@@ -333,8 +333,16 @@ packages:
     resolution: {tarball: https://pkg.pr.new/bombshell-dev/clack/@clack/core@d4e8d14e4eb80b98e128b8e4f88d5566175664c4}
     version: 0.4.1
 
+  '@clack/core@https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d':
+    resolution: {tarball: https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d}
+    version: 0.4.1
+
   '@clack/prompts@https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@d4e8d14':
     resolution: {tarball: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@d4e8d14}
+    version: 0.10.0
+
+  '@clack/prompts@https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96':
+    resolution: {tarball: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96}
     version: 0.10.0
 
   '@emnapi/core@1.3.1':
@@ -2484,9 +2492,20 @@ snapshots:
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
+  '@clack/core@https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d':
+    dependencies:
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
   '@clack/prompts@https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@d4e8d14':
     dependencies:
       '@clack/core': https://pkg.pr.new/bombshell-dev/clack/@clack/core@d4e8d14e4eb80b98e128b8e4f88d5566175664c4
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
+  '@clack/prompts@https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96':
+    dependencies:
+      '@clack/core': https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
