@@ -29,7 +29,7 @@ export default defineAddon({
 				({ data, generateCode } = parseJson(content));
 			} catch {
 				log.warn(
-					'A `.prettierrc` config already exists and cannot be parsed as JSON. Skipping initialization.'
+					`A ${colors.yellow('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
 				);
 				return content;
 			}
