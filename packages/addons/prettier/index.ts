@@ -24,7 +24,15 @@ export default defineAddon({
 		});
 
 		sv.file('.prettierrc', (content) => {
-			const { data, generateCode } = parseJson(content);
+			let data, generateCode;
+			try {
+				({ data, generateCode } = parseJson(content));
+			} catch {
+				log.warn(
+					`A ${colors.yellow('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
+				);
+				return content;
+			}
 			if (Object.keys(data).length === 0) {
 				// we'll only set these defaults if there is no pre-existing config
 				data.useTabs = true;
