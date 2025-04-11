@@ -71,7 +71,8 @@ export function namedExport(
 	namedExport = {
 		type: 'ExportNamedDeclaration',
 		declaration: fallback,
-		specifiers: []
+		specifiers: [],
+		attributes: []
 	};
 	ast.body.push(namedExport);
 	return namedExport;
