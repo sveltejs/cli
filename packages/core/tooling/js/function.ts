@@ -1,4 +1,4 @@
-import type { AstTypes } from '../utils.ts';
+import type { AstTypes } from '../index.ts';
 
 export function call(name: string, args: string[]): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {

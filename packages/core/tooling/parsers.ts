@@ -1,4 +1,4 @@
-import * as utils from './utils.ts';
+import * as utils from './index.ts';
 import MagicString from 'magic-string';
 
 type ParseBase = {

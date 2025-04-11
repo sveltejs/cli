@@ -9,4 +9,4 @@ export type * from './addon/options.ts';
 export type * from './addon/config.ts';
 export type * from './addon/workspace.ts';
 
-export { Walker } from './tooling/utils.ts';
+export { Walker } from './tooling/index.ts';
