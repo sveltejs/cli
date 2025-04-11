@@ -2921,7 +2921,7 @@ snapshots:
 
   '@types/prompts@2.4.9':
     dependencies:
-      '@types/node': 18.19.86
+      '@types/node': 22.14.0
       kleur: 3.0.3
 
   '@types/ps-tree@1.1.6': {}
