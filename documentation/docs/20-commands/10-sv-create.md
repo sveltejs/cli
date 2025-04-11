@@ -35,9 +35,15 @@ Prevent typechecking from being added. Not recommended!
 
 Run the command without the interactive add-ons prompt
 
-### `--no-install`
+### `--[no-]install`
 
-Skip dependency installation
+Installs dependencies with a specified package manager:
+
+- `npm`
+- `pnpm`
+- `yarn`
+- `bun`
+- `deno`
 
 <!-- ## Programmatic interface
 
