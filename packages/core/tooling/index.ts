@@ -1,3 +1,5 @@
+import * as Walker from 'zimmerframe';
+import type { TsEstree } from './js/ts-estree.ts';
 import { Document, Element, type ChildNode } from 'domhandler';
 import { ElementType, parseDocument } from 'htmlparser2';
 import serializeDom from 'dom-serializer';
@@ -11,20 +13,9 @@ import {
 	type ChildNode as CssChildNode
 } from 'postcss';
 import * as fleece from 'silver-fleece';
-import * as Walker from 'zimmerframe';
-import type { TsEstree } from './ts-estree.ts';
-import { guessIndentString, guessQuoteStyle } from './utils.ts';
 import { print as esrapPrint } from 'esrap';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
-
-/**
- * Most of the AST tooling is pretty big in bundle size and bundling takes forever.
- * Nevertheless bundling of these tools seems smart, as they add many dependencies to each install.
- * In order to avoid long bundling during development, all of the AST tools have been extracted
- * into this separate package and are bundled only here. This package has been marked as external
- * and will not be bundled into all other projects / bundles.
- */
 
 export {
 	// html
@@ -178,4 +169,74 @@ export function serializeJson(originalInput: string, data: unknown): string {
 	if (indentString && indentString.includes(' ')) spaces = (indentString.match(/ /g) || []).length;
 
 	return fleece.stringify(data, { spaces });
+}
+
+// Sourced from `golden-fleece`
+// https://github.com/Rich-Harris/golden-fleece/blob/f2446f331640f325e13609ed99b74b6a45e755c2/src/patch.ts#L302
+export function guessIndentString(str: string | undefined): string {
+	if (!str) return '\t';
+
+	const lines = str.split('\n');
+
+	let tabs = 0;
+	let spaces = 0;
+	let minSpaces = 8;
+
+	lines.forEach((line) => {
+		const match = /^(?: +|\t+)/.exec(line);
+		if (!match) return;
+
+		const whitespace = match[0];
+		if (whitespace.length === line.length) return;
+
+		if (whitespace[0] === '\t') {
+			tabs += 1;
+		} else {
+			spaces += 1;
+			if (whitespace.length > 1 && whitespace.length < minSpaces) {
+				minSpaces = whitespace.length;
+			}
+		}
+	});
+
+	if (spaces > tabs) {
+		let result = '';
+		while (minSpaces--) result += ' ';
+		return result;
+	} else {
+		return '\t';
+	}
+}
+
+export function guessQuoteStyle(ast: TsEstree.Node): 'single' | 'double' | undefined {
+	let singleCount = 0;
+	let doubleCount = 0;
+
+	Walker.walk(ast, null, {
+		Literal(node) {
+			if (node.raw && node.raw.length >= 2) {
+				// we have at least two characters in the raw string that could represent both quotes
+				const quotes = [node.raw[0], node.raw[node.raw.length - 1]];
+				for (const quote of quotes) {
+					switch (quote) {
+						case "'":
+							singleCount++;
+							break;
+						case '"':
+							doubleCount++;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+	});
+
+	if (singleCount === 0 && doubleCount === 0) {
+		// new file or file without any quotes
+		return undefined;
+	}
+
+	return singleCount > doubleCount ? 'single' : 'double';
 }

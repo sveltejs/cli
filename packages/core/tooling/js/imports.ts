@@ -1,4 +1,4 @@
-import { Walker, type AstTypes } from '@sveltejs/ast-tooling';
+import { Walker, type AstTypes } from '../index.ts';
 import { areNodesEqual } from './common.ts';
 
 export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
