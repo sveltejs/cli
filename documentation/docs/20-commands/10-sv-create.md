@@ -35,7 +35,7 @@ Prevent typechecking from being added. Not recommended!
 
 Run the command without the interactive add-ons prompt
 
-### `--[no-]install`
+### `--[no-]install <package-manager>`
 
 Installs dependencies with a specified package manager:
 
