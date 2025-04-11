@@ -6,7 +6,7 @@ import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import {
 	createProject,
 	startPreview,
-	addPnpmBuildDependendencies,
+	addPnpmBuildDependencies,
 	type CreateProject,
 	type ProjectVariant
 } from 'sv/testing';
@@ -75,7 +75,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 				options,
 				packageManager: 'pnpm'
 			});
-			addPnpmBuildDependendencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 
 			return cwd;
 		};
