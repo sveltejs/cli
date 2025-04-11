@@ -9,7 +9,7 @@ import type {
 	AddonWithoutExplicitArgs
 } from '@sveltejs/cli-core';
 import pc from 'picocolors';
-import * as p from '@sveltejs/clack-prompts';
+import * as p from '@clack/prompts';
 import { exec, NonZeroExitError } from 'tinyexec';
 import { resolveCommand } from 'package-manager-detector';
 import { TESTING } from '../utils/env.ts';

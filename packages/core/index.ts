@@ -1,5 +1,5 @@
 export { defineAddon, defineAddonOptions } from './addon/config.ts';
-export { log } from '@sveltejs/clack-prompts';
+export { log } from '@clack/prompts';
 export { default as colors } from 'picocolors';
 export { default as dedent } from 'dedent';
 export * as utils from './utils.ts';
