@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-chore: do not add redundant `ignores` property to `eslint` config
+chore: remove redundant `ignores` property in `eslint` config
