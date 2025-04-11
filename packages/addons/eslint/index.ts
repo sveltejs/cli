@@ -115,7 +115,6 @@ export default defineAddon({
 			if (typescript) {
 				const svelteTSParserConfig = object.create({
 					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js']"),
-					ignores: common.expressionFromString("['eslint.config.js', 'svelte.config.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
 							projectService: common.expressionFromString('true'),

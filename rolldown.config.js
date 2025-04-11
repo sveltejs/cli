@@ -121,7 +121,6 @@ function getConfig(project) {
 export default [
 	getConfig('clack-core'),
 	getConfig('clack-prompts'),
-	getConfig('ast-tooling'),
 	getConfig('create'),
 	getConfig('core'),
 	getConfig('cli')
