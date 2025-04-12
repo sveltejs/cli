@@ -9,7 +9,7 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 	const cwd = await ctx.run(variant, { vitest: {} });
 
 	const { close } = await prepareServer({ cwd, page });
-	
+
 	execSync('pnpm test', { cwd, stdio: 'pipe' });
 
 	// kill server process when we're done
