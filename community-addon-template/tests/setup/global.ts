@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'node:url';
 import { setup, type ProjectVariant } from 'sv/testing';
-import type { GlobalSetupContext } from 'vitest/node';
+import type { TestProject } from 'vitest/node';
 
 const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 const TEST_DIR = fileURLToPath(new URL('../../.test-output/', import.meta.url));
 
-export default async function ({ provide }: GlobalSetupContext) {
+export default async function ({ provide }: TestProject) {
 	// global setup (e.g. spin up docker containers)
 
 	// downloads different project configurations (sveltekit, js/ts, vite-only, etc)
