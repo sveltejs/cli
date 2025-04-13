@@ -19,8 +19,10 @@ import { createWorkspace } from './workspace.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
 import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
 import {
-	addPnpmBuildDependendencies,
+	addPnpmBuildDependencies,
+	AGENT_NAMES,
 	installDependencies,
+	installOption,
 	packageManagerPrompt
 } from '../../utils/package-manager.ts';
 import { getGlobalPreconditions } from './preconditions.ts';
@@ -41,7 +43,7 @@ const AddonsSchema = v.array(v.string());
 const AddonOptionFlagsSchema = v.object(addonOptionFlags);
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
-	install: v.boolean(),
+	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	preconditions: v.boolean(),
 	community: v.optional(v.union([AddonsSchema, v.boolean()])),
 	...AddonOptionFlagsSchema.entries
@@ -56,8 +58,9 @@ export const add = new Command('add')
 	.description('applies specified add-ons into a project')
 	.argument('[add-on...]', 'add-ons to install')
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
-	.option('--no-install', 'skip installing dependencies')
 	.option('--no-preconditions', 'skip validating preconditions')
+	.option('--no-install', 'skip installing dependencies')
+	.addOption(installOption)
 	//.option('--community [add-on...]', 'community addons to install')
 	.configureHelp(common.helpConfig)
 	.action((addonArgs, opts) => {
@@ -449,12 +452,13 @@ export async function runAddCommand(
 	// prompt for package manager and install dependencies
 	let packageManager: PackageManager | undefined;
 	if (options.install) {
-		packageManager = await packageManagerPrompt(options.cwd);
+		packageManager =
+			options.install === true ? await packageManagerPrompt(options.cwd) : options.install;
 
 		if (packageManager) {
 			workspace.packageManager = packageManager;
 
-			addPnpmBuildDependendencies(workspace.cwd, packageManager, [
+			addPnpmBuildDependencies(workspace.cwd, packageManager, [
 				'esbuild',
 				...addonPnpmBuildDependencies
 			]);
