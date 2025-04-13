@@ -1,5 +1,17 @@
 # sv
 
+## 0.8.1
+### Patch Changes
+
+
+- feat: adds `--install <package-manager>` flag to `create` and `add` ([#531](https://github.com/sveltejs/cli/pull/531))
+
+
+- fix: warn on an unparsable `.prettierrc` config file ([#527](https://github.com/sveltejs/cli/pull/527))
+
+
+- chore: remove redundant `ignores` property in `eslint` config ([#533](https://github.com/sveltejs/cli/pull/533))
+
 ## 0.8.0
 ### Minor Changes
 
