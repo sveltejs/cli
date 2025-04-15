@@ -44,3 +44,8 @@ export function dist(path: string): string {
 		new URL(`./${!insideDistFolder ? 'dist/' : ''}${path}`, import.meta.url).href
 	);
 }
+
+export function usrNodeVer(): { ver: string; major: number; minor: number; patch: number } {
+	const [major, minor, patch] = process.version.slice(1).split('.');
+	return { ver: process.version, major: Number(major), minor: Number(minor), patch: Number(patch) };
+}

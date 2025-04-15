@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { mkdirp, copy, dist } from './utils.ts';
+import { mkdirp, copy, dist, usrNodeVer } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
@@ -87,6 +87,12 @@ function write_common_files(cwd: string, options: Options, name: string) {
 			fs.writeFileSync(dest, file.contents);
 		}
 	});
+
+	const nodeVer = usrNodeVer();
+	pkg.devDependencies = {
+		...pkg.devDependencies,
+		'@types/node': `^${nodeVer.major}.${nodeVer.minor}.${nodeVer.patch}`
+	};
 
 	pkg.dependencies = sort_keys(pkg.dependencies);
 	pkg.devDependencies = sort_keys(pkg.devDependencies);
