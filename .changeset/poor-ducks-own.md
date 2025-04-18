@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: mysql2 closed state (drizzle addon)
+fix: use connection pool when using mysql2 with Drizzle
