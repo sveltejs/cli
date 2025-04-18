@@ -309,9 +309,7 @@ export default defineAddon({
 				imports.addDefault(ast, 'mysql2/promise', 'mysql');
 				imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
-				clientExpression = common.expressionFromString(
-					'await mysql.createConnection(env.DATABASE_URL)'
-				);
+				clientExpression = common.expressionFromString('mysql.createPool(env.DATABASE_URL)');
 			}
 			// PostgreSQL
 			if (options.postgresql === 'neon') {
