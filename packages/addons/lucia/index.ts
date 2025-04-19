@@ -505,6 +505,12 @@ export default defineAddon({
 					return content;
 				}
 
+				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
+				const twInputClasses =
+					'class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
+				const twBtnClasses =
+					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
+
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
@@ -520,7 +526,7 @@ export default defineAddon({
 							Username
 							<input
 								name="username"
-								class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								${tailwind ? twInputClasses : ''}
 							/>
 						</label>
 						<label>
@@ -528,16 +534,16 @@ export default defineAddon({
 							<input
 								type="password"
 								name="password"
-								class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								${tailwind ? twInputClasses : ''}
 							/>
 						</label>
 						<button
-							class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+								${tailwind ? twBtnClasses : ''}
 							>Login</button
 						>
 						<button
 							formaction="?/register"
-							class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+								${tailwind ? twBtnClasses : ''}
 							>Register</button
 						>
 					</form>
