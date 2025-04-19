@@ -8,8 +8,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"prepack": "svelte-kit sync && svelte-package && publint"
 	},
-	"files": ["dist", "!dist/**/*.test.*", "!dist/**/*.spec.*"],
-	"sideEffects": ["**/*.css"],
+	"files": [ "dist", "!dist/**/*.test.*", "!dist/**/*.spec.*" ],
+	"sideEffects": [ "**/*.css" ],
 	"svelte": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"type": "module",
@@ -27,11 +27,10 @@
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/package": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
-		"@types/node": "^18.13.0",
 		"publint": "^0.3.2",
 		"svelte": "^5.0.0",
 		"typescript": "^5.3.2",
 		"vite": "^6.2.5"
 	},
-	"keywords": ["svelte"]
+	"keywords": [ "svelte" ]
 }

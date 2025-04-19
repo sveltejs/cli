@@ -77,6 +77,11 @@ export default defineAddon({
 		sv.dependency('drizzle-orm', '^0.40.0');
 		sv.devDependency('drizzle-kit', '^0.30.2');
 
+		// Increasing this packages version might cause unintentional side effects.
+		// We should keep this version aligned with the minimum required node version of `svelte`.
+		// https://github.com/sveltejs/svelte/blob/main/packages/svelte/package.json#L8-L10
+		sv.devDependency('@types/node', '^18.13.0');
+
 		// MySQL
 		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
