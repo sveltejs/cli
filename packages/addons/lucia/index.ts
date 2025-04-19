@@ -537,15 +537,12 @@ export default defineAddon({
 								${tailwind ? twInputClasses : ''}
 							/>
 						</label>
-						<button
-								${tailwind ? twBtnClasses : ''}
-							>Login</button
-						>
+						<button ${tailwind ? twBtnClasses : ''}
+							>Login</button>
 						<button
 							formaction="?/register"
-								${tailwind ? twBtnClasses : ''}
-							>Register</button
-						>
+							${tailwind ? twBtnClasses : ''}
+							>Register</button>
 					</form>
 					<p style='color: red'>{form?.message ?? ''}</p>
 				`;
