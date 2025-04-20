@@ -89,7 +89,7 @@ export function getNodeTypesVersion(): string {
 
 	const isLTS = Number(major) % 2 === 0;
 	if (isLTS) {
-		return `^${nodeVersion}`;
+		return `^${major}`;
 	}
 
 	const previousLTSMajor = Number(major) - 1;
