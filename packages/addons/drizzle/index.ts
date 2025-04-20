@@ -1,6 +1,7 @@
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
 import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { getNodeTypesVersion } from '../common.ts';
 
 const PORTS = {
 	mysql: '3306',
@@ -76,6 +77,7 @@ export default defineAddon({
 
 		sv.dependency('drizzle-orm', '^0.40.0');
 		sv.devDependency('drizzle-kit', '^0.30.2');
+		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
 		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
