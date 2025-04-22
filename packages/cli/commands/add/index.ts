@@ -5,7 +5,7 @@ import pc from 'picocolors';
 import * as v from 'valibot';
 import * as pkg from 'empathic/package';
 import * as p from '@sveltejs/clack-prompts';
-import { Command, Option } from 'commander';
+import { Command } from 'commander';
 import {
 	officialAddons,
 	getAddonDetails,
@@ -29,26 +29,20 @@ import { getGlobalPreconditions } from './preconditions.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
-const addonsOptions = getAddonOptionFlags();
+const addonOptions = getAddonOptionFlags();
 const communityDetails: AddonWithoutExplicitArgs[] = [];
 
-const OptionFlagSchema = v.optional(v.array(v.string()));
-
-const addonOptionFlags = addonsOptions.reduce(
-	(flags, opt) => Object.assign(flags, { [opt.attributeName()]: OptionFlagSchema }),
-	{}
-);
-
 const AddonsSchema = v.array(v.string());
-const AddonOptionFlagsSchema = v.object(addonOptionFlags);
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	preconditions: v.boolean(),
 	community: v.optional(v.union([AddonsSchema, v.boolean()])),
-	...AddonOptionFlagsSchema.entries
+	addons: v.record(v.string(), v.optional(v.array(v.string())))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
+
+type AddonArgs = { id: string; options: string[] | undefined };
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
@@ -56,14 +50,104 @@ const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
-	.argument('[add-on...]', 'add-ons to install')
+	.argument('[add-on...]', `add-ons to install`, (value, prev: AddonArgs[] = []) => {
+		const [addonId, optionFlags] = value.split('=');
+		const options = optionFlags?.split(',');
+		prev.push({ id: addonId, options });
+		return prev;
+	})
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-preconditions', 'skip validating preconditions')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
 	//.option('--community [add-on...]', 'community addons to install')
-	.configureHelp(common.helpConfig)
-	.action((addonArgs, opts) => {
+	.configureHelp({
+		...common.helpConfig,
+		formatHelp(cmd, helper) {
+			const termWidth = helper.padWidth(cmd, helper);
+			const helpWidth = helper.helpWidth ?? 80; // in case prepareContext() was not called
+
+			function callFormatItem(term: string, description: string) {
+				return helper.formatItem(term, termWidth, description, helper);
+			}
+
+			// Usage
+			let output = [
+				`${helper.styleTitle('Usage:')} ${helper.styleUsage(helper.commandUsage(cmd))}`,
+				''
+			];
+
+			// Description
+			const commandDescription = helper.commandDescription(cmd);
+			if (commandDescription.length > 0) {
+				output = output.concat([
+					helper.boxWrap(helper.styleCommandDescription(commandDescription), helpWidth),
+					''
+				]);
+			}
+
+			// Arguments
+			const argumentList = helper.visibleArguments(cmd).map((argument) => {
+				return callFormatItem(
+					helper.styleArgumentTerm(helper.argumentTerm(argument)),
+					helper.styleArgumentDescription(helper.argumentDescription(argument))
+				);
+			});
+			if (argumentList.length > 0) {
+				output = output.concat([helper.styleTitle('Arguments:'), ...argumentList, '']);
+			}
+
+			// Addon Options
+			const addonList = addonOptions.map((option) => {
+				// const description = `${pc.dim(`(preset: ${option.preset})`)}\n${option.choices}`;
+				const description = option.choices;
+				return callFormatItem(
+					helper.styleArgumentTerm(option.id),
+					helper.styleArgumentDescription(description)
+				);
+			});
+			if (addonList.length > 0) {
+				output = output.concat([helper.styleTitle('Add-On Options:'), ...addonList, '']);
+			}
+
+			// Options
+			const optionList = helper.visibleOptions(cmd).map((option) => {
+				return callFormatItem(
+					helper.styleOptionTerm(helper.optionTerm(option)),
+					helper.styleOptionDescription(helper.optionDescription(option))
+				);
+			});
+			if (optionList.length > 0) {
+				output = output.concat([helper.styleTitle('Options:'), ...optionList, '']);
+			}
+
+			if (helper.showGlobalOptions) {
+				const globalOptionList = helper.visibleGlobalOptions(cmd).map((option) => {
+					return callFormatItem(
+						helper.styleOptionTerm(helper.optionTerm(option)),
+						helper.styleOptionDescription(helper.optionDescription(option))
+					);
+				});
+				if (globalOptionList.length > 0) {
+					output = output.concat([helper.styleTitle('Global Options:'), ...globalOptionList, '']);
+				}
+			}
+
+			// Commands
+			const commandList = helper.visibleCommands(cmd).map((cmd) => {
+				return callFormatItem(
+					helper.styleSubcommandTerm(helper.subcommandTerm(cmd)),
+					helper.styleSubcommandDescription(helper.subcommandDescription(cmd))
+				);
+			});
+			if (commandList.length > 0) {
+				output = output.concat([helper.styleTitle('Commands:'), ...commandList, '']);
+			}
+
+			return output.join('\n');
+		}
+	})
+	.action((addonArgs: AddonArgs[], opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
 			console.error(
@@ -78,28 +162,25 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const specifiedAddons = v.parse(AddonsSchema, addonArgs);
-		const options = v.parse(OptionsSchema, opts);
 		const addonIds = officialAddons.map((addon) => addon.id);
-		const invalidAddons = specifiedAddons.filter(
-			(a) => !addonIds.includes(a) && !aliases.includes(a)
-		);
+		const invalidAddons = addonArgs
+			.filter(({ id }) => !addonIds.includes(id) && !aliases.includes(id))
+			.map(({ id }) => id);
 		if (invalidAddons.length > 0) {
 			console.error(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
 			process.exit(1);
 		}
 
-		const selectedAddons = transformAliases(specifiedAddons);
+		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
+		const selectedAddons = transformAliases(addonArgs);
+		selectedAddons.forEach((addon) => (options.addons[addon.id] = addon.options));
+
 		common.runCommand(async () => {
-			const { nextSteps } = await runAddCommand(options, selectedAddons);
+			const selectedAddonIds = selectedAddons.map(({ id }) => id);
+			const { nextSteps } = await runAddCommand(options, selectedAddonIds);
 			if (nextSteps) p.box(nextSteps, 'Next steps');
 		});
 	});
-
-// adds addon specific option flags to the `add` command
-for (const option of addonsOptions) {
-	add.addOption(option);
-}
 
 type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
 export async function runAddCommand(
@@ -119,11 +200,9 @@ export async function runAddCommand(
 	const community: AddonOption = {};
 
 	// apply specified options from flags
-	for (const addonOption of addonsOptions) {
-		const addonId = addonOption.name() as keyof Options;
-		// if the add-on flag contains a `-`, it'll be camelcased (e.g. `sveltekit-adapter` is `sveltekitAdapter`)
-		const aliased = addonOption.attributeName() as keyof Options;
-		const specifiedOptions = (options[addonId] || options[aliased]) as string[] | undefined;
+	for (const addonOption of addonOptions) {
+		const addonId = addonOption.id;
+		const specifiedOptions = options.addons[addonId];
 		if (!specifiedOptions) continue;
 
 		const details = getAddonDetails(addonId);
@@ -150,7 +229,7 @@ export async function runAddCommand(
 			if (!optionEntry) {
 				const { choices } = getOptionChoices(details);
 				throw new Error(
-					`Invalid '--${addonId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
+					`Invalid '${addonId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
 				);
 			}
 
@@ -164,7 +243,7 @@ export async function runAddCommand(
 					existingOption = existingOption ? questionId : `no-${questionId}`;
 				}
 				throw new Error(
-					`Conflicting '--${addonId}' option: '${specifiedOption}' conflicts with '${existingOption}'`
+					`Conflicting '${addonId}' option: '${specifiedOption}' conflicts with '${existingOption}'`
 				);
 			}
 
@@ -181,9 +260,7 @@ export async function runAddCommand(
 				// we'll also error out if they specified an option that is incompatible with other options.
 				// (e.g. the client isn't available for a given database `--drizzle sqlite mysql2`)
 				if (official[addonId][id] !== undefined) {
-					throw new Error(
-						`Incompatible '--${addonId}' option specified: '${official[addonId][id]}'`
-					);
+					throw new Error(`Incompatible '${addonId}' option specified: '${official[addonId][id]}'`);
 				}
 			}
 		}
@@ -510,21 +587,22 @@ export async function runAddCommand(
 /**
  * Dedupes and transforms aliases into their respective addon id
  */
-function transformAliases(ids: string[]): string[] {
-	const set = new Set<string>();
-	for (const id of ids) {
-		if (aliases.includes(id)) {
-			const addon = officialAddons.find((a) => a.alias === id)!;
-			set.add(addon.id);
+function transformAliases(addons: AddonArgs[]): AddonArgs[] {
+	const set = new Map<string, AddonArgs>();
+
+	for (const addon of addons) {
+		if (aliases.includes(addon.id)) {
+			const officialAddon = officialAddons.find((a) => a.alias === addon.id)!;
+			set.set(officialAddon.id, { id: officialAddon.id, options: addon.options });
 		} else {
-			set.add(id);
+			set.set(addon.id, addon);
 		}
 	}
-	return Array.from(set);
+	return Array.from(set.values());
 }
 
-function getAddonOptionFlags(): Option[] {
-	const options: Option[] = [];
+function getAddonOptionFlags() {
+	const options: Array<{ id: string; choices: string; preset: string }> = [];
 	for (const addon of officialAddons) {
 		const id = addon.id;
 		const details = getAddonDetails(id);
@@ -535,19 +613,7 @@ function getAddonOptionFlags(): Option[] {
 			.map(([group, choices]) => `${pc.dim(`${group}:`)} ${choices.join(', ')}`)
 			.join('\n');
 		const preset = defaults.join(', ') || 'none';
-		const option = new Option(
-			`--${id} [options...]`,
-			`${id} add-on options ${pc.dim(`(preset: ${preset})`)}\n${choices}`
-		)
-			// presets are applied when `--{addonName}` is specified with no options
-			.preset(preset)
-			.argParser((value, prev: string[]) => {
-				prev ??= [];
-				prev = prev.concat(value.split(/\s|,/));
-				return prev;
-			});
-
-		options.push(option);
+		options.push({ id, choices, preset });
 	}
 	return options;
 }
@@ -581,9 +647,15 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 				defaults.push(...question.default);
 			}
 		}
+		if (question.type === 'string' || question.type === 'number') {
+			values = ['<user-input>'];
+			if (applyDefault) {
+				options[id] = question.default;
+				defaults.push(question.default.toString());
+			}
+		}
 
 		choices.push(...values);
-
 		// we'll fallback to the question's id
 		const groupId = question.group ?? id;
 		groups[groupId] ??= [];
