@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-chore: use the latest adapter-auto
+chore: update `adapter-auto`
