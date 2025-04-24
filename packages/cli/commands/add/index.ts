@@ -51,8 +51,33 @@ const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
 	.argument('[add-on...]', `add-ons to install`, (value, prev: AddonArgs[] = []) => {
-		const [addonId, optionFlags] = value.split('=');
-		const options = optionFlags?.split(',');
+		const [addonId, optionFlags] = value.split('=', 2);
+
+		// validates that there are no repeated add-ons (e.g. `sv add foo=demo:yes foo=demo:no`)
+		const repeatedAddons = prev.find(({ id }) => id === addonId);
+		if (repeatedAddons) {
+			console.error(`Malformed arguments: Add-on '${addonId}' is repeated multiple times.`);
+			process.exit(1);
+		}
+
+		// occurs when an `=` isn't present (e.g. `sv add foo`)
+		if (optionFlags === undefined) {
+			prev.push({ id: addonId, options: undefined });
+			return prev;
+		}
+
+		// validates that the options are relatively well-formed.
+		// occurs when no <name> or <value> is specified (e.g. `sv add foo=demo`).
+		if (optionFlags.length > 0 && !/.+:.*/.test(optionFlags)) {
+			console.error(
+				`Malformed arguments: An add-on's option in '${value}' is missing it's option name or value (e.g. 'addon=option:value').`
+			);
+			process.exit(1);
+		}
+
+		// parses the option flags into a array of `<name>:<value>` strings
+		const options: string[] = optionFlags.match(/[^,]*:[^:]*(?=,|$)/g) ?? [];
+
 		prev.push({ id: addonId, options });
 		return prev;
 	})
@@ -213,42 +238,44 @@ export async function runAddCommand(
 		official[addonId] ??= {};
 
 		const optionEntries = Object.entries(details.options);
-		for (const specifiedOption of specifiedOptions) {
-			// we'll skip empty string and `none` options so that default values can be applied later
-			if (!specifiedOption || specifiedOption === 'none') continue;
+		for (const option of specifiedOptions) {
+			let [optionId, optionValue] = option.split(':', 2);
 
-			// figure out which option it belongs to
-			const optionEntry = optionEntries.find(([id, question]) => {
-				if (question.type === 'boolean') {
-					return id === specifiedOption || `no-${id}` === specifiedOption;
-				}
-				if (question.type === 'select' || question.type === 'multiselect') {
-					return question.options.some((o) => o.value === specifiedOption);
-				}
-			});
+			// validates that the option exists
+			const optionEntry = optionEntries.find(
+				([id, question]) => id === optionId || question.group === optionId
+			);
 			if (!optionEntry) {
 				const { choices } = getOptionChoices(details);
 				throw new Error(
-					`Invalid '${addonId}' option: '${specifiedOption}'\nAvailable options: ${choices.join(', ')}`
+					`Invalid '${addonId}' option: '${option}'\nAvailable options: ${choices.join(', ')}`
 				);
 			}
 
 			const [questionId, question] = optionEntry;
 
+			// multiselect options can be specified with a `none` option, which equates to an empty string
+			if (question.type === 'multiselect' && optionValue === 'none') optionValue = '';
+
 			// validate that there are no conflicts
 			let existingOption = official[addonId][questionId];
 			if (existingOption !== undefined) {
 				if (typeof existingOption === 'boolean') {
-					// need to transform the boolean back to `no-{id}` or `{id}`
-					existingOption = existingOption ? questionId : `no-${questionId}`;
+					// need to transform the boolean back to `yes` or `no`
+					existingOption = existingOption ? 'yes' : `no`;
 				}
 				throw new Error(
-					`Conflicting '${addonId}' option: '${specifiedOption}' conflicts with '${existingOption}'`
+					`Conflicting '${addonId}' option: '${option}' conflicts with '${questionId}:${existingOption}'`
 				);
 			}
 
-			official[addonId][questionId] =
-				question.type === 'boolean' ? !specifiedOption.startsWith('no-') : specifiedOption;
+			if (question.type === 'boolean') {
+				official[addonId][questionId] = optionValue === 'yes';
+			} else if (question.type === 'number') {
+				official[addonId][questionId] = Number(optionValue);
+			} else {
+				official[addonId][questionId] = optionValue;
+			}
 		}
 
 		// apply defaults to unspecified options
@@ -257,8 +284,8 @@ export async function runAddCommand(
 			if (question.condition?.(official[addonId]) !== false) {
 				official[addonId][id] ??= question.default;
 			} else {
-				// we'll also error out if they specified an option that is incompatible with other options.
-				// (e.g. the client isn't available for a given database `--drizzle sqlite mysql2`)
+				// we'll also error out if a specified option is incompatible with other options.
+				// (e.g. `libsql` isn't a valid client for a `mysql` database: `sv add drizzle=database:mysql2,client:libsql`)
 				if (official[addonId][id] !== undefined) {
 					throw new Error(`Incompatible '${addonId}' option specified: '${official[addonId][id]}'`);
 				}
@@ -627,7 +654,7 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 		let values: string[] = [];
 		const applyDefault = question.condition?.(options) !== false;
 		if (question.type === 'boolean') {
-			values = [id, `no-${id}`];
+			values = ['yes', `no`];
 			if (applyDefault) {
 				options[id] = question.default;
 				defaults.push((question.default ? values[0] : values[1])!);
