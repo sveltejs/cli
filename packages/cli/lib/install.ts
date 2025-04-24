@@ -185,6 +185,11 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 // but works for now in contrary to the previouse implementation
 function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
 	return addons.sort(
-		(a, b) => setupResults[a.id]?.dependsOn?.length - setupResults[b.id]?.dependsOn?.length
+		(a, b) => {
+			// Adding storybook last means it will correctly detect and integrate with other addons like vitest and eslint
+			if (a.id === 'storybook') return 1;
+			if (b.id === 'storybook') return -1;
+			return setupResults[a.id]?.dependsOn?.length - setupResults[b.id]?.dependsOn?.length;
+		}
 	);
 }
