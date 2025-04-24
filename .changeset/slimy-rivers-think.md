@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-Always add Storybook after all other addons
+fix: always add `storybook` after all other add-ons
