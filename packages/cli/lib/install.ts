@@ -182,7 +182,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 
 // orders addons by putting addons that don't require any other addon in the front.
 // This is a drastic simplification, as this could still cause some inconvenient cituations,
-// but works for now in contrary to the previouse implementation
+// but works for now in contrary to the previous implementation
 function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
 	return addons.sort(
 		(a, b) => {
