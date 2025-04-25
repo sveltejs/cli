@@ -26,7 +26,7 @@ npx sv add paraglide
 The languages you'd like to support specified as IETF BCP 47 language tags.
 
 ```bash
-npx sv add --availableLanguageTags=en,es
+npx sv add --paraglide=en,es
 ```
 
 ### demo
