@@ -1,5 +1,14 @@
 # sv
 
+## 0.8.3
+### Patch Changes
+
+
+- fix: always add `storybook` after all other add-ons ([#547](https://github.com/sveltejs/cli/pull/547))
+
+
+- security: upgrade vite to avoid CVE-2025-32395 ([#548](https://github.com/sveltejs/cli/pull/548))
+
 ## 0.8.2
 ### Patch Changes
 
