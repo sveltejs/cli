@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import {
-	addPnpmBuildDependendencies,
+	addPnpmBuildDependencies,
 	createProject,
 	startPreview,
 	type CreateProject,
@@ -78,7 +78,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 				options,
 				packageManager: 'pnpm'
 			});
-			addPnpmBuildDependendencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 
 			return cwd;
 		};

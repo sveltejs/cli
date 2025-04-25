@@ -20,7 +20,8 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 
 - `-C`, `--cwd` — path to the root of your Svelte(Kit) project
 - `--no-preconditions` — skip checking preconditions <!-- TODO what does this mean? -->
-- `--no-install` — skip dependency installation
+- `--install` — installs dependencies with a specified package manager
+- `--no-install` — prevents installing dependencies
 
 ## Official add-ons
 

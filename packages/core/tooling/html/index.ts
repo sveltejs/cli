@@ -5,7 +5,7 @@ import {
 	HtmlElement,
 	HtmlElementType,
 	parseHtml
-} from '@sveltejs/ast-tooling';
+} from '../index.ts';
 import { addFromString } from '../js/common.ts';
 
 export { HtmlElement, HtmlElementType };

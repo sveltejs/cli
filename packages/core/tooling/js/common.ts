@@ -1,10 +1,4 @@
-import {
-	type AstTypes,
-	Walker,
-	parseScript,
-	serializeScript,
-	stripAst
-} from '@sveltejs/ast-tooling';
+import { type AstTypes, Walker, parseScript, serializeScript, stripAst } from '../index.ts';
 import decircular from 'decircular';
 import dedent from 'dedent';
 

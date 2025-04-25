@@ -1,5 +1,6 @@
 import { imports, exports, common } from '@sveltejs/cli-core/js';
 import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
+import process from 'node:process';
 
 export function addEslintConfigPrettier(content: string): string {
 	const { ast, generateCode } = parseScript(content);
@@ -74,4 +75,23 @@ export function addToDemoPage(content: string, path: string): string {
 	const newLine = template.source ? '\n' : '';
 	const src = template.source + `${newLine}<a href="/demo/${path}">${path}</a>`;
 	return generateCode({ template: src });
+}
+
+/**
+ * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.
+ *
+ * If the installed version of Node.js is from a `Current` release, then the major is decremented to
+ * the nearest `LTS` release version.
+ */
+export function getNodeTypesVersion(): string {
+	const nodeVersion = process.versions.node;
+	const [major] = nodeVersion.split('.');
+
+	const isLTS = Number(major) % 2 === 0;
+	if (isLTS) {
+		return `^${major}`;
+	}
+
+	const previousLTSMajor = Number(major) - 1;
+	return `^${previousLTSMajor}`;
 }

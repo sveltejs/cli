@@ -15,9 +15,11 @@ import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
 import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
 import {
-	addPnpmBuildDependendencies,
+	addPnpmBuildDependencies,
+	AGENT_NAMES,
 	getUserAgent,
 	installDependencies,
+	installOption,
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
 
@@ -40,7 +42,7 @@ const OptionsSchema = v.strictObject({
 		v.transform((lang) => langMap[String(lang)])
 	),
 	addOns: v.boolean(),
-	install: v.boolean(),
+	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
@@ -54,6 +56,7 @@ export const create = new Command('create')
 	.option('--no-types')
 	.option('--no-add-ons', 'skips interactive add-on installer')
 	.option('--no-install', 'skip installing dependencies')
+	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
@@ -164,9 +167,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	let packageManager: AgentName | undefined | null;
 	let addOnNextSteps: string | undefined;
-	const installDeps = async () => {
-		packageManager = await packageManagerPrompt(projectPath);
-		addPnpmBuildDependendencies(projectPath, packageManager, ['esbuild']);
+
+	const installDeps = async (install: true | AgentName) => {
+		packageManager = install === true ? await packageManagerPrompt(projectPath) : install;
+		addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 		if (packageManager) await installDependencies(packageManager, projectPath);
 	};
 
@@ -180,13 +184,13 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		addOnNextSteps = nextSteps;
 	} else if (options.install) {
 		// `--no-add-ons` was set, so we'll prompt to install deps manually
-		await installDeps();
+		await installDeps(options.install);
 	}
 
 	// no add-ons were selected (which means the install prompt was skipped in `runAddCommand`),
 	// so we'll prompt to install
 	if (packageManager === null && options.install) {
-		await installDeps();
+		await installDeps(options.install);
 	}
 
 	return { directory: projectPath, addOnNextSteps, packageManager };

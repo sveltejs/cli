@@ -3,6 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import * as find from 'empathic/find';
 import { exec } from 'tinyexec';
+import { Option } from 'commander';
 import * as p from '@clack/prompts';
 import {
 	AGENTS,
@@ -13,9 +14,14 @@ import {
 } from 'package-manager-detector';
 import { parseJson } from '@sveltejs/cli-core/parsers';
 
-const agents = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
-const agentOptions: PackageManagerOptions = agents.map((pm) => ({ value: pm, label: pm }));
+export const AGENT_NAMES = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
+const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
 agentOptions.unshift({ label: 'None', value: undefined });
+
+export const installOption = new Option(
+	'--install <package-manager>',
+	'installs dependencies with a specified package manager'
+).choices(AGENT_NAMES);
 
 type PackageManagerOptions = Array<{ value: AgentName | undefined; label: AgentName | 'None' }>;
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
@@ -81,7 +87,7 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export function addPnpmBuildDependendencies(
+export function addPnpmBuildDependencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	allowedPackages: string[]

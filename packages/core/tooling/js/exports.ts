@@ -1,4 +1,4 @@
-import type { AstTypes } from '@sveltejs/ast-tooling';
+import type { AstTypes } from '../index.ts';
 
 export type ExportDefaultReturn<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;
@@ -71,7 +71,8 @@ export function namedExport(
 	namedExport = {
 		type: 'ExportNamedDeclaration',
 		declaration: fallback,
-		specifiers: []
+		specifiers: [],
+		attributes: []
 	};
 	ast.body.push(namedExport);
 	return namedExport;

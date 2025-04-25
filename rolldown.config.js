@@ -118,7 +118,7 @@ function getConfig(project) {
 }
 
 /** @type {RolldownOptions[]} */
-export default [getConfig('ast-tooling'), getConfig('create'), getConfig('core'), getConfig('cli')];
+export default [getConfig('create'), getConfig('core'), getConfig('cli')];
 
 /**
  * @param {PackageJson} pkg
