@@ -1,12 +1,35 @@
 # SV Contributing Guide
 
+## Contributing code
+
+We follow the standard fork-based workflow:
+
+1. **Fork** this repository to your GitHub account.
+2. **Clone** your fork locally.
+3. **Create a new branch** for your change:  
+   `git checkout -b your-feature-name`
+4. **Commit and push** your changes to your branch.
+5. **Open a pull request** from your branch to the `main` branch of this repository.
+
+Please keep your pull requests focused to feature or issue. Focused smaller changes are easier to review and faster to merge.
+
 ## Preparing
-- install pnpm globally 
-- set up docker
-    - link to docker docs
-    - no sudo https://docs.docker.com/engine/install/linux-postinstall/
-- fork/clone/branch/pr process
-    - branch naming
+This is a monorepo, meaning the repo holds multiple packages. It requires the use of [pnpm](https://pnpm.io/). You can [install pnpm](https://pnpm.io/installation) with:
+
+```bash
+npm i -g pnpm
+```
+
+For running certain packages and tests locally you will need to install [docker](https://docs.docker.com/get-started/get-docker).
+Linux users you will have to ensure 'sudo' is not required. See [docker post install](https://docs.docker.com/engine/install/linux-postinstall/)
+
+`pnpm` commands run in the project's root directory will run on all sub-projects. You can checkout the code and install the dependencies with:
+
+```bash
+git clone git@github.com:YOUR_GITHUB_USER_HERE/cli.git
+cd cli
+pnpm install
+```
 
 ## build/run
 - build locally
@@ -24,7 +47,7 @@
 - TODO: check issue #494 for further details on what is needed for svelte-migrate
 
 
-# vv for reference only vv
+# vv REFERENCE ONLY vv
 At the very minimum, it should cover:
 
 building/running in dev
@@ -39,22 +62,6 @@ Requirements
 - Docker with no sudo 
 
 # SvelteKit Contributing Guide
-
-## Preparing
-
-This is a monorepo, meaning the repo holds multiple packages. It requires the use of [pnpm](https://pnpm.io/). You can [install pnpm](https://pnpm.io/installation) with:
-
-```bash
-npm i -g pnpm
-```
-
-`pnpm` commands run in the project's root directory will run on all sub-projects. You can checkout the code and install the dependencies with:
-
-```bash
-git clone git@github.com:sveltejs/kit.git
-cd kit
-pnpm install
-```
 
 ## Testing Changes
 
