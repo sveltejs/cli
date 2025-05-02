@@ -51,6 +51,9 @@ pnpm dev
 ```
 
 ## testing
+
+For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
+
 Run all tests:
 ```bash
 #from root of project
@@ -64,13 +67,10 @@ Run tests with vitest ui:
 pnpm test:ui
 ```
 
-
 Run package specific tests by specifying a project flag to the package and running the test command. Eg:
 ```bash
 pnpm test --project core # addons / create / migrate / etc.
 ```
-
-- DIRECTION REQUIRED: how to write tests. 
 
 ## styleguide
 
