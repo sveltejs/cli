@@ -65,7 +65,7 @@ pnpm test:ui
 ```
 
 
-Run package specific tests by navigating to the package and running the test command. Eg:
+Run package specific tests by specifying a project flag to the package and running the test command. Eg:
 ```bash
 pnpm test --project core # addons / create / migrate / etc.
 ```
