@@ -42,7 +42,12 @@ This outputs into /packages/PACKAGE/dist/.
 
 Run the 'cli' package:
 ```bash
-node ./packages/cli/dist/bin.js
+pnpm sv
+```
+
+Run build with watch mode:
+```bash
+pnpm dev
 ```
 
 ## testing
@@ -52,10 +57,18 @@ Run all tests:
 pnpm test
 ```
 
+
+Run tests with vitest ui:
+```bash
+#from root of project
+pnpm test:ui
+```
+
+
 Run package specific tests by navigating to the package and running the test command. Eg:
 ```bash
 cd packages/core/
-pnpm test
+pnpm test --project core # addons / create / migrate / etc.
 ```
 
 - DIRECTION REQUIRED: how to write tests. 
@@ -66,7 +79,6 @@ pnpm test
 
 There are a few guidelines we follow:
 
-- Internal variables are written with `snake_case` while external APIs are written with `camelCase`
 - Ensure `pnpm lint` and `pnpm check` pass. You can run `pnpm format` to format the code
 - linting
 ```bash
