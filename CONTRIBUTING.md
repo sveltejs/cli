@@ -97,5 +97,15 @@ pnpm check
 ```
 
 ## svelte-migrate
-- TODO: check issue #494 for further details on what is needed for svelte-migrate
+To run svelte-migrate from local:
+```bash
+# from root of project
+node ./packages/migrate/bin.js 
+```
 
+## Generating changelogs
+For changes to be reflected in package changelogs:
+```bash
+# from root of project
+pnpm changeset:publish
+```
