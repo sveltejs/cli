@@ -104,6 +104,7 @@ node ./packages/migrate/bin.js
 ```
 
 ## Generating changelogs
+Only publish a change set if it is in 'sv' or 'svelte-migrate' as all other packages are bundled. 
 For changes to be reflected in package changelogs:
 ```bash
 # from root of project
