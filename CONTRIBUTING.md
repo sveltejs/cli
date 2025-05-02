@@ -67,7 +67,6 @@ pnpm test:ui
 
 Run package specific tests by navigating to the package and running the test command. Eg:
 ```bash
-cd packages/core/
 pnpm test --project core # addons / create / migrate / etc.
 ```
 
