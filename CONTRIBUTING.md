@@ -70,7 +70,7 @@ There are a few guidelines we follow:
 - Ensure `pnpm lint` and `pnpm check` pass. You can run `pnpm format` to format the code
 - linting
 ```bash
-#from root of project
+# from root of project
 pnpm lint
 ```
 - formatting
