@@ -7,10 +7,6 @@ import { parseScript, serializeScript } from '../../tooling/index.ts';
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
 const categoryDirectories = getDirectoryNames(baseDir);
 
-const prettierConfig = await prettier.resolveConfig(import.meta.url);
-if (!prettierConfig) throw new Error('Failed to resolve prettier config');
-prettierConfig.filepath = 'output.ts';
-
 for (const categoryDirectory of categoryDirectories) {
 	describe(categoryDirectory, () => {
 		const testNames = getDirectoryNames(join(baseDir, categoryDirectory));
