@@ -190,7 +190,7 @@ export default defineAddon({
 				common.expressionFromString(`
 					defineConfig({
 						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
-						dialect: ${options.sqlite === 'turso' ? 'turso' : options.database},
+						dialect: "${options.sqlite === 'turso' ? 'turso' : options.database}",
 						dbCredentials: {
 							url: process.env.DATABASE_URL,
 							${options.sqlite === 'turso' ? 'authToken: process.env.DATABASE_AUTH_TOKEN' : undefined}
