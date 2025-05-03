@@ -178,41 +178,27 @@ export default defineAddon({
 
 			imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
-			const envCheckStatement = common.statementFromString(
-				"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+			common.addStatement(
+				ast,
+				common.statementFromString(
+					"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+				)
 			);
-			common.addStatement(ast, envCheckStatement);
 
-			const fallback = common.expressionFromString('defineConfig({})');
-			const { value: exportDefault } = exports.defaultExport(ast, fallback);
-			if (exportDefault.type !== 'CallExpression') return content;
-
-			const objExpression = exportDefault.arguments?.[0];
-			if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
-
-			const authToken =
-				options.sqlite === 'turso'
-					? common.expressionFromString('process.env.DATABASE_AUTH_TOKEN')
-					: undefined;
-
-			object.properties(objExpression, {
-				schema: common.createLiteral(`./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}`),
-				dbCredentials: object.create({
-					url: common.expressionFromString('process.env.DATABASE_URL'),
-					authToken
-				}),
-				verbose: { type: 'Literal', value: true },
-				strict: { type: 'Literal', value: true }
-			});
-
-			const dialect = options.sqlite === 'turso' ? 'turso' : options.database;
-			object.overrideProperties(objExpression, {
-				dialect: common.createLiteral(dialect)
-			});
-
-			// The `driver` property is only required for _some_ sqlite DBs.
-			// We'll need to remove it if it's anything but sqlite
-			if (options.database !== 'sqlite') object.removeProperty(objExpression, 'driver');
+			exports.defaultExport(
+				ast,
+				common.expressionFromString(`
+					defineConfig({
+						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}".
+						dialect: ${options.sqlite === 'turso' ? 'turso' : options.database}
+						dbCredentials: {
+							url: process.env.DATABASE_URL,
+							${options.sqlite === 'turso' ? 'authToken: process.env.DATABASE_AUTH_TOKEN' : undefined}
+						}
+						verbose: true,
+						strict: true
+					})`)
+			);
 
 			return generateCode();
 		});
