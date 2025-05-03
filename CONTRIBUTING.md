@@ -31,7 +31,7 @@ cd cli
 pnpm install
 ```
 
-## build/run
+## Build and run
 Build the project from root run 'build' script:
 
 ```bash
@@ -50,7 +50,7 @@ Run build with watch mode:
 pnpm dev
 ```
 
-## testing
+## Testing
 
 For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
 
@@ -59,7 +59,6 @@ Run all tests:
 #from root of project
 pnpm test
 ```
-
 
 Run tests with vitest ui:
 ```bash
@@ -72,7 +71,7 @@ Run package specific tests by specifying a project flag to the package and runni
 pnpm test --project core # addons / create / migrate / etc.
 ```
 
-## styleguide
+## Style Guide
 
 ### Coding style
 
