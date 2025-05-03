@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import prettier from 'prettier';
 import { describe, expect, test } from 'vitest';
 import { parseScript, serializeScript } from '../../tooling/index.ts';
 
@@ -27,9 +26,9 @@ for (const categoryDirectory of categoryDirectories) {
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
 				module.run(ast);
 
-				const output = serializeScript(ast, input);
-				const formattedOutput = await prettier.format(output, prettierConfig);
-				await expect(formattedOutput).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
+				let output = serializeScript(ast, input);
+				if (!output.endsWith('\n')) output += '\n';
+				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
 			});
 		}
 	});
