@@ -210,10 +210,6 @@ export default defineAddon({
 				dialect: common.createLiteral(dialect)
 			});
 
-			// The `driver` property is only required for _some_ sqlite DBs.
-			// We'll need to remove it if it's anything but sqlite
-			if (options.database !== 'sqlite') object.removeProperty(objExpression, 'driver');
-
 			return generateCode();
 		});
 
