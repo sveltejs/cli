@@ -26,16 +26,15 @@ Linux users, you will have to ensure 'sudo' is not required. See [docker post in
 `pnpm` commands run in the project's root directory will run on all sub-projects. You can checkout the code and install the dependencies with:
 
 ```bash
-git clone git@github.com:YOUR_GITHUB_USER_HERE/cli.git
 cd cli
 pnpm install
 ```
 
 ## Build and run
-Build the project from root run 'build' script:
+To build the project and all packages. Run the 'build' script:
 
 ```bash
-#from root of project
+# from root of project
 pnpm build
 ```
 This outputs into /packages/PACKAGE/dist/.
@@ -56,13 +55,13 @@ For each add-on we have integration tests setup. These install the deps, build t
 
 Run all tests:
 ```bash
-#from root of project
+# from root of project
 pnpm test
 ```
 
 Run tests with vitest ui:
 ```bash
-#from root of project
+# from root of project
 pnpm test:ui
 ```
 
@@ -88,14 +87,14 @@ pnpm lint
 # from root of project
 pnpm format
 ```
-- checking
+- type checking
 ```bash
 # from root of project
 pnpm check
 ```
 
 ## svelte-migrate
-To run svelte-migrate from local:
+To run svelte-migrate locally:
 ```bash
 # from root of project
 node ./packages/migrate/bin.js 
