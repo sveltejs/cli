@@ -192,8 +192,8 @@ export default defineAddon({
 						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
 						dialect: "${options.sqlite === 'turso' ? 'turso' : options.database}",
 						dbCredentials: {
-							url: process.env.DATABASE_URL,
-							${options.sqlite === 'turso' ? 'authToken: process.env.DATABASE_AUTH_TOKEN' : ''}
+							${options.sqlite === 'turso' ? 'authToken: process.env.DATABASE_AUTH_TOKEN,' : ''}
+							url: process.env.DATABASE_URL
 						},
 						verbose: true,
 						strict: true
