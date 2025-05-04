@@ -70,6 +70,14 @@ Run package specific tests by specifying a project flag to the package and runni
 pnpm test --project core # addons / create / migrate / etc.
 ```
 
+To debug a failing test. A good starting point is to `cd` into the failing tests dir. `build` it.Then `preview` it. From here you will have increased information to help in the debug process.
+```bash
+# Each test is a standalone js app
+cd .test-output/addons/[addon-test]/[test-id]
+pnpm build
+pnpm preview
+```
+
 ## Style Guide
 
 ### Coding style
