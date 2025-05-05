@@ -47,7 +47,6 @@ type AddonArgs = { id: string; options: string[] | undefined };
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
-
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
 	.argument('[add-on...]', `add-ons to install`, (value, prev: AddonArgs[] = []) => {
@@ -76,7 +75,7 @@ export const add = new Command('add')
 		}
 
 		// parses the option flags into a array of `<name>:<value>` strings
-		const options: string[] = optionFlags.match(/[^,]*:[^:]*(?=,|$)/g) ?? [];
+		const options: string[] = optionFlags.match(/[^+]*:[^:]*(?=\+|$)/g) ?? [];
 
 		prev.push({ id: addonId, options });
 		return prev;
