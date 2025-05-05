@@ -13,7 +13,7 @@ const adapters: Adapter[] = [
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.12' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.8' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.6.3' },
-	{ id: 'cloudflare-pages', package: '@sveltejs/adapter-cloudflare', version: '^7.0.0' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.0.0' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.0.0' }
 ];
 
