@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
 import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
@@ -69,8 +71,21 @@ export default defineAddon({
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unsupported }) => {
+	setup: ({ kit, unsupported, cwd, typescript }) => {
+		const ext = typescript ? 'ts' : 'js';
 		if (!kit) unsupported('Requires SvelteKit');
+
+		const baseDBPath = path.resolve(kit!.libDirectory, 'server', 'db');
+		const paths = {
+			'drizzle config': path.relative(cwd, path.resolve(cwd, `drizzle.config.${ext}`)),
+			'database schema': path.relative(cwd, path.resolve(baseDBPath, `schema.${ext}`)),
+			database: path.relative(cwd, path.resolve(baseDBPath, `index.${ext}`))
+		};
+		for (const [fileType, filePath] of Object.entries(paths)) {
+			if (fs.existsSync(filePath)) {
+				unsupported(`Preexisting ${fileType} file at '${filePath}'`);
+			}
+		}
 	},
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
