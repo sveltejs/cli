@@ -27,5 +27,5 @@ Which plugin to use:
 - `forms` — [`@tailwindcss/forms`](https://github.com/tailwindlabs/tailwindcss-forms)
 
 ```bash
-npx sv add --tailwindcss=typography
+npx sv add tailwindcss="plugins:typography"
 ```
