@@ -87,11 +87,15 @@ export function setupAddons(
 	const addonSetupResults: Record<string, AddonSetupResult> = {};
 
 	for (const addon of addons) {
-		const setupResult: AddonSetupResult = { unsupported: [], dependsOn: [] };
+		const setupResult: AddonSetupResult = { unsupported: [], dependsOn: [], runsAfter: [] };
 		addon.setup?.({
 			...workspace,
-			dependsOn: (name) => setupResult.dependsOn.push(name),
-			unsupported: (reason) => setupResult.unsupported.push(reason)
+			dependsOn: (name) => {
+				setupResult.dependsOn.push(name);
+				setupResult.runsAfter.push(name);
+			},
+			unsupported: (reason) => setupResult.unsupported.push(reason),
+			runsAfter: (name) => setupResult.runsAfter.push(name)
 		});
 		addonSetupResults[addon.id] = setupResult;
 	}
@@ -181,13 +185,10 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 }
 
 // orders addons by putting addons that don't require any other addon in the front.
-// This is a drastic simplification, as this could still cause some inconvenient cituations,
+// This is a drastic simplification, as this could still cause some inconvenient circumstances,
 // but works for now in contrary to the previous implementation
 function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
 	return addons.sort((a, b) => {
-		// Adding storybook last means it will correctly detect and integrate with other addons like vitest and eslint
-		if (a.id === 'storybook') return 1;
-		if (b.id === 'storybook') return -1;
-		return setupResults[a.id]?.dependsOn?.length - setupResults[b.id]?.dependsOn?.length;
+		return setupResults[a.id]?.runsAfter?.length - setupResults[b.id]?.runsAfter?.length;
 	});
 }
