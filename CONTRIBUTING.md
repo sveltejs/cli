@@ -72,19 +72,12 @@ pnpm test --project core # addons / create / migrate / etc.
 
 To run a individual test. `cd` into the package. Run the local `test` script to that package, with a path arg to the individual peice you want tested. Eg:
 ```bash
-cd packages/[package]
 pnpm test [path-to-test]
 ```
-
-To run individual test files from root: 
-```bash
-pnpm test [path-to-test]
-```
-
 
 To debug a failing test. A good starting point is to `cd` into the failing tests dir. Proceed to `build` it. Then `preview` it. From here you will have increased information to help in the debug process. Eg:
 ```bash
-# Each test is a standalone js app
+# Each test is a standalone app
 cd .test-output/addons/[addon-test]/[test-id]
 pnpm build
 pnpm preview
