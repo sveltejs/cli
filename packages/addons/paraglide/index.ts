@@ -26,7 +26,7 @@ const DEFAULT_INLANG_PROJECT = {
 };
 
 const options = defineAddonOptions({
-	availableLanguageTags: {
+	languageTags: {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en, es',
@@ -78,7 +78,7 @@ export default defineAddon({
 			for (const key in DEFAULT_INLANG_PROJECT) {
 				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
 			}
-			const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
+			const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 			const baseLocale = validLanguageTags[0];
 
 			data.baseLocale = baseLocale;
@@ -205,7 +205,7 @@ export default defineAddon({
 
 				// add links to other localized pages, the first one is the default
 				// language, thus it does not require any localized route
-				const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
+				const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 				const links = validLanguageTags
 					.map(
 						(x) =>
@@ -222,7 +222,7 @@ export default defineAddon({
 			});
 		}
 
-		const { validLanguageTags } = parseLanguageTagInput(options.availableLanguageTags);
+		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 		for (const languageTag of validLanguageTags) {
 			sv.file(`messages/${languageTag}.json`, (content) => {
 				const { data, generateCode } = parseJson(content);

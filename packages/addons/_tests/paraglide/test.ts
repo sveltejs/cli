@@ -6,7 +6,7 @@ const { test, variants, prepareServer } = setupTest({ paraglide });
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
 test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { paraglide: { demo: true, availableLanguageTags: 'en' } });
+	const cwd = await ctx.run(variant, { paraglide: { demo: true, languageTags: 'en' } });
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
