@@ -542,12 +542,11 @@ export default defineAddon({
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
+					import { getRequestEvent } from '$app/server';
 					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
-					export const load${ts(': PageServerLoad')} = async (event) => {
-						if (!event.locals.user) {
-							return redirect(302, '/demo/lucia/login');
-						}
-						return { user: event.locals.user };
+					export const load${ts(': PageServerLoad')} = async () => {
+						const user = requireLogin()
+						return { user };
 					};
 
 					export const actions${ts(': Actions')} = {
@@ -561,6 +560,16 @@ export default defineAddon({
 							return redirect(302, '/demo/lucia/login');
 						},
 					};
+
+					function requireLogin() {
+					  const { locals } = getRequestEvent();
+
+					  if (!locals.user) {
+					    return redirect(302, "/demo/lucia/login");
+					  }
+
+					  return locals.user;
+					}
 				`;
 			});
 
