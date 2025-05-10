@@ -14,7 +14,6 @@ import {
 } from '@sveltejs/addons';
 import type { AgentName } from 'package-manager-detector';
 import {
-	colors,
 	type AddonWithoutExplicitArgs,
 	type OptionValues,
 	type PackageManager
@@ -99,7 +98,7 @@ export const add = new Command('add')
 			const { nextSteps } = await runAddCommand(options, selectedAddons);
 			if (nextSteps)
 				p.note(nextSteps, 'Next steps', {
-					format: (line) => colors.white(line)
+					format: (line) => pc.white(line)
 				});
 		});
 	});
@@ -365,7 +364,7 @@ export async function runAddCommand(
 				.join('\n- ');
 
 			p.note(`- ${message}`, 'Preconditions not met', {
-				format: (line) => colors.white(line)
+				format: (line) => pc.white(line)
 			});
 
 			const force = await p.confirm({

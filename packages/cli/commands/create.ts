@@ -22,7 +22,6 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
-import { colors } from '@sveltejs/cli-core';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -95,11 +94,11 @@ export const create = new Command('create')
 			];
 
 			p.note(steps.join('\n'), 'Project next steps', {
-				format: (line) => colors.white(line)
+				format: (line) => pc.white(line)
 			});
 			if (addOnNextSteps)
 				p.note(addOnNextSteps, 'Add-on next steps', {
-					format: (line) => colors.white(line)
+					format: (line) => pc.white(line)
 				});
 		});
 	});
