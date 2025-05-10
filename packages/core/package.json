@@ -42,7 +42,7 @@
 		}
 	},
 	"devDependencies": {
-		"@clack/prompts": "https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96",
+		"@clack/prompts": "^1.0.0-alpha.0",
 		"@sveltejs/acorn-typescript": "^1.0.1",
 		"@types/estree": "^1.0.6",
 		"acorn": "^8.14.0",

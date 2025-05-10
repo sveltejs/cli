@@ -94,8 +94,8 @@ importers:
   packages/cli:
     devDependencies:
       '@clack/prompts':
-        specifier: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
-        version: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
+        specifier: ^1.0.0-alpha.0
+        version: 1.0.0-alpha.0
       '@sveltejs/addons':
         specifier: workspace:*
         version: link:../addons
@@ -145,8 +145,8 @@ importers:
   packages/core:
     devDependencies:
       '@clack/prompts':
-        specifier: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
-        version: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
+        specifier: ^1.0.0-alpha.0
+        version: 1.0.0-alpha.0
       '@sveltejs/acorn-typescript':
         specifier: ^1.0.1
         version: 1.0.5(acorn@8.14.1)
@@ -211,8 +211,8 @@ importers:
   packages/migrate:
     dependencies:
       '@clack/prompts':
-        specifier: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
-        version: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96
+        specifier: ^1.0.0-alpha.0
+        version: 1.0.0-alpha.0
       import-meta-resolve:
         specifier: ^4.1.0
         version: 4.1.0
@@ -322,13 +322,11 @@ packages:
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
 
-  '@clack/core@https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d':
-    resolution: {tarball: https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d}
-    version: 0.4.1
+  '@clack/core@1.0.0-alpha.0':
+    resolution: {integrity: sha512-Cp/bPW/pMUCkJ7Lr8VFixvFrlnJ4tQPDHqfTNQ51z50qwX1fSIAstQLfel2NquVHqbfjyrUkBsal8OJRBPJVjw==}
 
-  '@clack/prompts@https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96':
-    resolution: {tarball: https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96}
-    version: 0.10.0
+  '@clack/prompts@1.0.0-alpha.0':
+    resolution: {integrity: sha512-Aem7r4U2A4jdOh0PIv51Ugi+4vDgzJjGVMnuPUNVVHDGhFHEO//u6F/JY6NsZQFtXrd7ZmfePSiipikr/e5wWg==}
 
   '@emnapi/core@1.4.0':
     resolution: {integrity: sha512-H+N/FqT07NmLmt6OFFtDfwe8PNygprzBikrEMyQfgqSmT0vzE515Pz7R8izwB9q/zsH/MA64AKoul3sA6/CzVg==}
@@ -2469,14 +2467,14 @@ snapshots:
       human-id: 4.1.1
       prettier: 2.8.8
 
-  '@clack/core@https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d':
+  '@clack/core@1.0.0-alpha.0':
     dependencies:
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
-  '@clack/prompts@https://pkg.pr.new/bombshell-dev/clack/@clack/prompts@f111d96':
+  '@clack/prompts@1.0.0-alpha.0':
     dependencies:
-      '@clack/core': https://pkg.pr.new/bombshell-dev/clack/@clack/core@f111d9646e0d0eddd88f4433544ae8d244ce8b2d
+      '@clack/core': 1.0.0-alpha.0
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
