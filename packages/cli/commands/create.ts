@@ -22,6 +22,7 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
+import { colors } from '@sveltejs/cli-core';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -93,8 +94,13 @@ export const create = new Command('create')
 				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
 			];
 
-			p.note(steps.join('\n'), 'Project next steps');
-			if (addOnNextSteps) p.note(addOnNextSteps, 'Add-on next steps');
+			p.note(steps.join('\n'), 'Project next steps', {
+				format: (line) => colors.white(line)
+			});
+			if (addOnNextSteps)
+				p.note(addOnNextSteps, 'Add-on next steps', {
+					format: (line) => colors.white(line)
+				});
 		});
 	});
 

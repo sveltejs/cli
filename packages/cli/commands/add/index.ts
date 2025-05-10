@@ -13,7 +13,12 @@ import {
 	getCommunityAddon
 } from '@sveltejs/addons';
 import type { AgentName } from 'package-manager-detector';
-import type { AddonWithoutExplicitArgs, OptionValues, PackageManager } from '@sveltejs/cli-core';
+import {
+	colors,
+	type AddonWithoutExplicitArgs,
+	type OptionValues,
+	type PackageManager
+} from '@sveltejs/cli-core';
 import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
@@ -92,7 +97,10 @@ export const add = new Command('add')
 		const selectedAddons = transformAliases(specifiedAddons);
 		common.runCommand(async () => {
 			const { nextSteps } = await runAddCommand(options, selectedAddons);
-			if (nextSteps) p.note(nextSteps, 'Next steps');
+			if (nextSteps)
+				p.note(nextSteps, 'Next steps', {
+					format: (line) => colors.white(line)
+				});
 		});
 	});
 
@@ -356,7 +364,9 @@ export async function runAddCommand(
 				.map(({ name, message }) => pc.yellow(`${name} (${message})`))
 				.join('\n- ');
 
-			p.note(`- ${message}`, 'Preconditions not met');
+			p.note(`- ${message}`, 'Preconditions not met', {
+				format: (line) => colors.white(line)
+			});
 
 			const force = await p.confirm({
 				message: 'Preconditions failed. Do you wish to continue?',
