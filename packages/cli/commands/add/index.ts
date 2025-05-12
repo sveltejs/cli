@@ -261,7 +261,7 @@ export async function runAddCommand(
 			if (existingOption !== undefined) {
 				if (typeof existingOption === 'boolean') {
 					// need to transform the boolean back to `yes` or `no`
-					existingOption = existingOption ? 'yes' : `no`;
+					existingOption = existingOption ? 'yes' : 'no';
 				}
 				throw new Error(
 					`Conflicting '${addonId}' option: '${option}' conflicts with '${questionId}:${existingOption}'`
