@@ -115,6 +115,7 @@ export function addFromString(
 
 export function expressionFromString(value: string): AstTypes.Expression {
 	const program = parseScript(dedent(value));
+	stripAst(program, ['raw']);
 	const statement = program.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
 		throw new Error('value passed was not an expression');

@@ -43,7 +43,7 @@ test.concurrent.for(testCases)(
 
 		const ts = variant === 'kit-ts';
 		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);
-		const content = fs.readFileSync(drizzleConfig, 'utf8').replace('strict: true,', '');
+		const content = fs.readFileSync(drizzleConfig, 'utf8').replace(/strict: true[,\s]/, '');
 		fs.writeFileSync(drizzleConfig, content, 'utf8');
 
 		const routes = path.resolve(cwd, 'src', 'routes');
