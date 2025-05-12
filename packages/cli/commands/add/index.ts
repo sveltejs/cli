@@ -4,7 +4,7 @@ import process from 'node:process';
 import pc from 'picocolors';
 import * as v from 'valibot';
 import * as pkg from 'empathic/package';
-import * as p from '@sveltejs/clack-prompts';
+import * as p from '@clack/prompts';
 import { Command, Option } from 'commander';
 import {
 	officialAddons,
@@ -92,7 +92,7 @@ export const add = new Command('add')
 		const selectedAddons = transformAliases(specifiedAddons);
 		common.runCommand(async () => {
 			const { nextSteps } = await runAddCommand(options, selectedAddons);
-			if (nextSteps) p.box(nextSteps, 'Next steps');
+			if (nextSteps) p.note(nextSteps, 'Next steps', { format: (line) => line });
 		});
 	});
 
@@ -356,7 +356,7 @@ export async function runAddCommand(
 				.map(({ name, message }) => pc.yellow(`${name} (${message})`))
 				.join('\n- ');
 
-			p.note(`- ${message}`, 'Preconditions not met');
+			p.note(`- ${message}`, 'Preconditions not met', { format: (line) => line });
 
 			const force = await p.confirm({
 				message: 'Preconditions failed. Do you wish to continue?',
