@@ -85,13 +85,20 @@ export function addToDemoPage(content: string, path: string): string {
  */
 export function getNodeTypesVersion(): string {
 	const nodeVersion = process.versions.node;
+	const isDenoOrBun = Boolean(process.versions.deno ?? process.versions.bun)
 	const [major] = nodeVersion.split('.');
 
-	const isLTS = Number(major) % 2 === 0;
+	const majorNum = Number(major);
+	const isEvenMajor = majorNum % 2 === 0;
+	const isLTS = !!process.release.lts || (isDenoOrBun && isEvenMajor);
 	if (isLTS) {
 		return `^${major}`;
 	}
 
-	const previousLTSMajor = Number(major) - 1;
+	// It's possible for an even major number to _temporarily_ not 
+	// be an `LTS` release (meaning `process.release.lts` is `undefined`) during it's `Current` stage.
+	// In those cases, we'll decrement the major by 2.
+	const previousVersion = isEvenMajor ? majorNum - 2 : majorNum - 1;
+	const previousLTSMajor = previousVersion % 2 === 0 ? previousVersion : previousVersion - 1;
 	return `^${previousLTSMajor}`;
 }
