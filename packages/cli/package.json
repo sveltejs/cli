@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.8.4",
+	"version": "0.8.5",
 	"type": "module",
 	"description": "A CLI for creating and updating SvelteKit projects",
 	"license": "MIT",
@@ -30,8 +30,8 @@
 		}
 	},
 	"devDependencies": {
-		"@clack/prompts": "^1.0.0-alpha.0",
 		"@sveltejs/addons": "workspace:*",
+		"@sveltejs/clack-prompts": "workspace:*",
 		"@sveltejs/cli-core": "workspace:*",
 		"@sveltejs/create": "workspace:*",
 		"@types/degit": "^2.8.6",

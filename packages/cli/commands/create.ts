@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 import { Command, Option } from 'commander';
-import * as p from '@clack/prompts';
+import * as p from '@sveltejs/clack-prompts';
 import pc from 'picocolors';
 import {
 	create as createKit,
@@ -93,8 +93,8 @@ export const create = new Command('create')
 				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
 			];
 
-			p.note(steps.join('\n'), 'Project next steps', { format: (line) => line });
-			if (addOnNextSteps) p.note(addOnNextSteps, 'Add-on next steps', { format: (line) => line });
+			p.box(steps.join('\n'), 'Project next steps');
+			if (addOnNextSteps) p.box(addOnNextSteps, 'Add-on next steps');
 		});
 	});
 
