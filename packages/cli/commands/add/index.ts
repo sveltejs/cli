@@ -5,7 +5,7 @@ import pc from 'picocolors';
 import * as v from 'valibot';
 import * as pkg from 'empathic/package';
 import * as p from '@sveltejs/clack-prompts';
-import { Command, Option } from 'commander';
+import { Command } from 'commander';
 import {
 	officialAddons,
 	getAddonDetails,
