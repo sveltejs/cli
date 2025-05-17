@@ -6,6 +6,10 @@ export default defineAddon({
 	shortDescription: 'frontend workshop',
 	homepage: 'https://storybook.js.org',
 	options: {},
+	setup: ({ runsAfter }) => {
+		runsAfter('vitest');
+		runsAfter('eslint');
+	},
 	run: async ({ sv }) => {
 		await sv.execute(['storybook@latest', 'init', '--skip-install', '--no-dev'], 'inherit');
 		sv.devDependency(`@types/node`, getNodeTypesVersion());
