@@ -38,9 +38,11 @@ export default defineAddon({
 	shortDescription: 'auth guide',
 	homepage: 'https://lucia-auth.com',
 	options,
-	setup: ({ kit, dependencyVersion, unsupported, dependsOn }) => {
+	setup: ({ kit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
+
+		runsAfter('tailwindcss');
 	},
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
