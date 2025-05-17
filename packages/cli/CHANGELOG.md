@@ -1,5 +1,29 @@
 # sv
 
+## 0.8.3
+### Patch Changes
+
+
+- fix: always add `storybook` after all other add-ons ([#547](https://github.com/sveltejs/cli/pull/547))
+
+
+- security: upgrade vite to avoid CVE-2025-32395 ([#548](https://github.com/sveltejs/cli/pull/548))
+
+## 0.8.2
+### Patch Changes
+
+
+- fix: rename Cloudflare adapter option from `cloudflare-pages` to `cloudflare` ([#545](https://github.com/sveltejs/cli/pull/545))
+
+
+- chore: update `adapter-auto` ([#542](https://github.com/sveltejs/cli/pull/542))
+
+
+- fix: add `@types/node` as a dev dependency to the `drizzle` and `storybook` add-ons ([#541](https://github.com/sveltejs/cli/pull/541))
+
+
+- fix: use connection pool when using mysql2 with `drizzle` ([#537](https://github.com/sveltejs/cli/pull/537))
+
 ## 0.8.1
 ### Patch Changes
 

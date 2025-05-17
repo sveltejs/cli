@@ -1,6 +1,9 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
 import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { getNodeTypesVersion } from '../common.ts';
 
 const PORTS = {
 	mysql: '3306',
@@ -68,14 +71,28 @@ export default defineAddon({
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unsupported }) => {
+	setup: ({ kit, unsupported, cwd, typescript }) => {
+		const ext = typescript ? 'ts' : 'js';
 		if (!kit) unsupported('Requires SvelteKit');
+
+		const baseDBPath = path.resolve(kit!.libDirectory, 'server', 'db');
+		const paths = {
+			'drizzle config': path.relative(cwd, path.resolve(cwd, `drizzle.config.${ext}`)),
+			'database schema': path.relative(cwd, path.resolve(baseDBPath, `schema.${ext}`)),
+			database: path.relative(cwd, path.resolve(baseDBPath, `index.${ext}`))
+		};
+		for (const [fileType, filePath] of Object.entries(paths)) {
+			if (fs.existsSync(filePath)) {
+				unsupported(`Preexisting ${fileType} file at '${filePath}'`);
+			}
+		}
 	},
 	run: ({ sv, typescript, options, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
 		sv.dependency('drizzle-orm', '^0.40.0');
 		sv.devDependency('drizzle-kit', '^0.30.2');
+		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
 		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
@@ -176,41 +193,27 @@ export default defineAddon({
 
 			imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
 
-			const envCheckStatement = common.statementFromString(
-				"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+			common.addStatement(
+				ast,
+				common.statementFromString(
+					"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+				)
 			);
-			common.addStatement(ast, envCheckStatement);
 
-			const fallback = common.expressionFromString('defineConfig({})');
-			const { value: exportDefault } = exports.defaultExport(ast, fallback);
-			if (exportDefault.type !== 'CallExpression') return content;
-
-			const objExpression = exportDefault.arguments?.[0];
-			if (!objExpression || objExpression.type !== 'ObjectExpression') return content;
-
-			const authToken =
-				options.sqlite === 'turso'
-					? common.expressionFromString('process.env.DATABASE_AUTH_TOKEN')
-					: undefined;
-
-			object.properties(objExpression, {
-				schema: common.createLiteral(`./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}`),
-				dbCredentials: object.create({
-					url: common.expressionFromString('process.env.DATABASE_URL'),
-					authToken
-				}),
-				verbose: { type: 'Literal', value: true },
-				strict: { type: 'Literal', value: true }
-			});
-
-			const dialect = options.sqlite === 'turso' ? 'turso' : options.database;
-			object.overrideProperties(objExpression, {
-				dialect: common.createLiteral(dialect)
-			});
-
-			// The `driver` property is only required for _some_ sqlite DBs.
-			// We'll need to remove it if it's anything but sqlite
-			if (options.database !== 'sqlite') object.removeProperty(objExpression, 'driver');
+			exports.defaultExport(
+				ast,
+				common.expressionFromString(`
+					defineConfig({
+						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
+						dialect: "${options.sqlite === 'turso' ? 'turso' : options.database}",
+						dbCredentials: {
+							${options.sqlite === 'turso' ? 'authToken: process.env.DATABASE_AUTH_TOKEN,' : ''}
+							url: process.env.DATABASE_URL
+						},
+						verbose: true,
+						strict: true
+					})`)
+			);
 
 			return generateCode();
 		});
@@ -309,9 +312,7 @@ export default defineAddon({
 				imports.addDefault(ast, 'mysql2/promise', 'mysql');
 				imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
 
-				clientExpression = common.expressionFromString(
-					'await mysql.createConnection(env.DATABASE_URL)'
-				);
+				clientExpression = common.expressionFromString('mysql.createPool(env.DATABASE_URL)');
 			}
 			// PostgreSQL
 			if (options.postgresql === 'neon') {
