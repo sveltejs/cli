@@ -1,6 +1,6 @@
 import pc from 'picocolors';
 import pkg from '../package.json' with { type: 'json' };
-import * as p from '@clack/prompts';
+import * as p from '@sveltejs/clack-prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
