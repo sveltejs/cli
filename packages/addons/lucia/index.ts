@@ -343,27 +343,25 @@ export default defineAddon({
 			return ms.toString();
 		});
 
-		if (typescript) {
-			sv.file('src/app.d.ts', (content) => {
-				const { ast, generateCode } = parseScript(content);
+		sv.file('src/app.d.ts', (content) => {
+			const { ast, generateCode } = parseScript(content);
 
-				const locals = js.kit.addGlobalAppInterface(ast, 'Locals');
-				if (!locals) {
-					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
-				}
+			const locals = js.kit.addGlobalAppInterface(ast, 'Locals');
+			if (!locals) {
+				throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
+			}
 
-				const user = locals.body.body.find((prop) => js.common.hasTypeProp('user', prop));
-				const session = locals.body.body.find((prop) => js.common.hasTypeProp('session', prop));
+			const user = locals.body.body.find((prop) => js.common.hasTypeProp('user', prop));
+			const session = locals.body.body.find((prop) => js.common.hasTypeProp('session', prop));
 
-				if (!user) {
-					locals.body.body.push(createLuciaType('user'));
-				}
-				if (!session) {
-					locals.body.body.push(createLuciaType('session'));
-				}
-				return generateCode();
-			});
-		}
+			if (!user) {
+				locals.body.body.push(createLuciaType('user'));
+			}
+			if (!session) {
+				locals.body.body.push(createLuciaType('session'));
+			}
+			return generateCode();
+		});
 
 		sv.file(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
@@ -393,6 +391,8 @@ export default defineAddon({
 					import * as auth from '$lib/server/auth';
 					import { db } from '$lib/server/db';
 					import * as table from '$lib/server/db/schema';
+
+					${!typescript ? "/**\n* @type {import('@sveltejs/kit').ServerLoad\}\n*/" : ''}
 					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
@@ -401,6 +401,7 @@ export default defineAddon({
 						return {};
 					};
 
+					${!typescript ? "/**\n* @type {import('@sveltejs/kit').Actions}\n*/" : ''}
 					export const actions${ts(': Actions')} = {
 						login: async (event) => {
 							const formData = await event.request.formData();
@@ -556,18 +557,20 @@ export default defineAddon({
 					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
 					return content;
 				}
-
 				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
 					import { getRequestEvent } from '$app/server';
+
+					${!typescript ? "/**\n* @type {import('@sveltejs/kit').ServerLoad\}\n*/" : ''}
 					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async () => {
 						const user = requireLogin()
 						return { user };
 					};
 
+					${!typescript ? "/**\n* @type {import('@sveltejs/kit').Actions}\n*/" : ''}
 					export const actions${ts(': Actions')} = {
 						logout: async (event) => {
 							if (!event.locals.session) {
