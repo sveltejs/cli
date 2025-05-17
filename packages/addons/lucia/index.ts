@@ -38,9 +38,11 @@ export default defineAddon({
 	shortDescription: 'auth guide',
 	homepage: 'https://lucia-auth.com',
 	options,
-	setup: ({ kit, dependencyVersion, unsupported, dependsOn }) => {
+	setup: ({ kit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
+
+		runsAfter('tailwindcss');
 	},
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
@@ -505,6 +507,12 @@ export default defineAddon({
 					return content;
 				}
 
+				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
+				const twInputClasses =
+					'class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"';
+				const twBtnClasses =
+					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
+
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
@@ -515,17 +523,28 @@ export default defineAddon({
 					</script>
 
 					<h1>Login/Register</h1>
-					<form method='post' action='?/login' use:enhance>
+					<form method="post" action="?/login" use:enhance>
 						<label>
 							Username
-							<input name='username' />
+							<input
+								name="username"
+								${tailwind ? twInputClasses : ''}
+							/>
 						</label>
 						<label>
 							Password
-							<input type='password' name='password' />
+							<input
+								type="password"
+								name="password"
+								${tailwind ? twInputClasses : ''}
+							/>
 						</label>
-						<button>Login</button>
-						<button formaction='?/register'>Register</button>
+						<button ${tailwind ? twBtnClasses : ''}
+							>Login</button>
+						<button
+							formaction="?/register"
+							${tailwind ? twBtnClasses : ''}
+							>Register</button>
 					</form>
 					<p style='color: red'>{form?.message ?? ''}</p>
 				`;
