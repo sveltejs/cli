@@ -85,7 +85,7 @@ export function addToDemoPage(content: string, path: string): string {
  */
 export function getNodeTypesVersion(): string {
 	const nodeVersion = process.versions.node;
-	const isDenoOrBun = Boolean(process.versions.deno ?? process.versions.bun)
+	const isDenoOrBun = Boolean(process.versions.deno ?? process.versions.bun);
 	const [major] = nodeVersion.split('.');
 
 	const majorNum = Number(major);
@@ -95,7 +95,7 @@ export function getNodeTypesVersion(): string {
 		return `^${major}`;
 	}
 
-	// It's possible for an even major number to _temporarily_ not 
+	// It's possible for an even major number to _temporarily_ not
 	// be an `LTS` release (meaning `process.release.lts` is `undefined`) during it's `Current` stage.
 	// In those cases, we'll decrement the major by 2.
 	const previousLTSMajor = isEvenMajor ? majorNum - 2 : majorNum - 1;
