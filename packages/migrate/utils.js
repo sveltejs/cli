@@ -440,7 +440,5 @@ export function migration_succeeded(next_steps) {
 		messages.push(`${i + 1}: ${step}`);
 	});
 
-	p.note(messages.join('\n'), 'Recommended next steps:', {
-		format: (line) => pc.white(line)
-	});
+	p.note(messages.join('\n'), 'Recommended next steps:');
 }
