@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.5
+### Patch Changes
+
+
+- fix: directory selection placeholder value was taken as folder path ([#564](https://github.com/sveltejs/cli/pull/564))
+
 ## 0.8.4
 ### Patch Changes
 
