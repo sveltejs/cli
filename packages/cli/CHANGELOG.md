@@ -1,5 +1,14 @@
 # sv
 
+## 0.8.4
+### Patch Changes
+
+
+- fix: lucia require user redirect moved to auth guard function ([#558](https://github.com/sveltejs/cli/pull/558))
+
+
+- feat: expose `runsAfter` to add-ons ([#554](https://github.com/sveltejs/cli/pull/554))
+
 ## 0.8.3
 ### Patch Changes
 
