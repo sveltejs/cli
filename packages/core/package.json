@@ -57,7 +57,9 @@
 		"picocolors": "^1.1.1",
 		"postcss": "^8.4.49",
 		"silver-fleece": "^1.2.1",
-		"zimmerframe": "^1.1.2"
+		"zimmerframe": "^1.1.2",
+		"svelte": "^5.30.2",
+		"svelte-ast-print": "^1.0.1"
 	},
 	"keywords": [
 		"create",

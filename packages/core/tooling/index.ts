@@ -16,6 +16,8 @@ import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
+import { parse as svelteParse, type AST as SvelteAst } from 'svelte/compiler';
+import { print as sveltePrint } from 'svelte-ast-print';
 
 export {
 	// html
@@ -37,11 +39,12 @@ export {
 export type {
 	// html
 	ChildNode as HtmlChildNode,
+	SvelteAst,
 
 	// js
 	TsEstree as AstTypes,
 
-	//css
+	// css
 	CssChildNode
 };
 
@@ -239,4 +242,12 @@ export function guessQuoteStyle(ast: TsEstree.Node): 'single' | 'double' | undef
 	}
 
 	return singleCount > doubleCount ? 'single' : 'double';
+}
+
+export function parseSvelte(content: string): SvelteAst.Root {
+	return svelteParse(content, { modern: true });
+}
+
+export function serializeSvelte(ast: SvelteAst.Root): string {
+	return sveltePrint(ast).code;
 }

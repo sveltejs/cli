@@ -1,3 +1,4 @@
+import type { AST as SvelteAst } from 'svelte/compiler';
 import {
 	type AstTypes,
 	type HtmlChildNode,
@@ -7,9 +8,10 @@ import {
 	parseHtml
 } from '../index.ts';
 import { addFromString } from '../js/common.ts';
+import { parseSvelte } from '../parsers.ts';
 
 export { HtmlElement, HtmlElementType };
-export type { HtmlDocument };
+export type { HtmlDocument, SvelteAst };
 
 export function div(attributes: Record<string, string> = {}): HtmlElement {
 	return element('div', attributes);
@@ -52,4 +54,10 @@ export function addSlot(
 
 	addFromString(jsAst, 'let { children } = $props();');
 	addFromRawHtml(htmlAst.childNodes, '{@render children()}');
+}
+
+export function toSvelteFragment(content: string): SvelteAst.Fragment['nodes'] {
+	// TODO write test
+	const { ast } = parseSvelte(content);
+	return ast.fragment.nodes;
 }
