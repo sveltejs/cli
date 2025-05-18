@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.6
+### Patch Changes
+
+
+- fix: account for Node `current` releases with even majors when resolving `@types/node` version ([#565](https://github.com/sveltejs/cli/pull/565))
+
 ## 0.8.5
 ### Patch Changes
 
