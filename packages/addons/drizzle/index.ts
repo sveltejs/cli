@@ -251,7 +251,6 @@ export default defineAddon({
 				imports.addNamed(ast, 'drizzle-orm/pg-core', {
 					pgTable: 'pgTable',
 					serial: 'serial',
-					text: 'text',
 					integer: 'integer'
 				});
 
