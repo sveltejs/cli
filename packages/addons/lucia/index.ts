@@ -364,10 +364,45 @@ export default defineAddon({
 		});
 
 		sv.file(`src/hooks.server.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
-			js.imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
-			js.kit.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
-			return generateCode();
+			const ms = new MagicString(content);
+			ms.prepend("import * as auth from '$lib/server/auth.js'\n");
+
+			ms.append(
+				dedent`/** @type {import('@sveltejs/kit').Handle} */
+				const handleAuth = async ({ event, resolve }) => {
+					const sessionToken = event.cookies.get(auth.sessionCookieName);
+
+					if (!sessionToken) {
+						event.locals.user = null;
+						event.locals.session = null;
+						return resolve(event);
+					}
+
+					const { session, user } = await auth.validateSessionToken(sessionToken);
+
+					if (session) {
+						auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+					} else {
+						auth.deleteSessionTokenCookie(event);
+					}
+
+					event.locals.user = user;
+					event.locals.session = session;
+					return resolve(event);
+				};
+			`
+			);
+
+			const handleExportRegex = /^export\s+const\s+handle\s*=\s*([^;]+);?\n?/m;
+
+			const match = ms.original.match(handleExportRegex);
+			if (match) {
+				ms.prepend("import { sequence } from '@sveltejs/kit/hooks'\n");
+				const handlerName = match[1]; // e.g. 'handleParaglide'
+				ms.replace(match[0], '');
+				ms.append(`\n\nexport const handle = sequence(${handlerName}, handleAuth)`);
+			}
+			return ms.toString();
 		});
 
 		if (options.demo) {
@@ -408,24 +443,24 @@ export default defineAddon({
 							const username = formData.get('username');
 							const password = formData.get('password');
 
-							if (!validateUsername(username)) {
+							if (!username || !validateUsername(username)) {
 								return fail(400, { message: 'Invalid username (min 3, max 31 characters, alphanumeric only)' });
 							}
-							if (!validatePassword(password)) {
+							if (!password || !validatePassword(password)) {
 								return fail(400, { message: 'Invalid password (min 6, max 255 characters)' });
 							}
 
 							const results = await db
 								.select()
 								.from(table.user)
-								.where(eq(table.user.username, username));
+								.where(eq(table.user.username, username.toString()));
 
 							const existingUser = results.at(0);
 							if (!existingUser) {
 								return fail(400, { message: 'Incorrect username or password' });
 							}
 
-							const validPassword = await verify(existingUser.passwordHash, password, {
+							const validPassword = await verify(existingUser.passwordHash, password.toString(), {
 								memoryCost: 19456,
 								timeCost: 2,
 								outputLen: 32,
@@ -446,15 +481,15 @@ export default defineAddon({
 							const username = formData.get('username');
 							const password = formData.get('password');
 
-							if (!validateUsername(username)) {
+							if (!username || !validateUsername(username)) {
 								return fail(400, { message: 'Invalid username' });
 							}
-							if (!validatePassword(password)) {
+							if (!password || !validatePassword(password)) {
 								return fail(400, { message: 'Invalid password' });
 							}
 
 							const userId = generateUserId();
-							const passwordHash = await hash(password, {
+							const passwordHash = await hash(password.toString(), {
 								// recommended minimum parameters
 								memoryCost: 19456,
 								timeCost: 2,
@@ -463,7 +498,7 @@ export default defineAddon({
 							});
 
 							try {
-								await db.insert(table.user).values({ id: userId, username, passwordHash });
+								await db.insert(table.user).values({ id: userId, username: username.toString(), passwordHash });
 
 								const sessionToken = auth.generateSessionToken();
 								const session = await auth.createSession(sessionToken, userId);
@@ -482,6 +517,7 @@ export default defineAddon({
 						return id;
 					}
 
+					${!typescript ? '/** @param {unknown} username */' : ''}
 					function validateUsername(username${ts(': unknown')})${ts(': username is string')} {
 						return (
 							typeof username === 'string' &&
@@ -491,6 +527,7 @@ export default defineAddon({
 						);
 					}
 
+					${!typescript ? '/** @param {unknown} password */' : ''}
 					function validatePassword(password${ts(': unknown')})${ts(': password is string')} {
 						return (
 							typeof password === 'string' &&
