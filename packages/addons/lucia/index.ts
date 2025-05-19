@@ -427,7 +427,7 @@ export default defineAddon({
 					import { db } from '$lib/server/db';
 					import * as table from '$lib/server/db/schema';
 
-					${!typescript ? "/**\n* @type {import('@sveltejs/kit').ServerLoad\}\n*/" : ''}
+					${!typescript ? "/**\n* @type {import('@sveltejs/kit').ServerLoad}\n*/" : ''}
 					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
@@ -600,7 +600,7 @@ export default defineAddon({
 					import { fail, redirect } from '@sveltejs/kit';
 					import { getRequestEvent } from '$app/server';
 
-					${!typescript ? "/**\n* @type {import('@sveltejs/kit').ServerLoad\}\n*/" : ''}
+					${!typescript ? "/**\n* @type {import('@sveltejs/kit').ServerLoad}\n*/" : ''}
 					${ts("import type { Actions, PageServerLoad } from './$types';\n")}
 					export const load${ts(': PageServerLoad')} = async () => {
 						const user = requireLogin()
@@ -699,30 +699,6 @@ function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number]
 			}
 		}
 	};
-}
-
-function getAuthHandleContent() {
-	return `
-		async ({ event, resolve }) => {
-			const sessionToken = event.cookies.get(auth.sessionCookieName);
-			if (!sessionToken) {
-				event.locals.user = null;
-				event.locals.session = null;
-				return resolve(event);
-			}
-
-			const { session, user } = await auth.validateSessionToken(sessionToken);
-			if (session) {
-				auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-			} else {
-				auth.deleteSessionTokenCookie(event);
-			}
-
-			event.locals.user = user;
-			event.locals.session = session;
-
-			return resolve(event);
-		};`;
 }
 
 function getCallExpression(ast: AstTypes.Node): AstTypes.CallExpression | undefined {
