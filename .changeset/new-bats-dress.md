@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: only execute the setups of selected add-ons
+fix: add null check for `kit` in the `drizzle` add-on's setup
