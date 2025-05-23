@@ -1,5 +1,14 @@
 # sv
 
+## 0.8.7
+### Patch Changes
+
+
+- fix: removed unused import in `drizzle` schema to fix lint ([#571](https://github.com/sveltejs/cli/pull/571))
+
+
+- fix: add null check for `kit` in the `drizzle` add-on's setup ([#574](https://github.com/sveltejs/cli/pull/574))
+
 ## 0.8.6
 ### Patch Changes
 
