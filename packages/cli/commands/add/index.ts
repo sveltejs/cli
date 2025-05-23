@@ -387,10 +387,7 @@ export async function runAddCommand(
 
 	// prepare official addons
 	let workspace = await createWorkspace({ cwd: options.cwd });
-	const addonSetupResults = setupAddons(
-		selectedAddons.map((a) => a.addon),
-		workspace
-	);
+	const addonSetupResults = setupAddons(officialAddons, workspace);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
