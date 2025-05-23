@@ -70,8 +70,9 @@ export function parseScript(content: string): TsEstree.Program {
 				const indentation = content.slice(a, b);
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
+			const raw = content.slice(start, end);
 
-			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
+			comments.push({ type: block ? 'Block' : 'Line', value: block ? raw : value, start, end });
 		}
 	}) as TsEstree.Program;
 
