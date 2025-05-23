@@ -73,14 +73,17 @@ export default defineAddon({
 	options,
 	setup: ({ kit, unsupported, cwd, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
-		if (!kit) unsupported('Requires SvelteKit');
+		if (!kit) {
+			return unsupported('Requires SvelteKit');
+		}
 
-		const baseDBPath = path.resolve(kit!.libDirectory, 'server', 'db');
+		const baseDBPath = path.resolve(kit.libDirectory, 'server', 'db');
 		const paths = {
 			'drizzle config': path.relative(cwd, path.resolve(cwd, `drizzle.config.${ext}`)),
 			'database schema': path.relative(cwd, path.resolve(baseDBPath, `schema.${ext}`)),
 			database: path.relative(cwd, path.resolve(baseDBPath, `index.${ext}`))
 		};
+
 		for (const [fileType, filePath] of Object.entries(paths)) {
 			if (fs.existsSync(filePath)) {
 				unsupported(`Preexisting ${fileType} file at '${filePath}'`);
