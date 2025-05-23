@@ -228,7 +228,6 @@ export default defineAddon({
 			if (options.database === 'sqlite') {
 				imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
 					sqliteTable: 'sqliteTable',
-					text: 'text',
 					integer: 'integer'
 				});
 
@@ -241,7 +240,6 @@ export default defineAddon({
 				imports.addNamed(ast, 'drizzle-orm/mysql-core', {
 					mysqlTable: 'mysqlTable',
 					serial: 'serial',
-					text: 'text',
 					int: 'int'
 				});
 
@@ -254,7 +252,6 @@ export default defineAddon({
 				imports.addNamed(ast, 'drizzle-orm/pg-core', {
 					pgTable: 'pgTable',
 					serial: 'serial',
-					text: 'text',
 					integer: 'integer'
 				});
 
