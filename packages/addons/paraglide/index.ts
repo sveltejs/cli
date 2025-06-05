@@ -1,4 +1,3 @@
-import MagicString from 'magic-string';
 import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
 import {
 	array,
@@ -187,38 +186,44 @@ export default defineAddon({
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
-				const { script, template, generateCode } = parseSvelte(content, { typescript });
+				console.log(content);
+				const { ast, generateCode } = parseSvelte(content);
 
-				imports.addNamed(script.ast, '$lib/paraglide/messages.js', { m: 'm' });
-				imports.addNamed(script.ast, '$app/navigation', { goto: 'goto' });
-				imports.addNamed(script.ast, '$app/state', { page: 'page' });
-				imports.addNamed(script.ast, '$lib/paraglide/runtime', {
+				let scriptAst = ast.instance?.content;
+				if (!scriptAst) {
+					scriptAst = parseScript('').ast;
+					ast.instance = {
+						type: 'Script',
+						start: 0,
+						end: 0,
+						context: 'default',
+						attributes: [],
+						content: scriptAst
+					};
+				}
+
+				imports.addNamed(scriptAst, '$lib/paraglide/messages.js', { m: 'm' });
+				imports.addNamed(scriptAst, '$lib/paraglide/runtime', {
 					setLocale: 'setLocale'
 				});
 
-				const scriptCode = new MagicString(script.generateCode());
-
-				const templateCode = new MagicString(template.source);
-
 				// add localized message
-				templateCode.append("\n\n<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>\n");
+				let templateCode = "<h1>{m.hello_world({ name: 'SvelteKit User' })}</h1>";
 
 				// add links to other localized pages, the first one is the default
 				// language, thus it does not require any localized route
 				const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 				const links = validLanguageTags
-					.map(
-						(x) =>
-							`${templateCode.getIndentString()}<button onclick={() => setLocale('${x}')}>${x}</button>`
-					)
-					.join('\n');
-				templateCode.append(`<div>\n${links}\n</div>`);
+					.map((x) => `<button onclick={() => setLocale('${x}')}>${x}</button>`)
+					.join('');
+				templateCode += `<div>${links}</div>`;
 
-				templateCode.append(
-					'<p>\nIf you use VSCode, install the <a href="https://marketplace.visualstudio.com/items?itemName=inlang.vs-code-extension" target="_blank">Sherlock i18n extension</a> for a better i18n experience.\n</p>'
-				);
+				templateCode +=
+					'<p>If you use VSCode, install the <a href="https://marketplace.visualstudio.com/items?itemName=inlang.vs-code-extension" target="_blank">Sherlock i18n extension</a> for a better i18n experience.</p>';
 
-				return generateCode({ script: scriptCode.toString(), template: templateCode.toString() });
+				ast.fragment.nodes.push(...html.toSvelteFragment(templateCode));
+
+				return generateCode();
 			});
 		}
 
