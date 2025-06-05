@@ -8,11 +8,13 @@ import {
 	object,
 	variables,
 	exports,
-	kit as kitJs
+	kit as kitJs,
+	type AstTypes
 } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
+import { addJsDocTypeComment } from '../../core/tooling/js/common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -139,12 +141,32 @@ export default defineAddon({
 			});
 
 			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
-		event.request = request;
-		return resolve(event, {
-			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
-		});
-	});`;
+					event.request = request;
+					return resolve(event, {
+						transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
+					});
+				});`;
+
 			kitJs.addHooksHandle(ast, typescript, 'handleParaglide', hookHandleContent);
+
+			const hookDecl = findVariableDeclaration(ast, 'handleParaglide');
+
+			if (hookDecl) {
+				addJsDocTypeComment(hookDecl, "import('@sveltejs/kit').Handle");
+			}
+			function findVariableDeclaration(
+				ast: AstTypes.Program,
+				name: string
+			): AstTypes.VariableDeclaration | undefined {
+				return ast.body.find(
+					(n): n is AstTypes.VariableDeclaration =>
+						n.type === 'VariableDeclaration' &&
+						n.declarations.some(
+							(d) =>
+								d.type === 'VariableDeclarator' && d.id.type === 'Identifier' && d.id.name === name
+						)
+				);
+			}
 
 			return generateCode();
 		});
