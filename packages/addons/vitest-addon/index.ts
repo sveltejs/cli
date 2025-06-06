@@ -113,6 +113,7 @@ export default defineAddon({
 			const clientObjectExpression = object.create({
 				extends: common.createLiteral(`./vite.config.${ext}`),
 				plugins: common.expressionFromString('[svelteTesting()]'),
+				resolve: object.create({ conditions: common.expressionFromString("['browser']") }),
 				test: object.create({
 					name: common.createLiteral('client'),
 					environment: common.createLiteral('jsdom'),
