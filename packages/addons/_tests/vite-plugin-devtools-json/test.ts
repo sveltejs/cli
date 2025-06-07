@@ -6,8 +6,7 @@ import path from 'node:path';
 
 const { test, variants, prepareServer } = setupTest({ devtoolsJson });
 
-const kitOnly = variants.filter((v) => v.startsWith('kit'));
-test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
+test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { devtoolsJson: {} });
 
 	const { close } = await prepareServer({ cwd, page });
