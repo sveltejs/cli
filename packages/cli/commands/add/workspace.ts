@@ -56,7 +56,6 @@ export async function createWorkspace({
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
 		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
-		vite: dependencies['vite'] ? true : false,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
 }

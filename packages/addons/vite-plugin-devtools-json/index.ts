@@ -9,13 +9,13 @@ export default defineAddon({
 	homepage: 'https://github.com/ChromeDevTools/vite-plugin-devtools-json',
 	options: {},
 
-	setup: ({ vite, unsupported }) => {
-		if (!vite) unsupported('Requires vite');
+	setup: ({ kit, unsupported }) => {
+		if (!kit) unsupported('Requires SvelteKit');
 	},
 
-	run: ({ vite, sv, typescript }) => {
+	run: ({ kit, sv, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
-		if (!vite) throw new Error('vite is required');
+		if (!kit) throw new Error('SvelteKit is required');
 
 		sv.dependency('vite-plugin-devtools-json', '^0.1.1');
 

@@ -14,7 +14,6 @@ export type Workspace<Args extends OptionDefinition> = {
 	dependencyVersion: (pkg: string) => string | undefined;
 	typescript: boolean;
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
-	vite: boolean;
 	packageManager: PackageManager;
 };
 
