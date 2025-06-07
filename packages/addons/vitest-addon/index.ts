@@ -120,6 +120,9 @@ export default defineAddon({
 					include: common.expressionFromString("['src/**/*.svelte.{test,spec}.{js,ts}']"),
 					exclude: common.expressionFromString("['src/lib/server/**']"),
 					setupFiles: common.expressionFromString(`['./vitest-setup-client.${ext}']`)
+				}),
+				resolve: object.create({
+					conditions: common.expressionFromString('["browser"]')
 				})
 			});
 			const serverObjectExpression = object.create({
@@ -141,9 +144,9 @@ export default defineAddon({
 			const vitestConfig = functions.argumentByIndex(defineWorkspaceCall, 0, object.createEmpty());
 			const testObject = object.property(vitestConfig, 'test', object.createEmpty());
 
-			const workspaceArray = object.property(testObject, 'workspace', array.createEmpty());
-			array.push(workspaceArray, clientObjectExpression);
-			array.push(workspaceArray, serverObjectExpression);
+			const projectsArray = object.property(testObject, 'projects', array.createEmpty());
+			array.push(projectsArray, clientObjectExpression);
+			array.push(projectsArray, serverObjectExpression);
 
 			return generateCode();
 		});
