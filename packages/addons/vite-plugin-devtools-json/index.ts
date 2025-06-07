@@ -13,9 +13,9 @@ export default defineAddon({
 		if (!vite) unsupported('Requires vite');
 	},
 
-	run: ({ sv, typescript, kit }) => {
+	run: ({ vite, sv, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
-		if (!kit) throw new Error('SvelteKit is required');
+		if (!vite) throw new Error('vite is required');
 
 		sv.dependency('vite-plugin-devtools-json', '^0.1.1');
 
