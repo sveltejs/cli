@@ -12,4 +12,4 @@ npx sv add vite-plugin-devtools-json
 
 ## What you get
 
-- the plugin added to your vite plugin options.
+- the `vite` plugin added to your vite plugin options.
