@@ -38,3 +38,4 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 - [`sveltekit-adapter`](sveltekit-adapter)
 - [`tailwindcss`](tailwind)
 - [`vitest`](vitest)
+- [`chromium-devtools`](chromium-devtools)

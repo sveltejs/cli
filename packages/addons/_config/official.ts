@@ -10,7 +10,7 @@ import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
 import storybook from '../storybook/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
-import vitePluginDevtoolsJson from '../vite-plugin-devtools-json/index.ts';
+import chromiumDevtools from '../chromium-devtools/index.ts';
 import vitest from '../vitest-addon/index.ts';
 
 // The order of addons here determines the order they are displayed inside the CLI
@@ -27,7 +27,7 @@ export const officialAddons = [
 	mdsvex,
 	paraglide,
 	storybook,
-	vitePluginDevtoolsJson
+	chromiumDevtools
 ] as AddonWithoutExplicitArgs[];
 
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {

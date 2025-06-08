@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat: add `vite-plugin-devtools-json` addon
+feat: add `chromium-devtools` addon (using `vite-plugin-devtools-json`)
