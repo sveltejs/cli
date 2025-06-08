@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import devtoolsJson from '../../chromium-devtools/index.ts';
+import devtoolsJson from '../../devtools-json/index.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 

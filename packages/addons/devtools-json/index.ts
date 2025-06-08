@@ -3,8 +3,8 @@ import { array, functions, imports, object, exports } from '@sveltejs/cli-core/j
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAddon({
-	id: 'chromium-devtools',
-	shortDescription: 'chromium devtools',
+	id: 'devtools-json',
+	shortDescription: 'devtools json',
 	homepage: 'https://github.com/ChromeDevTools/vite-plugin-devtools-json',
 	options: {},
 
