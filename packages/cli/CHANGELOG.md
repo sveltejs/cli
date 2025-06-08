@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.8
+### Patch Changes
+
+
+- fix(vitest): `mount(...)` not available ([#584](https://github.com/sveltejs/cli/pull/584))
+
 ## 0.8.7
 ### Patch Changes
 
