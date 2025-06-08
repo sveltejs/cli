@@ -94,8 +94,8 @@ importers:
   packages/cli:
     devDependencies:
       '@clack/prompts':
-        specifier: ^1.0.0-alpha.0
-        version: 1.0.0-alpha.0
+        specifier: ^1.0.0-alpha.1
+        version: 1.0.0-alpha.1
       '@sveltejs/addons':
         specifier: workspace:*
         version: link:../addons
@@ -139,8 +139,8 @@ importers:
   packages/core:
     devDependencies:
       '@clack/prompts':
-        specifier: ^1.0.0-alpha.0
-        version: 1.0.0-alpha.0
+        specifier: ^1.0.0-alpha.1
+        version: 1.0.0-alpha.1
       '@sveltejs/acorn-typescript':
         specifier: ^1.0.1
         version: 1.0.5(acorn@8.14.1)
@@ -319,8 +319,14 @@ packages:
   '@clack/core@1.0.0-alpha.0':
     resolution: {integrity: sha512-Cp/bPW/pMUCkJ7Lr8VFixvFrlnJ4tQPDHqfTNQ51z50qwX1fSIAstQLfel2NquVHqbfjyrUkBsal8OJRBPJVjw==}
 
+  '@clack/core@1.0.0-alpha.1':
+    resolution: {integrity: sha512-rFbCU83JnN7l3W1nfgCqqme4ZZvTTgsiKQ6FM0l+r0P+o2eJpExcocBUWUIwnDzL76Aca9VhUdWmB2MbUv+Qyg==}
+
   '@clack/prompts@1.0.0-alpha.0':
     resolution: {integrity: sha512-Aem7r4U2A4jdOh0PIv51Ugi+4vDgzJjGVMnuPUNVVHDGhFHEO//u6F/JY6NsZQFtXrd7ZmfePSiipikr/e5wWg==}
+
+  '@clack/prompts@1.0.0-alpha.1':
+    resolution: {integrity: sha512-07MNT0OsxjKOcyVfX8KhXBhJiyUbDP1vuIAcHc+nx5v93MJO23pX3X/k3bWz6T3rpM9dgWPq90i4Jq7gZAyMbw==}
 
   '@emnapi/core@1.4.0':
     resolution: {integrity: sha512-H+N/FqT07NmLmt6OFFtDfwe8PNygprzBikrEMyQfgqSmT0vzE515Pz7R8izwB9q/zsH/MA64AKoul3sA6/CzVg==}
@@ -2400,9 +2406,20 @@ snapshots:
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
+  '@clack/core@1.0.0-alpha.1':
+    dependencies:
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
   '@clack/prompts@1.0.0-alpha.0':
     dependencies:
       '@clack/core': 1.0.0-alpha.0
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
+  '@clack/prompts@1.0.0-alpha.1':
+    dependencies:
+      '@clack/core': 1.0.0-alpha.1
       picocolors: 1.1.1
       sisteransi: 1.0.5
 

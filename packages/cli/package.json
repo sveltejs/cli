@@ -30,7 +30,7 @@
 		}
 	},
 	"devDependencies": {
-		"@clack/prompts": "^1.0.0-alpha.0",
+		"@clack/prompts": "^1.0.0-alpha.1",
 		"@sveltejs/addons": "workspace:*",
 		"@sveltejs/cli-core": "workspace:*",
 		"@sveltejs/create": "workspace:*",
