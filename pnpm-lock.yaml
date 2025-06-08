@@ -91,41 +91,14 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  packages/clack-core:
-    devDependencies:
-      picocolors:
-        specifier: ^1.1.1
-        version: 1.1.1
-      sisteransi:
-        specifier: ^1.0.5
-        version: 1.0.5
-      wrap-ansi:
-        specifier: ^8.1.0
-        version: 8.1.0
-
-  packages/clack-prompts:
-    devDependencies:
-      '@sveltejs/clack-core':
-        specifier: workspace:*
-        version: link:../clack-core
-      is-unicode-supported:
-        specifier: ^1.3.0
-        version: 1.3.0
-      picocolors:
-        specifier: ^1.1.1
-        version: 1.1.1
-      sisteransi:
-        specifier: ^1.0.5
-        version: 1.0.5
-
   packages/cli:
     devDependencies:
+      '@clack/prompts':
+        specifier: ^1.0.0-alpha.0
+        version: 1.0.0-alpha.0
       '@sveltejs/addons':
         specifier: workspace:*
         version: link:../addons
-      '@sveltejs/clack-prompts':
-        specifier: workspace:*
-        version: link:../clack-prompts
       '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../core
@@ -165,12 +138,12 @@ importers:
 
   packages/core:
     devDependencies:
+      '@clack/prompts':
+        specifier: ^1.0.0-alpha.0
+        version: 1.0.0-alpha.0
       '@sveltejs/acorn-typescript':
         specifier: ^1.0.1
         version: 1.0.5(acorn@8.14.1)
-      '@sveltejs/clack-prompts':
-        specifier: workspace:*
-        version: link:../clack-prompts
       '@types/estree':
         specifier: ^1.0.6
         version: 1.0.7
@@ -232,8 +205,8 @@ importers:
   packages/migrate:
     dependencies:
       '@clack/prompts':
-        specifier: ^0.9.1
-        version: 0.9.1
+        specifier: ^1.0.0-alpha.0
+        version: 1.0.0-alpha.0
       import-meta-resolve:
         specifier: ^4.1.0
         version: 4.1.0
@@ -343,11 +316,11 @@ packages:
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
 
-  '@clack/core@0.4.1':
-    resolution: {integrity: sha512-Pxhij4UXg8KSr7rPek6Zowm+5M22rbd2g1nfojHJkxp5YkFqiZ2+YLEM/XGVIzvGOcM0nqjIFxrpDwWRZYWYjA==}
+  '@clack/core@1.0.0-alpha.0':
+    resolution: {integrity: sha512-Cp/bPW/pMUCkJ7Lr8VFixvFrlnJ4tQPDHqfTNQ51z50qwX1fSIAstQLfel2NquVHqbfjyrUkBsal8OJRBPJVjw==}
 
-  '@clack/prompts@0.9.1':
-    resolution: {integrity: sha512-JIpyaboYZeWYlyP0H+OoPPxd6nqueG/CmN6ixBiNFsIDHREevjIf0n0Ohh5gr5C8pEDknzgvz+pIJ8dMhzWIeg==}
+  '@clack/prompts@1.0.0-alpha.0':
+    resolution: {integrity: sha512-Aem7r4U2A4jdOh0PIv51Ugi+4vDgzJjGVMnuPUNVVHDGhFHEO//u6F/JY6NsZQFtXrd7ZmfePSiipikr/e5wWg==}
 
   '@emnapi/core@1.4.0':
     resolution: {integrity: sha512-H+N/FqT07NmLmt6OFFtDfwe8PNygprzBikrEMyQfgqSmT0vzE515Pz7R8izwB9q/zsH/MA64AKoul3sA6/CzVg==}
@@ -1528,10 +1501,6 @@ packages:
     resolution: {integrity: sha512-2AT6j+gXe/1ueqbW6fLZJiIw3F8iXGJtt0yDrZaBhAZEG1raiTxKWU+IPqMCzQAXOUCKdA4UDMgacKH25XG2Cw==}
     engines: {node: '>=4'}
 
-  is-unicode-supported@1.3.0:
-    resolution: {integrity: sha512-43r2mRvz+8JRIKnWJ+3j8JtjRKZ6GmjzfaE/qiBJnikNnYv/6bagRJ1kUhNk8R5EX/GkobD+r+sfxCPJsiKBLQ==}
-    engines: {node: '>=12'}
-
   is-windows@1.0.2:
     resolution: {integrity: sha512-eXK1UInq2bPmjyX6e3VHIzMLobc4J94i4AWn+Hpq3OU5KkrRC96OAcR3PRJ/pGu6m8TRnBHP9dkXQVsT/COVIA==}
     engines: {node: '>=0.10.0'}
@@ -2426,14 +2395,14 @@ snapshots:
       human-id: 4.1.1
       prettier: 2.8.8
 
-  '@clack/core@0.4.1':
+  '@clack/core@1.0.0-alpha.0':
     dependencies:
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
-  '@clack/prompts@0.9.1':
+  '@clack/prompts@1.0.0-alpha.0':
     dependencies:
-      '@clack/core': 0.4.1
+      '@clack/core': 1.0.0-alpha.0
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
@@ -3524,8 +3493,6 @@ snapshots:
   is-subdir@1.2.0:
     dependencies:
       better-path-resolve: 1.0.0
-
-  is-unicode-supported@1.3.0: {}
 
   is-windows@1.0.2: {}
 
