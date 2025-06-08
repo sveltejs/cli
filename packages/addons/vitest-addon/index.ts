@@ -10,7 +10,7 @@ export default defineAddon({
 	run: ({ sv, typescript, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.devDependency('vitest', '^3.0.0');
+		sv.devDependency('vitest', '3.1.4');
 		sv.devDependency('@testing-library/svelte', '^5.2.4');
 		sv.devDependency('@testing-library/jest-dom', '^6.6.3');
 		sv.devDependency('jsdom', '^26.0.0');
