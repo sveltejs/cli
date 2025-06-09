@@ -109,6 +109,7 @@ type ObjectPrimitiveValues = string | number | boolean | undefined;
 type ObjectValues = ObjectPrimitiveValues | Object | ObjectValues[];
 type Object = { [property: string]: ObjectValues };
 
+// todo: potentially make this the default `create` method in the future
 export function createFromPrimitives(obj: Object): AstTypes.ObjectExpression {
 	const objExpression = createEmpty();
 
