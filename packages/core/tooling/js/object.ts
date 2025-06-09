@@ -1,4 +1,6 @@
+import type { Expression } from 'estree';
 import type { AstTypes } from '../index.ts';
+import { array, common } from './index.ts';
 
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	ast: AstTypes.ObjectExpression,
@@ -98,6 +100,37 @@ export function create<T extends AstTypes.Expression>(
 	for (const [prop, value] of Object.entries(obj)) {
 		if (value === undefined) continue;
 		property(objExpression, prop, value);
+	}
+
+	return objExpression;
+}
+
+type ObjectPrimitiveValues = string | number | boolean | undefined;
+type ObjectValues = ObjectPrimitiveValues | Object | ObjectValues[];
+type Object = { [property: string]: ObjectValues };
+
+export function createFromPrimitives(obj: Object): AstTypes.ObjectExpression {
+	const objExpression = createEmpty();
+
+	const getExpression = (value: ObjectValues) => {
+		let expression: Expression;
+		if (Array.isArray(value)) {
+			expression = array.createEmpty();
+			for (const v of value) {
+				array.push(expression, getExpression(v));
+			}
+		} else if (typeof value === 'object' && value !== null) {
+			expression = createFromPrimitives(value);
+		} else {
+			expression = common.createLiteral(value);
+		}
+		return expression;
+	};
+
+	for (const [prop, value] of Object.entries(obj)) {
+		if (value === undefined) continue;
+
+		property(objExpression, prop, getExpression(value));
 	}
 
 	return objExpression;
