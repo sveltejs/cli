@@ -367,7 +367,7 @@ export default defineAddon({
 
 		sv.file(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			js.imports.addNamespace(ast, '$lib/server/auth.js', 'auth');
+			js.imports.addNamespace(ast, '$lib/server/auth', 'auth');
 			js.kit.addHooksHandle(ast, typescript, 'handleAuth', getAuthHandleContent());
 			return generateCode();
 		});
@@ -467,7 +467,7 @@ export default defineAddon({
 								const sessionToken = auth.generateSessionToken();
 								const session = await auth.createSession(sessionToken, userId);
 								auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-							} catch (e) {
+							} catch {
 								return fail(500, { message: 'An error has occurred' });
 							}
 							return redirect(302, '/demo/lucia');
