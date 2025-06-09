@@ -25,10 +25,10 @@ export default defineAddon({
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
-		sv.devDependency('vitest', '3.1.4');
+		sv.devDependency('vitest', '^3.2.3');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser', '3.1.4');
+			sv.devDependency('@vitest/browser', '^3.2.3');
 			sv.devDependency('vitest-browser-svelte', '^0.1.0');
 			sv.devDependency('playwright', '^1.0.0');
 		}
@@ -135,7 +135,7 @@ export default defineAddon({
 			const vitestConfig = functions.argumentByIndex(defineWorkspaceCall, 0, object.createEmpty());
 			const testObject = object.property(vitestConfig, 'test', object.createEmpty());
 
-			const workspaceArray = object.property(testObject, 'workspace', array.createEmpty());
+			const workspaceArray = object.property(testObject, 'projects', array.createEmpty());
 
 			if (componentTesting) array.push(workspaceArray, clientObjectExpression);
 			if (unitTesting) array.push(workspaceArray, serverObjectExpression);
