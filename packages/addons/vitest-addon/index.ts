@@ -1,14 +1,29 @@
-import { dedent, defineAddon, log } from '@sveltejs/cli-core';
+import { dedent, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
 import { array, common, exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+
+const options = defineAddonOptions({
+	usages: {
+		question: 'What do you want to use vitest for?',
+		type: 'multiselect',
+		default: ['unit', 'component'],
+		options: [
+			{ value: 'unit', label: 'unit testing' },
+			{ value: 'component', label: 'component testing' }
+		],
+		required: true
+	}
+});
 
 export default defineAddon({
 	id: 'vitest',
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
-	options: {},
-	run: ({ sv, typescript, kit }) => {
+	options,
+	run: ({ sv, typescript, kit, options }) => {
 		const ext = typescript ? 'ts' : 'js';
+		const unitTesting = options.usages.includes('unit');
+		const componentTesting = options.usages.includes('component');
 
 		sv.devDependency('vitest', '3.1.4');
 		sv.devDependency('@testing-library/svelte', '^5.2.4');
@@ -28,25 +43,28 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`src/demo.spec.${ext}`, (content) => {
-			if (content) return content;
-
-			return dedent`
-				import { describe, it, expect } from 'vitest';
-
-				describe('sum test', () => {
-					it('adds 1 + 2 to equal 3', () => {
-						expect(1 + 2).toBe(3);
-					});
-				});
-			`;
-		});
-
-		if (kit) {
-			sv.file(`${kit.routesDirectory}/page.svelte.test.${ext}`, (content) => {
+		if (unitTesting) {
+			sv.file(`src/demo.spec.${ext}`, (content) => {
 				if (content) return content;
 
 				return dedent`
+					import { describe, it, expect } from 'vitest';
+	
+					describe('sum test', () => {
+						it('adds 1 + 2 to equal 3', () => {
+							expect(1 + 2).toBe(3);
+						});
+					});
+				`;
+			});
+		}
+
+		if (componentTesting) {
+			if (kit) {
+				sv.file(`${kit.routesDirectory}/page.svelte.test.${ext}`, (content) => {
+					if (content) return content;
+
+					return dedent`
 						import { describe, test, expect } from 'vitest';
 						import '@testing-library/jest-dom/vitest';
 						import { render, screen } from '@testing-library/svelte';
@@ -59,12 +77,12 @@ export default defineAddon({
 							});
 						});
 					`;
-			});
-		} else {
-			sv.file(`src/App.svelte.test.${ext}`, (content) => {
-				if (content) return content;
+				});
+			} else {
+				sv.file(`src/App.svelte.test.${ext}`, (content) => {
+					if (content) return content;
 
-				return dedent`
+					return dedent`
 						import { describe, test, expect } from 'vitest';
 						import '@testing-library/jest-dom/vitest';
 						import { render, screen } from '@testing-library/svelte';
@@ -77,13 +95,13 @@ export default defineAddon({
 							});
 						});
 					`;
-			});
-		}
+				});
+			}
 
-		sv.file(`vitest-setup-client.${ext}`, (content) => {
-			if (content) return content;
+			sv.file(`vitest-setup-client.${ext}`, (content) => {
+				if (content) return content;
 
-			return dedent`
+				return dedent`
 					import '@testing-library/jest-dom/vitest';
 					import { vi } from 'vitest';
 
@@ -103,7 +121,8 @@ export default defineAddon({
 
 					// add more mocks here if you need them
 				`;
-		});
+			});
+		}
 
 		sv.file(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
