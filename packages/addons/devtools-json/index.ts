@@ -8,6 +8,13 @@ export default defineAddon({
 	homepage: 'https://github.com/ChromeDevTools/vite-plugin-devtools-json',
 	options: {},
 
+	setup: ({ defaultSelection }) => {
+		defaultSelection({
+			create: true,
+			add: false
+		});
+	},
+
 	run: ({ sv, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
 

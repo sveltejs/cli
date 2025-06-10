@@ -87,7 +87,12 @@ export function setupAddons(
 	const addonSetupResults: Record<string, AddonSetupResult> = {};
 
 	for (const addon of addons) {
-		const setupResult: AddonSetupResult = { unsupported: [], dependsOn: [], runsAfter: [] };
+		const setupResult: AddonSetupResult = {
+			unsupported: [],
+			dependsOn: [],
+			runsAfter: [],
+			defaultSelection: { create: false, add: false }
+		};
 		addon.setup?.({
 			...workspace,
 			dependsOn: (name) => {
@@ -95,7 +100,10 @@ export function setupAddons(
 				setupResult.runsAfter.push(name);
 			},
 			unsupported: (reason) => setupResult.unsupported.push(reason),
-			runsAfter: (name) => setupResult.runsAfter.push(name)
+			runsAfter: (name) => setupResult.runsAfter.push(name),
+			defaultSelection: (defaultSelection) => {
+				setupResult.defaultSelection = defaultSelection;
+			}
 		});
 		addonSetupResults[addon.id] = setupResult;
 	}

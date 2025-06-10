@@ -201,7 +201,7 @@ export const add = new Command('add')
 
 		common.runCommand(async () => {
 			const selectedAddonIds = selectedAddons.map(({ id }) => id);
-			const { nextSteps } = await runAddCommand(options, selectedAddonIds);
+			const { nextSteps } = await runAddCommand(options, selectedAddonIds, 'add');
 			if (nextSteps) p.box(nextSteps, 'Next steps');
 		});
 	});
@@ -209,7 +209,8 @@ export const add = new Command('add')
 type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
 export async function runAddCommand(
 	options: Options,
-	selectedAddonIds: string[]
+	selectedAddonIds: string[],
+	from: 'create' | 'add'
 ): Promise<{ nextSteps?: string; packageManager?: AgentName | null }> {
 	const selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
 		type: 'official',
@@ -390,6 +391,17 @@ export async function runAddCommand(
 	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
 	const addonSetupResults = setupAddons(setups, workspace);
 
+	let initialValues: string[] = [];
+	if (from === 'create') {
+		initialValues = Object.entries(addonSetupResults)
+			.filter((c) => c[1].defaultSelection.create === true)
+			.map((c) => c[0]);
+	} else if (from === 'add') {
+		initialValues = Object.entries(addonSetupResults)
+			.filter((c) => c[1].defaultSelection.add === true)
+			.map((c) => c[0]);
+	}
+
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
 		const addonOptions = officialAddons
@@ -404,7 +416,8 @@ export async function runAddCommand(
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
 			options: addonOptions,
-			required: false
+			required: false,
+			initialValues
 		});
 		if (p.isCancel(selected)) {
 			p.cancel('Operation cancelled.');
