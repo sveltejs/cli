@@ -10,7 +10,7 @@ export default defineAddon({
 	run: ({ sv, typescript, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.devDependency('vitest', '^3.0.0');
+		sv.devDependency('vitest', '^3.2.3');
 		sv.devDependency('@testing-library/svelte', '^5.2.4');
 		sv.devDependency('@testing-library/jest-dom', '^6.6.3');
 		sv.devDependency('jsdom', '^26.0.0');
@@ -141,7 +141,7 @@ export default defineAddon({
 			const vitestConfig = functions.argumentByIndex(defineWorkspaceCall, 0, object.createEmpty());
 			const testObject = object.property(vitestConfig, 'test', object.createEmpty());
 
-			const workspaceArray = object.property(testObject, 'workspace', array.createEmpty());
+			const workspaceArray = object.property(testObject, 'projects', array.createEmpty());
 			array.push(workspaceArray, clientObjectExpression);
 			array.push(workspaceArray, serverObjectExpression);
 

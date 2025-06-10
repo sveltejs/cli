@@ -1,5 +1,23 @@
 # sv
 
+## 0.8.10
+### Patch Changes
+
+
+- chore: update lucia template ([#586](https://github.com/sveltejs/cli/pull/586))
+
+## 0.8.9
+### Patch Changes
+
+
+- fix(vitest): unpin vitest to ^3.2.3 after it fixed a regression ([#587](https://github.com/sveltejs/cli/pull/587))
+
+## 0.8.8
+### Patch Changes
+
+
+- fix(vitest): `mount(...)` not available ([#584](https://github.com/sveltejs/cli/pull/584))
+
 ## 0.8.7
 ### Patch Changes
 

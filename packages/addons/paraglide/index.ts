@@ -31,6 +31,8 @@ const options = defineAddonOptions({
 		type: 'string',
 		default: 'en, es',
 		validate(input) {
+			if (!input) return;
+
 			const { invalidLanguageTags, validLanguageTags } = parseLanguageTagInput(input);
 
 			if (invalidLanguageTags.length > 0) {
