@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.10
+### Patch Changes
+
+
+- chore: update lucia template ([#586](https://github.com/sveltejs/cli/pull/586))
+
 ## 0.8.9
 ### Patch Changes
 
