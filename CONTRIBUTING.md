@@ -70,7 +70,7 @@ Run package specific tests by specifying a project flag to the package and runni
 pnpm test --project core # addons / create / migrate / etc.
 ```
 
-To run a individual test. `cd` into the package. Run the local `test` script to that package, with a path arg to the individual peice you want tested. Eg:
+To run a individual test. `cd` into the package. Run the local `test` script to that package, with a path arg to the individual piece you want tested. Eg:
 ```bash
 pnpm test [path-to-test]
 ```

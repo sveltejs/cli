@@ -38,6 +38,7 @@ export type Addon<Args extends OptionDefinition> = {
 			dependsOn: (name: string) => void;
 			unsupported: (reason: string) => void;
 			runsAfter: (addonName: string) => void;
+			defaultSelection: (args: { create: boolean; add: boolean }) => void;
 		}
 	) => MaybePromise<void>;
 	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
@@ -60,7 +61,12 @@ export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>):
 	return config;
 }
 
-export type AddonSetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
+export type AddonSetupResult = {
+	dependsOn: string[];
+	unsupported: string[];
+	runsAfter: string[];
+	defaultSelection: { create: boolean; add: boolean };
+};
 
 export type AddonWithoutExplicitArgs = Addon<Record<string, Question>>;
 export type AddonConfigWithoutExplicitArgs = Addon<Record<string, Question>>;

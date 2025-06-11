@@ -1,14 +1,15 @@
 import type { AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
 
+import devtoolsJson from '../devtools-json/index.ts';
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
-import sveltekitAdapter from '../sveltekit-adapter/index.ts';
 import lucia from '../lucia/index.ts';
 import mdsvex from '../mdsvex/index.ts';
 import paraglide from '../paraglide/index.ts';
 import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
 import storybook from '../storybook/index.ts';
+import sveltekitAdapter from '../sveltekit-adapter/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest-addon/index.ts';
 
@@ -25,7 +26,8 @@ export const officialAddons = [
 	lucia,
 	mdsvex,
 	paraglide,
-	storybook
+	storybook,
+	devtoolsJson
 ] as AddonWithoutExplicitArgs[];
 
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
