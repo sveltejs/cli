@@ -508,7 +508,7 @@ export async function runAddCommand(
 				answer = await p.multiselect({
 					message,
 					initialValues: question.default,
-					required: false,
+					required: question.required,
 					options: question.options
 				});
 			}

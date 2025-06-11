@@ -27,6 +27,7 @@ export type MultiSelectQuestion<Value = any> = {
 	type: 'multiselect';
 	default: Value[];
 	options: Array<{ value: Value; label?: string; hint?: string }>;
+	required: boolean;
 };
 
 export type BaseQuestion = {
