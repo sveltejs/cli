@@ -1,4 +1,3 @@
-import { addEslintConfigPrettier } from '../common.ts';
 import { defineAddon, log } from '@sveltejs/cli-core';
 import {
 	array,
@@ -10,6 +9,7 @@ import {
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { addEslintConfigPrettier } from '../common.ts';
 
 export default defineAddon({
 	id: 'eslint',
@@ -164,8 +164,8 @@ export default defineAddon({
 			imports.addNamed(ast, 'node:url', { fileURLToPath: 'fileURLToPath' });
 			imports.addDefault(ast, 'globals', 'globals');
 			imports.addDefault(ast, 'eslint-plugin-svelte', 'svelte');
-			imports.addNamed(ast, '@eslint/compat', { includeIgnoreFile: 'includeIgnoreFile' });
 			imports.addDefault(ast, '@eslint/js', 'js');
+			imports.addNamed(ast, '@eslint/compat', { includeIgnoreFile: 'includeIgnoreFile' });
 
 			return generateCode();
 		});
