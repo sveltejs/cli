@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.11
+### Patch Changes
+
+
+- fix(eslint): generated import order are now sorted alphabetically ([#592](https://github.com/sveltejs/cli/pull/592))
+
 ## 0.8.10
 ### Patch Changes
 
