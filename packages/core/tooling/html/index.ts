@@ -6,7 +6,7 @@ import {
 	HtmlElementType,
 	parseHtml
 } from '../index.ts';
-import { addFromString } from '../js/common.ts';
+import { appendFromString } from '../js/common.ts';
 
 export { HtmlElement, HtmlElementType };
 export type { HtmlDocument };
@@ -50,6 +50,8 @@ export function addSlot(
 		return;
 	}
 
-	addFromString(jsAst, 'let { children } = $props();');
+	appendFromString(jsAst, {
+		code: 'let { children } = $props();'
+	});
 	addFromRawHtml(htmlAst.childNodes, '{@render children()}');
 }

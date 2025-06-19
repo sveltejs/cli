@@ -2,19 +2,27 @@ import { common, variables, object, exports, type AstTypes } from '@sveltejs/cli
 
 export function run(ast: AstTypes.Program): void {
 	const object1 = object.create({
-		test: common.createLiteral('string')
+		test: common.createLiteral({ value: 'string' })
 	});
-	const variable = variables.declaration(ast, 'const', 'variable', object1);
+	const variable = variables.declaration(ast, {
+		kind: 'const',
+		name: 'variable',
+		value: object1
+	});
 
 	const object2 = object.create({
-		test2: common.createLiteral('string2')
+		test2: common.createLiteral({ value: 'string2' })
 	});
-	const variable2 = variables.declaration(ast, 'const', 'variable2', object2);
+	const variable2 = variables.declaration(ast, {
+		kind: 'const',
+		name: 'variable2',
+		value: object2
+	});
 
-	exports.namedExport(ast, 'variable', variable);
-	exports.namedExport(ast, 'variable2', variable2);
+	exports.createNamed(ast, { name: 'variable', fallback: variable });
+	exports.createNamed(ast, { name: 'variable2', fallback: variable2 });
 
 	// overriding should work
-	exports.namedExport(ast, 'variable', variable);
-	exports.namedExport(ast, 'variable2', variable2);
+	exports.createNamed(ast, { name: 'variable', fallback: variable });
+	exports.createNamed(ast, { name: 'variable2', fallback: variable2 });
 }

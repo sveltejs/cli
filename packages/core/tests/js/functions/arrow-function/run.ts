@@ -1,19 +1,25 @@
 import { functions, common, type AstTypes } from '@sveltejs/cli-core/js';
 
 export function run(ast: AstTypes.Program): void {
-	const insideExpression = common.expressionFromString("console.log('foo')");
-	const functionCall = functions.arrowFunction(false, insideExpression);
-	const expression = common.expressionStatement(functionCall);
+	const insideExpression = common.parseExpression({ code: "console.log('foo')" });
+	const functionCall = functions.createArrow({
+		body: insideExpression,
+		async: false
+	});
+	const expression = common.createExpressionStatement({ expression: functionCall });
 	ast.body.push(expression);
 
-	const blockStatement = common.blockStatement();
-	const insideExpression2 = common.expressionFromString("console.log('foo');");
-	const insideExpression3 = common.expressionFromString("console.log('bar');");
-	const expression2 = common.expressionStatement(insideExpression2);
-	const expression3 = common.expressionStatement(insideExpression3);
+	const blockStatement = common.createBlockStatement();
+	const insideExpression2 = common.parseExpression({ code: "console.log('foo');" });
+	const insideExpression3 = common.parseExpression({ code: "console.log('bar');" });
+	const expression2 = common.createExpressionStatement({ expression: insideExpression2 });
+	const expression3 = common.createExpressionStatement({ expression: insideExpression3 });
 	blockStatement.body.push(expression2);
 	blockStatement.body.push(expression3);
-	const functionCall2 = functions.arrowFunction(false, blockStatement);
-	const expression4 = common.expressionStatement(functionCall2);
+	const functionCall2 = functions.createArrow({
+		body: blockStatement,
+		async: false
+	});
+	const expression4 = common.createExpressionStatement({ expression: functionCall2 });
 	ast.body.push(expression4);
 }

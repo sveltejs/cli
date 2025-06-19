@@ -2,10 +2,20 @@ import { object, common, variables, exports, type AstTypes } from '@sveltejs/cli
 
 export function run(ast: AstTypes.Program): void {
 	const object1 = object.create({
-		test: common.createLiteral('string')
+		test: common.createLiteral({
+			value: 'string'
+		})
 	});
-	const variable = variables.declaration(ast, 'const', 'object', object1);
+	const variable = variables.declaration(ast, {
+		kind: 'const',
+		name: 'object',
+		value: object1
+	});
 	ast.body.push(variable);
 
-	exports.defaultExport(ast, variables.identifier('object'));
+	exports.createDefault(ast, {
+		fallback: variables.createIdentifier({
+			name: 'object'
+		})
+	});
 }
