@@ -106,11 +106,11 @@ export function create<T extends AstTypes.Expression>(
 }
 
 type ObjectPrimitiveValues = string | number | boolean | undefined;
-type ObjectValues = ObjectPrimitiveValues | Object | ObjectValues[];
-type Object = { [property: string]: ObjectValues };
+type ObjectValues = ObjectPrimitiveValues | ObjectMap | ObjectValues[];
+type ObjectMap = { [property: string]: ObjectValues };
 
 // todo: potentially make this the default `create` method in the future
-export function createFromPrimitives(obj: Object): AstTypes.ObjectExpression {
+export function createFromPrimitives(obj: ObjectMap): AstTypes.ObjectExpression {
 	const objExpression = createEmpty();
 
 	const getExpression = (value: ObjectValues) => {
