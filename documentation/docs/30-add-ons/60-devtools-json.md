@@ -2,13 +2,7 @@
 title: devtools-json
 ---
 
-`devtools-json` is essentially a vite plugin [vite-plugin-devtools-json](https://github.com/ChromeDevTools/vite-plugin-devtools-json/) for generating the Chrome DevTools project settings file on-the-fly in the devserver.
-
-It will prevent this server log:
-
-```sh
-Not found: /.well-known/appspecific/com.chrome.devtools.json
-```
+[`vite-plugin-devtools-json`](https://github.com/ChromeDevTools/vite-plugin-devtools-json/) is a Vite plugin for generating a Chromium DevTools project settings file on-the-fly in the development server. This file is served from `/.well-known/appspecific/com.chrome.devtools.json` and tells Chromium browsers where your project's source code lives so that you can use [the workspaces feature](https://developer.chrome.com/docs/devtools/workspaces) to edit source files in the browser.
 
 ## Usage
 
@@ -18,4 +12,4 @@ npx sv add devtools-json
 
 ## What you get
 
-- the `vite` plugin added to your vite plugin options.
+- `vite-plugin-devtools-json` added to your Vite plugin options
