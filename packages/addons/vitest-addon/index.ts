@@ -96,11 +96,10 @@ export default defineAddon({
 				`;
 			});
 		}
-
 		sv.file(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			const clientObjectExpression = object.createFromPrimitives({
+			const clientObjectExpression = object.create({
 				extends: `./vite.config.${ext}`,
 				test: {
 					name: 'client',
@@ -116,7 +115,7 @@ export default defineAddon({
 				}
 			});
 
-			const serverObjectExpression = object.createFromPrimitives({
+			const serverObjectExpression = object.create({
 				extends: `./vite.config.${ext}`,
 				test: {
 					name: 'server',
@@ -126,19 +125,30 @@ export default defineAddon({
 				}
 			});
 
-			const defineConfigFallback = functions.call('defineConfig', []);
-			const { value: defineWorkspaceCall } = exports.defaultExport(ast, defineConfigFallback);
+			const defineConfigFallback = functions.createCall({ name: 'defineConfig', args: [] });
+			const { value: defineWorkspaceCall } = exports.createDefault(ast, {
+				fallback: defineConfigFallback
+			});
 			if (defineWorkspaceCall.type !== 'CallExpression') {
 				log.warn('Unexpected vite config. Could not update.');
 			}
 
-			const vitestConfig = functions.argumentByIndex(defineWorkspaceCall, 0, object.createEmpty());
-			const testObject = object.property(vitestConfig, 'test', object.createEmpty());
+			const vitestConfig = functions.getArgument(defineWorkspaceCall, {
+				index: 0,
+				fallback: object.createEmpty()
+			});
+			const testObject = object.property(vitestConfig, {
+				name: 'test',
+				fallback: object.createEmpty()
+			});
 
-			const workspaceArray = object.property(testObject, 'projects', array.createEmpty());
+			const workspaceArray = object.property(testObject, {
+				name: 'projects',
+				fallback: array.create()
+			});
 
-			if (componentTesting) array.push(workspaceArray, clientObjectExpression);
-			if (unitTesting) array.push(workspaceArray, serverObjectExpression);
+			if (componentTesting) array.append(workspaceArray, clientObjectExpression);
+			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
 
 			return generateCode();
 		});

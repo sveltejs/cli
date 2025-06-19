@@ -45,27 +45,30 @@ export default defineAddon({
 
 		sv.file(`playwright.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			const defineConfig = common.expressionFromString('defineConfig({})');
-			const defaultExport = exports.defaultExport(ast, defineConfig);
+			const defineConfig = common.parseExpression('defineConfig({})');
+			const { value: defaultExport } = exports.createDefault(ast, { fallback: defineConfig });
 
 			const config = {
 				webServer: object.create({
 					command: common.createLiteral('npm run build && npm run preview'),
-					port: common.expressionFromString('4173')
+					port: common.parseExpression('4173')
 				}),
 				testDir: common.createLiteral('e2e')
 			};
 
 			if (
-				defaultExport.value.type === 'CallExpression' &&
-				defaultExport.value.arguments[0]?.type === 'ObjectExpression'
+				defaultExport.type === 'CallExpression' &&
+				defaultExport.arguments[0]?.type === 'ObjectExpression'
 			) {
 				// uses the `defineConfig` helper
-				imports.addNamed(ast, '@playwright/test', { defineConfig: 'defineConfig' });
-				object.properties(defaultExport.value.arguments[0], config);
-			} else if (defaultExport.value.type === 'ObjectExpression') {
+				imports.addNamed(ast, {
+					from: '@playwright/test',
+					imports: { defineConfig: 'defineConfig' }
+				});
+				object.addProperties(defaultExport.arguments[0], { properties: config });
+			} else if (defaultExport.type === 'ObjectExpression') {
 				// if the config is just an object expression, just add the property
-				object.properties(defaultExport.value, config);
+				object.addProperties(defaultExport, { properties: config });
 			} else {
 				// unexpected config shape
 				log.warn('Unexpected playwright config for playwright add-on. Could not update.');

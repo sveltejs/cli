@@ -13,28 +13,39 @@ export default defineAddon({
 		sv.file('svelte.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, 'mdsvex', { mdsvex: 'mdsvex' });
+			imports.addNamed(ast, { from: 'mdsvex', imports: { mdsvex: 'mdsvex' } });
 
-			const { value: exportDefault } = exports.defaultExport(ast, object.createEmpty());
+			const { value: exportDefault } = exports.createDefault(ast, {
+				fallback: object.createEmpty()
+			});
 
 			// preprocess
-			let preprocessorArray = object.property(exportDefault, 'preprocess', array.createEmpty());
+			let preprocessorArray = object.property(exportDefault, {
+				name: 'preprocess',
+				fallback: array.create()
+			});
 			const isArray = preprocessorArray.type === 'ArrayExpression';
 
 			if (!isArray) {
 				const previousElement = preprocessorArray;
-				preprocessorArray = array.createEmpty();
-				array.push(preprocessorArray, previousElement);
-				object.overrideProperty(exportDefault, 'preprocess', preprocessorArray);
+				preprocessorArray = array.create();
+				array.append(preprocessorArray, previousElement);
+				object.overrideProperty(exportDefault, {
+					name: 'preprocess',
+					value: preprocessorArray
+				});
 			}
 
-			const mdsvexCall = functions.call('mdsvex', []);
-			array.push(preprocessorArray, mdsvexCall);
+			const mdsvexCall = functions.createCall({ name: 'mdsvex', args: [] });
+			array.append(preprocessorArray, mdsvexCall);
 
 			// extensions
-			const extensionsArray = object.property(exportDefault, 'extensions', array.createEmpty());
-			array.push(extensionsArray, '.svelte');
-			array.push(extensionsArray, '.svx');
+			const extensionsArray = object.property(exportDefault, {
+				name: 'extensions',
+				fallback: array.create()
+			});
+			array.append(extensionsArray, '.svelte');
+			array.append(extensionsArray, '.svx');
 
 			return generateCode();
 		});

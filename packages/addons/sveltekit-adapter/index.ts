@@ -76,10 +76,10 @@ export default defineAddon({
 				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
 					?.local?.name as string;
 			} else {
-				imports.addDefault(ast, adapter.package, adapterName);
+				imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
 
-			const { value: config } = exports.defaultExport(ast, object.createEmpty());
+			const { value: config } = exports.createDefault(ast, { fallback: object.createEmpty() });
 			const kitConfig = config.properties.find(
 				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
 			) as AstTypes.Property | undefined;
@@ -94,14 +94,18 @@ export default defineAddon({
 
 				// only overrides the `adapter` property so we can reset it's args
 				object.overrideProperties(kitConfig.value, {
-					adapter: functions.callByIdentifier(adapterName, [])
+					properties: {
+						adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+					}
 				});
 			} else {
 				// creates the `kit` property when absent
-				object.properties(config, {
-					kit: object.create({
-						adapter: functions.callByIdentifier(adapterName, [])
-					})
+				object.addProperties(config, {
+					properties: {
+						kit: object.create({
+							adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+						})
+					}
 				});
 			}
 

@@ -61,14 +61,19 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'tailwindcss';
-			imports.addDefault(ast, '@tailwindcss/vite', vitePluginName);
+			imports.addDefault(ast, { from: '@tailwindcss/vite', as: vitePluginName });
 
-			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
-			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
+			const { value: rootObject } = exports.createDefault(ast, {
+				fallback: functions.createCall({ name: 'defineConfig', args: [] })
+			});
+			const param1 = functions.getArgument(rootObject, {
+				index: 0,
+				fallback: object.createEmpty()
+			});
 
-			const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
-			const pluginFunctionCall = functions.call(vitePluginName, []);
-			array.unshift(pluginsArray, pluginFunctionCall);
+			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
+			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
+			array.prepend(pluginsArray, pluginFunctionCall);
 
 			return generateCode();
 		});
@@ -107,17 +112,16 @@ export default defineAddon({
 
 			return code;
 		});
-
 		if (!kit) {
 			sv.file('src/App.svelte', (content) => {
 				const { script, generateCode } = parseSvelte(content, { typescript });
-				imports.addEmpty(script.ast, './app.css');
+				imports.addEmpty(script.ast, { from: './app.css' });
 				return generateCode({ script: script.generateCode() });
 			});
 		} else {
 			sv.file(`${kit?.routesDirectory}/+layout.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
-				imports.addEmpty(script.ast, '../app.css');
+				imports.addEmpty(script.ast, { from: '../app.css' });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');

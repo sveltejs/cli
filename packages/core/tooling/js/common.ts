@@ -172,7 +172,7 @@ export function contains(node: AstTypes.Node, targetNode: AstTypes.Node): boolea
 	return found;
 }
 
-export function hasProperty(
+export function hasTypeProperty(
 	node: AstTypes.TSInterfaceDeclaration['body']['body'][number],
 	options: { name: string }
 ): boolean {

@@ -54,33 +54,29 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
-
-			imports.addDefault(ast, './svelte.config.js', 'svelteConfig');
-
-			const gitIgnorePathStatement = common.statementFromString(
+			imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
+			const gitIgnorePathStatement = common.parseStatement(
 				"\nconst gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));"
 			);
-			common.addStatement(ast, gitIgnorePathStatement);
+			common.appendStatement(ast, { statement: gitIgnorePathStatement });
 
-			const ignoresConfig = common.expressionFromString('includeIgnoreFile(gitignorePath)');
+			const ignoresConfig = common.parseExpression('includeIgnoreFile(gitignorePath)');
 			eslintConfigs.push(ignoresConfig);
 
-			const jsConfig = common.expressionFromString('js.configs.recommended');
+			const jsConfig = common.parseExpression('js.configs.recommended');
 			eslintConfigs.push(jsConfig);
 
 			if (typescript) {
-				const tsConfig = common.expressionFromString('ts.configs.recommended');
-				eslintConfigs.push(common.createSpreadElement(tsConfig));
+				const tsConfig = common.parseExpression('ts.configs.recommended');
+				eslintConfigs.push(common.createSpread(tsConfig));
 			}
 
-			const svelteConfig = common.expressionFromString('svelte.configs.recommended');
-			eslintConfigs.push(common.createSpreadElement(svelteConfig));
+			const svelteConfig = common.parseExpression('svelte.configs.recommended');
+			eslintConfigs.push(common.createSpread(svelteConfig));
 
-			const globalsBrowser = common.createSpreadElement(
-				common.expressionFromString('globals.browser')
-			);
-			const globalsNode = common.createSpreadElement(common.expressionFromString('globals.node'));
-			const globalsObjLiteral = object.createEmpty();
+			const globalsBrowser = common.createSpread(common.parseExpression('globals.browser'));
+			const globalsNode = common.createSpread(common.parseExpression('globals.node'));
+			const globalsObjLiteral = object.create({});
 			globalsObjLiteral.properties = [globalsBrowser, globalsNode];
 			const off = common.createLiteral('off');
 			const rules = object.create({
@@ -114,23 +110,23 @@ export default defineAddon({
 
 			if (typescript) {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js']"),
+					files: common.parseExpression("['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
-							projectService: common.expressionFromString('true'),
-							extraFileExtensions: common.expressionFromString("['.svelte']"),
-							parser: common.expressionFromString('ts.parser'),
-							svelteConfig: common.expressionFromString('svelteConfig')
+							projectService: common.parseExpression('true'),
+							extraFileExtensions: common.parseExpression("['.svelte']"),
+							parser: common.parseExpression('ts.parser'),
+							svelteConfig: common.parseExpression('svelteConfig')
 						})
 					})
 				});
 				eslintConfigs.push(svelteTSParserConfig);
 			} else {
 				const svelteTSParserConfig = object.create({
-					files: common.expressionFromString("['**/*.svelte', '**/*.svelte.js']"),
+					files: common.parseExpression("['**/*.svelte', '**/*.svelte.js']"),
 					languageOptions: object.create({
 						parserOptions: object.create({
-							svelteConfig: common.expressionFromString('svelteConfig')
+							svelteConfig: common.parseExpression('svelteConfig')
 						})
 					})
 				});
@@ -139,33 +135,36 @@ export default defineAddon({
 
 			let exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression;
 			if (typescript) {
-				const tsConfigCall = functions.call('ts.config', []);
+				const tsConfigCall = functions.createCall({ name: 'ts.config', args: [] });
 				tsConfigCall.arguments.push(...eslintConfigs);
 				exportExpression = tsConfigCall;
 			} else {
-				const eslintArray = array.createEmpty();
-				eslintConfigs.map((x) => array.push(eslintArray, x));
+				const eslintArray = array.create();
+				eslintConfigs.map((x) => array.append(eslintArray, x));
 				exportExpression = eslintArray;
 			}
-
-			const defaultExport = exports.defaultExport(ast, exportExpression);
+			const { value: defaultExport, astNode } = exports.createDefault(ast, {
+				fallback: exportExpression
+			});
 			// if it's not the config we created, then we'll leave it alone and exit out
-			if (defaultExport.value !== exportExpression) {
+			if (defaultExport !== exportExpression) {
 				log.warn('An eslint config is already defined. Skipping initialization.');
 				return content;
 			}
 
 			// type annotate config
 			if (!typescript)
-				common.addJsDocTypeComment(defaultExport.astNode, "import('eslint').Linter.Config[]");
+				common.addJsDocTypeComment(astNode, { type: "import('eslint').Linter.Config[]" });
 
-			// imports
-			if (typescript) imports.addDefault(ast, 'typescript-eslint', 'ts');
-			imports.addNamed(ast, 'node:url', { fileURLToPath: 'fileURLToPath' });
-			imports.addDefault(ast, 'globals', 'globals');
-			imports.addDefault(ast, 'eslint-plugin-svelte', 'svelte');
-			imports.addDefault(ast, '@eslint/js', 'js');
-			imports.addNamed(ast, '@eslint/compat', { includeIgnoreFile: 'includeIgnoreFile' });
+			// imports			if (typescript) imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
+			imports.addNamed(ast, { from: 'node:url', imports: { fileURLToPath: 'fileURLToPath' } });
+			imports.addDefault(ast, { from: 'globals', as: 'globals' });
+			imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: 'svelte' });
+			imports.addDefault(ast, { from: '@eslint/js', as: 'js' });
+			imports.addNamed(ast, {
+				from: '@eslint/compat',
+				imports: { includeIgnoreFile: 'includeIgnoreFile' }
+			});
 
 			return generateCode();
 		});

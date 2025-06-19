@@ -25,14 +25,21 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'devtoolsJson';
-			imports.addDefault(ast, 'vite-plugin-devtools-json', vitePluginName);
+			imports.addDefault(ast, { from: 'vite-plugin-devtools-json', as: vitePluginName });
 
-			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
-			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
+			const { value: rootObject } = exports.createDefault(ast, {
+				fallback: functions.createCall({ name: 'defineConfig', args: [] })
+			});
 
-			const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
-			const pluginFunctionCall = functions.call(vitePluginName, []);
-			array.push(pluginsArray, pluginFunctionCall);
+			const param1 = functions.getArgument(rootObject, {
+				index: 0,
+				fallback: object.createEmpty()
+			});
+
+			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
+			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
+
+			array.append(pluginsArray, pluginFunctionCall);
 
 			return generateCode();
 		});
