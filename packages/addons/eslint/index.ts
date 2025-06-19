@@ -113,8 +113,8 @@ export default defineAddon({
 						parserOptions: {
 							projectService: true,
 							extraFileExtensions: ['.svelte'],
-							parser: 'ts.parser',
-							svelteConfig: 'svelteConfig'
+							parser: variables.createIdentifier('ts.parser'),
+							svelteConfig: variables.createIdentifier('svelteConfig')
 						}
 					}
 				});
