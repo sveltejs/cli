@@ -22,12 +22,12 @@ export const officialAddons = [
 	playwright,
 	tailwindcss,
 	sveltekitAdapter,
+	devtoolsJson,
 	drizzle,
 	lucia,
 	mdsvex,
 	paraglide,
-	storybook,
-	devtoolsJson
+	storybook
 ] as AddonWithoutExplicitArgs[];
 
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
