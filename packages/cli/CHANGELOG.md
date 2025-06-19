@@ -1,5 +1,14 @@
 # sv
 
+## 0.8.11
+### Patch Changes
+
+
+- fix(eslint): generated import order are now sorted alphabetically ([#592](https://github.com/sveltejs/cli/pull/592))
+
+
+- feat: add `devtools-json` addon (using `vite-plugin-devtools-json`) ([#581](https://github.com/sveltejs/cli/pull/581))
+
 ## 0.8.10
 ### Patch Changes
 
