@@ -391,16 +391,10 @@ export async function runAddCommand(
 	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
 	const addonSetupResults = setupAddons(setups, workspace);
 
-	let initialValues: string[] = [];
-	if (from === 'create') {
-		initialValues = Object.entries(addonSetupResults)
-			.filter((c) => c[1].defaultSelection.create === true)
-			.map((c) => c[0]);
-	} else if (from === 'add') {
-		initialValues = Object.entries(addonSetupResults)
-			.filter((c) => c[1].defaultSelection.add === true)
-			.map((c) => c[0]);
-	}
+	// get all addons that have been marked to be preselected
+	const initialValues = Object.entries(addonSetupResults)
+		.filter(([_, value]) => value.defaultSelection[from] === true)
+		.map(([key]) => key);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {

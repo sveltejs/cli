@@ -28,7 +28,7 @@ test.concurrent.for(variants)('default - %s', async (variant, { page, ...ctx }) 
 });
 
 test.concurrent.for(variants)(
-	'without the addon should be selected - %s',
+	'without selecting the addon specifically - %s',
 	async (variant, { page, ...ctx }) => {
 		const cwd = await ctx.run(variant, {});
 
