@@ -30,7 +30,7 @@
 		}
 	},
 	"devDependencies": {
-		"@clack/prompts": "^1.0.0-alpha.1",
+		"@clack/prompts": "1.0.0-alpha.1",
 		"@sveltejs/addons": "workspace:*",
 		"@sveltejs/cli-core": "workspace:*",
 		"@sveltejs/create": "workspace:*",
@@ -38,7 +38,7 @@
 		"@types/ps-tree": "^1.1.6",
 		"commander": "^13.1.0",
 		"degit": "^2.8.4",
-		"empathic": "^1.0.0",
+		"empathic": "^1.1.0",
 		"package-manager-detector": "^0.2.11",
 		"picocolors": "^1.1.1",
 		"ps-tree": "^1.2.0",
