@@ -3,11 +3,11 @@ import { array, object, common, variables, type AstTypes } from '@sveltejs/cli-c
 export function run(ast: AstTypes.Program): void {
 	const array1 = array.create();
 
-	const object1 = object.create({ test: common.parseExpression({ code: 'true' }) });
-	const object2 = object.create({ test2: common.createLiteral({ value: 'string' }) });
-	array.prepend(array1, { element: object1 });
-	array.prepend(array1, { element: object2 });
-	array.prepend(array1, { element: object2 }); // avoid duplication
+	const object1 = object.create({ test: common.parseExpression('true') });
+	const object2 = object.create({ test2: common.createLiteral('string') });
+	array.prepend(array1, object1);
+	array.prepend(array1, object2);
+	array.prepend(array1, object2); // avoid duplication
 
 	// create declaration so that we serialize everything
 	const declaration = variables.declaration(ast, { kind: 'const', name: 'array', value: array1 });

@@ -10,12 +10,12 @@ export function run(ast: AstTypes.Program): void {
 	const objectExpression = objectDeclarator.init as AstTypes.ObjectExpression;
 	object.overrideProperty(objectExpression, {
 		name: 'foo',
-		value: common.createLiteral({ value: 2 })
+		value: common.createLiteral(2)
 	});
 	object.overrideProperties(objectExpression, {
 		properties: {
-			bar: common.createLiteral({ value: 'string2' }),
-			lorem: common.createLiteral({ value: false })
+			bar: common.createLiteral('string2'),
+			lorem: common.createLiteral(false)
 		}
 	});
 }

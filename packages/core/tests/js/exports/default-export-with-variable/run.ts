@@ -2,9 +2,7 @@ import { object, common, variables, exports, type AstTypes } from '@sveltejs/cli
 
 export function run(ast: AstTypes.Program): void {
 	const object1 = object.create({
-		test: common.createLiteral({
-			value: 'string'
-		})
+		test: common.createLiteral('string')
 	});
 	const variable = variables.declaration(ast, {
 		kind: 'const',
@@ -14,8 +12,6 @@ export function run(ast: AstTypes.Program): void {
 	ast.body.push(variable);
 
 	exports.createDefault(ast, {
-		fallback: variables.createIdentifier({
-			name: 'object'
-		})
+		fallback: variables.createIdentifier('object')
 	});
 }

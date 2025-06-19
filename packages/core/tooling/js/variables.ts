@@ -38,10 +38,10 @@ export function declaration(
 	return declaration;
 }
 
-export function createIdentifier(options: { name: string }): AstTypes.Identifier {
+export function createIdentifier(name: string): AstTypes.Identifier {
 	const identifier: AstTypes.Identifier = {
 		type: 'Identifier',
-		name: options.name
+		name
 	};
 	return identifier;
 }

@@ -11,6 +11,6 @@ export function run(ast: AstTypes.Program): void {
 
 	object.property(objectExpression, {
 		name: 'bar',
-		fallback: common.createLiteral({ value: 'string' })
+		fallback: common.createLiteral('string')
 	});
 }

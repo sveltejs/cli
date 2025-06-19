@@ -116,13 +116,13 @@ export function create(properties: ObjectMap): AstTypes.ObjectExpression {
 		if (Array.isArray(value)) {
 			expression = array.create();
 			for (const v of value) {
-				array.append(expression, { element: getExpression(v) });
+				array.append(expression, getExpression(v));
 			}
 		} else if (typeof value === 'object' && value !== null) {
 			// if the type property is defined, we assume it's an AST type
 			expression = value.type !== undefined ? (value as AstTypes.Expression) : create(value);
 		} else {
-			expression = common.createLiteral({ value: value ?? null });
+			expression = common.createLiteral(value);
 		}
 		return expression;
 	};

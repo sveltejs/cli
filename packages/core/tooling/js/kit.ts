@@ -122,7 +122,7 @@ export function addHooksHandle(
 		}
 	});
 
-	const newHandle = common.parseExpression({ code: options.handleContent });
+	const newHandle = common.parseExpression(options.handleContent);
 	if (common.contains(node, newHandle)) return;
 	// This is the straightforward case. If there's no existing `handle`, we'll just add one
 	// with the new handle's definition and exit
@@ -142,7 +142,7 @@ export function addHooksHandle(
 		const handleDecl = variables.declaration(node, {
 			kind: 'const',
 			name: handleName,
-			value: variables.createIdentifier({ name: options.newHandleName })
+			value: variables.createIdentifier(options.newHandleName)
 		});
 
 		if (options.typescript) {
@@ -186,7 +186,7 @@ export function addHooksHandle(
 			(arg) => arg.type === 'Identifier' && arg.name === options.newHandleName
 		);
 		if (!hasNewArg) {
-			sequence.arguments.push(variables.createIdentifier({ name: options.newHandleName }));
+			sequence.arguments.push(variables.createIdentifier(options.newHandleName));
 		}
 
 		// removes the declarations so we can append them in the correct order

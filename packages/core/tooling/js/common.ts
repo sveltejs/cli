@@ -69,19 +69,17 @@ export function createSatisfies(
 	return expression;
 }
 
-export function createSpread(options: { argument: AstTypes.Expression }): AstTypes.SpreadElement {
+export function createSpread(argument: AstTypes.Expression): AstTypes.SpreadElement {
 	return {
 		type: 'SpreadElement',
-		argument: options.argument
+		argument
 	};
 }
 
-export function createLiteral(options?: {
-	value: string | number | boolean | null;
-}): AstTypes.Literal {
+export function createLiteral(value: string | number | boolean | null): AstTypes.Literal {
 	const literal: AstTypes.Literal = {
 		type: 'Literal',
-		value: options?.value ?? null
+		value: value ?? null
 	};
 
 	return literal;
@@ -128,8 +126,8 @@ export function appendFromString(
 	}
 }
 
-export function parseExpression(options: { code: string }): AstTypes.Expression {
-	const program = parseScript(dedent(options.code));
+export function parseExpression(code: string): AstTypes.Expression {
+	const program = parseScript(dedent(code));
 	stripAst(program, ['raw']);
 	const statement = program.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
@@ -139,12 +137,12 @@ export function parseExpression(options: { code: string }): AstTypes.Expression 
 	return statement.expression;
 }
 
-export function parseStatement(options: { code: string }): AstTypes.Statement {
-	return parseFromString<AstTypes.Statement>({ code: options.code });
+export function parseStatement(code: string): AstTypes.Statement {
+	return parseFromString<AstTypes.Statement>(code);
 }
 
-export function parseFromString<T extends AstTypes.Node>(options: { code: string }): T {
-	const program = parseScript(dedent(options.code));
+export function parseFromString<T extends AstTypes.Node>(code: string): T {
+	const program = parseScript(dedent(code));
 	const statement = program.body[0]!;
 
 	return statement as T;

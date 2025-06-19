@@ -17,8 +17,6 @@ export function run(ast: AstTypes.Program): void {
 
 	object.property(objectExpression, {
 		name: 'test2',
-		fallback: common.createLiteral({
-			value: 'string2'
-		})
+		fallback: common.createLiteral('string2')
 	});
 }
