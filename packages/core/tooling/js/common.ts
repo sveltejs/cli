@@ -2,18 +2,21 @@ import { type AstTypes, Walker, parseScript, serializeScript, stripAst } from '.
 import decircular from 'decircular';
 import dedent from 'dedent';
 
-export function addJsDocTypeComment(node: AstTypes.Node, type: string): void {
+export function addJsDocTypeComment(node: AstTypes.Node, options: { type: string }): void {
 	const comment: AstTypes.Comment = {
 		type: 'Block',
-		value: `* @type {${type}} `
+		value: `* @type {${options.type}} `
 	};
 
 	addComment(node, comment);
 }
 
-export function addJsDocComment(node: AstTypes.Node, params: Record<string, string>): void {
+export function addJsDocComment(
+	node: AstTypes.Node,
+	options: { params: Record<string, string> }
+): void {
 	const commentLines: string[] = [];
-	for (const [key, value] of Object.entries(params)) {
+	for (const [key, value] of Object.entries(options.params)) {
 		commentLines.push(`@param {${key}} ${value}`);
 	}
 
@@ -28,64 +31,74 @@ export function addJsDocComment(node: AstTypes.Node, params: Record<string, stri
 function addComment(node: AstTypes.Node, comment: AstTypes.Comment) {
 	node.leadingComments ??= [];
 
-	const found = node.leadingComments.find((n) => n.type === 'Block' && n.value === comment.value);
+	const found = node.leadingComments.find(
+		(item) => item.type === 'Block' && item.value === comment.value
+	);
 	if (!found) node.leadingComments.push(comment);
 }
 
-export function typeAnnotateExpression(
+export function typeAnnotate(
 	node: AstTypes.Expression,
-	type: string
+	options: { type: string }
 ): AstTypes.TSAsExpression {
 	const expression: AstTypes.TSAsExpression = {
 		type: 'TSAsExpression',
 		expression: node,
-		typeAnnotation: { type: 'TSTypeReference', typeName: { type: 'Identifier', name: type } }
+		typeAnnotation: {
+			type: 'TSTypeReference',
+			typeName: { type: 'Identifier', name: options.type }
+		}
 	};
 
 	return expression;
 }
 
-export function satisfiesExpression(
+export function createSatisfies(
 	node: AstTypes.Expression,
-	type: string
+	options: { type: string }
 ): AstTypes.TSSatisfiesExpression {
 	const expression: AstTypes.TSSatisfiesExpression = {
 		type: 'TSSatisfiesExpression',
 		expression: node,
-		typeAnnotation: { type: 'TSTypeReference', typeName: { type: 'Identifier', name: type } }
+		typeAnnotation: {
+			type: 'TSTypeReference',
+			typeName: { type: 'Identifier', name: options.type }
+		}
 	};
 
 	return expression;
 }
 
-export function createSpreadElement(expression: AstTypes.Expression): AstTypes.SpreadElement {
+export function createSpread(node: AstTypes.Expression): AstTypes.SpreadElement {
 	return {
 		type: 'SpreadElement',
-		argument: expression
+		argument: node
 	};
 }
 
-export function createLiteral(value: string | number | boolean | null = null): AstTypes.Literal {
+export function createLiteral(options?: {
+	value: string | number | boolean | null;
+}): AstTypes.Literal {
 	const literal: AstTypes.Literal = {
 		type: 'Literal',
-		value
+		value: options?.value ?? null
 	};
 
 	return literal;
 }
 
-export function areNodesEqual(ast1: AstTypes.Node, ast2: AstTypes.Node): boolean {
+export function areNodesEqual(firstNode: AstTypes.Node, secondNode: AstTypes.Node): boolean {
 	// We're deep cloning these trees so that we can strip the locations off of them for comparisons.
 	// Without this, we'd be getting false negatives due to slight differences in formatting style.
 	// These ASTs are also filled to the brim with circular references, which prevents
 	// us from using `structuredCloned` directly
 
-	const ast1Clone = stripAst(decircular(ast1), ['loc', 'raw']);
-	const ast2Clone = stripAst(decircular(ast2), ['loc', 'raw']);
-	return serializeScript(ast1Clone) === serializeScript(ast2Clone);
+	const firstNodeClone = stripAst(decircular(firstNode), ['loc', 'raw']);
+	const secondNodeClone = stripAst(decircular(secondNode), ['loc', 'raw']);
+	return serializeScript(firstNodeClone) === serializeScript(secondNodeClone);
 }
 
-export function blockStatement(): AstTypes.BlockStatement {
+export function createBlockStatement(): AstTypes.BlockStatement {
 	const statement: AstTypes.BlockStatement = {
 		type: 'BlockStatement',
 		body: []
@@ -93,63 +106,63 @@ export function blockStatement(): AstTypes.BlockStatement {
 	return statement;
 }
 
-export function expressionStatement(expression: AstTypes.Expression): AstTypes.ExpressionStatement {
+export function createExpressionStatement(node: AstTypes.Expression): AstTypes.ExpressionStatement {
 	const statement: AstTypes.ExpressionStatement = {
 		type: 'ExpressionStatement',
-		expression
+		expression: node
 	};
 	return statement;
 }
 
-export function addFromString(
-	ast: AstTypes.BlockStatement | AstTypes.Program,
-	value: string
+export function appendFromString(
+	node: AstTypes.BlockStatement | AstTypes.Program,
+	options: { code: string }
 ): void {
-	const program = parseScript(dedent(value));
+	const program = parseScript(dedent(options.code));
 
 	for (const childNode of program.body) {
 		// @ts-expect-error
-		ast.body.push(childNode);
+		node.body.push(childNode);
 	}
 }
 
-export function expressionFromString(value: string): AstTypes.Expression {
-	const program = parseScript(dedent(value));
+export function parseExpression(options: { code: string }): AstTypes.Expression {
+	const program = parseScript(dedent(options.code));
 	stripAst(program, ['raw']);
 	const statement = program.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
-		throw new Error('value passed was not an expression');
+		throw new Error('Code provided was not an expression');
 	}
 
 	return statement.expression;
 }
 
-export function statementFromString(value: string): AstTypes.Statement {
-	return fromString<AstTypes.Statement>(value);
+export function parseStatement(options: { code: string }): AstTypes.Statement {
+	return parseFromString<AstTypes.Statement>(options.code);
 }
 
-export function fromString<T extends AstTypes.Node>(value: string): T {
-	const program = parseScript(dedent(value));
+export function parseFromString<T extends AstTypes.Node>(code: string): T {
+	const program = parseScript(dedent(code));
 	const statement = program.body[0]!;
 
 	return statement as T;
 }
 
 /** Appends the statement to body of the block if it doesn't already exist */
-export function addStatement(
-	ast: AstTypes.BlockStatement | AstTypes.Program,
-	statement: AstTypes.Statement
+export function appendStatement(
+	node: AstTypes.BlockStatement | AstTypes.Program,
+	options: { statement: AstTypes.Statement }
 ): void {
-	if (!hasNode(ast, statement)) ast.body.push(statement);
+	if (!contains(node, options.statement)) node.body.push(options.statement);
 }
 
 /** Returns `true` if the provided node exists in the AST */
-export function hasNode(ast: AstTypes.Node, nodeToMatch: AstTypes.Node): boolean {
+export function contains(node: AstTypes.Node, targetNode: AstTypes.Node): boolean {
 	let found = false;
-	Walker.walk(ast, null, {
-		_(node, { next, stop }) {
-			if (node.type === nodeToMatch.type) {
-				found = areNodesEqual(node, nodeToMatch);
+	Walker.walk(node, null, {
+		_(currentNode, { next, stop }) {
+			if (currentNode.type === targetNode.type) {
+				found = areNodesEqual(currentNode, targetNode);
 				if (found) stop();
 			}
 			next();
@@ -159,11 +172,13 @@ export function hasNode(ast: AstTypes.Node, nodeToMatch: AstTypes.Node): boolean
 	return found;
 }
 
-export function hasTypeProp(
-	name: string,
-	node: AstTypes.TSInterfaceDeclaration['body']['body'][number]
+export function hasProperty(
+	node: AstTypes.TSInterfaceDeclaration['body']['body'][number],
+	options: { name: string }
 ): boolean {
 	return (
-		node.type === 'TSPropertySignature' && node.key.type === 'Identifier' && node.key.name === name
+		node.type === 'TSPropertySignature' &&
+		node.key.type === 'Identifier' &&
+		node.key.name === options.name
 	);
 }

@@ -1,72 +1,64 @@
 import type { AstTypes } from '../index.ts';
 
-export function call(name: string, args: string[]): AstTypes.CallExpression {
+export function createCall(options: {
+	name: string;
+	args: string[];
+	useIdentifiers?: boolean;
+}): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {
 		type: 'CallExpression',
 		callee: {
 			type: 'Identifier',
-			name
+			name: options.name
 		},
 		arguments: [],
 		optional: false
 	};
 
-	for (const argument of args) {
-		callExpression.arguments.push({
-			type: 'Literal',
-			value: argument
-		});
+	for (const arg of options.args) {
+		let argNode: AstTypes.Expression;
+
+		if (options.useIdentifiers) {
+			argNode = {
+				type: 'Identifier',
+				name: arg
+			};
+		} else {
+			argNode = {
+				type: 'Literal',
+				value: arg
+			};
+		}
+
+		callExpression.arguments.push(argNode);
 	}
 
 	return callExpression;
 }
 
-export function callByIdentifier(name: string, args: string[]): AstTypes.CallExpression {
-	const callExpression: AstTypes.CallExpression = {
-		type: 'CallExpression',
-		callee: {
-			type: 'Identifier',
-			name
-		},
-		arguments: [],
-		optional: false
-	};
-
-	for (const argument of args) {
-		const identifier: AstTypes.Identifier = {
-			type: 'Identifier',
-			name: argument
-		};
-		callExpression.arguments.push(identifier);
-	}
-
-	return callExpression;
-}
-
-export function arrowFunction(
-	async: boolean,
-	body: AstTypes.Expression | AstTypes.BlockStatement
+export function createArrow(
+	node: AstTypes.Expression | AstTypes.BlockStatement,
+	options: { async: boolean }
 ): AstTypes.ArrowFunctionExpression {
 	const arrowFunction: AstTypes.ArrowFunctionExpression = {
 		type: 'ArrowFunctionExpression',
-		async,
-		body,
+		async: options.async,
+		body: node,
 		params: [],
-		expression: body.type !== 'BlockStatement'
+		expression: node.type !== 'BlockStatement'
 	};
 
 	return arrowFunction;
 }
 
-export function argumentByIndex<T extends AstTypes.Expression>(
-	ast: AstTypes.CallExpression,
-	i: number,
-	fallback: T
+export function getArgument<T extends AstTypes.Expression>(
+	node: AstTypes.CallExpression,
+	options: { index: number; fallback: T }
 ): T {
-	if (i < ast.arguments.length) {
-		return ast.arguments[i] as T;
+	if (options.index < node.arguments.length) {
+		return node.arguments[options.index] as T;
 	}
 
-	ast.arguments.push(fallback);
-	return fallback;
+	node.arguments.push(options.fallback);
+	return options.fallback;
 }

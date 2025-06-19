@@ -1,34 +1,36 @@
 import type { AstTypes } from '../index.ts';
 
 export function declaration(
-	ast: AstTypes.Program | AstTypes.Declaration,
-	kind: 'const' | 'let' | 'var',
-	name: string,
-	value: AstTypes.Expression
+	node: AstTypes.Program | AstTypes.Declaration,
+	options: {
+		kind: 'const' | 'let' | 'var';
+		name: string;
+		value: AstTypes.Expression;
+	}
 ): AstTypes.VariableDeclaration {
 	const declarations =
-		ast.type === 'Program'
-			? ast.body.filter((x): x is AstTypes.VariableDeclaration => x.type === 'VariableDeclaration')
-			: [ast as AstTypes.VariableDeclaration];
+		node.type === 'Program'
+			? node.body.filter((x): x is AstTypes.VariableDeclaration => x.type === 'VariableDeclaration')
+			: [node as AstTypes.VariableDeclaration];
 	let declaration = declarations.find((x) => {
 		const declarator = x.declarations[0] as AstTypes.VariableDeclarator;
 		const identifier = declarator.id as AstTypes.Identifier;
-		return identifier.name === name;
+		return identifier.name === options.name;
 	});
 
 	if (declaration) return declaration;
 
 	declaration = {
 		type: 'VariableDeclaration',
-		kind,
+		kind: options.kind,
 		declarations: [
 			{
 				type: 'VariableDeclarator',
 				id: {
 					type: 'Identifier',
-					name
+					name: options.name
 				},
-				init: value
+				init: options.value
 			}
 		]
 	};
@@ -36,17 +38,19 @@ export function declaration(
 	return declaration;
 }
 
-export function identifier(name: string): AstTypes.Identifier {
+export function createIdentifier(options: { name: string }): AstTypes.Identifier {
 	const identifier: AstTypes.Identifier = {
 		type: 'Identifier',
-		name
+		name: options.name
 	};
 	return identifier;
 }
 
 export function typeAnnotateDeclarator(
 	node: AstTypes.VariableDeclarator,
-	typeName: string
+	options: {
+		typeName: string;
+	}
 ): AstTypes.VariableDeclarator {
 	if (node.id.type === 'Identifier') {
 		node.id.typeAnnotation = {
@@ -55,7 +59,7 @@ export function typeAnnotateDeclarator(
 				type: 'TSTypeReference',
 				typeName: {
 					type: 'Identifier',
-					name: typeName
+					name: options.typeName
 				}
 			}
 		};
