@@ -1,4 +1,3 @@
-import type { Expression } from 'estree';
 import type { AstTypes } from '../index.ts';
 import * as array from './array.ts';
 import * as common from './common.ts';
@@ -106,38 +105,22 @@ export function removeProperty(
 	}
 }
 
-export function create<T extends AstTypes.Expression>(
-	properties: Record<string, T | undefined>
-): AstTypes.ObjectExpression {
+type ObjectPrimitiveValues = string | number | boolean | undefined | null;
+type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
+type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
+
+export function create(properties: ObjectMap): AstTypes.ObjectExpression {
 	const objExpression = createEmpty();
-
-	for (const [prop, value] of Object.entries(properties)) {
-		if (value === undefined) continue;
-		property(objExpression, {
-			name: prop,
-			fallback: value
-		});
-	}
-
-	return objExpression;
-}
-
-type ObjectPrimitiveValues = string | number | boolean | undefined;
-type ObjectValues = ObjectPrimitiveValues | ObjectMap | ObjectValues[];
-type ObjectMap = { [property: string]: ObjectValues };
-
-// todo: potentially make this the default `create` method in the future
-export function createFromPrimitives(properties: ObjectMap): AstTypes.ObjectExpression {
-	const objExpression = createEmpty();
-	const getExpression = (value: ObjectValues) => {
-		let expression: Expression;
+	const getExpression = (value: any): AstTypes.Expression => {
+		let expression: AstTypes.Expression;
 		if (Array.isArray(value)) {
 			expression = array.create();
 			for (const v of value) {
 				array.append(expression, { element: getExpression(v) });
 			}
 		} else if (typeof value === 'object' && value !== null) {
-			expression = createFromPrimitives(value);
+			// if the type property is defined, we assume it's an AST type
+			expression = value.type !== undefined ? (value as AstTypes.Expression) : create(value);
 		} else {
 			expression = common.createLiteral({ value: value ?? null });
 		}
