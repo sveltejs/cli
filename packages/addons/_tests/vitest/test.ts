@@ -10,6 +10,7 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 
 	const { close } = await prepareServer({ cwd, page });
 
+	execSync('pnpm exec playwright install chromium', { cwd, stdio: 'pipe' });
 	execSync('pnpm test', { cwd, stdio: 'pipe' });
 
 	// kill server process when we're done

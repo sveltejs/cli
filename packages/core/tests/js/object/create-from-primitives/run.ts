@@ -18,5 +18,6 @@ export function run(ast: AstTypes.Program): void {
 		array: [123, 'hello', { foo: 'bar', bool: true }, [456, '789']]
 	});
 	const createdVariable = variables.declaration(ast, 'const', 'created', createdObject);
+	createdVariable.leadingComments = [{ type: 'Line', value: ' prettier-ignore' }];
 	ast.body.push(createdVariable);
 }
