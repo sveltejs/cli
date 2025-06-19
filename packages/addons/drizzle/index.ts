@@ -274,7 +274,6 @@ export default defineAddon({
 				name: 'user',
 				value: userSchemaExpression
 			});
-			ast.body.push(userIdentifier);
 			exports.createNamed(ast, {
 				name: 'user',
 				fallback: userIdentifier
