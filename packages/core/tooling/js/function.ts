@@ -36,16 +36,16 @@ export function createCall(options: {
 	return callExpression;
 }
 
-export function createArrow(
-	node: AstTypes.Expression | AstTypes.BlockStatement,
-	options: { async: boolean }
-): AstTypes.ArrowFunctionExpression {
+export function createArrow(options: {
+	body: AstTypes.Expression | AstTypes.BlockStatement;
+	async: boolean;
+}): AstTypes.ArrowFunctionExpression {
 	const arrowFunction: AstTypes.ArrowFunctionExpression = {
 		type: 'ArrowFunctionExpression',
 		async: options.async,
-		body: node,
+		body: options.body,
 		params: [],
-		expression: node.type !== 'BlockStatement'
+		expression: options.body.type !== 'BlockStatement'
 	};
 
 	return arrowFunction;

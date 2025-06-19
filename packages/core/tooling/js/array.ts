@@ -11,16 +11,20 @@ export function create(): AstTypes.ArrayExpression {
 
 export function append(
 	node: AstTypes.ArrayExpression,
-	element: string | AstTypes.Expression | AstTypes.SpreadElement
+	options: {
+		element: string | AstTypes.Expression | AstTypes.SpreadElement;
+	}
 ): void {
-	insertElement(node, element, { insertEnd: true });
+	insertElement(node, options.element, { insertEnd: true });
 }
 
 export function prepend(
 	node: AstTypes.ArrayExpression,
-	element: string | AstTypes.Expression | AstTypes.SpreadElement
+	options: {
+		element: string | AstTypes.Expression | AstTypes.SpreadElement;
+	}
 ): void {
-	insertElement(node, element, { insertEnd: false });
+	insertElement(node, options.element, { insertEnd: false });
 }
 
 function insertElement(

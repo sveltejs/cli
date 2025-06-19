@@ -134,7 +134,7 @@ export function createFromPrimitives(properties: ObjectMap): AstTypes.ObjectExpr
 		if (Array.isArray(value)) {
 			expression = array.create();
 			for (const v of value) {
-				array.append(expression, getExpression(v));
+				array.append(expression, { element: getExpression(v) });
 			}
 		} else if (typeof value === 'object' && value !== null) {
 			expression = createFromPrimitives(value);

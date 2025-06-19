@@ -69,10 +69,10 @@ export function createSatisfies(
 	return expression;
 }
 
-export function createSpread(node: AstTypes.Expression): AstTypes.SpreadElement {
+export function createSpread(options: { argument: AstTypes.Expression }): AstTypes.SpreadElement {
 	return {
 		type: 'SpreadElement',
-		argument: node
+		argument: options.argument
 	};
 }
 
@@ -87,15 +87,15 @@ export function createLiteral(options?: {
 	return literal;
 }
 
-export function areNodesEqual(firstNode: AstTypes.Node, secondNode: AstTypes.Node): boolean {
+export function areNodesEqual(node: AstTypes.Node, otherNode: AstTypes.Node): boolean {
 	// We're deep cloning these trees so that we can strip the locations off of them for comparisons.
 	// Without this, we'd be getting false negatives due to slight differences in formatting style.
 	// These ASTs are also filled to the brim with circular references, which prevents
 	// us from using `structuredCloned` directly
 
-	const firstNodeClone = stripAst(decircular(firstNode), ['loc', 'raw']);
-	const secondNodeClone = stripAst(decircular(secondNode), ['loc', 'raw']);
-	return serializeScript(firstNodeClone) === serializeScript(secondNodeClone);
+	const nodeClone = stripAst(decircular(node), ['loc', 'raw']);
+	const otherNodeClone = stripAst(decircular(otherNode), ['loc', 'raw']);
+	return serializeScript(nodeClone) === serializeScript(otherNodeClone);
 }
 
 export function createBlockStatement(): AstTypes.BlockStatement {
@@ -106,10 +106,12 @@ export function createBlockStatement(): AstTypes.BlockStatement {
 	return statement;
 }
 
-export function createExpressionStatement(node: AstTypes.Expression): AstTypes.ExpressionStatement {
+export function createExpressionStatement(options: {
+	expression: AstTypes.Expression;
+}): AstTypes.ExpressionStatement {
 	const statement: AstTypes.ExpressionStatement = {
 		type: 'ExpressionStatement',
-		expression: node
+		expression: options.expression
 	};
 	return statement;
 }
@@ -138,11 +140,11 @@ export function parseExpression(options: { code: string }): AstTypes.Expression 
 }
 
 export function parseStatement(options: { code: string }): AstTypes.Statement {
-	return parseFromString<AstTypes.Statement>(options.code);
+	return parseFromString<AstTypes.Statement>({ code: options.code });
 }
 
-export function parseFromString<T extends AstTypes.Node>(code: string): T {
-	const program = parseScript(dedent(code));
+export function parseFromString<T extends AstTypes.Node>(options: { code: string }): T {
+	const program = parseScript(dedent(options.code));
 	const statement = program.body[0]!;
 
 	return statement as T;
