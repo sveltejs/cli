@@ -77,9 +77,9 @@ export default defineAddon({
 
 			const globalsBrowser = common.createSpread(common.parseExpression('globals.browser'));
 			const globalsNode = common.createSpread(common.parseExpression('globals.node'));
-			const rules = object.create({
-				'"no-undef"': 'off'
-			});
+			const globalsObjLiteral = object.create({});
+			globalsObjLiteral.properties = [globalsBrowser, globalsNode];
+			const rules = object.create({ '"no-undef"': 'off' });
 
 			if (rules.properties[0].type !== 'Property') {
 				throw new Error('rules.properties[0].type !== "Property"');
@@ -98,11 +98,9 @@ export default defineAddon({
 			];
 
 			const globalsConfig = object.create({
-				languageOptions: object.create({
-					globals: {
-						properties: [globalsBrowser, globalsNode]
-					}
-				}),
+				languageOptions: {
+					globals: globalsObjLiteral
+				},
 				rules: typescript ? rules : undefined
 			});
 
