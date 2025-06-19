@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.12
+### Patch Changes
+
+
+- feat(vitest): support vite browser mode ([#588](https://github.com/sveltejs/cli/pull/588))
+
 ## 0.8.11
 ### Patch Changes
 
