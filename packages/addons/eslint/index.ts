@@ -6,6 +6,7 @@ import {
 	functions,
 	imports,
 	object,
+	variables,
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
@@ -125,7 +126,7 @@ export default defineAddon({
 					files: ['**/*.svelte', '**/*.svelte.js'],
 					languageOptions: {
 						parserOptions: {
-							svelteConfig: 'svelteConfig'
+							svelteConfig: variables.createIdentifier('svelteConfig')
 						}
 					}
 				});
@@ -155,7 +156,7 @@ export default defineAddon({
 			if (!typescript)
 				common.addJsDocTypeComment(astNode, { type: "import('eslint').Linter.Config[]" });
 
-			// imports			if (typescript) imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
+			if (typescript) imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
 			imports.addNamed(ast, { from: 'node:url', imports: { fileURLToPath: 'fileURLToPath' } });
 			imports.addDefault(ast, { from: 'globals', as: 'globals' });
 			imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: 'svelte' });
