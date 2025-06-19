@@ -135,11 +135,11 @@ export default defineAddon({
 
 			const vitestConfig = functions.getArgument(defineWorkspaceCall, {
 				index: 0,
-				fallback: object.createEmpty()
+				fallback: object.create({})
 			});
 			const testObject = object.property(vitestConfig, {
 				name: 'test',
-				fallback: object.createEmpty()
+				fallback: object.create({})
 			});
 
 			const workspaceArray = object.property(testObject, {

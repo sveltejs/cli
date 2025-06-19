@@ -4,7 +4,7 @@ export function run(ast: AstTypes.Program): void {
 	const variableFallback = variables.declaration(ast, {
 		kind: 'const',
 		name: 'variable',
-		value: object.createEmpty()
+		value: object.create({})
 	});
 
 	const existingExport = exports.createNamed(ast, {

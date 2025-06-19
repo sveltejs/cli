@@ -123,10 +123,10 @@ export default defineAddon({
 			}
 
 			if (userTable.arguments.length === 1) {
-				userTable.arguments.push(js.object.createEmpty());
+				userTable.arguments.push(js.object.create({}));
 			}
 			if (sessionTable.arguments.length === 1) {
-				sessionTable.arguments.push(js.object.createEmpty());
+				sessionTable.arguments.push(js.object.create({}));
 			}
 
 			const userAttributes = userTable.arguments[1];

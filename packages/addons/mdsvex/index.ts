@@ -16,7 +16,7 @@ export default defineAddon({
 			imports.addNamed(ast, { from: 'mdsvex', imports: { mdsvex: 'mdsvex' } });
 
 			const { value: exportDefault } = exports.createDefault(ast, {
-				fallback: object.createEmpty()
+				fallback: object.create({})
 			});
 
 			// preprocess

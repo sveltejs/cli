@@ -76,11 +76,8 @@ export default defineAddon({
 
 			const globalsBrowser = common.createSpread(common.parseExpression('globals.browser'));
 			const globalsNode = common.createSpread(common.parseExpression('globals.node'));
-			const globalsObjLiteral = object.create({});
-			globalsObjLiteral.properties = [globalsBrowser, globalsNode];
-			const off = common.createLiteral('off');
 			const rules = object.create({
-				'"no-undef"': off
+				'"no-undef"': 'off'
 			});
 
 			if (rules.properties[0].type !== 'Property') {
@@ -101,7 +98,9 @@ export default defineAddon({
 
 			const globalsConfig = object.create({
 				languageOptions: object.create({
-					globals: globalsObjLiteral
+					globals: {
+						properties: [globalsBrowser, globalsNode]
+					}
 				}),
 				rules: typescript ? rules : undefined
 			});
@@ -110,25 +109,25 @@ export default defineAddon({
 
 			if (typescript) {
 				const svelteTSParserConfig = object.create({
-					files: common.parseExpression("['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js']"),
-					languageOptions: object.create({
-						parserOptions: object.create({
-							projectService: common.parseExpression('true'),
-							extraFileExtensions: common.parseExpression("['.svelte']"),
-							parser: common.parseExpression('ts.parser'),
-							svelteConfig: common.parseExpression('svelteConfig')
-						})
-					})
+					files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
+					languageOptions: {
+						parserOptions: {
+							projectService: true,
+							extraFileExtensions: ['.svelte'],
+							parser: 'ts.parser',
+							svelteConfig: 'svelteConfig'
+						}
+					}
 				});
 				eslintConfigs.push(svelteTSParserConfig);
 			} else {
 				const svelteTSParserConfig = object.create({
-					files: common.parseExpression("['**/*.svelte', '**/*.svelte.js']"),
-					languageOptions: object.create({
-						parserOptions: object.create({
-							svelteConfig: common.parseExpression('svelteConfig')
-						})
-					})
+					files: ['**/*.svelte', '**/*.svelte.js'],
+					languageOptions: {
+						parserOptions: {
+							svelteConfig: 'svelteConfig'
+						}
+					}
 				});
 				eslintConfigs.push(svelteTSParserConfig);
 			}

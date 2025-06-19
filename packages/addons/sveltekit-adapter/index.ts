@@ -79,7 +79,7 @@ export default defineAddon({
 				imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
 
-			const { value: config } = exports.createDefault(ast, { fallback: object.createEmpty() });
+			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 			const kitConfig = config.properties.find(
 				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
 			) as AstTypes.Property | undefined;

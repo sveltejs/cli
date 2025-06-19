@@ -68,7 +68,7 @@ export default defineAddon({
 			});
 			const param1 = functions.getArgument(rootObject, {
 				index: 0,
-				fallback: object.createEmpty()
+				fallback: object.create({})
 			});
 
 			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });

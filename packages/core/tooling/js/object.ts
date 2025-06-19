@@ -110,7 +110,11 @@ type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[]
 type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
 
 export function create(properties: ObjectMap): AstTypes.ObjectExpression {
-	const objExpression = createEmpty();
+	const objExpression: AstTypes.ObjectExpression = {
+		type: 'ObjectExpression',
+		properties: []
+	};
+
 	const getExpression = (value: any): AstTypes.Expression => {
 		let expression: AstTypes.Expression;
 		if (Array.isArray(value)) {
@@ -137,12 +141,4 @@ export function create(properties: ObjectMap): AstTypes.ObjectExpression {
 	}
 
 	return objExpression;
-}
-
-export function createEmpty(): AstTypes.ObjectExpression {
-	const objectExpression: AstTypes.ObjectExpression = {
-		type: 'ObjectExpression',
-		properties: []
-	};
-	return objectExpression;
 }

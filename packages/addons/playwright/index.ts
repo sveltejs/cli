@@ -50,8 +50,8 @@ export default defineAddon({
 
 			const config = {
 				webServer: object.create({
-					command: common.createLiteral('npm run build && npm run preview'),
-					port: common.parseExpression('4173')
+					command: 'npm run build && npm run preview',
+					port: 4173
 				}),
 				testDir: common.createLiteral('e2e')
 			};

@@ -1,7 +1,7 @@
 import { variables, object, common, type AstTypes } from '@sveltejs/cli-core/js';
 
 export function run(ast: AstTypes.Program): void {
-	const emptyObject = object.createEmpty();
+	const emptyObject = object.create({});
 	const emptyVariable = variables.declaration(ast, {
 		kind: 'const',
 		name: 'empty',

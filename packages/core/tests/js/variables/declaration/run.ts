@@ -9,7 +9,7 @@ export function run(ast: AstTypes.Program): void {
 	ast.body.push(testNumberVariable);
 
 	const objectExpression = object.create({
-		foo: common.createLiteral('bar')
+		foo: 'bar'
 	});
 	const testObjectVariable = variables.declaration(ast, {
 		kind: 'const',

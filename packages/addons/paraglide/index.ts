@@ -109,8 +109,8 @@ export default defineAddon({
 			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
 			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
 			const pluginConfig = object.create({
-				project: common.createLiteral('./project.inlang'),
-				outdir: common.createLiteral(`./${paraglideOutDir}`)
+				project: './project.inlang',
+				outdir: `./${paraglideOutDir}`
 			});
 			functions.getArgument(pluginFunctionCall, { index: 0, fallback: pluginConfig });
 			array.append(pluginsArray, pluginFunctionCall);
