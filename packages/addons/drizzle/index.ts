@@ -3,6 +3,7 @@ import path from 'node:path';
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
 import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
 
 const PORTS = {
@@ -357,16 +358,18 @@ export default defineAddon({
 			`You will need to set ${highlighter.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
+			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
-				`Run ${highlighter.command(`${packageManager} run db:start`)} to start the docker container`
+				`Run ${highlighter.command(`${command} ${args.join(' ')}`)} to start the docker container`
 			);
 		} else {
 			steps.push(
 				`Check ${highlighter.env('DATABASE_URL')} in ${highlighter.path('.env')} and adjust it to your needs`
 			);
 		}
+		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		steps.push(
-			`Run ${highlighter.command(`${packageManager} run db:push`)} to update your database schema`
+			`Run ${highlighter.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		);
 
 		return steps;
