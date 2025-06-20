@@ -113,7 +113,7 @@ async function prepareServer(
 	// ...do commands and any other extra stuff
 	await afterInstall?.();
 
-	// build project
+	// build project  asd
 	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
 
 	// start preview server
