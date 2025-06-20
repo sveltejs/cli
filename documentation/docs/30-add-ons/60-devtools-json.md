@@ -7,6 +7,20 @@ The `devtools-json` add-on installs [`vite-plugin-devtools-json`](https://github
 > [!NOTE]
 > Installing the plugin enables the feature for all users connecting to the dev server with a Chromium browser, and allows the browser to read and write all files within the directory. If using Chrome's AI Assistance feature, this may also result in data being sent to Google.
 
+Alternatively, you can prevent the warning by handling the request yourself, for example by adding logic to your [`handle`](https://svelte.dev/docs/kit/hooks#Server-hooks-handle) hook:
+
+```js
+/// file: src/hooks.server.js
+import { dev } from '$app/environment';
+
+export function handle({ event, resolve }) {
+  if (dev && event.url.pathname === '/.well-known/appspecific/com.chrome.devtools.json') {
+    return new Response(undefined, { status: 404 });
+  }
+  
+  return resolve(event);
+}
+
 ## Usage
 
 ```bash
