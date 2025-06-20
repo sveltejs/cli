@@ -90,6 +90,10 @@ importers:
       '@sveltejs/cli-core':
         specifier: workspace:*
         version: link:../core
+    devDependencies:
+      package-manager-detector:
+        specifier: ^0.2.11
+        version: 0.2.11
 
   packages/cli:
     devDependencies:
