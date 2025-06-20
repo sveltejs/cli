@@ -42,7 +42,7 @@
 		"@types/node": "^18.19.112",
 		"@types/prompts": "^2.4.9",
 		"@types/semver": "^7.7.0",
-		"svelte": "^4.2.20"
+		"svelte": "^5.34.0"
 	},
 	"keywords": [
 		"migration",
