@@ -11,6 +11,7 @@ import {
 import * as js from '@sveltejs/cli-core/js';
 import type { AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
+import { resolveCommand } from 'package-manager-detector/commands';
 import { addToDemoPage } from '../common.ts';
 
 const TABLE_TYPE = {
@@ -676,8 +677,9 @@ export default defineAddon({
 		}
 	},
 	nextSteps: ({ highlighter, options, packageManager }) => {
+		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		const steps = [
-			`Run ${highlighter.command(`${packageManager} run db:push`)} to update your database schema`
+			`Run ${highlighter.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		];
 		if (options.demo) {
 			steps.push(`Visit ${highlighter.route('/demo/lucia')} route to view the demo`);
