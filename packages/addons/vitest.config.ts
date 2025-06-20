@@ -10,7 +10,6 @@ export default defineProject({
 		globalSetup: ['_tests/_setup/global.ts'],
 		testTimeout: ONE_MINUTE * 3,
 		hookTimeout: ONE_MINUTE * 3,
-		retry: env.CI ? 3 : 0,
-		pool: 'threads'
+		retry: env.CI ? 3 : 0
 	}
 });
