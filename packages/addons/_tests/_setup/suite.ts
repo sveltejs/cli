@@ -86,10 +86,6 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 		};
 	});
 
-	vitest.afterEach(async () => {
-		await new Promise((res) => setImmediate(res));
-	});
-
 	return { test, variants, prepareServer };
 }
 

@@ -20,7 +20,7 @@
 	"devDependencies": {
 		"@playwright/test": "^1.53.1",
 		"sv": "workspace:*",
-		"vitest": "^3.2.4"
+		"vitest": "3.0.9"
 	},
 	"keywords": [
 		"svelte-add-on",
