@@ -188,7 +188,6 @@ export default defineAddon({
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
-				console.log(content);
 				const { ast, generateCode } = parseSvelte(content);
 
 				let scriptAst = ast.instance?.content;

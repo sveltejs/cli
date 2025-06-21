@@ -16,8 +16,7 @@ import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
-import { parse as svelteParse, type AST as SvelteAst } from 'svelte/compiler';
-import { print as sveltePrint } from 'svelte-ast-print';
+import { parse as svelteParse, type AST as SvelteAst, print as sveltePrint } from 'svelte/compiler';
 
 export {
 	// html

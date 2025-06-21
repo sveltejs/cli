@@ -51,15 +51,14 @@
 		"dom-serializer": "^2.0.0",
 		"domhandler": "^5.0.3",
 		"domutils": "^3.2.2",
-		"esrap": "^1.4.9",
+		"esrap": "https://pkg.pr.new/sveltejs/esrap@a275a5c",
 		"htmlparser2": "^9.1.0",
 		"magic-string": "^0.30.17",
 		"picocolors": "^1.1.1",
 		"postcss": "^8.5.6",
 		"silver-fleece": "^1.2.1",
-		"zimmerframe": "^1.1.2",
 		"svelte": "^5.30.2",
-		"svelte-ast-print": "^1.0.1"
+		"zimmerframe": "^1.1.2"
 	},
 	"keywords": [
 		"create",
