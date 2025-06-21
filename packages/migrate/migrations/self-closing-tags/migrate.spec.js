@@ -17,7 +17,7 @@ const tests = {
 	'<slot />': '<slot />',
 	'<svelte:options customElement="my-element" /><slot />':
 		'<svelte:options customElement="my-element" /><slot></slot>',
-	'<svelte:options namespace="foreign" /><foo />': '<svelte:options namespace="foreign" /><foo />',
+	'<svelte:options namespace="html" /><Foo />': '<svelte:options namespace="html" /><Foo />',
 	'<script>console.log("<div />")</script>': '<script>console.log("<div />")</script>',
 	'<script lang="ts">let a: string = ""</script><div />':
 		'<script lang="ts">let a: string = ""</script><div></div>',
