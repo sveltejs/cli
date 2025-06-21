@@ -90,8 +90,7 @@ export function setupAddons(
 		const setupResult: AddonSetupResult = {
 			unsupported: [],
 			dependsOn: [],
-			runsAfter: [],
-			defaultSelection: { create: false, add: false }
+			runsAfter: []
 		};
 		addon.setup?.({
 			...workspace,
@@ -100,10 +99,7 @@ export function setupAddons(
 				setupResult.runsAfter.push(name);
 			},
 			unsupported: (reason) => setupResult.unsupported.push(reason),
-			runsAfter: (name) => setupResult.runsAfter.push(name),
-			defaultSelection: (defaultSelection) => {
-				setupResult.defaultSelection = defaultSelection;
-			}
+			runsAfter: (name) => setupResult.runsAfter.push(name)
 		});
 		addonSetupResults[addon.id] = setupResult;
 	}

@@ -184,8 +184,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				community: [],
 				addons: {}
 			},
-			[],
-			'create'
+			[]
 		);
 		packageManager = pm;
 		addOnNextSteps = nextSteps;
