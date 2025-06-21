@@ -126,7 +126,10 @@ export default defineAddon({
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');
 					if (!svelteVersion) throw new Error('Failed to determine svelte version');
-					addSlot(script.ast, template.ast, svelteVersion);
+					addSlot(script.ast, {
+						htmlAst: template.ast,
+						svelteVersion
+					});
 				}
 
 				return generateCode({

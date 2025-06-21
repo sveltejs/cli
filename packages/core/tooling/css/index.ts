@@ -2,43 +2,46 @@ import { Declaration, Rule, AtRule, Comment, type CssAst, type CssChildNode } fr
 
 export type { CssAst };
 
-export function addRule(ast: CssAst, selector: string): Rule {
-	const rules = ast.nodes.filter((x): x is Rule => x.type === 'rule');
-	let rule = rules.find((x) => x.selector === selector);
+export function addRule(node: CssAst, options: { selector: string }): Rule {
+	const rules = node.nodes.filter((x): x is Rule => x.type === 'rule');
+	let rule = rules.find((x) => x.selector === options.selector);
 
 	if (!rule) {
 		rule = new Rule();
-		rule.selector = selector;
-		ast.nodes.push(rule);
+		rule.selector = options.selector;
+		node.nodes.push(rule);
 	}
 
 	return rule;
 }
 
-export function addDeclaration(ast: Rule | CssAst, property: string, value: string): void {
-	const declarations = ast.nodes.filter((x): x is Declaration => x.type === 'decl');
-	let declaration = declarations.find((x) => x.prop === property);
+export function addDeclaration(
+	node: Rule | CssAst,
+	options: { property: string; value: string }
+): void {
+	const declarations = node.nodes.filter((x): x is Declaration => x.type === 'decl');
+	let declaration = declarations.find((x) => x.prop === options.property);
 
 	if (!declaration) {
-		declaration = new Declaration({ prop: property, value });
-		ast.append(declaration);
+		declaration = new Declaration({ prop: options.property, value: options.value });
+		node.append(declaration);
 	} else {
-		declaration.value = value;
+		declaration.value = options.value;
 	}
 }
 
-export function addImports(ast: Rule | CssAst, imports: string[]): CssChildNode[] {
+export function addImports(node: Rule | CssAst, options: { imports: string[] }): CssChildNode[] {
 	let prev: CssChildNode | undefined;
-	const nodes = imports.map((param) => {
-		const found = ast.nodes.find(
+	const nodes = options.imports.map((param) => {
+		const found = node.nodes.find(
 			(x) => x.type === 'atrule' && x.name === 'import' && x.params === param
 		);
 
 		if (found) return (prev = found);
 
 		const rule = new AtRule({ name: 'import', params: param });
-		if (prev) ast.insertAfter(prev, rule);
-		else ast.prepend(rule);
+		if (prev) node.insertAfter(prev, rule);
+		else node.prepend(rule);
 
 		return (prev = rule);
 	});
@@ -46,25 +49,28 @@ export function addImports(ast: Rule | CssAst, imports: string[]): CssChildNode[
 	return nodes;
 }
 
-export function addAtRule(ast: CssAst, name: string, params: string, append = false): AtRule {
-	const atRules = ast.nodes.filter((x): x is AtRule => x.type === 'atrule');
-	let atRule = atRules.find((x) => x.name === name && x.params === params);
+export function addAtRule(
+	node: CssAst,
+	options: { name: string; params: string; append: boolean }
+): AtRule {
+	const atRules = node.nodes.filter((x): x is AtRule => x.type === 'atrule');
+	let atRule = atRules.find((x) => x.name === options.name && x.params === options.params);
 
 	if (atRule) {
 		return atRule;
 	}
 
-	atRule = new AtRule({ name, params });
-	if (!append) {
-		ast.prepend(atRule);
+	atRule = new AtRule({ name: options.name, params: options.params });
+	if (!options.append) {
+		node.prepend(atRule);
 	} else {
-		ast.append(atRule);
+		node.append(atRule);
 	}
 
 	return atRule;
 }
 
-export function addComment(ast: CssAst, commentValue: string): void {
-	const comment = new Comment({ text: commentValue });
-	ast.append(comment);
+export function addComment(node: CssAst, options: { value: string }): void {
+	const comment = new Comment({ text: options.value });
+	node.append(comment);
 }
