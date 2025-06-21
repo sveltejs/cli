@@ -6,16 +6,19 @@ import {
 	HtmlElementType,
 	parseHtml
 } from '../index.ts';
-import { addFromString } from '../js/common.ts';
+import { appendFromString } from '../js/common.ts';
 
 export { HtmlElement, HtmlElementType };
 export type { HtmlDocument };
 
-export function div(attributes: Record<string, string> = {}): HtmlElement {
-	return element('div', attributes);
+export function createDiv(attributes: Record<string, string> = {}): HtmlElement {
+	return createElement('div', attributes);
 }
 
-export function element(tagName: string, attributes: Record<string, string> = {}): HtmlElement {
+export function createElement(
+	tagName: string,
+	attributes: Record<string, string> = {}
+): HtmlElement {
 	const element = new HtmlElement(tagName, {}, undefined, HtmlElementType.Tag);
 	element.attribs = attributes;
 	return element;
@@ -38,18 +41,20 @@ export function addFromRawHtml(childNodes: HtmlChildNode[], html: string): void 
 
 export function addSlot(
 	jsAst: AstTypes.Program,
-	htmlAst: HtmlDocument,
-	svelteVersion: string
+	options: { htmlAst: HtmlDocument; svelteVersion: string }
 ): void {
 	const slotSyntax =
-		svelteVersion && (svelteVersion.startsWith('4') || svelteVersion.startsWith('3'));
+		options.svelteVersion &&
+		(options.svelteVersion.startsWith('4') || options.svelteVersion.startsWith('3'));
 
 	if (slotSyntax) {
-		const slot = element('slot');
-		appendElement(htmlAst.childNodes, slot);
+		const slot = createElement('slot');
+		appendElement(options.htmlAst.childNodes, slot);
 		return;
 	}
 
-	addFromString(jsAst, 'let { children } = $props();');
-	addFromRawHtml(htmlAst.childNodes, '{@render children()}');
+	appendFromString(jsAst, {
+		code: 'let { children } = $props();'
+	});
+	addFromRawHtml(options.htmlAst.childNodes, '{@render children()}');
 }

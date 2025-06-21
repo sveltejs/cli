@@ -1,7 +1,12 @@
-import { div, appendElement, insertElement, type HtmlDocument } from '@sveltejs/cli-core/html';
+import {
+	createDiv,
+	appendElement,
+	insertElement,
+	type HtmlDocument
+} from '@sveltejs/cli-core/html';
 
 export function run(ast: HtmlDocument): void {
-	const emptyDiv = div();
+	const emptyDiv = createDiv();
 	insertElement(ast.childNodes, emptyDiv);
 	appendElement(ast.childNodes, emptyDiv);
 }

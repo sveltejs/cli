@@ -4,6 +4,6 @@ export function run(ast: AstTypes.Program): void {
 	const functionDeclaration = ast.body[0] as AstTypes.FunctionDeclaration;
 
 	common.addJsDocComment(functionDeclaration, {
-		'import("$lib/paraglide/runtime").AvailableLanguageTag': 'newLanguage'
+		params: { 'import("$lib/paraglide/runtime").AvailableLanguageTag': 'newLanguage' }
 	});
 }

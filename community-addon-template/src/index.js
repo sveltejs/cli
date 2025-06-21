@@ -27,7 +27,7 @@ export default defineAddon({
 		sv.file('src/DemoComponent.svelte', (content) => {
 			if (!options.demo) return content;
 			const { script, generateCode } = parseSvelte(content, { typescript });
-			imports.addDefault(script.ast, '../addon-template-demo.txt?raw', 'demo');
+			imports.addDefault(script.ast, { from: '../addon-template-demo.txt?raw', as: 'demo' });
 			return generateCode({ script: script.generateCode(), template: '{demo}' });
 		});
 	}

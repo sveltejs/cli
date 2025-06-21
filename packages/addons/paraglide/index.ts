@@ -94,19 +94,26 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'paraglideVitePlugin';
-			imports.addNamed(ast, '@inlang/paraglide-js', { paraglideVitePlugin: vitePluginName });
-
-			const { value: rootObject } = exports.defaultExport(ast, functions.call('defineConfig', []));
-			const param1 = functions.argumentByIndex(rootObject, 0, object.createEmpty());
-
-			const pluginsArray = object.property(param1, 'plugins', array.createEmpty());
-			const pluginFunctionCall = functions.call(vitePluginName, []);
-			const pluginConfig = object.create({
-				project: common.createLiteral('./project.inlang'),
-				outdir: common.createLiteral(`./${paraglideOutDir}`)
+			imports.addNamed(ast, {
+				from: '@inlang/paraglide-js',
+				imports: { paraglideVitePlugin: vitePluginName }
 			});
-			functions.argumentByIndex(pluginFunctionCall, 0, pluginConfig);
-			array.push(pluginsArray, pluginFunctionCall);
+			const { value: rootObject } = exports.createDefault(ast, {
+				fallback: functions.createCall({ name: 'defineConfig', args: [] })
+			});
+			const param1 = functions.getArgument(rootObject, {
+				index: 0,
+				fallback: object.create({})
+			});
+
+			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
+			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
+			const pluginConfig = object.create({
+				project: './project.inlang',
+				outdir: `./${paraglideOutDir}`
+			});
+			functions.getArgument(pluginFunctionCall, { index: 0, fallback: pluginConfig });
+			array.append(pluginsArray, pluginFunctionCall);
 
 			return generateCode();
 		});
@@ -114,17 +121,22 @@ export default defineAddon({
 		// reroute hook
 		sv.file(`src/hooks.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-
-			imports.addNamed(ast, '$lib/paraglide/runtime', {
-				deLocalizeUrl: 'deLocalizeUrl'
+			imports.addNamed(ast, {
+				from: '$lib/paraglide/runtime',
+				imports: { deLocalizeUrl: 'deLocalizeUrl' }
 			});
 
-			const expression = common.expressionFromString(
-				'(request) => deLocalizeUrl(request.url).pathname'
-			);
-			const rerouteIdentifier = variables.declaration(ast, 'const', 'reroute', expression);
+			const expression = common.parseExpression('(request) => deLocalizeUrl(request.url).pathname');
+			const rerouteIdentifier = variables.declaration(ast, {
+				kind: 'const',
+				name: 'reroute',
+				value: expression
+			});
 
-			const existingExport = exports.namedExport(ast, 'reroute', rerouteIdentifier);
+			const existingExport = exports.createNamed(ast, {
+				name: 'reroute',
+				fallback: rerouteIdentifier
+			});
 			if (existingExport.declaration !== rerouteIdentifier) {
 				log.warn('Adding the reroute hook automatically failed. Add it manually');
 			}
@@ -135,9 +147,9 @@ export default defineAddon({
 		// handle hook
 		sv.file(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-
-			imports.addNamed(ast, '$lib/paraglide/server', {
-				paraglideMiddleware: 'paraglideMiddleware'
+			imports.addNamed(ast, {
+				from: '$lib/paraglide/server',
+				imports: { paraglideMiddleware: 'paraglideMiddleware' }
 			});
 
 			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
@@ -146,7 +158,11 @@ export default defineAddon({
 			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
 		});
 	});`;
-			kitJs.addHooksHandle(ast, typescript, 'handleParaglide', hookHandleContent);
+			kitJs.addHooksHandle(ast, {
+				typescript,
+				newHandleName: 'handleParaglide',
+				handleContent: hookHandleContent
+			});
 
 			return generateCode();
 		});
@@ -190,12 +206,12 @@ export default defineAddon({
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
-
-				imports.addNamed(script.ast, '$lib/paraglide/messages.js', { m: 'm' });
-				imports.addNamed(script.ast, '$app/navigation', { goto: 'goto' });
-				imports.addNamed(script.ast, '$app/state', { page: 'page' });
-				imports.addNamed(script.ast, '$lib/paraglide/runtime', {
-					setLocale: 'setLocale'
+				imports.addNamed(script.ast, { from: '$lib/paraglide/messages.js', imports: { m: 'm' } });
+				imports.addNamed(script.ast, { from: '$app/navigation', imports: { goto: 'goto' } });
+				imports.addNamed(script.ast, { from: '$app/state', imports: { page: 'page' } });
+				imports.addNamed(script.ast, {
+					from: '$lib/paraglide/runtime',
+					imports: { setLocale: 'setLocale' }
 				});
 
 				const scriptCode = new MagicString(script.generateCode());

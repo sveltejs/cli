@@ -114,10 +114,10 @@ function parseKitOptions(cwd: string) {
 	// We'll error out since we can't safely determine the config object
 	if (!objectExpression) throw new Error('Unexpected svelte config shape from `svelte.config.js`');
 
-	const kit = object.property(objectExpression, 'kit', object.createEmpty());
-	const files = object.property(kit, 'files', object.createEmpty());
-	const routes = object.property(files, 'routes', common.createLiteral());
-	const lib = object.property(files, 'lib', common.createLiteral());
+	const kit = object.property(objectExpression, { name: 'kit', fallback: object.create({}) });
+	const files = object.property(kit, { name: 'files', fallback: object.create({}) });
+	const routes = object.property(files, { name: 'routes', fallback: common.createLiteral('') });
+	const lib = object.property(files, { name: 'lib', fallback: common.createLiteral('') });
 
 	const routesDirectory = (routes.value as string) || 'src/routes';
 	const libDirectory = (lib.value as string) || 'src/lib';

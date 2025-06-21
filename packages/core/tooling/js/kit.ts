@@ -1,23 +1,26 @@
 import { Walker, type AstTypes } from '../index.ts';
-import { common, functions, imports, variables, exports } from '../js/index.ts';
+import * as common from './common.ts';
+import * as functions from './function.ts';
+import * as imports from './imports.ts';
+import * as variables from './variables.ts';
+import * as exports from './exports.ts';
 
 export function addGlobalAppInterface(
-	ast: AstTypes.TSProgram,
-	name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform'
+	node: AstTypes.TSProgram,
+	options: { name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform' }
 ): AstTypes.TSInterfaceDeclaration {
-	let globalDecl = ast.body
+	let globalDecl = node.body
 		.filter((n) => n.type === 'TSModuleDeclaration')
 		.find((m) => m.global && m.declare);
 
 	if (!globalDecl) {
-		globalDecl = common.fromString<AstTypes.TSModuleDeclaration>('declare global {}');
-		ast.body.push(globalDecl);
+		globalDecl = common.parseFromString<AstTypes.TSModuleDeclaration>('declare global {}');
+		node.body.push(globalDecl);
 	}
 
 	if (globalDecl.body?.type !== 'TSModuleBlock') {
 		throw new Error('Unexpected body type of `declare global` in `src/app.d.ts`');
 	}
-
 	let app: AstTypes.TSModuleDeclaration | undefined;
 	let interfaceNode: AstTypes.TSInterfaceDeclaration | undefined;
 
@@ -29,14 +32,14 @@ export function addGlobalAppInterface(
 			next();
 		},
 		TSInterfaceDeclaration(node) {
-			if (node.id.type === 'Identifier' && node.id.name === name) {
+			if (node.id.type === 'Identifier' && node.id.name === options.name) {
 				interfaceNode = node;
 			}
 		}
 	});
 
 	if (!app) {
-		app = common.fromString<AstTypes.TSModuleDeclaration>('namespace App {}');
+		app = common.parseFromString<AstTypes.TSModuleDeclaration>('namespace App {}');
 		globalDecl.body.body.push(app);
 	}
 
@@ -46,7 +49,9 @@ export function addGlobalAppInterface(
 
 	if (!interfaceNode) {
 		// add the interface if it's missing
-		interfaceNode = common.fromString<AstTypes.TSInterfaceDeclaration>(`interface ${name} {}`);
+		interfaceNode = common.parseFromString<AstTypes.TSInterfaceDeclaration>(
+			`interface ${options.name} {}`
+		);
 		app.body.body.push(interfaceNode);
 	}
 
@@ -54,15 +59,20 @@ export function addGlobalAppInterface(
 }
 
 export function addHooksHandle(
-	ast: AstTypes.Program,
-	typescript: boolean,
-	newHandleName: string,
-	handleContent: string
-): void {
-	if (typescript) {
-		imports.addNamed(ast, '@sveltejs/kit', { Handle: 'Handle' }, true);
+	node: AstTypes.Program,
+	options: {
+		typescript: boolean;
+		newHandleName: string;
+		handleContent: string;
 	}
-
+): void {
+	if (options.typescript) {
+		imports.addNamed(node, {
+			from: '@sveltejs/kit',
+			imports: { Handle: 'Handle' },
+			isType: true
+		});
+	}
 	let isSpecifier: boolean = false;
 	let handleName = 'handle';
 	let exportDecl: AstTypes.ExportNamedDeclaration | undefined;
@@ -72,13 +82,14 @@ export function addHooksHandle(
 	// This will grab export references for:
 	// `export { handle }` & `export { foo as handle }`
 	// `export const handle = ...`, & `export function handle() {...}`
-	Walker.walk(ast as AstTypes.Node, null, {
-		ExportNamedDeclaration(node) {
+	Walker.walk(node as AstTypes.Node, null, {
+		ExportNamedDeclaration(declaration) {
 			let maybeHandleDecl: AstTypes.Declaration | undefined;
 
 			// `export { handle }` & `export { foo as handle }`
-			const handleSpecifier = node.specifiers?.find(
-				(s) => s.exported.type === 'Identifier' && s.exported.name === 'handle'
+			const handleSpecifier = declaration.specifiers?.find(
+				(specifier) =>
+					specifier.exported.type === 'Identifier' && specifier.exported.name === 'handle'
 			);
 			if (
 				handleSpecifier &&
@@ -90,106 +101,127 @@ export function addHooksHandle(
 				handleName = (handleSpecifier.local?.name ?? handleSpecifier.exported.name) as string;
 
 				// find the definition
-				const handleFunc = ast.body.find((n) => isFunctionDeclaration(n, handleName));
-				const handleVar = ast.body.find((n) => isVariableDeclaration(n, handleName));
-
+				const handleFunc = node.body.find((item) => isFunctionDeclaration(item, handleName));
+				const handleVar = node.body.find((item) => isVariableDeclaration(item, handleName));
 				maybeHandleDecl = handleFunc ?? handleVar;
 			}
 
-			maybeHandleDecl ??= node.declaration ?? undefined;
+			maybeHandleDecl ??= declaration.declaration ?? undefined;
 
 			// `export const handle`
 			if (maybeHandleDecl && isVariableDeclaration(maybeHandleDecl, handleName)) {
-				exportDecl = node;
+				exportDecl = declaration;
 				originalHandleDecl = maybeHandleDecl;
 			}
 
 			// `export function handle`
 			if (maybeHandleDecl && isFunctionDeclaration(maybeHandleDecl, handleName)) {
-				exportDecl = node;
+				exportDecl = declaration;
 				originalHandleDecl = maybeHandleDecl;
 			}
 		}
 	});
 
-	const newHandle = common.expressionFromString(handleContent);
-	if (common.hasNode(ast, newHandle)) return;
-
+	const newHandle = common.parseExpression(options.handleContent);
+	if (common.contains(node, newHandle)) return;
 	// This is the straightforward case. If there's no existing `handle`, we'll just add one
 	// with the new handle's definition and exit
 	if (!originalHandleDecl || !exportDecl) {
-		const newDecl = variables.declaration(ast, 'const', newHandleName, newHandle);
-		if (typescript) {
-			const declarator = newDecl.declarations[0] as AstTypes.VariableDeclarator;
-			variables.typeAnnotateDeclarator(declarator, 'Handle');
-		}
-		ast.body.push(newDecl);
+		const newHandleDecl = variables.declaration(node, {
+			kind: 'const',
+			name: options.newHandleName,
+			value: newHandle
+		});
 
-		const handleDecl = variables.declaration(
-			ast,
-			'const',
-			handleName,
-			common.expressionFromString(newHandleName)
-		);
-		if (typescript) {
+		if (options.typescript) {
+			const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
+			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
+		}
+		node.body.push(newHandleDecl);
+
+		const handleDecl = variables.declaration(node, {
+			kind: 'const',
+			name: handleName,
+			value: variables.createIdentifier(options.newHandleName)
+		});
+
+		if (options.typescript) {
 			const declarator = handleDecl.declarations[0] as AstTypes.VariableDeclarator;
-			variables.typeAnnotateDeclarator(declarator, 'Handle');
+			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		}
-		exports.namedExport(ast, handleName, handleDecl);
 
+		exports.createNamed(node, {
+			name: handleName,
+			fallback: handleDecl
+		});
 		return;
 	}
 
 	// create the new handle
-	const newDecl = variables.declaration(ast, 'const', newHandleName, newHandle);
-	if (typescript) {
-		const declarator = newDecl.declarations[0] as AstTypes.VariableDeclarator;
-		variables.typeAnnotateDeclarator(declarator, 'Handle');
+	const newHandleDecl = variables.declaration(node, {
+		kind: 'const',
+		name: options.newHandleName,
+		value: newHandle
+	});
+	if (options.typescript) {
+		const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
+		variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 	}
 
 	// check if `handle` is using a sequence
 	let sequence: AstTypes.CallExpression | undefined;
 	if (originalHandleDecl.type === 'VariableDeclaration') {
 		const handle = originalHandleDecl.declarations.find(
-			(d) => d.type === 'VariableDeclarator' && usingSequence(d, handleName)
+			(declarator) =>
+				declarator.type === 'VariableDeclarator' && usingSequence(declarator, handleName)
 		) as AstTypes.VariableDeclarator | undefined;
 
 		sequence = handle?.init as AstTypes.CallExpression;
 	}
-
 	// If `handle` is already using a `sequence`, then we'll just create the new handle and
 	// append the new handle name to the args of `sequence`
 	// e.g. `export const handle = sequence(some, other, handles, newHandle);`
 	if (sequence) {
 		const hasNewArg = sequence.arguments.some(
-			(arg) => arg.type === 'Identifier' && arg.name === newHandleName
+			(arg) => arg.type === 'Identifier' && arg.name === options.newHandleName
 		);
 		if (!hasNewArg) {
-			sequence.arguments.push(variables.identifier(newHandleName));
+			sequence.arguments.push(variables.createIdentifier(options.newHandleName));
 		}
 
 		// removes the declarations so we can append them in the correct order
-		ast.body = ast.body.filter(
-			(n) => n !== originalHandleDecl && n !== exportDecl && n !== newDecl
+		node.body = node.body.filter(
+			(item) => item !== originalHandleDecl && item !== exportDecl && item !== newHandleDecl
 		);
 		if (isSpecifier) {
 			// if export specifiers are being used (e.g. `export { handle }`), then we'll want
 			// need to also append original handle declaration as it's not part of the export declaration
-			ast.body.push(newDecl, originalHandleDecl, exportDecl);
+			node.body.push(newHandleDecl, originalHandleDecl, exportDecl);
 		} else {
-			ast.body.push(newDecl, exportDecl);
+			node.body.push(newHandleDecl, exportDecl);
 		}
 	}
-
 	// At this point, the existing `handle` doesn't call `sequence`, so we'll need to rename the original
 	// `handle` and create a new `handle` that uses `sequence`
 	// e.g. `const handle = sequence(originalHandle, newHandle);`
 	const NEW_HANDLE_NAME = 'originalHandle';
-	const sequenceCall = functions.callByIdentifier('sequence', [NEW_HANDLE_NAME, newHandleName]);
-	const newHandleDecl = variables.declaration(ast, 'const', handleName, sequenceCall);
 
-	imports.addNamed(ast, '@sveltejs/kit/hooks', { sequence: 'sequence' });
+	const sequenceCall = functions.createCall({
+		name: 'sequence',
+		args: [NEW_HANDLE_NAME, options.newHandleName],
+		useIdentifiers: true
+	});
 
+	const finalHandleDecl = variables.declaration(node, {
+		kind: 'const',
+		name: handleName,
+		value: sequenceCall
+	});
+
+	imports.addNamed(node, {
+		from: '@sveltejs/kit/hooks',
+		imports: { sequence: 'sequence' }
+	});
 	let renameRequired = false;
 	// rename `export const handle`
 	if (originalHandleDecl && isVariableDeclaration(originalHandleDecl, handleName)) {
@@ -206,34 +238,46 @@ export function addHooksHandle(
 	}
 
 	// removes all declarations so that we can re-append them in the correct order
-	ast.body = ast.body.filter((n) => n !== originalHandleDecl && n !== exportDecl && n !== newDecl);
+	node.body = node.body.filter(
+		(item) => item !== originalHandleDecl && item !== exportDecl && item !== newHandleDecl
+	);
 
 	if (isSpecifier) {
-		ast.body.push(originalHandleDecl, newDecl, newHandleDecl, exportDecl);
+		node.body.push(originalHandleDecl, newHandleDecl, finalHandleDecl, exportDecl);
 	}
-
 	if (exportDecl.declaration && renameRequired) {
 		// when we re-append the declarations, we only want to add the declaration
 		// of the (now renamed) original `handle` _without_ the `export` keyword:
 		// e.g. `const originalHandle = ...;`
-		ast.body.push(exportDecl.declaration, newDecl);
+		node.body.push(exportDecl.declaration, newHandleDecl);
 		// `export const handle = sequence(originalHandle, newHandle);`
-		exports.namedExport(ast, handleName, newHandleDecl);
+		exports.createNamed(node, {
+			name: handleName,
+			fallback: finalHandleDecl
+		});
 	} else if (exportDecl.declaration && isVariableDeclaration(originalHandleDecl, handleName)) {
 		// if the previous value of `export const handle = ...` was an identifier
 		// there is no need to rename the handle, we just need to add it to the sequence
 		const variableDeclarator = getVariableDeclarator(originalHandleDecl, handleName);
-		const sequenceCall = functions.callByIdentifier('sequence', [
-			(variableDeclarator?.init as AstTypes.Identifier).name,
-			newHandleName
-		]);
-		const newHandleDecl = variables.declaration(ast, 'const', handleName, sequenceCall);
-		if (typescript) {
-			const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
-			variables.typeAnnotateDeclarator(declarator, 'Handle');
+		const sequenceCall = functions.createCall({
+			name: 'sequence',
+			args: [(variableDeclarator?.init as AstTypes.Identifier).name, options.newHandleName],
+			useIdentifiers: true
+		});
+		const finalHandleDecl = variables.declaration(node, {
+			kind: 'const',
+			name: handleName,
+			value: sequenceCall
+		});
+		if (options.typescript) {
+			const declarator = finalHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
+			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		}
-		ast.body.push(newDecl);
-		exports.namedExport(ast, handleName, newHandleDecl);
+		node.body.push(newHandleDecl);
+		exports.createNamed(node, {
+			name: handleName,
+			fallback: finalHandleDecl
+		});
 	}
 }
 
@@ -258,10 +302,11 @@ function isVariableDeclaration(
 
 function getVariableDeclarator(
 	node: AstTypes.VariableDeclaration,
-	handleName: string
+	variableName: string
 ): AstTypes.VariableDeclarator | undefined {
 	return node.declarations.find(
-		(d) => d.type === 'VariableDeclarator' && d.id.type === 'Identifier' && d.id.name === handleName
+		(d) =>
+			d.type === 'VariableDeclarator' && d.id.type === 'Identifier' && d.id.name === variableName
 	) as AstTypes.VariableDeclarator | undefined;
 }
 

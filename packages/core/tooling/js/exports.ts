@@ -1,23 +1,23 @@
 import type { AstTypes } from '../index.ts';
 
-export type ExportDefaultReturn<T> = {
+export type ExportDefaultResult<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;
 	value: T;
 };
 
-export function defaultExport<T extends AstTypes.Expression>(
-	ast: AstTypes.Program,
-	fallbackDeclaration: T
-): ExportDefaultReturn<T> {
-	const existingNode = ast.body.find((x) => x.type === 'ExportDefaultDeclaration');
+export function createDefault<T extends AstTypes.Expression>(
+	node: AstTypes.Program,
+	options: { fallback: T }
+): ExportDefaultResult<T> {
+	const existingNode = node.body.find((item) => item.type === 'ExportDefaultDeclaration');
 	if (!existingNode) {
-		const node: AstTypes.ExportDefaultDeclaration = {
+		const exportNode: AstTypes.ExportDefaultDeclaration = {
 			type: 'ExportDefaultDeclaration',
-			declaration: fallbackDeclaration
+			declaration: options.fallback
 		};
 
-		ast.body.push(node);
-		return { astNode: node, value: fallbackDeclaration };
+		node.body.push(exportNode);
+		return { astNode: exportNode, value: options.fallback };
 	}
 
 	const exportDefaultDeclaration = existingNode;
@@ -28,14 +28,14 @@ export function defaultExport<T extends AstTypes.Expression>(
 
 		let variableDeclaration: AstTypes.VariableDeclaration | undefined;
 		let variableDeclarator: AstTypes.VariableDeclarator | undefined;
-		for (const declaration of ast.body) {
+		for (const declaration of node.body) {
 			if (declaration.type !== 'VariableDeclaration') continue;
 
 			const declarator = declaration.declarations.find(
-				(d): d is AstTypes.VariableDeclarator =>
-					d.type === 'VariableDeclarator' &&
-					d.id.type === 'Identifier' &&
-					d.id.name === identifier.name
+				(declarator): declarator is AstTypes.VariableDeclarator =>
+					declarator.type === 'VariableDeclarator' &&
+					declarator.id.type === 'Identifier' &&
+					declarator.id.name === identifier.name
 			);
 
 			variableDeclarator = declarator;
@@ -53,27 +53,26 @@ export function defaultExport<T extends AstTypes.Expression>(
 	return { astNode: exportDefaultDeclaration, value: declaration };
 }
 
-export function namedExport(
-	ast: AstTypes.Program,
-	name: string,
-	fallback: AstTypes.VariableDeclaration
+export function createNamed(
+	node: AstTypes.Program,
+	options: { name: string; fallback: AstTypes.VariableDeclaration }
 ): AstTypes.ExportNamedDeclaration {
-	const namedExports = ast.body.filter((x) => x.type === 'ExportNamedDeclaration');
-	let namedExport = namedExports.find((x) => {
-		const variableDeclaration = x.declaration as AstTypes.VariableDeclaration;
+	const namedExports = node.body.filter((item) => item.type === 'ExportNamedDeclaration');
+	let namedExport = namedExports.find((exportNode) => {
+		const variableDeclaration = exportNode.declaration as AstTypes.VariableDeclaration;
 		const variableDeclarator = variableDeclaration.declarations[0] as AstTypes.VariableDeclarator;
 		const identifier = variableDeclarator.id as AstTypes.Identifier;
-		return identifier.name === name;
+		return identifier.name === options.name;
 	});
 
 	if (namedExport) return namedExport;
 
 	namedExport = {
 		type: 'ExportNamedDeclaration',
-		declaration: fallback,
+		declaration: options.fallback,
 		specifiers: [],
 		attributes: []
 	};
-	ast.body.push(namedExport);
+	node.body.push(namedExport);
 	return namedExport;
 }

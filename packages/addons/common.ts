@@ -22,22 +22,22 @@ export function addEslintConfigPrettier(content: string): string {
 	}
 
 	svelteImportName ??= 'svelte';
-	imports.addDefault(ast, 'eslint-plugin-svelte', svelteImportName);
-	imports.addDefault(ast, 'eslint-config-prettier', 'prettier');
+	imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: svelteImportName });
+	imports.addDefault(ast, { from: 'eslint-config-prettier', as: 'prettier' });
 
-	const fallbackConfig = common.expressionFromString('[]');
-	const defaultExport = exports.defaultExport(ast, fallbackConfig);
+	const fallbackConfig = common.parseExpression('[]');
+	const defaultExport = exports.createDefault(ast, { fallback: fallbackConfig });
 	const eslintConfig = defaultExport.value;
 	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression')
 		return content;
 
-	const prettier = common.expressionFromString('prettier');
-	const sveltePrettierConfig = common.expressionFromString(`${svelteImportName}.configs.prettier`);
-	const configSpread = common.createSpreadElement(sveltePrettierConfig);
+	const prettier = common.parseExpression('prettier');
+	const sveltePrettierConfig = common.parseExpression(`${svelteImportName}.configs.prettier`);
+	const configSpread = common.createSpread(sveltePrettierConfig);
 
 	const nodesToInsert = [];
-	if (!common.hasNode(eslintConfig, prettier)) nodesToInsert.push(prettier);
-	if (!common.hasNode(eslintConfig, configSpread)) nodesToInsert.push(configSpread);
+	if (!common.contains(eslintConfig, prettier)) nodesToInsert.push(prettier);
+	if (!common.contains(eslintConfig, configSpread)) nodesToInsert.push(configSpread);
 
 	const elements =
 		eslintConfig.type === 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;

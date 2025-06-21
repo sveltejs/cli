@@ -38,11 +38,11 @@ function addFixture(cwd: string, variant: string) {
 
 	const src = fs.readFileSync(page, 'utf8');
 	const { script, template, generateCode } = parseSvelte(src);
-	imports.addDefault(script.ast, './Demo.svx', 'Demo');
+	imports.addDefault(script.ast, { from: './Demo.svx', as: 'Demo' });
 
-	const div = html.div({ class: 'mdsvex' });
+	const div = html.createDiv({ class: 'mdsvex' });
 	html.appendElement(template.ast.childNodes, div);
-	const mdsvexNode = html.element('Demo');
+	const mdsvexNode = html.createElement('Demo');
 	html.appendElement(div.childNodes, mdsvexNode);
 
 	const content = generateCode({

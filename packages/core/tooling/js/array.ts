@@ -1,7 +1,7 @@
 import { areNodesEqual } from './common.ts';
 import type { AstTypes } from '../index.ts';
 
-export function createEmpty(): AstTypes.ArrayExpression {
+export function create(): AstTypes.ArrayExpression {
 	const arrayExpression: AstTypes.ArrayExpression = {
 		type: 'ArrayExpression',
 		elements: []
@@ -9,40 +9,43 @@ export function createEmpty(): AstTypes.ArrayExpression {
 	return arrayExpression;
 }
 
-export function push(
-	ast: AstTypes.ArrayExpression,
-	data: string | AstTypes.Expression | AstTypes.SpreadElement
+export function append(
+	node: AstTypes.ArrayExpression,
+	element: string | AstTypes.Expression | AstTypes.SpreadElement
 ): void {
-	insertElement(ast, data, true);
+	insertElement(node, element, { insertEnd: true });
 }
-export function unshift(
-	ast: AstTypes.ArrayExpression,
-	data: string | AstTypes.Expression | AstTypes.SpreadElement
+
+export function prepend(
+	node: AstTypes.ArrayExpression,
+	element: string | AstTypes.Expression | AstTypes.SpreadElement
 ): void {
-	insertElement(ast, data, false);
+	insertElement(node, element, { insertEnd: false });
 }
 
 function insertElement(
-	ast: AstTypes.ArrayExpression,
-	data: string | AstTypes.Expression | AstTypes.SpreadElement,
-	insertEnd: boolean
+	node: AstTypes.ArrayExpression,
+	element: string | AstTypes.Expression | AstTypes.SpreadElement,
+	options: { insertEnd: boolean }
 ): void {
-	if (typeof data === 'string') {
-		const existingLiterals = ast.elements.filter((x) => x !== null && x.type === 'Literal');
-		let literal = existingLiterals.find((x) => x.value === data);
+	if (typeof element === 'string') {
+		const existingLiterals = node.elements.filter(
+			(item) => item !== null && item.type === 'Literal'
+		);
+		let literal = existingLiterals.find((item) => item.value === element);
 		if (!literal) {
-			literal = { type: 'Literal', value: data };
+			literal = { type: 'Literal', value: element };
 
-			if (insertEnd) ast.elements.push(literal);
-			else ast.elements.unshift(literal);
+			if (options.insertEnd) node.elements.push(literal);
+			else node.elements.unshift(literal);
 		}
 	} else {
-		const elements = ast.elements;
-		const anyNodeEquals = elements.some((node) => node && areNodesEqual(data, node));
+		const elements = node.elements;
+		const anyNodeEquals = elements.some((item) => item && areNodesEqual(element, item));
 
 		if (!anyNodeEquals) {
-			if (insertEnd) ast.elements.push(data);
-			else ast.elements.unshift(data);
+			if (options.insertEnd) node.elements.push(element);
+			else node.elements.unshift(element);
 		}
 	}
 }

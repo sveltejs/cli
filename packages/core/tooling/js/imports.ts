@@ -1,51 +1,51 @@
 import { Walker, type AstTypes } from '../index.ts';
 import { areNodesEqual } from './common.ts';
 
-export function addEmpty(ast: AstTypes.Program, importFrom: string): void {
+export function addEmpty(node: AstTypes.Program, options: { from: string }): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: {
 			type: 'Literal',
-			value: importFrom
+			value: options.from
 		},
 		specifiers: [],
 		attributes: [],
 		importKind: 'value'
 	};
 
-	addImportIfNecessary(ast, expectedImportDeclaration);
+	addImportIfNecessary(node, expectedImportDeclaration);
 }
 
-export function addNamespace(ast: AstTypes.Program, importFrom: string, importAs: string): void {
+export function addNamespace(node: AstTypes.Program, options: { from: string; as: string }): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
 		type: 'ImportDeclaration',
 		importKind: 'value',
-		source: { type: 'Literal', value: importFrom },
+		source: { type: 'Literal', value: options.from },
 		specifiers: [
 			{
 				type: 'ImportNamespaceSpecifier',
-				local: { type: 'Identifier', name: importAs }
+				local: { type: 'Identifier', name: options.as }
 			}
 		],
 		attributes: []
 	};
 
-	addImportIfNecessary(ast, expectedImportDeclaration);
+	addImportIfNecessary(node, expectedImportDeclaration);
 }
 
-export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: string): void {
+export function addDefault(node: AstTypes.Program, options: { from: string; as: string }): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: {
 			type: 'Literal',
-			value: importFrom
+			value: options.from
 		},
 		specifiers: [
 			{
 				type: 'ImportDefaultSpecifier',
 				local: {
 					type: 'Identifier',
-					name: importAs
+					name: options.as
 				}
 			}
 		],
@@ -53,16 +53,18 @@ export function addDefault(ast: AstTypes.Program, importFrom: string, importAs: 
 		importKind: 'value'
 	};
 
-	addImportIfNecessary(ast, expectedImportDeclaration);
+	addImportIfNecessary(node, expectedImportDeclaration);
 }
 
 export function addNamed(
-	ast: AstTypes.Program,
-	importFrom: string,
-	exportedAsImportAs: Record<string, string>,
-	isType = false
+	node: AstTypes.Program,
+	options: {
+		from: string;
+		imports: Record<string, string>;
+		isType?: boolean;
+	}
 ): void {
-	const specifiers = Object.entries(exportedAsImportAs).map(([key, value]) => {
+	const specifiers = Object.entries(options.imports).map(([key, value]) => {
 		const specifier: AstTypes.ImportSpecifier = {
 			type: 'ImportSpecifier',
 			imported: {
@@ -79,10 +81,10 @@ export function addNamed(
 
 	let importDecl: AstTypes.ImportDeclaration | undefined;
 
-	Walker.walk(ast as AstTypes.Node, null, {
-		ImportDeclaration(node) {
-			if (node.source.value === importFrom && node.specifiers) {
-				importDecl = node;
+	Walker.walk(node as AstTypes.Node, null, {
+		ImportDeclaration(declaration) {
+			if (declaration.source.value === options.from && declaration.specifiers) {
+				importDecl = declaration;
 			}
 		}
 	});
@@ -109,26 +111,26 @@ export function addNamed(
 		type: 'ImportDeclaration',
 		source: {
 			type: 'Literal',
-			value: importFrom
+			value: options.from
 		},
 		specifiers,
 		attributes: [],
-		importKind: isType ? 'type' : 'value'
+		importKind: options.isType ? 'type' : 'value'
 	};
 
-	ast.body.unshift(expectedImportDeclaration);
+	node.body.unshift(expectedImportDeclaration);
 }
 
 function addImportIfNecessary(
-	ast: AstTypes.Program,
+	node: AstTypes.Program,
 	expectedImportDeclaration: AstTypes.ImportDeclaration
 ) {
-	const importDeclarations = ast.body.filter((x) => x.type === 'ImportDeclaration');
-	const importDeclaration = importDeclarations.find((x) =>
-		areNodesEqual(x, expectedImportDeclaration)
+	const importDeclarations = node.body.filter((item) => item.type === 'ImportDeclaration');
+	const importDeclaration = importDeclarations.find((item) =>
+		areNodesEqual(item, expectedImportDeclaration)
 	);
 
 	if (!importDeclaration) {
-		ast.body.unshift(expectedImportDeclaration);
+		node.body.unshift(expectedImportDeclaration);
 	}
 }

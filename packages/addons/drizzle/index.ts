@@ -195,18 +195,16 @@ export default defineAddon({
 		sv.file(`drizzle.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, 'drizzle-kit', { defineConfig: 'defineConfig' });
+			imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
-			common.addStatement(
-				ast,
-				common.statementFromString(
+			ast.body.push(
+				common.parseStatement(
 					"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
 				)
 			);
 
-			exports.defaultExport(
-				ast,
-				common.expressionFromString(`
+			exports.createDefault(ast, {
+				fallback: common.parseExpression(`
 					defineConfig({
 						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
 						dialect: "${options.sqlite === 'turso' ? 'turso' : options.database}",
@@ -217,7 +215,7 @@ export default defineAddon({
 						verbose: true,
 						strict: true
 					})`)
-			);
+			});
 
 			return generateCode();
 		});
@@ -227,44 +225,60 @@ export default defineAddon({
 
 			let userSchemaExpression;
 			if (options.database === 'sqlite') {
-				imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
-					sqliteTable: 'sqliteTable',
-					integer: 'integer'
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/sqlite-core',
+					imports: {
+						sqliteTable: 'sqliteTable',
+						integer: 'integer'
+					}
 				});
 
-				userSchemaExpression = common.expressionFromString(`sqliteTable('user', {
+				userSchemaExpression = common.parseExpression(`sqliteTable('user', {
 					id: integer('id').primaryKey(),
 					age: integer('age')
 				})`);
 			}
 			if (options.database === 'mysql') {
-				imports.addNamed(ast, 'drizzle-orm/mysql-core', {
-					mysqlTable: 'mysqlTable',
-					serial: 'serial',
-					int: 'int'
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/mysql-core',
+					imports: {
+						mysqlTable: 'mysqlTable',
+						serial: 'serial',
+						int: 'int'
+					}
 				});
 
-				userSchemaExpression = common.expressionFromString(`mysqlTable('user', {
+				userSchemaExpression = common.parseExpression(`mysqlTable('user', {
 					id: serial('id').primaryKey(),
 					age: int('age'),
 				})`);
 			}
 			if (options.database === 'postgresql') {
-				imports.addNamed(ast, 'drizzle-orm/pg-core', {
-					pgTable: 'pgTable',
-					serial: 'serial',
-					integer: 'integer'
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/pg-core',
+					imports: {
+						pgTable: 'pgTable',
+						serial: 'serial',
+						integer: 'integer'
+					}
 				});
 
-				userSchemaExpression = common.expressionFromString(`pgTable('user', {
+				userSchemaExpression = common.parseExpression(`pgTable('user', {
 					id: serial('id').primaryKey(),
 					age: integer('age'),
 				})`);
 			}
 
 			if (!userSchemaExpression) throw new Error('unreachable state...');
-			const userIdentifier = variables.declaration(ast, 'const', 'user', userSchemaExpression);
-			exports.namedExport(ast, 'user', userIdentifier);
+			const userIdentifier = variables.declaration(ast, {
+				kind: 'const',
+				name: 'user',
+				value: userSchemaExpression
+			});
+			exports.createNamed(ast, {
+				name: 'user',
+				fallback: userIdentifier
+			});
 
 			return generateCode();
 		});
@@ -272,83 +286,129 @@ export default defineAddon({
 		sv.file(`${kit?.libDirectory}/server/db/index.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, '$env/dynamic/private', { env: 'env' });
-			imports.addNamespace(ast, './schema', 'schema');
+			imports.addNamed(ast, {
+				from: '$env/dynamic/private',
+				imports: { env: 'env' }
+			});
+			imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
 			// env var checks
-			const dbURLCheck = common.statementFromString(
+			const dbURLCheck = common.parseStatement(
 				"if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
 			);
-			common.addStatement(ast, dbURLCheck);
+			ast.body.push(dbURLCheck);
 
 			let clientExpression;
 			// SQLite
 			if (options.sqlite === 'better-sqlite3') {
-				imports.addDefault(ast, 'better-sqlite3', 'Database');
-				imports.addNamed(ast, 'drizzle-orm/better-sqlite3', { drizzle: 'drizzle' });
+				imports.addDefault(ast, { from: 'better-sqlite3', as: 'Database' });
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/better-sqlite3',
+					imports: { drizzle: 'drizzle' }
+				});
 
-				clientExpression = common.expressionFromString('new Database(env.DATABASE_URL)');
+				clientExpression = common.parseExpression('new Database(env.DATABASE_URL)');
 			}
 			if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
-				imports.addNamed(ast, '@libsql/client', { createClient: 'createClient' });
-				imports.addNamed(ast, 'drizzle-orm/libsql', { drizzle: 'drizzle' });
+				imports.addNamed(ast, {
+					from: '@libsql/client',
+					imports: { createClient: 'createClient' }
+				});
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/libsql',
+					imports: { drizzle: 'drizzle' }
+				});
 
 				if (options.sqlite === 'turso') {
-					imports.addNamed(ast, '$app/environment', { dev: 'dev' });
+					imports.addNamed(ast, {
+						from: '$app/environment',
+						imports: { dev: 'dev' }
+					});
 					// auth token check in prod
-					const authTokenCheck = common.statementFromString(
+					const authTokenCheck = common.parseStatement(
 						"if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
 					);
-					common.addStatement(ast, authTokenCheck);
+					ast.body.push(authTokenCheck);
 
-					clientExpression = common.expressionFromString(
+					clientExpression = common.parseExpression(
 						'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
 					);
 				} else {
-					clientExpression = common.expressionFromString('createClient({ url: env.DATABASE_URL })');
+					clientExpression = common.parseExpression('createClient({ url: env.DATABASE_URL })');
 				}
 			}
 			// MySQL
 			if (options.mysql === 'mysql2' || options.mysql === 'planetscale') {
-				imports.addDefault(ast, 'mysql2/promise', 'mysql');
-				imports.addNamed(ast, 'drizzle-orm/mysql2', { drizzle: 'drizzle' });
+				imports.addDefault(ast, { from: 'mysql2/promise', as: 'mysql' });
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/mysql2',
+					imports: { drizzle: 'drizzle' }
+				});
 
-				clientExpression = common.expressionFromString('mysql.createPool(env.DATABASE_URL)');
+				clientExpression = common.parseExpression('mysql.createPool(env.DATABASE_URL)');
 			}
 			// PostgreSQL
 			if (options.postgresql === 'neon') {
-				imports.addNamed(ast, '@neondatabase/serverless', { neon: 'neon' });
-				imports.addNamed(ast, 'drizzle-orm/neon-http', { drizzle: 'drizzle' });
+				imports.addNamed(ast, {
+					from: '@neondatabase/serverless',
+					imports: { neon: 'neon' }
+				});
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/neon-http',
+					imports: { drizzle: 'drizzle' }
+				});
 
-				clientExpression = common.expressionFromString('neon(env.DATABASE_URL)');
+				clientExpression = common.parseExpression('neon(env.DATABASE_URL)');
 			}
 			if (options.postgresql === 'postgres.js') {
-				imports.addDefault(ast, 'postgres', 'postgres');
-				imports.addNamed(ast, 'drizzle-orm/postgres-js', { drizzle: 'drizzle' });
+				imports.addDefault(ast, { from: 'postgres', as: 'postgres' });
+				imports.addNamed(ast, {
+					from: 'drizzle-orm/postgres-js',
+					imports: { drizzle: 'drizzle' }
+				});
 
-				clientExpression = common.expressionFromString('postgres(env.DATABASE_URL)');
+				clientExpression = common.parseExpression('postgres(env.DATABASE_URL)');
 			}
 
 			if (!clientExpression) throw new Error('unreachable state...');
-			const clientIdentifier = variables.declaration(ast, 'const', 'client', clientExpression);
-			common.addStatement(ast, clientIdentifier);
+			ast.body.push(
+				variables.declaration(ast, {
+					kind: 'const',
+					name: 'client',
+					value: clientExpression
+				})
+			);
 
 			// create drizzle function call
-			const drizzleCall = functions.callByIdentifier('drizzle', ['client']);
+			const drizzleCall = functions.createCall({
+				name: 'drizzle',
+				args: ['client'],
+				useIdentifiers: true
+			});
 
 			// add schema to support `db.query`
 			const paramObject = object.create({
-				schema: variables.identifier('schema')
+				schema: variables.createIdentifier('schema')
 			});
 			if (options.database === 'mysql') {
 				const mode = options.mysql === 'planetscale' ? 'planetscale' : 'default';
-				object.property(paramObject, 'mode', common.createLiteral(mode));
+				object.property(paramObject, {
+					name: 'mode',
+					fallback: common.createLiteral(mode)
+				});
 			}
 			drizzleCall.arguments.push(paramObject);
 
 			// create `db` export
-			const db = variables.declaration(ast, 'const', 'db', drizzleCall);
-			exports.namedExport(ast, 'db', db);
+			const db = variables.declaration(ast, {
+				kind: 'const',
+				name: 'db',
+				value: drizzleCall
+			});
+			exports.createNamed(ast, {
+				name: 'db',
+				fallback: db
+			});
 
 			return generateCode();
 		});

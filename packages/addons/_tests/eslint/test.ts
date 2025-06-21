@@ -19,7 +19,7 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 
 	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).toThrowError();
 
-	expect(() => execSync('pnpm eslint --fix .', { cwd, stdio: 'pipe' })).not.toThrowError();
+	expect(() => execSync('pnpm eslint --fix .', { cwd, stdio: 'inherit' })).not.toThrowError();
 
 	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).not.toThrowError();
 });
