@@ -44,6 +44,9 @@
 	"pnpm": {
 		"onlyBuiltDependencies": [
 			"esbuild"
-		]
+		],
+		"overrides": {
+			"svelte": "link:..\\..\\..\\svelte\\packages\\svelte"
+		}
 	}
 }
