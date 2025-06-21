@@ -3,7 +3,8 @@ import path from 'node:path';
 import { createGunzip } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
-import { extract } from 'tar-fs';
+// TODO: replace tar-fs
+// import { extract } from 'tar-fs';
 import type { AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
 
 // path to the `node_modules` directory of `sv`
@@ -65,15 +66,15 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonWi
 	// so that we can dynamically import the package via `import(pkg-name)`
 	await pipeline(
 		data.body,
-		createGunzip(),
-		extract(NODE_MODULES, {
-			map: (header) => {
-				// file paths from the tarball will always have a `package/` prefix,
-				// so we'll need to replace it with the name of the package
-				header.name = header.name.replace('package', pkg.name);
-				return header;
-			}
-		})
+		createGunzip()
+		// extract(NODE_MODULES, {
+		// 	map: (header) => {
+		// 		// file paths from the tarball will always have a `package/` prefix,
+		// 		// so we'll need to replace it with the name of the package
+		// 		header.name = header.name.replace('package', pkg.name);
+		// 		return header;
+		// 	}
+		// })
 	);
 
 	const { default: details } = await import(pkg.name);

@@ -1,8 +1,0 @@
-{
-	"extends": "../../tsconfig.json",
-	"compilerOptions": {
-		"checkJs": false,
-		"isolatedDeclarations": true,
-		"declaration": true
-	}
-}

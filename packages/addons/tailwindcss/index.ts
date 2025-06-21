@@ -30,7 +30,8 @@ const options = defineAddonOptions({
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
 		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: []
+		default: [],
+		required: false
 	}
 });
 

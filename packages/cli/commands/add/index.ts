@@ -4,7 +4,7 @@ import process from 'node:process';
 import pc from 'picocolors';
 import * as v from 'valibot';
 import * as pkg from 'empathic/package';
-import * as p from '@sveltejs/clack-prompts';
+import * as p from '@clack/prompts';
 import { Command } from 'commander';
 import {
 	officialAddons,
@@ -201,15 +201,16 @@ export const add = new Command('add')
 
 		common.runCommand(async () => {
 			const selectedAddonIds = selectedAddons.map(({ id }) => id);
-			const { nextSteps } = await runAddCommand(options, selectedAddonIds);
-			if (nextSteps) p.box(nextSteps, 'Next steps');
+			const { nextSteps } = await runAddCommand(options, selectedAddonIds, 'add');
+			if (nextSteps) p.note(nextSteps, 'Next steps', { format: (line: string) => line });
 		});
 	});
 
 type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
 export async function runAddCommand(
 	options: Options,
-	selectedAddonIds: string[]
+	selectedAddonIds: string[],
+	from: 'create' | 'add'
 ): Promise<{ nextSteps?: string; packageManager?: AgentName | null }> {
 	const selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
 		type: 'official',
@@ -387,7 +388,13 @@ export async function runAddCommand(
 
 	// prepare official addons
 	let workspace = await createWorkspace({ cwd: options.cwd });
-	const addonSetupResults = setupAddons(officialAddons, workspace);
+	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
+	const addonSetupResults = setupAddons(setups, workspace);
+
+	// get all addons that have been marked to be preselected
+	const initialValues = Object.entries(addonSetupResults)
+		.filter(([_, value]) => value.defaultSelection[from] === true)
+		.map(([key]) => key);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
@@ -403,7 +410,8 @@ export async function runAddCommand(
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
 			options: addonOptions,
-			required: false
+			required: false,
+			initialValues
 		});
 		if (p.isCancel(selected)) {
 			p.cancel('Operation cancelled.');
@@ -459,7 +467,7 @@ export async function runAddCommand(
 				.map(({ name, message }) => pc.yellow(`${name} (${message})`))
 				.join('\n- ');
 
-			p.note(`- ${message}`, 'Preconditions not met');
+			p.note(`- ${message}`, 'Preconditions not met', { format: (line) => line });
 
 			const force = await p.confirm({
 				message: 'Preconditions failed. Do you wish to continue?',
@@ -507,7 +515,7 @@ export async function runAddCommand(
 				answer = await p.multiselect({
 					message,
 					initialValues: question.default,
-					required: false,
+					required: question.required,
 					options: question.options
 				});
 			}

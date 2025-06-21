@@ -13,5 +13,8 @@
 	"exports": "./index.ts",
 	"dependencies": {
 		"@sveltejs/cli-core": "workspace:*"
+	},
+	"devDependencies": {
+		"package-manager-detector": "^0.2.11"
 	}
 }

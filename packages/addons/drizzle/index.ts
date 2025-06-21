@@ -3,6 +3,7 @@ import path from 'node:path';
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
 import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
 
 const PORTS = {
@@ -73,14 +74,17 @@ export default defineAddon({
 	options,
 	setup: ({ kit, unsupported, cwd, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
-		if (!kit) unsupported('Requires SvelteKit');
+		if (!kit) {
+			return unsupported('Requires SvelteKit');
+		}
 
-		const baseDBPath = path.resolve(kit!.libDirectory, 'server', 'db');
+		const baseDBPath = path.resolve(kit.libDirectory, 'server', 'db');
 		const paths = {
 			'drizzle config': path.relative(cwd, path.resolve(cwd, `drizzle.config.${ext}`)),
 			'database schema': path.relative(cwd, path.resolve(baseDBPath, `schema.${ext}`)),
 			database: path.relative(cwd, path.resolve(baseDBPath, `index.${ext}`))
 		};
+
 		for (const [fileType, filePath] of Object.entries(paths)) {
 			if (fs.existsSync(filePath)) {
 				unsupported(`Preexisting ${fileType} file at '${filePath}'`);
@@ -225,7 +229,6 @@ export default defineAddon({
 			if (options.database === 'sqlite') {
 				imports.addNamed(ast, 'drizzle-orm/sqlite-core', {
 					sqliteTable: 'sqliteTable',
-					text: 'text',
 					integer: 'integer'
 				});
 
@@ -238,7 +241,6 @@ export default defineAddon({
 				imports.addNamed(ast, 'drizzle-orm/mysql-core', {
 					mysqlTable: 'mysqlTable',
 					serial: 'serial',
-					text: 'text',
 					int: 'int'
 				});
 
@@ -251,7 +253,6 @@ export default defineAddon({
 				imports.addNamed(ast, 'drizzle-orm/pg-core', {
 					pgTable: 'pgTable',
 					serial: 'serial',
-					text: 'text',
 					integer: 'integer'
 				});
 
@@ -357,16 +358,18 @@ export default defineAddon({
 			`You will need to set ${highlighter.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
+			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
-				`Run ${highlighter.command(`${packageManager} run db:start`)} to start the docker container`
+				`Run ${highlighter.command(`${command} ${args.join(' ')}`)} to start the docker container`
 			);
 		} else {
 			steps.push(
 				`Check ${highlighter.env('DATABASE_URL')} in ${highlighter.path('.env')} and adjust it to your needs`
 			);
 		}
+		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		steps.push(
-			`Run ${highlighter.command(`${packageManager} run db:push`)} to update your database schema`
+			`Run ${highlighter.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		);
 
 		return steps;

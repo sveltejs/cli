@@ -6,14 +6,14 @@ export type BooleanQuestion = {
 export type StringQuestion = {
 	type: 'string';
 	default: string;
-	validate?: (value: string) => string | undefined;
+	validate?: (value: string | undefined) => string | Error | undefined;
 	placeholder?: string;
 };
 
 export type NumberQuestion = {
 	type: 'number';
 	default: number;
-	validate?: (value: string) => string | undefined;
+	validate?: (value: string | undefined) => string | Error | undefined;
 	placeholder?: string;
 };
 
@@ -27,6 +27,7 @@ export type MultiSelectQuestion<Value = any> = {
 	type: 'multiselect';
 	default: Value[];
 	options: Array<{ value: Value; label?: string; hint?: string }>;
+	required: boolean;
 };
 
 export type BaseQuestion = {
