@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.15
+### Patch Changes
+
+
+- fix: resolve to `task` instead of `run` in addon instructions for `deno` ([#599](https://github.com/sveltejs/cli/pull/599))
+
 ## 0.8.14
 ### Patch Changes
 
