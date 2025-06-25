@@ -1,5 +1,5 @@
 ---
-"@sveltejs/addons": patch
+'sv': patch
 ---
 
 fix: resolve to `task` instead of `run` in addon instructions for `deno`
