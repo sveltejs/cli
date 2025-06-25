@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.13
+### Patch Changes
+
+
+- chore: don't select `devtools-json` by default ([#598](https://github.com/sveltejs/cli/pull/598))
+
 ## 0.8.12
 ### Patch Changes
 
