@@ -77,22 +77,20 @@ export function parseScript(content: string): TsEstree.Program {
 
 	Walker.walk(ast as TsEstree.Node, null, {
 		_(commentNode, { next }) {
-			let comment = comments.shift();
+			let comment: TsEstree.Comment;
 
-			while (comment && comment.start! < commentNode.start!) {
-				commentNode.leadingComments ??= [];
-				commentNode.leadingComments.push(comment);
-				comment = comments.shift();
+			while (comments[0] && commentNode.start && comments[0].start! < commentNode.start) {
+				comment = comments.shift()!;
+				(commentNode.leadingComments ??= []).push(comment);
 			}
 
 			next();
 
-			comment = comments.shift();
-			if (comment) {
-				const slice = content.slice(commentNode.end, comment.start);
+			if (comments[0]) {
+				const slice = content.slice(commentNode.end, comments[0].start);
 
 				if (/^[,) \t]*$/.test(slice)) {
-					commentNode.trailingComments = [comment];
+					commentNode.trailingComments = [comments.shift()!];
 				}
 			}
 		}
