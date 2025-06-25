@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.14
+### Patch Changes
+
+
+- fix: preserve comments when parsing JS AST ([#609](https://github.com/sveltejs/cli/pull/609))
+
 ## 0.8.13
 ### Patch Changes
 
