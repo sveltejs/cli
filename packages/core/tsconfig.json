@@ -5,5 +5,5 @@
 		"isolatedDeclarations": true,
 		"declaration": true
 	},
-	"include": ["index.ts"]
+	"include": ["*.ts", "tooling", "tests", "addon"]
 }
