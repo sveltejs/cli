@@ -12,8 +12,7 @@ export default [
 	{
 		languageOptions: {
 			parserOptions: {
-				// use the nearest tsconfig from the source or fallback to the root
-				project: ['packages/**/tsconfig.json', 'tsconfig.json']
+				projectService: true
 			}
 		},
 		rules: {

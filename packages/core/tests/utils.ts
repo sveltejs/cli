@@ -170,3 +170,16 @@ test('integration - simple 2', () => {
 		}"
 	`);
 });
+
+test('integration - preserves comments', () => {
+	const code = dedent`
+	  /** @type {string} */
+    let foo = 'bar';
+    `;
+	const ast = parseScript(code);
+
+	expect(serializeScript(ast, code)).toMatchInlineSnapshot(`
+		"/** @type {string} */
+		let foo = 'bar';"
+	`);
+});

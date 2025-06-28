@@ -1,5 +1,23 @@
 # sv
 
+## 0.8.15
+### Patch Changes
+
+
+- fix: resolve to `task` instead of `run` in addon instructions for `deno` ([#599](https://github.com/sveltejs/cli/pull/599))
+
+## 0.8.14
+### Patch Changes
+
+
+- fix: preserve comments when parsing JS AST ([#609](https://github.com/sveltejs/cli/pull/609))
+
+## 0.8.13
+### Patch Changes
+
+
+- chore: don't select `devtools-json` by default ([#598](https://github.com/sveltejs/cli/pull/598))
+
 ## 0.8.12
 ### Patch Changes
 

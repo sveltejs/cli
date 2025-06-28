@@ -5,5 +5,6 @@
 		"isolatedDeclarations": true,
 		"declaration": true
 	},
-	"include": ["index.ts"]
+	"include": ["*.ts", "tooling", "tests", "addon"],
+	"exclude": ["vitest.config.ts", "tests/**/input.ts", "tests/**/output.ts"]
 }
