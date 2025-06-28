@@ -14,6 +14,7 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
+import ts from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 
@@ -47,19 +48,21 @@ export type {
 
 /**
  * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
- * https://github.com/sveltejs/esrap/blob/9daf5dd43b31f17f596aa7da91678f2650666dd0/test/common.js#L12
+ * https://github.com/sveltejs/esrap/blob/920491535d31484ac5fae2327c7826839d851aed/test/common.js#L14
  */
-export function parseScript(content: string): TsEstree.Program {
+export function parseScript(content: string): {
+	ast: TsEstree.Program;
+	comments: TsEstree.Comment[];
+} {
 	const comments: TsEstree.Comment[] = [];
 
 	const acornTs = acorn.Parser.extend(tsPlugin());
 
-	// Acorn doesn't add comments to the AST by itself. This factory returns the capabilities to add them after the fact.
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 		locations: true,
-		onComment: (block, value, start, end) => {
+		onComment: (block, value, start, end, startLoc, endLoc) => {
 			if (block && /\n/.test(value)) {
 				let a = start;
 				while (a > 0 && content[a - 1] !== '\n') a -= 1;
@@ -71,38 +74,31 @@ export function parseScript(content: string): TsEstree.Program {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
+			comments.push({
+				type: block ? 'Block' : 'Line',
+				value,
+				start,
+				end,
+				loc: { start: startLoc as TsEstree.Position, end: endLoc as TsEstree.Position }
+			});
 		}
 	}) as TsEstree.Program;
 
-	Walker.walk(ast as TsEstree.Node, null, {
-		_(commentNode, { next }) {
-			let comment: TsEstree.Comment;
-
-			while (comments[0] && commentNode.start && comments[0].start! < commentNode.start) {
-				comment = comments.shift()!;
-				(commentNode.leadingComments ??= []).push(comment);
-			}
-
-			next();
-
-			if (comments[0]) {
-				const slice = content.slice(commentNode.end, comments[0].start);
-
-				if (/^[,) \t]*$/.test(slice)) {
-					commentNode.trailingComments = [comments.shift()!];
-				}
-			}
-		}
-	});
-
-	return ast;
+	return {
+		ast,
+		comments
+	};
 }
 
-export function serializeScript(ast: TsEstree.Node, previousContent?: string): string {
-	const { code } = esrapPrint(ast, {
-		indent: guessIndentString(previousContent),
-		quotes: guessQuoteStyle(ast)
+export function serializeScript(
+	ast: TsEstree.Node,
+	comments: TsEstree.Comment[],
+	previousContent?: string
+): string {
+	// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
+	// which is causing these errors. But they are simmilar enough to work together.
+	const { code } = esrapPrint(ast, ts({ comments }), {
+		indent: guessIndentString(previousContent)
 	});
 	return code;
 }
@@ -204,37 +200,4 @@ export function guessIndentString(str: string | undefined): string {
 	} else {
 		return '\t';
 	}
-}
-
-export function guessQuoteStyle(ast: TsEstree.Node): 'single' | 'double' | undefined {
-	let singleCount = 0;
-	let doubleCount = 0;
-
-	Walker.walk(ast, null, {
-		Literal(node) {
-			if (node.raw && node.raw.length >= 2) {
-				// we have at least two characters in the raw string that could represent both quotes
-				const quotes = [node.raw[0], node.raw[node.raw.length - 1]];
-				for (const quote of quotes) {
-					switch (quote) {
-						case "'":
-							singleCount++;
-							break;
-						case '"':
-							doubleCount++;
-							break;
-						default:
-							break;
-					}
-				}
-			}
-		}
-	});
-
-	if (singleCount === 0 && doubleCount === 0) {
-		// new file or file without any quotes
-		return undefined;
-	}
-
-	return singleCount > doubleCount ? 'single' : 'double';
 }
