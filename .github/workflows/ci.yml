@@ -53,4 +53,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm build
+      # prefetch the storybook cli to reduce fetching errors in tests
+      - run: pnpx storybook@latest --version
       - run: pnpm test
