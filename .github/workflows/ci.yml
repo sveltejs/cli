@@ -55,4 +55,5 @@ jobs:
       - run: pnpm build
       # prefetch the storybook cli to reduce fetching errors in tests
       - run: pnpx storybook@latest
+        continue-on-error: true
       - run: pnpm test
