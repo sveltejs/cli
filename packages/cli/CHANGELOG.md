@@ -1,5 +1,14 @@
 # sv
 
+## 0.8.16
+### Patch Changes
+
+
+- chore: use plain-text svg favicon ([#617](https://github.com/sveltejs/cli/pull/617))
+
+
+- fix(add): add `static` folder to `.prettierignore` ([#618](https://github.com/sveltejs/cli/pull/618))
+
 ## 0.8.15
 ### Patch Changes
 
