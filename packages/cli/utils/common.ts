@@ -84,6 +84,7 @@ export async function runCommand(action: MaybePromise): Promise<void> {
 				`You are using Node.js ${pc.red(process.versions.node)}, please upgrade to Node.js 16 or higher.`
 			);
 		}
+
 		await action();
 		p.outro("You're all set!");
 	} catch (e) {
