@@ -20,6 +20,9 @@ export default defineAddon({
 				yarn.lock
 				bun.lock
 				bun.lockb
+
+				# Miscellaneous
+				/static/
 			`;
 		});
 
