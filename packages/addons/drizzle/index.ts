@@ -72,7 +72,9 @@ export default defineAddon({
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unsupported, cwd, typescript }) => {
+	setup: ({ kit, unsupported, runsAfter, cwd, typescript }) => {
+		runsAfter('prettier');
+
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) {
 			return unsupported('Requires SvelteKit');
@@ -91,7 +93,7 @@ export default defineAddon({
 			}
 		}
 	},
-	run: ({ sv, typescript, options, kit }) => {
+	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 
 		sv.dependency('drizzle-orm', '^0.40.0');
@@ -179,6 +181,16 @@ export default defineAddon({
 			scripts['db:studio'] ??= 'drizzle-kit studio';
 			return generateCode();
 		});
+
+		const hasPrettier = Boolean(dependencyVersion('prettier'));
+		if (hasPrettier) {
+			sv.file('.prettierignore', (content) => {
+				if (!content.includes(`/drizzle/`)) {
+					return content.trimEnd() + '\n/drizzle/';
+				}
+				return content;
+			});
+		}
 
 		if (options.database === 'sqlite') {
 			sv.file('.gitignore', (content) => {
