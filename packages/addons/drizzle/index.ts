@@ -72,7 +72,9 @@ export default defineAddon({
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unsupported, cwd, typescript }) => {
+	setup: ({ kit, unsupported, runsAfter, cwd, typescript }) => {
+		runsAfter('prettier');
+
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) {
 			return unsupported('Requires SvelteKit');
