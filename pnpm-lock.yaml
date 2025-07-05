@@ -115,9 +115,6 @@ importers:
       '@types/ps-tree':
         specifier: ^1.1.6
         version: 1.1.6
-      '@types/semver':
-        specifier: ^7.7.0
-        version: 7.7.0
       commander:
         specifier: ^13.1.0
         version: 13.1.0
@@ -136,9 +133,6 @@ importers:
       ps-tree:
         specifier: ^1.2.0
         version: 1.2.0
-      semver:
-        specifier: ^7.7.2
-        version: 7.7.2
       tinyexec:
         specifier: ^0.3.2
         version: 0.3.2
