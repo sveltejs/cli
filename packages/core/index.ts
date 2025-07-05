@@ -3,6 +3,7 @@ export { log } from '@clack/prompts';
 export { default as colors } from 'picocolors';
 export { default as dedent } from 'dedent';
 export * as utils from './utils.ts';
+export { minimumRequirement, versionSplit } from './common.ts';
 
 export type * from './addon/processors.ts';
 export type * from './addon/options.ts';
