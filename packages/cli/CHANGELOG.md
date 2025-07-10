@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.18
+### Patch Changes
+
+
+- feat: update templates to vite 7 and vite-plugin-svelte 6 ([#629](https://github.com/sveltejs/cli/pull/629))
+
 ## 0.8.17
 ### Patch Changes
 
