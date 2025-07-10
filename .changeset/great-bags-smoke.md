@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat(add): Add minimum Node.js version warning if below 16.
+feat: print warning if using Node.js version below 18.3
