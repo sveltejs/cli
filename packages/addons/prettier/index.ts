@@ -22,7 +22,7 @@ export default defineAddon({
 				bun.lockb
 
 				# Miscellaneous
-				static/
+				/static/
 			`;
 		});
 

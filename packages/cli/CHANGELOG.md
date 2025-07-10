@@ -1,5 +1,20 @@
 # sv
 
+## 0.8.18
+### Patch Changes
+
+
+- feat: update templates to vite 7 and vite-plugin-svelte 6 ([#629](https://github.com/sveltejs/cli/pull/629))
+
+## 0.8.17
+### Patch Changes
+
+
+- fix(add): add `/drizzle/` folder to `.prettierignore` if `prettier` is installed when adding `drizzle` addon ([#623](https://github.com/sveltejs/cli/pull/623))
+
+
+- fix: update `static/` to `/static/` in `.prettierignore` ([#624](https://github.com/sveltejs/cli/pull/624))
+
 ## 0.8.16
 ### Patch Changes
 
