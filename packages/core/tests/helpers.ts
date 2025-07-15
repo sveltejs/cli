@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { addPlugin } from '../tooling/helpers.ts';
+import { addPlugin, addToConfigArray } from '../tooling/helpers.ts';
+import { parseScript } from '../tooling/parsers.ts';
 
 const config_default = `
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -71,5 +72,91 @@ describe('helpers', () => {
 
 			export default config;"
 		`);
+	});
+
+	// Tests for addToConfigArray helper
+	describe('addToConfigArray', () => {
+		it('add to custom array property', () => {
+			const { ast, generateCode } = parseScript(config_default);
+
+			addToConfigArray(ast, {
+				code: 'eslint()',
+				arrayProperty: 'tools', // Different property name
+				ignoreWrapper: 'defineConfig'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [sveltekit()],
+					tools: [eslint()]
+				});"
+			`);
+		});
+
+		it('add to plugins without defineConfig', () => {
+			const { ast, generateCode } = parseScript(config_wo_defineConfig);
+
+			addToConfigArray(ast, {
+				code: 'eslint()',
+				arrayProperty: 'plugins'
+				// No ignoreWrapper, so it treats the object directly
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import type { UserConfig } from 'vite';
+
+				const config: UserConfig = { plugins: [sveltekit(), eslint()] };
+
+				export default config;"
+			`);
+		});
+
+		it('add with function arguments', () => {
+			const { ast, generateCode } = parseScript(config_default);
+
+			addToConfigArray(ast, {
+				code: `somePlugin('arg1', 'arg2')`,
+				arrayProperty: 'plugins',
+				ignoreWrapper: 'defineConfig'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [
+						sveltekit(),
+						somePlugin('arg1', 'arg2')
+					]
+				});"
+			`);
+		});
+
+		it('add complex expression', () => {
+			const { ast, generateCode } = parseScript(config_default);
+
+			addToConfigArray(ast, {
+				code: `condition ? plugin1() : plugin2({ option: 'value' })`,
+				arrayProperty: 'plugins',
+				ignoreWrapper: 'defineConfig'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [
+						sveltekit(),
+						condition ? plugin1() : plugin2({ option: 'value' })
+					]
+				});"
+			`);
+		});
 	});
 });

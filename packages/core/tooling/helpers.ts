@@ -1,5 +1,58 @@
-import { array, functions, imports, object, exports, type AstTypes } from './js/index.ts';
+import { array, functions, imports, object, exports, type AstTypes, common } from './js/index.ts';
 import { parseScript } from './parsers.ts';
+
+/**
+ * Add code (expression) to an array property in a config object
+ */
+export function addToConfigArray(
+	ast: AstTypes.Program,
+	options: {
+		code: string;
+		arrayProperty: string;
+		ignoreWrapper?: string;
+		fallbackConfig?: AstTypes.Expression;
+	}
+): void {
+	const { code, arrayProperty, ignoreWrapper, fallbackConfig } = options;
+
+	// Get or create the default export
+	const fallback = fallbackConfig || object.create({});
+
+	const { value: rootObject } = exports.createDefault(ast, { fallback });
+
+	// Handle wrapper functions (e.g., defineConfig({})) if ignoreWrapper is specified
+	let configObject: AstTypes.ObjectExpression;
+	if (ignoreWrapper && 'arguments' in rootObject && Array.isArray(rootObject.arguments)) {
+		// Check if this is the wrapper we want to ignore
+		if (
+			rootObject.type === 'CallExpression' &&
+			rootObject.callee.type === 'Identifier' &&
+			rootObject.callee.name === ignoreWrapper
+		) {
+			// For wrapper function calls like defineConfig({})
+			configObject = functions.getArgument(rootObject as any, {
+				index: 0,
+				fallback: object.create({})
+			});
+		} else {
+			// For other function calls, treat as the config object
+			configObject = rootObject as unknown as AstTypes.ObjectExpression;
+		}
+	} else {
+		// For plain object literals
+		configObject = rootObject as unknown as AstTypes.ObjectExpression;
+	}
+
+	// Get or create the array property
+	const targetArray = object.property(configObject, {
+		name: arrayProperty,
+		fallback: array.create()
+	});
+
+	// Parse and append the expression
+	const expression = common.parseExpression(code);
+	array.append(targetArray, expression);
+}
 
 export const addPlugin = (content: string): string => {
 	const { ast, generateCode } = parseScript(content);
@@ -7,29 +60,11 @@ export const addPlugin = (content: string): string => {
 	const vitePluginName = 'devtoolsJson';
 	imports.addDefault(ast, { from: 'vite-plugin-devtools-json', as: vitePluginName });
 
-	const { value: rootObject } = exports.createDefault(ast, {
-		fallback: functions.createCall({ name: 'defineConfig', args: [] })
+	addToConfigArray(ast, {
+		code: `${vitePluginName}()`,
+		arrayProperty: 'plugins',
+		ignoreWrapper: 'defineConfig'
 	});
-
-	// Handle both CallExpression (e.g., defineConfig({})) and ObjectExpression (e.g., { plugins: [] })
-	let param1: AstTypes.ObjectExpression;
-	if ('arguments' in rootObject && Array.isArray(rootObject.arguments)) {
-		// For function calls like defineConfig({})
-		param1 = functions.getArgument(rootObject as any, {
-			index: 0,
-			fallback: object.create({})
-		});
-	} else {
-		// For plain object literals like { plugins: [] } - cast through unknown
-		param1 = rootObject as unknown as AstTypes.ObjectExpression;
-	}
-
-	const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
-	const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
-
-	array.append(pluginsArray, pluginFunctionCall);
-
-	// common.appendFromString(ast, { code: `plugins: [sveltekit(), devtoolsJson()]` });
 
 	return generateCode();
 };
