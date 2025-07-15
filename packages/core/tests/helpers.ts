@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { addPlugin, getConfigObject, addToObjectArray } from '../tooling/helpers.ts';
+import {
+	addPluginToViteConfig,
+	exportDefaultConfig,
+	addInArrayOfObject
+} from '../tooling/helpers.ts';
 import { parseScript } from '../tooling/parsers.ts';
+import { imports } from '../dist/js.js';
 
 const config_default = `
 import { sveltekit } from '@sveltejs/kit/vite';
@@ -34,62 +39,10 @@ export default config;
 `;
 
 describe('helpers', () => {
-	describe('addPlugin', () => {
-		it('empty config', () => {
-			expect(addPlugin(``)).toMatchInlineSnapshot(`
-				"import { defineConfig } from 'vite';
-				import devtoolsJson from 'vite-plugin-devtools-json';
-
-				export default defineConfig({ plugins: [devtoolsJson()] });"
-			`);
-		});
-
-		it('config_default', () => {
-			expect(addPlugin(config_default)).toMatchInlineSnapshot(`
-				"import devtoolsJson from 'vite-plugin-devtools-json';
-				import { sveltekit } from '@sveltejs/kit/vite';
-				import { defineConfig } from 'vite';
-
-				export default defineConfig({
-					plugins: [sveltekit(), devtoolsJson()]
-				});"
-			`);
-		});
-
-		it('config_w_variable', () => {
-			expect(addPlugin(config_w_variable)).toMatchInlineSnapshot(`
-				"import devtoolsJson from 'vite-plugin-devtools-json';
-				import { sveltekit } from '@sveltejs/kit/vite';
-				import { defineConfig } from 'vite';
-
-				const config = defineConfig({
-					plugins: [sveltekit(), devtoolsJson()]
-				});
-
-				export default config;"
-			`);
-		});
-
-		it('config_wo_defineConfig', () => {
-			expect(addPlugin(config_wo_defineConfig)).toMatchInlineSnapshot(`
-				"import devtoolsJson from 'vite-plugin-devtools-json';
-				import { sveltekit } from '@sveltejs/kit/vite';
-				import type { UserConfig, defineConfig } from 'vite';
-
-				const config: UserConfig = {
-					plugins: [sveltekit(), devtoolsJson()]
-				};
-
-				export default config;"
-			`);
-		});
-	});
-
-	// Tests for getConfigObject helper
 	describe('getConfigObject', () => {
 		it('gets object from defineConfig wrapper', () => {
 			const { ast } = parseScript(config_default);
-			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+			const configObject = exportDefaultConfig(ast, { ignoreWrapper: 'defineConfig' });
 
 			expect(configObject.type).toBe('ObjectExpression');
 			expect(configObject.properties).toHaveLength(1);
@@ -97,7 +50,7 @@ describe('helpers', () => {
 
 		it('gets object without wrapper', () => {
 			const { ast } = parseScript(config_wo_defineConfig);
-			const configObject = getConfigObject(ast);
+			const configObject = exportDefaultConfig(ast);
 
 			expect(configObject.type).toBe('ObjectExpression');
 			expect(configObject.properties).toHaveLength(1);
@@ -105,49 +58,56 @@ describe('helpers', () => {
 
 		it('creates fallback config when no export default exists', () => {
 			const { ast } = parseScript(`import { someHelper } from './helper';`);
-			const configObject = getConfigObject(ast, {
+			const configObject = exportDefaultConfig(ast, {
 				fallback: 'defineConfig({ build: { target: "es2015" } })',
 				ignoreWrapper: 'defineConfig'
 			});
 
 			expect(configObject.type).toBe('ObjectExpression');
+			expect(configObject.properties).toHaveLength(1);
 		});
 	});
 
-	// Tests for addToObjectArray helper
 	describe('addToObjectArray', () => {
 		it('adds to existing array property', () => {
 			const { ast, generateCode } = parseScript(config_default);
-			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+			const configObject = exportDefaultConfig(ast, { ignoreWrapper: 'defineConfig' });
 
-			addToObjectArray(configObject, {
-				code: 'newPlugin()',
-				arrayProperty: 'plugins',
+			imports.addDefault(ast, { from: 'my-best-plugin', as: 'newPlugin' });
+			addInArrayOfObject(configObject, {
+				code: 'newPlugin({ hello: "world" })',
+				property: 'plugins',
 				mode: 'append'
 			});
 
 			expect(generateCode()).toMatchInlineSnapshot(`
-				"import { sveltekit } from '@sveltejs/kit/vite';
+				"import newPlugin from 'my-best-plugin';
+				import { sveltekit } from '@sveltejs/kit/vite';
 				import { defineConfig } from 'vite';
 
 				export default defineConfig({
-					plugins: [sveltekit(), newPlugin()]
+					plugins: [
+						sveltekit(),
+						newPlugin({ hello: 'world' })
+					]
 				});"
 			`);
 		});
 
 		it('creates new array property', () => {
 			const { ast, generateCode } = parseScript(config_default);
-			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+			const configObject = exportDefaultConfig(ast, { ignoreWrapper: 'defineConfig' });
 
-			addToObjectArray(configObject, {
+			imports.addDefault(ast, { from: 'eslint', as: 'eslint' });
+			addInArrayOfObject(configObject, {
 				code: 'eslint()',
-				arrayProperty: 'tools',
+				property: 'tools',
 				mode: 'append'
 			});
 
 			expect(generateCode()).toMatchInlineSnapshot(`
-				"import { sveltekit } from '@sveltejs/kit/vite';
+				"import eslint from 'eslint';
+				import { sveltekit } from '@sveltejs/kit/vite';
 				import { defineConfig } from 'vite';
 
 				export default defineConfig({
@@ -159,16 +119,18 @@ describe('helpers', () => {
 
 		it('prepends to array', () => {
 			const { ast, generateCode } = parseScript(config_default);
-			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+			const configObject = exportDefaultConfig(ast, { ignoreWrapper: 'defineConfig' });
 
-			addToObjectArray(configObject, {
+			imports.addDefault(ast, { from: 'firstPlugin', as: 'firstPlugin' });
+			addInArrayOfObject(configObject, {
 				code: 'firstPlugin()',
-				arrayProperty: 'plugins',
+				property: 'plugins',
 				mode: 'prepend'
 			});
 
 			expect(generateCode()).toMatchInlineSnapshot(`
-				"import { sveltekit } from '@sveltejs/kit/vite';
+				"import firstPlugin from 'firstPlugin';
+				import { sveltekit } from '@sveltejs/kit/vite';
 				import { defineConfig } from 'vite';
 
 				export default defineConfig({
@@ -177,46 +139,30 @@ describe('helpers', () => {
 			`);
 		});
 
-		it('mode: append (default behavior)', () => {
-			const { ast, generateCode } = parseScript(config_default);
-			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
-
-			addToObjectArray(configObject, {
-				code: 'newPlugin()',
-				arrayProperty: 'plugins'
-				// mode defaults to 'append'
-			});
-
-			expect(generateCode()).toMatchInlineSnapshot(`
-				"import { sveltekit } from '@sveltejs/kit/vite';
-				import { defineConfig } from 'vite';
-
-				export default defineConfig({
-					plugins: [sveltekit(), newPlugin()]
-				});"
-			`);
-		});
-
 		it('multiple items with different modes', () => {
 			const { ast, generateCode } = parseScript(config_default);
-			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+			const configObject = exportDefaultConfig(ast, { ignoreWrapper: 'defineConfig' });
 
 			// Add to end first
-			addToObjectArray(configObject, {
+			imports.addDefault(ast, { from: 'lastPlugin', as: 'lastPlugin' });
+			addInArrayOfObject(configObject, {
 				code: 'lastPlugin()',
-				arrayProperty: 'plugins',
+				property: 'plugins',
 				mode: 'append'
 			});
 
 			// Then add to beginning
-			addToObjectArray(configObject, {
+			imports.addDefault(ast, { from: 'firstPlugin', as: 'firstPlugin' });
+			addInArrayOfObject(configObject, {
 				code: 'firstPlugin()',
-				arrayProperty: 'plugins',
+				property: 'plugins',
 				mode: 'prepend'
 			});
 
 			expect(generateCode()).toMatchInlineSnapshot(`
-				"import { sveltekit } from '@sveltejs/kit/vite';
+				"import firstPlugin from 'firstPlugin';
+				import lastPlugin from 'lastPlugin';
+				import { sveltekit } from '@sveltejs/kit/vite';
 				import { defineConfig } from 'vite';
 
 				export default defineConfig({
@@ -226,6 +172,68 @@ describe('helpers', () => {
 						lastPlugin()
 					]
 				});"
+			`);
+		});
+	});
+
+	describe('addPluginToViteConfig', () => {
+		const addTestPlugin = (content: string) =>
+			addPluginToViteConfig(content, (ast, configObject) => {
+				const vitePluginName = 'bestPlugin';
+				imports.addDefault(ast, { from: 'my-best-plugin', as: vitePluginName });
+
+				addInArrayOfObject(configObject, {
+					property: 'plugins',
+					code: `${vitePluginName}()`
+				});
+			});
+
+		it('empty config', () => {
+			expect(addTestPlugin(``)).toMatchInlineSnapshot(`
+				"import bestPlugin from 'my-best-plugin';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({ plugins: [bestPlugin()] });"
+			`);
+		});
+
+		it('config_default', () => {
+			expect(addTestPlugin(config_default)).toMatchInlineSnapshot(`
+				"import bestPlugin from 'my-best-plugin';
+				import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [sveltekit(), bestPlugin()]
+				});"
+			`);
+		});
+
+		it('config_w_variable', () => {
+			expect(addTestPlugin(config_w_variable)).toMatchInlineSnapshot(`
+				"import bestPlugin from 'my-best-plugin';
+				import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				const config = defineConfig({
+					plugins: [sveltekit(), bestPlugin()]
+				});
+
+				export default config;"
+			`);
+		});
+
+		it('config_wo_defineConfig', () => {
+			expect(addTestPlugin(config_wo_defineConfig)).toMatchInlineSnapshot(`
+				"import bestPlugin from 'my-best-plugin';
+				import { sveltekit } from '@sveltejs/kit/vite';
+				import type { UserConfig, defineConfig } from 'vite';
+
+				const config: UserConfig = {
+					plugins: [sveltekit(), bestPlugin()]
+				};
+
+				export default config;"
 			`);
 		});
 	});
