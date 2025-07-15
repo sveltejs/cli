@@ -35,6 +35,15 @@ export default config;
 
 describe('helpers', () => {
 	it('config_default', () => {
+		expect(addPlugin(``)).toMatchInlineSnapshot(`
+			"import { defineConfig } from 'vite';
+			import devtoolsJson from 'vite-plugin-devtools-json';
+
+			export default defineConfig({ plugins: [devtoolsJson()] });"
+		`);
+	});
+
+	it('config_default', () => {
 		expect(addPlugin(config_default)).toMatchInlineSnapshot(`
 			"import devtoolsJson from 'vite-plugin-devtools-json';
 			import { sveltekit } from '@sveltejs/kit/vite';
@@ -64,7 +73,7 @@ describe('helpers', () => {
 		expect(addPlugin(config_wo_defineConfig)).toMatchInlineSnapshot(`
 			"import devtoolsJson from 'vite-plugin-devtools-json';
 			import { sveltekit } from '@sveltejs/kit/vite';
-			import type { UserConfig } from 'vite';
+			import type { UserConfig, defineConfig } from 'vite';
 
 			const config: UserConfig = {
 				plugins: [sveltekit(), devtoolsJson()]

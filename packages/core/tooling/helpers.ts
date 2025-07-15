@@ -73,10 +73,13 @@ export const addPlugin = (content: string): string => {
 	const vitePluginName = 'devtoolsJson';
 	imports.addDefault(ast, { from: 'vite-plugin-devtools-json', as: vitePluginName });
 
+	imports.addNamed(ast, { from: 'vite', imports: { defineConfig: 'defineConfig' } });
+
 	addToConfigArray(ast, {
 		code: `${vitePluginName}()`,
 		arrayProperty: 'plugins',
-		ignoreWrapper: 'defineConfig'
+		ignoreWrapper: 'defineConfig',
+		fallbackConfig: 'defineConfig()'
 	});
 
 	return generateCode();
