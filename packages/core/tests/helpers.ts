@@ -158,5 +158,70 @@ describe('helpers', () => {
 				});"
 			`);
 		});
+
+		it('use string fallback config when no default export exists', () => {
+			const { ast, generateCode } = parseScript(`
+				import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+			`);
+
+			addToConfigArray(ast, {
+				code: 'eslint()',
+				arrayProperty: 'plugins',
+				ignoreWrapper: 'defineConfig',
+				fallbackConfig: 'defineConfig({ build: { target: "es2015" } })'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					build: { target: 'es2015' },
+					plugins: [eslint()]
+				});"
+			`);
+		});
+
+		it('use expression fallback config when no default export exists', () => {
+			const { ast, generateCode } = parseScript(`
+				import { someHelper } from './helper';
+			`);
+
+			addToConfigArray(ast, {
+				code: 'middleware()',
+				arrayProperty: 'middleware',
+				ignoreWrapper: 'someHelper',
+				fallbackConfig: 'someHelper({ mode: "development" })'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { someHelper } from './helper';
+
+				export default someHelper({
+					mode: 'development',
+					middleware: [middleware()]
+				});"
+			`);
+		});
+
+		it('fallback with plain object and no wrapper', () => {
+			const { ast, generateCode } = parseScript(`
+				// Empty file
+			`);
+
+			addToConfigArray(ast, {
+				code: 'plugin()',
+				arrayProperty: 'plugins',
+				fallbackConfig: '({ server: { port: 3000 } })'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"export default {
+					server: { port: 3000 },
+					plugins: [plugin()]
+				};"
+			`);
+		});
 	});
 });

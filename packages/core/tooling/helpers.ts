@@ -10,13 +10,19 @@ export function addToConfigArray(
 		code: string;
 		arrayProperty: string;
 		ignoreWrapper?: string;
-		fallbackConfig?: AstTypes.Expression;
+		fallbackConfig?: AstTypes.Expression | string;
 	}
 ): void {
 	const { code, arrayProperty, ignoreWrapper, fallbackConfig } = options;
 
 	// Get or create the default export
-	const fallback = fallbackConfig || object.create({});
+	let fallback: AstTypes.Expression;
+	if (fallbackConfig) {
+		fallback =
+			typeof fallbackConfig === 'string' ? common.parseExpression(fallbackConfig) : fallbackConfig;
+	} else {
+		fallback = object.create({});
+	}
 
 	const { value: rootObject } = exports.createDefault(ast, { fallback });
 
