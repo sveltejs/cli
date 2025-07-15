@@ -30,7 +30,7 @@ export function handle({ event, resolve }) {
 
 ## Usage
 
-```bash
+```sh
 npx sv add devtools-json
 ```
 

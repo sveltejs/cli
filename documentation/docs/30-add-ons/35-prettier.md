@@ -6,7 +6,7 @@ title: prettier
 
 ## Usage
 
-```bash
+```sh
 npx sv add prettier
 ```
 

@@ -8,7 +8,7 @@ Read more about creating a library [in the docs](https://svelte.dev/docs/kit/pac
 
 If you're seeing this, you've probably already done this step. Congrats!
 
-```bash
+```sh
 # create a new project in the current directory
 npx sv create
 
@@ -20,7 +20,7 @@ npx sv create my-app
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-```bash
+```sh
 npm run dev
 
 # or start the server and open the app in a new browser tab
@@ -33,13 +33,13 @@ Everything inside `src/lib` is part of your library, everything inside `src/rout
 
 To build your library:
 
-```bash
+```sh
 npm run package
 ```
 
 To create a production version of your showcase app:
 
-```bash
+```sh
 npm run build
 ```
 
@@ -53,6 +53,6 @@ Go into the `package.json` and give your package the desired name through the `"
 
 To publish your library to [npm](https://www.npmjs.com):
 
-```bash
+```sh
 npm publish
 ```
