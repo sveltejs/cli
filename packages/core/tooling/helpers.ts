@@ -108,55 +108,6 @@ export function addToObjectArray(
 	}
 }
 
-/**
- * Add code (expression) to an array property in a config object
- *
- * This is a convenience function that combines getConfigObject and addToObjectArray.
- *
- * @param options.ignoreWrapper - Controls how to handle wrapper functions:
- *   - `'defineConfig'` - For files like `export default defineConfig({...})`
- *   - `undefined` - For files like `export default {...}` or `const config = {...}`
- *
- * @example
- * // For vite.config.js with defineConfig
- * addToConfigArray(ast, {
- *   code: 'eslint()',
- *   arrayProperty: 'plugins',
- *   ignoreWrapper: 'defineConfig'
- * });
- *
- * @example
- * // For plain object config
- * addToConfigArray(ast, {
- *   code: 'middleware()',
- *   arrayProperty: 'middleware'
- *   // no ignoreWrapper needed
- * });
- */
-export function addToConfigArray(
-	ast: AstTypes.Program,
-	options: {
-		code: string;
-		arrayProperty: string;
-		mode?: 'append' | 'prepend';
-		ignoreWrapper?: string;
-		fallbackConfig?: AstTypes.Expression | string;
-	}
-): void {
-	// Part 1: Get the target config object
-	const configObject = getConfigObject(ast, {
-		fallback: options.fallbackConfig,
-		ignoreWrapper: options.ignoreWrapper
-	});
-
-	// Part 2: Add to the array property
-	addToObjectArray(configObject, {
-		code: options.code,
-		arrayProperty: options.arrayProperty,
-		mode: options.mode
-	});
-}
-
 export const addPlugin = (content: string): string => {
 	const { ast, generateCode } = parseScript(content);
 
@@ -165,11 +116,16 @@ export const addPlugin = (content: string): string => {
 
 	imports.addNamed(ast, { from: 'vite', imports: { defineConfig: 'defineConfig' } });
 
-	addToConfigArray(ast, {
+	// Step 1: Get the config object, handling defineConfig wrapper
+	const configObject = getConfigObject(ast, {
+		fallback: 'defineConfig()',
+		ignoreWrapper: 'defineConfig'
+	});
+
+	// Step 2: Add the plugin to the plugins array
+	addToObjectArray(configObject, {
 		code: `${vitePluginName}()`,
-		arrayProperty: 'plugins',
-		ignoreWrapper: 'defineConfig',
-		fallbackConfig: 'defineConfig()'
+		arrayProperty: 'plugins'
 	});
 
 	return generateCode();
