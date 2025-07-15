@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { addPlugin, addToConfigArray } from '../tooling/helpers.ts';
+import {
+	addPlugin,
+	addToConfigArray,
+	getConfigObject,
+	addToObjectArray
+} from '../tooling/helpers.ts';
 import { parseScript } from '../tooling/parsers.ts';
 
 const config_default = `
@@ -302,6 +307,99 @@ describe('helpers', () => {
 						sveltekit(),
 						lastPlugin()
 					]
+				});"
+			`);
+		});
+	});
+
+	// Tests for getConfigObject helper
+	describe('getConfigObject', () => {
+		it('gets object from defineConfig wrapper', () => {
+			const { ast } = parseScript(config_default);
+			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+
+			expect(configObject.type).toBe('ObjectExpression');
+			expect(configObject.properties).toHaveLength(1);
+		});
+
+		it('gets object without wrapper', () => {
+			const { ast } = parseScript(config_wo_defineConfig);
+			const configObject = getConfigObject(ast);
+
+			expect(configObject.type).toBe('ObjectExpression');
+			expect(configObject.properties).toHaveLength(1);
+		});
+
+		it('creates fallback config when no export default exists', () => {
+			const { ast } = parseScript(`import { someHelper } from './helper';`);
+			const configObject = getConfigObject(ast, {
+				fallback: 'defineConfig({ build: { target: "es2015" } })',
+				ignoreWrapper: 'defineConfig'
+			});
+
+			expect(configObject.type).toBe('ObjectExpression');
+		});
+	});
+
+	// Tests for addToObjectArray helper
+	describe('addToObjectArray', () => {
+		it('adds to existing array property', () => {
+			const { ast, generateCode } = parseScript(config_default);
+			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+
+			addToObjectArray(configObject, {
+				code: 'newPlugin()',
+				arrayProperty: 'plugins',
+				mode: 'append'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [sveltekit(), newPlugin()]
+				});"
+			`);
+		});
+
+		it('creates new array property', () => {
+			const { ast, generateCode } = parseScript(config_default);
+			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+
+			addToObjectArray(configObject, {
+				code: 'eslint()',
+				arrayProperty: 'tools',
+				mode: 'append'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [sveltekit()],
+					tools: [eslint()]
+				});"
+			`);
+		});
+
+		it('prepends to array', () => {
+			const { ast, generateCode } = parseScript(config_default);
+			const configObject = getConfigObject(ast, { ignoreWrapper: 'defineConfig' });
+
+			addToObjectArray(configObject, {
+				code: 'firstPlugin()',
+				arrayProperty: 'plugins',
+				mode: 'prepend'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [firstPlugin(), sveltekit()]
 				});"
 			`);
 		});
