@@ -9,11 +9,12 @@ export function addToConfigArray(
 	options: {
 		code: string;
 		arrayProperty: string;
+		mode?: 'append' | 'prepend';
 		ignoreWrapper?: string;
 		fallbackConfig?: AstTypes.Expression | string;
 	}
 ): void {
-	const { code, arrayProperty, ignoreWrapper, fallbackConfig } = options;
+	const { code, arrayProperty, mode = 'append', ignoreWrapper, fallbackConfig } = options;
 
 	// Get or create the default export
 	let fallback: AstTypes.Expression;
@@ -55,9 +56,15 @@ export function addToConfigArray(
 		fallback: array.create()
 	});
 
-	// Parse and append the expression
+	// Parse the expression
 	const expression = common.parseExpression(code);
-	array.append(targetArray, expression);
+
+	// Add to array based on mode
+	if (mode === 'prepend') {
+		array.prepend(targetArray, expression);
+	} else {
+		array.append(targetArray, expression);
+	}
 }
 
 export const addPlugin = (content: string): string => {

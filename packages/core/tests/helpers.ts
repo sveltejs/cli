@@ -223,5 +223,78 @@ describe('helpers', () => {
 				};"
 			`);
 		});
+
+		it('mode: append (default behavior)', () => {
+			const { ast, generateCode } = parseScript(config_default);
+
+			addToConfigArray(ast, {
+				code: 'newPlugin()',
+				arrayProperty: 'plugins',
+				mode: 'append',
+				ignoreWrapper: 'defineConfig'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [sveltekit(), newPlugin()]
+				});"
+			`);
+		});
+
+		it('mode: prepend (add to beginning)', () => {
+			const { ast, generateCode } = parseScript(config_default);
+
+			addToConfigArray(ast, {
+				code: 'firstPlugin()',
+				arrayProperty: 'plugins',
+				mode: 'prepend',
+				ignoreWrapper: 'defineConfig'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [firstPlugin(), sveltekit()]
+				});"
+			`);
+		});
+
+		it('multiple items with different modes', () => {
+			const { ast, generateCode } = parseScript(config_default);
+
+			// Add to end first
+			addToConfigArray(ast, {
+				code: 'lastPlugin()',
+				arrayProperty: 'plugins',
+				mode: 'append',
+				ignoreWrapper: 'defineConfig'
+			});
+
+			// Then add to beginning
+			addToConfigArray(ast, {
+				code: 'firstPlugin()',
+				arrayProperty: 'plugins',
+				mode: 'prepend',
+				ignoreWrapper: 'defineConfig'
+			});
+
+			expect(generateCode()).toMatchInlineSnapshot(`
+				"import { sveltekit } from '@sveltejs/kit/vite';
+				import { defineConfig } from 'vite';
+
+				export default defineConfig({
+					plugins: [
+						firstPlugin(),
+						sveltekit(),
+						lastPlugin()
+					]
+				});"
+			`);
+		});
 	});
 });
