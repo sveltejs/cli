@@ -76,7 +76,7 @@ describe('helpers', () => {
 			imports.addDefault(ast, { from: 'my-best-plugin', as: 'newPlugin' });
 			addInArrayOfObject(configObject, {
 				code: 'newPlugin({ hello: "world" })',
-				property: 'plugins',
+				array: 'plugins',
 				mode: 'append'
 			});
 
@@ -101,7 +101,7 @@ describe('helpers', () => {
 			imports.addDefault(ast, { from: 'eslint', as: 'eslint' });
 			addInArrayOfObject(configObject, {
 				code: 'eslint()',
-				property: 'tools',
+				array: 'tools',
 				mode: 'append'
 			});
 
@@ -124,7 +124,7 @@ describe('helpers', () => {
 			imports.addDefault(ast, { from: 'firstPlugin', as: 'firstPlugin' });
 			addInArrayOfObject(configObject, {
 				code: 'firstPlugin()',
-				property: 'plugins',
+				array: 'plugins',
 				mode: 'prepend'
 			});
 
@@ -147,7 +147,7 @@ describe('helpers', () => {
 			imports.addDefault(ast, { from: 'lastPlugin', as: 'lastPlugin' });
 			addInArrayOfObject(configObject, {
 				code: 'lastPlugin()',
-				property: 'plugins',
+				array: 'plugins',
 				mode: 'append'
 			});
 
@@ -155,7 +155,7 @@ describe('helpers', () => {
 			imports.addDefault(ast, { from: 'firstPlugin', as: 'firstPlugin' });
 			addInArrayOfObject(configObject, {
 				code: 'firstPlugin()',
-				property: 'plugins',
+				array: 'plugins',
 				mode: 'prepend'
 			});
 
@@ -183,7 +183,7 @@ describe('helpers', () => {
 				imports.addDefault(ast, { from: 'my-best-plugin', as: vitePluginName });
 
 				addInArrayOfObject(configObject, {
-					property: 'plugins',
+					array: 'plugins',
 					code: `${vitePluginName}()`
 				});
 			});

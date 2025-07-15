@@ -49,13 +49,13 @@ export function exportDefaultConfig(
 export function addInArrayOfObject(
 	ast: AstTypes.ObjectExpression,
 	options: {
-		property: string;
+		array: string;
 		code: string;
 		/** default: `append` */
 		mode?: 'append' | 'prepend';
 	}
 ): void {
-	const { code, property: arrayProperty, mode = 'append' } = options;
+	const { code, array: arrayProperty, mode = 'append' } = options;
 
 	// Get or create the array property
 	const targetArray = object.property(ast, {

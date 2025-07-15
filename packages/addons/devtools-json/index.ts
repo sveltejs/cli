@@ -1,6 +1,6 @@
 import { defineAddon } from '@sveltejs/cli-core';
-import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
-import { parseScript } from '@sveltejs/cli-core/parsers';
+import { imports } from '@sveltejs/cli-core/js';
+import { addInArrayOfObject, addPluginToViteConfig } from '../../core/tooling/helpers.ts';
 
 export default defineAddon({
 	id: 'devtools-json',
@@ -15,26 +15,14 @@ export default defineAddon({
 
 		// add the vite plugin
 		sv.file(`vite.config.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
-
-			const vitePluginName = 'devtoolsJson';
-			imports.addDefault(ast, { from: 'vite-plugin-devtools-json', as: vitePluginName });
-
-			const { value: rootObject } = exports.createDefault(ast, {
-				fallback: functions.createCall({ name: 'defineConfig', args: [] })
+			return addPluginToViteConfig(content, (ast, configObject) => {
+				const vitePluginName = 'devtoolsJson';
+				imports.addDefault(ast, { from: 'vite-plugin-devtools-json', as: vitePluginName });
+				addInArrayOfObject(configObject, {
+					array: 'plugins',
+					code: `${vitePluginName}()`
+				});
 			});
-
-			const param1 = functions.getArgument(rootObject, {
-				index: 0,
-				fallback: object.create({})
-			});
-
-			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
-			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
-
-			array.append(pluginsArray, pluginFunctionCall);
-
-			return generateCode();
 		});
 	}
 });
