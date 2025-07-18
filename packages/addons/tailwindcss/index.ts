@@ -149,6 +149,10 @@ export default defineAddon({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 
+				if (!data['tailwindStylesheet']) {
+					data['tailwindStylesheet'] = './src/app.css';
+				}
+
 				return generateCode();
 			});
 		}
