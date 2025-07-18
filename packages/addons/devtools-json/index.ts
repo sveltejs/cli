@@ -17,11 +17,9 @@ export default defineAddon({
 		sv.file(`vite.config.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			vite.addPlugin(ast, ({ append }) => {
-				const vitePluginName = 'devtoolsJson';
-				imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
-				append({ code: `${vitePluginName}()` });
-			});
+			const vitePluginName = 'devtoolsJson';
+			imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
+			vite.addPlugin(ast, { code: `${vitePluginName}()` });
 
 			return generateCode();
 		});

@@ -95,9 +95,10 @@ export default defineAddon({
 
 			const vitePluginName = 'paraglideVitePlugin';
 			imports.addNamed(ast, {
-				from: '@inlang/paraglide-js',
-				imports: { paraglideVitePlugin: vitePluginName }
+				imports: { paraglideVitePlugin: vitePluginName },
+				from: '@inlang/paraglide-js'
 			});
+
 			const { value: rootObject } = exports.createDefault(ast, {
 				fallback: functions.createCall({ name: 'defineConfig', args: [] })
 			});

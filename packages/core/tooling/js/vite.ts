@@ -88,10 +88,7 @@ function addInArrayOfObject(
 	ast: AstTypes.ObjectExpression,
 	options: {
 		arrayProperty: string;
-		code: string;
-		/** default: `append` */
-		mode?: 'append' | 'prepend';
-	}
+	} & Parameters<typeof addPlugin>[1]
 ): void {
 	const { code, arrayProperty, mode = 'append' } = options;
 
@@ -114,10 +111,11 @@ function addInArrayOfObject(
 
 export const addPlugin = (
 	ast: AstTypes.Program,
-	fn: (o: {
-		prepend: (options: { code: string }) => void;
-		append: (options: { code: string }) => void;
-	}) => void
+	options: {
+		code: string;
+		/** default: `append` */
+		mode?: 'append' | 'prepend';
+	}
 ): void => {
 	// Step 1: Get the config object, or fallback.
 	imports.addNamed(ast, { from: 'vite', imports: { defineConfig: 'defineConfig' } });
@@ -127,20 +125,8 @@ export const addPlugin = (
 	});
 
 	// Step 2: Add the plugin to the plugins array
-	fn({
-		append: (options) => {
-			addInArrayOfObject(configObject, {
-				arrayProperty: 'plugins',
-				mode: 'append',
-				...options
-			});
-		},
-		prepend: (options) => {
-			addInArrayOfObject(configObject, {
-				arrayProperty: 'plugins',
-				mode: 'prepend',
-				...options
-			});
-		}
+	addInArrayOfObject(configObject, {
+		arrayProperty: 'plugins',
+		...options
 	});
 };
