@@ -28,11 +28,50 @@ export function exportDefaultConfig(
 			rootObject.callee.type === 'Identifier' &&
 			rootObject.callee.name === ignoreWrapper
 		) {
-			// For wrapper function calls like defineConfig({})
-			configObject = functions.getArgument(rootObject as any, {
+			// For wrapper function calls like defineConfig({}) or defineConfig(() => { return {}; })
+			const firstArg = functions.getArgument<AstTypes.Expression>(rootObject as any, {
 				index: 0,
 				fallback: object.create({})
 			});
+
+			// Check if the first argument is an arrow function that returns an object
+			if (firstArg.type === 'ArrowFunctionExpression') {
+				const arrowFunction = firstArg as AstTypes.ArrowFunctionExpression;
+				// Handle arrow function case: defineConfig(() => { return { ... }; })
+				if (arrowFunction.body.type === 'BlockStatement') {
+					// Look for a return statement in the block
+					const returnStatement = arrowFunction.body.body.find(
+						(stmt: AstTypes.Statement): stmt is AstTypes.ReturnStatement =>
+							stmt.type === 'ReturnStatement'
+					);
+
+					if (returnStatement && returnStatement.argument?.type === 'ObjectExpression') {
+						configObject = returnStatement.argument;
+					} else {
+						// If no return statement with object found, create fallback object and add return statement
+						configObject = object.create({});
+						const newReturnStatement: AstTypes.ReturnStatement = {
+							type: 'ReturnStatement',
+							argument: configObject
+						};
+						arrowFunction.body.body.push(newReturnStatement);
+					}
+				} else if (arrowFunction.body.type === 'ObjectExpression') {
+					// Handle arrow function with expression body: defineConfig(() => ({ ... }))
+					configObject = arrowFunction.body;
+				} else {
+					// Arrow function doesn't return an object, create fallback and modify the function
+					configObject = object.create({});
+					arrowFunction.body = configObject;
+					arrowFunction.expression = true;
+				}
+			} else if (firstArg.type === 'ObjectExpression') {
+				// Direct object argument: defineConfig({ ... })
+				configObject = firstArg;
+			} else {
+				// Fallback case - create a new object
+				configObject = object.create({});
+			}
 		} else {
 			// For other function calls, treat as the config object
 			configObject = rootObject as unknown as AstTypes.ObjectExpression;
