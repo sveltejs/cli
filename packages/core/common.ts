@@ -4,7 +4,7 @@ type Version = {
 	patch?: number;
 };
 
-export function versionSplit(str: string): Version {
+export function splitVersion(str: string): Version {
 	const [major, minor, patch] = str?.split('.') ?? [];
 
 	function toVersionNumber(val: string | undefined): number | undefined {
@@ -18,9 +18,12 @@ export function versionSplit(str: string): Version {
 	};
 }
 
-function versionUnsupportedBelow(version_str: string, below_str: string): boolean | undefined {
-	const version = versionSplit(version_str);
-	const below = versionSplit(below_str);
+export function isVersionUnsupportedBelow(
+	versionStr: string,
+	belowStr: string
+): boolean | undefined {
+	const version = splitVersion(versionStr);
+	const below = splitVersion(belowStr);
 
 	if (version.major === undefined || below.major === undefined) return undefined;
 	if (version.major < below.major) return true;
@@ -42,16 +45,4 @@ function versionUnsupportedBelow(version_str: string, below_str: string): boolea
 	if (version.patch === below.patch) return false;
 
 	return undefined;
-}
-
-/**
- * @example
- * const unsupported = minimumRequirement('18.3').for(process.versions.node);
- */
-export function minimumRequirement(version: string): {
-	for: (target: string) => boolean | undefined;
-} {
-	return {
-		for: (target: string) => versionUnsupportedBelow(target, version)
-	};
 }

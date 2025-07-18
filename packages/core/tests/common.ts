@@ -1,5 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import { versionSplit, minimumRequirement } from '../common.ts';
+import { splitVersion, isVersionUnsupportedBelow } from '../common.ts';
 
 describe('versionSplit', () => {
 	const combinationsVersionSplit = [
@@ -14,7 +14,7 @@ describe('versionSplit', () => {
 	it.each(combinationsVersionSplit)(
 		'should return the correct version for $version',
 		({ version, expected }) => {
-			expect(versionSplit(version)).toEqual(expected);
+			expect(splitVersion(version)).toEqual(expected);
 		}
 	);
 });
@@ -42,9 +42,7 @@ describe('minimumRequirement', () => {
 	it.each(combinationsMinimumRequirement)(
 		'($version below $below) should be $expected',
 		({ version, below, expected }) => {
-			expect(minimumRequirement(below).for(version)).toEqual(expected);
+			expect(isVersionUnsupportedBelow(version, below)).toEqual(expected);
 		}
 	);
 });
-
-// minimumRequirement(4.0).for(nodeVersion)
