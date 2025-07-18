@@ -591,18 +591,16 @@ export async function runAddCommand(
 
 	// print next steps
 	const nextSteps = selectedAddons
-		.filter(({ addon }) => addon.nextSteps)
 		.map(({ addon }) => {
+			if (!addon.nextSteps) return;
 			let addonMessage = `${pc.green(addon.id)}:\n`;
 
-			const addonNextSteps = addon.nextSteps!({
-				...workspace,
-				options: official[addon.id]!,
-				highlighter
-			});
+			const options = official[addon.id];
+			const addonNextSteps = addon.nextSteps({ ...workspace, options, highlighter });
 			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
 			return addonMessage;
-		});
+		})
+		.filter((msg) => msg !== undefined);
 
 	return { nextSteps, packageManager };
 }
