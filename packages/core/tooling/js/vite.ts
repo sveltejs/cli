@@ -1,6 +1,6 @@
 import { array, functions, imports, object, exports, type AstTypes, common } from './index.ts';
 
-export function exportDefaultConfig(
+function exportDefaultConfig(
 	ast: AstTypes.Program,
 	options: {
 		fallback?: AstTypes.Expression | string;
@@ -84,16 +84,16 @@ export function exportDefaultConfig(
 	return configObject;
 }
 
-export function addInArrayOfObject(
+function addInArrayOfObject(
 	ast: AstTypes.ObjectExpression,
 	options: {
-		array: string;
+		arrayProperty: string;
 		code: string;
 		/** default: `append` */
 		mode?: 'append' | 'prepend';
 	}
 ): void {
-	const { code, array: arrayProperty, mode = 'append' } = options;
+	const { code, arrayProperty, mode = 'append' } = options;
 
 	// Get or create the array property
 	const targetArray = object.property(ast, {
@@ -112,9 +112,12 @@ export function addInArrayOfObject(
 	}
 }
 
-export const addPluginToViteConfig = (
+export const addPlugin = (
 	ast: AstTypes.Program,
-	fn: (o: { add: (options: { code: string; mode?: 'append' | 'prepend' }) => void }) => void
+	fn: (o: {
+		prepend: (options: { code: string }) => void;
+		append: (options: { code: string }) => void;
+	}) => void
 ): void => {
 	// Step 1: Get the config object, or fallback.
 	imports.addNamed(ast, { from: 'vite', imports: { defineConfig: 'defineConfig' } });
@@ -125,9 +128,17 @@ export const addPluginToViteConfig = (
 
 	// Step 2: Add the plugin to the plugins array
 	fn({
-		add: (options) => {
+		append: (options) => {
 			addInArrayOfObject(configObject, {
-				array: 'plugins',
+				arrayProperty: 'plugins',
+				mode: 'append',
+				...options
+			});
+		},
+		prepend: (options) => {
+			addInArrayOfObject(configObject, {
+				arrayProperty: 'plugins',
+				mode: 'prepend',
 				...options
 			});
 		}
