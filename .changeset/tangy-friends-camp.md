@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix(add): when tailwindcss & prettier add `tailwindStylesheet` in `.prettierrc`
+fix(tailwindcss): ensure `tailwindStylesheet` is added to `.prettierrc`, when applicable
