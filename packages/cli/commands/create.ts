@@ -88,13 +88,21 @@ export const create = new Command('create')
 				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
 				`${i++}: ${highlight(pmRunCmd)}`,
 				'',
-				`To close the dev server, hit ${highlight('Ctrl-C')}`,
-				'',
-				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
+				`To close the dev server, hit ${highlight('Ctrl-C')}`
 			];
 
-			p.note(steps.join('\n'), 'Project next steps', { format: (line) => line });
-			if (addOnNextSteps) p.note(addOnNextSteps, 'Add-on next steps', { format: (line) => line });
+			if (addOnNextSteps.length > 0) {
+				steps.push('');
+				steps.push(pc.gray(`Add-ons:`));
+				for (const addOnNextStep of addOnNextSteps) {
+					steps.push('  ' + addOnNextStep.replaceAll('  -', '    -'));
+				}
+			}
+
+			steps.push('');
+			steps.push(`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`);
+
+			p.note(steps.join('\n'), 'Next steps', { format: (line) => line });
 		});
 	});
 
@@ -166,7 +174,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	p.log.success('Project created');
 
 	let packageManager: AgentName | undefined | null;
-	let addOnNextSteps: string | undefined;
+	let addOnNextSteps: string[] = [];
 
 	const installDeps = async (install: true | AgentName) => {
 		packageManager = install === true ? await packageManagerPrompt(projectPath) : install;

@@ -202,7 +202,9 @@ export const add = new Command('add')
 		common.runCommand(async () => {
 			const selectedAddonIds = selectedAddons.map(({ id }) => id);
 			const { nextSteps } = await runAddCommand(options, selectedAddonIds);
-			if (nextSteps) p.note(nextSteps, 'Next steps', { format: (line: string) => line });
+			if (nextSteps.length > 0) {
+				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
+			}
 		});
 	});
 
@@ -210,7 +212,7 @@ type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplic
 export async function runAddCommand(
 	options: Options,
 	selectedAddonIds: string[]
-): Promise<{ nextSteps?: string; packageManager?: AgentName | null }> {
+): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
 	const selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
 		type: 'official',
 		addon: getAddonDetails(id)
@@ -534,7 +536,7 @@ export async function runAddCommand(
 
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0) return { packageManager: null };
+	if (selectedAddons.length === 0) return { packageManager: null, nextSteps: [] };
 
 	// apply addons
 	const officialDetails = Object.keys(official).map((id) => getAddonDetails(id));
@@ -588,25 +590,19 @@ export async function runAddCommand(
 	const highlighter = getHighlighter();
 
 	// print next steps
-	const nextSteps =
-		selectedAddons
-			.filter(({ addon }) => addon.nextSteps)
-			.map(({ addon }) => {
-				let addonMessage = '';
-				if (selectedAddons.length > 1) {
-					addonMessage = `${pc.green(addon.id)}:\n`;
-				}
+	const nextSteps = selectedAddons
+		.filter(({ addon }) => addon.nextSteps)
+		.map(({ addon }) => {
+			let addonMessage = `${pc.green(addon.id)}:\n`;
 
-				const addonNextSteps = addon.nextSteps!({
-					...workspace,
-					options: official[addon.id]!,
-					highlighter
-				});
-				addonMessage += `- ${addonNextSteps.join('\n- ')}`;
-				return addonMessage;
-			})
-			// instead of returning an empty string, we'll return `undefined`
-			.join('\n\n') || undefined;
+			const addonNextSteps = addon.nextSteps!({
+				...workspace,
+				options: official[addon.id]!,
+				highlighter
+			});
+			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
+			return addonMessage;
+		});
 
 	return { nextSteps, packageManager };
 }
