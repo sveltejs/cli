@@ -66,14 +66,14 @@ export const create = new Command('create')
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
-			const initialSteps: string[] = [];
+			const initialSteps: string[] = [pc.italic('Project steps'), ''];
 			const relative = path.relative(process.cwd(), directory);
 			const pm =
 				packageManager ?? (await detect({ cwd: directory }))?.name ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
-					`${i++}: ${highlight(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
+					`  ${i++}: ${highlight(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
 				);
 			}
 			if (!packageManager) {
@@ -85,24 +85,23 @@ export const create = new Command('create')
 			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
-				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
-				`${i++}: ${highlight(pmRunCmd)}`,
+				`  ${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
+				`  ${i++}: ${highlight(pmRunCmd)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`
 			];
 
 			if (addOnNextSteps.length > 0) {
-				steps.push('');
-				steps.push(pc.gray(`Add-ons:`));
-				for (const addOnNextStep of addOnNextSteps) {
-					steps.push('  ' + addOnNextStep.replaceAll('  -', '    -'));
+				steps.push('', pc.italic('Add-on steps'), '');
+				for (const step of addOnNextSteps) {
+					const indented = step.replaceAll('  -', '    -');
+					steps.push(`  ${indented}`);
 				}
 			}
 
-			steps.push('');
-			steps.push(`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`);
+			steps.push('', `Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`);
 
-			p.note(steps.join('\n'), 'Next steps', { format: (line) => line });
+			p.note(steps.join('\n'), "What's next?", { format: (line) => line });
 		});
 	});
 
