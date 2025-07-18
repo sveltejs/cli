@@ -4,6 +4,7 @@ import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
+import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -75,6 +76,15 @@ type MaybePromise = () => Promise<void> | void;
 export async function runCommand(action: MaybePromise): Promise<void> {
 	try {
 		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
+
+		const minimumVersion = '18.3.0';
+		const unsupported = isVersionUnsupportedBelow(process.versions.node, minimumVersion);
+		if (unsupported) {
+			p.log.warn(
+				`You are using Node.js ${pc.red(process.versions.node)}, please upgrade to Node.js ${pc.green(minimumVersion)} or higher.`
+			);
+		}
+
 		await action();
 		p.outro("You're all set!");
 	} catch (e) {
