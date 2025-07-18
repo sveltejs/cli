@@ -1,5 +1,5 @@
-import { array, functions, imports, object, exports, type AstTypes, common } from './js/index.ts';
-import { parseScript } from './parsers.ts';
+import { array, functions, imports, object, exports, type AstTypes, common } from './index.ts';
+import { parseScript } from '../parsers.ts';
 
 export function exportDefaultConfig(
 	ast: AstTypes.Program,
@@ -76,7 +76,13 @@ export function addInArrayOfObject(
 
 export const addPluginToViteConfig = (
 	content: string,
-	fn: (ast: AstTypes.Program, configObject: AstTypes.ObjectExpression) => void
+	fn: (
+		ast: AstTypes.Program,
+		o: {
+			configObject: AstTypes.ObjectExpression;
+			add: (options: { code: string; mode?: 'append' | 'prepend' }) => void;
+		}
+	) => void
 ): string => {
 	const { ast, generateCode } = parseScript(content);
 
@@ -88,7 +94,14 @@ export const addPluginToViteConfig = (
 	});
 
 	// Step 2: Add the plugin to the plugins array
-	fn(ast, configObject);
+	fn(ast, {
+		configObject,
+		add: (options) =>
+			addInArrayOfObject(configObject, {
+				array: 'plugins',
+				...options
+			})
+	});
 
 	return generateCode();
 };

@@ -1,6 +1,5 @@
 import { defineAddon } from '@sveltejs/cli-core';
-import { imports } from '@sveltejs/cli-core/js';
-import { addInArrayOfObject, addPluginToViteConfig } from '../../core/tooling/helpers.ts';
+import { imports, vite } from '@sveltejs/cli-core/js';
 
 export default defineAddon({
 	id: 'devtools-json',
@@ -15,13 +14,10 @@ export default defineAddon({
 
 		// add the vite plugin
 		sv.file(`vite.config.${ext}`, (content) => {
-			return addPluginToViteConfig(content, (ast, configObject) => {
+			return vite.addPluginToViteConfig(content, (ast, { add }) => {
 				const vitePluginName = 'devtoolsJson';
 				imports.addDefault(ast, { from: 'vite-plugin-devtools-json', as: vitePluginName });
-				addInArrayOfObject(configObject, {
-					array: 'plugins',
-					code: `${vitePluginName}()`
-				});
+				add({ code: `${vitePluginName}()` });
 			});
 		});
 	}

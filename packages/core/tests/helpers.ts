@@ -3,7 +3,7 @@ import {
 	addPluginToViteConfig,
 	exportDefaultConfig,
 	addInArrayOfObject
-} from '../tooling/helpers.ts';
+} from '../tooling/js/vite.ts';
 import { parseScript } from '../tooling/parsers.ts';
 import { imports } from '../dist/js.js';
 
