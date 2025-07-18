@@ -6,7 +6,7 @@ title: eslint
 
 ## Usage
 
-```bash
+```sh
 npx sv add eslint
 ```
 

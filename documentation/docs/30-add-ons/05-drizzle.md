@@ -6,7 +6,7 @@ title: drizzle
 
 ## Usage
 
-```bash
+```sh
 npx sv add drizzle
 ```
 
@@ -27,7 +27,7 @@ Which database variant to use:
 - `mysql` — another popular open source database
 - `sqlite` — file-based database not requiring a database server
 
-```bash
+```sh
 npx sv add drizzle=database:postgresql
 ```
 
@@ -39,7 +39,7 @@ The SQL client to use, depends on `database`:
 - For `mysql`: `mysql2`, `planetscale`
 - For `sqlite`: `better-sqlite3`, `libsql`, `turso`
 
-```bash
+```sh
 npx sv add drizzle=database:postgresql+client:postgres.js
 ```
 
@@ -49,6 +49,6 @@ Drizzle is compatible with well over a dozen database drivers. We just offer a f
 
 Whether to add Docker Compose configuration. Only available for [`database`](#Options-database) `postgresql` or `mysql`
 
-```bash
+```sh
 npx sv add drizzle=database:postgresql+client:postgres.js+docker:yes
 ```

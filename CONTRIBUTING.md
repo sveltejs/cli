@@ -16,7 +16,7 @@ Please keep your pull requests focused to feature or issue. Focused smaller chan
 ## Preparing
 This is a monorepo, meaning the repo holds multiple packages. It requires the use of [pnpm](https://pnpm.io/). You can [install pnpm](https://pnpm.io/installation) with:
 
-```bash
+```sh
 npm i -g pnpm
 ```
 
@@ -25,7 +25,7 @@ Linux users, you will have to ensure 'sudo' is not required. See [docker post in
 
 `pnpm` commands run in the project's root directory will run on all sub-projects. You can checkout the code and install the dependencies with:
 
-```bash
+```sh
 cd cli
 pnpm install
 ```
@@ -33,19 +33,19 @@ pnpm install
 ## Build and run
 To build the project and all packages. Run the 'build' script:
 
-```bash
+```sh
 # from root of project
 pnpm build
 ```
 This outputs into /packages/PACKAGE/dist/.
 
 Run the 'cli' package:
-```bash
+```sh
 pnpm sv
 ```
 
 Run build with watch mode:
-```bash
+```sh
 pnpm dev
 ```
 
@@ -54,29 +54,29 @@ pnpm dev
 For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
 
 Run all tests:
-```bash
+```sh
 # from root of project
 pnpm test
 ```
 
 Run tests with vitest ui:
-```bash
+```sh
 # from root of project
 pnpm test:ui
 ```
 
 Run package specific tests by specifying a project flag to the package and running the test command. Eg:
-```bash
+```sh
 pnpm test --project core # addons / create / migrate / etc.
 ```
 
 To run a individual test. `cd` into the package. Run the local `test` script to that package, with a path arg to the individual piece you want tested. Eg:
-```bash
+```sh
 pnpm test [path-to-test]
 ```
 
 To debug a failing test. A good starting point is to `cd` into the failing tests dir. Proceed to `build` it. Then `preview` it. From here you will have increased information to help in the debug process. Eg:
-```bash
+```sh
 # Each test is a standalone app
 cd .test-output/addons/[addon-test]/[test-id]
 pnpm build
@@ -91,24 +91,24 @@ There are a few guidelines we follow:
 
 - Ensure `pnpm lint` and `pnpm check` pass. You can run `pnpm format` to format the code
 - linting
-```bash
+```sh
 # from root of project
 pnpm lint
 ```
 - formatting
-```bash
+```sh
 # from root of project
 pnpm format
 ```
 - type checking
-```bash
+```sh
 # from root of project
 pnpm check
 ```
 
 ## svelte-migrate
 To run svelte-migrate locally:
-```bash
+```sh
 # from root of project
 node ./packages/migrate/bin.js 
 ```
@@ -116,7 +116,7 @@ node ./packages/migrate/bin.js
 ## Generating changelogs
 Only publish a change set if it is in 'sv' or 'svelte-migrate' as all other packages are bundled. 
 For changes to be reflected in package changelogs:
-```bash
+```sh
 # from root of project
 pnpm changeset:publish
 ```

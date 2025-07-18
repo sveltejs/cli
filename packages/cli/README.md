@@ -2,7 +2,7 @@
 
 A command line interface (CLI) for creating and maintaining [Svelte](https://svelte.dev) applications. Just run:
 
-```bash
+```sh
 npx sv
 ```
 

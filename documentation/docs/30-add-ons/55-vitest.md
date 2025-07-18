@@ -6,7 +6,7 @@ title: vitest
 
 ## Usage
 
-```bash
+```sh
 npx sv add vitest
 ```
 
