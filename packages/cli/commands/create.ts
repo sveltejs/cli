@@ -66,14 +66,14 @@ export const create = new Command('create')
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
-			const initialSteps: string[] = [];
+			const initialSteps: string[] = ['📁 Project steps', ''];
 			const relative = path.relative(process.cwd(), directory);
 			const pm =
 				packageManager ?? (await detect({ cwd: directory }))?.name ?? getUserAgent() ?? 'npm';
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
-					`${i++}: ${highlight(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
+					`  ${i++}: ${highlight(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
 				);
 			}
 			if (!packageManager) {
@@ -85,16 +85,23 @@ export const create = new Command('create')
 			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
-				`${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
-				`${i++}: ${highlight(pmRunCmd)}`,
+				`  ${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
+				`  ${i++}: ${highlight(pmRunCmd)}`,
 				'',
-				`To close the dev server, hit ${highlight('Ctrl-C')}`,
-				'',
-				`Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`
+				`To close the dev server, hit ${highlight('Ctrl-C')}`
 			];
 
-			p.note(steps.join('\n'), 'Project next steps', { format: (line) => line });
-			if (addOnNextSteps) p.note(addOnNextSteps, 'Add-on next steps', { format: (line) => line });
+			if (addOnNextSteps.length > 0) {
+				steps.push('', '🧩 Add-on steps', '');
+				for (const step of addOnNextSteps) {
+					const indented = step.replaceAll('  -', '    -');
+					steps.push(`  ${indented}`);
+				}
+			}
+
+			steps.push('', `Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`);
+
+			p.note(steps.join('\n'), "What's next?", { format: (line) => line });
 		});
 	});
 
@@ -166,7 +173,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	p.log.success('Project created');
 
 	let packageManager: AgentName | undefined | null;
-	let addOnNextSteps: string | undefined;
+	let addOnNextSteps: string[] = [];
 
 	const installDeps = async (install: true | AgentName) => {
 		packageManager = install === true ? await packageManagerPrompt(projectPath) : install;
