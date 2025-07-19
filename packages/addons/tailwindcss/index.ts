@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
+import { imports, vite } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
@@ -61,19 +61,8 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'tailwindcss';
-			imports.addDefault(ast, { from: '@tailwindcss/vite', as: vitePluginName });
-
-			const { value: rootObject } = exports.createDefault(ast, {
-				fallback: functions.createCall({ name: 'defineConfig', args: [] })
-			});
-			const param1 = functions.getArgument(rootObject, {
-				index: 0,
-				fallback: object.create({})
-			});
-
-			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
-			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
-			array.prepend(pluginsArray, pluginFunctionCall);
+			imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
+			vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
 
 			return generateCode();
 		});

@@ -59,11 +59,23 @@ export function addDefault(node: AstTypes.Program, options: { from: string; as: 
 export function addNamed(
 	node: AstTypes.Program,
 	options: {
+		imports: Record<string, string> | string[];
 		from: string;
-		imports: Record<string, string>;
 		isType?: boolean;
 	}
 ): void {
+	if (Array.isArray(options.imports)) {
+		const imports = options.imports.reduce(
+			(acc, n) => {
+				acc[n] = n;
+				return acc;
+			},
+			{} as Record<string, string>
+		);
+		addNamed(node, { ...options, imports });
+		return;
+	}
+
 	const specifiers = Object.entries(options.imports).map(([key, value]) => {
 		const specifier: AstTypes.ImportSpecifier = {
 			type: 'ImportSpecifier',
