@@ -111,7 +111,7 @@ export default defineAddon({
 					files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 					languageOptions: {
 						parserOptions: {
-							projectService: true,
+							projectService: false,
 							extraFileExtensions: ['.svelte'],
 							parser: variables.createIdentifier('ts.parser'),
 							svelteConfig: variables.createIdentifier('svelteConfig')
