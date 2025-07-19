@@ -66,7 +66,7 @@ export const create = new Command('create')
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
-			const initialSteps: string[] = [pc.italic('Project steps'), ''];
+			const initialSteps: string[] = ['📁 Project steps', ''];
 			const relative = path.relative(process.cwd(), directory);
 			const pm =
 				packageManager ?? (await detect({ cwd: directory }))?.name ?? getUserAgent() ?? 'npm';
@@ -92,7 +92,7 @@ export const create = new Command('create')
 			];
 
 			if (addOnNextSteps.length > 0) {
-				steps.push('', pc.italic('Add-on steps'), '');
+				steps.push('', '🧩 Add-on steps', '');
 				for (const step of addOnNextSteps) {
 					const indented = step.replaceAll('  -', '    -');
 					steps.push(`  ${indented}`);
