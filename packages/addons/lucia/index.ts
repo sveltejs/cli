@@ -142,11 +142,7 @@ export default defineAddon({
 			if (drizzleDialect === 'sqlite' || drizzleDialect === 'turso') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
-					imports: {
-						sqliteTable: 'sqliteTable',
-						text: 'text',
-						integer: 'integer'
-					}
+					imports: ['sqliteTable', 'text', 'integer']
 				});
 				js.object.overrideProperties(userAttributes, {
 					properties: {
@@ -176,11 +172,7 @@ export default defineAddon({
 			if (drizzleDialect === 'mysql') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/mysql-core',
-					imports: {
-						mysqlTable: 'mysqlTable',
-						varchar: 'varchar',
-						datetime: 'datetime'
-					}
+					imports: ['mysqlTable', 'varchar', 'datetime']
 				});
 				js.object.overrideProperties(userAttributes, {
 					properties: {
@@ -212,11 +204,7 @@ export default defineAddon({
 			if (drizzleDialect === 'postgresql') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/pg-core',
-					imports: {
-						pgTable: 'pgTable',
-						text: 'text',
-						timestamp: 'timestamp'
-					}
+					imports: ['pgTable', 'text', 'timestamp']
 				});
 				js.object.overrideProperties(userAttributes, {
 					properties: {
@@ -260,20 +248,17 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			js.imports.addNamespace(ast, { from: '$lib/server/db/schema', as: 'table' });
-			js.imports.addNamed(ast, { from: '$lib/server/db', imports: { db: 'db' } });
+			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
 			js.imports.addNamed(ast, {
 				from: '@oslojs/encoding',
-				imports: {
-					encodeBase64url: 'encodeBase64url',
-					encodeHexLowerCase: 'encodeHexLowerCase'
-				}
+				imports: ['encodeBase64url', 'encodeHexLowerCase']
 			});
-			js.imports.addNamed(ast, { from: '@oslojs/crypto/sha2', imports: { sha256: 'sha256' } });
-			js.imports.addNamed(ast, { from: 'drizzle-orm', imports: { eq: 'eq' } });
+			js.imports.addNamed(ast, { from: '@oslojs/crypto/sha2', imports: ['sha256'] });
+			js.imports.addNamed(ast, { from: 'drizzle-orm', imports: ['eq'] });
 			if (typescript) {
 				js.imports.addNamed(ast, {
 					from: '@sveltejs/kit',
-					imports: { RequestEvent: 'RequestEvent' },
+					imports: ['RequestEvent'],
 					isType: true
 				});
 			}

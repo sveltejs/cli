@@ -13,7 +13,7 @@ export default defineAddon({
 		sv.file('svelte.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, { from: 'mdsvex', imports: { mdsvex: 'mdsvex' } });
+			imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });
 
 			const { value: exportDefault } = exports.createDefault(ast, {
 				fallback: object.create({})
