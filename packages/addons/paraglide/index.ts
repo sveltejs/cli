@@ -101,7 +101,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 			imports.addNamed(ast, {
 				from: '$lib/paraglide/runtime',
-				imports: { deLocalizeUrl: 'deLocalizeUrl' }
+				imports: ['deLocalizeUrl']
 			});
 
 			const expression = common.parseExpression('(request) => deLocalizeUrl(request.url).pathname');
@@ -127,7 +127,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 			imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
-				imports: { paraglideMiddleware: 'paraglideMiddleware' }
+				imports: ['paraglideMiddleware']
 			});
 
 			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
@@ -184,13 +184,10 @@ export default defineAddon({
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
-				imports.addNamed(script.ast, { from: '$lib/paraglide/messages.js', imports: { m: 'm' } });
-				imports.addNamed(script.ast, { from: '$app/navigation', imports: { goto: 'goto' } });
-				imports.addNamed(script.ast, { from: '$app/state', imports: { page: 'page' } });
-				imports.addNamed(script.ast, {
-					from: '$lib/paraglide/runtime',
-					imports: { setLocale: 'setLocale' }
-				});
+				imports.addNamed(script.ast, { from: '$lib/paraglide/messages.js', imports: ['m'] });
+				imports.addNamed(script.ast, { from: '$app/navigation', imports: ['goto'] });
+				imports.addNamed(script.ast, { from: '$app/state', imports: ['page'] });
+				imports.addNamed(script.ast, { from: '$lib/paraglide/runtime', imports: ['setLocale'] });
 
 				const scriptCode = new MagicString(script.generateCode());
 

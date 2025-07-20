@@ -138,6 +138,8 @@ export default defineAddon({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 
+				data.tailwindStylesheet ??= './src/app.css';
+
 				return generateCode();
 			});
 		}

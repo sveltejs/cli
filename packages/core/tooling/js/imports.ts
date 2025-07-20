@@ -64,19 +64,11 @@ export function addNamed(
 		isType?: boolean;
 	}
 ): void {
-	if (Array.isArray(options.imports)) {
-		const imports = options.imports.reduce(
-			(acc, n) => {
-				acc[n] = n;
-				return acc;
-			},
-			{} as Record<string, string>
-		);
-		addNamed(node, { ...options, imports });
-		return;
-	}
+	const o_imports = Array.isArray(options.imports)
+		? Object.fromEntries(options.imports.map((n) => [n, n]))
+		: options.imports;
 
-	const specifiers = Object.entries(options.imports).map(([key, value]) => {
+	const specifiers = Object.entries(o_imports).map(([key, value]) => {
 		const specifier: AstTypes.ImportSpecifier = {
 			type: 'ImportSpecifier',
 			imported: {

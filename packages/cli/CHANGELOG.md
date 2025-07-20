@@ -1,5 +1,20 @@
 # sv
 
+## 0.8.19
+### Patch Changes
+
+
+- feat: combine next steps prompt for `create` ([#637](https://github.com/sveltejs/cli/pull/637))
+
+
+- chore: use `create-storybook` instead of `storybook init` ([#638](https://github.com/sveltejs/cli/pull/638))
+
+
+- feat: print warning if using Node.js version below 18.3 ([#625](https://github.com/sveltejs/cli/pull/625))
+
+
+- fix(tailwindcss): ensure `tailwindStylesheet` is added to `.prettierrc`, when applicable ([#636](https://github.com/sveltejs/cli/pull/636))
+
 ## 0.8.18
 ### Patch Changes
 
