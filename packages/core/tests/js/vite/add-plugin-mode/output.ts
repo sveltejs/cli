@@ -1,21 +1,15 @@
 import { firstPlugin } from 'first-plugin';
 import lastPlugin from 'last-plugin';
 import middlePlugin from 'middle-plugin';
+import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [
 		firstPlugin(),
+		// a default plugin
+		sveltekit(),
 		middlePlugin(),
-		lastPlugin(0),
-		lastPlugin(1),
-		lastPlugin(2),
-		lastPlugin(3),
-		lastPlugin(4),
-		lastPlugin(5),
-		lastPlugin(6),
-		lastPlugin(7),
-		lastPlugin(8),
-		lastPlugin(9)
+		lastPlugin()
 	]
 });

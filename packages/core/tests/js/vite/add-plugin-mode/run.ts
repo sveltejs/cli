@@ -7,9 +7,7 @@ export function run(ast: AstTypes.Program): void {
 
 	const pLast = 'lastPlugin';
 	imports.addDefault(ast, { as: pLast, from: 'last-plugin' });
-	[...Array(10)].forEach((_, i) => {
-		vite.addPlugin(ast, { code: `${pLast}(${i})` });
-	});
+	vite.addPlugin(ast, { code: `${pLast}()`, mode: 'append' });
 
 	const pFirst = 'firstPlugin';
 	imports.addNamed(ast, { imports: { [pFirst]: pFirst }, from: 'first-plugin' });
