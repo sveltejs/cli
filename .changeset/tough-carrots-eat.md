@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-add `vite.addPlugin` to simplify adding a plugin on various vite config style.
+feat: add `vite.addPlugin` to simplify adding a plugin on various vite config styles
