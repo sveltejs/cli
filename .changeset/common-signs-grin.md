@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: Project steps alignment
+fix: align project steps
