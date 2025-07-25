@@ -63,7 +63,7 @@ export default defineAddon({
 				// uses the `defineConfig` helper
 				imports.addNamed(ast, {
 					from: '@playwright/test',
-					imports: { defineConfig: 'defineConfig' }
+					imports: ['defineConfig']
 				});
 				object.addProperties(defaultExport.arguments[0], { properties: config });
 			} else if (defaultExport.type === 'ObjectExpression') {

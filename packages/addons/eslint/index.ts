@@ -155,13 +155,13 @@ export default defineAddon({
 				common.addJsDocTypeComment(astNode, { type: "import('eslint').Linter.Config[]" });
 
 			if (typescript) imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
-			imports.addNamed(ast, { from: 'node:url', imports: { fileURLToPath: 'fileURLToPath' } });
+			imports.addNamed(ast, { from: 'node:url', imports: ['fileURLToPath'] });
 			imports.addDefault(ast, { from: 'globals', as: 'globals' });
 			imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: 'svelte' });
 			imports.addDefault(ast, { from: '@eslint/js', as: 'js' });
 			imports.addNamed(ast, {
 				from: '@eslint/compat',
-				imports: { includeIgnoreFile: 'includeIgnoreFile' }
+				imports: ['includeIgnoreFile']
 			});
 
 			return generateCode();

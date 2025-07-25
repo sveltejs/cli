@@ -239,10 +239,7 @@ export default defineAddon({
 			if (options.database === 'sqlite') {
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
-					imports: {
-						sqliteTable: 'sqliteTable',
-						integer: 'integer'
-					}
+					imports: ['sqliteTable', 'integer']
 				});
 
 				userSchemaExpression = common.parseExpression(`sqliteTable('user', {
@@ -253,11 +250,7 @@ export default defineAddon({
 			if (options.database === 'mysql') {
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/mysql-core',
-					imports: {
-						mysqlTable: 'mysqlTable',
-						serial: 'serial',
-						int: 'int'
-					}
+					imports: ['mysqlTable', 'serial', 'int']
 				});
 
 				userSchemaExpression = common.parseExpression(`mysqlTable('user', {
@@ -268,11 +261,7 @@ export default defineAddon({
 			if (options.database === 'postgresql') {
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/pg-core',
-					imports: {
-						pgTable: 'pgTable',
-						serial: 'serial',
-						integer: 'integer'
-					}
+					imports: ['pgTable', 'serial', 'integer']
 				});
 
 				userSchemaExpression = common.parseExpression(`pgTable('user', {
@@ -300,7 +289,7 @@ export default defineAddon({
 
 			imports.addNamed(ast, {
 				from: '$env/dynamic/private',
-				imports: { env: 'env' }
+				imports: ['env']
 			});
 			imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
@@ -316,7 +305,7 @@ export default defineAddon({
 				imports.addDefault(ast, { from: 'better-sqlite3', as: 'Database' });
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/better-sqlite3',
-					imports: { drizzle: 'drizzle' }
+					imports: ['drizzle']
 				});
 
 				clientExpression = common.parseExpression('new Database(env.DATABASE_URL)');
@@ -324,17 +313,17 @@ export default defineAddon({
 			if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
 				imports.addNamed(ast, {
 					from: '@libsql/client',
-					imports: { createClient: 'createClient' }
+					imports: ['createClient']
 				});
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/libsql',
-					imports: { drizzle: 'drizzle' }
+					imports: ['drizzle']
 				});
 
 				if (options.sqlite === 'turso') {
 					imports.addNamed(ast, {
 						from: '$app/environment',
-						imports: { dev: 'dev' }
+						imports: ['dev']
 					});
 					// auth token check in prod
 					const authTokenCheck = common.parseStatement(
@@ -354,7 +343,7 @@ export default defineAddon({
 				imports.addDefault(ast, { from: 'mysql2/promise', as: 'mysql' });
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/mysql2',
-					imports: { drizzle: 'drizzle' }
+					imports: ['drizzle']
 				});
 
 				clientExpression = common.parseExpression('mysql.createPool(env.DATABASE_URL)');
@@ -363,11 +352,11 @@ export default defineAddon({
 			if (options.postgresql === 'neon') {
 				imports.addNamed(ast, {
 					from: '@neondatabase/serverless',
-					imports: { neon: 'neon' }
+					imports: ['neon']
 				});
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/neon-http',
-					imports: { drizzle: 'drizzle' }
+					imports: ['drizzle']
 				});
 
 				clientExpression = common.parseExpression('neon(env.DATABASE_URL)');
@@ -376,7 +365,7 @@ export default defineAddon({
 				imports.addDefault(ast, { from: 'postgres', as: 'postgres' });
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/postgres-js',
-					imports: { drizzle: 'drizzle' }
+					imports: ['drizzle']
 				});
 
 				clientExpression = common.parseExpression('postgres(env.DATABASE_URL)');
