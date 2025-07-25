@@ -6,7 +6,7 @@ An auth setup following [the Lucia auth guide](https://lucia-auth.com/).
 
 ## Usage
 
-```bash
+```sh
 npx sv add lucia
 ```
 
@@ -21,6 +21,6 @@ npx sv add lucia
 
 Whether to include demo registration and login pages.
 
-```bash
+```sh
 npx sv add lucia=demo:yes
 ```
