@@ -6,7 +6,7 @@ title: playwright
 
 ## Usage
 
-```bash
+```sh
 npx sv add playwright
 ```
 
