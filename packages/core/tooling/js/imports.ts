@@ -59,8 +59,8 @@ export function addDefault(node: AstTypes.Program, options: { from: string; as: 
 export function addNamed(
 	node: AstTypes.Program,
 	options: {
-		from: string;
 		imports: Record<string, string> | string[];
+		from: string;
 		isType?: boolean;
 	}
 ): void {

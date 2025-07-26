@@ -1,15 +1,6 @@
 import MagicString from 'magic-string';
 import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
-import {
-	array,
-	common,
-	functions,
-	imports,
-	object,
-	variables,
-	exports,
-	kit as kitJs
-} from '@sveltejs/cli-core/js';
+import { common, imports, variables, exports, kit as kitJs, vite } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
@@ -94,26 +85,13 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'paraglideVitePlugin';
-			imports.addNamed(ast, {
-				from: '@inlang/paraglide-js',
-				imports: [vitePluginName]
+			imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
+			vite.addPlugin(ast, {
+				code: `${vitePluginName}({ 
+					project: './project.inlang', 
+					outdir: './${paraglideOutDir}' 
+				})`
 			});
-			const { value: rootObject } = exports.createDefault(ast, {
-				fallback: functions.createCall({ name: 'defineConfig', args: [] })
-			});
-			const param1 = functions.getArgument(rootObject, {
-				index: 0,
-				fallback: object.create({})
-			});
-
-			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
-			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
-			const pluginConfig = object.create({
-				project: './project.inlang',
-				outdir: `./${paraglideOutDir}`
-			});
-			functions.getArgument(pluginFunctionCall, { index: 0, fallback: pluginConfig });
-			array.append(pluginsArray, pluginFunctionCall);
 
 			return generateCode();
 		});

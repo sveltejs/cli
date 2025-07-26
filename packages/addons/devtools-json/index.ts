@@ -1,5 +1,5 @@
 import { defineAddon } from '@sveltejs/cli-core';
-import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
+import { imports, vite } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 
 export default defineAddon({
@@ -18,21 +18,8 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'devtoolsJson';
-			imports.addDefault(ast, { from: 'vite-plugin-devtools-json', as: vitePluginName });
-
-			const { value: rootObject } = exports.createDefault(ast, {
-				fallback: functions.createCall({ name: 'defineConfig', args: [] })
-			});
-
-			const param1 = functions.getArgument(rootObject, {
-				index: 0,
-				fallback: object.create({})
-			});
-
-			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
-			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
-
-			array.append(pluginsArray, pluginFunctionCall);
+			imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
+			vite.addPlugin(ast, { code: `${vitePluginName}()` });
 
 			return generateCode();
 		});
