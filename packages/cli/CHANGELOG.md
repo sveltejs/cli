@@ -1,5 +1,21 @@
 # sv
 
+## 0.8.21
+### Patch Changes
+
+
+- feat: `vitest` require assertions ([#647](https://github.com/sveltejs/cli/pull/647))
+
+
+- chore: remove `git init` next step when creating a new project ([#645](https://github.com/sveltejs/cli/pull/645))
+
+
+- feat: improve minimal template ([#643](https://github.com/sveltejs/cli/pull/643))
+  
+  - move `favicon.svg` to `src/lib/assets` folder (to show inline/immutable assets)
+  - add `static/robots.txt` (to keep static folder)
+  - add `routes/+layout.svelte` (to show layout)
+
 ## 0.8.20
 ### Patch Changes
 
