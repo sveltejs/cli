@@ -93,7 +93,7 @@ export function areNodesEqual(node: AstTypes.Node, otherNode: AstTypes.Node): bo
 
 	const nodeClone = stripAst(decircular(node), ['loc', 'raw']);
 	const otherNodeClone = stripAst(decircular(otherNode), ['loc', 'raw']);
-	return serializeScript(nodeClone) === serializeScript(otherNodeClone);
+	return serializeScript(nodeClone, []) === serializeScript(otherNodeClone, []);
 }
 
 export function createBlockStatement(): AstTypes.BlockStatement {
@@ -118,18 +118,18 @@ export function appendFromString(
 	node: AstTypes.BlockStatement | AstTypes.Program,
 	options: { code: string }
 ): void {
-	const program = parseScript(dedent(options.code));
+	const { ast } = parseScript(dedent(options.code));
 
-	for (const childNode of program.body) {
+	for (const childNode of ast.body) {
 		// @ts-expect-error
 		node.body.push(childNode);
 	}
 }
 
 export function parseExpression(code: string): AstTypes.Expression {
-	const program = parseScript(dedent(code));
-	stripAst(program, ['raw']);
-	const statement = program.body[0]!;
+	const { ast } = parseScript(dedent(code));
+	stripAst(ast, ['raw']);
+	const statement = ast.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
 		throw new Error('Code provided was not an expression');
 	}
@@ -142,8 +142,8 @@ export function parseStatement(code: string): AstTypes.Statement {
 }
 
 export function parseFromString<T extends AstTypes.Node>(code: string): T {
-	const program = parseScript(dedent(code));
-	const statement = program.body[0]!;
+	const { ast } = parseScript(dedent(code));
+	const statement = ast.body[0]!;
 
 	return statement as T;
 }
