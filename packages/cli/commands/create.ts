@@ -85,7 +85,6 @@ export const create = new Command('create')
 			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
-				`  ${i++}: ${highlight('git init && git add -A && git commit -m "Initial commit"')} (optional)`,
 				`  ${i++}: ${highlight(pmRunCmd)}`,
 				'',
 				`To close the dev server, hit ${highlight('Ctrl-C')}`
