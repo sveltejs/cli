@@ -186,7 +186,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			{
 				cwd: projectPath,
 				install: options.install,
-				preconditions: false,
+				gitCheck: false,
 				community: [],
 				addons: {}
 			},

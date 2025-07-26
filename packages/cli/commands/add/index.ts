@@ -25,7 +25,7 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../../utils/package-manager.ts';
-import { getGlobalPreconditions } from './preconditions.ts';
+import { getCleanPreconditions, getAddonsPreconditions } from './preconditions.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
@@ -36,7 +36,7 @@ const AddonsSchema = v.array(v.string());
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
-	preconditions: v.boolean(),
+	gitCheck: v.boolean(),
 	community: v.optional(v.union([AddonsSchema, v.boolean()])),
 	addons: v.record(v.string(), v.optional(v.array(v.string())))
 });
@@ -81,7 +81,7 @@ export const add = new Command('add')
 		return prev;
 	})
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
-	.option('--no-preconditions', 'skip validating preconditions')
+	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
 	//.option('--community [add-on...]', 'community addons to install')
@@ -446,32 +446,32 @@ export async function runAddCommand(
 	}
 
 	// run precondition checks
-	if (options.preconditions && selectedAddons.length > 0) {
-		// add global checks
-		const addons = selectedAddons.map(({ addon }) => addon);
-		const { preconditions } = getGlobalPreconditions(options.cwd, addons, addonSetupResults);
+	const addons = selectedAddons.map(({ addon }) => addon);
+	const preconditions = [
+		...getCleanPreconditions(options.cwd, options.gitCheck),
+		...getAddonsPreconditions(addons, addonSetupResults)
+	];
 
-		const fails: Array<{ name: string; message?: string }> = [];
-		for (const condition of preconditions) {
-			const { message, success } = await condition.run();
-			if (!success) fails.push({ name: condition.name, message });
-		}
+	const fails: Array<{ name: string; message?: string }> = [];
+	for (const condition of preconditions) {
+		const { message, success } = await condition.run();
+		if (!success) fails.push({ name: condition.name, message });
+	}
 
-		if (fails.length > 0) {
-			const message = fails
-				.map(({ name, message }) => pc.yellow(`${name} (${message})`))
-				.join('\n- ');
+	if (fails.length > 0) {
+		const message = fails
+			.map(({ name, message }) => pc.yellow(`${name} (${message})`))
+			.join('\n- ');
 
-			p.note(`- ${message}`, 'Preconditions not met', { format: (line) => line });
+		p.note(`- ${message}`, 'Preconditions not met', { format: (line) => line });
 
-			const force = await p.confirm({
-				message: 'Preconditions failed. Do you wish to continue?',
-				initialValue: false
-			});
-			if (p.isCancel(force) || !force) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
-			}
+		const force = await p.confirm({
+			message: 'Preconditions failed. Do you wish to continue?',
+			initialValue: false
+		});
+		if (p.isCancel(force) || !force) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
 		}
 	}
 
