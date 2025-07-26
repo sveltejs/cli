@@ -78,7 +78,7 @@ export const create = new Command('create')
 			}
 			if (!packageManager) {
 				const { args, command } = resolveCommand(pm, 'install', [])!;
-				initialSteps.push(`${i++}: ${highlight(`${command} ${args.join(' ')}`)}`);
+				initialSteps.push(`  ${i++}: ${highlight(`${command} ${args.join(' ')}`)}`);
 			}
 
 			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
