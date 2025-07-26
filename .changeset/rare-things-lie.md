@@ -2,7 +2,8 @@
 'sv': patch
 ---
 
-feat: minimal template improvements
+feat: improve minimal template
 
-- `favicon.svg` moved to `src/lib/assets`
-- `robots.txt` added to `static`
+- move `favicon.svg` to `src/lib/assets` folder (to show inline/immutable assets)
+- add `static/robots.txt` (to keep static folder)
+- add `routes/+layout.svelte` (to show layout)
