@@ -1,5 +1,17 @@
 # sv
 
+## 0.8.20
+### Patch Changes
+
+
+- fix: align project steps ([#644](https://github.com/sveltejs/cli/pull/644))
+
+
+- chore: allow passing an array of import names to imports.addNamed ([#639](https://github.com/sveltejs/cli/pull/639))
+
+
+- feat: add `vite.addPlugin` to simplify adding a plugin on various vite config styles ([#633](https://github.com/sveltejs/cli/pull/633))
+
 ## 0.8.19
 ### Patch Changes
 
