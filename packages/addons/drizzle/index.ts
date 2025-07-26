@@ -177,6 +177,7 @@ export default defineAddon({
 			const scripts: Record<string, string> = data.scripts;
 			if (options.docker) scripts['db:start'] ??= 'docker compose up';
 			scripts['db:push'] ??= 'drizzle-kit push';
+			scripts['db:generate'] ??= 'drizzle-kit generate';
 			scripts['db:migrate'] ??= 'drizzle-kit migrate';
 			scripts['db:studio'] ??= 'drizzle-kit studio';
 			return generateCode();
