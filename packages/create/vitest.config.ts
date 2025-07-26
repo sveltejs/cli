@@ -5,6 +5,9 @@ export default defineProject({
 	test: {
 		name: 'create',
 		include: ['test/*.ts'],
-		retry: env.CI ? 3 : 0
+		retry: env.CI ? 3 : 0,
+		expect: {
+			requireAssertions: true
+		}
 	}
 });

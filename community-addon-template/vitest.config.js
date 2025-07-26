@@ -8,6 +8,9 @@ export default defineConfig({
 		exclude: ['tests/setup/*'],
 		testTimeout: ONE_MINUTE * 3,
 		hookTimeout: ONE_MINUTE * 3,
-		globalSetup: ['tests/setup/global.ts']
+		globalSetup: ['tests/setup/global.ts'],
+		expect: {
+			requireAssertions: true
+		}
 	}
 });

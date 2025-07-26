@@ -139,7 +139,11 @@ export default defineAddon({
 			});
 			const testObject = object.property(vitestConfig, {
 				name: 'test',
-				fallback: object.create({})
+				fallback: object.create({
+					expect: {
+						requireAssertions: true
+					}
+				})
 			});
 
 			const workspaceArray = object.property(testObject, {
