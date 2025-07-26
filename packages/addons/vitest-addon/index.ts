@@ -64,7 +64,7 @@ export default defineAddon({
 
 		if (componentTesting) {
 			const fileName = kit
-				? `${kit.routesDirectory}/page.svelte.test.${ext}`
+				? `${kit.routesDirectory}/page.svelte.spec.${ext}`
 				: `src/App.svelte.test.${ext}`;
 
 			sv.file(fileName, (content) => {
