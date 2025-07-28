@@ -17,10 +17,16 @@ function exportDefaultConfig(
 		fallbackExpression = object.create({});
 	}
 
-	const { value: rootObject } = exports.createDefault(ast, { fallback: fallbackExpression });
+	const { value: _rootObject } = exports.createDefault(ast, { fallback: fallbackExpression });
 
 	// Handle wrapper functions (e.g., defineConfig({})) if ignoreWrapper is specified
 	let configObject: AstTypes.ObjectExpression;
+
+	// Handle TypeScript satisfies expressions
+	let rootObject = _rootObject;
+	if (_rootObject.type === 'TSSatisfiesExpression') {
+		rootObject = _rootObject.expression;
+	}
 
 	// Early bail-out: if no wrapper to ignore or not a call expression
 	if (!ignoreWrapper || !('arguments' in rootObject) || !Array.isArray(rootObject.arguments)) {
