@@ -19,7 +19,7 @@ function exportDefaultConfig(
 
 	const { value } = exports.createDefault(ast, { fallback: fallbackExpression });
 
-	// Handle TypeScript satisfies expressions
+	// Handle TypeScript `satisfies` expressions
 	const rootObject = value.type === 'TSSatisfiesExpression' ? value.expression : value;
 
 	// Handle wrapper functions (e.g., defineConfig({})) if ignoreWrapper is specified
