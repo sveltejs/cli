@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat: add `db:generate` command to `drizzle` add-on
+feat(drizzle): add `db:generate` script to `package.json`
