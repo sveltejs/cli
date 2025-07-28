@@ -14,7 +14,13 @@ const $scripts = path.resolve($lib, './scripts');
 const $actions = path.resolve($lib, './actions');
 
 const config = defineConfig({
-	plugins: [examples, tailwindcss(), sveltekit(), kitRoutes()],
+	plugins: [
+		// all plugins
+		examples,
+		tailwindcss(),
+		sveltekit(),
+		kitRoutes()
+	],
 	resolve: {
 		alias: {
 			$lib,

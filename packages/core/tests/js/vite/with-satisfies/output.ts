@@ -16,6 +16,7 @@ const $actions = path.resolve($lib, './actions');
 
 const config = defineConfig({
 	plugins: [
+		// all plugins
 		examples,
 		tailwindcss(),
 		sveltekit(),
