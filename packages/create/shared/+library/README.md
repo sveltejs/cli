@@ -34,7 +34,7 @@ Everything inside `src/lib` is part of your library, everything inside `src/rout
 To build your library:
 
 ```sh
-npm run package
+npm pack
 ```
 
 To create a production version of your showcase app:
