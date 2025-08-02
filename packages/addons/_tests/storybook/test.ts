@@ -1,5 +1,7 @@
 import process from 'node:process';
+import { execSync } from 'node:child_process';
 import { expect } from '@playwright/test';
+import { beforeAll } from 'vitest';
 import { setupTest } from '../_setup/suite.ts';
 import storybook from '../../storybook/index.ts';
 import eslint from '../../eslint/index.ts';
@@ -8,6 +10,11 @@ import eslint from '../../eslint/index.ts';
 const { test, variants, prepareServer } = setupTest({ storybook, eslint });
 
 let port = 6006;
+
+beforeAll(() => {
+	// prefetch the storybook cli to reduce fetching errors in tests
+	execSync('pnpx create-storybook@latest --version');
+});
 
 test.for(variants)(
 	'storybook loaded - %s',
