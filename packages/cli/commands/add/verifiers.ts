@@ -1,13 +1,13 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { AddonSetupResult, AddonWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
+import type { AddonSetupResult, AddonWithoutExplicitArgs, Verification } from '@sveltejs/cli-core';
 import { UnsupportedError } from '../../utils/errors.ts';
 
 export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
-	const preconditions: Precondition[] = [];
+	const verifications: Verification[] = [];
 
 	if (gitCheck) {
-		preconditions.push({
+		verifications.push({
 			name: 'clean working directory',
 			run: async () => {
 				try {
@@ -34,16 +34,16 @@ export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 		});
 	}
 
-	return preconditions;
+	return verifications;
 }
 
 export function verifyUnsupportedAddons(
 	addons: AddonWithoutExplicitArgs[],
 	addonSetupResult: Record<string, AddonSetupResult>
 ) {
-	const preconditions: Precondition[] = [];
+	const verifications: Verification[] = [];
 
-	preconditions.push({
+	verifications.push({
 		name: 'unsupported add-ons',
 		run: () => {
 			const reasons = addons.flatMap((a) =>
@@ -58,5 +58,5 @@ export function verifyUnsupportedAddons(
 		}
 	});
 
-	return preconditions;
+	return verifications;
 }

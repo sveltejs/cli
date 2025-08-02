@@ -25,7 +25,7 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../../utils/package-manager.ts';
-import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './preconditions.ts';
+import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
@@ -445,17 +445,17 @@ export async function runAddCommand(
 		}
 	}
 
-	// run precondition checks
+	// run verifications
 	const addons = selectedAddons.map(({ addon }) => addon);
-	const preconditions = [
+	const verifications = [
 		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
 		...verifyUnsupportedAddons(addons, addonSetupResults)
 	];
 
 	const fails: Array<{ name: string; message?: string }> = [];
-	for (const condition of preconditions) {
-		const { message, success } = await condition.run();
-		if (!success) fails.push({ name: condition.name, message });
+	for (const verification of verifications) {
+		const { message, success } = await verification.run();
+		if (!success) fails.push({ name: verification.name, message });
 	}
 
 	if (fails.length > 0) {
@@ -463,10 +463,10 @@ export async function runAddCommand(
 			.map(({ name, message }) => pc.yellow(`${name} (${message})`))
 			.join('\n- ');
 
-		p.note(`- ${message}`, 'Preconditions not met', { format: (line) => line });
+		p.note(`- ${message}`, 'Verifications not met', { format: (line) => line });
 
 		const force = await p.confirm({
-			message: 'Preconditions failed. Do you wish to continue?',
+			message: 'Verifications failed. Do you wish to continue?',
 			initialValue: false
 		});
 		if (p.isCancel(force) || !force) {
