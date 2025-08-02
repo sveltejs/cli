@@ -1,5 +1,11 @@
 # sv
 
+## 0.8.22
+### Patch Changes
+
+
+- fix(create): update library docs to reflect proper `pack` command ([#655](https://github.com/sveltejs/cli/pull/655))
+
 ## 0.8.21
 ### Patch Changes
 
