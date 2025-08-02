@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 import type { AddonSetupResult, AddonWithoutExplicitArgs, Precondition } from '@sveltejs/cli-core';
 import { UnsupportedError } from '../../utils/errors.ts';
 
-export function getCleanPreconditions(cwd: string, gitCheck: boolean) {
+export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 	const preconditions: Precondition[] = [];
 
 	if (gitCheck) {
@@ -37,7 +37,7 @@ export function getCleanPreconditions(cwd: string, gitCheck: boolean) {
 	return preconditions;
 }
 
-export function getAddonsPreconditions(
+export function verifyUnsupportedAddons(
 	addons: AddonWithoutExplicitArgs[],
 	addonSetupResult: Record<string, AddonSetupResult>
 ) {

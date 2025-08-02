@@ -25,7 +25,7 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../../utils/package-manager.ts';
-import { getCleanPreconditions, getAddonsPreconditions } from './preconditions.ts';
+import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './preconditions.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
@@ -448,8 +448,8 @@ export async function runAddCommand(
 	// run precondition checks
 	const addons = selectedAddons.map(({ addon }) => addon);
 	const preconditions = [
-		...getCleanPreconditions(options.cwd, options.gitCheck),
-		...getAddonsPreconditions(addons, addonSetupResults)
+		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
+		...verifyUnsupportedAddons(addons, addonSetupResults)
 	];
 
 	const fails: Array<{ name: string; message?: string }> = [];
