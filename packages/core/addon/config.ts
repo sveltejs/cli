@@ -84,7 +84,7 @@ export function defineAddonOptions<const Args extends OptionDefinition>(options:
 
 type MaybePromise<T> = Promise<T> | T;
 
-export type Precondition = {
+export type Verification = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
