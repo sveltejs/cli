@@ -1,5 +1,19 @@
 # sv
 
+## 0.9.0
+### Minor Changes
+
+
+- feat(cli): rework preconditions: ([#650](https://github.com/sveltejs/cli/pull/650))
+  
+  - remove `--no-preconditions` option from `sv add`
+  - add `--no-git-check` option to `sv add`. With this flag, even if some files are dirty, no prompt will be shown
+
+### Patch Changes
+
+
+- fix(create): update library docs to reflect proper `pack` command ([#655](https://github.com/sveltejs/cli/pull/655))
+
 ## 0.8.21
 ### Patch Changes
 
