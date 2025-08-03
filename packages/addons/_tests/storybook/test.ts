@@ -12,8 +12,10 @@ const { test, variants, prepareServer } = setupTest({ storybook, eslint });
 let port = 6006;
 
 beforeAll(() => {
-	// prefetch the storybook cli to reduce fetching errors in tests
-	execSync('pnpx create-storybook@latest --version');
+	if (process.env.CI) {
+		// prefetch the storybook cli during ci to reduce fetching errors in tests
+		execSync('pnpx create-storybook@latest --version');
+	}
 });
 
 test.for(variants)(
