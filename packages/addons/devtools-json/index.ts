@@ -11,7 +11,7 @@ export default defineAddon({
 	run: ({ sv, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.devDependency('vite-plugin-devtools-json', '^0.2.0');
+		sv.devDependency('vite-plugin-devtools-json', '^1.0.0');
 
 		// add the vite plugin
 		sv.file(`vite.config.${ext}`, (content) => {
