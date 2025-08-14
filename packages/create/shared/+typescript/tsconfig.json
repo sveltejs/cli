@@ -15,6 +15,5 @@
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
 	//
 	// To make changes to top-level options such as include and exclude, we recommend extending
-	// the generated config; see the `kit.typescript.config` setting for more details.
-	// https://svelte.dev/docs/kit/configuration#typescript
+	// the generated config; see https://svelte.dev/docs/kit/configuration#typescript
 }
