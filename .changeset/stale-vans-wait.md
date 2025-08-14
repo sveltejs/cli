@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-chore: update `vite-plugin-devtools-json`
+chore(devtools-json): update `vite-plugin-devtools-json`
