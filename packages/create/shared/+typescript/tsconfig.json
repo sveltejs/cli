@@ -16,5 +16,5 @@
 	//
 	// To make changes to top-level options such as include and exclude, we recommend extending
 	// the generated config; see the `kit.typescript.config` setting for more details.
-	// https://svelte.dev/docs/kit/project-structure#Project-files-tsconfig.json
+	// https://svelte.dev/docs/kit/configuration#typescript
 }
