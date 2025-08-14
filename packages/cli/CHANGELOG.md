@@ -1,5 +1,14 @@
 # sv
 
+## 0.9.1
+### Patch Changes
+
+
+- chore(create): recommend the `kit.typescript.config` setting instead of copying from the generated config ([#668](https://github.com/sveltejs/cli/pull/668))
+
+
+- chore(devtools-json): update `vite-plugin-devtools-json` ([#667](https://github.com/sveltejs/cli/pull/667))
+
 ## 0.9.0
 ### Minor Changes
 
