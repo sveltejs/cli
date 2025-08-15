@@ -93,9 +93,17 @@ test('real world download and convert playground', async () => {
 	});
 
 	const playground = await downloadFilesFromPlayground({
-		playgroundId: 'hello-world',
+		playgroundId: '770bbef086034b9f8e337bab57efe8d8',
 		hash: undefined
 	});
 
 	setupPlayogroundProject(playground, directory);
+
+	const pageFilePath = path.join(directory, 'src/routes/+page.svelte');
+	const pageContent = fs.readFileSync(pageFilePath, 'utf-8');
+	expect(pageContent).toContain('<App />');
+
+	const packageJsonPath = path.join(directory, 'package.json');
+	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
+	expect(packageJsonContent).toContain('"change-case": "latest"');
 });

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import * as fs from 'node:fs';
-import { parseSvelte } from '@sveltejs/cli-core/parsers';
+import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import * as js from '@sveltejs/cli-core/js';
 
 export function validatePlaygroundUrl(link: string): boolean {
@@ -83,17 +83,40 @@ async function decode_and_decompress_text(input: string) {
 }
 
 export function setupPlayogroundProject(playground: PlaygroundData, cwd: string): void {
+	const mainFile =
+		playground.files.find((file) => file.name === 'App.svelte') ||
+		playground.files.find((file) => file.name.endsWith('.svelte')) ||
+		playground.files[0];
+
+	const packages: string[] = [];
 	for (const file of playground.files) {
+		// detect npm packages from imports
+		let ast: js.AstTypes.Program | undefined;
+		if (file.name.endsWith('.svelte')) {
+			ast = parseSvelte(file.content).script.ast;
+		} else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
+			ast = parseScript(file.content).ast;
+		}
+		if (!ast) continue;
+		const imports = ast.body
+			.filter((node): node is js.AstTypes.ImportDeclaration => node.type === 'ImportDeclaration')
+			.map((node) => node.source.value as string)
+			.filter((importPath) => !importPath.startsWith('./'));
+
+		packages.push(...imports);
+
+		// write file to disk
 		const filePath = path.join(cwd, 'src', 'routes', file.name);
 		fs.mkdirSync(path.dirname(filePath), { recursive: true });
 		fs.writeFileSync(filePath, file.content, 'utf8');
 	}
 
+	// add app import to +page.svelte
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
 	const { script, template, generateCode } = parseSvelte(content);
 	js.imports.addDefault(script.ast, {
-		from: './App.svelte',
+		from: `./${mainFile.name}`,
 		as: 'App'
 	});
 	template.source = template.source + `\n<App />`;
@@ -102,4 +125,15 @@ export function setupPlayogroundProject(playground: PlaygroundData, cwd: string)
 		template: template.source
 	});
 	fs.writeFileSync(filePath, newContent, 'utf-8');
+
+	// add packages as dependencies to package.json
+	const packageJsonPath = path.join(cwd, 'package.json');
+	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
+	const { data: packageJson, generateCode: generateCodeJson } = parseJson(packageJsonContent);
+	packageJson.dependencies ??= {};
+	for (const pkg of packages) {
+		packageJson.dependencies[pkg] = 'latest';
+	}
+	const newPackageJson = generateCodeJson();
+	fs.writeFileSync(packageJsonPath, newPackageJson, 'utf-8');
 }
