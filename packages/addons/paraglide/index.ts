@@ -111,7 +111,7 @@ export default defineAddon({
 				});
 			}
 
-			const expression = common.parseExpression(`(request) => deLocalizeUrl(request.url).pathname`);
+			const expression = common.parseExpression('(request) => deLocalizeUrl(request.url).pathname');
 			const rerouteIdentifier = variables.declaration(ast, {
 				kind: 'const',
 				name: 'reroute',
