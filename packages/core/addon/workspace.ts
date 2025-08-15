@@ -13,7 +13,7 @@ export type Workspace<Args extends OptionDefinition> = {
 	 */
 	dependencyVersion: (pkg: string) => string | undefined;
 	typescript: boolean;
-	viteConfigPath: string;
+	viteConfigFile: string;
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
 	packageManager: PackageManager;
 };
