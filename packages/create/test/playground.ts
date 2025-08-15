@@ -56,9 +56,9 @@ test.for([
 	{
 		testName: 'hash',
 		playgroundId: undefined,
-		hash: 'H4sIAAAAAAAACm2OTU7DMBCFr2JGSG1FRMjW2JbYcQfCwnGmqlUztuJxC4pyd-SEqhu273t_M5D9QpBwjiFEcY1TGKGBow-YQX7MwD-p4ipAczO_pfScLxi4aoPN-J_uIjESZ5Cgspt8YtNTzwFZVLvQ4jGzZdzv1tXd4fWGXSzEd_5SiWrvHaROndkOz7VqeVDtqduIp1RYDJ5GebGhoN4cojU9qaEwRxKRXPDurOf9QWjzN_ekRbesD1eYpZhXsNTtLWh6ggYYvxkkTwWXzwbY-nD1NII82pBx-QXBqXEFUQEAAA=='
+		hash: 'H4sIAAAAAAAACm2OTU7DMBCFr2JGSG1FRMjW2JbYcQfCwnGmqlUztuJxC4pyd-SEqhu273t_M5D9QpDwjiFEcY1TGKGBow-YQX7MwD-p4ipAczO_pfScLxi4aoPN-J_uIjESZ5Cgspt8YtNTzwFZVLvQ4jGzZdzv1tXd4fWGXSzEd_5SiWrvHaROndkOz7VqeVDtqduIp1RYDJ5GebGhoN4cojU9qaEwRxKRXPDurOf9QWjzN_ekRbesD1eYpZhXsNTtLWh6ggYYvxkkTwWXzwbY-nD1NII82pBx-QXBqXEFUQEAAA=='
 	}
-])('download playground from $testName', async (data) => {
+])('download hello world playground from $testName', async (data) => {
 	const playground = await downloadFilesFromPlayground({
 		playgroundId: data.playgroundId,
 		hash: data.hash
