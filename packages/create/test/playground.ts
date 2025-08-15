@@ -47,16 +47,27 @@ test.for([
 	expect(hash).toBe(data.expected.hash);
 });
 
-test('download playground test', async () => {
-	const t1 = await downloadFilesFromPlayground({
+test.for([
+	{
+		testName: 'playground id',
 		playgroundId: 'hello-world',
 		hash: undefined
-	});
-	const t2 = await downloadFilesFromPlayground({
+	},
+	{
+		testName: 'hash',
 		playgroundId: undefined,
-		hash: 'H4sIAAAAAAAACm2Oz06EMBDGX2WcmCxEInKtQOLNdxAPhc5mm63Thg67moZ3NwU3e_H6_b5_CVl_ESp8J-c8XP3sDBRkrJApscKjdRRRfSSUn5B9WcDqlnoL4TleyEnWRh3pP33yLMQSUWEbp9kG6QcexJFAtkMHj1G0UHHY5g_l6w1PfmG585dM2vrewe2p6ffnKVetOpqHtj41O7QcFoHRslEX7RbqdhPU_cDtuIh4Bs-Ts9O5S0UJXf-3-NRBs24nNxgVpA2seX4P9gNjhULfgkrmhdbPCkVbd7VsUB21i7T-Akpv1IhdAQAA'
+		hash: 'H4sIAAAAAAAACm2OTU7DMBCFr2JGSG1FRMjW2JbYcQfCwnGmqlUztuJxC4pyd-SEqhu273t_M5D9QpBwjiFEcY1TGKGBow-YQX7MwD-p4ipAczO_pfScLxi4aoPN-J_uIjESZ5Cgspt8YtNTzwFZVLvQ4jGzZdzv1tXd4fWGXSzEd_5SiWrvHaROndkOz7VqeVDtqduIp1RYDJ5GebGhoN4cojU9qaEwRxKRXPDurOf9QWjzN_ekRbesD1eYpZhXsNTtLWh6ggYYvxkkTwWXzwbY-nD1NII82pBx-QXBqXEFUQEAAA=='
+	}
+])('download playground from $testName', async (data) => {
+	const playground = await downloadFilesFromPlayground({
+		playgroundId: data.playgroundId,
+		hash: data.hash
 	});
-	console.log(t1);
-	console.log(t2);
-	expect(true).toBe(true); // Just a placeholder to ensure the test runs without errors
+
+	expect(playground.name).toBe('Hello world');
+	expect(playground.files).toHaveLength(1);
+
+	const file1 = playground.files[0];
+	expect(file1.name).toBe('App.svelte');
+	expect(file1.content).toContain('<h1>Hello {name}!</h1>');
 });

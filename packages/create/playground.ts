@@ -55,9 +55,9 @@ export async function downloadFilesFromPlayground({
 	const files = data.components !== undefined ? data.components : data.files;
 	return {
 		name: data.name,
-		files: files.map((file: { name: string; contents: string; source: string }) => {
+		files: files.map((file: { name: string; type: string; contents: string; source: string }) => {
 			return {
-				name: file.name,
+				name: file.name + (file.type !== 'file' ? `.${file.type}` : ''),
 				content: file.source || file.contents
 			};
 		})
