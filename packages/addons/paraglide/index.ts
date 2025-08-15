@@ -56,6 +56,7 @@ export default defineAddon({
 		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, viteConfigPath, typescript, kit }) => {
+		const ext = typescript ? 'ts' : 'js';
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
