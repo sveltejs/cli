@@ -20,8 +20,12 @@ export async function createWorkspace({
 	packageManager
 }: CreateWorkspaceOptions): Promise<Workspace<any>> {
 	const resolvedCwd = path.resolve(cwd);
-	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
+	let viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
 	let usesTypescript = fs.existsSync(viteConfigPath);
+
+	if (!usesTypescript) {
+		viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfig);
+	}
 
 	if (TESTING) {
 		// while executing tests, we only look into the direct `cwd`
@@ -55,6 +59,7 @@ export async function createWorkspace({
 		options,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
+		viteConfigPath,
 		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
