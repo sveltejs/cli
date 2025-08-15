@@ -2,8 +2,16 @@ import { expect, test } from 'vitest';
 import {
 	downloadFilesFromPlayground,
 	extractPartsFromPlaygroundUrl,
+	setupPlayogroundProject,
 	validatePlaygroundUrl
 } from '../playground.ts';
+import { fileURLToPath } from 'node:url';
+import { create } from '../index.ts';
+import path from 'node:path';
+import * as fs from 'node:fs';
+
+const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+const testWorkspaceDir = resolvePath('../../../.test-output/create/');
 
 test.for([
 	{ input: 'https://svelte.dev/playground/628f435d787a465f9c1f1854134d6f70/', valid: true },
@@ -70,4 +78,24 @@ test.for([
 	const file1 = playground.files[0];
 	expect(file1.name).toBe('App.svelte');
 	expect(file1.content).toContain('<h1>Hello {name}!</h1>');
+});
+
+test('real world download and convert playground', async () => {
+	const directory = path.join(testWorkspaceDir, 'real-world-playground');
+	if (fs.existsSync(directory)) {
+		fs.rmdirSync(directory, { recursive: true });
+	}
+
+	create(directory, {
+		name: 'real-world-playground',
+		template: 'minimal',
+		types: 'typescript'
+	});
+
+	const playground = await downloadFilesFromPlayground({
+		playgroundId: 'hello-world',
+		hash: undefined
+	});
+
+	setupPlayogroundProject(playground, directory);
 });

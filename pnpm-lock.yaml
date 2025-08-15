@@ -193,6 +193,9 @@ importers:
 
   packages/create:
     devDependencies:
+      '@sveltejs/cli-core':
+        specifier: workspace:*
+        version: link:../core
       '@types/gitignore-parser':
         specifier: ^0.0.3
         version: 0.0.3

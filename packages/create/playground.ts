@@ -1,3 +1,8 @@
+import path from 'node:path';
+import * as fs from 'node:fs';
+import { parseSvelte } from '@sveltejs/cli-core/parsers';
+import * as js from '@sveltejs/cli-core/js';
+
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
 		const url = new URL(link);
@@ -75,4 +80,26 @@ async function decode_and_decompress_text(input: string) {
 	}
 	const stream = new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'));
 	return new Response(stream).text();
+}
+
+export function setupPlayogroundProject(playground: PlaygroundData, cwd: string): void {
+	for (const file of playground.files) {
+		const filePath = path.join(cwd, 'src', 'routes', file.name);
+		fs.mkdirSync(path.dirname(filePath), { recursive: true });
+		fs.writeFileSync(filePath, file.content, 'utf8');
+	}
+
+	const filePath = path.join(cwd, 'src/routes/+page.svelte');
+	const content = fs.readFileSync(filePath, 'utf-8');
+	const { script, template, generateCode } = parseSvelte(content);
+	js.imports.addDefault(script.ast, {
+		from: './App.svelte',
+		as: 'App'
+	});
+	template.source = template.source + `\n<App />`;
+	const newContent = generateCode({
+		script: script.generateCode(),
+		template: template.source
+	});
+	fs.writeFileSync(filePath, newContent, 'utf-8');
 }
