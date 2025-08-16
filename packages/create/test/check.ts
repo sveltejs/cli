@@ -41,7 +41,7 @@ for (const template of templates) {
 		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 
-		create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
+		await create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
 

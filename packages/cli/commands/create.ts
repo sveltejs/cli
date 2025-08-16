@@ -9,7 +9,8 @@ import {
 	create as createKit,
 	templates,
 	type LanguageType,
-	type TemplateType
+	type TemplateType,
+	validatePlaygroundUrl
 } from '@sveltejs/create';
 import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
@@ -43,7 +44,11 @@ const OptionsSchema = v.strictObject({
 	),
 	addOns: v.boolean(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
-	template: v.optional(v.picklist(templateChoices))
+	template: v.optional(v.picklist(templateChoices)),
+	fromPlayground: v.pipe(
+		v.optional(v.string()),
+		v.check(validatePlaygroundUrl, 'Invalid playground URL')
+	)
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -56,6 +61,7 @@ export const create = new Command('create')
 	.option('--no-types')
 	.option('--no-add-ons', 'skips interactive add-on installer')
 	.option('--no-install', 'skip installing dependencies')
+	.option('--from-playground <string>', 'create a project from the svelte playground')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
@@ -135,6 +141,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			template: () => {
 				if (options.template) return Promise.resolve(options.template);
+				// always use the minimal template for playground projects
+				if (options.fromPlayground) return Promise.resolve('minimal' as TemplateType);
+
 				return p.select<TemplateType>({
 					message: 'Which template would you like?',
 					initialValue: 'minimal',
@@ -163,10 +172,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	);
 
 	const projectPath = path.resolve(directory);
-	createKit(projectPath, {
+	await createKit(projectPath, {
 		name: path.basename(projectPath),
 		template,
-		types: language
+		types: language,
+		playgroundUrl: options.fromPlayground
 	});
 
 	p.log.success('Project created');
