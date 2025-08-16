@@ -19,6 +19,11 @@ vitest.beforeAll(() => {
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
 
+	// cleans up the containers on interrupts (ctrl+c)
+	process.addListener('SIGINT', () => {
+		execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
+	});
+
 	return () => {
 		execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
 	};
