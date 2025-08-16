@@ -3,7 +3,18 @@ import * as fs from 'node:fs';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import * as js from '@sveltejs/cli-core/js';
 
-export function validatePlaygroundUrl(link: string): boolean {
+export async function write_playground_files(url: string, cwd: string): Promise<void> {
+	if (!validatePlaygroundUrl(url)) throw new Error(`Invalid playground URL: ${url}`);
+
+	const urlData = extractPartsFromPlaygroundUrl(url);
+	const playground = await downloadFilesFromPlayground(urlData);
+	setupPlaygroundProject(playground, cwd);
+}
+
+export function validatePlaygroundUrl(link?: string): boolean {
+	// If no link is provided, consider it valid
+	if (!link) return true;
+
 	try {
 		const url = new URL(link);
 		if (url.hostname !== 'svelte.dev' || !url.pathname.startsWith('/playground/')) {
@@ -38,6 +49,7 @@ type PlaygroundData = {
 		content: string;
 	}>;
 };
+
 export async function downloadFilesFromPlayground({
 	playgroundId,
 	hash
@@ -82,7 +94,7 @@ async function decode_and_decompress_text(input: string) {
 	return new Response(stream).text();
 }
 
-export function setupPlayogroundProject(playground: PlaygroundData, cwd: string): void {
+export function setupPlaygroundProject(playground: PlaygroundData, cwd: string): void {
 	const mainFile =
 		playground.files.find((file) => file.name === 'App.svelte') ||
 		playground.files.find((file) => file.name.endsWith('.svelte')) ||

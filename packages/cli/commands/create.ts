@@ -9,7 +9,8 @@ import {
 	create as createKit,
 	templates,
 	type LanguageType,
-	type TemplateType
+	type TemplateType,
+	validatePlaygroundUrl
 } from '@sveltejs/create';
 import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
@@ -44,7 +45,10 @@ const OptionsSchema = v.strictObject({
 	addOns: v.boolean(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices)),
-	fromPlayground: v.optional(v.string())
+	fromPlayground: v.pipe(
+		v.optional(v.string()),
+		v.check(validatePlaygroundUrl, 'Invalid playground URL')
+	)
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -107,8 +111,6 @@ export const create = new Command('create')
 	});
 
 async function createProject(cwd: ProjectPath, options: Options) {
-	console.log('From playground:', options.fromPlayground);
-
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
@@ -170,10 +172,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	);
 
 	const projectPath = path.resolve(directory);
-	createKit(projectPath, {
+	await createKit(projectPath, {
 		name: path.basename(projectPath),
 		template,
-		types: language
+		types: language,
+		playgroundUrl: options.fromPlayground
 	});
 
 	p.log.success('Project created');

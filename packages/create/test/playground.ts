@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import {
 	downloadFilesFromPlayground,
 	extractPartsFromPlaygroundUrl,
-	setupPlayogroundProject,
+	setupPlaygroundProject,
 	validatePlaygroundUrl
 } from '../playground.ts';
 import { fileURLToPath } from 'node:url';
@@ -86,7 +86,7 @@ test('real world download and convert playground', async () => {
 		fs.rmdirSync(directory, { recursive: true });
 	}
 
-	create(directory, {
+	await create(directory, {
 		name: 'real-world-playground',
 		template: 'minimal',
 		types: 'typescript'
@@ -97,7 +97,7 @@ test('real world download and convert playground', async () => {
 		hash: undefined
 	});
 
-	setupPlayogroundProject(playground, directory);
+	setupPlaygroundProject(playground, directory);
 
 	const pageFilePath = path.join(directory, 'src/routes/+page.svelte');
 	const pageContent = fs.readFileSync(pageFilePath, 'utf-8');
