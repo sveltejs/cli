@@ -1,5 +1,11 @@
 # sv
 
+## 0.9.2
+### Patch Changes
+
+
+- fix(cli): `vite.config.*` file detection works for both .js and .ts variants ([#673](https://github.com/sveltejs/cli/pull/673))
+
 ## 0.9.1
 ### Patch Changes
 
