@@ -20,7 +20,7 @@ export default defineAddon({
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,
-	run: ({ sv, typescript, kit, options }) => {
+	run: ({ sv, viteConfigFile, typescript, kit, options }) => {
 		const ext = typescript ? 'ts' : 'js';
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
@@ -96,11 +96,11 @@ export default defineAddon({
 				`;
 			});
 		}
-		sv.file(`vite.config.${ext}`, (content) => {
+		sv.file(viteConfigFile, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const clientObjectExpression = object.create({
-				extends: `./vite.config.${ext}`,
+				extends: `./${viteConfigFile}`,
 				test: {
 					name: 'client',
 					environment: 'browser',
@@ -116,7 +116,7 @@ export default defineAddon({
 			});
 
 			const serverObjectExpression = object.create({
-				extends: `./vite.config.${ext}`,
+				extends: `./${viteConfigFile}`,
 				test: {
 					name: 'server',
 					environment: 'node',

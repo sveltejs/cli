@@ -23,6 +23,8 @@ export async function createWorkspace({
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
 	let usesTypescript = fs.existsSync(viteConfigPath);
 
+	const viteConfigFile = usesTypescript ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig;
+
 	if (TESTING) {
 		// while executing tests, we only look into the direct `cwd`
 		// as we might detect the monorepo `tsconfig.json` otherwise.
@@ -55,6 +57,7 @@ export async function createWorkspace({
 		options,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
+		viteConfigFile,
 		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
