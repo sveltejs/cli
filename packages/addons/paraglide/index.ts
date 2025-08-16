@@ -103,6 +103,13 @@ export default defineAddon({
 				from: '$lib/paraglide/runtime',
 				imports: ['deLocalizeUrl']
 			});
+			if (typescript) {
+				imports.addNamed(ast, {
+					from: '@sveltejs/kit',
+					imports: ['Reroute'],
+					isType: true
+				});
+			}
 
 			const expression = common.parseExpression('(request) => deLocalizeUrl(request.url).pathname');
 			const rerouteIdentifier = variables.declaration(ast, {
@@ -110,6 +117,11 @@ export default defineAddon({
 				name: 'reroute',
 				value: expression
 			});
+			if (typescript) {
+				variables.typeAnnotateDeclarator(rerouteIdentifier.declarations[0], {
+					typeName: 'Reroute'
+				});
+			}
 
 			const existingExport = exports.createNamed(ast, {
 				name: 'reroute',
