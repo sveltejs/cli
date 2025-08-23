@@ -1,9 +1,10 @@
 import { expect, test } from 'vitest';
 import {
-	downloadFilesFromPlayground,
-	extractPartsFromPlaygroundUrl,
+	downloadPlaygroundData,
+	parsePlaygroundUrl,
 	setupPlaygroundProject,
-	validatePlaygroundUrl
+	validatePlaygroundUrl,
+	detectPlaygroundDependencies
 } from '../playground.ts';
 import { fileURLToPath } from 'node:url';
 import { create } from '../index.ts';
@@ -49,7 +50,7 @@ test.for([
 		}
 	}
 ])('extract parts from playground url $url', (data) => {
-	const { playgroundId, hash } = extractPartsFromPlaygroundUrl(data.url);
+	const { playgroundId, hash } = parsePlaygroundUrl(data.url);
 
 	expect(playgroundId).toBe(data.expected.playgroundId);
 	expect(hash).toBe(data.expected.hash);
@@ -67,7 +68,7 @@ test.for([
 		hash: 'H4sIAAAAAAAACm2OTU7DMBCFr2JGSG1FRMjW2JbYcQfCwnGmqlUztuJxC4pyd-SEqhu273t_M5D9QpDwjiFEcY1TGKGBow-YQX7MwD-p4ipAczO_pfScLxi4aoPN-J_uIjESZ5Cgspt8YtNTzwFZVLvQ4jGzZdzv1tXd4fWGXSzEd_5SiWrvHaROndkOz7VqeVDtqduIp1RYDJ5GebGhoN4cojU9qaEwRxKRXPDurOf9QWjzN_ekRbesD1eYpZhXsNTtLWh6ggYYvxkkTwWXzwbY-nD1NII82pBx-QXBqXEFUQEAAA=='
 	}
 ])('download hello world playground from $testName', async (data) => {
-	const playground = await downloadFilesFromPlayground({
+	const playground = await downloadPlaygroundData({
 		playgroundId: data.playgroundId,
 		hash: data.hash
 	});
@@ -80,24 +81,70 @@ test.for([
 	expect(file1.content).toContain('<h1>Hello {name}!</h1>');
 });
 
+test('detect dependencies from playground files', () => {
+	const files = [
+		{
+			name: 'App.svelte',
+			content: `<script>
+				import { writable } from 'svelte/store';
+				import changeCase from 'change-case';
+				import { onMount } from 'svelte';
+				import Component from './Component.svelte';
+				import { page } from '$app/stores';
+				import { browser } from '$app/environment';
+				import utils from '$lib/utils';
+			</script>`
+		},
+		{
+			name: 'utils.js',
+			content: `
+				import lodash from 'lodash';
+				import './local-file.js';
+				import fs from 'node:fs';
+				import { someUtil } from '$lib/utils';
+				import kit from '@sveltejs/kit';
+			`
+		}
+	];
+
+	const dependencies = detectPlaygroundDependencies(files);
+
+	// Should include external npm packages
+	expect(dependencies).toContain('change-case');
+	expect(dependencies).toContain('lodash');
+
+	// Should exclude relative imports
+	expect(dependencies).not.toContain('./Component.svelte');
+	expect(dependencies).not.toContain('./local-file.js');
+
+	// Should exclude framework/built-in imports
+	expect(dependencies).not.toContain('svelte/store');
+	expect(dependencies).not.toContain('svelte');
+	expect(dependencies).not.toContain('$app/stores');
+	expect(dependencies).not.toContain('$app/environment');
+	expect(dependencies).not.toContain('$lib/utils');
+	expect(dependencies).not.toContain('node:fs');
+	expect(dependencies).not.toContain('@sveltejs/kit');
+});
+
 test('real world download and convert playground', async () => {
 	const directory = path.join(testWorkspaceDir, 'real-world-playground');
 	if (fs.existsSync(directory)) {
 		fs.rmdirSync(directory, { recursive: true });
 	}
 
-	await create(directory, {
+	create(directory, {
 		name: 'real-world-playground',
 		template: 'minimal',
 		types: 'typescript'
 	});
 
-	const playground = await downloadFilesFromPlayground({
+	const playground = await downloadPlaygroundData({
 		playgroundId: '770bbef086034b9f8e337bab57efe8d8',
 		hash: undefined
 	});
 
-	setupPlaygroundProject(playground, directory);
+	setupPlaygroundProject(playground, directory, true);
 
 	const pageFilePath = path.join(directory, 'src/routes/+page.svelte');
 	const pageContent = fs.readFileSync(pageFilePath, 'utf-8');

@@ -3,14 +3,6 @@ import * as fs from 'node:fs';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import * as js from '@sveltejs/cli-core/js';
 
-export async function write_playground_files(url: string, cwd: string): Promise<void> {
-	if (!validatePlaygroundUrl(url)) throw new Error(`Invalid playground URL: ${url}`);
-
-	const urlData = extractPartsFromPlaygroundUrl(url);
-	const playground = await downloadFilesFromPlayground(urlData);
-	setupPlaygroundProject(playground, cwd);
-}
-
 export function validatePlaygroundUrl(link?: string): boolean {
 	// If no link is provided, consider it valid
 	if (!link) return true;
@@ -21,7 +13,7 @@ export function validatePlaygroundUrl(link?: string): boolean {
 			return false;
 		}
 
-		const { playgroundId, hash } = extractPartsFromPlaygroundUrl(link);
+		const { playgroundId, hash } = parsePlaygroundUrl(link);
 		return playgroundId !== undefined || hash !== undefined;
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -31,7 +23,7 @@ export function validatePlaygroundUrl(link?: string): boolean {
 	}
 }
 
-export function extractPartsFromPlaygroundUrl(link: string): {
+export function parsePlaygroundUrl(link: string): {
 	playgroundId: string | undefined;
 	hash: string | undefined;
 } {
@@ -50,7 +42,7 @@ type PlaygroundData = {
 	}>;
 };
 
-export async function downloadFilesFromPlayground({
+export async function downloadPlaygroundData({
 	playgroundId,
 	hash
 }: {
@@ -61,7 +53,7 @@ export async function downloadFilesFromPlayground({
 	// forked playgrounds have a playground_id and an optional hash.
 	// usually the hash is more up to date so take the hash if present.
 	if (hash) {
-		data = JSON.parse(await decode_and_decompress_text(hash));
+		data = JSON.parse(await decodeAndDecompressText(hash));
 	} else {
 		const response = await fetch(`https://svelte.dev/playground/api/${playgroundId}.json`);
 		data = await response.json();
@@ -83,7 +75,7 @@ export async function downloadFilesFromPlayground({
 
 // Taken from https://github.com/sveltejs/svelte.dev/blob/ba7ad256f786aa5bc67eac3a58608f3f50b59e91/apps/svelte.dev/src/routes/(authed)/playground/%5Bid%5D/gzip.js#L19-L29
 /** @param {string} input */
-async function decode_and_decompress_text(input: string) {
+async function decodeAndDecompressText(input: string) {
 	const decoded = atob(input.replaceAll('-', '+').replaceAll('_', '/'));
 	// putting it directly into the blob gives a corrupted file
 	const u8 = new Uint8Array(decoded.length);
@@ -94,15 +86,18 @@ async function decode_and_decompress_text(input: string) {
 	return new Response(stream).text();
 }
 
-export function setupPlaygroundProject(playground: PlaygroundData, cwd: string): void {
-	const mainFile =
-		playground.files.find((file) => file.name === 'App.svelte') ||
-		playground.files.find((file) => file.name.endsWith('.svelte')) ||
-		playground.files[0];
-
+export function detectPlaygroundDependencies(files: PlaygroundData['files']): string[] {
 	const packages: string[] = [];
-	for (const file of playground.files) {
-		// detect npm packages from imports
+
+	// Prefixes for packages that should be excluded (built-in or framework packages)
+	const excludedPrefixes = [
+		'$', // SvelteKit framework imports
+		'node:', // Node.js built-in modules
+		'svelte', // Svelte core packages
+		'@sveltejs/' // All SvelteKit packages
+	];
+
+	for (const file of files) {
 		let ast: js.AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
 			ast = parseSvelte(file.content).script.ast;
@@ -110,13 +105,32 @@ export function setupPlaygroundProject(playground: PlaygroundData, cwd: string):
 			ast = parseScript(file.content).ast;
 		}
 		if (!ast) continue;
+
 		const imports = ast.body
 			.filter((node): node is js.AstTypes.ImportDeclaration => node.type === 'ImportDeclaration')
 			.map((node) => node.source.value as string)
-			.filter((importPath) => !importPath.startsWith('./'));
+			.filter((importPath) => !importPath.startsWith('./') && !importPath.startsWith('/'));
 
 		packages.push(...imports);
+	}
 
+	// Remove duplicates and filter out excluded packages
+	return [...new Set(packages)].filter((pkg) => {
+		return !excludedPrefixes.some((prefix) => pkg.startsWith(prefix));
+	});
+}
+
+export function setupPlaygroundProject(
+	playground: PlaygroundData,
+	cwd: string,
+	installDependencies: boolean = false
+): void {
+	const mainFile =
+		playground.files.find((file) => file.name === 'App.svelte') ||
+		playground.files.find((file) => file.name.endsWith('.svelte')) ||
+		playground.files[0];
+
+	for (const file of playground.files) {
 		// write file to disk
 		const filePath = path.join(cwd, 'src', 'routes', file.name);
 		fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -138,14 +152,17 @@ export function setupPlaygroundProject(playground: PlaygroundData, cwd: string):
 	});
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
-	// add packages as dependencies to package.json
-	const packageJsonPath = path.join(cwd, 'package.json');
-	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
-	const { data: packageJson, generateCode: generateCodeJson } = parseJson(packageJsonContent);
-	packageJson.dependencies ??= {};
-	for (const pkg of packages) {
-		packageJson.dependencies[pkg] = 'latest';
+	// add packages as dependencies to package.json if requested
+	const dependencies = detectPlaygroundDependencies(playground.files);
+	if (installDependencies && dependencies.length >= 0) {
+		const packageJsonPath = path.join(cwd, 'package.json');
+		const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
+		const { data: packageJson, generateCode: generateCodeJson } = parseJson(packageJsonContent);
+		packageJson.dependencies ??= {};
+		for (const pkg of dependencies) {
+			packageJson.dependencies[pkg] = 'latest';
+		}
+		const newPackageJson = generateCodeJson();
+		fs.writeFileSync(packageJsonPath, newPackageJson, 'utf-8');
 	}
-	const newPackageJson = generateCodeJson();
-	fs.writeFileSync(packageJsonPath, newPackageJson, 'utf-8');
 }

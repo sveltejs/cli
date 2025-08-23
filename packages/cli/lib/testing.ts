@@ -42,9 +42,9 @@ export async function setup({
 		if (fs.existsSync(templatePath)) continue;
 
 		if (variant === 'kit-js') {
-			await create(templatePath, { name: variant, template: 'minimal', types: 'checkjs' });
+			create(templatePath, { name: variant, template: 'minimal', types: 'checkjs' });
 		} else if (variant === 'kit-ts') {
-			await create(templatePath, { name: variant, template: 'minimal', types: 'typescript' });
+			create(templatePath, { name: variant, template: 'minimal', types: 'typescript' });
 		} else if (variant === 'vite-js' || variant === 'vite-ts') {
 			const name = `template-svelte${variant === 'vite-ts' ? '-ts' : ''}`;
 			// TODO: should probably point this to a specific commit hash (ex: `#1234abcd`)

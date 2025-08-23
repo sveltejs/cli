@@ -1,8 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist } from './utils.ts';
-import { write_playground_files } from './playground.ts';
-export { validatePlaygroundUrl } from './playground.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
@@ -14,7 +12,6 @@ export type Options = {
 	name: string;
 	template: TemplateType;
 	types: LanguageType;
-	playgroundUrl?: string;
 };
 
 export type File = {
@@ -33,15 +30,11 @@ export type Common = {
 	}>;
 };
 
-export async function create(cwd: string, options: Options): Promise<void> {
+export function create(cwd: string, options: Options): void {
 	mkdirp(cwd);
 
 	write_template_files(options.template, options.types, options.name, cwd);
 	write_common_files(cwd, options, options.name);
-
-	if (options.playgroundUrl) {
-		await write_playground_files(options.playgroundUrl, cwd);
-	}
 }
 
 export type TemplateMetadata = { name: TemplateType; title: string; description: string };

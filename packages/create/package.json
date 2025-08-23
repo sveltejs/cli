@@ -29,6 +29,10 @@
 		},
 		"./build": {
 			"default": "./scripts/build-templates.js"
+		},
+		"./playground": {
+			"types": "./dist/playground.d.ts",
+			"default": "./dist/playground.js"
 		}
 	},
 	"devDependencies": {
