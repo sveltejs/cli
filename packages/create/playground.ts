@@ -131,7 +131,7 @@ export function setupPlaygroundProject(playground: PlaygroundData, cwd: string):
 		from: `./${mainFile.name}`,
 		as: 'App'
 	});
-	template.source = template.source + `\n<App />`;
+	template.source = `<App />`;
 	const newContent = generateCode({
 		script: script.generateCode(),
 		template: template.source
