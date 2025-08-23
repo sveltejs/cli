@@ -34,6 +34,8 @@ function getConfig(project) {
 			`${projectRoot}/lib/testing.ts`,
 			`${projectRoot}/bin.ts`
 		];
+	} else if (project === 'create') {
+		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/playground.ts`];
 	} else {
 		inputs = [`${projectRoot}/index.ts`];
 	}

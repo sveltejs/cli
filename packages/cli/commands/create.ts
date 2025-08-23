@@ -11,6 +11,13 @@ import {
 	type LanguageType,
 	type TemplateType
 } from '@sveltejs/create';
+import {
+	downloadPlaygroundData,
+	parsePlaygroundUrl,
+	setupPlaygroundProject,
+	validatePlaygroundUrl,
+	detectPlaygroundDependencies
+} from '@sveltejs/create/playground';
 import * as common from '../utils/common.ts';
 import { runAddCommand } from './add/index.ts';
 import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
@@ -43,7 +50,8 @@ const OptionsSchema = v.strictObject({
 	),
 	addOns: v.boolean(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
-	template: v.optional(v.picklist(templateChoices))
+	template: v.optional(v.picklist(templateChoices)),
+	fromPlayground: v.optional(v.string())
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -56,9 +64,15 @@ export const create = new Command('create')
 	.option('--no-types')
 	.option('--no-add-ons', 'skips interactive add-on installer')
 	.option('--no-install', 'skip installing dependencies')
+	.option('--from-playground <string>', 'create a project from the svelte playground')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
+		if (opts.fromPlayground && !validatePlaygroundUrl(opts.fromPlayground)) {
+			console.error(pc.red(`Error: Invalid playground URL: ${opts.fromPlayground}`));
+			process.exit(1);
+		}
+
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
@@ -105,6 +119,12 @@ export const create = new Command('create')
 	});
 
 async function createProject(cwd: ProjectPath, options: Options) {
+	if (options.fromPlayground) {
+		p.log.warn(
+			'The Svelte maintainers have not reviewed playgrounds for malicious code. Use at your discretion.'
+		);
+	}
+
 	const { directory, template, language } = await p.group(
 		{
 			directory: () => {
@@ -135,6 +155,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			template: () => {
 				if (options.template) return Promise.resolve(options.template);
+				// always use the minimal template for playground projects
+				if (options.fromPlayground) return Promise.resolve('minimal' as TemplateType);
+
 				return p.select<TemplateType>({
 					message: 'Which template would you like?',
 					initialValue: 'minimal',
@@ -168,6 +191,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		template,
 		types: language
 	});
+
+	if (options.fromPlayground) {
+		await createProjectFromPlayground(options.fromPlayground, projectPath);
+	}
 
 	p.log.success('Project created');
 
@@ -206,4 +233,43 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	}
 
 	return { directory: projectPath, addOnNextSteps, packageManager };
+}
+
+async function createProjectFromPlayground(url: string, cwd: string): Promise<void> {
+	if (!validatePlaygroundUrl(url)) throw new Error(`Invalid playground URL: ${url}`);
+
+	const urlData = parsePlaygroundUrl(url);
+	const playground = await downloadPlaygroundData(urlData);
+
+	// Detect external dependencies and ask for confirmation
+	const dependencies = detectPlaygroundDependencies(playground.files);
+	const installDependencies = await confirmExternalDependencies(dependencies);
+
+	setupPlaygroundProject(playground, cwd, installDependencies);
+}
+
+async function confirmExternalDependencies(dependencies: string[]): Promise<boolean> {
+	if (dependencies.length === 0) return false;
+
+	const dependencyList = dependencies.map((dep) => `- ${dep}`).join('\n');
+
+	p.note(
+		`The following packages were found:\n\n${dependencyList}\n\nThese packages are not reviewed by the Svelte team.`,
+		'External Dependencies',
+		{
+			format: (line) => line // keep original coloring
+		}
+	);
+
+	const confirmDeps = await p.confirm({
+		message: 'Do you want to install these external dependencies?',
+		initialValue: false
+	});
+
+	if (p.isCancel(confirmDeps)) {
+		p.cancel('Operation cancelled.');
+		process.exit(0);
+	}
+
+	return confirmDeps;
 }
