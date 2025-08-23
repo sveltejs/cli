@@ -45,10 +45,7 @@ const OptionsSchema = v.strictObject({
 	addOns: v.boolean(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices)),
-	fromPlayground: v.pipe(
-		v.optional(v.string()),
-		v.check(validatePlaygroundUrl, 'Invalid playground URL')
-	)
+	fromPlayground: v.optional(v.string())
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -65,6 +62,11 @@ export const create = new Command('create')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
+		if (opts.fromPlayground && !validatePlaygroundUrl(opts.fromPlayground)) {
+			console.error(pc.red(`Error: Invalid playground URL: ${opts.fromPlayground}`));
+			process.exit(1);
+		}
+
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
