@@ -4,8 +4,8 @@ import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers'
 import * as js from '@sveltejs/cli-core/js';
 
 export function validatePlaygroundUrl(link?: string): boolean {
-	// If no link is provided, consider it valid
-	if (!link) return true;
+	// If no link is provided, consider it invalid
+	if (!link) return false;
 
 	try {
 		const url = new URL(link);
