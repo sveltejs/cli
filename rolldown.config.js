@@ -120,7 +120,7 @@ function getConfig(project) {
 }
 
 /** @type {RolldownOptions[]} */
-export default [getConfig('create'), getConfig('core'), getConfig('cli')];
+export default [getConfig('core'), getConfig('create'), getConfig('cli')];
 
 /**
  * @param {PackageJson} pkg
