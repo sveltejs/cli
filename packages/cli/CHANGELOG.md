@@ -1,5 +1,11 @@
 # sv
 
+## 0.9.3
+### Patch Changes
+
+
+- fix(migrate): allow `migrate` to run without specifying a migration arg ([#676](https://github.com/sveltejs/cli/pull/676))
+
 ## 0.9.2
 ### Patch Changes
 
