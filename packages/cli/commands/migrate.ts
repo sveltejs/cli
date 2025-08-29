@@ -7,15 +7,8 @@ import { forwardExitCode } from '../utils/common.js';
 
 export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')
-	.argument('<migration>', 'migration to run')
+	.argument('[migration]', 'migration to run')
 	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
-	.configureHelp({
-		formatHelp() {
-			// we'll pass the responsibility of presenting the help menu over to `svelte-migrate`
-			runMigrate(process.cwd(), ['--help']);
-			return '';
-		}
-	})
 	.action((migration, options) => {
 		runMigrate(options.cwd, [migration]);
 	});
