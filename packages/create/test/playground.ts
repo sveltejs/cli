@@ -88,6 +88,7 @@ test('detect dependencies from playground files', () => {
 			content: `<script>
 				import { writable } from 'svelte/store';
 				import changeCase from 'change-case';
+				import CircleAlert from '@lucide/svelte/icons/circle-alert';
 				import { onMount } from 'svelte';
 				import Component from './Component.svelte';
 				import { page } from '$app/stores';
@@ -98,7 +99,7 @@ test('detect dependencies from playground files', () => {
 		{
 			name: 'utils.js',
 			content: `
-				import lodash from 'lodash';
+				import lodash from 'lodash@1.0.0';
 				import './local-file.js';
 				import fs from 'node:fs';
 				import { someUtil } from '$lib/utils';
@@ -110,21 +111,22 @@ test('detect dependencies from playground files', () => {
 	const dependencies = detectPlaygroundDependencies(files);
 
 	// Should include external npm packages
-	expect(dependencies).toContain('change-case');
-	expect(dependencies).toContain('lodash');
+	expect(dependencies).toContainEqual(['change-case', 'latest']);
+	expect(dependencies).toContainEqual(['@lucide/svelte', 'latest']);
+	expect(dependencies).toContainEqual(['lodash', '1.0.0']);
 
 	// Should exclude relative imports
-	expect(dependencies).not.toContain('./Component.svelte');
-	expect(dependencies).not.toContain('./local-file.js');
+	expect(dependencies).not.toContain(['./Component.svelte', 'latest']);
+	expect(dependencies).not.toContain(['./local-file.js', 'latest']);
 
 	// Should exclude framework/built-in imports
-	expect(dependencies).not.toContain('svelte/store');
-	expect(dependencies).not.toContain('svelte');
-	expect(dependencies).not.toContain('$app/stores');
-	expect(dependencies).not.toContain('$app/environment');
-	expect(dependencies).not.toContain('$lib/utils');
-	expect(dependencies).not.toContain('node:fs');
-	expect(dependencies).not.toContain('@sveltejs/kit');
+	expect(dependencies).not.toContain(['svelte/store', 'latest']);
+	expect(dependencies).not.toContain(['svelte', 'latest']);
+	expect(dependencies).not.toContain(['$app/stores', 'latest']);
+	expect(dependencies).not.toContain(['$app/environment', 'latest']);
+	expect(dependencies).not.toContain(['$lib/utils', 'latest']);
+	expect(dependencies).not.toContain(['node:fs', 'latest']);
+	expect(dependencies).not.toContain(['@sveltejs/kit', 'latest']);
 });
 
 test('real world download and convert playground', async () => {
