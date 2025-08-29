@@ -68,13 +68,14 @@ export const create = new Command('create')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
-		if (opts.fromPlayground && !validatePlaygroundUrl(opts.fromPlayground)) {
-			console.error(pc.red(`Error: Invalid playground URL: ${opts.fromPlayground}`));
+		const cwd = v.parse(ProjectPathSchema, projectPath);
+		const options = v.parse(OptionsSchema, opts);
+
+		if (options.fromPlayground && !validatePlaygroundUrl(options.fromPlayground)) {
+			console.error(pc.red(`Error: Invalid playground URL: ${options.fromPlayground}`));
 			process.exit(1);
 		}
 
-		const cwd = v.parse(ProjectPathSchema, projectPath);
-		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
 			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
