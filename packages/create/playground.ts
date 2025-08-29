@@ -1,7 +1,7 @@
+import fs from 'node:fs';
 import path from 'node:path';
-import * as fs from 'node:fs';
-import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import * as js from '@sveltejs/cli-core/js';
+import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
 export function validatePlaygroundUrl(link?: string): boolean {
 	// If no link is provided, consider it invalid
@@ -15,9 +15,7 @@ export function validatePlaygroundUrl(link?: string): boolean {
 
 		const { playgroundId, hash } = parsePlaygroundUrl(link);
 		return playgroundId !== undefined || hash !== undefined;
-
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	} catch (_) {
+	} catch {
 		// new Url() will throw if the URL is invalid
 		return false;
 	}
@@ -36,10 +34,7 @@ export function parsePlaygroundUrl(link: string): {
 
 type PlaygroundData = {
 	name: string;
-	files: Array<{
-		name: string;
-		content: string;
-	}>;
+	files: Array<{ name: string; content: string }>;
 };
 
 export async function downloadPlaygroundData({
@@ -74,7 +69,6 @@ export async function downloadPlaygroundData({
 }
 
 // Taken from https://github.com/sveltejs/svelte.dev/blob/ba7ad256f786aa5bc67eac3a58608f3f50b59e91/apps/svelte.dev/src/routes/(authed)/playground/%5Bid%5D/gzip.js#L19-L29
-/** @param {string} input */
 async function decodeAndDecompressText(input: string) {
 	const decoded = atob(input.replaceAll('-', '+').replaceAll('_', '/'));
 	// putting it directly into the blob gives a corrupted file
@@ -86,8 +80,11 @@ async function decodeAndDecompressText(input: string) {
 	return new Response(stream).text();
 }
 
-export function detectPlaygroundDependencies(files: PlaygroundData['files']): string[] {
-	const packages: string[] = [];
+/**
+ * @returns A Map of packages with it's name as the key, and it's version as the value.
+ */
+export function detectPlaygroundDependencies(files: PlaygroundData['files']): Map<string, string> {
+	const packages = new Map<string, string>();
 
 	// Prefixes for packages that should be excluded (built-in or framework packages)
 	const excludedPrefixes = [
@@ -109,15 +106,42 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): st
 		const imports = ast.body
 			.filter((node): node is js.AstTypes.ImportDeclaration => node.type === 'ImportDeclaration')
 			.map((node) => node.source.value as string)
-			.filter((importPath) => !importPath.startsWith('./') && !importPath.startsWith('/'));
+			.filter((importPath) => !importPath.startsWith('./') && !importPath.startsWith('/'))
+			.filter((importPath) => !excludedPrefixes.some((prefix) => importPath.startsWith(prefix)))
+			.map(extractPackageInfo);
 
-		packages.push(...imports);
+		imports.forEach(({ pkgName, version }) => packages.set(pkgName, version));
 	}
 
-	// Remove duplicates and filter out excluded packages
-	return [...new Set(packages)].filter((pkg) => {
-		return !excludedPrefixes.some((prefix) => pkg.startsWith(prefix));
-	});
+	return packages;
+}
+
+/**
+ * Extracts a package's name and it's versions from a provided import path.
+ *
+ * Handles imports with or without subpaths (e.g. `pkg-name/subpath`, `@org/pkg-name/subpath`)
+ * as well as specified versions (e.g. pkg-name@1.2.3).
+ */
+function extractPackageInfo(importPath: string): { pkgName: string; version: string } {
+	// handle scoped deps
+	if (importPath.startsWith('@')) {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const [org, pkg, _subpath] = importPath.split('/', 3);
+		const pkgName = `${org}/${pkg}`;
+		return { pkgName, version: extractPackageVersion(pkgName) };
+	}
+
+	const [pkgName] = importPath.split('/', 2);
+	return { pkgName, version: extractPackageVersion(pkgName) };
+}
+
+function extractPackageVersion(pkgName: string) {
+	let version = 'latest';
+	// e.g. `pkg-name@1.2.3` (starting from index 1 to ignore the first `@` in scoped packages)
+	if (pkgName.includes('@')) {
+		[, version] = pkgName.split('@');
+	}
+	return version;
 }
 
 export function setupPlaygroundProject(
@@ -141,26 +165,20 @@ export function setupPlaygroundProject(
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
 	const { script, template, generateCode } = parseSvelte(content);
-	js.imports.addDefault(script.ast, {
-		from: `./${mainFile.name}`,
-		as: 'App'
-	});
+	js.imports.addDefault(script.ast, { from: `./${mainFile.name}`, as: 'App' });
 	template.source = `<App />`;
-	const newContent = generateCode({
-		script: script.generateCode(),
-		template: template.source
-	});
+	const newContent = generateCode({ script: script.generateCode(), template: template.source });
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested
 	const dependencies = detectPlaygroundDependencies(playground.files);
-	if (installDependencies && dependencies.length >= 0) {
+	if (installDependencies && dependencies.size >= 0) {
 		const packageJsonPath = path.join(cwd, 'package.json');
 		const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
 		const { data: packageJson, generateCode: generateCodeJson } = parseJson(packageJsonContent);
 		packageJson.dependencies ??= {};
-		for (const pkg of dependencies) {
-			packageJson.dependencies[pkg] = 'latest';
+		for (const [pkg, version] of dependencies) {
+			packageJson.dependencies[pkg] = version;
 		}
 		const newPackageJson = generateCodeJson();
 		fs.writeFileSync(packageJsonPath, newPackageJson, 'utf-8');
