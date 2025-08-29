@@ -123,22 +123,29 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
  * as well as specified versions (e.g. pkg-name@1.2.3).
  */
 function extractPackageInfo(importPath: string): { pkgName: string; version: string } {
+	let pkgName = '';
+
 	// handle scoped deps
 	if (importPath.startsWith('@')) {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const [org, pkg, _subpath] = importPath.split('/', 3);
-		const pkgName = `${org}/${pkg}`;
-		return { pkgName, version: extractPackageVersion(pkgName) };
+		pkgName = `${org}/${pkg}`;
 	}
 
-	const [pkgName] = importPath.split('/', 2);
-	return { pkgName, version: extractPackageVersion(pkgName) };
+	if (!pkgName) {
+		[pkgName] = importPath.split('/', 2);
+	}
+
+	const version = extractPackageVersion(pkgName);
+	// strips the package's version from the name, if present
+	if (version !== 'latest') pkgName = pkgName.replace(`@${version}`, '');
+	return { pkgName, version };
 }
 
 function extractPackageVersion(pkgName: string) {
 	let version = 'latest';
 	// e.g. `pkg-name@1.2.3` (starting from index 1 to ignore the first `@` in scoped packages)
-	if (pkgName.includes('@')) {
+	if (pkgName.includes('@', 1)) {
 		[, version] = pkgName.split('@');
 	}
 	return version;
@@ -154,7 +161,15 @@ export function setupPlaygroundProject(
 		playground.files.find((file) => file.name.endsWith('.svelte')) ||
 		playground.files[0];
 
+	const dependencies = detectPlaygroundDependencies(playground.files);
 	for (const file of playground.files) {
+		for (const [pkg, version] of dependencies) {
+			// if a version was specified, we'll remove it from all import paths
+			if (version !== 'latest') {
+				file.content = file.content.replaceAll(`${pkg}@${version}`, pkg);
+			}
+		}
+
 		// write file to disk
 		const filePath = path.join(cwd, 'src', 'routes', file.name);
 		fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -171,7 +186,6 @@ export function setupPlaygroundProject(
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested
-	const dependencies = detectPlaygroundDependencies(playground.files);
 	if (installDependencies && dependencies.size >= 0) {
 		const packageJsonPath = path.join(cwd, 'package.json');
 		const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
