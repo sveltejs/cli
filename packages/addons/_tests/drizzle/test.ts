@@ -30,21 +30,26 @@ vitest.beforeAll(() => {
 });
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
-const testCases = [
-	{ name: 'better-sqlite3', options: { database: 'sqlite', sqlite: 'better-sqlite3' } },
-	{ name: 'libsql', options: { database: 'sqlite', sqlite: 'libsql' } },
-	{ name: 'mysql2', options: { database: 'mysql', mysql: 'mysql2', docker: true } },
-	{
-		name: 'postgres.js',
-		options: { database: 'postgresql', postgresql: 'postgres.js', docker: true }
-	}
-].flatMap((opts) => kitOnly.map((variant) => ({ ...opts, variant })));
+const testCases = (
+	[
+		{
+			name: 'better-sqlite3',
+			options: { database: 'sqlite', sqlite: 'better-sqlite3', docker: undefined }
+		},
+		{ name: 'libsql', options: { database: 'sqlite', sqlite: 'libsql', docker: undefined } },
+		{ name: 'mysql2', options: { database: 'mysql', mysql: 'mysql2', docker: true } },
+		{
+			name: 'postgres.js',
+			options: { database: 'postgresql', postgresql: 'postgres.js', docker: true }
+		}
+	] as const
+).flatMap((opts) => kitOnly.map((variant) => ({ ...opts, variant })));
 
 test.concurrent.for(testCases)(
 	'queries database - $name - $variant',
 	async ({ options, variant }, { page, ...ctx }) => {
 		if (options.docker && noDocker) ctx.skip();
-		const cwd = await ctx.run(variant, { drizzle: options as any });
+		const cwd = await ctx.run(variant, { drizzle: options });
 
 		const ts = variant === 'kit-ts';
 		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);

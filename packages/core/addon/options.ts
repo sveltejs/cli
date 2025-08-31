@@ -38,7 +38,6 @@ export type BaseQuestion = {
 	 * always be `undefined` and will not fallback to the specified `default` value.
 	 */
 	condition?: (options: any) => boolean;
-	// TODO: we want to type `options` similar to OptionValues<Args> so that its option values can be inferred
 };
 
 export type Question = BaseQuestion &
@@ -57,4 +56,36 @@ export type OptionValues<Args extends OptionDefinition> = {
 					: Args[K] extends MultiSelectQuestion<infer Value>
 						? Value[]
 						: never;
+};
+
+// Helper type for creating properly typed option definitions
+// Extract option values directly from the input type
+export type ExtractOptionValues<T extends Record<string, any>> = {
+	[K in keyof T]: T[K] extends { type: 'string'; default: infer D }
+		? D extends string
+			? string
+			: never
+		: T[K] extends { type: 'boolean'; default: infer D }
+			? D extends boolean
+				? boolean
+				: never
+			: T[K] extends { type: 'number'; default: infer D }
+				? D extends number
+					? number
+					: never
+				: T[K] extends { type: 'select'; options: Array<{ value: infer V }> }
+					? V
+					: T[K] extends { type: 'multiselect'; options: Array<{ value: infer V }> }
+						? V[]
+						: never;
+};
+
+// Create a properly typed option definition that preserves the structure
+// but adds typed conditions
+export type InferredOptionDefinition<T extends Record<string, any>> = {
+	[K in keyof T]: T[K] extends infer Q
+		? Q & {
+				condition?: (options: Partial<ExtractOptionValues<T>>) => boolean;
+			}
+		: never;
 };
