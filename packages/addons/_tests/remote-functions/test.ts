@@ -10,8 +10,8 @@ const { test, variants, prepareServer } = setupTest({ [addonId]: remoteFunctions
 const kitOnly = variants.filter((v) => v.includes('kit'));
 test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const demoName = 'myFavPost';
-	const demoNamePlural = 'myFavPosts';
-	const kebabPlural = 'my-fav-posts';
+	const demoNamePlural = 'MyFavPosts';
+	const demoNameKebabPlural = 'my-fav-posts';
 
 	const cwd = await ctx.run(variant, { [addonId]: { withDemo: true, demo: demoName } });
 
@@ -28,6 +28,6 @@ test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 
 	// check demo page
 	expect(
-		await readFile(join(cwd, 'src', 'routes', 'demo', kebabPlural, '+page.svelte'), 'utf8')
-	).toMatch(`import { get${demoNamePlural} } from './${kebabPlural}.remote'`);
+		await readFile(join(cwd, 'src', 'routes', 'demo', demoNameKebabPlural, '+page.svelte'), 'utf8')
+	).toMatch(`import { get${demoNamePlural} } from './${demoNameKebabPlural}.remote'`);
 });
