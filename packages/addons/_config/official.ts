@@ -12,6 +12,7 @@ import storybook from '../storybook/index.ts';
 import sveltekitAdapter from '../sveltekit-adapter/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
 import vitest from '../vitest-addon/index.ts';
+import remoteFunctions from '../remote-functions/index.ts';
 
 // The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity
@@ -27,7 +28,8 @@ export const officialAddons = [
 	lucia,
 	mdsvex,
 	paraglide,
-	storybook
+	storybook,
+	remoteFunctions
 ] as AddonWithoutExplicitArgs[];
 
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {

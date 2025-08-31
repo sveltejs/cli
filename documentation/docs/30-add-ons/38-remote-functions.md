@@ -22,5 +22,5 @@ npx sv add remote-functions
 Will create a basic demo for using this feature using the provided name.
 
 ```sh
-npx sv add sveltekit-adapter=demo:myPost
+npx sv add remote-functions=demo:myPost
 ```
