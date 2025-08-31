@@ -18,4 +18,10 @@ export function run(ast: AstTypes.Program): void {
 			lorem: common.createLiteral(false)
 		}
 	});
+
+	object.overrideProperties(objectExpression, {
+		properties: {
+			aNewOne: common.createLiteral('yay')
+		}
+	});
 }
