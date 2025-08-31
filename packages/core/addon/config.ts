@@ -1,4 +1,4 @@
-import type { OptionDefinition, OptionValues, Question, TypedOptionDefinition } from './options.ts';
+import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { Workspace } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
@@ -109,8 +109,8 @@ export type TestDefinition<Args extends OptionDefinition> = {
  * ```
  */
 export function defineAddonOptions<T extends Record<string, any>>(
-	options: TypedOptionDefinition<T>
-): TypedOptionDefinition<T> {
+	options: OptionDefinition<T>
+): OptionDefinition<T> {
 	return options;
 }
 

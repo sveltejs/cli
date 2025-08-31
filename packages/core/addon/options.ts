@@ -68,14 +68,13 @@ export type TypedBaseQuestion<T extends OptionDefinition, K extends keyof T> = {
 };
 
 // Helper type to create properly typed option definitions
-export type TypedOptionDefinition<T extends Record<string, any>> = {
+export type OptionDefinition<T extends Record<string, any> = any> = {
 	[K in keyof T]: TypedBaseQuestion<T, K> &
 		(BooleanQuestion | StringQuestion | NumberQuestion | SelectQuestion | MultiSelectQuestion);
 };
 
 // Legacy OptionDefinition for backward compatibility
-/** @deprecated */
-export type OptionDefinition = Record<string, Question>;
+// export type OptionDefinition = Record<string, Question>;
 
 // Legacy types for backward compatibility
 export type BaseQuestion = {
@@ -90,39 +89,3 @@ export type BaseQuestion = {
 
 export type Question = BaseQuestion &
 	(BooleanQuestion | StringQuestion | NumberQuestion | SelectQuestion | MultiSelectQuestion);
-
-/**
- * Helper function to create properly typed option definitions with full type inference.
- * Use this instead of directly creating option objects to get proper TypeScript support
- * for the condition function's options parameter.
- *
- * @example
- * ```typescript
- * const options = defineOptions({
- *   database: {
- *     type: 'select',
- *     question: 'Choose a database',
- *     default: 'sqlite',
- *     options: [
- *       { value: 'sqlite', label: 'SQLite' },
- *       { value: 'postgres', label: 'PostgreSQL' }
- *     ]
- *   },
- *   orm: {
- *     type: 'select',
- *     question: 'Choose an ORM',
- *     default: 'drizzle',
- *     options: [
- *       { value: 'drizzle', label: 'Drizzle' },
- *       { value: 'prisma', label: 'Prisma' }
- *     ],
- *     condition: (options) => options.database === 'postgres' // fully typed!
- *   }
- * });
- * ```
- */
-export function defineOptions<T extends Record<string, any>>(
-	options: TypedOptionDefinition<T>
-): TypedOptionDefinition<T> {
-	return options;
-}
