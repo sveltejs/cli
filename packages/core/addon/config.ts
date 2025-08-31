@@ -1,4 +1,4 @@
-import type { OptionDefinition, OptionValues, Question } from './options.ts';
+import type { OptionDefinition, OptionValues, Question, TypedOptionDefinition } from './options.ts';
 import type { Workspace } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
@@ -78,7 +78,39 @@ export type TestDefinition<Args extends OptionDefinition> = {
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 
-export function defineAddonOptions<const Args extends OptionDefinition>(options: Args): Args {
+/**
+ * Define addon options with full type inference for condition functions.
+ * This provides proper TypeScript support where condition functions receive
+ * typed access to other option values.
+ *
+ * @example
+ * ```typescript
+ * const options = defineAddonOptions({
+ *   database: {
+ *     type: 'select',
+ *     question: 'Choose a database',
+ *     default: 'sqlite',
+ *     options: [
+ *       { value: 'sqlite', label: 'SQLite' },
+ *       { value: 'postgres', label: 'PostgreSQL' }
+ *     ]
+ *   },
+ *   orm: {
+ *     type: 'select',
+ *     question: 'Choose an ORM',
+ *     default: 'drizzle',
+ *     options: [
+ *       { value: 'drizzle', label: 'Drizzle' },
+ *       { value: 'prisma', label: 'Prisma' }
+ *     ],
+ *     condition: (options) => options.database === 'postgres' // fully typed!
+ *   }
+ * });
+ * ```
+ */
+export function defineAddonOptions<T extends Record<string, any>>(
+	options: TypedOptionDefinition<T>
+): TypedOptionDefinition<T> {
 	return options;
 }
 

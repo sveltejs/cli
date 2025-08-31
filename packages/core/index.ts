@@ -1,4 +1,9 @@
 export { defineAddon, defineAddonOptions } from './addon/config.ts';
+export {
+	defineOptions,
+	type TypedOptionDefinition,
+	type PartialOptionValues
+} from './addon/options.ts';
 export { log } from '@clack/prompts';
 export { default as colors } from 'picocolors';
 export { default as dedent } from 'dedent';
