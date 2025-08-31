@@ -1,9 +1,4 @@
-import type {
-	OptionDefinition,
-	OptionValues,
-	Question,
-	InferredOptionDefinition
-} from './options.ts';
+import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { Workspace } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
@@ -83,9 +78,7 @@ export type TestDefinition<Args extends OptionDefinition> = {
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 
-export function defineAddonOptions<const T extends Record<string, any>>(
-	options: InferredOptionDefinition<T>
-): InferredOptionDefinition<T> {
+export function defineAddonOptions<const Args extends OptionDefinition>(options: Args): Args {
 	return options;
 }
 
