@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: improve robustness of add-on args parsing
+fix(add): improve robustness of add-on args parsing
