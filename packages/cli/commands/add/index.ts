@@ -59,25 +59,16 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		// occurs when an `=` isn't present (e.g. `sv add foo`)
-		if (optionFlags === undefined) {
-			prev.push({ id: addonId, options: undefined });
-			return prev;
-		}
-
-		// validates that the options are relatively well-formed.
-		// occurs when no <name> or <value> is specified (e.g. `sv add foo=demo`).
-		if (optionFlags.length > 0 && !/.+:.*/.test(optionFlags)) {
-			console.error(
-				`Malformed arguments: An add-on's option in '${value}' is missing it's option name or value (e.g. 'addon=option:value').`
-			);
+		try {
+			const options = common.parseAddonOptions(optionFlags);
+			prev.push({ id: addonId, options });
+		} catch (error) {
+			if (error instanceof Error) {
+				console.error(error.message);
+			}
 			process.exit(1);
 		}
 
-		// parses the option flags into a array of `<name>:<value>` strings
-		const options: string[] = optionFlags.match(/[^+]*:[^:]*(?=\+|$)/g) ?? [];
-
-		prev.push({ id: addonId, options });
 		return prev;
 	})
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
