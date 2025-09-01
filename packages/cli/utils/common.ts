@@ -126,12 +126,7 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	const options = optionFlags.split('+');
 
 	// Validate that each individual option follows the name:value pattern
-	const malformed = [];
-	for (const option of options) {
-		if (!/.+:.*/.test(option)) {
-			malformed.push(option);
-		}
-	}
+	const malformed = options.filter((option) => !/.+:.*/.test(option));
 
 	if (malformed.length > 0) {
 		const message = `Malformed arguments: The following add-on options: ${malformed.map((o) => `'${o}'`).join(', ')} are missing their option name or value (e.g. 'addon=option1:value1+option2:value2').`;
