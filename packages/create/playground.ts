@@ -3,10 +3,7 @@ import path from 'node:path';
 import * as js from '@sveltejs/cli-core/js';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 
-export function validatePlaygroundUrl(link?: string): boolean {
-	// If no link is provided, consider it invalid
-	if (!link) return false;
-
+export function validatePlaygroundUrl(link: string): boolean {
 	try {
 		const url = new URL(link);
 		if (url.hostname !== 'svelte.dev' || !url.pathname.startsWith('/playground/')) {
@@ -21,10 +18,12 @@ export function validatePlaygroundUrl(link?: string): boolean {
 	}
 }
 
-export function parsePlaygroundUrl(link: string): {
-	playgroundId: string | undefined;
-	hash: string | undefined;
-} {
+type PlaygroundURL = {
+	playgroundId?: string;
+	hash?: string;
+};
+
+export function parsePlaygroundUrl(link: string): PlaygroundURL {
 	const url = new URL(link);
 	const [, playgroundId] = url.pathname.match(/\/playground\/([^/]+)/) || [];
 	const hash = url.hash !== '' ? url.hash.slice(1) : undefined;
@@ -40,10 +39,7 @@ type PlaygroundData = {
 export async function downloadPlaygroundData({
 	playgroundId,
 	hash
-}: {
-	playgroundId?: string;
-	hash?: string;
-}): Promise<PlaygroundData> {
+}: PlaygroundURL): Promise<PlaygroundData> {
 	let data = [];
 	// forked playgrounds have a playground_id and an optional hash.
 	// usually the hash is more up to date so take the hash if present.
