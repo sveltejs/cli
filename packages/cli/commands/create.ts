@@ -64,7 +64,7 @@ export const create = new Command('create')
 	.option('--no-types')
 	.option('--no-add-ons', 'skips interactive add-on installer')
 	.option('--no-install', 'skip installing dependencies')
-	.option('--from-playground <string>', 'create a project from the svelte playground')
+	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
@@ -157,7 +157,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			template: () => {
 				if (options.template) return Promise.resolve(options.template);
 				// always use the minimal template for playground projects
-				if (options.fromPlayground) return Promise.resolve('minimal' as TemplateType);
+				if (options.fromPlayground) return Promise.resolve<TemplateType>('minimal');
 
 				return p.select<TemplateType>({
 					message: 'Which template would you like?',
@@ -237,8 +237,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 }
 
 async function createProjectFromPlayground(url: string, cwd: string): Promise<void> {
-	if (!validatePlaygroundUrl(url)) throw new Error(`Invalid playground URL: ${url}`);
-
 	const urlData = parsePlaygroundUrl(url);
 	const playground = await downloadPlaygroundData(urlData);
 
@@ -252,25 +250,19 @@ async function createProjectFromPlayground(url: string, cwd: string): Promise<vo
 async function confirmExternalDependencies(dependencies: string[]): Promise<boolean> {
 	if (dependencies.length === 0) return false;
 
-	const dependencyList = dependencies.map((dep) => `- ${dep}`).join('\n');
-
-	p.note(
-		`The following packages were found:\n\n${dependencyList}\n\nThese packages are not reviewed by the Svelte team.`,
-		'External Dependencies',
-		{
-			format: (line) => line // keep original coloring
-		}
+	const dependencyList = dependencies.map(pc.yellowBright).join(', ');
+	p.log.warn(
+		`The following external dependencies were found in the playground:\n\n${dependencyList}`
 	);
 
-	const confirmDeps = await p.confirm({
+	const installDeps = await p.confirm({
 		message: 'Do you want to install these external dependencies?',
 		initialValue: false
 	});
-
-	if (p.isCancel(confirmDeps)) {
+	if (p.isCancel(installDeps)) {
 		p.cancel('Operation cancelled.');
 		process.exit(0);
 	}
 
-	return confirmDeps;
+	return installDeps;
 }

@@ -154,12 +154,10 @@ function extractPackageVersion(pkgName: string) {
 export function setupPlaygroundProject(
 	playground: PlaygroundData,
 	cwd: string,
-	installDependencies: boolean = false
+	installDependencies: boolean
 ): void {
-	const mainFile =
-		playground.files.find((file) => file.name === 'App.svelte') ||
-		playground.files.find((file) => file.name.endsWith('.svelte')) ||
-		playground.files[0];
+	const mainFile = playground.files.find((file) => file.name === 'App.svelte');
+	if (!mainFile) throw new Error('Failed to find `App.svelte` entrypoint.');
 
 	const dependencies = detectPlaygroundDependencies(playground.files);
 	for (const file of playground.files) {
@@ -179,22 +177,20 @@ export function setupPlaygroundProject(
 	// add app import to +page.svelte
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
-	const { script, template, generateCode } = parseSvelte(content);
+	const { script, generateCode } = parseSvelte(content);
 	js.imports.addDefault(script.ast, { from: `./${mainFile.name}`, as: 'App' });
-	template.source = `<App />`;
-	const newContent = generateCode({ script: script.generateCode(), template: template.source });
+	const newContent = generateCode({ script: script.generateCode(), template: `<App />` });
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested
 	if (installDependencies && dependencies.size >= 0) {
-		const packageJsonPath = path.join(cwd, 'package.json');
-		const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
-		const { data: packageJson, generateCode: generateCodeJson } = parseJson(packageJsonContent);
-		packageJson.dependencies ??= {};
-		for (const [pkg, version] of dependencies) {
-			packageJson.dependencies[pkg] = version;
+		const pkgPath = path.join(cwd, 'package.json');
+		const pkgSource = fs.readFileSync(pkgPath, 'utf-8');
+		const pkgJson = parseJson(pkgSource);
+		pkgJson.data.dependencies ??= {};
+		for (const [dep, version] of dependencies) {
+			pkgJson.data.dependencies[dep] = version;
 		}
-		const newPackageJson = generateCodeJson();
-		fs.writeFileSync(packageJsonPath, newPackageJson, 'utf-8');
+		fs.writeFileSync(pkgPath, pkgJson.generateCode(), 'utf-8');
 	}
 }

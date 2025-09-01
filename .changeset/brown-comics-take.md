@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat(cli): allow creating reproduction from playground with `npx sv create --from-playground https://svelte.dev/playground/hello-world`
+feat(cli): allow creating projects from the svelte playground with `npx sv create --from-playground <url>`
