@@ -54,56 +54,16 @@ export default defineAddon({
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 
 			// Handle kit.experimental.remoteFunctions
-			{
-				const kitConfig = object.property(config, {
-					name: 'kit',
-					fallback: object.create({
-						experimental: {
-							remoteFunctions: true
-						}
-					})
-				});
-
-				if (kitConfig.type === 'ObjectExpression') {
-					const experimentalConfig = object.property(kitConfig, {
-						name: 'experimental',
-						fallback: object.create({
-							remoteFunctions: true
-						})
-					});
-
-					object.overrideProperty(experimentalConfig, {
-						name: 'remoteFunctions',
-						value: common.createLiteral(true)
-					});
-				}
-			}
+			object.ensureNestedProperty(config, {
+				path: ['kit', 'experimental', 'remoteFunctions'],
+				value: common.createLiteral(true)
+			});
 
 			// Handle compilerOptions.experimental.async
-			{
-				const compilerOptionsConfig = object.property(config, {
-					name: 'compilerOptions',
-					fallback: object.create({
-						experimental: {
-							async: true
-						}
-					})
-				});
-
-				if (compilerOptionsConfig.type === 'ObjectExpression') {
-					const compilerExperimentalConfig = object.property(compilerOptionsConfig, {
-						name: 'experimental',
-						fallback: object.create({
-							async: true
-						})
-					});
-
-					object.overrideProperty(compilerExperimentalConfig, {
-						name: 'async',
-						value: common.createLiteral(true)
-					});
-				}
-			}
+			object.ensureNestedProperty(config, {
+				path: ['compilerOptions', 'experimental', 'async'],
+				value: common.createLiteral(true)
+			});
 
 			return generateCode();
 		});
