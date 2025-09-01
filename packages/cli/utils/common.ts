@@ -134,7 +134,7 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	}
 
 	if (malformed.length > 0) {
-		const message = `Malformed arguments: Add-on's option ${malformed.map((o) => `'${o}'`).join(' & ')} is missing it's option name or value (e.g. 'addon=option1:value1+option2:value2').`;
+		const message = `Malformed arguments: The following add-on options: ${malformed.map((o) => `'${o}'`).join(', ')} are missing their option name or value (e.g. 'addon=option1:value1+option2:value2').`;
 		throw new Error(message);
 	}
 

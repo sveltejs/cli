@@ -21,19 +21,22 @@ describe('parseAddonOptions', () => {
 	it('parses lists', () => {
 		expect(parseAddonOptions('foo:en,es,de')).toEqual(['foo:en,es,de']);
 	});
+	it('parses values with colons', () => {
+		expect(parseAddonOptions('option:foo:bar:baz')).toEqual(['option:foo:bar:baz']);
+	});
 	it('errors on missing value', () => {
 		expect(() => parseAddonOptions('foo')).toThrowError(
-			"Malformed arguments: Add-on's option 'foo' is missing it's option name or value (e.g. 'addon=option1:value1+option2:value2')."
+			"Malformed arguments: The following add-on options: 'foo' are missing their option name or value (e.g. 'addon=option1:value1+option2:value2')."
 		);
 	});
-	it('errors on a partial missing values', () => {
+	it('errors when one of two options is missing a value', () => {
 		expect(() => parseAddonOptions('foo:value1+bar')).toThrowError(
-			"Malformed arguments: Add-on's option 'bar' is missing it's option name or value (e.g. 'addon=option1:value1+option2:value2')."
+			"Malformed arguments: The following add-on options: 'bar' are missing their option name or value (e.g. 'addon=option1:value1+option2:value2')."
 		);
 	});
 	it('errors on two missing values', () => {
 		expect(() => parseAddonOptions('foo+bar')).toThrowError(
-			"Malformed arguments: Add-on's option 'foo' & 'bar' is missing it's option name or value (e.g. 'addon=option1:value1+option2:value2')."
+			"Malformed arguments: The following add-on options: 'foo', 'bar' are missing their option name or value (e.g. 'addon=option1:value1+option2:value2')."
 		);
 	});
 });
