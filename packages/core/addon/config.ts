@@ -88,28 +88,3 @@ export type Verification = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
-
-export function parseAddonOptions(optionFlags: string | undefined): string[] | undefined {
-	// occurs when an `=` isn't present (e.g. `sv add foo`)
-	if (optionFlags === undefined || optionFlags === '') {
-		return undefined;
-	}
-
-	// Split on + and validate each option individually
-	const options = optionFlags.split('+');
-
-	// Validate that each individual option follows the name:value pattern
-	const optionsMalformed = [];
-	for (const option of options) {
-		if (!/.+:.*/.test(option)) {
-			optionsMalformed.push(option);
-		}
-	}
-
-	if (optionsMalformed.length > 0) {
-		const message = `Malformed arguments: Add-on's option ${optionsMalformed.map((o) => `'${o}'`).join(' & ')} is missing it's option name or value (e.g. 'addon=option1:value1+option2:value2').`;
-		throw new Error(message);
-	}
-
-	return options;
-}

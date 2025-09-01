@@ -115,3 +115,28 @@ export function forwardExitCode(error: unknown) {
 		process.exit(1);
 	}
 }
+
+export function parseAddonOptions(optionFlags: string | undefined): string[] | undefined {
+	// occurs when an `=` isn't present (e.g. `sv add foo`)
+	if (optionFlags === undefined || optionFlags === '') {
+		return undefined;
+	}
+
+	// Split on + and validate each option individually
+	const options = optionFlags.split('+');
+
+	// Validate that each individual option follows the name:value pattern
+	const malformed = [];
+	for (const option of options) {
+		if (!/.+:.*/.test(option)) {
+			malformed.push(option);
+		}
+	}
+
+	if (malformed.length > 0) {
+		const message = `Malformed arguments: Add-on's option ${malformed.map((o) => `'${o}'`).join(' & ')} is missing it's option name or value (e.g. 'addon=option1:value1+option2:value2').`;
+		throw new Error(message);
+	}
+
+	return options;
+}

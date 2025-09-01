@@ -13,12 +13,7 @@ import {
 	getCommunityAddon
 } from '@sveltejs/addons';
 import type { AgentName } from 'package-manager-detector';
-import {
-	type AddonWithoutExplicitArgs,
-	type OptionValues,
-	type PackageManager,
-	parseAddonOptions
-} from '@sveltejs/cli-core';
+import type { AddonWithoutExplicitArgs, OptionValues, PackageManager } from '@sveltejs/cli-core';
 import * as common from '../../utils/common.ts';
 import { createWorkspace } from './workspace.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
@@ -65,7 +60,7 @@ export const add = new Command('add')
 		}
 
 		try {
-			const options = parseAddonOptions(optionFlags);
+			const options = common.parseAddonOptions(optionFlags);
 			prev.push({ id: addonId, options });
 		} catch (error) {
 			if (error instanceof Error) {
