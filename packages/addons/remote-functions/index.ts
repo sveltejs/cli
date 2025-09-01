@@ -38,13 +38,14 @@ export default defineAddon({
 		if (!kit) throw new Error('SvelteKit is required');
 		const ext = typescript ? 'ts' : 'js';
 
-		// minimum sveltekit version
-		const minimumVersion = '2.27';
-		const kitVersion = dependencyVersion('@sveltejs/kit') ?? '0.0.0';
-		const unsupported = isVersionUnsupportedBelow(kitVersion!, minimumVersion);
-		if (unsupported) {
-			sv.devDependency('@sveltejs/kit', '^2.27.0');
-		}
+		// ensure svelte & sveltekit versions
+		const ensureVersion = (pkg: string, atLeast: string, setTo: string) => {
+			const depVersion = dependencyVersion(pkg) ?? '0.0.0';
+			const unsupported = isVersionUnsupportedBelow(depVersion, atLeast);
+			if (unsupported) sv.devDependency(pkg, setTo);
+		};
+		ensureVersion('@sveltejs/kit', '2.27', '^2.27.0');
+		ensureVersion('svelte', '5.36', '^5.36.0');
 
 		// experimental flags
 		sv.file('svelte.config.js', (content) => {
