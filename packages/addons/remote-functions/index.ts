@@ -4,7 +4,7 @@ import {
 	defineAddonOptions,
 	isVersionUnsupportedBelow
 } from '@sveltejs/cli-core';
-import { common, exports, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { common, exports, object } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
 import { titleCase, kebabCase, pascalCase } from 'scule';
@@ -54,89 +54,55 @@ export default defineAddon({
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 
 			// Handle kit.experimental.remoteFunctions
-			const kitConfig = config.properties.find(
-				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
-			) as AstTypes.Property | undefined;
+			{
+				const kitConfig = object.property(config, {
+					name: 'kit',
+					fallback: object.create({
+						experimental: {
+							remoteFunctions: true
+						}
+					})
+				});
 
-			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
-				// Check if experimental property exists in kit
-				const experimentalProp = kitConfig.value.properties.find(
-					(p) =>
-						p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'experimental'
-				) as AstTypes.Property | undefined;
+				if (kitConfig.type === 'ObjectExpression') {
+					const experimentalConfig = object.property(kitConfig, {
+						name: 'experimental',
+						fallback: object.create({
+							remoteFunctions: true
+						})
+					});
 
-				if (experimentalProp && experimentalProp.value.type === 'ObjectExpression') {
-					// Add remoteFunctions: true to existing experimental
-					object.overrideProperty(experimentalProp.value, {
+					object.overrideProperty(experimentalConfig, {
 						name: 'remoteFunctions',
 						value: common.createLiteral(true)
 					});
-				} else {
-					// Create experimental property with remoteFunctions: true
-					object.addProperties(kitConfig.value, {
-						properties: {
-							experimental: object.create({
-								remoteFunctions: true
-							})
-						}
-					});
 				}
-			} else {
-				// Create kit property with experimental.remoteFunctions
-				object.addProperties(config, {
-					properties: {
-						kit: object.create({
-							experimental: {
-								remoteFunctions: true
-							}
-						})
-					}
-				});
 			}
 
 			// Handle compilerOptions.experimental.async
-			const compilerOptionsProp = config.properties.find(
-				(p) =>
-					p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'compilerOptions'
-			) as AstTypes.Property | undefined;
+			{
+				const compilerOptionsConfig = object.property(config, {
+					name: 'compilerOptions',
+					fallback: object.create({
+						experimental: {
+							async: true
+						}
+					})
+				});
 
-			if (compilerOptionsProp && compilerOptionsProp.value.type === 'ObjectExpression') {
-				// Check if experimental property exists in compilerOptions
-				const compilerExperimentalProp = compilerOptionsProp.value.properties.find(
-					(p) =>
-						p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'experimental'
-				) as AstTypes.Property | undefined;
+				if (compilerOptionsConfig.type === 'ObjectExpression') {
+					const compilerExperimentalConfig = object.property(compilerOptionsConfig, {
+						name: 'experimental',
+						fallback: object.create({
+							async: true
+						})
+					});
 
-				if (
-					compilerExperimentalProp &&
-					compilerExperimentalProp.value.type === 'ObjectExpression'
-				) {
-					// Add async: true to existing experimental
-					object.overrideProperty(compilerExperimentalProp.value, {
+					object.overrideProperty(compilerExperimentalConfig, {
 						name: 'async',
 						value: common.createLiteral(true)
 					});
-				} else {
-					// Create experimental property with async: true
-					object.addProperties(compilerOptionsProp.value, {
-						properties: {
-							experimental: object.create({
-								async: true
-							})
-						}
-					});
 				}
-			} else {
-				// Create compilerOptions property with experimental.async
-				object.addProperties(config, {
-					properties: {
-						compilerOptions: object.create({
-							experimental: {
-								async: true
-							}
-						})
-					}
-				});
 			}
 
 			return generateCode();
