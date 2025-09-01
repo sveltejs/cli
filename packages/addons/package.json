@@ -13,7 +13,7 @@
 	"exports": "./index.ts",
 	"dependencies": {
 		"@sveltejs/cli-core": "workspace:*",
-		"change-case": "^5.4.4"
+		"scule": "^1.3.0"
 	},
 	"devDependencies": {
 		"package-manager-detector": "^0.2.11"

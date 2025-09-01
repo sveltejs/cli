@@ -7,7 +7,7 @@ import {
 import { common, exports, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
-import { capitalCase, kebabCase, pascalCase } from 'change-case';
+import { titleCase, kebabCase, pascalCase } from 'scule';
 
 const defaultDemoName = 'myPost';
 const options = defineAddonOptions({
@@ -148,8 +148,8 @@ export default defineAddon({
 			const name = options.demo || defaultDemoName;
 			const kebabPlural = kebabCase(name) + 's';
 			const pascalPlural = pascalCase(name) + 's';
-			const capital = capitalCase(name);
-			const capitalPlural = capital + 's';
+			const title = titleCase(name);
+			const titlePlural = title + 's';
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, kebabPlural);
 			});
@@ -161,7 +161,7 @@ export const get${pascalPlural} = query(async () => {
   // Usually, you would get the list from your database...
 	const list = [
 		${Array.from({ length: 5 }, (_, i) => {
-			return `{ title: '${capital} ${i + 1}' }`;
+			return `{ title: '${title} ${i + 1}' }`;
 		})}
 	];
 
@@ -191,7 +191,7 @@ export const get${pascalPlural} = query(async () => {
 	const query = get${pascalPlural}();
 </script>
 
-<h1>${capitalPlural}</h1>
+<h1>${titlePlural}</h1>
 
 {#if query.error}
 	<p>query oops!</p>
