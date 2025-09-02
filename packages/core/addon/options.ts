@@ -17,6 +17,19 @@ export type NumberQuestion = {
 	placeholder?: string;
 };
 
+// Helper type to extract option values from a select question
+export type ExtractSelectValues<T> = T extends {
+	type: 'select';
+	options: Array<{ value: infer V }>;
+}
+	? V
+	: never;
+
+// Helper type to extract all option values as a union
+export type ExtractAllOptionValues<T> = T extends { options: Array<{ value: infer V }> }
+	? V
+	: never;
+
 export type SelectQuestion<Value = any> = {
 	type: 'select';
 	default: Value;
