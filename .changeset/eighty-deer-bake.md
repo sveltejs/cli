@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-chore: streamline object exports function
+chore(core): streamline object helpers
