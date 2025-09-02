@@ -25,9 +25,9 @@ export default defineAddon({
 		});
 
 		sv.file('.gitignore', (content) => {
-			if (!content) return 'test-results\n';
+			if (!content) return content;
 			if (content.includes('test-results')) return content;
-			return content.trim() + '\ntest-results\n';
+			return 'test-results\n' + content.trim();
 		});
 
 		sv.file(`e2e/demo.test.${ext}`, (content) => {
