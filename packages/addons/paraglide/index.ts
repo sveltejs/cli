@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
+import { colors, defineAddon, prepareAddonOptions, log } from '@sveltejs/cli-core';
 import { common, imports, variables, exports, kit as kitJs, vite } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
@@ -16,8 +16,8 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-const options = defineAddonOptions({
-	languageTags: {
+const options = prepareAddonOptions()
+	.add('languageTags', {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en, es',
@@ -39,13 +39,13 @@ const options = defineAddonOptions({
 
 			return undefined;
 		}
-	},
-	demo: {
+	})
+	.add('demo', {
 		type: 'boolean',
 		default: true,
 		question: 'Do you want to include a demo?'
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'paraglide',

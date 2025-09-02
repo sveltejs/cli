@@ -1,14 +1,14 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import { defineAddon, prepareAddonOptions } from '@sveltejs/cli-core';
 import { imports } from '@sveltejs/cli-core/js';
 import { parseSvelte } from '@sveltejs/cli-core/parsers';
 
-export const options = defineAddonOptions({
-	demo: {
+export const options = prepareAddonOptions()
+	.add('demo', {
 		question: 'Do you want to use a demo?',
 		type: 'boolean',
 		default: false
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'community-addon',

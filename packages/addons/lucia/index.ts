@@ -3,7 +3,7 @@ import {
 	colors,
 	dedent,
 	defineAddon,
-	defineAddonOptions,
+	prepareAddonOptions,
 	log,
 	utils,
 	Walker
@@ -26,13 +26,13 @@ type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 let drizzleDialect: Dialect;
 let schemaPath: string;
 
-const options = defineAddonOptions({
-	demo: {
+const options = prepareAddonOptions()
+	.add('demo', {
 		type: 'boolean',
 		default: true,
 		question: `Do you want to include a demo? ${colors.dim('(includes a login/register page)')}`
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'lucia',

@@ -1,4 +1,4 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import { defineAddon, prepareAddonOptions } from '@sveltejs/cli-core';
 import { imports, vite } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
@@ -25,15 +25,15 @@ const plugins: Plugin[] = [
 	}
 ];
 
-const options = defineAddonOptions({
-	plugins: {
+const options = prepareAddonOptions()
+	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
 		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
 		default: [],
 		required: false
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'tailwindcss',

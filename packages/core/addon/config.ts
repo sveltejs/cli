@@ -78,10 +78,6 @@ export type TestDefinition<Args extends OptionDefinition> = {
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 
-export function defineAddonOptions<const Args extends OptionDefinition>(options: Args): Args {
-	return options;
-}
-
 type MaybePromise<T> = Promise<T> | T;
 
 export type Verification = {
