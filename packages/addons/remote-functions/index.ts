@@ -54,13 +54,13 @@ export default defineAddon({
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 
 			// Handle kit.experimental.remoteFunctions
-			object.ensureNestedProperty(config, {
+			object.overrideProperty(config, {
 				path: ['kit', 'experimental', 'remoteFunctions'],
 				value: common.createLiteral(true)
 			});
 
 			// Handle compilerOptions.experimental.async
-			object.ensureNestedProperty(config, {
+			object.overrideProperty(config, {
 				path: ['compilerOptions', 'experimental', 'async'],
 				value: common.createLiteral(true)
 			});
