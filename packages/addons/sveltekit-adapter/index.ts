@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { exports, functions, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 type Adapter = {
