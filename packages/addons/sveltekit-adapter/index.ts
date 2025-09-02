@@ -100,7 +100,7 @@ export default defineAddon({
 				});
 			} else {
 				// creates the `kit` property when absent
-				object.addProperties(config, {
+				object.overrideProperties(config, {
 					properties: {
 						kit: object.create({
 							adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })

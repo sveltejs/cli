@@ -65,10 +65,10 @@ export default defineAddon({
 					from: '@playwright/test',
 					imports: ['defineConfig']
 				});
-				object.addProperties(defaultExport.arguments[0], { properties: config });
+				object.overrideProperties(defaultExport.arguments[0], { properties: config });
 			} else if (defaultExport.type === 'ObjectExpression') {
 				// if the config is just an object expression, just add the property
-				object.addProperties(defaultExport, { properties: config });
+				object.overrideProperties(defaultExport, { properties: config });
 			} else {
 				// unexpected config shape
 				log.warn('Unexpected playwright config for playwright add-on. Could not update.');

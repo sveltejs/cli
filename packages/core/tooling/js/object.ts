@@ -76,21 +76,6 @@ export function overrideProperties<T extends AstTypes.Expression>(
 	}
 }
 
-export function addProperties<T extends AstTypes.Expression>(
-	node: AstTypes.ObjectExpression,
-	options: {
-		properties: Record<string, T | undefined>;
-	}
-): void {
-	for (const [prop, value] of Object.entries(options.properties)) {
-		if (value === undefined) continue;
-		property(node, {
-			name: prop,
-			fallback: value
-		});
-	}
-}
-
 export function removeProperty(
 	node: AstTypes.ObjectExpression,
 	options: {
