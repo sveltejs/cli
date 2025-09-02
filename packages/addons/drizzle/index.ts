@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
-import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
+import { defineAddon, prepareAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
@@ -12,8 +12,8 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-const options = defineAddonOptions({
-	database: {
+const options = prepareAddonOptions()
+	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',
 		default: 'sqlite',
@@ -22,8 +22,8 @@ const options = defineAddonOptions({
 			{ value: 'mysql', label: 'MySQL' },
 			{ value: 'sqlite', label: 'SQLite' }
 		]
-	},
-	postgresql: {
+	})
+	.add('postgresql', {
 		question: 'Which PostgreSQL client would you like to use?',
 		type: 'select',
 		group: 'client',
@@ -32,9 +32,9 @@ const options = defineAddonOptions({
 			{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
 			{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
 		],
-		condition: ({ database }) => database === 'postgresql'
-	},
-	mysql: {
+		condition: ({ database }) => database === 'postgresql2'
+	})
+	.add('mysql', {
 		question: 'Which MySQL client would you like to use?',
 		type: 'select',
 		group: 'client',
@@ -44,8 +44,8 @@ const options = defineAddonOptions({
 			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
 		],
 		condition: ({ database }) => database === 'mysql'
-	},
-	sqlite: {
+	})
+	.add('sqlite', {
 		question: 'Which SQLite client would you like to use?',
 		type: 'select',
 		group: 'client',
@@ -56,16 +56,16 @@ const options = defineAddonOptions({
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
 		],
 		condition: ({ database }) => database === 'sqlite'
-	},
-	docker: {
+	})
+	.add('docker', {
 		question: 'Do you want to run the database locally with docker-compose?',
 		default: false,
 		type: 'boolean',
 		condition: ({ database, mysql, postgresql }) =>
 			(database === 'mysql' && mysql === 'mysql2') ||
 			(database === 'postgresql' && postgresql === 'postgres.js')
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'drizzle',
@@ -128,7 +128,7 @@ export default defineAddon({
 				if (content.length > 0) return content;
 
 				const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
-				const port = PORTS[options.database];
+				const port = PORTS[options.database as keyof typeof PORTS];
 
 				const USER = 'root';
 				const PASSWORD = 'mysecretpassword';
@@ -443,7 +443,7 @@ function generateEnvFileContent(content: string, opts: OptionValues<typeof optio
 	if (opts.docker) {
 		// we'll prefill with the default docker db credentials
 		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
-		const port = PORTS[opts.database];
+		const port = PORTS[opts.database as keyof typeof PORTS];
 		content = addEnvVar(
 			content,
 			DB_URL_KEY,

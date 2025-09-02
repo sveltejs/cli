@@ -88,3 +88,31 @@ export type Verification = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
+
+// Builder pattern for addon options
+export type OptionBuilder<T extends OptionDefinition = Record<string, never>> = {
+	add<K extends string, Q extends Question<T & Record<K, Q>>>(
+		key: K,
+		question: Q
+	): OptionBuilder<T & Record<K, Q>>;
+	build(): T;
+};
+
+export function prepareAddonOptions(): OptionBuilder<Record<string, never>> {
+	return createOptionBuilder({} as Record<string, never>);
+}
+
+function createOptionBuilder<T extends OptionDefinition>(options: T = {} as T): OptionBuilder<T> {
+	return {
+		add<K extends string, Q extends Question<T & Record<K, Q>>>(
+			key: K,
+			question: Q
+		): OptionBuilder<T & Record<K, Q>> {
+			const newOptions = { ...options, [key]: question } as T & Record<K, Q>;
+			return createOptionBuilder(newOptions);
+		},
+		build(): T {
+			return options;
+		}
+	};
+}
