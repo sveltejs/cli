@@ -84,11 +84,7 @@ export default defineAddon({
 			// override the `adapter` property
 			object.overrideProperty(config, {
 				path: ['kit', 'adapter'],
-				value: functions.createCall({
-					name: adapterName,
-					args: [],
-					useIdentifiers: true
-				}),
+				value: functions.createCall({ name: adapterName, args: [], useIdentifiers: true }),
 				transform: (p) => {
 					// reset the comment for non-auto adapters
 					if (adapter.package !== 'adapter-auto') p.leadingComments = [];

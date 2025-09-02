@@ -7,7 +7,7 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	options: {
 		name: string;
 		fallback: T;
-		transform?: (prop: AstTypes.Property) => AstTypes.Property;
+		transform?: (property: AstTypes.Property) => AstTypes.Property;
 	}
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
@@ -49,7 +49,7 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 
 type OverridePropertyOptions<T extends AstTypes.Expression> = {
 	value: T;
-	transform?: (value: AstTypes.Property) => AstTypes.Property;
+	transform?: (property: AstTypes.Property) => AstTypes.Property;
 } & ({ name: string; path?: never } | { name?: never; path: string[] });
 export function overrideProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
@@ -94,7 +94,7 @@ function ensureNestedProperty<T extends AstTypes.Expression>(
 	options: {
 		path: string[];
 		value: T;
-		transform?: (value: AstTypes.Property) => AstTypes.Property;
+		transform?: (property: AstTypes.Property) => AstTypes.Property;
 	}
 ): T {
 	let current = node;
