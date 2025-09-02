@@ -105,6 +105,44 @@ export function removeProperty(
 	}
 }
 
+export function ensureNestedProperty(
+	node: AstTypes.ObjectExpression,
+	options: {
+		path: string[];
+		value: AstTypes.Expression;
+	}
+): AstTypes.Expression {
+	let current = node;
+
+	// Navigate/create the path, stopping at the last level
+	for (let i = 0; i < options.path.length - 1; i++) {
+		const pathSegment = options.path[i];
+
+		let nextNode = property(current, {
+			name: pathSegment,
+			fallback: create({})
+		});
+
+		// Ensure the next level exists as an ObjectExpression
+		if (nextNode.type !== 'ObjectExpression') {
+			nextNode = create({});
+			overrideProperty(current, {
+				name: pathSegment,
+				value: nextNode
+			});
+		}
+
+		current = nextNode;
+	}
+
+	// Set the final property
+	const finalPropertyName = options.path[options.path.length - 1];
+	return overrideProperty(current, {
+		name: finalPropertyName,
+		value: options.value
+	});
+}
+
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
 type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
