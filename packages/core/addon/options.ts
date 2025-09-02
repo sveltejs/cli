@@ -17,29 +17,16 @@ export type NumberQuestion = {
 	placeholder?: string;
 };
 
-// Helper type to extract option values from a select question
-export type ExtractSelectValues<T> = T extends {
-	type: 'select';
-	options: Array<{ value: infer V }>;
-}
-	? V
-	: never;
-
-// Helper type to extract all option values as a union
-export type ExtractAllOptionValues<T> = T extends { options: Array<{ value: infer V }> }
-	? V
-	: never;
-
 export type SelectQuestion<Value = any> = {
 	type: 'select';
 	default: Value;
-	options: Array<{ value: Value; label?: string; hint?: string }>;
+	options: Array<{ value: string; label?: string; hint?: string }>;
 };
 
 export type MultiSelectQuestion<Value = any> = {
 	type: 'multiselect';
-	default: Value[];
-	options: Array<{ value: Value; label?: string; hint?: string }>;
+	default: Value;
+	options: Array<{ value: string; label?: string; hint?: string }>;
 	required: boolean;
 };
 
@@ -67,6 +54,6 @@ export type OptionValues<Args extends OptionDefinition> = {
 				: Args[K] extends SelectQuestion<infer Value>
 					? Value
 					: Args[K] extends MultiSelectQuestion<infer Value>
-						? Value[]
+						? Value // as the type of the Value should already be an array!
 						: never;
 };

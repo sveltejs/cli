@@ -86,7 +86,7 @@ export type Verification = {
 };
 
 // Builder pattern for addon options
-export type OptionBuilder<T extends OptionDefinition = Record<string, never>> = {
+export type OptionBuilder<T extends OptionDefinition = Record<string, any>> = {
 	add<K extends string, Q extends Question<T & Record<K, Q>>>(
 		key: K,
 		question: Q
@@ -94,8 +94,8 @@ export type OptionBuilder<T extends OptionDefinition = Record<string, never>> = 
 	build(): T;
 };
 
-export function prepareAddonOptions(): OptionBuilder<Record<string, never>> {
-	return createOptionBuilder({} as Record<string, never>);
+export function prepareAddonOptions(): OptionBuilder<Record<string, any>> {
+	return createOptionBuilder({} as Record<string, any>);
 }
 
 function createOptionBuilder<T extends OptionDefinition>(options: T = {} as T): OptionBuilder<T> {
