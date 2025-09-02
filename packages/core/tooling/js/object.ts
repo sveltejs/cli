@@ -42,13 +42,18 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	return propertyValue;
 }
 
+type OverridePropertyOptions<T extends AstTypes.Expression> = { value: T } & (
+	| { name: string; path?: never }
+	| { name?: never; path: string[] }
+);
 export function overrideProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
-	options: {
-		name: string;
-		value: T;
-	}
+	options: OverridePropertyOptions<T>
 ): T {
+	if (options.path) {
+		return ensureNestedProperty(node, options);
+	}
+
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
 
@@ -66,37 +71,21 @@ export function overrideProperty<T extends AstTypes.Expression>(
 
 export function overrideProperties<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
-	options: {
-		properties: Record<string, T | undefined>;
-	}
+	options: Array<OverridePropertyOptions<T>>
 ): void {
-	for (const [prop, value] of Object.entries(options.properties)) {
-		if (value === undefined) continue;
-		overrideProperty(node, { name: prop, value });
+	for (const option of options) {
+		overrideProperty(node, option);
 	}
 }
 
-export function removeProperty(
-	node: AstTypes.ObjectExpression,
-	options: {
-		name: string;
-	}
-): void {
-	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	const propIdx = properties.findIndex((x) => (x.key as AstTypes.Identifier).name === options.name);
-
-	if (propIdx !== -1) {
-		node.properties.splice(propIdx, 1);
-	}
-}
-
-export function ensureNestedProperty(
+// internal helper function
+function ensureNestedProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
 	options: {
 		path: string[];
-		value: AstTypes.Expression;
+		value: T;
 	}
-): AstTypes.Expression {
+): T {
 	let current = node;
 
 	// Navigate/create the path, stopping at the last level
@@ -126,6 +115,20 @@ export function ensureNestedProperty(
 		name: finalPropertyName,
 		value: options.value
 	});
+}
+
+export function removeProperty(
+	node: AstTypes.ObjectExpression,
+	options: {
+		name: string;
+	}
+): void {
+	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
+	const propIdx = properties.findIndex((x) => (x.key as AstTypes.Identifier).name === options.name);
+
+	if (propIdx !== -1) {
+		node.properties.splice(propIdx, 1);
+	}
 }
 
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;

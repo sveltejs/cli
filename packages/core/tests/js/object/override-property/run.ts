@@ -12,10 +12,8 @@ export function run(ast: AstTypes.Program): void {
 		name: 'foo',
 		value: common.createLiteral(2)
 	});
-	object.overrideProperties(objectExpression, {
-		properties: {
-			bar: common.createLiteral('string2'),
-			lorem: common.createLiteral(false)
-		}
-	});
+	object.overrideProperties(objectExpression, [
+		{ name: 'bar', value: common.createLiteral('string2') },
+		{ name: 'lorem', value: common.createLiteral(false) }
+	]);
 }
