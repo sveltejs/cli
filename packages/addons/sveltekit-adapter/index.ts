@@ -80,32 +80,11 @@ export default defineAddon({
 			}
 
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
-			const kitConfig = config.properties.find(
-				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
-			) as AstTypes.Property | undefined;
 
-			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
-				const adapterProp = kitConfig.value.properties.find(
-					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
-				);
-				if (adapterProp) {
-					adapterProp.leadingComments = [];
-				}
-
-				// only overrides the `adapter` property so we can reset it's args
-				object.overrideProperty(kitConfig.value, {
-					name: 'adapter',
-					value: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-				});
-			} else {
-				// creates the `kit` property when absent
-				object.overrideProperty(config, {
-					name: 'kit',
-					value: object.create({
-						adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-					})
-				});
-			}
+			object.overrideProperty(config, {
+				path: ['kit', 'adapter'],
+				value: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+			});
 
 			return generateCode();
 		});
