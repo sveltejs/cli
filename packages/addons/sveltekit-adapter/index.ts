@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { exports, functions, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 type Adapter = {
@@ -81,23 +81,19 @@ export default defineAddon({
 
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 
-			// remove leading comments from the `adapter` property
-			const kitConfig = config.properties.find(
-				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
-			) as AstTypes.Property | undefined;
-			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
-				const adapterProp = kitConfig.value.properties.find(
-					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
-				);
-				if (adapterProp) {
-					adapterProp.leadingComments = [];
-				}
-			}
-
 			// override the `adapter` property
 			object.overrideProperty(config, {
 				path: ['kit', 'adapter'],
-				value: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+				value: functions.createCall({
+					name: adapterName,
+					args: [],
+					useIdentifiers: true
+				}),
+				transform: (p) => {
+					// reset the comment for non-auto adapters
+					if (adapter.package !== 'adapter-auto') p.leadingComments = [];
+					return p;
+				}
 			});
 
 			return generateCode();

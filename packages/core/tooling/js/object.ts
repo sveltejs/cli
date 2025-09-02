@@ -7,14 +7,16 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	options: {
 		name: string;
 		fallback: T;
+		transform?: (prop: AstTypes.Property) => AstTypes.Property;
 	}
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
-	let propertyValue: T;
 
 	if (prop) {
-		propertyValue = prop.value as T;
+		if (options.transform) {
+			prop = options.transform(prop);
+		}
 	} else {
 		let isShorthand = false;
 		if (options.fallback.type === 'Identifier') {
@@ -22,7 +24,6 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 			isShorthand = identifier.name === options.name;
 		}
 
-		propertyValue = options.fallback;
 		prop = {
 			type: 'Property',
 			shorthand: isShorthand,
@@ -30,22 +31,26 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 				type: 'Identifier',
 				name: options.name
 			},
-			value: propertyValue,
+			value: options.fallback,
 			kind: 'init',
 			computed: false,
 			method: false
 		};
 
+		if (options.transform) {
+			prop = options.transform(prop);
+		}
+
 		node.properties.push(prop);
 	}
 
-	return propertyValue;
+	return prop.value as T;
 }
 
-type OverridePropertyOptions<T extends AstTypes.Expression> = { value: T } & (
-	| { name: string; path?: never }
-	| { name?: never; path: string[] }
-);
+type OverridePropertyOptions<T extends AstTypes.Expression> = {
+	value: T;
+	transform?: (value: AstTypes.Property) => AstTypes.Property;
+} & ({ name: string; path?: never } | { name?: never; path: string[] });
 export function overrideProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
 	options: OverridePropertyOptions<T>
@@ -55,16 +60,21 @@ export function overrideProperty<T extends AstTypes.Expression>(
 	}
 
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
+	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
 
 	if (!prop) {
 		return property(node, {
 			name: options.name,
-			fallback: options.value
+			fallback: options.value,
+			transform: options.transform
 		});
 	}
 
 	prop.value = options.value;
+
+	if (options.transform) {
+		prop = options.transform(prop);
+	}
 
 	return options.value;
 }
@@ -84,6 +94,7 @@ function ensureNestedProperty<T extends AstTypes.Expression>(
 	options: {
 		path: string[];
 		value: T;
+		transform?: (value: AstTypes.Property) => AstTypes.Property;
 	}
 ): T {
 	let current = node;
@@ -113,7 +124,8 @@ function ensureNestedProperty<T extends AstTypes.Expression>(
 	const finalPropertyName = options.path[options.path.length - 1];
 	return overrideProperty(current, {
 		name: finalPropertyName,
-		value: options.value
+		value: options.value,
+		transform: options.transform
 	});
 }
 
