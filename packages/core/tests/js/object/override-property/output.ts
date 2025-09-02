@@ -1,6 +1,1 @@
-const test = {
-	foo: 2,
-	bar: 'string2',
-	lorem: false,
-	aNewOne: 'yay'
-};
+const test = { foo: 2, bar: 'string2', lorem: false };
