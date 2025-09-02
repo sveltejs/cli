@@ -93,19 +93,17 @@ export default defineAddon({
 				}
 
 				// only overrides the `adapter` property so we can reset it's args
-				object.overrideProperties(kitConfig.value, {
-					properties: {
-						adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-					}
+				object.overrideProperty(kitConfig.value, {
+					name: 'adapter',
+					value: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 				});
 			} else {
 				// creates the `kit` property when absent
-				object.overrideProperties(config, {
-					properties: {
-						kit: object.create({
-							adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-						})
-					}
+				object.overrideProperty(config, {
+					name: 'kit',
+					value: object.create({
+						adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+					})
 				});
 			}
 
