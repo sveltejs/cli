@@ -81,22 +81,24 @@ export default defineAddon({
 
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 
+			// remove leading comments from the `adapter` property
+			const kitConfig = config.properties.find(
+				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
+			) as AstTypes.Property | undefined;
+			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
+				const adapterProp = kitConfig.value.properties.find(
+					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
+				);
+				if (adapterProp) {
+					adapterProp.leadingComments = [];
+				}
+			}
+
 			// override the `adapter` property
 			object.overrideProperty(config, {
 				path: ['kit', 'adapter'],
 				value: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 			});
-
-			// remove leading comments from the `adapter` property
-			const kitConfig = object.property(config, {
-				name: 'kit',
-				fallback: object.create({}) // we know that is was created before
-			});
-			const adapterProp = object.property(kitConfig, {
-				name: 'adapter',
-				fallback: object.create({}) // we know that is was created before
-			});
-			adapterProp.leadingComments = [];
 
 			return generateCode();
 		});
