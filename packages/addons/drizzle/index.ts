@@ -6,17 +6,18 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
 
-const PORTS = {
+type Database = 'mysql' | 'postgresql' | 'sqlite';
+const PORTS: Record<Database, string> = {
 	mysql: '3306',
 	postgresql: '5432',
 	sqlite: ''
-} as const;
+};
 
 const options = defineAddonOptions()
 	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',
-		default: 'sqlite' as 'postgresql' | 'mysql' | 'sqlite',
+		default: 'sqlite' as Database,
 		options: [
 			{ value: 'postgresql', label: 'PostgreSQL' },
 			{ value: 'mysql', label: 'MySQL' },
@@ -128,7 +129,7 @@ export default defineAddon({
 				if (content.length > 0) return content;
 
 				const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
-				const port = PORTS[options.database as keyof typeof PORTS];
+				const port = PORTS[options.database];
 
 				const USER = 'root';
 				const PASSWORD = 'mysecretpassword';
@@ -443,7 +444,7 @@ function generateEnvFileContent(content: string, opts: OptionValues<typeof optio
 	if (opts.docker) {
 		// we'll prefill with the default docker db credentials
 		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
-		const port = PORTS[opts.database as keyof typeof PORTS];
+		const port = PORTS[opts.database];
 		content = addEnvVar(
 			content,
 			DB_URL_KEY,
