@@ -1,4 +1,4 @@
-import { defineAddon, prepareAddonOptions } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
 import { exports, functions, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
@@ -17,7 +17,7 @@ const adapters: Adapter[] = [
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.0.0' }
 ];
 
-const options = prepareAddonOptions()
+const options = defineAddonOptions()
 	.add('adapter', {
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',

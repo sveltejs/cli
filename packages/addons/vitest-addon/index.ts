@@ -1,8 +1,8 @@
-import { dedent, defineAddon, prepareAddonOptions, log } from '@sveltejs/cli-core';
+import { dedent, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
 import { array, exports, functions, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
-const options = prepareAddonOptions()
+const options = defineAddonOptions()
 	.add('usages', {
 		question: 'What do you want to use vitest for?',
 		type: 'multiselect',

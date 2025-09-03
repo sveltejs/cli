@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-internal(core): remove `defineAddonOptions({ /*config */ })` in favor of `prepareAddonOptions().add('key', { /*config */ }).build()`. This change brings better type safety.
+internal(core): change `defineAddonOptions({ /*config */ })` to `defineAddonOptions().add('key', { /*config */ }).build()` in order to provide better type safety.

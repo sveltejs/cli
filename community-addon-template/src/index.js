@@ -1,8 +1,8 @@
-import { defineAddon, prepareAddonOptions } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
 import { imports } from '@sveltejs/cli-core/js';
 import { parseSvelte } from '@sveltejs/cli-core/parsers';
 
-export const options = prepareAddonOptions()
+export const options = defineAddonOptions()
 	.add('demo', {
 		question: 'Do you want to use a demo?',
 		type: 'boolean',

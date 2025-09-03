@@ -3,7 +3,7 @@ import {
 	colors,
 	dedent,
 	defineAddon,
-	prepareAddonOptions,
+	defineAddonOptions,
 	log,
 	utils,
 	Walker
@@ -26,7 +26,7 @@ type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 let drizzleDialect: Dialect;
 let schemaPath: string;
 
-const options = prepareAddonOptions()
+const options = defineAddonOptions()
 	.add('demo', {
 		type: 'boolean',
 		default: true,

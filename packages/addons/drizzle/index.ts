@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
-import { defineAddon, prepareAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
@@ -12,7 +12,7 @@ const PORTS = {
 	sqlite: ''
 } as const;
 
-const options = prepareAddonOptions()
+const options = defineAddonOptions()
 	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',

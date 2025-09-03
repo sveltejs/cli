@@ -94,7 +94,7 @@ export type OptionBuilder<T extends OptionDefinition = Record<string, any>> = {
 	build(): T;
 };
 
-export function prepareAddonOptions(): OptionBuilder<Record<string, any>> {
+export function defineAddonOptions(): OptionBuilder<Record<string, any>> {
 	return createOptionBuilder({} as Record<string, any>);
 }
 
