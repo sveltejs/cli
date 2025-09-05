@@ -23,7 +23,7 @@ export type SelectQuestion<Value = any> = {
 	options: Array<{ value: string; label?: string; hint?: string }>;
 };
 
-export type MultiSelectQuestion<Value = any> = {
+export type MultiSelectQuestion<Value extends any[] = string[]> = {
 	type: 'multiselect';
 	default: Value;
 	options: Array<{ value: string; label?: string; hint?: string }>;
@@ -54,6 +54,6 @@ export type OptionValues<Args extends OptionDefinition> = {
 				: Args[K] extends SelectQuestion<infer Value>
 					? Value
 					: Args[K] extends MultiSelectQuestion<infer Value>
-						? Value // as the type of the Value should already be an array!
+						? Value // as the type of Value should already be an array (default: [] or default: ['foo', 'bar'])
 						: never;
 };
