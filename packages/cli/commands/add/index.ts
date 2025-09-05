@@ -411,11 +411,6 @@ export async function runAddCommand(
 	}
 
 	// add inter-addon dependencies
-	addonSetupResults = setupAddons(
-		selectedAddons.map(({ addon }) => addon),
-		workspace
-	);
-
 	for (const { addon } of selectedAddons) {
 		workspace = await createWorkspace(workspace);
 
