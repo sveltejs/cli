@@ -380,14 +380,13 @@ export async function runAddCommand(
 
 	// prepare official addons
 	let workspace = await createWorkspace({ cwd: options.cwd });
-	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
-	let addonSetupResults = setupAddons(setups, workspace);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
+		const allSetupResults = setupAddons(officialAddons, workspace);
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
-			.filter(({ id }) => addonSetupResults[id].unsupported.length === 0)
+			.filter(({ id }) => allSetupResults[id].unsupported.length === 0)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
@@ -414,7 +413,9 @@ export async function runAddCommand(
 	for (const { addon } of selectedAddons) {
 		workspace = await createWorkspace(workspace);
 
-		const setupResult = addonSetupResults[addon.id];
+		const setups = selectedAddons.map(({ addon }) => addon);
+		const setupResult = setupAddons(setups, workspace)[addon.id];
+
 		const missingDependencies = setupResult.dependsOn.filter(
 			(depId) => !selectedAddons.some((a) => a.addon.id === depId)
 		);
@@ -433,17 +434,14 @@ export async function runAddCommand(
 				process.exit(1);
 			}
 			selectedAddons.push({ type: 'official', addon: dependency });
-
-			// Regenerate setup results to include the newly added dependency
-			addonSetupResults = setupAddons(
-				selectedAddons.map(({ addon }) => addon),
-				workspace
-			);
 		}
 	}
 
-	// run verifications
+	// run all setups after inter-addon deps have been added
 	const addons = selectedAddons.map(({ addon }) => addon);
+	const addonSetupResults = setupAddons(addons, workspace);
+
+	// run verifications
 	const verifications = [
 		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
 		...verifyUnsupportedAddons(addons, addonSetupResults)
