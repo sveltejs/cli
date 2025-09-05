@@ -634,10 +634,10 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 	const choices: string[] = [];
 	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
-	const options: Record<string, unknown> = {};
+	const options: OptionValues<any> = {};
 	for (const [id, question] of Object.entries(details.options)) {
 		let values: string[] = [];
-		const applyDefault = question.condition?.(options as any) !== false;
+		const applyDefault = question.condition?.(options) !== false;
 		if (question.type === 'boolean') {
 			values = ['yes', `no`];
 			if (applyDefault) {
