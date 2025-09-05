@@ -20,13 +20,13 @@ export type NumberQuestion = {
 export type SelectQuestion<Value = any> = {
 	type: 'select';
 	default: Value;
-	options: Array<{ value: string; label?: string; hint?: string }>;
+	options: Array<{ value: Value; label?: string; hint?: string }>;
 };
 
-export type MultiSelectQuestion<Value extends any[] = string[]> = {
+export type MultiSelectQuestion<Value = any> = {
 	type: 'multiselect';
-	default: Value;
-	options: Array<{ value: string; label?: string; hint?: string }>;
+	default: Value[];
+	options: Array<{ value: Value; label?: string; hint?: string }>;
 	required: boolean;
 };
 
@@ -54,6 +54,6 @@ export type OptionValues<Args extends OptionDefinition> = {
 				: Args[K] extends SelectQuestion<infer Value>
 					? Value
 					: Args[K] extends MultiSelectQuestion<infer Value>
-						? Value // as the type of Value should already be an array (default: [] or default: ['foo', 'bar'])
+						? Value[]
 						: never;
 };
