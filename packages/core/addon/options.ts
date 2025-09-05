@@ -17,20 +17,20 @@ export type NumberQuestion = {
 	placeholder?: string;
 };
 
-export type SelectQuestion<Value = any> = {
+export type SelectQuestion<Value> = {
 	type: 'select';
-	default: Value;
-	options: Array<{ value: string; label?: string; hint?: string }>;
+	default: NoInfer<Value>;
+	options: Array<{ value: Value; label?: string; hint?: string }>;
 };
 
-export type MultiSelectQuestion<Value extends any[] = string[]> = {
+export type MultiSelectQuestion<Values extends any[]> = {
 	type: 'multiselect';
-	default: Value;
-	options: Array<{ value: string; label?: string; hint?: string }>;
+	default: NoInfer<Values>;
+	options: Array<{ value: Values[number]; label?: string; hint?: string }>;
 	required: boolean;
 };
 
-export type BaseQuestion<Args extends OptionDefinition = OptionDefinition> = {
+export type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
 	/**
@@ -41,9 +41,16 @@ export type BaseQuestion<Args extends OptionDefinition = OptionDefinition> = {
 };
 
 export type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
-	(BooleanQuestion | StringQuestion | NumberQuestion | SelectQuestion | MultiSelectQuestion);
+	(
+		| BooleanQuestion
+		| StringQuestion
+		| NumberQuestion
+		| SelectQuestion<any>
+		| MultiSelectQuestion<any[]>
+	);
 
 export type OptionDefinition = Record<string, Question<any>>;
+
 export type OptionValues<Args extends OptionDefinition> = {
 	[K in keyof Args]: Args[K] extends StringQuestion
 		? string
@@ -53,7 +60,7 @@ export type OptionValues<Args extends OptionDefinition> = {
 				? number
 				: Args[K] extends SelectQuestion<infer Value>
 					? Value
-					: Args[K] extends MultiSelectQuestion<infer Value>
-						? Value // as the type of Value should already be an array (default: [] or default: ['foo', 'bar'])
-						: never;
+					: Args[K] extends MultiSelectQuestion<infer Values>
+						? Values // as the type of Values should already be an array (default: [] or default: ['foo', 'bar'])
+						: 'ERROR: The value for this type is invalid.';
 };
