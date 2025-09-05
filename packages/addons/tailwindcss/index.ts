@@ -22,8 +22,8 @@ const options = defineAddonOptions()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
+		default: [],
 		options: typedEntries(plugins).map(([id, p]) => ({ value: id, label: id, hint: p.package })),
-		default: [] as Array<keyof typeof plugins>,
 		required: false
 	})
 	.build();

@@ -17,7 +17,7 @@ const options = defineAddonOptions()
 	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',
-		default: 'sqlite' as Database,
+		default: 'sqlite',
 		options: [
 			{ value: 'postgresql', label: 'PostgreSQL' },
 			{ value: 'mysql', label: 'MySQL' },
@@ -28,7 +28,7 @@ const options = defineAddonOptions()
 		question: 'Which PostgreSQL client would you like to use?',
 		type: 'select',
 		group: 'client',
-		default: 'postgres.js' as 'postgres.js' | 'neon',
+		default: 'postgres.js',
 		options: [
 			{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
 			{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
@@ -39,7 +39,7 @@ const options = defineAddonOptions()
 		question: 'Which MySQL client would you like to use?',
 		type: 'select',
 		group: 'client',
-		default: 'mysql2' as 'mysql2' | 'planetscale',
+		default: 'mysql2',
 		options: [
 			{ value: 'mysql2', hint: 'recommended for most users' },
 			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
