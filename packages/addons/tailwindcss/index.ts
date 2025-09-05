@@ -3,37 +3,30 @@ import { imports, vite } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
-type Plugin = {
-	id: string;
-	package: string;
-	version: string;
-	identifier: string;
-};
+function typedEntries<T extends Record<string, any>>(obj: T): Array<[keyof T, T[keyof T]]> {
+	return Object.entries(obj) as Array<[keyof T, T[keyof T]]>;
+}
 
-const plugins: Plugin[] = [
-	{
-		id: 'typography',
+const plugins = {
+	typography: {
 		package: '@tailwindcss/typography',
-		version: '^0.5.15',
-		identifier: 'typography'
+		version: '^0.5.15'
 	},
-	{
-		id: 'forms',
+	forms: {
 		package: '@tailwindcss/forms',
-		version: '^0.5.9',
-		identifier: 'forms'
+		version: '^0.5.9'
 	}
-];
+} as const;
 
-const options = defineAddonOptions({
-	plugins: {
+const options = defineAddonOptions()
+	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
-		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: [],
+		options: typedEntries(plugins).map(([id, p]) => ({ value: id, label: id, hint: p.package })),
+		default: [] as Array<keyof typeof plugins>,
 		required: false
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'tailwindcss',
@@ -49,8 +42,8 @@ export default defineAddon({
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
 
-		for (const plugin of plugins) {
-			if (!options.plugins.includes(plugin.id)) continue;
+		for (const [id, plugin] of typedEntries(plugins)) {
+			if (!options.plugins.includes(id)) continue;
 
 			sv.devDependency(plugin.package, plugin.version);
 		}
@@ -88,8 +81,8 @@ export default defineAddon({
 			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
 			const pluginPos = lastAtRule!.source!.end!.offset;
 
-			for (const plugin of plugins) {
-				if (!options.plugins.includes(plugin.id)) continue;
+			for (const [id, plugin] of typedEntries(plugins)) {
+				if (!options.plugins.includes(id)) continue;
 
 				const pluginRule = findAtRule('plugin', plugin.package);
 				if (!pluginRule) {

@@ -16,8 +16,8 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-const options = defineAddonOptions({
-	languageTags: {
+const options = defineAddonOptions()
+	.add('languageTags', {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en, es',
@@ -39,13 +39,13 @@ const options = defineAddonOptions({
 
 			return undefined;
 		}
-	},
-	demo: {
+	})
+	.add('demo', {
 		type: 'boolean',
 		default: true,
 		question: 'Do you want to include a demo?'
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'paraglide',

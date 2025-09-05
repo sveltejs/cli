@@ -17,14 +17,14 @@ const adapters: Adapter[] = [
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.0.0' }
 ];
 
-const options = defineAddonOptions({
-	adapter: {
+const options = defineAddonOptions()
+	.add('adapter', {
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',
 		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
 		default: 'auto'
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'sveltekit-adapter',

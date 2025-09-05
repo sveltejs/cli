@@ -6,46 +6,47 @@ import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
 
-const PORTS = {
+type Database = 'mysql' | 'postgresql' | 'sqlite';
+const PORTS: Record<Database, string> = {
 	mysql: '3306',
 	postgresql: '5432',
 	sqlite: ''
-} as const;
+};
 
-const options = defineAddonOptions({
-	database: {
+const options = defineAddonOptions()
+	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',
-		default: 'sqlite',
+		default: 'sqlite' as Database,
 		options: [
 			{ value: 'postgresql', label: 'PostgreSQL' },
 			{ value: 'mysql', label: 'MySQL' },
 			{ value: 'sqlite', label: 'SQLite' }
 		]
-	},
-	postgresql: {
+	})
+	.add('postgresql', {
 		question: 'Which PostgreSQL client would you like to use?',
 		type: 'select',
 		group: 'client',
-		default: 'postgres.js',
+		default: 'postgres.js' as 'postgres.js' | 'neon',
 		options: [
 			{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
 			{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
 		],
 		condition: ({ database }) => database === 'postgresql'
-	},
-	mysql: {
+	})
+	.add('mysql', {
 		question: 'Which MySQL client would you like to use?',
 		type: 'select',
 		group: 'client',
-		default: 'mysql2',
+		default: 'mysql2' as 'mysql2' | 'planetscale',
 		options: [
 			{ value: 'mysql2', hint: 'recommended for most users' },
 			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
 		],
 		condition: ({ database }) => database === 'mysql'
-	},
-	sqlite: {
+	})
+	.add('sqlite', {
 		question: 'Which SQLite client would you like to use?',
 		type: 'select',
 		group: 'client',
@@ -56,16 +57,16 @@ const options = defineAddonOptions({
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
 		],
 		condition: ({ database }) => database === 'sqlite'
-	},
-	docker: {
+	})
+	.add('docker', {
 		question: 'Do you want to run the database locally with docker-compose?',
 		default: false,
 		type: 'boolean',
 		condition: ({ database, mysql, postgresql }) =>
 			(database === 'mysql' && mysql === 'mysql2') ||
 			(database === 'postgresql' && postgresql === 'postgres.js')
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'drizzle',

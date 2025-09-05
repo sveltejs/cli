@@ -2,8 +2,8 @@ import { dedent, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core
 import { array, exports, functions, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
-const options = defineAddonOptions({
-	usages: {
+const options = defineAddonOptions()
+	.add('usages', {
 		question: 'What do you want to use vitest for?',
 		type: 'multiselect',
 		default: ['unit', 'component'],
@@ -12,8 +12,8 @@ const options = defineAddonOptions({
 			{ value: 'component', label: 'component testing' }
 		],
 		required: true
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'vitest',
