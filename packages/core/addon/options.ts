@@ -23,10 +23,10 @@ export type SelectQuestion<Value> = {
 	options: Array<{ value: Value; label?: string; hint?: string }>;
 };
 
-export type MultiSelectQuestion<Values extends any[]> = {
+export type MultiSelectQuestion<Value> = {
 	type: 'multiselect';
-	default: NoInfer<Values>;
-	options: Array<{ value: Values[number]; label?: string; hint?: string }>;
+	default: NoInfer<Value[]>;
+	options: Array<{ value: Value; label?: string; hint?: string }>;
 	required: boolean;
 };
 
@@ -46,7 +46,7 @@ export type Question<Args extends OptionDefinition = OptionDefinition> = BaseQue
 		| StringQuestion
 		| NumberQuestion
 		| SelectQuestion<any>
-		| MultiSelectQuestion<any[]>
+		| MultiSelectQuestion<any>
 	);
 
 export type OptionDefinition = Record<string, Question<any>>;
@@ -60,7 +60,7 @@ export type OptionValues<Args extends OptionDefinition> = {
 				? number
 				: Args[K] extends SelectQuestion<infer Value>
 					? Value
-					: Args[K] extends MultiSelectQuestion<infer Values>
-						? Values // as the type of Values should already be an array (default: [] or default: ['foo', 'bar'])
-						: 'ERROR: The value for this type is invalid.';
+					: Args[K] extends MultiSelectQuestion<infer Value>
+						? Value[]
+						: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
