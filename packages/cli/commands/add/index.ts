@@ -381,7 +381,7 @@ export async function runAddCommand(
 	// prepare official addons
 	let workspace = await createWorkspace({ cwd: options.cwd });
 	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
-	const addonSetupResults = setupAddons(setups, workspace);
+	let addonSetupResults = setupAddons(setups, workspace);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
@@ -411,6 +411,11 @@ export async function runAddCommand(
 	}
 
 	// add inter-addon dependencies
+	addonSetupResults = setupAddons(
+		selectedAddons.map(({ addon }) => addon),
+		workspace
+	);
+
 	for (const { addon } of selectedAddons) {
 		workspace = await createWorkspace(workspace);
 
@@ -433,6 +438,12 @@ export async function runAddCommand(
 				process.exit(1);
 			}
 			selectedAddons.push({ type: 'official', addon: dependency });
+
+			// Regenerate setup results to include the newly added dependency
+			addonSetupResults = setupAddons(
+				selectedAddons.map(({ addon }) => addon),
+				workspace
+			);
 		}
 	}
 
