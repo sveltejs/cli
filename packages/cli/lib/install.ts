@@ -173,7 +173,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
 		},
-		pnpmBuildDependendency: (pkg) => {
+		pnpmBuildDependency: (pkg) => {
 			pnpmBuildDependencies.push(pkg);
 		}
 	};
