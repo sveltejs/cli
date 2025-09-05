@@ -3,27 +3,25 @@ import { imports, vite } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
-function typedEntries<T extends Record<string, any>>(obj: T): Array<[keyof T, T[keyof T]]> {
-	return Object.entries(obj) as Array<[keyof T, T[keyof T]]>;
-}
-
-const plugins = {
-	typography: {
+const plugins = [
+	{
+		id: 'typography',
 		package: '@tailwindcss/typography',
 		version: '^0.5.15'
 	},
-	forms: {
+	{
+		id: 'forms',
 		package: '@tailwindcss/forms',
 		version: '^0.5.9'
 	}
-} as const;
+] as const;
 
 const options = defineAddonOptions()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
-		options: typedEntries(plugins).map(([id, p]) => ({ value: id, label: id, hint: p.package })),
-		default: [] as Array<keyof typeof plugins>,
+		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
+		default: [] as Array<(typeof plugins)[number]['id']>,
 		required: false
 	})
 	.build();
@@ -42,8 +40,8 @@ export default defineAddon({
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
 
-		for (const [id, plugin] of typedEntries(plugins)) {
-			if (!options.plugins.includes(id)) continue;
+		for (const plugin of plugins) {
+			if (!options.plugins.includes(plugin.id)) continue;
 
 			sv.devDependency(plugin.package, plugin.version);
 		}
@@ -81,8 +79,8 @@ export default defineAddon({
 			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
 			const pluginPos = lastAtRule!.source!.end!.offset;
 
-			for (const [id, plugin] of typedEntries(plugins)) {
-				if (!options.plugins.includes(id)) continue;
+			for (const plugin of plugins) {
+				if (!options.plugins.includes(plugin.id)) continue;
 
 				const pluginRule = findAtRule('plugin', plugin.package);
 				if (!pluginRule) {

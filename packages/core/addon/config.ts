@@ -20,7 +20,7 @@ export type Scripts<Args extends OptionDefinition> = {
 };
 
 export type SvApi = {
-	pnpmBuildDependendency: (pkg: string) => void;
+	pnpmBuildDependency: (pkg: string) => void;
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
@@ -85,29 +85,32 @@ export type Verification = {
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
 };
 
+type Prettify<T> = {
+	[K in keyof T]: T[K];
+} & unknown;
+
 // Builder pattern for addon options
-export type OptionBuilder<T extends OptionDefinition = Record<string, any>> = {
-	add<K extends string, Q extends Question<T & Record<K, Q>>>(
+export type OptionBuilder<T extends OptionDefinition> = {
+	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
 		key: K,
 		question: Q
 	): OptionBuilder<T & Record<K, Q>>;
-	build(): T;
+	build(): Prettify<T>;
 };
 
-export function defineAddonOptions(): OptionBuilder<Record<string, any>> {
-	return createOptionBuilder({} as Record<string, any>);
+// Initializing with an empty object is intended given that the starting state _is_ empty.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export function defineAddonOptions(): OptionBuilder<{}> {
+	return createOptionBuilder({});
 }
 
-function createOptionBuilder<T extends OptionDefinition>(options: T = {} as T): OptionBuilder<T> {
+function createOptionBuilder<const T extends OptionDefinition>(options: T): OptionBuilder<T> {
 	return {
-		add<K extends string, Q extends Question<T & Record<K, Q>>>(
-			key: K,
-			question: Q
-		): OptionBuilder<T & Record<K, Q>> {
-			const newOptions = { ...options, [key]: question } as T & Record<K, Q>;
+		add(key, question) {
+			const newOptions = { ...options, [key]: question };
 			return createOptionBuilder(newOptions);
 		},
-		build(): T {
+		build() {
 			return options;
 		}
 	};
