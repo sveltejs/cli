@@ -1,9 +1,9 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions, selectQuestion } from '@sveltejs/cli-core';
 import { exports, functions, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 type Adapter = {
-	id: string;
+	id: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
 	package: string;
 	version: string;
 };
@@ -18,12 +18,14 @@ const adapters: Adapter[] = [
 ];
 
 const options = defineAddonOptions()
-	.add('adapter', {
-		type: 'select',
-		question: 'Which SvelteKit adapter would you like to use?',
-		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: 'auto'
-	})
+	.add(
+		'adapter',
+		selectQuestion<Adapter['id']>({
+			question: 'Which SvelteKit adapter would you like to use?',
+			options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
+			default: 'auto'
+		})
+	)
 	.build();
 
 export default defineAddon({

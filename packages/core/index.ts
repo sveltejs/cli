@@ -1,4 +1,5 @@
 export { defineAddon, defineAddonOptions } from './addon/config.ts';
+export { selectQuestion, multiSelectQuestion } from './addon/options.ts';
 export { log } from '@clack/prompts';
 export { default as colors } from 'picocolors';
 export { default as dedent } from 'dedent';

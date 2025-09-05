@@ -17,16 +17,22 @@ export type NumberQuestion = {
 	placeholder?: string;
 };
 
+export type SelectQuestionOptions<Value = any> = Array<{
+	value: Value;
+	label?: string;
+	hint?: string;
+}>;
+
 export type SelectQuestion<Value = any> = {
 	type: 'select';
 	default: Value;
-	options: Array<{ value: Value; label?: string; hint?: string }>;
+	options: SelectQuestionOptions<Value>;
 };
 
 export type MultiSelectQuestion<Value = any> = {
 	type: 'multiselect';
 	default: Value[];
-	options: Array<{ value: Value; label?: string; hint?: string }>;
+	options: SelectQuestionOptions<Value>;
 	required: boolean;
 };
 
@@ -57,3 +63,21 @@ export type OptionValues<Args extends OptionDefinition> = {
 						? Value[]
 						: never;
 };
+
+export function selectQuestion<Value = any>(
+	o: Omit<SelectQuestion<Value> & BaseQuestion, 'type'>
+): SelectQuestion<Value> & BaseQuestion {
+	return {
+		type: 'select',
+		...o
+	};
+}
+
+export function multiSelectQuestion<Value = any>(
+	o: Omit<MultiSelectQuestion<Value> & BaseQuestion, 'type'>
+): MultiSelectQuestion<Value> & BaseQuestion {
+	return {
+		type: 'multiselect',
+		...o
+	};
+}

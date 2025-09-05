@@ -1,7 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
-import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
+import {
+	defineAddon,
+	defineAddonOptions,
+	dedent,
+	selectQuestion,
+	type OptionValues
+} from '@sveltejs/cli-core';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
@@ -14,54 +20,62 @@ const PORTS: Record<Database, string> = {
 };
 
 const options = defineAddonOptions()
-	.add('database', {
-		question: 'Which database would you like to use?',
-		type: 'select',
-		default: 'sqlite' as Database,
-		options: [
-			{ value: 'postgresql', label: 'PostgreSQL' },
-			{ value: 'mysql', label: 'MySQL' },
-			{ value: 'sqlite', label: 'SQLite' }
-		]
-	})
-	.add('postgresql', {
-		question: 'Which PostgreSQL client would you like to use?',
-		type: 'select',
-		group: 'client',
-		default: 'postgres.js' as 'postgres.js' | 'neon',
-		options: [
-			{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
-			{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
-		],
-		condition: ({ database }) => database === 'postgresql'
-	})
-	.add('mysql', {
-		question: 'Which MySQL client would you like to use?',
-		type: 'select',
-		group: 'client',
-		default: 'mysql2' as 'mysql2' | 'planetscale',
-		options: [
-			{ value: 'mysql2', hint: 'recommended for most users' },
-			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
-		],
-		condition: ({ database }) => database === 'mysql'
-	})
-	.add('sqlite', {
-		question: 'Which SQLite client would you like to use?',
-		type: 'select',
-		group: 'client',
-		default: 'libsql',
-		options: [
-			{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
-			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
-			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
-		],
-		condition: ({ database }) => database === 'sqlite'
-	})
+	.add(
+		'database',
+		selectQuestion<Database>({
+			question: 'Which database would you like to use?',
+			default: 'sqlite',
+			options: [
+				{ value: 'postgresql', label: 'PostgreSQL' },
+				{ value: 'mysql', label: 'MySQL' },
+				{ value: 'sqlite', label: 'SQLite' }
+			]
+		})
+	)
+	.add(
+		'postgresql',
+		selectQuestion<'postgres.js' | 'neon'>({
+			question: 'Which PostgreSQL client would you like to use?',
+			group: 'client',
+			default: 'postgres.js',
+			options: [
+				{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
+				{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
+			],
+			condition: ({ database }) => database === 'postgresql'
+		})
+	)
+	.add(
+		'mysql',
+		selectQuestion<'mysql2' | 'planetscale'>({
+			question: 'Which MySQL client would you like to use?',
+			group: 'client',
+			default: 'mysql2',
+			options: [
+				{ value: 'mysql2', hint: 'recommended for most users' },
+				{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
+			],
+			condition: ({ database }) => database === 'mysql'
+		})
+	)
+	.add(
+		'sqlite',
+		selectQuestion<'better-sqlite3' | 'libsql' | 'turso'>({
+			question: 'Which SQLite client would you like to use?',
+			group: 'client',
+			default: 'libsql',
+			options: [
+				{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
+				{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
+				{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
+			],
+			condition: ({ database }) => database === 'sqlite'
+		})
+	)
 	.add('docker', {
+		type: 'boolean',
 		question: 'Do you want to run the database locally with docker-compose?',
 		default: false,
-		type: 'boolean',
 		condition: ({ database, mysql, postgresql }) =>
 			(database === 'mysql' && mysql === 'mysql2') ||
 			(database === 'postgresql' && postgresql === 'postgres.js')
