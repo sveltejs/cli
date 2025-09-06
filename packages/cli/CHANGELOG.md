@@ -1,5 +1,17 @@
 # sv
 
+## 0.9.4
+### Patch Changes
+
+
+- chore(addons): change some dependencies to devDependencies ([#682](https://github.com/sveltejs/cli/pull/682))
+
+
+- fix(add): allow passing add-on as argument that depends on another add-on ([#691](https://github.com/sveltejs/cli/pull/691))
+
+
+- fix: improve add-on option types ([#692](https://github.com/sveltejs/cli/pull/692))
+
 ## 0.9.3
 ### Patch Changes
 
