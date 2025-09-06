@@ -32,7 +32,6 @@ export default [
 			'**/dist/*',
 			'packages/**/tests/**/{output,input}.ts',
 			'rolldown.config.js',
-			'community-addon-template/tests/*'
 		]
 	}
 ];
