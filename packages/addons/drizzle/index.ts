@@ -97,7 +97,7 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('drizzle-orm', '^0.40.0');
+		sv.devDependency('drizzle-orm', '^0.40.0');
 		sv.devDependency('drizzle-kit', '^0.30.2');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
@@ -117,7 +117,7 @@ export default defineAddon({
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
-			sv.dependency('@libsql/client', '^0.14.0');
+			sv.devDependency('@libsql/client', '^0.14.0');
 
 		sv.file('.env', (content) => generateEnvFileContent(content, options));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));

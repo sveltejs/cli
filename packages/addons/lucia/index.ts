@@ -48,8 +48,8 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('@oslojs/crypto', '^1.0.1');
-		sv.dependency('@oslojs/encoding', '^1.1.0');
+		sv.devDependency('@oslojs/crypto', '^1.0.1');
+		sv.devDependency('@oslojs/encoding', '^1.1.0');
 
 		if (options.demo) {
 			// password hashing for demo
