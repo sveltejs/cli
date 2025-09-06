@@ -48,27 +48,27 @@ export default defineAddon({
 			const defineConfig = common.parseExpression('defineConfig({})');
 			const { value: defaultExport } = exports.createDefault(ast, { fallback: defineConfig });
 
-			const config = {
-				webServer: object.create({
+			const webServerConfig = {
+				name: 'webServer',
+				value: object.create({
 					command: 'npm run build && npm run preview',
 					port: 4173
-				}),
-				testDir: common.createLiteral('e2e')
+				})
 			};
+			const testDirConfig = { name: 'testDir', value: common.createLiteral('e2e') };
 
 			if (
 				defaultExport.type === 'CallExpression' &&
 				defaultExport.arguments[0]?.type === 'ObjectExpression'
 			) {
 				// uses the `defineConfig` helper
-				imports.addNamed(ast, {
-					from: '@playwright/test',
-					imports: ['defineConfig']
-				});
-				object.addProperties(defaultExport.arguments[0], { properties: config });
+				imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
+				object.overrideProperty(defaultExport.arguments[0], webServerConfig);
+				object.overrideProperty(defaultExport.arguments[0], testDirConfig);
 			} else if (defaultExport.type === 'ObjectExpression') {
-				// if the config is just an object expression, just add the property
-				object.addProperties(defaultExport, { properties: config });
+				// if the config is just an object expression, just add the properties
+				object.overrideProperty(defaultExport, webServerConfig);
+				object.overrideProperty(defaultExport, testDirConfig);
 			} else {
 				// unexpected config shape
 				log.warn('Unexpected playwright config for playwright add-on. Could not update.');
