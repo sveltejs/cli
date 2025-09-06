@@ -21,24 +21,28 @@ export function validatePlaygroundUrl(link: string): boolean {
 type PlaygroundURL = {
 	playgroundId?: string;
 	hash?: string;
+	svelteVersion?: string;
 };
 
 export function parsePlaygroundUrl(link: string): PlaygroundURL {
 	const url = new URL(link);
 	const [, playgroundId] = url.pathname.match(/\/playground\/([^/]+)/) || [];
 	const hash = url.hash !== '' ? url.hash.slice(1) : undefined;
+	const svelteVersion = url.searchParams.get('version') || undefined;
 
-	return { playgroundId, hash };
+	return { playgroundId, hash, svelteVersion };
 }
 
 type PlaygroundData = {
 	name: string;
 	files: Array<{ name: string; content: string }>;
+	svelteVersion?: string;
 };
 
 export async function downloadPlaygroundData({
 	playgroundId,
-	hash
+	hash,
+	svelteVersion
 }: PlaygroundURL): Promise<PlaygroundData> {
 	let data = [];
 	// forked playgrounds have a playground_id and an optional hash.
@@ -60,7 +64,8 @@ export async function downloadPlaygroundData({
 				name: file.name + (file.type !== 'file' ? `.${file.type}` : ''),
 				content: file.source || file.contents
 			};
-		})
+		}),
+		svelteVersion
 	};
 }
 
@@ -179,14 +184,31 @@ export function setupPlaygroundProject(
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested
+	const pkgPath = path.join(cwd, 'package.json');
+	const pkgSource = fs.readFileSync(pkgPath, 'utf-8');
+	const pkgJson = parseJson(pkgSource);
+	let updatePackageJson = false;
 	if (installDependencies && dependencies.size >= 0) {
-		const pkgPath = path.join(cwd, 'package.json');
-		const pkgSource = fs.readFileSync(pkgPath, 'utf-8');
-		const pkgJson = parseJson(pkgSource);
+		updatePackageJson = true;
 		pkgJson.data.dependencies ??= {};
 		for (const [dep, version] of dependencies) {
 			pkgJson.data.dependencies[dep] = version;
 		}
-		fs.writeFileSync(pkgPath, pkgJson.generateCode(), 'utf-8');
 	}
+
+	// we want to change the svelte version, even if the user decieded
+	// to not install external dependencies
+	if (playground.svelteVersion) {
+		updatePackageJson = true;
+
+		// from https://github.com/sveltejs/svelte.dev/blob/ba7ad256f786aa5bc67eac3a58608f3f50b59e91/packages/repl/src/lib/workers/npm.ts#L14
+		const pkgPrNewRegex = /^(pr|commit|branch)-(.+)/;
+		const match = pkgPrNewRegex.exec(playground.svelteVersion);
+		pkgJson.data.devDependencies['svelte'] = match
+			? `https://pkg.pr.new/svelte@${match[2]}`
+			: `^${playground.svelteVersion}`;
+	}
+
+	// only update the package.json if we made any changes
+	if (updatePackageJson) fs.writeFileSync(pkgPath, pkgJson.generateCode(), 'utf-8');
 }

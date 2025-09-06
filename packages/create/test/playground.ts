@@ -26,7 +26,8 @@ test.for([
 	{ input: 'google.com', valid: false },
 	{ input: 'https://google.com', valid: false },
 	{ input: 'https://google.com/playground/123', valid: false },
-	{ input: 'https://svelte.dev/docs/cli', valid: false }
+	{ input: 'https://svelte.dev/docs/cli', valid: false },
+	{ input: 'https://svelte.dev/playground/hello-world?version=pr-16711', valid: true }
 ])('validate playground url $input', (data) => {
 	const isValid = validatePlaygroundUrl(data.input);
 
@@ -36,24 +37,38 @@ test.for([
 test.for([
 	{
 		url: 'https://svelte.dev/playground/628f435d787a465f9c1f1854134d6f70/',
-		expected: { playgroundId: '628f435d787a465f9c1f1854134d6f70', hash: undefined }
+		expected: {
+			playgroundId: '628f435d787a465f9c1f1854134d6f70',
+			hash: undefined,
+			version: undefined
+		}
 	},
 	{
 		url: 'https://svelte.dev/playground/hello-world',
-		expected: { playgroundId: 'hello-world', hash: undefined }
+		expected: { playgroundId: 'hello-world', hash: undefined, version: undefined }
 	},
 	{
 		url: 'https://svelte.dev/playground/a7aa9fd8daf445dcabd31b6aa6b1946f#H4sIAAAAAAAACm2Oz06EMBDGX2WcmCxEInKtQOLNdxAPhc5mm63Thg67moZ3NwU3e_H6_b5_CVl_ESp8J-c8XP3sDBRkrJApscKjdRRRfSSUn5B9WcDqlnoL4TleyEnWRh3pP33yLMQSUWEbp9kG6QcexJFAtkMHj1G0UHHY5g_l6w1PfmG585dM2vrewe2p6ffnKVetOpqHtj41O7QcFoHRslEX7RbqdhPU_cDtuIh4Bs-Ts9O5S0UJXf-3-NRBs24nNxgVpA2seX4P9gNjhULfgkrmhdbPCkVbd7VsUB21i7T-Akpv1IhdAQAA',
 		expected: {
 			playgroundId: 'a7aa9fd8daf445dcabd31b6aa6b1946f',
-			hash: 'H4sIAAAAAAAACm2Oz06EMBDGX2WcmCxEInKtQOLNdxAPhc5mm63Thg67moZ3NwU3e_H6_b5_CVl_ESp8J-c8XP3sDBRkrJApscKjdRRRfSSUn5B9WcDqlnoL4TleyEnWRh3pP33yLMQSUWEbp9kG6QcexJFAtkMHj1G0UHHY5g_l6w1PfmG585dM2vrewe2p6ffnKVetOpqHtj41O7QcFoHRslEX7RbqdhPU_cDtuIh4Bs-Ts9O5S0UJXf-3-NRBs24nNxgVpA2seX4P9gNjhULfgkrmhdbPCkVbd7VsUB21i7T-Akpv1IhdAQAA'
+			hash: 'H4sIAAAAAAAACm2Oz06EMBDGX2WcmCxEInKtQOLNdxAPhc5mm63Thg67moZ3NwU3e_H6_b5_CVl_ESp8J-c8XP3sDBRkrJApscKjdRRRfSSUn5B9WcDqlnoL4TleyEnWRh3pP33yLMQSUWEbp9kG6QcexJFAtkMHj1G0UHHY5g_l6w1PfmG585dM2vrewe2p6ffnKVetOpqHtj41O7QcFoHRslEX7RbqdhPU_cDtuIh4Bs-Ts9O5S0UJXf-3-NRBs24nNxgVpA2seX4P9gNjhULfgkrmhdbPCkVbd7VsUB21i7T-Akpv1IhdAQAA',
+			version: undefined
 		}
+	},
+	{
+		url: 'https://svelte.dev/playground/hello-world?version=pr-16711',
+		expected: { playgroundId: 'hello-world', hash: undefined, version: 'pr-16711' }
+	},
+	{
+		url: 'https://svelte.dev/playground/hello-world?version=5.38.7',
+		expected: { playgroundId: 'hello-world', hash: undefined, version: '5.38.7' }
 	}
 ])('extract parts from playground url $url', (data) => {
-	const { playgroundId, hash } = parsePlaygroundUrl(data.url);
+	const { playgroundId, hash, svelteVersion } = parsePlaygroundUrl(data.url);
 
 	expect(playgroundId).toBe(data.expected.playgroundId);
 	expect(hash).toBe(data.expected.hash);
+	expect(svelteVersion).toBe(data.expected.version);
 });
 
 test.for([
@@ -143,7 +158,8 @@ test('real world download and convert playground', async () => {
 
 	const playground = await downloadPlaygroundData({
 		playgroundId: '770bbef086034b9f8e337bab57efe8d8',
-		hash: undefined
+		hash: undefined,
+		svelteVersion: '5.38.7'
 	});
 
 	setupPlaygroundProject(playground, directory, true);
@@ -155,4 +171,5 @@ test('real world download and convert playground', async () => {
 	const packageJsonPath = path.join(directory, 'package.json');
 	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
 	expect(packageJsonContent).toContain('"change-case": "latest"');
+	expect(packageJsonContent).toContain('"svelte": "^5.38.7"');
 });
