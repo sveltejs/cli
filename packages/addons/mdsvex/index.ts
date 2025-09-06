@@ -30,9 +30,8 @@ export default defineAddon({
 				const previousElement = preprocessorArray;
 				preprocessorArray = array.create();
 				array.append(preprocessorArray, previousElement);
-				object.overrideProperty(exportDefault, {
-					name: 'preprocess',
-					value: preprocessorArray
+				object.overrideProperties(exportDefault, {
+					preprocess: preprocessorArray
 				});
 			}
 

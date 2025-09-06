@@ -2,19 +2,23 @@ import type { AstTypes } from '../index.ts';
 import * as array from './array.ts';
 import * as common from './common.ts';
 
+type TransformProperty = (property: AstTypes.Property) => AstTypes.Property;
+
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	node: AstTypes.ObjectExpression,
 	options: {
 		name: string;
 		fallback: T;
+		transform?: TransformProperty;
 	}
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
-	let propertyValue: T;
 
 	if (prop) {
-		propertyValue = prop.value as T;
+		if (options.transform) {
+			prop = options.transform(prop);
+		}
 	} else {
 		let isShorthand = false;
 		if (options.fallback.type === 'Identifier') {
@@ -22,7 +26,6 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 			isShorthand = identifier.name === options.name;
 		}
 
-		propertyValue = options.fallback;
 		prop = {
 			type: 'Property',
 			shorthand: isShorthand,
@@ -30,79 +33,49 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 				type: 'Identifier',
 				name: options.name
 			},
-			value: propertyValue,
+			value: options.fallback,
 			kind: 'init',
 			computed: false,
 			method: false
 		};
 
+		if (options.transform) {
+			prop = options.transform(prop);
+		}
+
 		node.properties.push(prop);
 	}
 
-	return propertyValue;
+	return prop.value as T;
 }
 
-export function overrideProperty<T extends AstTypes.Expression>(
+type OverridePropertyOptions<T extends AstTypes.Expression> = {
+	name: string;
+	value: T;
+	transform?: TransformProperty;
+};
+function overrideProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
-	options: {
-		name: string;
-		value: T;
-	}
+	options: OverridePropertyOptions<T>
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
+	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
 
 	if (!prop) {
 		return property(node, {
 			name: options.name,
-			fallback: options.value
+			fallback: options.value,
+			transform: options.transform
 		});
 	}
 
 	prop.value = options.value;
 
+	if (options.transform) {
+		prop = options.transform(prop);
+	}
+
 	return options.value;
-}
-
-export function overrideProperties<T extends AstTypes.Expression>(
-	node: AstTypes.ObjectExpression,
-	options: {
-		properties: Record<string, T | undefined>;
-	}
-): void {
-	for (const [prop, value] of Object.entries(options.properties)) {
-		if (value === undefined) continue;
-		overrideProperty(node, { name: prop, value });
-	}
-}
-
-export function addProperties<T extends AstTypes.Expression>(
-	node: AstTypes.ObjectExpression,
-	options: {
-		properties: Record<string, T | undefined>;
-	}
-): void {
-	for (const [prop, value] of Object.entries(options.properties)) {
-		if (value === undefined) continue;
-		property(node, {
-			name: prop,
-			fallback: value
-		});
-	}
-}
-
-export function removeProperty(
-	node: AstTypes.ObjectExpression,
-	options: {
-		name: string;
-	}
-): void {
-	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	const propIdx = properties.findIndex((x) => (x.key as AstTypes.Identifier).name === options.name);
-
-	if (propIdx !== -1) {
-		node.properties.splice(propIdx, 1);
-	}
 }
 
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
@@ -110,12 +83,41 @@ type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[]
 type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
 
 export function create(properties: ObjectMap): AstTypes.ObjectExpression {
-	const objExpression: AstTypes.ObjectExpression = {
+	const objectExpression: AstTypes.ObjectExpression = {
 		type: 'ObjectExpression',
 		properties: []
 	};
 
-	const getExpression = (value: any): AstTypes.Expression => {
+	return populateObjectExpression({
+		objectExpression,
+		properties,
+		override: false
+	});
+}
+
+export function overrideProperties(
+	objectExpression: AstTypes.ObjectExpression,
+	properties: ObjectMap,
+	transform?: TransformProperty
+): void {
+	populateObjectExpression({
+		objectExpression,
+		properties,
+		override: true,
+		transform
+	});
+}
+
+function populateObjectExpression(options: {
+	objectExpression: AstTypes.ObjectExpression;
+	properties: ObjectMap;
+	override: boolean;
+	transform?: TransformProperty;
+}): AstTypes.ObjectExpression {
+	const getExpression = (
+		value: any,
+		existingExpression?: AstTypes.ObjectExpression
+	): AstTypes.Expression => {
 		let expression: AstTypes.Expression;
 		if (Array.isArray(value)) {
 			expression = array.create();
@@ -124,21 +126,63 @@ export function create(properties: ObjectMap): AstTypes.ObjectExpression {
 			}
 		} else if (typeof value === 'object' && value !== null) {
 			// if the type property is defined, we assume it's an AST type
-			expression = value.type !== undefined ? (value as AstTypes.Expression) : create(value);
+			if (value.type !== undefined) {
+				expression = value as AstTypes.Expression;
+			} else {
+				// If we're overriding and there's an existing object expression, merge with it
+				if (
+					options.override &&
+					existingExpression &&
+					existingExpression.type === 'ObjectExpression'
+				) {
+					expression = populateObjectExpression({
+						objectExpression: existingExpression,
+						properties: value,
+						override: options.override,
+						transform: options.transform
+					});
+				} else {
+					expression = populateObjectExpression({
+						objectExpression: create({}),
+						properties: value,
+						override: options.override,
+						transform: options.transform
+					});
+				}
+			}
 		} else {
 			expression = common.createLiteral(value);
 		}
 		return expression;
 	};
 
-	for (const [prop, value] of Object.entries(properties)) {
+	for (const [prop, value] of Object.entries(options.properties)) {
 		if (value === undefined) continue;
 
-		property(objExpression, {
-			name: prop,
-			fallback: getExpression(value)
-		});
+		if (options.override) {
+			// Get existing property to potentially merge with
+			const existingProperties = options.objectExpression.properties.filter(
+				(x): x is AstTypes.Property => x.type === 'Property'
+			);
+			const existingProperty = existingProperties.find(
+				(x) => (x.key as AstTypes.Identifier).name === prop
+			);
+			const existingExpression =
+				existingProperty?.value.type === 'ObjectExpression' ? existingProperty.value : undefined;
+
+			overrideProperty(options.objectExpression, {
+				name: prop,
+				value: getExpression(value, existingExpression),
+				transform: options.transform
+			});
+		} else {
+			property(options.objectExpression, {
+				name: prop,
+				fallback: getExpression(value),
+				transform: options.transform
+			});
+		}
 	}
 
-	return objExpression;
+	return options.objectExpression;
 }

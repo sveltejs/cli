@@ -9,10 +9,6 @@ export function run(ast: AstTypes.Program): void {
 	const objectDeclarator = variable.declarations[0] as AstTypes.VariableDeclarator;
 	const objectExpression = objectDeclarator.init as AstTypes.ObjectExpression;
 	object.overrideProperties(objectExpression, {
-		foo: 2
-	});
-	object.overrideProperties(objectExpression, {
-		bar: 'string2',
-		lorem: false
+		a: { b: { c: '007' } }
 	});
 }

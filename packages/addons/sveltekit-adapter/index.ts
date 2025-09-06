@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { exports, functions, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const adapters = [
@@ -74,34 +74,28 @@ export default defineAddon({
 			}
 
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
-			const kitConfig = config.properties.find(
-				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
-			) as AstTypes.Property | undefined;
 
-			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
-				const adapterProp = kitConfig.value.properties.find(
-					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
-				);
-				if (adapterProp) {
-					adapterProp.leadingComments = [];
-				}
-
-				// only overrides the `adapter` property so we can reset it's args
-				object.overrideProperties(kitConfig.value, {
-					properties: {
+			// override the `adapter` property
+			object.overrideProperties(
+				config,
+				{
+					kit: {
 						adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 					}
-				});
-			} else {
-				// creates the `kit` property when absent
-				object.addProperties(config, {
-					properties: {
-						kit: object.create({
-							adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-						})
-					}
-				});
-			}
+				},
+				(property) => {
+					if (
+						property.key.type !== 'Identifier' ||
+						property.key.name !== 'adapter' ||
+						adapter.package === '@sveltejs/adapter-auto'
+					)
+						return property;
+
+					// reset the comment for non-auto adapters
+					property.leadingComments = [];
+					return property;
+				}
+			);
 
 			return generateCode();
 		});

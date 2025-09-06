@@ -8,6 +8,18 @@ export function run(ast: AstTypes.Program): void {
 	});
 	const objectDeclarator = variable.declarations[0] as AstTypes.VariableDeclarator;
 	const objectExpression = objectDeclarator.init as AstTypes.ObjectExpression;
-	object.removeProperty(objectExpression, { name: 'foo' });
-	object.removeProperty(objectExpression, { name: 'bar' });
+
+	// Create the nested structure a.b.c = '007'
+	object.overrideProperties(
+		objectExpression,
+		{
+			a: { b: { c: '007' } }
+		},
+		(property) => {
+			if (property.key.type !== 'Identifier' || property.key.name !== 'c') return property;
+
+			property.leadingComments = [{ type: 'Block', value: 'aka: bond, james bond' }];
+			return property;
+		}
+	);
 }
