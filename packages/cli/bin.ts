@@ -8,6 +8,9 @@ import { migrate } from './commands/migrate.ts';
 import { check } from './commands/check.ts';
 import { helpConfig } from './utils/common.ts';
 
+// adds a gap of spacing between the executing command and the output
+console.log();
+
 program.name(pkg.name).version(pkg.version, '-v, --version').configureHelp(helpConfig);
 program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);
 program.parse();

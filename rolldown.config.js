@@ -34,6 +34,8 @@ function getConfig(project) {
 			`${projectRoot}/lib/testing.ts`,
 			`${projectRoot}/bin.ts`
 		];
+	} else if (project === 'create') {
+		inputs = [`${projectRoot}/index.ts`, `${projectRoot}/playground.ts`];
 	} else {
 		inputs = [`${projectRoot}/index.ts`];
 	}
@@ -118,7 +120,7 @@ function getConfig(project) {
 }
 
 /** @type {RolldownOptions[]} */
-export default [getConfig('create'), getConfig('core'), getConfig('cli')];
+export default [getConfig('core'), getConfig('create'), getConfig('cli')];
 
 /**
  * @param {PackageJson} pkg
