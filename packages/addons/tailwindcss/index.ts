@@ -3,37 +3,28 @@ import { imports, vite } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
-type Plugin = {
-	id: string;
-	package: string;
-	version: string;
-	identifier: string;
-};
-
-const plugins: Plugin[] = [
+const plugins = [
 	{
 		id: 'typography',
 		package: '@tailwindcss/typography',
-		version: '^0.5.15',
-		identifier: 'typography'
+		version: '^0.5.15'
 	},
 	{
 		id: 'forms',
 		package: '@tailwindcss/forms',
-		version: '^0.5.9',
-		identifier: 'forms'
+		version: '^0.5.9'
 	}
-];
+] as const;
 
-const options = defineAddonOptions({
-	plugins: {
+const options = defineAddonOptions()
+	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
 		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: [],
+		default: [] as Array<(typeof plugins)[number]['id']>,
 		required: false
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'tailwindcss',

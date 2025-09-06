@@ -2,29 +2,23 @@ import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
 import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
-type Adapter = {
-	id: string;
-	package: string;
-	version: string;
-};
-
-const adapters: Adapter[] = [
+const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^6.0.0' },
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.12' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.8' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.6.3' },
 	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.0.0' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.0.0' }
-];
+] as const;
 
-const options = defineAddonOptions({
-	adapter: {
+const options = defineAddonOptions()
+	.add('adapter', {
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',
-		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: 'auto'
-	}
-});
+		default: 'auto',
+		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package }))
+	})
+	.build();
 
 export default defineAddon({
 	id: 'sveltekit-adapter',

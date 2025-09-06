@@ -26,13 +26,13 @@ type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 let drizzleDialect: Dialect;
 let schemaPath: string;
 
-const options = defineAddonOptions({
-	demo: {
+const options = defineAddonOptions()
+	.add('demo', {
 		type: 'boolean',
 		default: true,
 		question: `Do you want to include a demo? ${colors.dim('(includes a login/register page)')}`
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'lucia',
@@ -48,8 +48,8 @@ export default defineAddon({
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.dependency('@oslojs/crypto', '^1.0.1');
-		sv.dependency('@oslojs/encoding', '^1.1.0');
+		sv.devDependency('@oslojs/crypto', '^1.0.1');
+		sv.devDependency('@oslojs/encoding', '^1.1.0');
 
 		if (options.demo) {
 			// password hashing for demo
