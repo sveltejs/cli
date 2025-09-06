@@ -129,20 +129,6 @@ function ensureNestedProperty<T extends AstTypes.Expression>(
 	});
 }
 
-export function removeProperty(
-	node: AstTypes.ObjectExpression,
-	options: {
-		name: string;
-	}
-): void {
-	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	const propIdx = properties.findIndex((x) => (x.key as AstTypes.Identifier).name === options.name);
-
-	if (propIdx !== -1) {
-		node.properties.splice(propIdx, 1);
-	}
-}
-
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
 type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
