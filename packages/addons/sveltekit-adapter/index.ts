@@ -81,7 +81,7 @@ export default defineAddon({
 				value: functions.createCall({ name: adapterName, args: [], useIdentifiers: true }),
 				transform: (p) => {
 					// reset the comment for non-auto adapters
-					if (adapter.package !== 'adapter-auto') p.leadingComments = [];
+					if (adapter.package !== '@sveltejs/adapter-auto') p.leadingComments = [];
 					return p;
 				}
 			});
