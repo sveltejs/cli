@@ -4,22 +4,21 @@ import * as common from './common.ts';
 
 type TransformProperty = (property: AstTypes.Property) => AstTypes.Property;
 
+type TransformMap = {
+	[key: string]: TransformProperty | TransformMap;
+};
+
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	node: AstTypes.ObjectExpression,
 	options: {
 		name: string;
 		fallback: T;
-		transform?: TransformProperty;
 	}
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
 
-	if (prop) {
-		if (options.transform) {
-			prop = options.transform(prop);
-		}
-	} else {
+	if (!prop) {
 		let isShorthand = false;
 		if (options.fallback.type === 'Identifier') {
 			const identifier: AstTypes.Identifier = options.fallback;
@@ -39,10 +38,6 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 			method: false
 		};
 
-		if (options.transform) {
-			prop = options.transform(prop);
-		}
-
 		node.properties.push(prop);
 	}
 
@@ -52,28 +47,22 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 type OverridePropertyOptions<T extends AstTypes.Expression> = {
 	name: string;
 	value: T;
-	transform?: TransformProperty;
 };
 function overrideProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
 	options: OverridePropertyOptions<T>
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
+	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
 
 	if (!prop) {
 		return property(node, {
 			name: options.name,
-			fallback: options.value,
-			transform: options.transform
+			fallback: options.value
 		});
 	}
 
 	prop.value = options.value;
-
-	if (options.transform) {
-		prop = options.transform(prop);
-	}
 
 	return options.value;
 }
@@ -91,20 +80,32 @@ export function create(properties: ObjectMap): AstTypes.ObjectExpression {
 	return populateObjectExpression({
 		objectExpression,
 		properties,
-		override: false
+		override: false,
+		transform: false
 	});
 }
 
 export function overrideProperties(
 	objectExpression: AstTypes.ObjectExpression,
-	properties: ObjectMap,
-	transform?: TransformProperty
+	properties: ObjectMap
 ): void {
 	populateObjectExpression({
 		objectExpression,
 		properties,
 		override: true,
-		transform
+		transform: false
+	});
+}
+
+export function transformProperty(
+	objectExpression: AstTypes.ObjectExpression,
+	transformMap: TransformMap
+): void {
+	populateObjectExpression({
+		objectExpression,
+		properties: transformMap,
+		override: true,
+		transform: true
 	});
 }
 
@@ -112,7 +113,7 @@ function populateObjectExpression(options: {
 	objectExpression: AstTypes.ObjectExpression;
 	properties: ObjectMap;
 	override: boolean;
-	transform?: TransformProperty;
+	transform: boolean;
 }): AstTypes.ObjectExpression {
 	const getExpression = (
 		value: any,
@@ -170,16 +171,25 @@ function populateObjectExpression(options: {
 			const existingExpression =
 				existingProperty?.value.type === 'ObjectExpression' ? existingProperty.value : undefined;
 
-			overrideProperty(options.objectExpression, {
-				name: prop,
-				value: getExpression(value, existingExpression),
-				transform: options.transform
-			});
+			if (options.transform && typeof value === 'function') {
+				// Transform mode - apply the transform function to existing property
+				if (existingProperty) {
+					const transformedProperty = value(existingProperty);
+					const index = options.objectExpression.properties.indexOf(existingProperty);
+					if (index !== -1) {
+						options.objectExpression.properties[index] = transformedProperty;
+					}
+				}
+			} else {
+				overrideProperty(options.objectExpression, {
+					name: prop,
+					value: getExpression(value, existingExpression)
+				});
+			}
 		} else {
 			property(options.objectExpression, {
 				name: prop,
-				fallback: getExpression(value),
-				transform: options.transform
+				fallback: getExpression(value)
 			});
 		}
 	}

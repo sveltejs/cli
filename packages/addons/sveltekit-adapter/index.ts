@@ -1,5 +1,5 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
+import { exports, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const adapters = [
@@ -75,27 +75,17 @@ export default defineAddon({
 
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 
-			// override the `adapter` property
-			object.overrideProperties(
-				config,
-				{
+			// reset the comment for non-auto adapters
+			if (adapter.package !== '@sveltejs/adapter-auto') {
+				object.transformProperty(config, {
 					kit: {
-						adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+						adapter: (property) => {
+							property.leadingComments = [];
+							return property;
+						}
 					}
-				},
-				(property) => {
-					if (
-						property.key.type !== 'Identifier' ||
-						property.key.name !== 'adapter' ||
-						adapter.package === '@sveltejs/adapter-auto'
-					)
-						return property;
-
-					// reset the comment for non-auto adapters
-					property.leadingComments = [];
-					return property;
-				}
-			);
+				});
+			}
 
 			return generateCode();
 		});

@@ -10,16 +10,19 @@ export function run(ast: AstTypes.Program): void {
 	const objectExpression = objectDeclarator.init as AstTypes.ObjectExpression;
 
 	// Create the nested structure a.b.c = '007'
-	object.overrideProperties(
-		objectExpression,
-		{
-			a: { b: { c: '007' } }
-		},
-		(property) => {
-			if (property.key.type !== 'Identifier' || property.key.name !== 'c') return property;
+	object.overrideProperties(objectExpression, {
+		a: { b: { c: '007' } }
+	});
 
-			property.leadingComments = [{ type: 'Block', value: 'aka: bond, james bond' }];
-			return property;
+	// Transform the 'c' property to add a comment using nested structure
+	object.transformProperty(objectExpression, {
+		a: {
+			b: {
+				c: (property) => {
+					property.leadingComments = [{ type: 'Block', value: 'aka: bond, james bond' }];
+					return property;
+				}
+			}
 		}
-	);
+	});
 }
