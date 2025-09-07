@@ -16,6 +16,13 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	node: AstTypes.ObjectExpression,
 	options: { name: string; fallback: T }
 ): T {
+	return propertyNode(node, options).value as T;
+}
+
+export function propertyNode<T extends AstTypes.Expression | AstTypes.Identifier>(
+	node: AstTypes.ObjectExpression,
+	options: { name: string; fallback: T }
+): AstTypes.Property {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
 
@@ -42,7 +49,7 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 		node.properties.push(prop);
 	}
 
-	return prop.value as T;
+	return prop as AstTypes.Property;
 }
 
 export function create(properties: ObjectMap): AstTypes.ObjectExpression {

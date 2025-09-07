@@ -84,14 +84,14 @@ export default defineAddon({
 
 			// reset the comment for non-auto adapters
 			if (adapter.package !== '@sveltejs/adapter-auto') {
-				object.transformProperty(config, {
-					kit: {
-						adapter: (property) => {
-							property.leadingComments = [];
-							return property;
-						}
-					}
-				});
+				const configKit = object.propertyNode(config, { name: 'kit', fallback: object.create({}) });
+				if (configKit.value.type === 'ObjectExpression') {
+					const configAdapter = object.propertyNode(configKit.value, {
+						name: 'adapter',
+						fallback: object.create({})
+					});
+					configAdapter.leadingComments = [];
+				}
 			}
 
 			return generateCode();
