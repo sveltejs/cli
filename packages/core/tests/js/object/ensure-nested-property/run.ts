@@ -7,4 +7,8 @@ export function run(ast: AstTypes.Program): void {
 	object.overrideProperties(obj, {
 		a: { b: { c: '007' } }
 	});
+
+	object.overrideProperties(obj, {
+		a: { keep: 'you' }
+	});
 }

@@ -1,1 +1,1 @@
-const test = { a: { keep: 'me', b: { c: '007' } } };
+const test = { a: { /** a comment */ keep: 'you', b: { c: '007' } } };

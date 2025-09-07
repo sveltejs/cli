@@ -1,3 +1,6 @@
 const test = {
-	a: { keep: 'me' }
+	a: {
+		/** a comment */
+		keep: 'me'
+	}
 };
