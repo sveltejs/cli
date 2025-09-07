@@ -1,6 +1,6 @@
 import { variables, object, type AstTypes } from '@sveltejs/cli-core/js';
 
-export const getTestObjectExpression = (ast: AstTypes.Program) => {
+export const getTestObjectExpression = (ast: AstTypes.Program): AstTypes.ObjectExpression => {
 	const variable = variables.declaration(ast, {
 		kind: 'const',
 		name: 'test',
