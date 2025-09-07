@@ -8,7 +8,7 @@ const { test, variants, prepareServer } = setupTest({ vitest });
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { vitest: {} });
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({ cwd, page, previewCommand: null! });
 
 	execSync('pnpm exec playwright install chromium', { cwd, stdio: 'pipe' });
 	execSync('pnpm test', { cwd, stdio: 'pipe' });

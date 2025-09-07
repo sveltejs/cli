@@ -10,7 +10,7 @@ const { test, variants, prepareServer } = setupTest({ eslint });
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { eslint: {} });
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({ cwd, page, previewCommand: null! });
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 

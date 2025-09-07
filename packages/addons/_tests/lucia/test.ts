@@ -12,7 +12,7 @@ test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 		lucia: { demo: true }
 	});
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({ cwd, page, previewCommand: null! });
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
