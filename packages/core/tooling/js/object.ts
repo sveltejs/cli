@@ -166,13 +166,45 @@ function populateObjectExpression(options: {
 
 			if (options.transform && typeof value === 'function') {
 				// Transform mode - apply the transform function to existing property
-				if (existingProperty) {
-					const transformedProperty = value(existingProperty);
-					const index = options.objectExpression.properties.indexOf(existingProperty);
+				if (!existingProperty) {
+					property(options.objectExpression, {
+						name: prop,
+						fallback: common.createLiteral(null)
+					});
+				}
+				// Find the property again after potentially creating it
+				const targetProperty = options.objectExpression.properties.find(
+					(p): p is AstTypes.Property =>
+						p.type === 'Property' && (p.key as AstTypes.Identifier).name === prop
+				);
+				if (targetProperty) {
+					const transformedProperty = value(targetProperty);
+					const index = options.objectExpression.properties.indexOf(targetProperty);
 					if (index !== -1) {
 						options.objectExpression.properties[index] = transformedProperty;
 					}
 				}
+			} else if (
+				options.transform &&
+				typeof value === 'object' &&
+				value !== null &&
+				!Array.isArray(value) &&
+				!value.type
+			) {
+				// Handle nested transform maps recursively
+				const targetObject =
+					existingExpression ||
+					(overrideProperty(options.objectExpression, {
+						name: prop,
+						value: create({})
+					}) as AstTypes.ObjectExpression);
+				// Recursively apply transforms to the nested object
+				populateObjectExpression({
+					objectExpression: targetObject,
+					properties: value as ObjectMap,
+					override: options.override,
+					transform: options.transform
+				});
 			} else {
 				overrideProperty(options.objectExpression, {
 					name: prop,
