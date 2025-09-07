@@ -2,12 +2,6 @@ import type { AstTypes } from '../index.ts';
 import * as array from './array.ts';
 import * as common from './common.ts';
 
-type TransformProperty = (property: AstTypes.Property) => AstTypes.Property;
-
-type TransformMap = {
-	[key: string]: TransformProperty | TransformMap;
-};
-
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
 type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
@@ -61,8 +55,7 @@ export function create(properties: ObjectMap): AstTypes.ObjectExpression {
 	return populateObjectExpression({
 		objectExpression,
 		properties,
-		override: false,
-		transform: false
+		override: false
 	});
 }
 
@@ -73,20 +66,7 @@ export function overrideProperties(
 	populateObjectExpression({
 		objectExpression,
 		properties,
-		override: true,
-		transform: false
-	});
-}
-
-export function transformProperty(
-	objectExpression: AstTypes.ObjectExpression,
-	transformMap: TransformMap
-): void {
-	populateObjectExpression({
-		objectExpression,
-		properties: transformMap,
-		override: true,
-		transform: true
+		override: true
 	});
 }
 
@@ -113,7 +93,6 @@ function populateObjectExpression(options: {
 	objectExpression: AstTypes.ObjectExpression;
 	properties: ObjectMap;
 	override: boolean;
-	transform: boolean;
 }): AstTypes.ObjectExpression {
 	const getExpression = (
 		value: any,
@@ -139,15 +118,13 @@ function populateObjectExpression(options: {
 					expression = populateObjectExpression({
 						objectExpression: existingExpression,
 						properties: value,
-						override: options.override,
-						transform: options.transform
+						override: options.override
 					});
 				} else {
 					expression = populateObjectExpression({
 						objectExpression: create({}),
 						properties: value,
-						override: options.override,
-						transform: options.transform
+						override: options.override
 					});
 				}
 			}
@@ -171,53 +148,10 @@ function populateObjectExpression(options: {
 			const existingExpression =
 				existingProperty?.value.type === 'ObjectExpression' ? existingProperty.value : undefined;
 
-			if (options.transform && typeof value === 'function') {
-				// Transform mode - apply the transform function to existing property
-				if (!existingProperty) {
-					property(options.objectExpression, {
-						name: prop,
-						fallback: common.createLiteral(null)
-					});
-				}
-				// Find the property again after potentially creating it
-				const targetProperty = options.objectExpression.properties.find(
-					(p): p is AstTypes.Property =>
-						p.type === 'Property' && (p.key as AstTypes.Identifier).name === prop
-				);
-				if (targetProperty) {
-					const transformedProperty = value(targetProperty);
-					const index = options.objectExpression.properties.indexOf(targetProperty);
-					if (index !== -1) {
-						options.objectExpression.properties[index] = transformedProperty;
-					}
-				}
-			} else if (
-				options.transform &&
-				typeof value === 'object' &&
-				value !== null &&
-				!Array.isArray(value) &&
-				!value.type
-			) {
-				// Handle nested transform maps recursively
-				const targetObject =
-					existingExpression ||
-					(overrideProperty(options.objectExpression, {
-						name: prop,
-						value: create({})
-					}) as AstTypes.ObjectExpression);
-				// Recursively apply transforms to the nested object
-				populateObjectExpression({
-					objectExpression: targetObject,
-					properties: value as ObjectMap,
-					override: options.override,
-					transform: options.transform
-				});
-			} else {
-				overrideProperty(options.objectExpression, {
-					name: prop,
-					value: getExpression(value, existingExpression)
-				});
-			}
+			overrideProperty(options.objectExpression, {
+				name: prop,
+				value: getExpression(value, existingExpression)
+			});
 		} else {
 			property(options.objectExpression, {
 				name: prop,
