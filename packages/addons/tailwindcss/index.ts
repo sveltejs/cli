@@ -1,39 +1,30 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { array, functions, imports, object, exports } from '@sveltejs/cli-core/js';
+import { imports, vite } from '@sveltejs/cli-core/js';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addSlot } from '@sveltejs/cli-core/html';
 
-type Plugin = {
-	id: string;
-	package: string;
-	version: string;
-	identifier: string;
-};
-
-const plugins: Plugin[] = [
+const plugins = [
 	{
 		id: 'typography',
 		package: '@tailwindcss/typography',
-		version: '^0.5.15',
-		identifier: 'typography'
+		version: '^0.5.15'
 	},
 	{
 		id: 'forms',
 		package: '@tailwindcss/forms',
-		version: '^0.5.9',
-		identifier: 'forms'
+		version: '^0.5.9'
 	}
-];
+] as const;
 
-const options = defineAddonOptions({
-	plugins: {
+const options = defineAddonOptions()
+	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
 		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: [],
+		default: [] as Array<(typeof plugins)[number]['id']>,
 		required: false
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'tailwindcss',
@@ -41,8 +32,7 @@ export default defineAddon({
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
-	run: ({ sv, options, typescript, kit, dependencyVersion }) => {
-		const ext = typescript ? 'ts' : 'js';
+	run: ({ sv, options, viteConfigFile, typescript, kit, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('tailwindcss', '^4.0.0');
@@ -57,23 +47,12 @@ export default defineAddon({
 		}
 
 		// add the vite plugin
-		sv.file(`vite.config.${ext}`, (content) => {
+		sv.file(viteConfigFile, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'tailwindcss';
-			imports.addDefault(ast, { from: '@tailwindcss/vite', as: vitePluginName });
-
-			const { value: rootObject } = exports.createDefault(ast, {
-				fallback: functions.createCall({ name: 'defineConfig', args: [] })
-			});
-			const param1 = functions.getArgument(rootObject, {
-				index: 0,
-				fallback: object.create({})
-			});
-
-			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
-			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
-			array.prepend(pluginsArray, pluginFunctionCall);
+			imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
+			vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
 
 			return generateCode();
 		});
@@ -148,6 +127,8 @@ export default defineAddon({
 				const plugins: string[] = data.plugins;
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
+
+				data.tailwindStylesheet ??= './src/app.css';
 
 				return generateCode();
 			});

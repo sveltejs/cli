@@ -1,5 +1,130 @@
 # sv
 
+## 0.9.4
+### Patch Changes
+
+
+- chore(addons): change some dependencies to devDependencies ([#682](https://github.com/sveltejs/cli/pull/682))
+
+
+- fix(add): allow passing add-on as argument that depends on another add-on ([#691](https://github.com/sveltejs/cli/pull/691))
+
+
+- fix: improve add-on option types ([#692](https://github.com/sveltejs/cli/pull/692))
+
+## 0.9.3
+### Patch Changes
+
+
+- chore(core): change `defineAddonOptions({ /*config */ })` to `defineAddonOptions().add('key', { /*config */ }).build()` in order to provide better type safety. ([#686](https://github.com/sveltejs/cli/pull/686))
+
+
+- fix(migrate): allow `migrate` to run without specifying a migration arg ([#676](https://github.com/sveltejs/cli/pull/676))
+
+
+- fix(add): improve robustness of add-on args parsing ([#681](https://github.com/sveltejs/cli/pull/681))
+
+## 0.9.2
+### Patch Changes
+
+
+- fix(cli): `vite.config.*` file detection works for both .js and .ts variants ([#673](https://github.com/sveltejs/cli/pull/673))
+
+## 0.9.1
+### Patch Changes
+
+
+- chore(create): recommend the `kit.typescript.config` setting instead of copying from the generated config ([#668](https://github.com/sveltejs/cli/pull/668))
+
+
+- chore(devtools-json): update `vite-plugin-devtools-json` ([#667](https://github.com/sveltejs/cli/pull/667))
+
+## 0.9.0
+### Minor Changes
+
+
+- feat(cli): rework preconditions: ([#650](https://github.com/sveltejs/cli/pull/650))
+  
+  - remove `--no-preconditions` option from `sv add`
+  - add `--no-git-check` option to `sv add`. With this flag, even if some files are dirty, no prompt will be shown
+
+### Patch Changes
+
+
+- fix(create): update library docs to reflect proper `pack` command ([#655](https://github.com/sveltejs/cli/pull/655))
+
+## 0.8.21
+### Patch Changes
+
+
+- feat: `vitest` require assertions ([#647](https://github.com/sveltejs/cli/pull/647))
+
+
+- fix: handle `satisfies` keyword for `vite.addPlugin` ([#653](https://github.com/sveltejs/cli/pull/653))
+
+
+- chore: remove `git init` next step when creating a new project ([#645](https://github.com/sveltejs/cli/pull/645))
+
+
+- feat: improve minimal template ([#643](https://github.com/sveltejs/cli/pull/643))
+  
+  - move `favicon.svg` to `src/lib/assets` folder (to show inline/immutable assets)
+  - add `static/robots.txt` (to keep static folder)
+  - add `routes/+layout.svelte` (to show layout)
+
+- feat(drizzle): add `db:generate` script to `package.json` ([#648](https://github.com/sveltejs/cli/pull/648))
+
+## 0.8.20
+### Patch Changes
+
+
+- fix: align project steps ([#644](https://github.com/sveltejs/cli/pull/644))
+
+
+- chore: allow passing an array of import names to imports.addNamed ([#639](https://github.com/sveltejs/cli/pull/639))
+
+
+- feat: add `vite.addPlugin` to simplify adding a plugin on various vite config styles ([#633](https://github.com/sveltejs/cli/pull/633))
+
+## 0.8.19
+### Patch Changes
+
+
+- feat: combine next steps prompt for `create` ([#637](https://github.com/sveltejs/cli/pull/637))
+
+
+- chore: use `create-storybook` instead of `storybook init` ([#638](https://github.com/sveltejs/cli/pull/638))
+
+
+- feat: print warning if using Node.js version below 18.3 ([#625](https://github.com/sveltejs/cli/pull/625))
+
+
+- fix(tailwindcss): ensure `tailwindStylesheet` is added to `.prettierrc`, when applicable ([#636](https://github.com/sveltejs/cli/pull/636))
+
+## 0.8.18
+### Patch Changes
+
+
+- feat: update templates to vite 7 and vite-plugin-svelte 6 ([#629](https://github.com/sveltejs/cli/pull/629))
+
+## 0.8.17
+### Patch Changes
+
+
+- fix(add): add `/drizzle/` folder to `.prettierignore` if `prettier` is installed when adding `drizzle` addon ([#623](https://github.com/sveltejs/cli/pull/623))
+
+
+- fix: update `static/` to `/static/` in `.prettierignore` ([#624](https://github.com/sveltejs/cli/pull/624))
+
+## 0.8.16
+### Patch Changes
+
+
+- chore: use plain-text svg favicon ([#617](https://github.com/sveltejs/cli/pull/617))
+
+
+- fix(add): add `static` folder to `.prettierignore` ([#618](https://github.com/sveltejs/cli/pull/618))
+
 ## 0.8.15
 ### Patch Changes
 

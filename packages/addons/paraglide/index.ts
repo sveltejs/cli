@@ -1,15 +1,6 @@
 import MagicString from 'magic-string';
 import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
-import {
-	array,
-	common,
-	functions,
-	imports,
-	object,
-	variables,
-	exports,
-	kit as kitJs
-} from '@sveltejs/cli-core/js';
+import { common, imports, variables, exports, kit as kitJs, vite } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
@@ -25,8 +16,8 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-const options = defineAddonOptions({
-	languageTags: {
+const options = defineAddonOptions()
+	.add('languageTags', {
 		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en, es',
@@ -48,13 +39,13 @@ const options = defineAddonOptions({
 
 			return undefined;
 		}
-	},
-	demo: {
+	})
+	.add('demo', {
 		type: 'boolean',
 		default: true,
 		question: 'Do you want to include a demo?'
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'paraglide',
@@ -64,13 +55,13 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, typescript, kit }) => {
+	run: ({ sv, options, viteConfigFile, typescript, kit }) => {
 		const ext = typescript ? 'ts' : 'js';
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
 
-		sv.dependency('@inlang/paraglide-js', '^2.0.0');
+		sv.devDependency('@inlang/paraglide-js', '^2.0.0');
 
 		sv.file('project.inlang/settings.json', (content) => {
 			if (content) return content;
@@ -90,30 +81,17 @@ export default defineAddon({
 		});
 
 		// add the vite plugin
-		sv.file(`vite.config.${ext}`, (content) => {
+		sv.file(viteConfigFile, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'paraglideVitePlugin';
-			imports.addNamed(ast, {
-				from: '@inlang/paraglide-js',
-				imports: { paraglideVitePlugin: vitePluginName }
+			imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
+			vite.addPlugin(ast, {
+				code: `${vitePluginName}({ 
+					project: './project.inlang', 
+					outdir: './${paraglideOutDir}' 
+				})`
 			});
-			const { value: rootObject } = exports.createDefault(ast, {
-				fallback: functions.createCall({ name: 'defineConfig', args: [] })
-			});
-			const param1 = functions.getArgument(rootObject, {
-				index: 0,
-				fallback: object.create({})
-			});
-
-			const pluginsArray = object.property(param1, { name: 'plugins', fallback: array.create() });
-			const pluginFunctionCall = functions.createCall({ name: vitePluginName, args: [] });
-			const pluginConfig = object.create({
-				project: './project.inlang',
-				outdir: `./${paraglideOutDir}`
-			});
-			functions.getArgument(pluginFunctionCall, { index: 0, fallback: pluginConfig });
-			array.append(pluginsArray, pluginFunctionCall);
 
 			return generateCode();
 		});
@@ -123,7 +101,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 			imports.addNamed(ast, {
 				from: '$lib/paraglide/runtime',
-				imports: { deLocalizeUrl: 'deLocalizeUrl' }
+				imports: ['deLocalizeUrl']
 			});
 
 			const expression = common.parseExpression('(request) => deLocalizeUrl(request.url).pathname');
@@ -149,7 +127,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 			imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
-				imports: { paraglideMiddleware: 'paraglideMiddleware' }
+				imports: ['paraglideMiddleware']
 			});
 
 			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
@@ -206,13 +184,10 @@ export default defineAddon({
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
-				imports.addNamed(script.ast, { from: '$lib/paraglide/messages.js', imports: { m: 'm' } });
-				imports.addNamed(script.ast, { from: '$app/navigation', imports: { goto: 'goto' } });
-				imports.addNamed(script.ast, { from: '$app/state', imports: { page: 'page' } });
-				imports.addNamed(script.ast, {
-					from: '$lib/paraglide/runtime',
-					imports: { setLocale: 'setLocale' }
-				});
+				imports.addNamed(script.ast, { from: '$lib/paraglide/messages.js', imports: ['m'] });
+				imports.addNamed(script.ast, { from: '$app/navigation', imports: ['goto'] });
+				imports.addNamed(script.ast, { from: '$app/state', imports: ['page'] });
+				imports.addNamed(script.ast, { from: '$lib/paraglide/runtime', imports: ['setLocale'] });
 
 				const scriptCode = new MagicString(script.generateCode());
 

@@ -25,7 +25,7 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../../utils/package-manager.ts';
-import { getGlobalPreconditions } from './preconditions.ts';
+import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
@@ -36,7 +36,7 @@ const AddonsSchema = v.array(v.string());
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
-	preconditions: v.boolean(),
+	gitCheck: v.boolean(),
 	community: v.optional(v.union([AddonsSchema, v.boolean()])),
 	addons: v.record(v.string(), v.optional(v.array(v.string())))
 });
@@ -59,29 +59,20 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		// occurs when an `=` isn't present (e.g. `sv add foo`)
-		if (optionFlags === undefined) {
-			prev.push({ id: addonId, options: undefined });
-			return prev;
-		}
-
-		// validates that the options are relatively well-formed.
-		// occurs when no <name> or <value> is specified (e.g. `sv add foo=demo`).
-		if (optionFlags.length > 0 && !/.+:.*/.test(optionFlags)) {
-			console.error(
-				`Malformed arguments: An add-on's option in '${value}' is missing it's option name or value (e.g. 'addon=option:value').`
-			);
+		try {
+			const options = common.parseAddonOptions(optionFlags);
+			prev.push({ id: addonId, options });
+		} catch (error) {
+			if (error instanceof Error) {
+				console.error(error.message);
+			}
 			process.exit(1);
 		}
 
-		// parses the option flags into a array of `<name>:<value>` strings
-		const options: string[] = optionFlags.match(/[^+]*:[^:]*(?=\+|$)/g) ?? [];
-
-		prev.push({ id: addonId, options });
 		return prev;
 	})
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
-	.option('--no-preconditions', 'skip validating preconditions')
+	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
 	//.option('--community [add-on...]', 'community addons to install')
@@ -202,7 +193,9 @@ export const add = new Command('add')
 		common.runCommand(async () => {
 			const selectedAddonIds = selectedAddons.map(({ id }) => id);
 			const { nextSteps } = await runAddCommand(options, selectedAddonIds);
-			if (nextSteps) p.note(nextSteps, 'Next steps', { format: (line: string) => line });
+			if (nextSteps.length > 0) {
+				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
+			}
 		});
 	});
 
@@ -210,7 +203,7 @@ type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplic
 export async function runAddCommand(
 	options: Options,
 	selectedAddonIds: string[]
-): Promise<{ nextSteps?: string; packageManager?: AgentName | null }> {
+): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
 	const selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
 		type: 'official',
 		addon: getAddonDetails(id)
@@ -387,14 +380,13 @@ export async function runAddCommand(
 
 	// prepare official addons
 	let workspace = await createWorkspace({ cwd: options.cwd });
-	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
-	const addonSetupResults = setupAddons(setups, workspace);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
+		const allSetupResults = setupAddons(officialAddons, workspace);
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
-			.filter(({ id }) => addonSetupResults[id].unsupported.length === 0)
+			.filter(({ id }) => allSetupResults[id].unsupported.length === 0)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
@@ -421,7 +413,9 @@ export async function runAddCommand(
 	for (const { addon } of selectedAddons) {
 		workspace = await createWorkspace(workspace);
 
-		const setupResult = addonSetupResults[addon.id];
+		const setups = selectedAddons.map(({ addon }) => addon);
+		const setupResult = setupAddons(setups, workspace)[addon.id];
+
 		const missingDependencies = setupResult.dependsOn.filter(
 			(depId) => !selectedAddons.some((a) => a.addon.id === depId)
 		);
@@ -443,33 +437,36 @@ export async function runAddCommand(
 		}
 	}
 
-	// run precondition checks
-	if (options.preconditions && selectedAddons.length > 0) {
-		// add global checks
-		const addons = selectedAddons.map(({ addon }) => addon);
-		const { preconditions } = getGlobalPreconditions(options.cwd, addons, addonSetupResults);
+	// run all setups after inter-addon deps have been added
+	const addons = selectedAddons.map(({ addon }) => addon);
+	const addonSetupResults = setupAddons(addons, workspace);
 
-		const fails: Array<{ name: string; message?: string }> = [];
-		for (const condition of preconditions) {
-			const { message, success } = await condition.run();
-			if (!success) fails.push({ name: condition.name, message });
-		}
+	// run verifications
+	const verifications = [
+		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
+		...verifyUnsupportedAddons(addons, addonSetupResults)
+	];
 
-		if (fails.length > 0) {
-			const message = fails
-				.map(({ name, message }) => pc.yellow(`${name} (${message})`))
-				.join('\n- ');
+	const fails: Array<{ name: string; message?: string }> = [];
+	for (const verification of verifications) {
+		const { message, success } = await verification.run();
+		if (!success) fails.push({ name: verification.name, message });
+	}
 
-			p.note(`- ${message}`, 'Preconditions not met', { format: (line) => line });
+	if (fails.length > 0) {
+		const message = fails
+			.map(({ name, message }) => pc.yellow(`${name} (${message})`))
+			.join('\n- ');
 
-			const force = await p.confirm({
-				message: 'Preconditions failed. Do you wish to continue?',
-				initialValue: false
-			});
-			if (p.isCancel(force) || !force) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
-			}
+		p.note(`- ${message}`, 'Verifications not met', { format: (line) => line });
+
+		const force = await p.confirm({
+			message: 'Verifications failed. Do you wish to continue?',
+			initialValue: false
+		});
+		if (p.isCancel(force) || !force) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
 		}
 	}
 
@@ -534,7 +531,7 @@ export async function runAddCommand(
 
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0) return { packageManager: null };
+	if (selectedAddons.length === 0) return { packageManager: null, nextSteps: [] };
 
 	// apply addons
 	const officialDetails = Object.keys(official).map((id) => getAddonDetails(id));
@@ -588,25 +585,17 @@ export async function runAddCommand(
 	const highlighter = getHighlighter();
 
 	// print next steps
-	const nextSteps =
-		selectedAddons
-			.filter(({ addon }) => addon.nextSteps)
-			.map(({ addon }) => {
-				let addonMessage = '';
-				if (selectedAddons.length > 1) {
-					addonMessage = `${pc.green(addon.id)}:\n`;
-				}
+	const nextSteps = selectedAddons
+		.map(({ addon }) => {
+			if (!addon.nextSteps) return;
+			let addonMessage = `${pc.green(addon.id)}:\n`;
 
-				const addonNextSteps = addon.nextSteps!({
-					...workspace,
-					options: official[addon.id]!,
-					highlighter
-				});
-				addonMessage += `- ${addonNextSteps.join('\n- ')}`;
-				return addonMessage;
-			})
-			// instead of returning an empty string, we'll return `undefined`
-			.join('\n\n') || undefined;
+			const options = official[addon.id];
+			const addonNextSteps = addon.nextSteps({ ...workspace, options, highlighter });
+			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
+			return addonMessage;
+		})
+		.filter((msg) => msg !== undefined);
 
 	return { nextSteps, packageManager };
 }
@@ -649,7 +638,7 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 	const choices: string[] = [];
 	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
-	const options: Record<string, unknown> = {};
+	const options: OptionValues<any> = {};
 	for (const [id, question] of Object.entries(details.options)) {
 		let values: string[] = [];
 		const applyDefault = question.condition?.(options) !== false;

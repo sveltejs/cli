@@ -6,11 +6,11 @@ title: sv add
 
 ## Usage
 
-```bash
+```sh
 npx sv add
 ```
 
-```bash
+```sh
 npx sv add [add-ons]
 ```
 
@@ -19,7 +19,7 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 ## Options
 
 - `-C`, `--cwd` — path to the root of your Svelte(Kit) project
-- `--no-preconditions` — skip checking preconditions <!-- TODO what does this mean? -->
+- `--no-git-check` — even if some files are dirty, no prompt will be shown
 - `--install` — installs dependencies with a specified package manager
 - `--no-install` — prevents installing dependencies
 
@@ -27,6 +27,7 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 
 <!-- TODO: it'd be nice for this to live on the "add-ons" page, but we first need svelte.dev to support making pages from headings -->
 
+- [`devtools-json`](devtools-json)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
 - [`lucia`](lucia)
@@ -38,4 +39,3 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 - [`sveltekit-adapter`](sveltekit-adapter)
 - [`tailwindcss`](tailwind)
 - [`vitest`](vitest)
-- [`devtools-json`](devtools-json)

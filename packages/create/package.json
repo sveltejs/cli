@@ -17,7 +17,7 @@
 		"format": "pnpm lint --write",
 		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"test": "vitest run",
-		"update-template-repo": "pnpm build:dist && echo \"Updating template repo\" && bash ./scripts/update-template-repo.sh"
+		"update-template-repo": "pnpm build:dist && echo \"Updating template repo\" && ./scripts/update-template-repo.sh"
 	},
 	"files": [
 		"dist"

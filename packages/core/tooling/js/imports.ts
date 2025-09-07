@@ -59,12 +59,16 @@ export function addDefault(node: AstTypes.Program, options: { from: string; as: 
 export function addNamed(
 	node: AstTypes.Program,
 	options: {
+		imports: Record<string, string> | string[];
 		from: string;
-		imports: Record<string, string>;
 		isType?: boolean;
 	}
 ): void {
-	const specifiers = Object.entries(options.imports).map(([key, value]) => {
+	const o_imports = Array.isArray(options.imports)
+		? Object.fromEntries(options.imports.map((n) => [n, n]))
+		: options.imports;
+
+	const specifiers = Object.entries(o_imports).map(([key, value]) => {
 		const specifier: AstTypes.ImportSpecifier = {
 			type: 'ImportSpecifier',
 			imported: {

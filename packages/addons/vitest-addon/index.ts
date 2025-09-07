@@ -2,8 +2,8 @@ import { dedent, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core
 import { array, exports, functions, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
-const options = defineAddonOptions({
-	usages: {
+const options = defineAddonOptions()
+	.add('usages', {
 		question: 'What do you want to use vitest for?',
 		type: 'multiselect',
 		default: ['unit', 'component'],
@@ -12,15 +12,15 @@ const options = defineAddonOptions({
 			{ value: 'component', label: 'component testing' }
 		],
 		required: true
-	}
-});
+	})
+	.build();
 
 export default defineAddon({
 	id: 'vitest',
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,
-	run: ({ sv, typescript, kit, options }) => {
+	run: ({ sv, viteConfigFile, typescript, kit, options }) => {
 		const ext = typescript ? 'ts' : 'js';
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
@@ -64,7 +64,7 @@ export default defineAddon({
 
 		if (componentTesting) {
 			const fileName = kit
-				? `${kit.routesDirectory}/page.svelte.test.${ext}`
+				? `${kit.routesDirectory}/page.svelte.spec.${ext}`
 				: `src/App.svelte.test.${ext}`;
 
 			sv.file(fileName, (content) => {
@@ -96,11 +96,11 @@ export default defineAddon({
 				`;
 			});
 		}
-		sv.file(`vite.config.${ext}`, (content) => {
+		sv.file(viteConfigFile, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const clientObjectExpression = object.create({
-				extends: `./vite.config.${ext}`,
+				extends: `./${viteConfigFile}`,
 				test: {
 					name: 'client',
 					environment: 'browser',
@@ -116,7 +116,7 @@ export default defineAddon({
 			});
 
 			const serverObjectExpression = object.create({
-				extends: `./vite.config.${ext}`,
+				extends: `./${viteConfigFile}`,
 				test: {
 					name: 'server',
 					environment: 'node',
@@ -139,7 +139,11 @@ export default defineAddon({
 			});
 			const testObject = object.property(vitestConfig, {
 				name: 'test',
-				fallback: object.create({})
+				fallback: object.create({
+					expect: {
+						requireAssertions: true
+					}
+				})
 			});
 
 			const workspaceArray = object.property(testObject, {
