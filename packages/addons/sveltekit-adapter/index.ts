@@ -75,25 +75,24 @@ export default defineAddon({
 
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
 
-			object.transformProperty(config, {
+			// override the adapter property
+			object.overrideProperties(config, {
 				kit: {
-					adapter: (property) => {
-						// overrides the `adapter` property so we can reset it's args
-						property.value = functions.createCall({
-							name: adapterName,
-							args: [],
-							useIdentifiers: true
-						});
-
-						// reset the comment for non-auto adapters
-						if (adapter.package !== '@sveltejs/adapter-auto') {
-							property.leadingComments = [];
-						}
-
-						return property;
-					}
+					adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 				}
 			});
+
+			// reset the comment for non-auto adapters
+			if (adapter.package !== '@sveltejs/adapter-auto') {
+				object.transformProperty(config, {
+					kit: {
+						adapter: (property) => {
+							property.leadingComments = [];
+							return property;
+						}
+					}
+				});
+			}
 
 			return generateCode();
 		});
