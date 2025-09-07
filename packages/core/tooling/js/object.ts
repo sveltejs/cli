@@ -8,6 +8,10 @@ type TransformMap = {
 	[key: string]: TransformProperty | TransformMap;
 };
 
+type ObjectPrimitiveValues = string | number | boolean | undefined | null;
+type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
+type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
+
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	node: AstTypes.ObjectExpression,
 	options: {
@@ -43,33 +47,6 @@ export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 
 	return prop.value as T;
 }
-
-type OverridePropertyOptions<T extends AstTypes.Expression> = {
-	name: string;
-	value: T;
-};
-function overrideProperty<T extends AstTypes.Expression>(
-	node: AstTypes.ObjectExpression,
-	options: OverridePropertyOptions<T>
-): T {
-	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
-
-	if (!prop) {
-		return property(node, {
-			name: options.name,
-			fallback: options.value
-		});
-	}
-
-	prop.value = options.value;
-
-	return options.value;
-}
-
-type ObjectPrimitiveValues = string | number | boolean | undefined | null;
-type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
-type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
 
 export function create(properties: ObjectMap): AstTypes.ObjectExpression {
 	const objectExpression: AstTypes.ObjectExpression = {
@@ -107,6 +84,29 @@ export function transformProperty(
 		override: true,
 		transform: true
 	});
+}
+
+type OverridePropertyOptions<T extends AstTypes.Expression> = {
+	name: string;
+	value: T;
+};
+function overrideProperty<T extends AstTypes.Expression>(
+	node: AstTypes.ObjectExpression,
+	options: OverridePropertyOptions<T>
+): T {
+	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
+	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
+
+	if (!prop) {
+		return property(node, {
+			name: options.name,
+			fallback: options.value
+		});
+	}
+
+	prop.value = options.value;
+
+	return options.value;
 }
 
 function populateObjectExpression(options: {
