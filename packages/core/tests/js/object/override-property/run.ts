@@ -1,18 +1,9 @@
-import { variables, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { object, type AstTypes } from '@sveltejs/cli-core/js';
+import { getTestObjectExpression } from '../objectTestHelper.ts';
 
 export function run(ast: AstTypes.Program): void {
-	const variable = variables.declaration(ast, {
-		kind: 'const',
-		name: 'test',
-		value: object.create({})
-	});
-	const objectDeclarator = variable.declarations[0] as AstTypes.VariableDeclarator;
-	const objectExpression = objectDeclarator.init as AstTypes.ObjectExpression;
-	object.overrideProperties(objectExpression, {
-		foo: 2
-	});
-	object.overrideProperties(objectExpression, {
-		bar: 'string2',
-		lorem: false
-	});
+	const obj = getTestObjectExpression(ast);
+
+	object.overrideProperties(obj, { foo: 2 });
+	object.overrideProperties(obj, { bar: 'string2', lorem: false });
 }
