@@ -14,10 +14,7 @@ type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
 
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	node: AstTypes.ObjectExpression,
-	options: {
-		name: string;
-		fallback: T;
-	}
+	options: { name: string; fallback: T }
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
@@ -86,13 +83,9 @@ export function transformProperty(
 	});
 }
 
-type OverridePropertyOptions<T extends AstTypes.Expression> = {
-	name: string;
-	value: T;
-};
 function overrideProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
-	options: OverridePropertyOptions<T>
+	options: { name: string; value: T }
 ): T {
 	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
 	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
