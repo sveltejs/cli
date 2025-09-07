@@ -15,5 +15,25 @@ test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
+	// check the import
 	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
+	// check the comment
+	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch(
+		'adapter-auto only supports some environments'
+	);
+});
+
+test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
+	const cwd = await ctx.run(variant, { [addonId]: { adapter: 'auto' } });
+
+	const { close } = await prepareServer({ cwd, page });
+	// kill server process when we're done
+	ctx.onTestFinished(async () => await close());
+
+	// check the import
+	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch('adapter-auto');
+	// check the comment
+	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch(
+		'adapter-auto only supports some environments'
+	);
 });
