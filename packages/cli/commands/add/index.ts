@@ -325,16 +325,18 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 	];
 
 	// TODO: run setup if we have access to workspace
+	// prepare official addons
 	// let workspace = await createWorkspace({ cwd: options.cwd });
 	// const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
 	// const addonSetupResults = setupAddons(setups, workspace);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
+		// const allSetupResults = setupAddons(officialAddons, workspace);
 		const addonOptions = officialAddons
 			// TODO: do the filter if we have access to workspace
 			// only display supported addons relative to the current environment
-			// .filter(({ id }) => addonSetupResults[id].unsupported.length === 0)
+			// .filter(({ id }) => allSetupResults[id].unsupported.length === 0)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
@@ -362,6 +364,12 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 	// // add inter-addon dependencies
 	// for (const { addon } of selectedAddons) {
 	// 	workspace = await createWorkspace(workspace);
+	// const setups = selectedAddons.map(({ addon }) => addon);
+	// const setupResult = setupAddons(setups, workspace)[addon.id];
+
+	// const missingDependencies = setupResult.dependsOn.filter(
+	// 	(depId) => !selectedAddons.some((a) => a.addon.id === depId)
+	// );
 
 	// 	const setupResult = addonSetupResults[addon.id];
 	// 	const missingDependencies = setupResult.dependsOn.filter(
@@ -385,7 +393,7 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 	// 	}
 	// }
 
-	// // run verifications
+	// // run all setups after inter-addon deps have been added
 	// const addons = selectedAddons.map(({ addon }) => addon);
 	// const verifications = [
 	// 	...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
@@ -648,7 +656,7 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 	const choices: string[] = [];
 	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
-	const options: Record<string, unknown> = {};
+	const options: OptionValues<any> = {};
 	for (const [id, question] of Object.entries(details.options)) {
 		let values: string[] = [];
 		const applyDefault = question.condition?.(options) !== false;
