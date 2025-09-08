@@ -544,7 +544,7 @@ export async function runAddCommand(
 	const {
 		filesToFormat,
 		pnpmBuildDependencies: addonPnpmBuildDependencies,
-		needInstall
+		installNeeded
 	} = await applyAddons({
 		workspace,
 		addonSetupResults,
@@ -556,7 +556,7 @@ export async function runAddCommand(
 
 	// prompt for package manager and install dependencies
 	let packageManager: PackageManager | undefined;
-	if (needInstall && options.install) {
+	if (installNeeded && options.install) {
 		packageManager =
 			options.install === true ? await packageManagerPrompt(options.cwd) : options.install;
 

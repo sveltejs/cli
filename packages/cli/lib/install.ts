@@ -60,7 +60,7 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	pnpmBuildDependencies: string[];
-	needInstall: boolean;
+	installNeeded: boolean;
 }> {
 	const filesToFormat = new Set<string>();
 	const allPnpmBuildDependencies: string[] = [];
@@ -90,7 +90,7 @@ export async function applyAddons({
 	return {
 		filesToFormat: Array.from(filesToFormat),
 		pnpmBuildDependencies: allPnpmBuildDependencies,
-		needInstall: installNeeded
+		installNeeded
 	};
 }
 
