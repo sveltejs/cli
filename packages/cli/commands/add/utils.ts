@@ -4,7 +4,7 @@ import pc from 'picocolors';
 import { exec } from 'tinyexec';
 import { parseJson } from '@sveltejs/cli-core/parsers';
 import { resolveCommand, type AgentName } from 'package-manager-detector';
-import type { Highlighter, Workspace } from '@sveltejs/cli-core';
+import { isVersionAtLeast, type Highlighter, type Workspace } from '@sveltejs/cli-core';
 
 export type Package = {
 	name: string;
@@ -57,19 +57,37 @@ export function readFile(cwd: string, filePath: string): string {
 	return text;
 }
 
+const checkInstallNeeded = (atLeastVersion: string, version: string | undefined) => {
+	if (!version) return true;
+	const atLeastVersionStripped = atLeastVersion.replace('^', '');
+	const versionStripped = version.replace('^', '');
+	return !isVersionAtLeast(versionStripped, atLeastVersionStripped);
+};
+
+export type Dependency = { pkg: string; version: string; dev: boolean };
 export function installPackages(
-	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
+	dependencies: Dependency[],
 	workspace: Workspace<any>
-): string {
+): {
+	pkgPath: string;
+	installNeeded: boolean;
+} {
 	const { data, generateCode } = getPackageJson(workspace.cwd);
 
+	let installNeeded = false;
 	for (const dependency of dependencies) {
 		if (dependency.dev) {
 			data.devDependencies ??= {};
-			data.devDependencies[dependency.pkg] = dependency.version;
+			if (checkInstallNeeded(dependency.version, data.devDependencies[dependency.pkg])) {
+				data.devDependencies[dependency.pkg] = dependency.version;
+				installNeeded = true;
+			}
 		} else {
 			data.dependencies ??= {};
-			data.dependencies[dependency.pkg] = dependency.version;
+			if (checkInstallNeeded(dependency.version, data.dependencies[dependency.pkg])) {
+				data.dependencies[dependency.pkg] = dependency.version;
+				installNeeded = true;
+			}
 		}
 	}
 
@@ -77,7 +95,7 @@ export function installPackages(
 	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
 
 	writeFile(workspace, commonFilePaths.packageJson, generateCode());
-	return commonFilePaths.packageJson;
+	return { pkgPath: commonFilePaths.packageJson, installNeeded };
 }
 
 function alphabetizeProperties(obj: Record<string, string>) {

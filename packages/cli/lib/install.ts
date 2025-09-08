@@ -14,7 +14,13 @@ import { exec, NonZeroExitError } from 'tinyexec';
 import { resolveCommand } from 'package-manager-detector';
 import { TESTING } from '../utils/env.ts';
 import { createWorkspace } from '../commands/add/workspace.ts';
-import { fileExists, installPackages, readFile, writeFile } from '../commands/add/utils.ts';
+import {
+	fileExists,
+	installPackages,
+	readFile,
+	writeFile,
+	type Dependency
+} from '../commands/add/utils.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
@@ -54,9 +60,11 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	pnpmBuildDependencies: string[];
+	needInstall: boolean;
 }> {
 	const filesToFormat = new Set<string>();
 	const allPnpmBuildDependencies: string[] = [];
+	let installNeeded = false;
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, addonSetupResults);
@@ -64,7 +72,11 @@ export async function applyAddons({
 	for (const addon of ordered) {
 		workspace = await createWorkspace({ ...workspace, options: options[addon.id] });
 
-		const { files, pnpmBuildDependencies } = await runAddon({
+		const {
+			files,
+			pnpmBuildDependencies,
+			installNeeded: addonInstallNeeded
+		} = await runAddon({
 			workspace,
 			addon,
 			multiple: ordered.length > 1
@@ -72,11 +84,13 @@ export async function applyAddons({
 
 		files.forEach((f) => filesToFormat.add(f));
 		pnpmBuildDependencies.forEach((s) => allPnpmBuildDependencies.push(s));
+		if (addonInstallNeeded) installNeeded = true;
 	}
 
 	return {
 		filesToFormat: Array.from(filesToFormat),
-		pnpmBuildDependencies: allPnpmBuildDependencies
+		pnpmBuildDependencies: allPnpmBuildDependencies,
+		needInstall: installNeeded
 	};
 }
 
@@ -123,7 +137,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 		}
 	}
 
-	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+	const dependencies: Dependency[] = [];
 	const pnpmBuildDependencies: string[] = [];
 	const sv: SvApi = {
 		file: (path, content) => {
@@ -179,12 +193,13 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 	};
 	await addon.run({ ...workspace, sv });
 
-	const pkgPath = installPackages(dependencies, workspace);
+	const { pkgPath, installNeeded } = installPackages(dependencies, workspace);
 	files.add(pkgPath);
 
 	return {
 		files: Array.from(files),
-		pnpmBuildDependencies
+		pnpmBuildDependencies,
+		installNeeded
 	};
 }
 

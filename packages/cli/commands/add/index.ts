@@ -541,7 +541,11 @@ export async function runAddCommand(
 	const details = officialDetails.concat(commDetails);
 
 	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
-	const { filesToFormat, pnpmBuildDependencies: addonPnpmBuildDependencies } = await applyAddons({
+	const {
+		filesToFormat,
+		pnpmBuildDependencies: addonPnpmBuildDependencies,
+		needInstall
+	} = await applyAddons({
 		workspace,
 		addonSetupResults,
 		addons: addonMap,
@@ -552,7 +556,7 @@ export async function runAddCommand(
 
 	// prompt for package manager and install dependencies
 	let packageManager: PackageManager | undefined;
-	if (options.install) {
+	if (needInstall && options.install) {
 		packageManager =
 			options.install === true ? await packageManagerPrompt(options.cwd) : options.install;
 

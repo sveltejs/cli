@@ -46,3 +46,9 @@ export function isVersionUnsupportedBelow(
 
 	return undefined;
 }
+
+export function isVersionAtLeast(versionStr: string, atLeastStr: string): boolean {
+	const unsupported = isVersionUnsupportedBelow(versionStr, atLeastStr);
+	// Let's be conservative and assume that if we can't say anything, it's not at least
+	return unsupported === undefined ? false : !unsupported;
+}
