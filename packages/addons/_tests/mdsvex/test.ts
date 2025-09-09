@@ -8,10 +8,13 @@ import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ mdsvex });
+const { test, variants, prepareServer } = setupTest(
+	{ mdsvex },
+	{ runPrepareAndInstallWithOption: { default: { mdsvex: {} } } }
+);
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { mdsvex: {} });
+	const cwd = ctx.cwdVariant('default', variant);
 
 	// ...add test files
 	addFixture(cwd, variant);

@@ -5,10 +5,13 @@ import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import eslint from '../../eslint/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ eslint }, { skipBrowser: true });
+const { test, variants, prepareServer } = setupTest(
+	{ eslint },
+	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { eslint: {} } } }
+);
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { eslint: {} });
+	const cwd = ctx.cwdVariant('default', variant);
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done

@@ -3,10 +3,13 @@ import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import vitest from '../../vitest-addon/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ vitest }, { skipBrowser: true });
+const { test, variants, prepareServer } = setupTest(
+	{ vitest },
+	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { vitest: {} } } }
+);
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { vitest: {} });
+	const cwd = ctx.cwdVariant('default', variant);
 
 	const { close } = await prepareServer({ cwd, page });
 
