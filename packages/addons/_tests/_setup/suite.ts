@@ -46,7 +46,13 @@ export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
 	options?: {
 		skipBrowser?: boolean;
-		runPrepareAndInstallWithOption?: Record<string, OptionMap<Addons>>;
+		runPrepareAndInstallWithOption?: Record<
+			string,
+			{
+				options: OptionMap<Addons>;
+				include?: (variant: ProjectVariant) => boolean;
+			}
+		>;
 	}
 ) {
 	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
@@ -96,8 +102,9 @@ export function setupTest<Addons extends AddonMap>(
 			// prepare: run addon for all variants
 			for (const variant of variants) {
 				for (const [key, value] of Object.entries(options.runPrepareAndInstallWithOption)) {
+					if (value.include && !value.include(variant)) continue;
 					const cwd = create({ testId: key + '_' + variant, variant });
-					await installAddonHelper(cwd, addons, variant, value);
+					await installAddonHelper(cwd, addons, variant, value.options);
 				}
 			}
 

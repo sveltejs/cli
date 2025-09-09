@@ -8,7 +8,10 @@ const { test, variants, prepareServer } = setupTest(
 	{
 		skipBrowser: true,
 		runPrepareAndInstallWithOption: {
-			default: { drizzle: { database: 'sqlite', sqlite: 'libsql' }, lucia: { demo: true } }
+			default: {
+				options: { drizzle: { database: 'sqlite', sqlite: 'libsql' }, lucia: { demo: true } },
+				include: (v) => v.includes('kit')
+			}
 		}
 	}
 );

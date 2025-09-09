@@ -8,7 +8,7 @@ const { test, variants, prepareServer } = setupTest(
 	{ devtoolsJson },
 	{
 		skipBrowser: true,
-		runPrepareAndInstallWithOption: { default: { devtoolsJson: {} } }
+		runPrepareAndInstallWithOption: { default: { options: { devtoolsJson: {} } } }
 	}
 );
 

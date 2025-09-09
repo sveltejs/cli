@@ -9,7 +9,7 @@ import eslint from '../../eslint/index.ts';
 // we're including the `eslint` add-on to prevent `storybook` from modifying this repo's `eslint.config.js`
 const { test, variants, prepareServer } = setupTest(
 	{ storybook, eslint },
-	{ runPrepareAndInstallWithOption: { default: { storybook: {}, eslint: {} } } }
+	{ runPrepareAndInstallWithOption: { default: { options: { storybook: {}, eslint: {} } } } }
 );
 
 let port = 6006;

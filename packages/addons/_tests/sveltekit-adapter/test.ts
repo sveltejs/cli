@@ -9,7 +9,12 @@ const { test, variants, prepareServer } = setupTest(
 	{ [addonId]: sveltekitAdapter },
 	{
 		skipBrowser: true,
-		runPrepareAndInstallWithOption: { default: { [addonId]: { adapter: 'node' } } }
+		runPrepareAndInstallWithOption: {
+			default: {
+				options: { [addonId]: { adapter: 'node' } },
+				include: (v) => v.includes('kit')
+			}
+		}
 	}
 );
 

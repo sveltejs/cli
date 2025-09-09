@@ -7,7 +7,7 @@ import prettier from '../../prettier/index.ts';
 
 const { test, variants, prepareServer } = setupTest(
 	{ prettier },
-	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { prettier: {} } } }
+	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { options: { prettier: {} } } } }
 );
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {

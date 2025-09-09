@@ -4,7 +4,10 @@ import playwright from '../../playwright/index.ts';
 
 const { test, variants, prepareServer } = setupTest(
 	{ playwright },
-	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { playwright: {} } } }
+	{
+		skipBrowser: true,
+		runPrepareAndInstallWithOption: { default: { options: { playwright: {} } } }
+	}
 );
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {

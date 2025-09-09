@@ -5,7 +5,7 @@ import vitest from '../../vitest-addon/index.ts';
 
 const { test, variants, prepareServer } = setupTest(
 	{ vitest },
-	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { vitest: {} } } }
+	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { options: { vitest: {} } } } }
 );
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {

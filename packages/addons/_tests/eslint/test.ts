@@ -7,7 +7,7 @@ import eslint from '../../eslint/index.ts';
 
 const { test, variants, prepareServer } = setupTest(
 	{ eslint },
-	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { eslint: {} } } }
+	{ skipBrowser: true, runPrepareAndInstallWithOption: { default: { options: { eslint: {} } } } }
 );
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {

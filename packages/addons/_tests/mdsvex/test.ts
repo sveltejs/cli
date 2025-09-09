@@ -10,7 +10,7 @@ import mdsvex from '../../mdsvex/index.ts';
 
 const { test, variants, prepareServer } = setupTest(
 	{ mdsvex },
-	{ runPrepareAndInstallWithOption: { default: { mdsvex: {} } } }
+	{ runPrepareAndInstallWithOption: { default: { options: { mdsvex: {} } } } }
 );
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {

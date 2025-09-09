@@ -6,13 +6,19 @@ const { test, variants, prepareServer } = setupTest(
 	{ paraglide },
 	{
 		skipBrowser: true,
-		runPrepareAndInstallWithOption: { default: { paraglide: { demo: true, languageTags: 'en' } } }
+		runPrepareAndInstallWithOption: {
+			default: {
+				options: { paraglide: { demo: true, languageTags: 'en' } },
+				include: (v) => v.includes('kit')
+			}
+		}
 	}
 );
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
 test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = ctx.cwdVariant('default', variant);
+	// const cwd = await ctx.run(variant, { paraglide: { demo: true, languageTags: 'en' } });
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
