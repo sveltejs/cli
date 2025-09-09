@@ -18,7 +18,7 @@ const variants = vitest.inject('variants');
 
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
-	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<void>;
+	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<string>;
 	cwdVariant: (variant: ProjectVariant) => string;
 };
 
@@ -114,6 +114,7 @@ export function setupTest<Addons extends AddonMap>(
 		ctx.run = async (variant, runOptions) => {
 			const cwd = create({ testId: variant, variant });
 			await installAddonHelper(cwd, addons, variant, runOptions);
+			return cwd;
 		};
 
 		return async () => {
