@@ -7,7 +7,7 @@ const { test, variants, prepareServer } = setupTest({ playwright });
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { playwright: {} });
 
-	const { close } = await prepareServer({ cwd, page, previewCommand: null! });
+	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 

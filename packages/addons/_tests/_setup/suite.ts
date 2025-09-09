@@ -117,8 +117,6 @@ async function prepareServer(
 	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
 
 	// start preview server
-	if (!previewCommand) return { url: null, close: () => {} };
-
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
 	// increases timeout as 30s is not always enough when running the full suite

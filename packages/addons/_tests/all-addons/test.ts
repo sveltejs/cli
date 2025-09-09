@@ -22,7 +22,7 @@ const kitOnly = variants.filter((v) => v.startsWith('kit'));
 test.concurrent.for(kitOnly)('run all addons - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, defaultOptions);
 
-	const { close } = await prepareServer({ cwd, page, previewCommand: null! });
+	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
