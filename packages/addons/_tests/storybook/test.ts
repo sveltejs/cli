@@ -30,6 +30,7 @@ test.for(variants)(
 		const { close } = await prepareServer({
 			cwd,
 			page,
+			installCommand: null!,
 			previewCommand: `pnpm storybook -p ${++port} --ci`,
 			buildCommand: ''
 		});

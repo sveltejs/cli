@@ -11,7 +11,7 @@ const { test, variants, prepareServer } = setupTest(
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = ctx.cwdVariant('default', variant);
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({ cwd, page, installCommand: null! });
 
 	execSync('pnpm exec playwright install chromium', { cwd, stdio: 'pipe' });
 	execSync('pnpm test', { cwd, stdio: 'pipe' });

@@ -20,7 +20,7 @@ test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = ctx.cwdVariant('default', variant);
 	// const cwd = await ctx.run(variant, { paraglide: { demo: true, languageTags: 'en' } });
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({ cwd, page, installCommand: null! });
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
