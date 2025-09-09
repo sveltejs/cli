@@ -8,12 +8,12 @@ const { test, variants, prepareServer } = setupTest(
 	{ devtoolsJson },
 	{
 		skipBrowser: true,
-		runPrepareAndInstallWithOption: { devtoolsJson: {} }
+		runPrepareAndInstallWithOption: { default: { devtoolsJson: {} } }
 	}
 );
 
 test.concurrent.for(variants)('default - %s', async (variant, { page, ...ctx }) => {
-	const cwd = ctx.cwdVariant(variant);
+	const cwd = ctx.cwdVariant('default', variant);
 
 	const { close } = await prepareServer({ cwd, page, installCommand: null! });
 	// kill server process when we're done

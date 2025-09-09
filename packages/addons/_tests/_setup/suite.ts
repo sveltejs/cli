@@ -19,7 +19,7 @@ const variants = vitest.inject('variants');
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
 	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<string>;
-	cwdVariant: (variant: ProjectVariant) => string;
+	cwdVariant: (flavor: string, variant: ProjectVariant) => string;
 };
 
 const installAddonHelper = async <Addons extends AddonMap>(
@@ -44,7 +44,10 @@ const installAddonHelper = async <Addons extends AddonMap>(
 
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
-	options?: { skipBrowser?: boolean; runPrepareAndInstallWithOption?: OptionMap<Addons> }
+	options?: {
+		skipBrowser?: boolean;
+		runPrepareAndInstallWithOption?: Record<string, OptionMap<Addons>>;
+	}
 ) {
 	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
 
@@ -92,8 +95,10 @@ export function setupTest<Addons extends AddonMap>(
 		if (options?.runPrepareAndInstallWithOption) {
 			// prepare: run addon for all variants
 			for (const variant of variants) {
-				const cwd = create({ testId: variant, variant });
-				await installAddonHelper(cwd, addons, variant, options.runPrepareAndInstallWithOption);
+				for (const [key, value] of Object.entries(options.runPrepareAndInstallWithOption)) {
+					const cwd = create({ testId: key + '_' + variant, variant });
+					await installAddonHelper(cwd, addons, variant, value);
+				}
 			}
 
 			// install: run pnpm install
@@ -108,11 +113,11 @@ export function setupTest<Addons extends AddonMap>(
 			browserCtx = await browser.newContext();
 			ctx.page = await browserCtx.newPage();
 		}
-		ctx.cwdVariant = (variant) => {
-			return path.resolve(cwdTestName, variant);
+		ctx.cwdVariant = (flavor, variant) => {
+			return path.resolve(cwdTestName, `${flavor}_${variant}`);
 		};
 		ctx.run = async (variant, runOptions) => {
-			const cwd = create({ testId: variant, variant });
+			const cwd = create({ testId: ctx.task.id, variant });
 			await installAddonHelper(cwd, addons, variant, runOptions);
 			return cwd;
 		};
