@@ -14,7 +14,12 @@ const kitOnly = variants.filter((v) => v.includes('kit'));
 test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { [addonId]: { adapter: 'node' } });
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({
+		cwd,
+		page,
+		installCommand: variant.includes('ts') ? undefined : null!,
+		buildCommand: variant.includes('ts') ? undefined : null!
+	});
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 

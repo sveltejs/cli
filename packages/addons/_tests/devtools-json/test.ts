@@ -9,7 +9,12 @@ const { test, variants, prepareServer } = setupTest({ devtoolsJson }, { skipBrow
 test.concurrent.for(variants)('default - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { devtoolsJson: {} });
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({
+		cwd,
+		page,
+		installCommand: variant.includes('ts') ? undefined : null!,
+		buildCommand: variant.includes('ts') ? undefined : null!
+	});
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 

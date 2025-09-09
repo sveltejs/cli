@@ -7,7 +7,12 @@ const { test, variants, prepareServer } = setupTest({ playwright }, { skipBrowse
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { playwright: {} });
 
-	const { close } = await prepareServer({ cwd, page });
+	const { close } = await prepareServer({
+		cwd,
+		page,
+		installCommand: variant.includes('ts') ? undefined : null!,
+		buildCommand: variant.includes('ts') ? undefined : null!
+	});
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
