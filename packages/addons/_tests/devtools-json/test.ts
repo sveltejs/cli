@@ -4,18 +4,12 @@ import devtoolsJson from '../../devtools-json/index.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const { test, variants, prepareServer } = setupTest(
-	{ devtoolsJson },
-	{
-		skipBrowser: true,
-		runPrepareAndInstallWithOption: { default: { options: { devtoolsJson: {} } } }
-	}
-);
+const { test, variants, prepareServer } = setupTest({ devtoolsJson }, { skipBrowser: true });
 
 test.concurrent.for(variants)('default - %s', async (variant, { page, ...ctx }) => {
-	const cwd = ctx.cwdVariant('default', variant);
+	const cwd = await ctx.run(variant, { devtoolsJson: {} });
 
-	const { close } = await prepareServer({ cwd, page, installCommand: null! });
+	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 

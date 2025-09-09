@@ -19,41 +19,11 @@ const variants = vitest.inject('variants');
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
 	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<string>;
-	cwdVariant: (flavor: string, variant: ProjectVariant) => string;
-};
-
-const installAddonHelper = async <Addons extends AddonMap>(
-	cwdToUse: string,
-	addons: Addons,
-	variant: ProjectVariant,
-	options: OptionMap<Addons>
-) => {
-	const metaPath = path.resolve(cwdToUse, 'meta.json');
-	fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
-
-	// run addon
-	const { pnpmBuildDependencies } = await installAddon({
-		cwd: cwdToUse,
-		addons,
-		options,
-		packageManager: 'pnpm'
-	});
-
-	addPnpmBuildDependencies(cwdToUse, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 };
 
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
-	options?: {
-		skipBrowser?: boolean;
-		runPrepareAndInstallWithOption?: Record<
-			string,
-			{
-				options: OptionMap<Addons>;
-				include?: (variant: ProjectVariant) => boolean;
-			}
-		>;
-	}
+	options?: { skipBrowser?: boolean }
 ) {
 	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
 
@@ -61,7 +31,6 @@ export function setupTest<Addons extends AddonMap>(
 
 	let create: CreateProject;
 	let browser: Browser;
-	let cwdTestName: string;
 
 	if (withBrowser) {
 		vitest.beforeAll(async () => {
@@ -72,11 +41,8 @@ export function setupTest<Addons extends AddonMap>(
 		});
 	}
 
-	vitest.beforeAll(async ({ name }) => {
+	vitest.beforeAll(({ name }) => {
 		const testName = path.dirname(name).split('/').at(-1)!;
-		cwdTestName = path.resolve(cwd, testName);
-
-		fs.rmSync(cwdTestName, { force: true, recursive: true });
 
 		// constructs a builder for create test projects
 		create = createProject({ cwd, templatesDir, testName });
@@ -96,21 +62,6 @@ export function setupTest<Addons extends AddonMap>(
 				private: true
 			})
 		);
-
-		// run prepare and install steps if requested
-		if (options?.runPrepareAndInstallWithOption) {
-			// prepare: run addon for all variants
-			for (const variant of variants) {
-				for (const [key, value] of Object.entries(options.runPrepareAndInstallWithOption)) {
-					if (value.include && !value.include(variant)) continue;
-					const cwd = create({ testId: key + '_' + variant, variant });
-					await installAddonHelper(cwd, addons, variant, value.options);
-				}
-			}
-
-			// install: run pnpm install
-			execSync('pnpm install --no-frozen-lockfile', { cwd: cwdTestName, stdio: 'pipe' });
-		}
 	});
 
 	// runs before each test case
@@ -120,12 +71,22 @@ export function setupTest<Addons extends AddonMap>(
 			browserCtx = await browser.newContext();
 			ctx.page = await browserCtx.newPage();
 		}
-		ctx.cwdVariant = (flavor, variant) => {
-			return path.resolve(cwdTestName, `${flavor}_${variant}`);
-		};
-		ctx.run = async (variant, runOptions) => {
+		ctx.run = async (variant, options) => {
 			const cwd = create({ testId: ctx.task.id, variant });
-			await installAddonHelper(cwd, addons, variant, runOptions);
+
+			// test metadata
+			const metaPath = path.resolve(cwd, 'meta.json');
+			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
+
+			// run addon
+			const { pnpmBuildDependencies } = await installAddon({
+				cwd,
+				addons,
+				options,
+				packageManager: 'pnpm'
+			});
+			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+
 			return cwd;
 		};
 
