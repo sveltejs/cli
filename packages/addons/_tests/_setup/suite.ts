@@ -10,7 +10,7 @@ import {
 	type CreateProject,
 	type ProjectVariant
 } from 'sv/testing';
-import { chromium, type Browser, type Page } from '@playwright/test';
+import { chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');
@@ -21,18 +21,25 @@ type Fixtures<Addons extends AddonMap> = {
 	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<string>;
 };
 
-export function setupTest<Addons extends AddonMap>(addons: Addons) {
+export function setupTest<Addons extends AddonMap>(
+	addons: Addons,
+	options?: { skipBrowser?: boolean }
+) {
 	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
+
+	const withBrowser = !options?.skipBrowser;
 
 	let create: CreateProject;
 	let browser: Browser;
 
-	vitest.beforeAll(async () => {
-		browser = await chromium.launch();
-		return async () => {
-			await browser.close();
-		};
-	});
+	if (withBrowser) {
+		vitest.beforeAll(async () => {
+			browser = await chromium.launch();
+			return async () => {
+				await browser.close();
+			};
+		});
+	}
 
 	vitest.beforeAll(({ name }) => {
 		const testName = path.dirname(name).split('/').at(-1)!;
@@ -59,8 +66,11 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 
 	// runs before each test case
 	vitest.beforeEach<Fixtures<Addons>>(async (ctx) => {
-		const browserCtx = await browser.newContext();
-		ctx.page = await browserCtx.newPage();
+		let browserCtx: BrowserContext;
+		if (withBrowser) {
+			browserCtx = await browser.newContext();
+			ctx.page = await browserCtx.newPage();
+		}
 		ctx.run = async (variant, options) => {
 			const cwd = create({ testId: ctx.task.id, variant });
 
@@ -81,7 +91,9 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 		};
 
 		return async () => {
-			await browserCtx.close();
+			if (withBrowser) {
+				await browserCtx.close();
+			}
 			// ...other tear downs
 		};
 	});
@@ -91,7 +103,7 @@ export function setupTest<Addons extends AddonMap>(addons: Addons) {
 
 type PrepareServerOptions = {
 	cwd: string;
-	page: Page;
+	page: Page | null;
 	previewCommand?: string;
 	buildCommand?: string;
 	installCommand?: string;
@@ -115,6 +127,10 @@ async function prepareServer(
 
 	// build project
 	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
+
+	if (!page) {
+		return { url: '', close: () => Promise.resolve() };
+	}
 
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });

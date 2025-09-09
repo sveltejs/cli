@@ -3,7 +3,7 @@ import { setupTest } from '../_setup/suite.ts';
 import lucia from '../../lucia/index.ts';
 import drizzle from '../../drizzle/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ drizzle, lucia });
+const { test, variants, prepareServer } = setupTest({ drizzle, lucia }, { skipBrowser: true });
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
 test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {

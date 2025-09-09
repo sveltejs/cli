@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import paraglide from '../../paraglide/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ paraglide });
+const { test, variants, prepareServer } = setupTest({ paraglide }, { skipBrowser: true });
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
 test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {

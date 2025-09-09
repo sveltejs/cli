@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import vitest from '../../vitest-addon/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ vitest });
+const { test, variants, prepareServer } = setupTest({ vitest }, { skipBrowser: true });
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { vitest: {} });

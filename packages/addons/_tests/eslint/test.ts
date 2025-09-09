@@ -5,7 +5,7 @@ import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import eslint from '../../eslint/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ eslint });
+const { test, variants, prepareServer } = setupTest({ eslint }, { skipBrowser: true });
 
 test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { eslint: {} });

@@ -16,7 +16,7 @@ const defaultOptions = officialAddons.reduce<OptionMap<typeof addons>>((options,
 	return options;
 }, {});
 
-const { test, variants, prepareServer } = setupTest(addons);
+const { test, variants, prepareServer } = setupTest(addons, { skipBrowser: true });
 
 const kitOnly = variants.filter((v) => v.startsWith('kit'));
 test.concurrent.for(kitOnly)('run all addons - %s', async (variant, { page, ...ctx }) => {

@@ -5,7 +5,10 @@ import sveltekitAdapter from '../../sveltekit-adapter/index.ts';
 import { setupTest } from '../_setup/suite.ts';
 
 const addonId = sveltekitAdapter.id;
-const { test, variants, prepareServer } = setupTest({ [addonId]: sveltekitAdapter });
+const { test, variants, prepareServer } = setupTest(
+	{ [addonId]: sveltekitAdapter },
+	{ skipBrowser: true }
+);
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
 test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
