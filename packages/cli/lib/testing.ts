@@ -70,8 +70,8 @@ export function createProject({ cwd, testName, templatesDir }: CreateOptions): C
 	// create the reference dir
 	const testDir = path.resolve(cwd, testName);
 	fs.mkdirSync(testDir, { recursive: true });
-	return ({ testId, variant, clean = true }) => {
-		const targetDir = path.resolve(testDir, testId);
+	return ({ variant, clean = true }) => {
+		const targetDir = path.resolve(testDir, variant);
 		if (clean && fs.existsSync(targetDir)) {
 			fs.rmSync(targetDir, { force: true, recursive: true });
 		}
