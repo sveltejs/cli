@@ -24,7 +24,7 @@ function isConfigWrapper(
 function exportDefaultConfig(
 	ast: AstTypes.Program,
 	options: {
-		fallback?: AstTypes.Expression | string;
+		fallback?: { code: string; additional?: (ast: AstTypes.Program) => void };
 		ignoreWrapper: string[];
 	}
 ): AstTypes.ObjectExpression {
@@ -33,7 +33,9 @@ function exportDefaultConfig(
 	// Get or create the default export
 	let fallbackExpression: AstTypes.Expression;
 	if (fallback) {
-		fallbackExpression = typeof fallback === 'string' ? common.parseExpression(fallback) : fallback;
+		fallbackExpression =
+			typeof fallback.code === 'string' ? common.parseExpression(fallback.code) : fallback.code;
+		fallback.additional?.(ast);
 	} else {
 		fallbackExpression = object.create({});
 	}
@@ -147,15 +149,21 @@ export const addPlugin = (
 	}
 ): void => {
 	// Step 1: Get the config object, or fallback.
-	// imports.addNamed(ast, { imports: ['defineConfig'], from: 'vite' });
-	const configObject = exportDefaultConfig(ast, {
-		fallback: 'defineConfig()',
-		ignoreWrapper: ['defineConfig']
-	});
+	const configObject = getConfig(ast);
 
 	// Step 2: Add the plugin to the plugins array
 	addInArrayOfObject(configObject, {
 		arrayProperty: 'plugins',
 		...options
+	});
+};
+
+export const getConfig = (ast: AstTypes.Program): AstTypes.ObjectExpression => {
+	return exportDefaultConfig(ast, {
+		fallback: {
+			code: 'defineConfig()',
+			additional: (ast) => imports.addNamed(ast, { imports: ['defineConfig'], from: 'vite' })
+		},
+		ignoreWrapper: ['defineConfig']
 	});
 };

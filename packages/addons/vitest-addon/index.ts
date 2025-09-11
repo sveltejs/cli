@@ -1,5 +1,5 @@
 import { dedent, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
-import { array, exports, functions, object } from '@sveltejs/cli-core/js';
+import { array, exports, functions, imports, object, vite } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const options = defineAddonOptions()
@@ -96,6 +96,7 @@ export default defineAddon({
 				`;
 			});
 		}
+
 		sv.file(viteConfigFile, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
@@ -125,19 +126,9 @@ export default defineAddon({
 				}
 			});
 
-			const defineConfigFallback = functions.createCall({ name: 'defineConfig', args: [] });
-			const { value: defineWorkspaceCall } = exports.createDefault(ast, {
-				fallback: defineConfigFallback
-			});
-			if (defineWorkspaceCall.type !== 'CallExpression') {
-				log.warn('Unexpected vite config. Could not update.');
-			}
+			const viteConfig = vite.getConfig(ast);
 
-			const vitestConfig = functions.getArgument(defineWorkspaceCall, {
-				index: 0,
-				fallback: object.create({})
-			});
-			const testObject = object.property(vitestConfig, {
+			const testObject = object.property(viteConfig, {
 				name: 'test',
 				fallback: object.create({
 					expect: {
@@ -153,6 +144,11 @@ export default defineAddon({
 
 			if (componentTesting) array.append(workspaceArray, clientObjectExpression);
 			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
+
+			// imports.addNamed(ast, {
+			// 	imports: ['defineConfig'],
+			// 	from: 'vitest/config'
+			// });
 
 			return generateCode();
 		});
