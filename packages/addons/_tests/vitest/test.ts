@@ -1,20 +1,14 @@
-import { execSync } from 'node:child_process';
-import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/suite.ts';
+import { execAsync, setupTest } from '../_setup/suite.ts';
 import vitest from '../../vitest-addon/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ vitest }, { skipBrowser: true });
+const { test, variants } = setupTest({ vitest }, { browser: false });
 
-test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
+test.concurrent.for(variants)('core - %s', async (variant, { expect, ...ctx }) => {
 	const cwd = await ctx.run(variant, { vitest: {} });
 
-	const { close } = await prepareServer({ cwd, page });
+	await expect(execAsync('pnpm install', { cwd })).resolves.toBeTruthy();
 
-	execSync('pnpm exec playwright install chromium', { cwd, stdio: 'pipe' });
-	execSync('pnpm test', { cwd, stdio: 'pipe' });
+	await expect(execAsync('pnpm exec playwright install chromium', { cwd })).resolves.toBeTruthy();
 
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
-
-	expect(true).toBe(true);
+	await expect(execAsync('pnpm test', { cwd })).resolves.toBeTruthy();
 });

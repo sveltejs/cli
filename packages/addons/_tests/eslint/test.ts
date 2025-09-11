@@ -1,25 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
-import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/suite.ts';
+import { execAsync, setupTest } from '../_setup/suite.ts';
 import eslint from '../../eslint/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ eslint }, { skipBrowser: true });
+const { test, variants } = setupTest({ eslint }, { browser: false });
 
-test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
+test.concurrent.for(variants)('core - %s', async (variant, { expect, ...ctx }) => {
 	const cwd = await ctx.run(variant, { eslint: {} });
-
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
 
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');
 
-	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).toThrowError();
+	await expect(execAsync('pnpm install', { cwd })).resolves.toBeTruthy();
 
-	expect(() => execSync('pnpm eslint --fix .', { cwd, stdio: 'inherit' })).not.toThrowError();
+	await expect(execAsync('pnpm lint', { cwd })).rejects.toThrow();
 
-	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).not.toThrowError();
+	await expect(execAsync('pnpm eslint --fix .', { cwd })).resolves.toBeTruthy();
+
+	await expect(execAsync('pnpm lint', { cwd })).resolves.toBeTruthy();
 });
