@@ -83,9 +83,9 @@ export default defineAddon({
 
 		const baseDBPath = path.resolve(kit.libDirectory, 'server', 'db');
 		const paths = {
-			'drizzle config': path.relative(cwd, path.resolve(cwd, `drizzle.config.${ext}`)),
-			'database schema': path.relative(cwd, path.resolve(baseDBPath, `schema.${ext}`)),
-			database: path.relative(cwd, path.resolve(baseDBPath, `index.${ext}`))
+			'drizzle config': path.resolve(cwd, `drizzle.config.${ext}`),
+			'database schema': path.resolve(baseDBPath, `schema.${ext}`),
+			database: path.resolve(baseDBPath, `index.${ext}`)
 		};
 
 		for (const [fileType, filePath] of Object.entries(paths)) {
