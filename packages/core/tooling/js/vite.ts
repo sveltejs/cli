@@ -1,11 +1,32 @@
 import { array, functions, imports, object, exports, type AstTypes, common } from './index.ts';
 
+function isConfigWrapper(
+	callExpression: AstTypes.CallExpression,
+	knownWrappers: string[]
+): boolean {
+	// Check if this is a call to defineConfig or any function that looks like a config wrapper
+	if (callExpression.callee.type !== 'Identifier') return false;
+
+	const calleeName = callExpression.callee.name;
+
+	// Check if it's a known wrapper
+	if (knownWrappers.includes(calleeName)) return true;
+
+	// Check if it's imported from 'vite' (this would require analyzing imports, but for now we'll be conservative)
+	// For now, assume any function call with a single object argument is a config wrapper
+	const isObjectCall =
+		callExpression.arguments.length === 1 &&
+		callExpression.arguments[0]?.type === 'ObjectExpression';
+
+	return knownWrappers.includes(calleeName) || isObjectCall;
+}
+
 function exportDefaultConfig(
 	ast: AstTypes.Program,
 	options: {
 		fallback?: AstTypes.Expression | string;
-		ignoreWrapper?: string;
-	} = {}
+		ignoreWrapper: string[];
+	}
 ): AstTypes.ObjectExpression {
 	const { fallback, ignoreWrapper } = options;
 
@@ -25,18 +46,20 @@ function exportDefaultConfig(
 	// Handle wrapper functions (e.g., defineConfig({})) if ignoreWrapper is specified
 	let configObject: AstTypes.ObjectExpression;
 
-	// Early bail-out: if no wrapper to ignore or not a call expression
-	if (!ignoreWrapper || !('arguments' in rootObject) || !Array.isArray(rootObject.arguments)) {
+	// Early bail-out: if not a call expression
+	if (!('arguments' in rootObject) || !Array.isArray(rootObject.arguments)) {
 		configObject = rootObject as unknown as AstTypes.ObjectExpression;
 		return configObject;
 	}
 
-	// Early bail-out: if not the specific wrapper we want to ignore
-	if (
-		rootObject.type !== 'CallExpression' ||
-		rootObject.callee.type !== 'Identifier' ||
-		rootObject.callee.name !== ignoreWrapper
-	) {
+	// Early bail-out: if not a call expression
+	if (rootObject.type !== 'CallExpression' || rootObject.callee.type !== 'Identifier') {
+		configObject = rootObject as unknown as AstTypes.ObjectExpression;
+		return configObject;
+	}
+
+	// Check if this is a config wrapper function call
+	if (!isConfigWrapper(rootObject as AstTypes.CallExpression, ignoreWrapper)) {
 		configObject = rootObject as unknown as AstTypes.ObjectExpression;
 		return configObject;
 	}
@@ -87,7 +110,7 @@ function exportDefaultConfig(
 		configObject = object.create({});
 	}
 
-	return configObject;
+	return configObject as AstTypes.ObjectExpression;
 }
 
 function addInArrayOfObject(
@@ -124,10 +147,10 @@ export const addPlugin = (
 	}
 ): void => {
 	// Step 1: Get the config object, or fallback.
-	imports.addNamed(ast, { from: 'vite', imports: { defineConfig: 'defineConfig' } });
+	// imports.addNamed(ast, { imports: ['defineConfig'], from: 'vite' });
 	const configObject = exportDefaultConfig(ast, {
 		fallback: 'defineConfig()',
-		ignoreWrapper: 'defineConfig'
+		ignoreWrapper: ['defineConfig']
 	});
 
 	// Step 2: Add the plugin to the plugins array
