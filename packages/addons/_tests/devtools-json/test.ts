@@ -4,19 +4,10 @@ import devtoolsJson from '../../devtools-json/index.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const { test, variants, prepareServer } = setupTest({ devtoolsJson }, { skipBrowser: true });
+const { test, variants } = setupTest({ devtoolsJson }, { browser: false });
 
-test.concurrent.for(variants)('default - %s', async (variant, { page, ...ctx }) => {
+test.concurrent.for(variants)('default - %s', async (variant, ctx) => {
 	const cwd = await ctx.run(variant, { devtoolsJson: {} });
-
-	const { close } = await prepareServer({
-		cwd,
-		page,
-		installCommand: variant.includes('ts') ? undefined : null!,
-		buildCommand: variant.includes('ts') ? undefined : null!
-	});
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
 
 	const ext = variant.includes('ts') ? 'ts' : 'js';
 	const viteFile = path.resolve(cwd, `vite.config.${ext}`);

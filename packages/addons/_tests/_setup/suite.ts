@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { promisify } from 'node:util';
+import { exec } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import {
@@ -16,6 +17,8 @@ const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');
 const variants = vitest.inject('variants');
 
+export const execAsync = promisify(exec);
+
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
 	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<string>;
@@ -23,11 +26,11 @@ type Fixtures<Addons extends AddonMap> = {
 
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
-	options?: { skipBrowser?: boolean }
+	options?: { browser?: boolean }
 ) {
 	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
 
-	const withBrowser = !options?.skipBrowser;
+	const withBrowser = options?.browser ?? true;
 
 	let create: CreateProject;
 	let browser: Browser;
@@ -103,7 +106,7 @@ export function setupTest<Addons extends AddonMap>(
 
 type PrepareServerOptions = {
 	cwd: string;
-	page: Page | null;
+	page: Page;
 	previewCommand?: string;
 	buildCommand?: string;
 	installCommand?: string;
@@ -120,17 +123,13 @@ async function prepareServer(
 	afterInstall?: () => Promise<any> | any
 ) {
 	// install deps
-	if (installCommand) execSync(installCommand, { cwd, stdio: 'pipe' });
+	if (installCommand) await execAsync(installCommand, { cwd });
 
 	// ...do commands and any other extra stuff
 	await afterInstall?.();
 
 	// build project
-	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
-
-	if (!page) {
-		return { url: '', close: () => Promise.resolve() };
-	}
+	if (buildCommand) await execAsync(buildCommand, { cwd });
 
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
