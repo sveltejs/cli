@@ -146,32 +146,14 @@ export default defineAddon({
 			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
 
 			// Manage imports
-			const { statement, alias } = imports.find(ast, { name: 'defineConfig' });
-			if (!statement) {
-				return;
-			}
-
-			// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
-			imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
-
-			// 3/ remove the previous import // import { defineConfig } from 'vite'; (if defineConfig was alone, remove the line)
+			const importName = 'defineConfig';
+			const { statement, alias } = imports.find(ast, { name: importName, from: 'vite' });
 			if (statement) {
-				// if `defineConfig` is the only specifier in that "vite" import, remove the entire import declaration
-				if (statement.specifiers?.length === 1) {
-					const idxToRemove = ast.body.indexOf(statement);
-					ast.body.splice(idxToRemove, 1);
-				} else {
-					// otherwise, just remove the `defineConfig` specifier
-					const idxToRemove = statement.specifiers?.findIndex(
-						(s) =>
-							s.type === 'ImportSpecifier' &&
-							s.imported.type === 'Identifier' &&
-							s.imported.name === 'defineConfig'
-					);
-					if (idxToRemove !== undefined && idxToRemove !== -1) {
-						statement.specifiers?.splice(idxToRemove, 1);
-					}
-				}
+				// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
+				imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
+
+				// Remove the old import
+				imports.remove(ast, { name: importName, from: 'vite', statement });
 			}
 
 			return generateCode();
