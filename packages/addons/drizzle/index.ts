@@ -68,33 +68,22 @@ const options = defineAddonOptions()
 	})
 	.build();
 
+let forNextSteps = '';
+
 export default defineAddon({
 	id: 'drizzle',
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unsupported, runsAfter, cwd, typescript }) => {
+	setup: ({ kit, unsupported, runsAfter }) => {
 		runsAfter('prettier');
 
-		const ext = typescript ? 'ts' : 'js';
 		if (!kit) {
 			return unsupported('Requires SvelteKit');
 		}
-
-		const baseDBPath = path.resolve(kit.libDirectory, 'server', 'db');
-		const paths = {
-			'drizzle config': path.resolve(cwd, `drizzle.config.${ext}`),
-			'database schema': path.resolve(baseDBPath, `schema.${ext}`),
-			database: path.resolve(baseDBPath, `index.${ext}`)
-		};
-
-		for (const [fileType, filePath] of Object.entries(paths)) {
-			if (fs.existsSync(filePath)) {
-				unsupported(`Preexisting ${fileType} file at '${filePath}'`);
-			}
-		}
 	},
-	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
+	run: ({ sv, typescript, options, kit, dependencyVersion, cwd }) => {
+		if (!kit) throw new Error('SvelteKit is required');
 		const ext = typescript ? 'ts' : 'js';
 
 		sv.devDependency('drizzle-orm', '^0.40.0');
@@ -206,7 +195,24 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(`drizzle.config.${ext}`, (content) => {
+		let baseDBPath = path.resolve(cwd, kit.libDirectory, 'server', 'db');
+		const paths = {
+			drizzleConfig: path.resolve(cwd, `drizzle.config.${ext}`),
+			databaseSchema: path.resolve(baseDBPath, `schema.${ext}`),
+			database: path.resolve(baseDBPath, `index.${ext}`)
+		};
+
+		let index = 2; // let's start with 2.
+		while (Object.values(paths).some(fs.existsSync)) {
+			baseDBPath = path.resolve(cwd, kit.libDirectory, 'server', `db-${index}`);
+			forNextSteps = `You already have some database files. We'll create new files in___${path.relative(cwd, baseDBPath)}`;
+			paths.drizzleConfig = path.resolve(cwd, `drizzle-${index}.config.${ext}`);
+			paths.databaseSchema = path.resolve(baseDBPath, `schema.${ext}`);
+			paths.database = path.resolve(baseDBPath, `index.${ext}`);
+			index++;
+		}
+
+		sv.file(paths.drizzleConfig, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
@@ -234,7 +240,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${kit?.libDirectory}/server/db/schema.${ext}`, (content) => {
+		sv.file(paths.databaseSchema, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			let userSchemaExpression;
@@ -286,7 +292,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${kit?.libDirectory}/server/db/index.${ext}`, (content) => {
+		sv.file(paths.database, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, {
@@ -417,9 +423,15 @@ export default defineAddon({
 		});
 	},
 	nextSteps: ({ options, highlighter, packageManager }) => {
-		const steps = [
+		const steps: string[] = [];
+		if (forNextSteps) {
+			const [p1, p2] = forNextSteps.split('___');
+			steps.push(`${p1} ${highlighter.path(p2)}`);
+		}
+		highlighter.route;
+		steps.push(
 			`You will need to set ${highlighter.env('DATABASE_URL')} in your production environment`
-		];
+		);
 		if (options.docker) {
 			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
