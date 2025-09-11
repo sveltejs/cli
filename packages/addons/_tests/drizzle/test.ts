@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { beforeAll } from 'vitest';
 import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/suite.ts';
+import { execAsync, setupTest } from '../_setup/suite.ts';
 import drizzle from '../../drizzle/index.ts';
 import { pageServer, pageComp } from './fixtures.ts';
 
@@ -58,12 +58,12 @@ test.concurrent.for(testCases)(
 		const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
 		fs.writeFileSync(pageServerPath, pageServer, 'utf8');
 
-		const { close } = await prepareServer({ cwd, page }, () => {
-			execSync('npm run db:push', { cwd });
+		const { close } = await prepareServer({ cwd, page }, async () => {
+			await execAsync('npm run db:push', { cwd });
 		});
 		// kill server process when we're done
 		ctx.onTestFinished(async () => await close());
 
-		expect(await page.$('[data-testid]')).toBeTruthy();
+		expect(page.locator('[data-testid]')).toBeTruthy();
 	}
 );
