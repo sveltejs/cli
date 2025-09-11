@@ -59,6 +59,11 @@ export function addDefault(node: AstTypes.Program, options: { from: string; as: 
 export function addNamed(
 	node: AstTypes.Program,
 	options: {
+		/**
+		 * ```ts
+		 * imports: { 'name': 'alias' } | ['name']
+		 * ```
+		 */
 		imports: Record<string, string> | string[];
 		from: string;
 		isType?: boolean;
@@ -137,4 +142,38 @@ function addImportIfNecessary(
 	if (!importDeclaration) {
 		node.body.unshift(expectedImportDeclaration);
 	}
+}
+
+export function find(
+	ast: AstTypes.Program,
+	options: { name: string }
+):
+	| { statement: AstTypes.ImportDeclaration; alias: string }
+	| { statement: undefined; alias: undefined } {
+	let alias = options.name;
+	let statement: AstTypes.ImportDeclaration;
+
+	Walker.walk(ast as AstTypes.Node, null, {
+		ImportDeclaration(node) {
+			if (node.specifiers) {
+				const specifier = node.specifiers.find(
+					(sp) =>
+						sp.type === 'ImportSpecifier' &&
+						sp.imported.type === 'Identifier' &&
+						sp.imported.name === options.name
+				) as AstTypes.ImportSpecifier | undefined;
+				if (specifier) {
+					statement = node;
+					alias = (specifier.local?.name ?? alias) as string;
+					return;
+				}
+			}
+		}
+	});
+
+	if (statement!) {
+		return { statement, alias };
+	}
+
+	return { statement: undefined, alias: undefined };
 }

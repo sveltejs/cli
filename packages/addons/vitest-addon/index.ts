@@ -146,50 +146,30 @@ export default defineAddon({
 			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
 
 			// Manage imports
-			// 1/ if the previous `defineConfig` was aliased, reuse the alias for the "vitest/config" import
-			let alias = 'defineConfig';
-			let importStatement: AstTypes.ImportDeclaration | undefined;
-
-			// 1/ Find the existing defineConfig import from 'vite'
-			for (const statement of ast.body) {
-				if (
-					statement.type === 'ImportDeclaration' &&
-					statement.source.value === 'vite' &&
-					statement.specifiers
-				) {
-					const defineConfigSpecifier = statement.specifiers.find(
-						(sp) =>
-							sp.type === 'ImportSpecifier' &&
-							sp.imported.type === 'Identifier' &&
-							sp.imported.name === 'defineConfig'
-					) as AstTypes.ImportSpecifier | undefined;
-					if (defineConfigSpecifier) {
-						importStatement = statement;
-						alias = (defineConfigSpecifier.local?.name ?? 'defineConfig') as string;
-						break;
-					}
-				}
+			const { statement, alias } = imports.find(ast, { name: 'defineConfig' });
+			if (!statement) {
+				return;
 			}
 
-			// 2/ add the new import
+			// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
 			imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
 
 			// 3/ remove the previous import // import { defineConfig } from 'vite'; (if defineConfig was alone, remove the line)
-			if (importStatement) {
+			if (statement) {
 				// if `defineConfig` is the only specifier in that "vite" import, remove the entire import declaration
-				if (importStatement.specifiers?.length === 1) {
-					const idxToRemove = ast.body.indexOf(importStatement);
+				if (statement.specifiers?.length === 1) {
+					const idxToRemove = ast.body.indexOf(statement);
 					ast.body.splice(idxToRemove, 1);
 				} else {
 					// otherwise, just remove the `defineConfig` specifier
-					const idxToRemove = importStatement.specifiers?.findIndex(
+					const idxToRemove = statement.specifiers?.findIndex(
 						(s) =>
 							s.type === 'ImportSpecifier' &&
 							s.imported.type === 'Identifier' &&
 							s.imported.name === 'defineConfig'
 					);
 					if (idxToRemove !== undefined && idxToRemove !== -1) {
-						importStatement.specifiers?.splice(idxToRemove, 1);
+						statement.specifiers?.splice(idxToRemove, 1);
 					}
 				}
 			}
