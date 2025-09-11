@@ -1,5 +1,5 @@
 import { dedent, defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { array, imports, object, vite, type AstTypes } from '@sveltejs/cli-core/js';
+import { array, imports, object, vite } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const options = defineAddonOptions()
