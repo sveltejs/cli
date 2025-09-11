@@ -35,12 +35,14 @@ function exportDefaultConfig(
 	if (fallback) {
 		fallbackExpression =
 			typeof fallback.code === 'string' ? common.parseExpression(fallback.code) : fallback.code;
-		fallback.additional?.(ast);
 	} else {
 		fallbackExpression = object.create({});
 	}
 
-	const { value } = exports.createDefault(ast, { fallback: fallbackExpression });
+	const { value, isFallback } = exports.createDefault(ast, { fallback: fallbackExpression });
+	if (isFallback) {
+		options.fallback?.additional?.(ast);
+	}
 
 	// Handle TypeScript `satisfies` expressions
 	const rootObject = value.type === 'TSSatisfiesExpression' ? value.expression : value;
