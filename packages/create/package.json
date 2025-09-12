@@ -29,9 +29,14 @@
 		},
 		"./build": {
 			"default": "./scripts/build-templates.js"
+		},
+		"./playground": {
+			"types": "./dist/playground.d.ts",
+			"default": "./dist/playground.js"
 		}
 	},
 	"devDependencies": {
+		"@sveltejs/cli-core": "workspace:*",
 		"@types/gitignore-parser": "^0.0.3",
 		"gitignore-parser": "^0.0.2",
 		"sucrase": "^3.35.0",

@@ -12,6 +12,16 @@ npx sv create [options] [path]
 
 ## Options
 
+### `--from-playground <url>`
+
+Create a SvelteKit project from a Svelte Playground URL. This downloads all playground files, detects external dependencies, and sets up a complete SvelteKit project structure with everything ready to go.
+
+Example:
+
+```sh
+npx sv create --from-playground=https://svelte.dev/playground/hello-world
+```
+
 ### `--template <name>`
 
 Which project template to use:
