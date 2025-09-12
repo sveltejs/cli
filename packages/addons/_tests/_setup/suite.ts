@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { exec, execSync } from 'node:child_process';
+import { exec } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import {
@@ -123,13 +123,13 @@ async function prepareServer(
 	afterInstall?: () => Promise<any> | any
 ) {
 	// install deps
-	if (installCommand) execSync(installCommand, { cwd });
+	if (installCommand) await execAsync(installCommand, { cwd });
 
 	// ...do commands and any other extra stuff
 	await afterInstall?.();
 
 	// build project
-	if (buildCommand) execSync(buildCommand, { cwd });
+	if (buildCommand) await execAsync(buildCommand, { cwd });
 
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
