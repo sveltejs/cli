@@ -19,7 +19,7 @@ Create a SvelteKit project from a [playground](/playground) URL. This downloads 
 Example:
 
 ```sh
-npx sv create --from-playground=https://svelte.dev/playground/hello-world
+npx sv create --from-playground="https://svelte.dev/playground/hello-world"
 ```
 
 ### `--template <name>`
