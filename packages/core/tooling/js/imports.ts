@@ -59,6 +59,11 @@ export function addDefault(node: AstTypes.Program, options: { from: string; as: 
 export function addNamed(
 	node: AstTypes.Program,
 	options: {
+		/**
+		 * ```ts
+		 * imports: { 'name': 'alias' } | ['name']
+		 * ```
+		 */
 		imports: Record<string, string> | string[];
 		from: string;
 		isType?: boolean;
@@ -136,5 +141,71 @@ function addImportIfNecessary(
 
 	if (!importDeclaration) {
 		node.body.unshift(expectedImportDeclaration);
+	}
+}
+
+export function find(
+	ast: AstTypes.Program,
+	options: { name: string; from: string }
+):
+	| { statement: AstTypes.ImportDeclaration; alias: string }
+	| { statement: undefined; alias: undefined } {
+	let alias = options.name;
+	let statement: AstTypes.ImportDeclaration;
+
+	Walker.walk(ast as AstTypes.Node, null, {
+		ImportDeclaration(node) {
+			if (node.specifiers && node.source.value === options.from) {
+				const specifier = node.specifiers.find(
+					(sp) =>
+						sp.type === 'ImportSpecifier' &&
+						sp.imported.type === 'Identifier' &&
+						sp.imported.name === options.name
+				) as AstTypes.ImportSpecifier | undefined;
+				if (specifier) {
+					statement = node;
+					alias = (specifier.local?.name ?? alias) as string;
+					return;
+				}
+			}
+		}
+	});
+
+	if (statement!) {
+		return { statement, alias };
+	}
+
+	return { statement: undefined, alias: undefined };
+}
+
+export function remove(
+	ast: AstTypes.Program,
+	options: {
+		name: string;
+		from: string;
+		statement?: AstTypes.ImportDeclaration; // Just in case you want to pass the statement directly
+	}
+): void {
+	const statement =
+		options.statement ?? find(ast, { name: options.name, from: options.from }).statement;
+
+	if (!statement) {
+		return;
+	}
+
+	if (statement.specifiers?.length === 1) {
+		const idxToRemove = ast.body.indexOf(statement);
+		ast.body.splice(idxToRemove, 1);
+	} else {
+		// otherwise, just remove the `defineConfig` specifier
+		const idxToRemove = statement.specifiers?.findIndex(
+			(s) =>
+				s.type === 'ImportSpecifier' &&
+				s.imported.type === 'Identifier' &&
+				s.imported.name === options.name
+		);
+		if (idxToRemove !== undefined && idxToRemove !== -1) {
+			statement.specifiers?.splice(idxToRemove, 1);
+		}
 	}
 }
