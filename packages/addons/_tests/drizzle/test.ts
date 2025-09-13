@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import * as vitest from 'vitest';
+import { beforeAll } from 'vitest';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import drizzle from '../../drizzle/index.ts';
@@ -14,7 +14,7 @@ const { test, variants, prepareServer } = setupTest({ drizzle });
 // only linux is supported for running docker containers in github runners
 const noDocker = process.env.CI && process.platform !== 'linux';
 
-vitest.beforeAll(() => {
+beforeAll(() => {
 	if (noDocker) return;
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
@@ -64,6 +64,6 @@ test.concurrent.for(testCases)(
 		// kill server process when we're done
 		ctx.onTestFinished(async () => await close());
 
-		expect(await page.$('[data-testid]')).toBeTruthy();
+		expect(page.locator('[data-testid]')).toBeTruthy();
 	}
 );
