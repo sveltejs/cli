@@ -19,7 +19,7 @@ beforeAll(() => {
 	}
 });
 
-test.skip.for(variants)(
+test.for(variants)(
 	'storybook loaded - %s',
 	{ concurrent: !CI },
 	async (variant, { page, ...ctx }) => {
