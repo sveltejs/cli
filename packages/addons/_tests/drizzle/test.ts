@@ -59,7 +59,7 @@ test.concurrent.for(testCases)(
 		fs.writeFileSync(pageServerPath, pageServer, 'utf8');
 
 		const { close } = await prepareServer({ cwd, page }, () => {
-			execSync('npm run db:push', { cwd });
+			execSync('npm run db:push', { cwd, stdio: 'pipe' });
 		});
 		// kill server process when we're done
 		ctx.onTestFinished(async () => await close());

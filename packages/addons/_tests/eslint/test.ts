@@ -12,11 +12,11 @@ test.concurrent.for(variants)('core - %s', async (variant, { expect, ...ctx }) =
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');
 
-	expect(() => execSync('pnpm install', { cwd })).not.toThrow();
+	expect(() => execSync('pnpm install', { cwd, stdio: 'pipe' })).not.toThrow();
 
-	expect(() => execSync('pnpm lint', { cwd })).toThrow();
+	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).toThrow();
 
-	expect(() => execSync('pnpm eslint --fix .', { cwd })).not.toThrow();
+	expect(() => execSync('pnpm eslint --fix .', { cwd, stdio: 'pipe' })).not.toThrow();
 
-	expect(() => execSync('pnpm lint', { cwd })).not.toThrow();
+	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).not.toThrow();
 });
