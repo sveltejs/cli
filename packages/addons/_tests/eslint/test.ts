@@ -5,7 +5,7 @@ import eslint from '../../eslint/index.ts';
 
 const { test, variants } = setupTest({ eslint }, { browser: false });
 
-test.concurrent.for(variants)('core - %s', async (variant, { expect, ...ctx }) => {
+test.for(variants)('core - %s', async (variant, { expect, ...ctx }) => {
 	const cwd = await ctx.run(variant, { eslint: {} });
 
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
