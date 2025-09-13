@@ -12,7 +12,6 @@ import pc from 'picocolors';
 import * as p from '@clack/prompts';
 import { exec, NonZeroExitError } from 'tinyexec';
 import { resolveCommand } from 'package-manager-detector';
-import { TESTING } from '../utils/env.ts';
 import { createWorkspace } from '../commands/add/workspace.ts';
 import { fileExists, installPackages, readFile, writeFile } from '../commands/add/utils.ts';
 
@@ -148,16 +147,15 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
 			const executedCommand = `${command} ${args.join(' ')}`;
-			if (!TESTING) {
-				p.log.step(`${addonPrefix}Running external command ${pc.gray(`(${executedCommand})`)}`);
-			}
+
+			p.log.step(`${addonPrefix}Running external command ${pc.gray(`(${executedCommand})`)}`);
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
 			if (workspace.packageManager === 'npm') args.unshift('--yes');
 
 			try {
 				await exec(command, args, {
-					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
+					nodeOptions: { cwd: workspace.cwd, stdio },
 					throwOnError: true
 				});
 			} catch (error) {

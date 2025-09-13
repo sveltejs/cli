@@ -110,6 +110,7 @@ export function fileExists(cwd: string, filePath: string): boolean {
 export const commonFilePaths = {
 	packageJson: 'package.json',
 	svelteConfig: 'svelte.config.js',
+	jsconfig: 'jsconfig.json',
 	tsconfig: 'tsconfig.json',
 	viteConfig: 'vite.config.js',
 	viteConfigTS: 'vite.config.ts'
