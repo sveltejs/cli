@@ -10,7 +10,7 @@ import {
 	type AstTypes
 } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
-import { addEslintConfigPrettier } from '../common.ts';
+import { addEslintConfigPrettier, getNodeTypesVersion } from '../common.ts';
 
 export default defineAddon({
 	id: 'eslint',
@@ -25,6 +25,7 @@ export default defineAddon({
 		sv.devDependency('eslint-plugin-svelte', '^3.0.0');
 		sv.devDependency('globals', '^16.0.0');
 		sv.devDependency('@eslint/js', '^9.18.0');
+		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.20.0');
 
