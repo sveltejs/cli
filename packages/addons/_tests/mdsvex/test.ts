@@ -20,9 +20,9 @@ test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => 
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
-	expect(await page.$('.mdsvex h1')).toBeTruthy();
-	expect(await page.$('.mdsvex h2')).toBeTruthy();
-	expect(await page.$('.mdsvex p')).toBeTruthy();
+	expect(page.locator('.mdsvex h1')).toBeTruthy();
+	expect(page.locator('.mdsvex h2')).toBeTruthy();
+	expect(page.locator('.mdsvex p')).toBeTruthy();
 });
 
 function addFixture(cwd: string, variant: string) {

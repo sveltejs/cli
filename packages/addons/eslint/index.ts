@@ -20,11 +20,11 @@ export default defineAddon({
 	run: ({ sv, typescript, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('eslint', '^9.18.0');
+		sv.devDependency('eslint', '^9.22.0');
 		sv.devDependency('@eslint/compat', '^1.2.5');
 		sv.devDependency('eslint-plugin-svelte', '^3.0.0');
 		sv.devDependency('globals', '^16.0.0');
-		sv.devDependency('@eslint/js', '^9.18.0');
+		sv.devDependency('@eslint/js', '^9.22.0');
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.20.0');
 
@@ -133,7 +133,7 @@ export default defineAddon({
 
 			let exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression;
 			if (typescript) {
-				const tsConfigCall = functions.createCall({ name: 'ts.config', args: [] });
+				const tsConfigCall = functions.createCall({ name: 'defineConfig', args: [] });
 				tsConfigCall.arguments.push(...eslintConfigs);
 				exportExpression = tsConfigCall;
 			} else {
@@ -155,14 +155,15 @@ export default defineAddon({
 				common.addJsDocTypeComment(astNode, { type: "import('eslint').Linter.Config[]" });
 
 			if (typescript) imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
-			imports.addNamed(ast, { from: 'node:url', imports: ['fileURLToPath'] });
 			imports.addDefault(ast, { from: 'globals', as: 'globals' });
+			if (typescript) imports.addNamed(ast, { from: 'eslint/config', imports: ['defineConfig'] });
 			imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: 'svelte' });
 			imports.addDefault(ast, { from: '@eslint/js', as: 'js' });
 			imports.addNamed(ast, {
 				from: '@eslint/compat',
 				imports: ['includeIgnoreFile']
 			});
+			imports.addNamed(ast, { from: 'node:url', imports: ['fileURLToPath'] });
 
 			return generateCode();
 		});
