@@ -12,7 +12,7 @@ import {
 	detect,
 	type AgentName
 } from 'package-manager-detector';
-import { parseJson } from '@sveltejs/cli-core/parsers';
+import { parseYaml } from '@sveltejs/cli-core/parsers';
 
 export const AGENT_NAMES = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
 const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
@@ -93,29 +93,27 @@ export function addPnpmBuildDependencies(
 	allowedPackages: string[]
 ) {
 	// other package managers are currently not affected by this change
-	if (!packageManager || packageManager !== 'pnpm') return;
+	if (!packageManager || packageManager !== 'pnpm' || allowedPackages.length === 0) return;
 
 	// find the workspace root (if present)
-	const pnpmWorkspacePath = find.up('pnpm-workspace.yaml', { cwd });
-	let packageDirectory;
+	const found = find.up('pnpm-workspace.yaml', { cwd });
+	const content = found ? fs.readFileSync(found, 'utf-8') : '';
 
-	if (pnpmWorkspacePath) packageDirectory = path.dirname(pnpmWorkspacePath);
-	else packageDirectory = cwd;
+	const { data, generateCode } = parseYaml(content);
 
-	// load the package.json
-	const pkgPath = path.join(packageDirectory, 'package.json');
-	const content = fs.readFileSync(pkgPath, 'utf-8');
-	const { data, generateCode } = parseJson(content);
+	for (const pkg of allowedPackages) {
+		const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
+		if (onlyBuiltDependencies) {
+			const values = onlyBuiltDependencies.items.map((c: { value: string }) => c.value);
+			if (values.includes(pkg)) continue;
 
-	// add the packages where we install scripts should be executed
-	data.pnpm ??= {};
-	data.pnpm.onlyBuiltDependencies ??= [];
-	for (const allowedPackage of allowedPackages) {
-		if (data.pnpm.onlyBuiltDependencies.includes(allowedPackage)) continue;
-		data.pnpm.onlyBuiltDependencies.push(allowedPackage);
+			onlyBuiltDependencies.add(pkg);
+		} else {
+			data.set('onlyBuiltDependencies', [pkg]);
+		}
 	}
 
-	// save the updated package.json
 	const newContent = generateCode();
-	fs.writeFileSync(pkgPath, newContent);
+	const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
+	fs.writeFileSync(pnpmWorkspacePath, newContent);
 }

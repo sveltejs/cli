@@ -1,11 +1,13 @@
-import { expect, test } from 'vitest';
+import { expect, test, describe } from 'vitest';
 import dedent from 'dedent';
 import {
 	parseScript,
 	serializeScript,
 	guessIndentString,
 	guessQuoteStyle,
-	type AstTypes
+	type AstTypes,
+	parseYaml,
+	serializeYaml
 } from '../tooling/index.ts';
 
 test('guessIndentString - one tab', () => {
@@ -182,4 +184,78 @@ test('integration - preserves comments', () => {
 		"/** @type {string} */
 		let foo = 'bar';"
 	`);
+});
+
+describe('yaml', () => {
+	test('read and write', () => {
+		const input = dedent`foo: 
+ - bar
+ - baz`;
+
+		const output = serializeYaml(parseYaml(input));
+
+		expect(output).toMatchInlineSnapshot(`
+			"foo:
+			  - bar
+			  - baz
+			"
+		`);
+	});
+
+	test('edit object', () => {
+		const input = dedent`foo: 
+ # nice comment
+ - bar
+ - baz`;
+
+		const doc = parseYaml(input);
+
+		const foo = doc.get('foo');
+		if (foo) foo.add('yop');
+		else doc.set('foo', ['yop']);
+
+		expect(serializeYaml(doc)).toMatchInlineSnapshot(`
+			"foo:
+			  # nice comment
+			  - bar
+			  - baz
+			  - yop
+			"
+		`);
+	});
+
+	test('create object', () => {
+		const input = dedent`# this is my file`;
+
+		const doc = parseYaml(input);
+
+		const foo = doc.get('foo');
+		if (foo) foo.add('yop');
+		else doc.set('foo', ['yop']);
+
+		expect(serializeYaml(doc)).toMatchInlineSnapshot(`
+			"# this is my file
+
+			foo:
+			  - yop
+			"
+		`);
+	});
+
+	test('array of foo', () => {
+		const input = dedent`foo: 
+ # nice comment
+ - bar
+ - baz`;
+
+		const output = serializeYaml(parseYaml(input));
+
+		expect(output).toMatchInlineSnapshot(`
+			"foo:
+			  # nice comment
+			  - bar
+			  - baz
+			"
+		`);
+	});
 });
