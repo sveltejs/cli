@@ -12,7 +12,8 @@ import {
 	detect,
 	type AgentName
 } from 'package-manager-detector';
-import { parseYaml } from '@sveltejs/cli-core/parsers';
+import { parseJson, parseYaml } from '@sveltejs/cli-core/parsers';
+import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
 
 export const AGENT_NAMES = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
 const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
@@ -87,7 +88,7 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export function addPnpmBuildDependencies(
+export async function addPnpmBuildDependencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	allowedPackages: string[]
@@ -95,22 +96,62 @@ export function addPnpmBuildDependencies(
 	// other package managers are currently not affected by this change
 	if (!packageManager || packageManager !== 'pnpm' || allowedPackages.length === 0) return;
 
+	let confIn: 'npm' | 'pnpm' = 'npm';
+	const pnpmVersion = await getPnpmVersion();
+	if (pnpmVersion) {
+		const minimumVersion = '10.5';
+		confIn = isVersionUnsupportedBelow(pnpmVersion, minimumVersion) ? 'npm' : 'pnpm';
+	}
+
 	// find the workspace root (if present)
 	const found = find.up('pnpm-workspace.yaml', { cwd });
-	const content = found ? fs.readFileSync(found, 'utf-8') : '';
+	const dir = found ? path.dirname(found) : cwd;
 
-	const { data, generateCode } = parseYaml(content);
+	if (confIn === 'npm') {
+		// load the package.json
+		const pkgPath = path.join(dir, 'package.json');
+		const content = fs.readFileSync(pkgPath, 'utf-8');
+		const { data, generateCode } = parseJson(content);
 
-	const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
-	const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
-	for (const item of allowedPackages) {
-		if (items.includes(item)) continue;
-		if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
-		items.push(item);
+		// add the packages where we install scripts should be executed
+		data.pnpm ??= {};
+		data.pnpm.onlyBuiltDependencies ??= [];
+		for (const allowedPackage of allowedPackages) {
+			if (data.pnpm.onlyBuiltDependencies.includes(allowedPackage)) continue;
+			data.pnpm.onlyBuiltDependencies.push(allowedPackage);
+		}
+
+		// save the updated package.json
+		const newContent = generateCode();
+		fs.writeFileSync(pkgPath, newContent);
 	}
-	data.set('onlyBuiltDependencies', new Set(items));
 
-	const newContent = generateCode();
-	const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-	fs.writeFileSync(pnpmWorkspacePath, newContent);
+	if (confIn === 'pnpm') {
+		// load the pnpm-workspace.yaml
+		const content = found ? fs.readFileSync(found, 'utf-8') : '';
+		const { data, generateCode } = parseYaml(content);
+
+		const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
+		const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
+		for (const item of allowedPackages) {
+			if (items.includes(item)) continue;
+			if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
+			items.push(item);
+		}
+		data.set('onlyBuiltDependencies', new Set(items));
+
+		const newContent = generateCode();
+		const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
+		fs.writeFileSync(pnpmWorkspacePath, newContent);
+	}
+}
+
+async function getPnpmVersion(): Promise<string | undefined> {
+	let v: string | undefined = undefined;
+	try {
+		const proc = exec('pnpm', ['--version'], { throwOnError: true });
+		const result = await proc;
+		v = result.stdout?.trim();
+	} catch {}
+	return v;
 }
