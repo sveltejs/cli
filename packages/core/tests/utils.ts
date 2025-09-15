@@ -224,6 +224,36 @@ describe('yaml', () => {
 		`);
 	});
 
+	test('add to array (keeping comments)', () => {
+		const input = dedent`foo: 
+ - bar
+ # com
+ - baz`;
+
+		const doc = parseYaml(input);
+
+		const toAdd = ['bar', 'yop1', 'yop2', 'yop1'];
+
+		const foo = doc.get('foo');
+		const items: Array<{ value: string } | string> = foo?.items ?? [];
+		for (const item of toAdd) {
+			if (items.includes(item)) continue;
+			if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
+			items.push(item);
+		}
+		doc.set('foo', new Set(items));
+
+		expect(serializeYaml(doc)).toMatchInlineSnapshot(`
+			"foo:
+			  - bar
+			  # com
+			  - baz
+			  - yop1
+			  - yop2
+			"
+		`);
+	});
+
 	test('create object', () => {
 		const input = dedent`# this is my file`;
 

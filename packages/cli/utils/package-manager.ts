@@ -101,17 +101,14 @@ export function addPnpmBuildDependencies(
 
 	const { data, generateCode } = parseYaml(content);
 
-	for (const pkg of allowedPackages) {
-		const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
-		if (onlyBuiltDependencies) {
-			const values = onlyBuiltDependencies.items.map((c: { value: string }) => c.value);
-			if (values.includes(pkg)) continue;
-
-			onlyBuiltDependencies.add(pkg);
-		} else {
-			data.set('onlyBuiltDependencies', [pkg]);
-		}
+	const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
+	const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
+	for (const item of allowedPackages) {
+		if (items.includes(item)) continue;
+		if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
+		items.push(item);
 	}
+	data.set('onlyBuiltDependencies', new Set(items));
 
 	const newContent = generateCode();
 	const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
