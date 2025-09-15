@@ -1,5 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import { splitVersion, isVersionUnsupportedBelow } from '../common.ts';
+import { splitVersion, isVersionUnsupportedBelow, isVersionAtLeast } from '../common.ts';
 
 describe('versionSplit', () => {
 	const combinationsVersionSplit = [
@@ -43,6 +43,23 @@ describe('minimumRequirement', () => {
 		'($version below $below) should be $expected',
 		({ version, below, expected }) => {
 			expect(isVersionUnsupportedBelow(version, below)).toEqual(expected);
+		}
+	);
+});
+
+describe('isVersionAtLeast', () => {
+	const combinationsIsVersionAtLeast = [
+		{ version: '1.0.0', atLeast: '1.0.0', expected: true },
+		{ version: '1.0.0', atLeast: '1.0.1', expected: false },
+		{ version: '1.0.1', atLeast: '1.0.0', expected: true },
+		{ version: '1.0.1', atLeast: '1', expected: true },
+		{ version: '1', atLeast: '1', expected: true },
+		{ version: '*', atLeast: '1', expected: false }
+	] as const;
+	it.each(combinationsIsVersionAtLeast)(
+		'($version atLeast $atLeast) should be $expected',
+		({ version, atLeast, expected }) => {
+			expect(isVersionAtLeast(version, atLeast)).toEqual(expected);
 		}
 	);
 });
