@@ -1,23 +1,48 @@
 import { array, functions, imports, object, exports, type AstTypes, common } from './index.ts';
 
+function isConfigWrapper(
+	callExpression: AstTypes.CallExpression,
+	knownWrappers: string[]
+): boolean {
+	// Check if this is a call to defineConfig or any function that looks like a config wrapper
+	if (callExpression.callee.type !== 'Identifier') return false;
+
+	const calleeName = callExpression.callee.name;
+
+	// Check if it's a known wrapper
+	if (knownWrappers.includes(calleeName)) return true;
+
+	// Check if it's imported from 'vite' (this would require analyzing imports, but for now we'll be conservative)
+	// For now, assume any function call with a single object argument is a config wrapper
+	const isObjectCall =
+		callExpression.arguments.length === 1 &&
+		callExpression.arguments[0]?.type === 'ObjectExpression';
+
+	return knownWrappers.includes(calleeName) || isObjectCall;
+}
+
 function exportDefaultConfig(
 	ast: AstTypes.Program,
 	options: {
-		fallback?: AstTypes.Expression | string;
-		ignoreWrapper?: string;
-	} = {}
+		fallback?: { code: string; additional?: (ast: AstTypes.Program) => void };
+		ignoreWrapper: string[];
+	}
 ): AstTypes.ObjectExpression {
 	const { fallback, ignoreWrapper } = options;
 
 	// Get or create the default export
 	let fallbackExpression: AstTypes.Expression;
 	if (fallback) {
-		fallbackExpression = typeof fallback === 'string' ? common.parseExpression(fallback) : fallback;
+		fallbackExpression =
+			typeof fallback.code === 'string' ? common.parseExpression(fallback.code) : fallback.code;
 	} else {
 		fallbackExpression = object.create({});
 	}
 
-	const { value } = exports.createDefault(ast, { fallback: fallbackExpression });
+	const { value, isFallback } = exports.createDefault(ast, { fallback: fallbackExpression });
+	if (isFallback) {
+		options.fallback?.additional?.(ast);
+	}
 
 	// Handle TypeScript `satisfies` expressions
 	const rootObject = value.type === 'TSSatisfiesExpression' ? value.expression : value;
@@ -25,18 +50,20 @@ function exportDefaultConfig(
 	// Handle wrapper functions (e.g., defineConfig({})) if ignoreWrapper is specified
 	let configObject: AstTypes.ObjectExpression;
 
-	// Early bail-out: if no wrapper to ignore or not a call expression
-	if (!ignoreWrapper || !('arguments' in rootObject) || !Array.isArray(rootObject.arguments)) {
+	// Early bail-out: if not a call expression
+	if (!('arguments' in rootObject) || !Array.isArray(rootObject.arguments)) {
 		configObject = rootObject as unknown as AstTypes.ObjectExpression;
 		return configObject;
 	}
 
-	// Early bail-out: if not the specific wrapper we want to ignore
-	if (
-		rootObject.type !== 'CallExpression' ||
-		rootObject.callee.type !== 'Identifier' ||
-		rootObject.callee.name !== ignoreWrapper
-	) {
+	// Early bail-out: if not a call expression
+	if (rootObject.type !== 'CallExpression' || rootObject.callee.type !== 'Identifier') {
+		configObject = rootObject as unknown as AstTypes.ObjectExpression;
+		return configObject;
+	}
+
+	// Check if this is a config wrapper function call
+	if (!isConfigWrapper(rootObject as AstTypes.CallExpression, ignoreWrapper)) {
 		configObject = rootObject as unknown as AstTypes.ObjectExpression;
 		return configObject;
 	}
@@ -87,7 +114,7 @@ function exportDefaultConfig(
 		configObject = object.create({});
 	}
 
-	return configObject;
+	return configObject as AstTypes.ObjectExpression;
 }
 
 function addInArrayOfObject(
@@ -124,15 +151,21 @@ export const addPlugin = (
 	}
 ): void => {
 	// Step 1: Get the config object, or fallback.
-	imports.addNamed(ast, { from: 'vite', imports: { defineConfig: 'defineConfig' } });
-	const configObject = exportDefaultConfig(ast, {
-		fallback: 'defineConfig()',
-		ignoreWrapper: 'defineConfig'
-	});
+	const configObject = getConfig(ast);
 
 	// Step 2: Add the plugin to the plugins array
 	addInArrayOfObject(configObject, {
 		arrayProperty: 'plugins',
 		...options
+	});
+};
+
+export const getConfig = (ast: AstTypes.Program): AstTypes.ObjectExpression => {
+	return exportDefaultConfig(ast, {
+		fallback: {
+			code: 'defineConfig()',
+			additional: (ast) => imports.addNamed(ast, { imports: ['defineConfig'], from: 'vite' })
+		},
+		ignoreWrapper: ['defineConfig']
 	});
 };

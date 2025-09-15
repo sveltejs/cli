@@ -3,6 +3,7 @@ import type { AstTypes } from '../index.ts';
 export type ExportDefaultResult<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;
 	value: T;
+	isFallback: boolean;
 };
 
 export function createDefault<T extends AstTypes.Expression>(
@@ -17,7 +18,7 @@ export function createDefault<T extends AstTypes.Expression>(
 		};
 
 		node.body.push(exportNode);
-		return { astNode: exportNode, value: options.fallback };
+		return { astNode: exportNode, value: options.fallback, isFallback: true };
 	}
 
 	const exportDefaultDeclaration = existingNode;
@@ -46,11 +47,11 @@ export function createDefault<T extends AstTypes.Expression>(
 
 		const value = variableDeclarator.init as T;
 
-		return { astNode: exportDefaultDeclaration, value };
+		return { astNode: exportDefaultDeclaration, value, isFallback: false };
 	}
 
 	const declaration = exportDefaultDeclaration.declaration as T;
-	return { astNode: exportDefaultDeclaration, value: declaration };
+	return { astNode: exportDefaultDeclaration, value: declaration, isFallback: false };
 }
 
 export function createNamed(
