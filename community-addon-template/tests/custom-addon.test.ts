@@ -6,7 +6,7 @@ import addon from '../src/index.js';
 const id = addon.id;
 const { test, variants, prepareServer } = setupTest({ [id]: addon });
 
-test.concurrent.for(variants)('demo - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(variants)('demo - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { [id]: { demo: true } });
 
 	// ...add files

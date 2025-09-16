@@ -6,7 +6,7 @@ import drizzle from '../../drizzle/index.ts';
 const { test, variants, prepareServer } = setupTest({ drizzle, lucia });
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
-test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, {
 		drizzle: { database: 'sqlite', sqlite: 'libsql' },
 		lucia: { demo: true }

@@ -10,7 +10,7 @@ import mdsvex from '../../mdsvex/index.ts';
 
 const { test, variants, prepareServer } = setupTest({ mdsvex });
 
-test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { mdsvex: {} });
 
 	// ...add test files

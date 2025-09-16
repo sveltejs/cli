@@ -8,7 +8,7 @@ const addonId = sveltekitAdapter.id;
 const { test, variants, prepareServer } = setupTest({ [addonId]: sveltekitAdapter });
 
 const kitOnly = variants.filter((v) => v.includes('kit'));
-test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { [addonId]: { adapter: 'node' } });
 
 	const { close } = await prepareServer({ cwd, page });
@@ -21,7 +21,7 @@ test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	);
 });
 
-test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { [addonId]: { adapter: 'auto' } });
 
 	const { close } = await prepareServer({ cwd, page });

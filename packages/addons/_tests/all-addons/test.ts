@@ -19,7 +19,7 @@ const defaultOptions = officialAddons.reduce<OptionMap<typeof addons>>((options,
 const { test, variants, prepareServer } = setupTest(addons);
 
 const kitOnly = variants.filter((v) => v.startsWith('kit'));
-test.concurrent.for(kitOnly)('run all addons - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(kitOnly)('run all addons - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, defaultOptions);
 
 	const { close } = await prepareServer({ cwd, page });

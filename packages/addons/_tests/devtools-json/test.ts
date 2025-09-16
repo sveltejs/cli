@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const { test, variants } = setupTest({ devtoolsJson }, { browser: false });
 
-test.concurrent.for(variants)('default - %s', async (variant, ctx) => {
+test.sequential.for(variants)('default - %s', async (variant, ctx) => {
 	const cwd = await ctx.run(variant, { devtoolsJson: {} });
 
 	const ext = variant.includes('ts') ? 'ts' : 'js';

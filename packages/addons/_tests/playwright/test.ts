@@ -5,7 +5,7 @@ import playwright from '../../playwright/index.ts';
 
 const { test, variants } = setupTest({ playwright }, { browser: false });
 
-test.concurrent.for(variants)('core - %s', async (variant, { expect, ...ctx }) => {
+test.sequential.for(variants)('core - %s', async (variant, { expect, ...ctx }) => {
 	const cwd = await ctx.run(variant, { playwright: {} });
 
 	const ext = variant.includes('ts') ? 'ts' : 'js';

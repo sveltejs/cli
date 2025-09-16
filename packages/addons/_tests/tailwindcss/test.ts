@@ -5,7 +5,7 @@ import tailwindcss from '../../tailwindcss/index.ts';
 
 const { test, variants, prepareServer } = setupTest({ tailwindcss });
 
-test.concurrent.for(variants)('none - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(variants)('none - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { tailwindcss: { plugins: [] } });
 
 	// ...add test files
@@ -22,7 +22,7 @@ test.concurrent.for(variants)('none - %s', async (variant, { page, ...ctx }) => 
 	await expect(el).toHaveCSS('margin-top', '4px');
 });
 
-test.concurrent.for(variants)('typography - %s', async (variant, { page, ...ctx }) => {
+test.sequential.for(variants)('typography - %s', async (variant, { page, ...ctx }) => {
 	const cwd = await ctx.run(variant, { tailwindcss: { plugins: ['typography'] } });
 
 	// ...add files
