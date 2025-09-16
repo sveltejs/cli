@@ -40,7 +40,7 @@ const testCases = [
 	}
 ].flatMap((opts) => kitOnly.map((variant) => ({ ...opts, variant })));
 
-test.concurrent.for(testCases)(
+test.sequential.for(testCases)(
 	'queries database - $name - $variant',
 	async ({ options, variant }, { page, ...ctx }) => {
 		if (options.docker && noDocker) ctx.skip();
