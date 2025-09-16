@@ -96,18 +96,19 @@ export async function addPnpmBuildDependencies(
 	// other package managers are currently not affected by this change
 	if (!packageManager || packageManager !== 'pnpm' || allowedPackages.length === 0) return;
 
-	let confIn: 'npm' | 'pnpm' = 'npm';
+	let confIn: 'package.json' | 'pnpm-workspace.yaml' = 'package.json';
 	const pnpmVersion = await getPnpmVersion();
 	if (pnpmVersion) {
-		const minimumVersion = '10.5';
-		confIn = isVersionUnsupportedBelow(pnpmVersion, minimumVersion) ? 'npm' : 'pnpm';
+		confIn = isVersionUnsupportedBelow(pnpmVersion, '10.5')
+			? 'package.json'
+			: 'pnpm-workspace.yaml';
 	}
 
 	// find the workspace root (if present)
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const dir = found ? path.dirname(found) : cwd;
 
-	if (confIn === 'npm') {
+	if (confIn === 'package.json') {
 		// load the package.json
 		const pkgPath = path.join(dir, 'package.json');
 		const content = fs.readFileSync(pkgPath, 'utf-8');
@@ -126,7 +127,7 @@ export async function addPnpmBuildDependencies(
 		fs.writeFileSync(pkgPath, newContent);
 	}
 
-	if (confIn === 'pnpm') {
+	if (confIn === 'pnpm-workspace.yaml') {
 		// load the pnpm-workspace.yaml
 		const content = found ? fs.readFileSync(found, 'utf-8') : '';
 		const { data, generateCode } = parseYaml(content);

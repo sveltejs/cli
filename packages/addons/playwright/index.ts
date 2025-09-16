@@ -50,7 +50,7 @@ export default defineAddon({
 
 			const config = {
 				webServer: {
-					command: 'pnpm build && pnpm preview',
+					command: 'npm run build && npm run preview',
 					port: 4173
 				},
 				testDir: 'e2e'
