@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as find from 'empathic/find';
-import { exec } from 'tinyexec';
+import { x } from 'tinyexec';
 import { Option } from 'commander';
 import * as p from '@clack/prompts';
 import {
@@ -56,19 +56,16 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
-		const proc = exec(command, args, {
+
+		const proc = x(command, args, {
 			nodeOptions: { cwd, stdio: 'pipe' },
 			throwOnError: true
 		});
 
-		proc.process?.stdout?.on('data', (data) => {
-			task.message(data.toString(), { raw: true });
-		});
-		proc.process?.stderr?.on('data', (data) => {
-			task.message(data.toString(), { raw: true });
-		});
-
-		await proc;
+		for await (const line of proc) {
+			// line will be from stderr/stdout in the order you'd see it in a term
+			task.message(line, { raw: true });
+		}
 
 		task.success('Successfully installed dependencies');
 	} catch {
@@ -150,9 +147,8 @@ export async function addPnpmBuildDependencies(
 async function getPnpmVersion(): Promise<string | undefined> {
 	let v: string | undefined = undefined;
 	try {
-		const proc = exec('pnpm', ['--version'], { throwOnError: true });
-		const result = await proc;
-		v = result.stdout?.trim();
+		const proc = await x('pnpm', ['--version'], { throwOnError: true, timeout: 1000 });
+		v = proc.stdout.trim();
 	} catch {}
 	return v;
 }

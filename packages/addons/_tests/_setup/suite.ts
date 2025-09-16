@@ -116,9 +116,9 @@ async function prepareServer(
 	{
 		cwd,
 		page,
-		previewCommand = 'pnpm preview',
+		installCommand = 'pnpm install --no-frozen-lockfile',
 		buildCommand = 'pnpm build',
-		installCommand = 'pnpm install --no-frozen-lockfile'
+		previewCommand = 'pnpm preview'
 	}: PrepareServerOptions,
 	afterInstall?: () => Promise<any> | any
 ) {
