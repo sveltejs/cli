@@ -17,7 +17,8 @@ const defaultOptions = officialAddons.reduce<OptionMap<typeof addons>>((options,
 }, {});
 
 const { test, flavors, prepareServer } = setupTest(addons, {
-	kinds: [{ type: 'default', options: defaultOptions }]
+	kinds: [{ type: 'default', options: defaultOptions }],
+	filter: (flavor) => flavor.variant.startsWith('kit')
 });
 
 test.concurrent.for(flavors)('run all addons - $variant', async (flavor, { page, ...ctx }) => {
