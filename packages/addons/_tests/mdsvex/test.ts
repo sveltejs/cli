@@ -8,13 +8,16 @@ import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ mdsvex });
+const { test, flavors, prepareServer } = setupTest(
+	{ mdsvex },
+	{ kinds: [{ type: 'default', options: { mdsvex: {} } }] }
+);
 
-test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { mdsvex: {} });
+test.concurrent.for(flavors)('mdsvex $variant', async (flavor, { page, ...ctx }) => {
+	const cwd = ctx.run(flavor);
 
 	// ...add test files
-	addFixture(cwd, variant);
+	addFixture(cwd, flavor.variant);
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done

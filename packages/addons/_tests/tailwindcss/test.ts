@@ -14,7 +14,7 @@ const { test, prepareServer, flavors } = setupTest(
 );
 
 test.concurrent.for(flavors)(
-	'tailwindcss $kind.type $variant ',
+	'tailwindcss $kind.type $variant',
 	async (flavor, { page, ...ctx }) => {
 		const cwd = ctx.run(flavor);
 

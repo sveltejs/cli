@@ -9,7 +9,7 @@ const { test, flavors } = setupTest(
 	{ kinds: [{ type: 'default', options: { prettier: {} } }], browser: false }
 );
 
-test.concurrent.for(flavors)('core - %variant', (flavor, { expect, ...ctx }) => {
+test.concurrent.for(flavors)('prettier $variant', (flavor, { expect, ...ctx }) => {
 	const cwd = ctx.run(flavor);
 
 	const unformattedFile = 'const foo = "bar"';

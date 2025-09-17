@@ -124,7 +124,7 @@ export function setupTest<Addons extends AddonMap>(
 		};
 	});
 
-	return { test, variants, prepareServer, flavors };
+	return { test, flavors, prepareServer };
 }
 
 type PrepareServerOptions = {
