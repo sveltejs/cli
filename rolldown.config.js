@@ -1,7 +1,8 @@
 // @ts-check
 import fs from 'node:fs';
 import path from 'node:path';
-import dts from 'unplugin-isolated-decl/rolldown';
+import { dts } from 'rolldown-plugin-dts'
+// import dts from 'unplugin-isolated-decl/rolldown';
 import { buildTemplates } from '@sveltejs/create/build';
 import MagicString from 'magic-string';
 
@@ -108,11 +109,12 @@ function getConfig(project) {
 		},
 		external,
 		plugins: [
-			'exports' in pkg &&
-				dts({
-					include: project === 'cli' ? [`${projectRoot}/lib/*`] : undefined,
-					inputBase: project === 'cli' ? path.resolve(projectRoot, 'lib') : undefined
-				}),
+			dts(),
+			// 'exports' in pkg &&
+			// 	dts({
+			// 		include: project === 'cli' ? [`${projectRoot}/lib/*`] : undefined,
+			// 		inputBase: project === 'cli' ? path.resolve(projectRoot, 'lib') : undefined
+			// 	}),
 			buildCliTemplatesPlugin,
 			communityAddonIdsPlugin
 		]
