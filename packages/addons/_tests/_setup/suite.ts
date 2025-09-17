@@ -21,12 +21,21 @@ export const execAsync = promisify(exec);
 
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
-	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<string>;
+	run(flavor: Flavor<Addons>): string;
+};
+
+type Flavor<Addons extends AddonMap> = {
+	variant: ProjectVariant;
+	kind: { type: string; options: OptionMap<Addons> };
 };
 
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
-	options?: { browser?: boolean }
+	options?: {
+		kinds: Array<Flavor<Addons>['kind']>;
+		filter?: (flavor: Flavor<Addons>) => boolean;
+		browser?: boolean;
+	}
 ) {
 	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
 
@@ -44,8 +53,18 @@ export function setupTest<Addons extends AddonMap>(
 		});
 	}
 
-	vitest.beforeAll(({ name }) => {
-		const testName = path.dirname(name).split('/').at(-1)!;
+	const flavors: Array<Flavor<Addons>> = [];
+	for (const kind of options?.kinds ?? []) {
+		for (const variant of variants) {
+			const flavor = { variant, kind };
+			if (!options?.filter || options?.filter?.(flavor)) {
+				flavors.push(flavor);
+			}
+		}
+	}
+	let testName: string;
+	vitest.beforeAll(async ({ name }) => {
+		testName = path.dirname(name).split('/').at(-1)!;
 
 		// constructs a builder for create test projects
 		create = createProject({ cwd, templatesDir, testName });
@@ -65,6 +84,24 @@ export function setupTest<Addons extends AddonMap>(
 				private: true
 			})
 		);
+
+		for (const { variant, kind } of flavors) {
+			const cwd = create({ testId: `${kind.type}-${variant}`, variant });
+
+			// test metadata
+			const metaPath = path.resolve(cwd, 'meta.json');
+			fs.writeFileSync(metaPath, JSON.stringify({ variant, kind }, null, '\t'), 'utf8');
+
+			const { pnpmBuildDependencies } = await installAddon({
+				cwd,
+				addons,
+				options: kind.options,
+				packageManager: 'pnpm'
+			});
+			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+		}
+
+		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
 	});
 
 	// runs before each test case
@@ -74,23 +111,9 @@ export function setupTest<Addons extends AddonMap>(
 			browserCtx = await browser.newContext();
 			ctx.page = await browserCtx.newPage();
 		}
-		ctx.run = async (variant, options) => {
-			const cwd = create({ testId: ctx.task.id, variant });
 
-			// test metadata
-			const metaPath = path.resolve(cwd, 'meta.json');
-			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
-
-			// run addon
-			const { pnpmBuildDependencies } = await installAddon({
-				cwd,
-				addons,
-				options,
-				packageManager: 'pnpm'
-			});
-			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
-
-			return cwd;
+		ctx.run = (flavor) => {
+			return path.join(cwd, testName, `${flavor.kind.type}-${flavor.variant}`);
 		};
 
 		return async () => {
@@ -101,7 +124,7 @@ export function setupTest<Addons extends AddonMap>(
 		};
 	});
 
-	return { test, variants, prepareServer };
+	return { test, variants, prepareServer, flavors };
 }
 
 type PrepareServerOptions = {
@@ -118,7 +141,7 @@ async function prepareServer(
 		page,
 		previewCommand = 'npm run preview',
 		buildCommand = 'npm run build',
-		installCommand = 'pnpm install --no-frozen-lockfile'
+		installCommand
 	}: PrepareServerOptions,
 	afterInstall?: () => Promise<any> | any
 ) {
