@@ -7,7 +7,7 @@ const { test, flavors } = setupTest(
 	{ kinds: [{ type: 'default', options: { vitest: {} } }], browser: false }
 );
 
-test.concurrent.for(flavors)('vitest %variant', (flavor, { expect, ...ctx }) => {
+test.concurrent.for(flavors)('vitest $variant', (flavor, { expect, ...ctx }) => {
 	const cwd = ctx.run(flavor);
 
 	expect(() => execSync('pnpm install', { cwd, stdio: 'pipe' })).not.toThrow();
