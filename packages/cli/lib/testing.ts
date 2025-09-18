@@ -2,9 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import degit from 'degit';
-import { exec } from 'tinyexec';
+import { x, exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
-import pstree, { type PS } from 'ps-tree';
 
 export { addPnpmBuildDependencies } from '../utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
@@ -84,7 +83,7 @@ export function createProject({ cwd, testName, templatesDir }: CreateOptions): C
 type PreviewOptions = { cwd: string; command?: string };
 export async function startPreview({
 	cwd,
-	command = 'npm run preview'
+	command = 'pnpm preview'
 }: PreviewOptions): Promise<{ url: string; close: () => Promise<void> }> {
 	const [cmd, ...args] = command.split(' ');
 	const proc = exec(cmd, args, {
@@ -122,31 +121,18 @@ export async function startPreview({
 	});
 }
 
-async function getProcessTree(pid: number) {
-	return new Promise<readonly PS[]>((res, rej) => {
-		pstree(pid, (err, children) => {
-			if (err) rej(err);
-			res(children);
-		});
-	});
-}
-
 async function terminate(pid: number) {
-	const children = await getProcessTree(pid);
-	// the process tree is ordered from parents -> children,
-	// so we'll iterate in the reverse order to terminate the children first
-	for (let i = children.length - 1; i >= 0; i--) {
-		const child = children[i];
-		const pid = Number(child.PID);
-		kill(pid);
-	}
-	kill(pid);
-}
-
-function kill(pid: number) {
 	try {
-		process.kill(pid);
+		if (process.platform === 'win32') {
+			await x('taskkill', ['/PID', `${pid}`, '/T', '/F']); // on windows, use taskkill to terminate the process tree
+		} else {
+			process.kill(-pid, 'SIGTERM'); // Kill the process group
+		}
 	} catch {
-		// this can happen if a process has been automatically terminated.
+		try {
+			process.kill(pid, 'SIGTERM'); // Kill just the process
+		} catch {
+			// Process might already be terminated
+		}
 	}
 }
