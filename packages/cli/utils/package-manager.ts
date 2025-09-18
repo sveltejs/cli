@@ -147,7 +147,7 @@ export async function addPnpmBuildDependencies(
 async function getPnpmVersion(): Promise<string | undefined> {
 	let v: string | undefined = undefined;
 	try {
-		const proc = await x('pnpm', ['--version'], { throwOnError: true, timeout: 1000 });
+		const proc = await x('pnpm', ['--version'], { throwOnError: true });
 		v = proc.stdout.trim();
 	} catch {}
 	console.log(`getPnpmVersion`, v);
