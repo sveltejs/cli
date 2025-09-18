@@ -150,5 +150,6 @@ async function getPnpmVersion(): Promise<string | undefined> {
 		const proc = await x('pnpm', ['--version'], { throwOnError: true, timeout: 1000 });
 		v = proc.stdout.trim();
 	} catch {}
+	console.log(`getPnpmVersion`, v);
 	return v;
 }
