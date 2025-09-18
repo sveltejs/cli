@@ -38,6 +38,7 @@ const { test, flavors, prepareServer } = setupTest(
 );
 
 beforeAll(() => {
+	console.log(`local beforeAll start`, noDocker);
 	if (noDocker) return;
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });

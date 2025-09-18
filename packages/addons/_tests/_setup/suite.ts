@@ -104,6 +104,8 @@ export function setupTest<Addons extends AddonMap>(
 		// await 0.3 sec
 		await new Promise((resolve) => setTimeout(resolve, 300));
 		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
+
+		console.log(testName, `beforeAll finished`);
 	});
 
 	// runs before each test case
