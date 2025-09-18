@@ -20,8 +20,14 @@
 	],
 	"bin": "./dist/bin.js",
 	"exports": {
-		".": "./lib/index.ts",
-		"./testing": "./src/lib/testing.ts"
+		".": {
+			"types": "./dist/lib/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./testing": {
+			"types": "./dist/lib/testing.d.ts",
+			"default": "./dist/testing.js"
+		}
 	},
 	"devDependencies": {
 		"@clack/prompts": "1.0.0-alpha.1",
