@@ -122,7 +122,6 @@ export async function addPnpmBuildDependencies(
 		const newContent = generateCode();
 
 		const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-		console.log(`newContent`, pnpmWorkspacePath, newContent);
 		if (newContent !== content) fs.writeFileSync(pnpmWorkspacePath, newContent);
 	} else {
 		// else is package.json (fallback)
@@ -150,6 +149,5 @@ async function getPnpmVersion(): Promise<string | undefined> {
 		const proc = await x('pnpm', ['--version'], { throwOnError: true });
 		v = proc.stdout.trim();
 	} catch {}
-	console.log(`getPnpmVersion`, v);
 	return v;
 }

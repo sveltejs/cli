@@ -101,11 +101,7 @@ export function setupTest<Addons extends AddonMap>(
 			await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 		}
 
-		// await 0.3 sec
-		await new Promise((resolve) => setTimeout(resolve, 300));
-		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'inherit' });
-
-		console.log(testName, `beforeAll finished`);
+		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
 	});
 
 	// runs before each test case
