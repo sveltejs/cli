@@ -98,7 +98,7 @@ export function setupTest<Addons extends AddonMap>(
 				options: kind.options,
 				packageManager: 'pnpm'
 			});
-			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+			await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 		}
 
 		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
