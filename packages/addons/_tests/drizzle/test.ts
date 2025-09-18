@@ -68,8 +68,12 @@ test.concurrent.for(flavors)('drizzle $kind.type $variant', async (flavor, { pag
 	const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
 	fs.writeFileSync(pageServerPath, pageServer, 'utf8');
 
-	const { close } = await prepareServer({ cwd, page }, () => {
-		execSync('npm run db:push', { cwd, stdio: 'pipe' });
+	const { close } = await prepareServer({
+		cwd,
+		page,
+		beforeBuild: () => {
+			execSync('npm run db:push', { cwd, stdio: 'pipe' });
+		}
 	});
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
