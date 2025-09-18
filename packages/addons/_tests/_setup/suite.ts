@@ -84,11 +84,9 @@ export function setupTest<Addons extends AddonMap>(
 				private: true
 			})
 		);
-		console.log(`name`, name, testName);
-		console.log(`flavors`, flavors);
+
 		for (const { variant, kind } of flavors) {
 			const cwd = create({ testId: `${kind.type}-${variant}`, variant });
-			console.log(`cwd`, cwd);
 
 			// test metadata
 			const metaPath = path.resolve(cwd, 'meta.json');
@@ -103,7 +101,9 @@ export function setupTest<Addons extends AddonMap>(
 			await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 		}
 
-		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'inherit' });
+		// await 0.3 sec
+		await new Promise((resolve) => setTimeout(resolve, 300));
+		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
 	});
 
 	// runs before each test case

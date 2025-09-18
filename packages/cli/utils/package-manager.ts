@@ -111,6 +111,7 @@ export async function addPnpmBuildDependencies(
 
 		const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
 		const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
+
 		for (const item of allowedPackages) {
 			if (items.includes(item)) continue;
 			if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
@@ -120,9 +121,7 @@ export async function addPnpmBuildDependencies(
 
 		const newContent = generateCode();
 		const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-		fs.writeFileSync(pnpmWorkspacePath, newContent);
-		console.log(`pnpmWorkspacePath`, pnpmWorkspacePath);
-		console.log(`newContent`, newContent);
+		if (newContent !== content) fs.writeFileSync(pnpmWorkspacePath, newContent);
 	} else {
 		// else is package.json (fallback)
 		const pkgPath = path.join(dir, 'package.json');
@@ -139,7 +138,7 @@ export async function addPnpmBuildDependencies(
 
 		// save the updated package.json
 		const newContent = generateCode();
-		fs.writeFileSync(pkgPath, newContent);
+		if (newContent !== content) fs.writeFileSync(pkgPath, newContent);
 	}
 }
 
