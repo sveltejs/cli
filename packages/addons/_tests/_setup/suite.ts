@@ -101,7 +101,7 @@ export function setupTest<Addons extends AddonMap>(
 			await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
 		}
 
-		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
+		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'inherit' });
 	});
 
 	// runs before each test case
