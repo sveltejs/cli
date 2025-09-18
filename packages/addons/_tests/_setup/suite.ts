@@ -84,9 +84,11 @@ export function setupTest<Addons extends AddonMap>(
 				private: true
 			})
 		);
-
+		console.log(`name`, name, testName);
+		console.log(`flavors`, flavors);
 		for (const { variant, kind } of flavors) {
 			const cwd = create({ testId: `${kind.type}-${variant}`, variant });
+			console.log(`cwd`, cwd);
 
 			// test metadata
 			const metaPath = path.resolve(cwd, 'meta.json');
