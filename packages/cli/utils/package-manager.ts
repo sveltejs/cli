@@ -120,9 +120,9 @@ export async function addPnpmBuildDependencies(
 		data.set('onlyBuiltDependencies', new Set(items));
 
 		const newContent = generateCode();
-		console.log(`newContent`, cwd, newContent);
 
 		const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
+		console.log(`newContent`, pnpmWorkspacePath, newContent);
 		if (newContent !== content) fs.writeFileSync(pnpmWorkspacePath, newContent);
 	} else {
 		// else is package.json (fallback)
