@@ -53,5 +53,6 @@ export default defineConfig({
 export async function buildCliTemplates() {
 	const start = performance.now();
 	await buildTemplates(path.resolve('packages/cli/dist'));
+	await buildTemplates(path.resolve('packages/create/dist'));
 	console.log(`  Build templates in ${Math.round(performance.now() - start)}ms`);
 }
