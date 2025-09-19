@@ -144,7 +144,7 @@ test('detect dependencies from playground files', () => {
 	expect(dependencies).not.toContain(['@sveltejs/kit', 'latest']);
 
 	// should work with array
-	expect(dependencies.keys().toArray().length).toBe(3);
+	expect(Array.from(dependencies.keys()).length).toBe(3);
 });
 
 test('real world download and convert playground', async () => {
