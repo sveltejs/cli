@@ -4,12 +4,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
+const pkgJson = fs.readFileSync(path.resolve('packages', 'cli', 'package.json'), 'utf8');
+const pkg = JSON.parse(pkgJson);
 
 export default defineConfig({
 	cwd: 'packages/cli',
 	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
-	dts: { oxc: true },
+	dts: {
+		oxc: true,
+		// setting `resolve: true` seems to anger Rolldown due to our `postcss` dep
+		resolve: Object.keys(pkg.devDependencies)
+	},
 	plugins: [
 		{
 			name: 'evaluate-community-addon-ids',
