@@ -44,7 +44,7 @@ export default defineConfig({
 		}
 	},
 	hooks: {
-		async 'build:done'() {
+		async 'build:before'() {
 			await buildCliTemplates();
 		}
 	}
