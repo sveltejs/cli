@@ -124,8 +124,6 @@ async function updatePackageFiles(basePath, fileName, type) {
 			// Write back the updated package.json with proper formatting
 			const updatedContent = JSON.stringify(packageJson, null, '\t') + '\n';
 			fs.writeFileSync(filePath, updatedContent);
-		} else {
-			console.log(`  - All dependencies are up to date`);
 		}
 	}
 }
