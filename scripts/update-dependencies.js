@@ -55,6 +55,82 @@ async function replaceDeps(content, matches) {
 }
 
 /**
+ * @param {string} basePath
+ * @param {string} fileName
+ * @param {string} type
+ */
+async function updatePackageFiles(basePath, fileName, type) {
+	const fullBasePath = path.resolve(basePath);
+	const folders = fs
+		.readdirSync(fullBasePath, { withFileTypes: true })
+		.filter((item) => item.isDirectory())
+		.map((item) => item.name);
+
+	for (const folder of folders) {
+		const filePath = path.join(fullBasePath, folder, fileName);
+		if (!fs.existsSync(filePath)) continue;
+
+		console.log(`Checking deps for ${styleText(['cyanBright', 'bold'], folder)} ${type}`);
+
+		const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+		const packageJson = JSON.parse(content);
+
+		let hasUpdates = false;
+
+		// Check dependencies
+		if (packageJson.dependencies) {
+			for (const [packageName, currentVersion] of Object.entries(packageJson.dependencies)) {
+				// Skip if version doesn't start with ^ (not a caret range)
+				if (!currentVersion.startsWith('^')) continue;
+
+				const latestVersion = await getLatestVersion(packageName);
+				const newVersion = `^${latestVersion}`;
+
+				if (currentVersion !== newVersion) {
+					packageJson.dependencies[packageName] = newVersion;
+					hasUpdates = true;
+					console.log(
+						`  - ${styleText('blue', packageName + ':').padEnd(40)} ${styleText('red', currentVersion.padEnd(7))} -> ${styleText('green', newVersion)} (dependency)`
+					);
+				}
+			}
+		}
+
+		// Check devDependencies
+		if (packageJson.devDependencies) {
+			for (const [packageName, currentVersion] of Object.entries(packageJson.devDependencies)) {
+				// Skip if version doesn't start with ^ (not a caret range)
+				if (!currentVersion.startsWith('^')) continue;
+
+				const latestVersion = await getLatestVersion(packageName);
+				const newVersion = `^${latestVersion}`;
+
+				if (currentVersion !== newVersion) {
+					packageJson.devDependencies[packageName] = newVersion;
+					hasUpdates = true;
+					console.log(
+						`  - ${styleText('blue', packageName + ':').padEnd(40)} ${styleText('red', currentVersion.padEnd(7))} -> ${styleText('green', newVersion)} (devDependency)`
+					);
+				}
+			}
+		}
+
+		if (!packageJson.dependencies && !packageJson.devDependencies) {
+			console.log(`  - No dependencies or devDependencies found in ${folder}`);
+			continue;
+		}
+
+		if (hasUpdates) {
+			// Write back the updated package.json with proper formatting
+			const updatedContent = JSON.stringify(packageJson, null, '\t') + '\n';
+			fs.writeFileSync(filePath, updatedContent);
+		} else {
+			console.log(`  - All dependencies are up to date`);
+		}
+	}
+}
+
+/**
  * Gets the latest version of given package from the npm registry
  * @param {string} name
  * @returns {Promise<string>}
@@ -66,3 +142,9 @@ async function getLatestVersion(name) {
 }
 
 await updateAddonDependencies();
+
+// Update template package.template.json files
+await updatePackageFiles('packages/create/templates', 'package.template.json', 'template');
+	
+// Update shared package.json files
+await updatePackageFiles('packages/create/shared', 'package.json', 'shared');
