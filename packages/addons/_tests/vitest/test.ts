@@ -18,7 +18,7 @@ test.concurrent.for(flavors)('vitest $variant', (flavor, { expect, ...ctx }) => 
 
 	expect(() => execSync('pnpm test', { cwd, stdio: 'pipe' })).not.toThrow();
 
-	const ext = variant.includes('ts') ? 'ts' : 'js';
+	const ext = flavor.variant.includes('ts') ? 'ts' : 'js';
 	const viteFile = path.resolve(cwd, `vite.config.${ext}`);
 	const viteContent = fs.readFileSync(viteFile, 'utf8');
 
