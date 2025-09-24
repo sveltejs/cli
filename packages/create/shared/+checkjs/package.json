@@ -4,7 +4,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch"
 	},
 	"devDependencies": {
-		"svelte-check": "^4.0.0",
-		"typescript": "^5.0.0"
+		"svelte-check": "^4.3.2",
+		"typescript": "^5.9.2"
 	}
 }

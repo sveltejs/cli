@@ -3,12 +3,12 @@ import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^6.0.0' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.12' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.8' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.6.3' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.0.0' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.0.0' }
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^6.1.0' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.3.2' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.9' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.10.2' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.3' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.2.3' }
 ] as const;
 
 const options = defineAddonOptions()
