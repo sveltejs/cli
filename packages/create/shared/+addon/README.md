@@ -1,21 +1,14 @@
-# community-addon-template
+# sv community addon: ~SV-NAME-TODO~
 
 > [!IMPORTANT]
 > Community add-ons are currently not supported. Please see [#184](https://github.com/sveltejs/cli/issues/184) for details.
 
 > [!IMPORTANT]
 > This template's dependencies may not be up-to-date; be sure to update them to the latest!
-> If you get stuck, check out the [implementations of official add-ons](https://github.com/sveltejs/cli/tree/main/packages/add-ons).
 
-The add-on template for community add-ons for [`sv`](https://github.com/sveltejs/cli).
+> If you get stuck, check out the [implementations of official add-ons](https://github.com/sveltejs/cli/tree/main/packages/addons).
 
-## Cloning the template
-
-Use [`degit`](https://github.com/Rich-Harris/degit) to clone the template:
-
-```shell
-npx degit sveltejs/cli/community-addon-template addon-name
-```
+created with [`sv`](https://svelte.dev/docs/cli/sv-create#Options-template-name).
 
 ## Using the add-on
 
@@ -24,15 +17,15 @@ To run the add-on, we'll first need a project to apply it to.
 Create the project with the following script:
 
 ```shell
-npm run create-temp
+npm run create
 ```
 
-This will create a SvelteKit project in the `temp` directory.
+This will create a SvelteKit project in the `demo` directory.
 
 To execute the add-on, run:
 
 ```shell
-npm start
+npm run add
 ```
 
 ## Sharing your add-on
@@ -48,10 +41,8 @@ Your published add-on can now be used by anyone!
 To execute the newly published package with `sv`, run:
 
 ```shell
-npx sv add --community npm:addon-package-name
+npx sv add npm:~SV-NAME-TODO~
 ```
-
-After that, feel free to open a pull request to [`sv`](https://github.com/sveltejs/cli) and add your add-on to the [community list](/community-addons/).
 
 ## Things to be aware of
 
