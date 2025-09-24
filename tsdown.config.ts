@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
+
 const pkgJson = fs.readFileSync(path.resolve('packages', 'cli', 'package.json'), 'utf8');
 const pkg = JSON.parse(pkgJson);
 
