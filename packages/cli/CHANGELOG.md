@@ -1,5 +1,11 @@
 # sv
 
+## 0.9.7
+### Patch Changes
+
+
+- fix(cli): `--from-playground` option now works correctly from node 20 ([#720](https://github.com/sveltejs/cli/pull/720))
+
 ## 0.9.6
 ### Patch Changes
 
