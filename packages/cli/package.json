@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.9.4",
+	"version": "0.9.6",
 	"type": "module",
 	"description": "A CLI for creating and updating SvelteKit projects",
 	"license": "MIT",
@@ -35,13 +35,11 @@
 		"@sveltejs/cli-core": "workspace:*",
 		"@sveltejs/create": "workspace:*",
 		"@types/degit": "^2.8.6",
-		"@types/ps-tree": "^1.1.6",
 		"commander": "^13.1.0",
 		"degit": "^2.8.4",
 		"empathic": "^1.1.0",
 		"package-manager-detector": "^0.2.11",
 		"picocolors": "^1.1.1",
-		"ps-tree": "^1.2.0",
 		"tinyexec": "^0.3.2",
 		"valibot": "^0.41.0"
 	},
