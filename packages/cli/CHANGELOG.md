@@ -1,5 +1,11 @@
 # sv
 
+## 0.9.6
+### Patch Changes
+
+
+- fix(vitest): now import `defineConfig` from `vitest/config` ([#703](https://github.com/sveltejs/cli/pull/703))
+
 ## 0.9.5
 ### Patch Changes
 
