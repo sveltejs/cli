@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import degit from 'degit';
-import { exec } from 'tinyexec';
+import { x, exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
 
 export { addPnpmBuildDependencies } from '../utils/package-manager.ts';
@@ -83,7 +83,7 @@ export function createProject({ cwd, testName, templatesDir }: CreateOptions): C
 type PreviewOptions = { cwd: string; command?: string };
 export async function startPreview({
 	cwd,
-	command = 'npm run preview'
+	command = 'pnpm preview'
 }: PreviewOptions): Promise<{ url: string; close: () => Promise<void> }> {
 	const [cmd, ...args] = command.split(' ');
 	const proc = exec(cmd, args, {
@@ -124,7 +124,7 @@ export async function startPreview({
 async function terminate(pid: number) {
 	try {
 		if (process.platform === 'win32') {
-			await exec(`taskkill /pid ${pid} /T /F`); // on windows, use taskkill to terminate the process tree
+			await x('taskkill', ['/PID', `${pid}`, '/T', '/F']); // on windows, use taskkill to terminate the process tree
 		} else {
 			process.kill(-pid, 'SIGTERM'); // Kill the process group
 		}
