@@ -15,7 +15,7 @@ import vitest from '../vitest-addon/index.ts';
 
 // The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity
-export const officialAddons = [
+export const officialAddons = {
 	prettier,
 	eslint,
 	vitest,
@@ -28,10 +28,10 @@ export const officialAddons = [
 	mdsvex,
 	paraglide,
 	storybook
-] as AddonWithoutExplicitArgs[];
+} as const;
 
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
-	const details = officialAddons.find((a) => a.id === id);
+	const details = Object.values(officialAddons).find((a) => a.id === id);
 	if (!details) {
 		throw new Error(`Invalid add-on: ${id}`);
 	}
