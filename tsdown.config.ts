@@ -13,7 +13,7 @@ export default defineConfig({
 	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
 	dts: {
-		oxc: true,
+		oxc: false,
 		// setting `resolve: true` seems to anger Rolldown due to our `postcss` dep
 		resolve: Object.keys(pkg.devDependencies)
 	},
