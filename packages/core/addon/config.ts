@@ -62,8 +62,7 @@ export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>):
 
 export type AddonSetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
 
-export type AddonWithoutExplicitArgs = Addon<Record<string, Question>>;
-export type AddonConfigWithoutExplicitArgs = Addon<Record<string, Question>>;
+export type AddonWithoutExplicitArgs = Addon<Record<string, Question<any>>>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;

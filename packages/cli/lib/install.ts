@@ -5,8 +5,7 @@ import type {
 	OptionValues,
 	Question,
 	SvApi,
-	AddonSetupResult,
-	AddonWithoutExplicitArgs
+	AddonSetupResult
 } from '@sveltejs/cli-core';
 import pc from 'picocolors';
 import * as p from '@clack/prompts';
@@ -82,7 +81,7 @@ export async function applyAddons({
 }
 
 export function setupAddons(
-	addons: AddonWithoutExplicitArgs[],
+	addons: Array<Addon<any>>,
 	workspace: Workspace<any>
 ): Record<string, AddonSetupResult> {
 	const addonSetupResults: Record<string, AddonSetupResult> = {};
