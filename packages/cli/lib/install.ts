@@ -5,8 +5,7 @@ import type {
 	OptionValues,
 	Question,
 	SvApi,
-	AddonSetupResult,
-	AddonWithoutExplicitArgs
+	AddonSetupResult
 } from '@sveltejs/cli-core';
 import pc from 'picocolors';
 import * as p from '@clack/prompts';
@@ -23,7 +22,8 @@ export type InstallOptions<Addons extends AddonMap> = {
 	packageManager?: PackageManager;
 };
 
-export type AddonMap = Record<string, Addon<any>>;
+// @ts-expect-error TODO: this _should_ be `Addon<any>`, but the types won't infer properly with it
+export type AddonMap = Record<string, Addon>;
 export type OptionMap<Addons extends AddonMap> = {
 	[K in keyof Addons]: Partial<OptionValues<Addons[K]['options']>>;
 };
@@ -81,7 +81,7 @@ export async function applyAddons({
 }
 
 export function setupAddons(
-	addons: AddonWithoutExplicitArgs[],
+	addons: Array<Addon<any>>,
 	workspace: Workspace<any>
 ): Record<string, AddonSetupResult> {
 	const addonSetupResults: Record<string, AddonSetupResult> = {};
