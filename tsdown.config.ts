@@ -13,7 +13,7 @@ export default defineConfig({
 	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
 	dts: {
-		oxc: false,
+		oxc: true,
 		// setting `resolve: true` seems to anger Rolldown due to our `postcss` dep
 		resolve: Object.keys(pkg.devDependencies)
 	},
@@ -21,9 +21,7 @@ export default defineConfig({
 		{
 			name: 'evaluate-community-addon-ids',
 			transform: {
-				filter: {
-					id: /_config[/\\]community\.ts$/
-				},
+				filter: { id: /_config[/\\]community\.ts$/ },
 				handler(code, id) {
 					const ms = new MagicString(code, { filename: id });
 					const start = code.indexOf('export const communityAddonIds');
@@ -31,10 +29,7 @@ export default defineConfig({
 					const ids = fs.readdirSync('community-addons').map((p) => path.parse(p).name);
 					const generated = `export const communityAddonIds = ${JSON.stringify(ids)}`;
 					ms.overwrite(start, end, generated);
-					return {
-						code: ms.toString(),
-						map: ms.generateMap()
-					};
+					return { code: ms.toString(), map: ms.generateMap() };
 				}
 			}
 		}
