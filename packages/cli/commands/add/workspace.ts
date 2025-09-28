@@ -5,7 +5,6 @@ import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { detect } from 'package-manager-detector';
 import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
-import { TESTING } from '../../utils/env.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import { getUserAgent } from '../../utils/package-manager.ts';
 
@@ -20,18 +19,17 @@ export async function createWorkspace({
 	packageManager
 }: CreateWorkspaceOptions): Promise<Workspace<any>> {
 	const resolvedCwd = path.resolve(cwd);
+
+	// Will go up and prioritize jsconfig.json as it's first in the array
+	const tjsconfig = find.any([commonFilePaths.jsconfig, commonFilePaths.tsconfig], { cwd });
+	// If the file is not ending with jsconfig.json, then we are using typescript
+	const usesTypescript = !tjsconfig?.endsWith(commonFilePaths.jsconfig);
+
+	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	let usesTypescript = fs.existsSync(viteConfigPath);
-
-	const viteConfigFile = usesTypescript ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig;
-
-	if (TESTING) {
-		// while executing tests, we only look into the direct `cwd`
-		// as we might detect the monorepo `tsconfig.json` otherwise.
-		usesTypescript ||= fs.existsSync(path.join(resolvedCwd, commonFilePaths.tsconfig));
-	} else {
-		usesTypescript ||= find.up(commonFilePaths.tsconfig, { cwd }) !== undefined;
-	}
+	const viteConfigFile = fs.existsSync(viteConfigPath)
+		? commonFilePaths.viteConfigTS
+		: commonFilePaths.viteConfig;
 
 	let dependencies: Record<string, string> = {};
 	let directory = resolvedCwd;

@@ -25,12 +25,12 @@ export default defineAddon({
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
-		sv.devDependency('vitest', '^3.2.3');
+		sv.devDependency('vitest', '^3.2.4');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser', '^3.2.3');
-			sv.devDependency('vitest-browser-svelte', '^0.1.0');
-			sv.devDependency('playwright', '^1.53.0');
+			sv.devDependency('@vitest/browser', '^3.2.4');
+			sv.devDependency('vitest-browser-svelte', '^1.1.0');
+			sv.devDependency('playwright', '^1.55.1');
 		}
 
 		sv.file('package.json', (content) => {
