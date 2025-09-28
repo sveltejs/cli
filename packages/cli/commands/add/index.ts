@@ -75,7 +75,8 @@ export const add = new Command('add')
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
-	//.option('--community [add-on...]', 'community addons to install')
+	// TODO JYC: remove the flag
+	.option('--community [add-on...]', 'community addons to install')
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
@@ -545,7 +546,7 @@ export async function runAddCommand(
 		workspace,
 		addonSetupResults,
 		addons: addonMap,
-		options: official
+		options: { ...official, ...community }
 	});
 
 	p.log.success('Successfully setup add-ons');
