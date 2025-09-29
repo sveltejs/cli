@@ -91,7 +91,7 @@ export async function addPnpmBuildDependencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	allowedPackages: string[]
-): void {
+): Promise<void> {
 	// other package managers are currently not affected by this change
 	if (!packageManager || packageManager !== 'pnpm' || allowedPackages.length === 0) return;
 
