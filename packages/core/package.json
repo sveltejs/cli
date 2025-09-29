@@ -6,7 +6,8 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/sveltejs/cli/tree/main/packages/core"
+		"url": "git+https://github.com/sveltejs/cli.git",
+		"directory": "packages/core"
 	},
 	"bugs": "https://github.com/sveltejs/cli/issues",
 	"scripts": {
@@ -16,30 +17,12 @@
 		"test": "vitest run",
 		"test:ui": "vitest --ui"
 	},
-	"files": [
-		"dist"
-	],
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"default": "./dist/index.js"
-		},
-		"./css": {
-			"types": "./dist/css.d.ts",
-			"default": "./dist/css.js"
-		},
-		"./html": {
-			"types": "./dist/html.d.ts",
-			"default": "./dist/html.js"
-		},
-		"./js": {
-			"types": "./dist/js.d.ts",
-			"default": "./dist/js.js"
-		},
-		"./parsers": {
-			"types": "./dist/parsers.d.ts",
-			"default": "./dist/parsers.js"
-		}
+		".": "./index.ts",
+		"./css": "./tooling/css/index.ts",
+		"./html": "./tooling/html/index.ts",
+		"./js": "./tooling/js/index.ts",
+		"./parsers": "./tooling/parsers.ts"
 	},
 	"devDependencies": {
 		"@clack/prompts": "1.0.0-alpha.1",

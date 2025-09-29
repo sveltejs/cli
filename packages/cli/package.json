@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/sveltejs/cli",
+		"url": "git+https://github.com/sveltejs/cli.git",
 		"directory": "packages/cli"
 	},
 	"homepage": "https://svelte.dev",
@@ -22,11 +22,11 @@
 	"exports": {
 		".": {
 			"types": "./dist/lib/index.d.ts",
-			"default": "./dist/index.js"
+			"default": "./dist/lib/index.js"
 		},
 		"./testing": {
 			"types": "./dist/lib/testing.d.ts",
-			"default": "./dist/testing.js"
+			"default": "./dist/lib/testing.js"
 		}
 	},
 	"devDependencies": {

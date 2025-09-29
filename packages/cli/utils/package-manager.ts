@@ -15,11 +15,13 @@ import {
 import { parseJson, parseYaml } from '@sveltejs/cli-core/parsers';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
 
-export const AGENT_NAMES = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
+export const AGENT_NAMES: AgentName[] = AGENTS.filter(
+	(agent): agent is AgentName => !agent.includes('@')
+);
 const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
 agentOptions.unshift({ label: 'None', value: undefined });
 
-export const installOption = new Option(
+export const installOption: Option = new Option(
 	'--install <package-manager>',
 	'installs dependencies with a specified package manager'
 ).choices(AGENT_NAMES);
@@ -89,7 +91,7 @@ export async function addPnpmBuildDependencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	allowedPackages: string[]
-) {
+): void {
 	// other package managers are currently not affected by this change
 	if (!packageManager || packageManager !== 'pnpm' || allowedPackages.length === 0) return;
 
