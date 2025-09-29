@@ -5,16 +5,19 @@ import { officialAddons } from '../../index.ts';
 import type { AddonMap, OptionMap } from 'sv';
 
 const windowsCI = process.env.CI && process.platform === 'win32';
-const addons = officialAddons.reduce<AddonMap>((addonMap, addon) => {
+const addons = Object.values(officialAddons).reduce<AddonMap>((addonMap, addon) => {
 	if (addon.id === 'storybook' && windowsCI) return addonMap;
 	addonMap[addon.id] = addon;
 	return addonMap;
 }, {});
 
-const defaultOptions = officialAddons.reduce<OptionMap<typeof addons>>((options, addon) => {
-	options[addon.id] = {};
-	return options;
-}, {});
+const defaultOptions = Object.values(officialAddons).reduce<OptionMap<typeof addons>>(
+	(options, addon) => {
+		options[addon.id] = {};
+		return options;
+	},
+	{}
+);
 
 const { test, variants, prepareServer } = setupTest(addons);
 
