@@ -4,13 +4,16 @@ import { fixture, setupTest } from './setup/suite.js';
 import addon from '../src/index.js';
 
 const id = addon.id;
-const { test, variants, prepareServer } = setupTest({ [id]: addon });
+const { test, flavors, prepareServer } = setupTest(
+	{ [id]: addon },
+	{ kinds: [{ type: 'default', options: { [id]: { demo: true } } }] }
+);
 
-test.concurrent.for(variants)('demo - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { [id]: { demo: true } });
+test.concurrent.for(flavors)('community-addon $variant', async (flavor, { page, ...ctx }) => {
+	const cwd = ctx.run(flavor);
 
 	// ...add files
-	if (variant.startsWith('kit')) {
+	if (flavor.variant.startsWith('kit')) {
 		const target = path.resolve(cwd, 'src', 'routes', '+page.svelte');
 		fixture({ name: '+page.svelte', target });
 	} else {
