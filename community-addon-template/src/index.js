@@ -13,7 +13,7 @@ export const options = defineAddonOptions()
 export default defineAddon({
 	id: 'community-addon',
 	options,
-	setup: ({ kit, unsupported }) => {		
+	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, typescript }) => {

@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { promisify } from 'node:util';
-import { exec, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon, type AddonMap, type OptionMap } from 'sv';
 import {
@@ -17,8 +16,6 @@ import { fileURLToPath } from 'node:url';
 const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');
 const variants = vitest.inject('variants');
-
-export const execAsync = promisify(exec);
 
 const SETUP_DIR = fileURLToPath(new URL('.', import.meta.url));
 
