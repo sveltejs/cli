@@ -21,10 +21,10 @@ const SETUP_DIR = fileURLToPath(new URL('.', import.meta.url));
 
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
-	run(addonTestCase: Flavor<Addons>): string;
+	run(addonTestCase: AddonTestCase<Addons>): string;
 };
 
-type Flavor<Addons extends AddonMap> = {
+type AddonTestCase<Addons extends AddonMap> = {
 	variant: ProjectVariant;
 	kind: { type: string; options: OptionMap<Addons> };
 };
@@ -32,8 +32,8 @@ type Flavor<Addons extends AddonMap> = {
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
 	options?: {
-		kinds: Array<Flavor<Addons>['kind']>;
-		filter?: (addonTestCase: Flavor<Addons>) => boolean;
+		kinds: Array<AddonTestCase<Addons>['kind']>;
+		filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
 		browser?: boolean;
 	}
 ) {
@@ -53,7 +53,7 @@ export function setupTest<Addons extends AddonMap>(
 		});
 	}
 
-	const addonTestCases: Array<Flavor<Addons>> = [];
+	const addonTestCases: Array<AddonTestCase<Addons>> = [];
 	for (const kind of options?.kinds ?? []) {
 		for (const variant of variants) {
 			const addonTestCase = { variant, kind };
