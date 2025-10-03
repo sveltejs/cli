@@ -326,7 +326,7 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 		...selectedCommunityAddons.map((addon) => ({ type: 'community' as const, addon }))
 	];
 
-	// TODO: run setup if we have access to workspace
+	// TODO_ONE: run setup if we have access to workspace
 	// prepare official addons
 	// let workspace = await createWorkspace({ cwd: options.cwd });
 	// const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
@@ -336,7 +336,7 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 	if (selectedAddons.length === 0) {
 		// const allSetupResults = setupAddons(officialAddons, workspace);
 		const addonOptions = officialAddons
-			// TODO: do the filter if we have access to workspace
+			// TODO_ONE: do the filter if we have access to workspace
 			// only display supported addons relative to the current environment
 			// .filter(({ id }) => allSetupResults[id].unsupported.length === 0)
 			.map(({ id, homepage, shortDescription }) => ({
@@ -361,28 +361,16 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 		}
 	}
 
-	// TODO: add verifications and inter-addon deps
+	// TODO_ONE: add verifications and inter-addon deps
 
 	// // add inter-addon dependencies
 	// for (const { addon } of selectedAddons) {
 	// 	workspace = await createWorkspace(workspace);
-	// const setups = selectedAddons.map(({ addon }) => addon);
-	// const setupResult = setupAddons(setups, workspace)[addon.id];
 
-	// const missingDependencies = setupResult.dependsOn.filter(
-	// 	(depId) => !selectedAddons.some((a) => a.addon.id === depId)
-	// );
-
-	// TODO: CONFLICS
 	// 	const setupResult = addonSetupResults[addon.id];
 	// 	const missingDependencies = setupResult.dependsOn.filter(
 	// 		(depId) => !selectedAddons.some((a) => a.addon.id === depId)
 	// 	);
-	// for (const depId of missingDependencies) {
-	// 	// TODO: this will have to be adjusted when we work on community add-ons
-	// 	const dependency = getAddonDetails(depId);
-	// 	if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
-	// TODO: CONFLICS
 
 	// 	for (const depId of missingDependencies) {
 	// 		// TODO: this will have to be adjusted when we work on community add-ons
