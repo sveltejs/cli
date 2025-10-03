@@ -174,5 +174,5 @@ test('real world download and convert playground', async () => {
 	const packageJsonPath = path.join(directory, 'package.json');
 	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
 	expect(packageJsonContent).toContain('"change-case": "latest"');
-	expect(packageJsonContent).toContain('"svelte": "^5.38.7"');
+	expect(packageJsonContent).toContain('"svelte": "5.38.7"');
 });
