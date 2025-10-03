@@ -244,6 +244,6 @@ export function parseYaml(content: string): ReturnType<typeof yaml.parseDocument
 	return yaml.parseDocument(content);
 }
 
-export function serializeYaml(data: unknown): string {
+export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): string {
 	return yaml.stringify(data, { singleQuote: true });
 }
