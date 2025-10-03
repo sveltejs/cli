@@ -70,7 +70,6 @@ export const create = new Command('create')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
-		console.log(opts);
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 		common.runCommand(async () => {
