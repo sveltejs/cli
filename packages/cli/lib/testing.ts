@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import degit from 'degit';
-import { exec } from 'tinyexec';
+import { x, exec } from 'tinyexec';
 import { create } from '@sveltejs/create';
 import pstree, { type PS } from 'ps-tree';
 
@@ -132,6 +132,11 @@ async function getProcessTree(pid: number) {
 }
 
 async function terminate(pid: number) {
+	if (process.platform === 'win32') {
+		// on windows, use taskkill to terminate the process tree
+		await x('taskkill', ['/PID', `${pid}`, '/T', '/F']);
+		return;
+	}
 	const children = await getProcessTree(pid);
 	// the process tree is ordered from parents -> children,
 	// so we'll iterate in the reverse order to terminate the children first

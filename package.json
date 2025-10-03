@@ -8,15 +8,15 @@
 		"pnpm": "^10.0.0"
 	},
 	"scripts": {
-		"build": "rolldown --config",
+		"build": "tsdown",
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
-		"dev": "rolldown --watch --config",
+		"dev": "tsdown -w",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"test": "vitest run --silent",
 		"test:ui": "vitest --ui",
-		"update-addon-deps": "node ./scripts/update-addon-dependencies.js"
+		"update-deps": "node ./scripts/update-dependencies.js && pnpm format"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.29.4",
@@ -32,12 +32,11 @@
 		"prettier": "^3.5.3",
 		"prettier-plugin-packagejson": "^2.5.15",
 		"prettier-plugin-svelte": "^3.4.0",
-		"rolldown": "1.0.0-beta.1",
 		"sv": "workspace:*",
 		"svelte": "^5.34.6",
+		"tsdown": "^0.15.2",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.34.1",
-		"unplugin-isolated-decl": "^0.8.3",
 		"vitest": "4.0.0-beta.6"
 	},
 	"packageManager": "pnpm@10.4.1",

@@ -1,5 +1,47 @@
 # sv
 
+## 0.9.7
+### Patch Changes
+
+
+- fix(cli): export types ([#719](https://github.com/sveltejs/cli/pull/719))
+
+
+- chore(cli): improve `typescript` detection ([#710](https://github.com/sveltejs/cli/pull/710))
+
+
+- chore(cli): bump defaults versions ([#722](https://github.com/sveltejs/cli/pull/722))
+
+
+- fix(cli): `--from-playground` will create projects with `experimental.async` enabled _(if svelte version allows it)_ ([#729](https://github.com/sveltejs/cli/pull/729))
+
+
+- fix(cli): `--from-playground` option now works correctly from node 20 ([#720](https://github.com/sveltejs/cli/pull/720))
+
+## 0.9.6
+### Patch Changes
+
+
+- fix(vitest): now import `defineConfig` from `vitest/config` ([#703](https://github.com/sveltejs/cli/pull/703))
+
+## 0.9.5
+### Patch Changes
+
+
+- feat(cli): create projects from the svelte playground with `npx sv create --from-playground <url>` ([#662](https://github.com/sveltejs/cli/pull/662))
+
+
+- chore(cli): speedup internal tests ([#698](https://github.com/sveltejs/cli/pull/698))
+
+
+- chore(core): streamline object helpers ([#685](https://github.com/sveltejs/cli/pull/685))
+
+
+- fix(eslint): update eslint to `^9.22.0` and use `defineConfig` from `eslint/config` _(to fix a deprecation warning)_ ([#712](https://github.com/sveltejs/cli/pull/712))
+
+
+- fix(eslint): add `@types/node` in devDependencies ([#711](https://github.com/sveltejs/cli/pull/711))
+
 ## 0.9.4
 ### Patch Changes
 

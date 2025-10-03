@@ -8,7 +8,7 @@ export default defineAddon({
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
 	run: ({ sv }) => {
-		sv.devDependency('mdsvex', '^0.12.3');
+		sv.devDependency('mdsvex', '^0.12.6');
 
 		sv.file('svelte.config.js', (content) => {
 			const { ast, generateCode } = parseScript(content);
@@ -30,9 +30,8 @@ export default defineAddon({
 				const previousElement = preprocessorArray;
 				preprocessorArray = array.create();
 				array.append(preprocessorArray, previousElement);
-				object.overrideProperty(exportDefault, {
-					name: 'preprocess',
-					value: preprocessorArray
+				object.overrideProperties(exportDefault, {
+					preprocess: preprocessorArray
 				});
 			}
 

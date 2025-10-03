@@ -1,9 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 import * as p from '@clack/prompts';
 import {
+	officialAddons as _officialAddons,
 	communityAddonIds,
 	getAddonDetails,
-	getCommunityAddon,
-	officialAddons
+	getCommunityAddon
 } from '@sveltejs/addons';
 import type {
 	AddonSetupResult,
@@ -13,12 +16,10 @@ import type {
 } from '@sveltejs/cli-core';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
 import { type AgentName } from 'package-manager-detector';
 import pc from 'picocolors';
 import * as v from 'valibot';
+
 import { applyAddons, setupAddons, type AddonMap } from '../../lib/install.ts';
 import * as common from '../../utils/common.ts';
 import {
@@ -32,6 +33,7 @@ import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts'
 import { formatFiles, getHighlighter } from './utils.ts';
 import { createWorkspace } from './workspace.ts';
 
+const officialAddons = Object.values(_officialAddons);
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
 const addonOptions = getAddonOptionFlags();
 const communityDetails: AddonWithoutExplicitArgs[] = [];
@@ -354,7 +356,7 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 		}
 
 		for (const id of selected) {
-			const addon = officialAddons.find((addon) => addon.id === id)!;
+			const addon = getAddonDetails(id);
 			selectedAddons.push({ type: 'official', addon });
 		}
 	}
@@ -371,10 +373,16 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 	// 	(depId) => !selectedAddons.some((a) => a.addon.id === depId)
 	// );
 
+	// TODO: CONFLICS
 	// 	const setupResult = addonSetupResults[addon.id];
 	// 	const missingDependencies = setupResult.dependsOn.filter(
 	// 		(depId) => !selectedAddons.some((a) => a.addon.id === depId)
 	// 	);
+	// for (const depId of missingDependencies) {
+	// 	// TODO: this will have to be adjusted when we work on community add-ons
+	// 	const dependency = getAddonDetails(depId);
+	// 	if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
+	// TODO: CONFLICS
 
 	// 	for (const depId of missingDependencies) {
 	// 		// TODO: this will have to be adjusted when we work on community add-ons

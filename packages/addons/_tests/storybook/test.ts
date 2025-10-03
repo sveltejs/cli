@@ -10,9 +10,10 @@ import eslint from '../../eslint/index.ts';
 const { test, variants, prepareServer } = setupTest({ storybook, eslint });
 
 let port = 6006;
+const CI = Boolean(process.env.CI);
 
 beforeAll(() => {
-	if (process.env.CI) {
+	if (CI) {
 		// prefetch the storybook cli during ci to reduce fetching errors in tests
 		execSync('pnpx create-storybook@latest --version');
 	}
@@ -20,7 +21,7 @@ beforeAll(() => {
 
 test.for(variants)(
 	'storybook loaded - %s',
-	{ concurrent: !process.env.CI },
+	{ concurrent: !CI },
 	async (variant, { page, ...ctx }) => {
 		const cwd = await ctx.run(variant, { storybook: {}, eslint: {} });
 
@@ -33,7 +34,7 @@ test.for(variants)(
 		// kill server process when we're done
 		ctx.onTestFinished(async () => await close());
 
-		expect(await page.$('main .sb-bar')).toBeTruthy();
-		expect(await page.$('#storybook-preview-wrapper')).toBeTruthy();
+		expect(page.locator('main .sb-bar')).toBeTruthy();
+		expect(page.locator('#storybook-preview-wrapper')).toBeTruthy();
 	}
 );
