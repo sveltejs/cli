@@ -66,7 +66,7 @@ export function setupTest<Addons extends AddonMap>(
 	vitest.beforeAll(async ({ name }) => {
 		testName = path.dirname(name).split('/').at(-1)!;
 
-		// constructs a builder for create test projects
+		// constructs a builder to create test projects
 		create = createProject({ cwd, templatesDir, testName });
 
 		// creates a pnpm workspace in each addon dir
