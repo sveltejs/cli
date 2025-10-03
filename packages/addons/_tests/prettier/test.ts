@@ -4,13 +4,13 @@ import { execSync } from 'node:child_process';
 import { setupTest } from '../_setup/suite.ts';
 import prettier from '../../prettier/index.ts';
 
-const { test, flavors } = setupTest(
+const { test, addonTestCases } = setupTest(
 	{ prettier },
 	{ kinds: [{ type: 'default', options: { prettier: {} } }], browser: false }
 );
 
-test.concurrent.for(flavors)('prettier $variant', (flavor, { expect, ...ctx }) => {
-	const cwd = ctx.run(flavor);
+test.concurrent.for(addonTestCases)('prettier $variant', (addonTestCase, { expect, ...ctx }) => {
+	const cwd = ctx.run(addonTestCase);
 
 	const unformattedFile = 'const foo = "bar"';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unformattedFile, 'utf8');

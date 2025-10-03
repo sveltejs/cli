@@ -12,7 +12,7 @@ import { pageServer, pageComp } from './fixtures.ts';
 // only linux is supported for running docker containers in github runners
 const noDocker = process.env.CI && process.platform !== 'linux';
 
-const { test, flavors, prepareServer } = setupTest(
+const { test, addonTestCases, prepareServer } = setupTest(
 	{ drizzle },
 	{
 		kinds: [
@@ -33,7 +33,7 @@ const { test, flavors, prepareServer } = setupTest(
 				options: { drizzle: { database: 'postgresql', postgresql: 'postgres.js', docker: true } }
 			}
 		],
-		filter: (flavor) => flavor.variant.includes('kit')
+		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
 	}
 );
 
@@ -52,31 +52,34 @@ beforeAll(() => {
 	};
 });
 
-test.concurrent.for(flavors)('drizzle $kind.type $variant', async (flavor, { page, ...ctx }) => {
-	if (flavor.kind.options.drizzle.docker && noDocker) ctx.skip();
-	const cwd = ctx.run(flavor);
+test.concurrent.for(addonTestCases)(
+	'drizzle $kind.type $variant',
+	async (addonTestCase, { page, ...ctx }) => {
+		if (addonTestCase.kind.options.drizzle.docker && noDocker) ctx.skip();
+		const cwd = ctx.run(addonTestCase);
 
-	const ts = flavor.variant === 'kit-ts';
-	const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);
-	const content = fs.readFileSync(drizzleConfig, 'utf8').replace(/strict: true[,\s]/, '');
-	fs.writeFileSync(drizzleConfig, content, 'utf8');
+		const ts = addonTestCase.variant === 'kit-ts';
+		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);
+		const content = fs.readFileSync(drizzleConfig, 'utf8').replace(/strict: true[,\s]/, '');
+		fs.writeFileSync(drizzleConfig, content, 'utf8');
 
-	const routes = path.resolve(cwd, 'src', 'routes');
-	const pagePath = path.resolve(routes, '+page.svelte');
-	fs.writeFileSync(pagePath, pageComp, 'utf8');
+		const routes = path.resolve(cwd, 'src', 'routes');
+		const pagePath = path.resolve(routes, '+page.svelte');
+		fs.writeFileSync(pagePath, pageComp, 'utf8');
 
-	const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
-	fs.writeFileSync(pageServerPath, pageServer, 'utf8');
+		const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
+		fs.writeFileSync(pageServerPath, pageServer, 'utf8');
 
-	const { close } = await prepareServer({
-		cwd,
-		page,
-		beforeBuild: () => {
-			execSync('npm run db:push', { cwd, stdio: 'pipe' });
-		}
-	});
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
+		const { close } = await prepareServer({
+			cwd,
+			page,
+			beforeBuild: () => {
+				execSync('npm run db:push', { cwd, stdio: 'pipe' });
+			}
+		});
+		// kill server process when we're done
+		ctx.onTestFinished(async () => await close());
 
-	expect(page.locator('[data-testid]')).toBeTruthy();
-});
+		expect(page.locator('[data-testid]')).toBeTruthy();
+	}
+);

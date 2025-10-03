@@ -4,15 +4,15 @@ import devtoolsJson from '../../devtools-json/index.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const { test, flavors } = setupTest(
+const { test, addonTestCases } = setupTest(
 	{ devtoolsJson },
 	{ kinds: [{ type: 'default', options: { devtoolsJson: {} } }], browser: false }
 );
 
-test.concurrent.for(flavors)('devtools-json $variant', (flavor, ctx) => {
-	const cwd = ctx.run(flavor);
+test.concurrent.for(addonTestCases)('devtools-json $variant', (addonTestCase, ctx) => {
+	const cwd = ctx.run(addonTestCase);
 
-	const ext = flavor.variant.includes('ts') ? 'ts' : 'js';
+	const ext = addonTestCase.variant.includes('ts') ? 'ts' : 'js';
 	const viteFile = path.resolve(cwd, `vite.config.${ext}`);
 	const viteContent = fs.readFileSync(viteFile, 'utf8');
 

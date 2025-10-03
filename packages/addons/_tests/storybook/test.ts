@@ -7,7 +7,7 @@ import storybook from '../../storybook/index.ts';
 import eslint from '../../eslint/index.ts';
 
 // we're including the `eslint` add-on to prevent `storybook` from modifying this repo's `eslint.config.js`
-const { test, flavors, prepareServer } = setupTest(
+const { test, addonTestCases, prepareServer } = setupTest(
 	{ storybook, eslint },
 	{ kinds: [{ type: 'default', options: { storybook: {}, eslint: {} } }] }
 );
@@ -22,18 +22,22 @@ beforeAll(() => {
 	}
 });
 
-test.for(flavors)('storybook $variant', { concurrent: !CI }, async (flavor, { page, ...ctx }) => {
-	const cwd = ctx.run(flavor);
+test.for(addonTestCases)(
+	'storybook $variant',
+	{ concurrent: !CI },
+	async (addonTestCase, { page, ...ctx }) => {
+		const cwd = ctx.run(addonTestCase);
 
-	const { close } = await prepareServer({
-		cwd,
-		page,
-		previewCommand: `pnpm storybook -p ${++port} --ci`,
-		buildCommand: ''
-	});
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
+		const { close } = await prepareServer({
+			cwd,
+			page,
+			previewCommand: `pnpm storybook -p ${++port} --ci`,
+			buildCommand: ''
+		});
+		// kill server process when we're done
+		ctx.onTestFinished(async () => await close());
 
-	expect(page.locator('main .sb-bar')).toBeTruthy();
-	expect(page.locator('#storybook-preview-wrapper')).toBeTruthy();
-});
+		expect(page.locator('main .sb-bar')).toBeTruthy();
+		expect(page.locator('#storybook-preview-wrapper')).toBeTruthy();
+	}
+);

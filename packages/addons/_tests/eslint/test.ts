@@ -4,13 +4,13 @@ import { execSync } from 'node:child_process';
 import { setupTest } from '../_setup/suite.ts';
 import eslint from '../../eslint/index.ts';
 
-const { test, flavors } = setupTest(
+const { test, addonTestCases } = setupTest(
 	{ eslint },
 	{ kinds: [{ type: 'default', options: { eslint: {} } }], browser: false }
 );
 
-test.concurrent.for(flavors)('eslint $variant', (flavor, { expect, ...ctx }) => {
-	const cwd = ctx.run(flavor);
+test.concurrent.for(addonTestCases)('eslint $variant', (addonTestCase, { expect, ...ctx }) => {
+	const cwd = ctx.run(addonTestCase);
 
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');

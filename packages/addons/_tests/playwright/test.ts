@@ -3,15 +3,15 @@ import path from 'node:path';
 import { setupTest } from '../_setup/suite.ts';
 import playwright from '../../playwright/index.ts';
 
-const { test, flavors } = setupTest(
+const { test, addonTestCases } = setupTest(
 	{ playwright },
 	{ kinds: [{ type: 'default', options: { playwright: {} } }], browser: false }
 );
 
-test.concurrent.for(flavors)('playwright $variant', (flavor, { expect, ...ctx }) => {
-	const cwd = ctx.run(flavor);
+test.concurrent.for(addonTestCases)('playwright $variant', (addonTestCase, { expect, ...ctx }) => {
+	const cwd = ctx.run(addonTestCase);
 
-	const ext = flavor.variant.includes('ts') ? 'ts' : 'js';
+	const ext = addonTestCase.variant.includes('ts') ? 'ts' : 'js';
 	const playwrightConfig = path.resolve(cwd, `playwright.config.${ext}`);
 	const configContent = fs.readFileSync(playwrightConfig, 'utf8');
 

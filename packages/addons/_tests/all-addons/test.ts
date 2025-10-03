@@ -19,17 +19,20 @@ const defaultOptions = Object.values(officialAddons).reduce<OptionMap<typeof add
 	{}
 );
 
-const { test, flavors, prepareServer } = setupTest(addons, {
+const { test, addonTestCases, prepareServer } = setupTest(addons, {
 	kinds: [{ type: 'default', options: defaultOptions }],
-	filter: (flavor) => flavor.variant.startsWith('kit')
+	filter: (addonTestCase) => addonTestCase.variant.startsWith('kit')
 });
 
-test.concurrent.for(flavors)('run all addons - $variant', async (flavor, { page, ...ctx }) => {
-	const cwd = ctx.run(flavor);
+test.concurrent.for(addonTestCases)(
+	'run all addons - $variant',
+	async (addonTestCase, { page, ...ctx }) => {
+		const cwd = ctx.run(addonTestCase);
 
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
+		const { close } = await prepareServer({ cwd, page });
+		// kill server process when we're done
+		ctx.onTestFinished(async () => await close());
 
-	expect(true).toBe(true);
-});
+		expect(true).toBe(true);
+	}
+);

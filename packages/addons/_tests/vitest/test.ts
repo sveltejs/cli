@@ -4,13 +4,13 @@ import vitest from '../../vitest-addon/index.ts';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const { test, flavors } = setupTest(
+const { test, addonTestCases } = setupTest(
 	{ vitest },
 	{ kinds: [{ type: 'default', options: { vitest: {} } }], browser: false }
 );
 
-test.concurrent.for(flavors)('vitest $variant', (flavor, { expect, ...ctx }) => {
-	const cwd = ctx.run(flavor);
+test.concurrent.for(addonTestCases)('vitest $variant', (addonTestCase, { expect, ...ctx }) => {
+	const cwd = ctx.run(addonTestCase);
 
 	expect(() => execSync('pnpm install', { cwd, stdio: 'pipe' })).not.toThrow();
 
@@ -18,7 +18,7 @@ test.concurrent.for(flavors)('vitest $variant', (flavor, { expect, ...ctx }) => 
 
 	expect(() => execSync('pnpm test', { cwd, stdio: 'pipe' })).not.toThrow();
 
-	const ext = flavor.variant.includes('ts') ? 'ts' : 'js';
+	const ext = addonTestCase.variant.includes('ts') ? 'ts' : 'js';
 	const viteFile = path.resolve(cwd, `vite.config.${ext}`);
 	const viteContent = fs.readFileSync(viteFile, 'utf8');
 

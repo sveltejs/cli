@@ -21,10 +21,10 @@ export const execAsync = promisify(exec);
 
 type Fixtures<Addons extends AddonMap> = {
 	page: Page;
-	run(flavor: Flavor<Addons>): string;
+	run(addonTestCase: AddonTestCase<Addons>): string;
 };
 
-type Flavor<Addons extends AddonMap> = {
+type AddonTestCase<Addons extends AddonMap> = {
 	variant: ProjectVariant;
 	kind: { type: string; options: OptionMap<Addons> };
 };
@@ -32,8 +32,8 @@ type Flavor<Addons extends AddonMap> = {
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
 	options?: {
-		kinds: Array<Flavor<Addons>['kind']>;
-		filter?: (flavor: Flavor<Addons>) => boolean;
+		kinds: Array<AddonTestCase<Addons>['kind']>;
+		filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
 		browser?: boolean;
 	}
 ) {
@@ -53,12 +53,12 @@ export function setupTest<Addons extends AddonMap>(
 		});
 	}
 
-	const flavors: Array<Flavor<Addons>> = [];
+	const addonTestCases: Array<AddonTestCase<Addons>> = [];
 	for (const kind of options?.kinds ?? []) {
 		for (const variant of variants) {
-			const flavor = { variant, kind };
-			if (!options?.filter || options?.filter?.(flavor)) {
-				flavors.push(flavor);
+			const addonTestCase = { variant, kind };
+			if (!options?.filter || options?.filter?.(addonTestCase)) {
+				addonTestCases.push(addonTestCase);
 			}
 		}
 	}
@@ -85,7 +85,7 @@ export function setupTest<Addons extends AddonMap>(
 			})
 		);
 
-		for (const { variant, kind } of flavors) {
+		for (const { variant, kind } of addonTestCases) {
 			const cwd = create({ testId: `${kind.type}-${variant}`, variant });
 
 			// test metadata
@@ -112,8 +112,8 @@ export function setupTest<Addons extends AddonMap>(
 			ctx.page = await browserCtx.newPage();
 		}
 
-		ctx.run = (flavor) => {
-			return path.join(cwd, testName, `${flavor.kind.type}-${flavor.variant}`);
+		ctx.run = (addonTestCase) => {
+			return path.join(cwd, testName, `${addonTestCase.kind.type}-${addonTestCase.variant}`);
 		};
 
 		return async () => {
@@ -124,7 +124,7 @@ export function setupTest<Addons extends AddonMap>(
 		};
 	});
 
-	return { test, flavors, prepareServer };
+	return { test, addonTestCases, prepareServer };
 }
 
 type PrepareServerOptions = {
