@@ -1,5 +1,23 @@
 # sv
 
+## 0.9.7
+### Patch Changes
+
+
+- fix(cli): export types ([#719](https://github.com/sveltejs/cli/pull/719))
+
+
+- chore(cli): improve `typescript` detection ([#710](https://github.com/sveltejs/cli/pull/710))
+
+
+- chore(cli): bump defaults versions ([#722](https://github.com/sveltejs/cli/pull/722))
+
+
+- fix(cli): `--from-playground` will create projects with `experimental.async` enabled _(if svelte version allows it)_ ([#729](https://github.com/sveltejs/cli/pull/729))
+
+
+- fix(cli): `--from-playground` option now works correctly from node 20 ([#720](https://github.com/sveltejs/cli/pull/720))
+
 ## 0.9.6
 ### Patch Changes
 
