@@ -64,8 +64,8 @@ export const create = new Command('create')
 	.addOption(templateOption)
 	.addOption(langOption)
 	.option('--no-types')
-	.addOption(addOption)
 	.addOption(noAddonsOption)
+	.addOption(addOption)
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
@@ -113,7 +113,8 @@ export const create = new Command('create')
 
 			p.note(steps.join('\n'), "What's next?", { format: (line) => line });
 		});
-	});
+	})
+	.showHelpAfterError(true);
 
 async function createProject(cwd: ProjectPath, options: Options) {
 	const { directory, template, language } = await p.group(
