@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as find from 'empathic/find';
-import { x } from 'tinyexec';
+import { exec } from 'tinyexec';
 import { Option } from 'commander';
 import * as p from '@clack/prompts';
 import {
@@ -59,7 +59,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
 
-		const proc = x(command, args, {
+		const proc = exec(command, args, {
 			nodeOptions: { cwd, stdio: 'pipe' },
 			throwOnError: true
 		});
@@ -148,7 +148,7 @@ export async function addPnpmBuildDependencies(
 async function getPnpmVersion(): Promise<string | undefined> {
 	let v: string | undefined = undefined;
 	try {
-		const proc = await x('pnpm', ['--version'], { throwOnError: true });
+		const proc = await exec('pnpm', ['--version'], { throwOnError: true });
 		v = proc.stdout.trim();
 	} catch {}
 	return v;
