@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as js from '@sveltejs/cli-core/js';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
+import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -196,6 +197,16 @@ export function setupPlaygroundProject(
 		}
 	}
 
+	let experimentalAsyncNeeded = true;
+	const addExperimentalAsync = () => {
+		const svelteConfigPath = path.join(cwd, 'svelte.config.js');
+		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
+		const { ast, generateCode } = parseScript(svelteConfig);
+		const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
+		js.object.overrideProperties(config, { compilerOptions: { experimental: { async: true } } });
+		fs.writeFileSync(svelteConfigPath, generateCode(), 'utf-8');
+	};
+
 	// we want to change the svelte version, even if the user decieded
 	// to not install external dependencies
 	if (playground.svelteVersion) {
@@ -204,10 +215,17 @@ export function setupPlaygroundProject(
 		// from https://github.com/sveltejs/svelte.dev/blob/ba7ad256f786aa5bc67eac3a58608f3f50b59e91/packages/repl/src/lib/workers/npm.ts#L14
 		const pkgPrNewRegex = /^(pr|commit|branch)-(.+)/;
 		const match = pkgPrNewRegex.exec(playground.svelteVersion);
-		pkgJson.data.devDependencies['svelte'] = match
-			? `https://pkg.pr.new/svelte@${match[2]}`
-			: `^${playground.svelteVersion}`;
+		const version = match ? `https://pkg.pr.new/svelte@${match[2]}` : `${playground.svelteVersion}`;
+		pkgJson.data.devDependencies['svelte'] = version;
+
+		// if the version is a "pkg.pr.new" version, we don't need to check for support, we will use the fallback
+		if (!version.includes('pkg.pr.new')) {
+			const unsupported = isVersionUnsupportedBelow(version, '5.36');
+			if (unsupported) experimentalAsyncNeeded = false;
+		}
 	}
+
+	if (experimentalAsyncNeeded) addExperimentalAsync();
 
 	// only update the package.json if we made any changes
 	if (updatePackageJson) fs.writeFileSync(pkgPath, pkgJson.generateCode(), 'utf-8');
