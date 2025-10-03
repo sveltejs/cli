@@ -147,7 +147,7 @@ test('detect dependencies from playground files', () => {
 	expect(Array.from(dependencies.keys()).length).toBe(3);
 });
 
-test('real world download and convert playground', async () => {
+test('real world download and convert playground async', async () => {
 	const directory = path.join(testWorkspaceDir, 'real-world-playground');
 	if (fs.existsSync(directory)) {
 		fs.rmdirSync(directory, { recursive: true });
@@ -174,5 +174,38 @@ test('real world download and convert playground', async () => {
 	const packageJsonPath = path.join(directory, 'package.json');
 	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
 	expect(packageJsonContent).toContain('"change-case": "latest"');
-	expect(packageJsonContent).toContain('"svelte": "^5.38.7"');
+	expect(packageJsonContent).toContain('"svelte": "5.38.7"');
+
+	const svelteConfigPath = path.join(directory, 'svelte.config.js');
+	const svelteConfigContent = fs.readFileSync(svelteConfigPath, 'utf-8');
+	expect(svelteConfigContent).toContain('experimental: { async: true }');
+});
+
+test('real world download and convert playground without async', async () => {
+	const directory = path.join(testWorkspaceDir, 'real-world-playground-old');
+	if (fs.existsSync(directory)) {
+		fs.rmdirSync(directory, { recursive: true });
+	}
+
+	create(directory, {
+		name: 'real-world-playground-old',
+		template: 'minimal',
+		types: 'typescript'
+	});
+
+	const playground = await downloadPlaygroundData({
+		playgroundId: '770bbef086034b9f8e337bab57efe8d8',
+		hash: undefined,
+		svelteVersion: '5.0.5'
+	});
+
+	setupPlaygroundProject(playground, directory, true);
+
+	const packageJsonPath = path.join(directory, 'package.json');
+	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
+	expect(packageJsonContent).toContain('"svelte": "5.0.5"');
+
+	const svelteConfigPath = path.join(directory, 'svelte.config.js');
+	const svelteConfigContent = fs.readFileSync(svelteConfigPath, 'utf-8');
+	expect(svelteConfigContent).not.toContain('experimental: { async: true }');
 });
