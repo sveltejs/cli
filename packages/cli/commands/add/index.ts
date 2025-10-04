@@ -560,7 +560,7 @@ export async function runAddCommand(
 		if (packageManager) {
 			workspace.packageManager = packageManager;
 
-			addPnpmBuildDependencies(workspace.cwd, packageManager, [
+			await addPnpmBuildDependencies(workspace.cwd, packageManager, [
 				'esbuild',
 				...addonPnpmBuildDependencies
 			]);
