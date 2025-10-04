@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "UPDATING TEMPLATE REPO: https://github.com/sveltejs/kit-template-default..."
+
 set -e
 
 get_abs_filename() {
