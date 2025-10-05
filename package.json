@@ -39,10 +39,5 @@
 		"typescript-eslint": "^8.34.1",
 		"vitest": "4.0.0-beta.6"
 	},
-	"packageManager": "pnpm@10.4.1",
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"esbuild"
-		]
-	}
+	"packageManager": "pnpm@10.17.0"
 }
