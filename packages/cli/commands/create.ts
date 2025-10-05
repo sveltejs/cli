@@ -244,7 +244,7 @@ async function createProjectFromPlayground(url: string, cwd: string): Promise<vo
 	const dependencies = detectPlaygroundDependencies(playground.files);
 	const installDependencies = await confirmExternalDependencies(Array.from(dependencies.keys()));
 
-	setupPlaygroundProject(playground, cwd, installDependencies);
+	setupPlaygroundProject(url, playground, cwd, installDependencies);
 }
 
 async function confirmExternalDependencies(dependencies: string[]): Promise<boolean> {
