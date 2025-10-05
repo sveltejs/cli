@@ -1,5 +1,5 @@
-import { dedent, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
-import { array, exports, functions, object } from '@sveltejs/cli-core/js';
+import { dedent, defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import { array, imports, object, vite } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const options = defineAddonOptions()
@@ -25,12 +25,12 @@ export default defineAddon({
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
-		sv.devDependency('vitest', '^3.2.3');
+		sv.devDependency('vitest', '^3.2.4');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser', '^3.2.3');
-			sv.devDependency('vitest-browser-svelte', '^0.1.0');
-			sv.devDependency('playwright', '^1.53.0');
+			sv.devDependency('@vitest/browser', '^3.2.4');
+			sv.devDependency('vitest-browser-svelte', '^1.1.0');
+			sv.devDependency('playwright', '^1.55.1');
 		}
 
 		sv.file('package.json', (content) => {
@@ -96,6 +96,7 @@ export default defineAddon({
 				`;
 			});
 		}
+
 		sv.file(viteConfigFile, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
@@ -125,19 +126,9 @@ export default defineAddon({
 				}
 			});
 
-			const defineConfigFallback = functions.createCall({ name: 'defineConfig', args: [] });
-			const { value: defineWorkspaceCall } = exports.createDefault(ast, {
-				fallback: defineConfigFallback
-			});
-			if (defineWorkspaceCall.type !== 'CallExpression') {
-				log.warn('Unexpected vite config. Could not update.');
-			}
+			const viteConfig = vite.getConfig(ast);
 
-			const vitestConfig = functions.getArgument(defineWorkspaceCall, {
-				index: 0,
-				fallback: object.create({})
-			});
-			const testObject = object.property(vitestConfig, {
+			const testObject = object.property(viteConfig, {
 				name: 'test',
 				fallback: object.create({
 					expect: {
@@ -153,6 +144,17 @@ export default defineAddon({
 
 			if (componentTesting) array.append(workspaceArray, clientObjectExpression);
 			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
+
+			// Manage imports
+			const importName = 'defineConfig';
+			const { statement, alias } = imports.find(ast, { name: importName, from: 'vite' });
+			if (statement) {
+				// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
+				imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
+
+				// Remove the old import
+				imports.remove(ast, { name: importName, from: 'vite', statement });
+			}
 
 			return generateCode();
 		});

@@ -1,14 +1,14 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { exports, functions, imports, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^6.0.0' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.2.12' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.8' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.6.3' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.0.0' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.0.0' }
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^6.1.0' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.3.2' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.9' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^5.10.2' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.3' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.2.3' }
 ] as const;
 
 const options = defineAddonOptions()
@@ -74,33 +74,20 @@ export default defineAddon({
 			}
 
 			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
-			const kitConfig = config.properties.find(
-				(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'kit'
-			) as AstTypes.Property | undefined;
 
-			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
-				const adapterProp = kitConfig.value.properties.find(
-					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
-				);
-				if (adapterProp) {
-					adapterProp.leadingComments = [];
+			// override the adapter property
+			object.overrideProperties(config, {
+				kit: {
+					adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 				}
+			});
 
-				// only overrides the `adapter` property so we can reset it's args
-				object.overrideProperties(kitConfig.value, {
-					properties: {
-						adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-					}
-				});
-			} else {
-				// creates the `kit` property when absent
-				object.addProperties(config, {
-					properties: {
-						kit: object.create({
-							adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-						})
-					}
-				});
+			// reset the comment for non-auto adapters
+			if (adapter.package !== '@sveltejs/adapter-auto') {
+				const fallback = object.create({});
+				const cfgKitValue = object.property(config, { name: 'kit', fallback });
+				const cfgAdapter = object.propertyNode(cfgKitValue, { name: 'adapter', fallback });
+				cfgAdapter.leadingComments = [];
 			}
 
 			return generateCode();

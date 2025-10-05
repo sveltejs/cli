@@ -7,7 +7,7 @@ import * as pkg from 'empathic/package';
 import * as p from '@clack/prompts';
 import { Command } from 'commander';
 import {
-	officialAddons,
+	officialAddons as _officialAddons,
 	getAddonDetails,
 	communityAddonIds,
 	getCommunityAddon
@@ -28,6 +28,7 @@ import {
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
+const officialAddons = Object.values(_officialAddons);
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
 const addonOptions = getAddonOptionFlags();
 const communityDetails: AddonWithoutExplicitArgs[] = [];
@@ -404,7 +405,7 @@ export async function runAddCommand(
 		}
 
 		for (const id of selected) {
-			const addon = officialAddons.find((addon) => addon.id === id)!;
+			const addon = getAddonDetails(id);
 			selectedAddons.push({ type: 'official', addon });
 		}
 	}
@@ -422,7 +423,7 @@ export async function runAddCommand(
 
 		for (const depId of missingDependencies) {
 			// TODO: this will have to be adjusted when we work on community add-ons
-			const dependency = officialAddons.find((a) => a.id === depId);
+			const dependency = getAddonDetails(depId);
 			if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
 
 			// prompt to install the dependent
@@ -559,7 +560,7 @@ export async function runAddCommand(
 		if (packageManager) {
 			workspace.packageManager = packageManager;
 
-			addPnpmBuildDependencies(workspace.cwd, packageManager, [
+			await addPnpmBuildDependencies(workspace.cwd, packageManager, [
 				'esbuild',
 				...addonPnpmBuildDependencies
 			]);

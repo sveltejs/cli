@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { create } from '../dist/index.js';
+import { create } from '../../cli/dist/lib/index.js';
 
 const repo = /** @type {string} */ (process.argv[2]);
 

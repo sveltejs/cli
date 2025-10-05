@@ -7,12 +7,12 @@ const plugins = [
 	{
 		id: 'typography',
 		package: '@tailwindcss/typography',
-		version: '^0.5.15'
+		version: '^0.5.18'
 	},
 	{
 		id: 'forms',
 		package: '@tailwindcss/forms',
-		version: '^0.5.9'
+		version: '^0.5.10'
 	}
 ] as const;
 
@@ -35,10 +35,11 @@ export default defineAddon({
 	run: ({ sv, options, viteConfigFile, typescript, kit, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^4.0.0');
-		sv.devDependency('@tailwindcss/vite', '^4.0.0');
+		sv.devDependency('tailwindcss', '^4.1.13');
+		sv.devDependency('@tailwindcss/vite', '^4.1.13');
+		sv.pnpmBuildDependency('@tailwindcss/oxide');
 
-		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.11');
+		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.14');
 
 		for (const plugin of plugins) {
 			if (!options.plugins.includes(plugin.id)) continue;

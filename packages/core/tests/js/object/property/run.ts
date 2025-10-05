@@ -1,15 +1,10 @@
-import { variables, object, common, type AstTypes } from '@sveltejs/cli-core/js';
+import { object, common, type AstTypes } from '@sveltejs/cli-core/js';
+import { getTestObjectExpression } from '../objectTestHelper.ts';
 
 export function run(ast: AstTypes.Program): void {
-	const variable = variables.declaration(ast, {
-		kind: 'const',
-		name: 'test',
-		value: object.create({})
-	});
-	const objectDeclarator = variable.declarations[0] as AstTypes.VariableDeclarator;
-	const objectExpression = objectDeclarator.init as AstTypes.ObjectExpression;
+	const obj = getTestObjectExpression(ast);
 
-	object.property(objectExpression, {
+	object.property(obj, {
 		name: 'bar',
 		fallback: common.createLiteral('string')
 	});

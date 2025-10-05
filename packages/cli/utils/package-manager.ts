@@ -12,13 +12,16 @@ import {
 	detect,
 	type AgentName
 } from 'package-manager-detector';
-import { parseJson } from '@sveltejs/cli-core/parsers';
+import { parseJson, parseYaml } from '@sveltejs/cli-core/parsers';
+import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
 
-export const AGENT_NAMES = AGENTS.filter((agent): agent is AgentName => !agent.includes('@'));
+export const AGENT_NAMES: AgentName[] = AGENTS.filter(
+	(agent): agent is AgentName => !agent.includes('@')
+);
 const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
 agentOptions.unshift({ label: 'None', value: undefined });
 
-export const installOption = new Option(
+export const installOption: Option = new Option(
 	'--install <package-manager>',
 	'installs dependencies with a specified package manager'
 ).choices(AGENT_NAMES);
@@ -55,19 +58,16 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 
 	try {
 		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
+
 		const proc = exec(command, args, {
 			nodeOptions: { cwd, stdio: 'pipe' },
 			throwOnError: true
 		});
 
-		proc.process?.stdout?.on('data', (data) => {
-			task.message(data.toString(), { raw: true });
-		});
-		proc.process?.stderr?.on('data', (data) => {
-			task.message(data.toString(), { raw: true });
-		});
-
-		await proc;
+		for await (const line of proc) {
+			// line will be from stderr/stdout in the order you'd see it in a term
+			task.message(line, { raw: true });
+		}
 
 		task.success('Successfully installed dependencies');
 	} catch {
@@ -87,35 +87,68 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export function addPnpmBuildDependencies(
+export async function addPnpmBuildDependencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	allowedPackages: string[]
-) {
+): Promise<void> {
 	// other package managers are currently not affected by this change
-	if (!packageManager || packageManager !== 'pnpm') return;
+	if (!packageManager || packageManager !== 'pnpm' || allowedPackages.length === 0) return;
 
-	// find the workspace root (if present)
-	const pnpmWorkspacePath = find.up('pnpm-workspace.yaml', { cwd });
-	let packageDirectory;
-
-	if (pnpmWorkspacePath) packageDirectory = path.dirname(pnpmWorkspacePath);
-	else packageDirectory = cwd;
-
-	// load the package.json
-	const pkgPath = path.join(packageDirectory, 'package.json');
-	const content = fs.readFileSync(pkgPath, 'utf-8');
-	const { data, generateCode } = parseJson(content);
-
-	// add the packages where we install scripts should be executed
-	data.pnpm ??= {};
-	data.pnpm.onlyBuiltDependencies ??= [];
-	for (const allowedPackage of allowedPackages) {
-		if (data.pnpm.onlyBuiltDependencies.includes(allowedPackage)) continue;
-		data.pnpm.onlyBuiltDependencies.push(allowedPackage);
+	let confIn: 'package.json' | 'pnpm-workspace.yaml' = 'package.json';
+	const pnpmVersion = await getPnpmVersion();
+	if (pnpmVersion) {
+		confIn = isVersionUnsupportedBelow(pnpmVersion, '10.5')
+			? 'package.json'
+			: 'pnpm-workspace.yaml';
 	}
 
-	// save the updated package.json
-	const newContent = generateCode();
-	fs.writeFileSync(pkgPath, newContent);
+	// find the workspace root (if present)
+	const found = find.up('pnpm-workspace.yaml', { cwd });
+
+	if (confIn === 'pnpm-workspace.yaml') {
+		const content = found ? fs.readFileSync(found, 'utf-8') : '';
+		const { data, generateCode } = parseYaml(content);
+
+		const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
+		const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
+
+		for (const item of allowedPackages) {
+			if (items.includes(item)) continue;
+			if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
+			items.push(item);
+		}
+		data.set('onlyBuiltDependencies', items);
+
+		const newContent = generateCode();
+		const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
+		if (newContent !== content) fs.writeFileSync(pnpmWorkspacePath, newContent, 'utf-8');
+	} else {
+		// else is package.json (fallback)
+		const rootDir = found ? path.dirname(found) : cwd;
+		const pkgPath = path.join(rootDir, 'package.json');
+		const content = fs.readFileSync(pkgPath, 'utf-8');
+		const { data, generateCode } = parseJson(content);
+
+		// add the packages where we install scripts should be executed
+		data.pnpm ??= {};
+		data.pnpm.onlyBuiltDependencies ??= [];
+		for (const allowedPackage of allowedPackages) {
+			if (data.pnpm.onlyBuiltDependencies.includes(allowedPackage)) continue;
+			data.pnpm.onlyBuiltDependencies.push(allowedPackage);
+		}
+
+		// save the updated package.json
+		const newContent = generateCode();
+		if (newContent !== content) fs.writeFileSync(pkgPath, newContent, 'utf-8');
+	}
+}
+
+async function getPnpmVersion(): Promise<string | undefined> {
+	let v: string | undefined = undefined;
+	try {
+		const proc = await exec('pnpm', ['--version'], { throwOnError: true });
+		v = proc.stdout.trim();
+	} catch {}
+	return v;
 }

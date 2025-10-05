@@ -1,15 +1,24 @@
-import { expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 import { setupTest } from '../_setup/suite.ts';
 import playwright from '../../playwright/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ playwright });
+const { test, testCases } = setupTest(
+	{ playwright },
+	{ kinds: [{ type: 'default', options: { playwright: {} } }], browser: false }
+);
 
-test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { playwright: {} });
+test.concurrent.for(testCases)('playwright $variant', (testCase, { expect, ...ctx }) => {
+	const cwd = ctx.cwd(testCase);
 
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
+	const ext = testCase.variant.includes('ts') ? 'ts' : 'js';
+	const playwrightConfig = path.resolve(cwd, `playwright.config.${ext}`);
+	const configContent = fs.readFileSync(playwrightConfig, 'utf8');
 
-	expect(true).toBe(true);
+	// Check if we have the imports
+	expect(configContent).toContain(`import { defineConfig } from`);
+	expect(configContent).toContain(`@playwright/test`);
+
+	// Check if it's called
+	expect(configContent).toContain(`export default defineConfig({`);
 });

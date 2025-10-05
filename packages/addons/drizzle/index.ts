@@ -86,27 +86,27 @@ export default defineAddon({
 		if (!kit) throw new Error('SvelteKit is required');
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.devDependency('drizzle-orm', '^0.40.0');
-		sv.devDependency('drizzle-kit', '^0.30.2');
+		sv.devDependency('drizzle-orm', '^0.44.5');
+		sv.devDependency('drizzle-kit', '^0.31.4');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.12.0');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.0');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
-		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^0.10.4');
-		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.5');
+		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^1.0.1');
+		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.7');
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
-			sv.dependency('better-sqlite3', '^11.8.0');
-			sv.devDependency('@types/better-sqlite3', '^7.6.12');
+			sv.dependency('better-sqlite3', '^12.4.1');
+			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			sv.pnpmBuildDependency('better-sqlite3');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
-			sv.devDependency('@libsql/client', '^0.14.0');
+			sv.devDependency('@libsql/client', '^0.15.15');
 
 		sv.file('.env', (content) => generateEnvFileContent(content, options));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));

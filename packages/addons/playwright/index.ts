@@ -10,7 +10,7 @@ export default defineAddon({
 	run: ({ sv, typescript }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.devDependency('@playwright/test', '^1.49.1');
+		sv.devDependency('@playwright/test', '^1.55.1');
 
 		sv.file('package.json', (content) => {
 			const { data, generateCode } = parseJson(content);
@@ -49,11 +49,11 @@ export default defineAddon({
 			const { value: defaultExport } = exports.createDefault(ast, { fallback: defineConfig });
 
 			const config = {
-				webServer: object.create({
+				webServer: {
 					command: 'npm run build && npm run preview',
 					port: 4173
-				}),
-				testDir: common.createLiteral('e2e')
+				},
+				testDir: 'e2e'
 			};
 
 			if (
@@ -61,14 +61,11 @@ export default defineAddon({
 				defaultExport.arguments[0]?.type === 'ObjectExpression'
 			) {
 				// uses the `defineConfig` helper
-				imports.addNamed(ast, {
-					from: '@playwright/test',
-					imports: ['defineConfig']
-				});
-				object.addProperties(defaultExport.arguments[0], { properties: config });
+				imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
+				object.overrideProperties(defaultExport.arguments[0], config);
 			} else if (defaultExport.type === 'ObjectExpression') {
-				// if the config is just an object expression, just add the property
-				object.addProperties(defaultExport, { properties: config });
+				// if the config is just an object expression, just add the properties
+				object.overrideProperties(defaultExport, config);
 			} else {
 				// unexpected config shape
 				log.warn('Unexpected playwright config for playwright add-on. Could not update.');
