@@ -105,7 +105,6 @@ export async function addPnpmBuildDependencies(
 
 	// find the workspace root (if present)
 	const found = find.up('pnpm-workspace.yaml', { cwd });
-	const rootDir = found ? path.dirname(found) : cwd;
 
 	if (confIn === 'pnpm-workspace.yaml') {
 		const content = found ? fs.readFileSync(found, 'utf-8') : '';
@@ -122,11 +121,11 @@ export async function addPnpmBuildDependencies(
 		data.set('onlyBuiltDependencies', items);
 
 		const newContent = generateCode();
-
 		const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-		if (newContent !== content) fs.writeFileSync(pnpmWorkspacePath, newContent);
+		if (newContent !== content) fs.writeFileSync(pnpmWorkspacePath, newContent, 'utf-8');
 	} else {
 		// else is package.json (fallback)
+		const rootDir = found ? path.dirname(found) : cwd;
 		const pkgPath = path.join(rootDir, 'package.json');
 		const content = fs.readFileSync(pkgPath, 'utf-8');
 		const { data, generateCode } = parseJson(content);
@@ -141,7 +140,7 @@ export async function addPnpmBuildDependencies(
 
 		// save the updated package.json
 		const newContent = generateCode();
-		if (newContent !== content) fs.writeFileSync(pkgPath, newContent, 'utf8');
+		if (newContent !== content) fs.writeFileSync(pkgPath, newContent, 'utf-8');
 	}
 }
 
