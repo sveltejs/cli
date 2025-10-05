@@ -141,7 +141,7 @@ export async function addPnpmBuildDependencies(
 
 		// save the updated package.json
 		const newContent = generateCode();
-		if (newContent !== content) fs.writeFileSync(pkgPath, newContent);
+		if (newContent !== content) fs.writeFileSync(pkgPath, newContent, 'utf8');
 	}
 }
 
