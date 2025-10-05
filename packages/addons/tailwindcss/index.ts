@@ -37,6 +37,7 @@ export default defineAddon({
 
 		sv.devDependency('tailwindcss', '^4.1.13');
 		sv.devDependency('@tailwindcss/vite', '^4.1.13');
+		sv.pnpmBuildDependency('@tailwindcss/oxide');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.6.14');
 

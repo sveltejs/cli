@@ -249,7 +249,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	const installDeps = async (install: true | AgentName) => {
 		packageManager = install === true ? await packageManagerPrompt(projectPath) : install;
-		addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
+		await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 		if (packageManager) await installDependencies(packageManager, projectPath);
 	};
 

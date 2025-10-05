@@ -19,16 +19,25 @@ const variants = vitest.inject('variants');
 
 export const execAsync = promisify(exec);
 
-type Fixtures<Addons extends AddonMap> = {
+type Fixtures = {
 	page: Page;
-	run(variant: ProjectVariant, options: OptionMap<Addons>): Promise<string>;
+	cwd(addonTestCase: AddonTestCase<any>): string;
+};
+
+type AddonTestCase<Addons extends AddonMap> = {
+	variant: ProjectVariant;
+	kind: { type: string; options: OptionMap<Addons> };
 };
 
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
-	options?: { browser?: boolean }
+	options?: {
+		kinds: Array<AddonTestCase<Addons>['kind']>;
+		filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
+		browser?: boolean;
+	}
 ) {
-	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
+	const test = vitest.test.extend<Fixtures>({} as any);
 
 	const withBrowser = options?.browser ?? true;
 
@@ -44,10 +53,20 @@ export function setupTest<Addons extends AddonMap>(
 		});
 	}
 
-	vitest.beforeAll(({ name }) => {
-		const testName = path.dirname(name).split('/').at(-1)!;
+	const testCases: Array<AddonTestCase<Addons>> = [];
+	for (const kind of options?.kinds ?? []) {
+		for (const variant of variants) {
+			const addonTestCase = { variant, kind };
+			if (options?.filter === undefined || options.filter(addonTestCase)) {
+				testCases.push(addonTestCase);
+			}
+		}
+	}
+	let testName: string;
+	vitest.beforeAll(async ({ name }) => {
+		testName = path.dirname(name).split('/').at(-1)!;
 
-		// constructs a builder for create test projects
+		// constructs a builder to create test projects
 		create = createProject({ cwd, templatesDir, testName });
 
 		// creates a pnpm workspace in each addon dir
@@ -65,32 +84,36 @@ export function setupTest<Addons extends AddonMap>(
 				private: true
 			})
 		);
+
+		for (const { variant, kind } of testCases) {
+			const cwd = create({ testId: `${kind.type}-${variant}`, variant });
+
+			// test metadata
+			const metaPath = path.resolve(cwd, 'meta.json');
+			fs.writeFileSync(metaPath, JSON.stringify({ variant, kind }, null, '\t'), 'utf8');
+
+			const { pnpmBuildDependencies } = await installAddon({
+				cwd,
+				addons,
+				options: kind.options,
+				packageManager: 'pnpm'
+			});
+			await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+		}
+
+		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
 	});
 
 	// runs before each test case
-	vitest.beforeEach<Fixtures<Addons>>(async (ctx) => {
+	vitest.beforeEach<Fixtures>(async (ctx) => {
 		let browserCtx: BrowserContext;
 		if (withBrowser) {
 			browserCtx = await browser.newContext();
 			ctx.page = await browserCtx.newPage();
 		}
-		ctx.run = async (variant, options) => {
-			const cwd = create({ testId: ctx.task.id, variant });
 
-			// test metadata
-			const metaPath = path.resolve(cwd, 'meta.json');
-			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
-
-			// run addon
-			const { pnpmBuildDependencies } = await installAddon({
-				cwd,
-				addons,
-				options,
-				packageManager: 'pnpm'
-			});
-			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
-
-			return cwd;
+		ctx.cwd = (addonTestCase) => {
+			return path.join(cwd, testName, `${addonTestCase.kind.type}-${addonTestCase.variant}`);
 		};
 
 		return async () => {
@@ -101,33 +124,22 @@ export function setupTest<Addons extends AddonMap>(
 		};
 	});
 
-	return { test, variants, prepareServer };
+	return { test, testCases, prepareServer };
 }
 
 type PrepareServerOptions = {
 	cwd: string;
 	page: Page;
-	previewCommand?: string;
 	buildCommand?: string;
-	installCommand?: string;
+	previewCommand?: string;
 };
 // installs dependencies, builds the project, and spins up the preview server
-async function prepareServer(
-	{
-		cwd,
-		page,
-		previewCommand = 'npm run preview',
-		buildCommand = 'npm run build',
-		installCommand = 'pnpm install --no-frozen-lockfile'
-	}: PrepareServerOptions,
-	afterInstall?: () => Promise<any> | any
-) {
-	// install deps
-	if (installCommand) execSync(installCommand, { cwd, stdio: 'pipe' });
-
-	// ...do commands and any other extra stuff
-	await afterInstall?.();
-
+async function prepareServer({
+	cwd,
+	page,
+	buildCommand = 'pnpm build',
+	previewCommand = 'pnpm preview'
+}: PrepareServerOptions) {
 	// build project
 	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
 

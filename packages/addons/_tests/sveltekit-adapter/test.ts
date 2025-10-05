@@ -5,31 +5,36 @@ import sveltekitAdapter from '../../sveltekit-adapter/index.ts';
 import { setupTest } from '../_setup/suite.ts';
 
 const addonId = sveltekitAdapter.id;
-const { test, variants, prepareServer } = setupTest({ [addonId]: sveltekitAdapter });
+const { test, testCases, prepareServer } = setupTest(
+	{ [addonId]: sveltekitAdapter },
+	{
+		kinds: [
+			{ type: 'node', options: { [addonId]: { adapter: 'node' } } },
+			{ type: 'auto', options: { [addonId]: { adapter: 'auto' } } }
+		],
+		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
+	}
+);
 
-const kitOnly = variants.filter((v) => v.includes('kit'));
-test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { [addonId]: { adapter: 'node' } });
+test.concurrent.for(testCases)(
+	'adapter $kind.type $variant',
+	async (testCase, { page, ...ctx }) => {
+		const cwd = ctx.cwd(testCase);
 
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
+		const { close } = await prepareServer({ cwd, page });
+		// kill server process when we're done
+		ctx.onTestFinished(async () => await close());
 
-	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
-	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch(
-		'adapter-auto only supports some environments'
-	);
-});
-
-test.concurrent.for(kitOnly)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { [addonId]: { adapter: 'auto' } });
-
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
-
-	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch('adapter-auto');
-	expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch(
-		'adapter-auto only supports some environments'
-	);
-});
+		if (testCase.kind.type === 'node') {
+			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
+			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch(
+				'adapter-auto only supports some environments'
+			);
+		} else if (testCase.kind.type === 'auto') {
+			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch('adapter-auto');
+			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch(
+				'adapter-auto only supports some environments'
+			);
+		}
+	}
+);
