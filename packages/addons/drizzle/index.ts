@@ -241,11 +241,11 @@ export default defineAddon({
 			if (options.database === 'sqlite') {
 				imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
-					imports: ['sqliteTable', 'integer']
+					imports: ['integer', 'sqliteTable', 'text']
 				});
 
 				userSchemaExpression = common.parseExpression(`sqliteTable('user', {
-					id: integer('id').primaryKey(),
+					id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 					age: integer('age')
 				})`);
 			}
