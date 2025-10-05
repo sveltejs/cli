@@ -14,7 +14,7 @@ const { test, testCases, prepareServer } = setupTest(
 );
 
 test.concurrent.for(testCases)('mdsvex $variant', async (testCase, { page, ...ctx }) => {
-	const cwd = ctx.run(testCase);
+	const cwd = ctx.cwd(testCase);
 
 	// ...add test files
 	addFixture(cwd, testCase.variant);

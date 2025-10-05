@@ -12,7 +12,7 @@ const { test, addonTestCases, prepareServer } = setupTest(
 test.concurrent.for(addonTestCases)(
 	'community-addon $variant',
 	async (addonTestCase, { page, ...ctx }) => {
-		const cwd = ctx.run(addonTestCase);
+		const cwd = ctx.cwd(addonTestCase);
 
 		// ...add files
 		if (addonTestCase.variant.startsWith('kit')) {

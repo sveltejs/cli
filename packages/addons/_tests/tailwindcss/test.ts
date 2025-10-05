@@ -16,7 +16,7 @@ const { test, prepareServer, testCases } = setupTest(
 test.concurrent.for(testCases)(
 	'tailwindcss $kind.type $variant',
 	async (testCase, { page, ...ctx }) => {
-		const cwd = ctx.run(testCase);
+		const cwd = ctx.cwd(testCase);
 
 		// ...add test files
 		addFixture(cwd, testCase.variant);

@@ -9,7 +9,7 @@ const { test, testCases } = setupTest(
 );
 
 test.concurrent.for(testCases)('playwright $variant', (testCase, { expect, ...ctx }) => {
-	const cwd = ctx.run(testCase);
+	const cwd = ctx.cwd(testCase);
 
 	const ext = testCase.variant.includes('ts') ? 'ts' : 'js';
 	const playwrightConfig = path.resolve(cwd, `playwright.config.${ext}`);

@@ -10,7 +10,7 @@ const { test, testCases } = setupTest(
 );
 
 test.concurrent.for(testCases)('vitest $variant', (testCase, { expect, ...ctx }) => {
-	const cwd = ctx.run(testCase);
+	const cwd = ctx.cwd(testCase);
 
 	expect(() => execSync('pnpm install', { cwd, stdio: 'pipe' })).not.toThrow();
 

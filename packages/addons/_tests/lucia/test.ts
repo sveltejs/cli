@@ -19,7 +19,7 @@ const { test, testCases, prepareServer } = setupTest(
 );
 
 test.concurrent.for(testCases)('lucia $variant', async (testCase, { page, ...ctx }) => {
-	const cwd = ctx.run(testCase);
+	const cwd = ctx.cwd(testCase);
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done

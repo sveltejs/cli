@@ -56,7 +56,7 @@ test.concurrent.for(testCases)(
 	'drizzle $kind.type $variant',
 	async (testCase, { page, ...ctx }) => {
 		if (testCase.kind.options.drizzle.docker && noDocker) ctx.skip();
-		const cwd = ctx.run(testCase);
+		const cwd = ctx.cwd(testCase);
 
 		const ts = testCase.variant === 'kit-ts';
 		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);

@@ -26,7 +26,7 @@ test.for(testCases)(
 	'storybook $variant',
 	{ concurrent: !CI },
 	async (testCase, { page, ...ctx }) => {
-		const cwd = ctx.run(testCase);
+		const cwd = ctx.cwd(testCase);
 
 		const { close } = await prepareServer({
 			cwd,

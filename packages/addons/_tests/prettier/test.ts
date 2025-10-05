@@ -10,7 +10,7 @@ const { test, testCases } = setupTest(
 );
 
 test.concurrent.for(testCases)('prettier $variant', (testCase, { expect, ...ctx }) => {
-	const cwd = ctx.run(testCase);
+	const cwd = ctx.cwd(testCase);
 
 	const unformattedFile = 'const foo = "bar"';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unformattedFile, 'utf8');

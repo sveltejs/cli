@@ -19,9 +19,9 @@ const variants = vitest.inject('variants');
 
 const SETUP_DIR = fileURLToPath(new URL('.', import.meta.url));
 
-type Fixtures<Addons extends AddonMap> = {
+type Fixtures = {
 	page: Page;
-	run(addonTestCase: AddonTestCase<Addons>): string;
+	cwd(addonTestCase: AddonTestCase<any>): string;
 };
 
 type AddonTestCase<Addons extends AddonMap> = {
@@ -37,7 +37,7 @@ export function setupTest<Addons extends AddonMap>(
 		browser?: boolean;
 	}
 ) {
-	const test = vitest.test.extend<Fixtures<Addons>>({} as any);
+	const test = vitest.test.extend<Fixtures>({} as any);
 
 	const withBrowser = options?.browser ?? true;
 
@@ -105,14 +105,14 @@ export function setupTest<Addons extends AddonMap>(
 	});
 
 	// runs before each test case
-	vitest.beforeEach<Fixtures<Addons>>(async (ctx) => {
+	vitest.beforeEach<Fixtures>(async (ctx) => {
 		let browserCtx: BrowserContext;
 		if (withBrowser) {
 			browserCtx = await browser.newContext();
 			ctx.page = await browserCtx.newPage();
 		}
 
-		ctx.run = (addonTestCase) => {
+		ctx.cwd = (addonTestCase) => {
 			return path.join(cwd, testName, `${addonTestCase.kind.type}-${addonTestCase.variant}`);
 		};
 

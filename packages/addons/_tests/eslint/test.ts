@@ -10,7 +10,7 @@ const { test, testCases } = setupTest(
 );
 
 test.concurrent.for(testCases)('eslint $variant', (testCase, { expect, ...ctx }) => {
-	const cwd = ctx.run(testCase);
+	const cwd = ctx.cwd(testCase);
 
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');
