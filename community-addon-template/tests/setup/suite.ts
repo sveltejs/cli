@@ -130,7 +130,6 @@ export function setupTest<Addons extends AddonMap>(
 type PrepareServerOptions = {
 	cwd: string;
 	page: Page;
-	beforeBuild?: () => Promise<any> | any;
 	buildCommand?: string;
 	previewCommand?: string;
 };
@@ -138,13 +137,9 @@ type PrepareServerOptions = {
 async function prepareServer({
 	cwd,
 	page,
-	beforeBuild,
 	buildCommand = 'pnpm build',
 	previewCommand = 'pnpm preview'
 }: PrepareServerOptions) {
-	// ...do commands and any other extra stuff
-	await beforeBuild?.();
-
 	// build project
 	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
 
