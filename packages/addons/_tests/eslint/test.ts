@@ -4,15 +4,16 @@ import { execSync } from 'node:child_process';
 import { setupTest } from '../_setup/suite.ts';
 import eslint from '../../eslint/index.ts';
 
-const { test, variants } = setupTest({ eslint }, { browser: false });
+const { test, testCases } = setupTest(
+	{ eslint },
+	{ kinds: [{ type: 'default', options: { eslint: {} } }], browser: false }
+);
 
-test.concurrent.for(variants)('core - %s', async (variant, { expect, ...ctx }) => {
-	const cwd = await ctx.run(variant, { eslint: {} });
+test.concurrent.for(testCases)('eslint $variant', (testCase, { expect, ...ctx }) => {
+	const cwd = ctx.cwd(testCase);
 
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');
-
-	expect(() => execSync('pnpm install', { cwd, stdio: 'pipe' })).not.toThrow();
 
 	expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).toThrow();
 

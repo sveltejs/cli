@@ -19,11 +19,13 @@ const defaultOptions = Object.values(officialAddons).reduce<OptionMap<typeof add
 	{}
 );
 
-const { test, variants, prepareServer } = setupTest(addons);
+const { test, testCases, prepareServer } = setupTest(addons, {
+	kinds: [{ type: 'default', options: defaultOptions }],
+	filter: (addonTestCase) => addonTestCase.variant.startsWith('kit')
+});
 
-const kitOnly = variants.filter((v) => v.startsWith('kit'));
-test.concurrent.for(kitOnly)('run all addons - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, defaultOptions);
+test.concurrent.for(testCases)('run all addons - $variant', async (testCase, { page, ...ctx }) => {
+	const cwd = ctx.cwd(testCase);
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done

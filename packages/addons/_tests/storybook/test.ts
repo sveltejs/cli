@@ -7,7 +7,10 @@ import storybook from '../../storybook/index.ts';
 import eslint from '../../eslint/index.ts';
 
 // we're including the `eslint` add-on to prevent `storybook` from modifying this repo's `eslint.config.js`
-const { test, variants, prepareServer } = setupTest({ storybook, eslint });
+const { test, testCases, prepareServer } = setupTest(
+	{ storybook, eslint },
+	{ kinds: [{ type: 'default', options: { storybook: {}, eslint: {} } }] }
+);
 
 let port = 6006;
 const CI = Boolean(process.env.CI);
@@ -19,11 +22,11 @@ beforeAll(() => {
 	}
 });
 
-test.for(variants)(
-	'storybook loaded - %s',
+test.for(testCases)(
+	'storybook $variant',
 	{ concurrent: !CI },
-	async (variant, { page, ...ctx }) => {
-		const cwd = await ctx.run(variant, { storybook: {}, eslint: {} });
+	async (testCase, { page, ...ctx }) => {
+		const cwd = ctx.cwd(testCase);
 
 		const { close } = await prepareServer({
 			cwd,
