@@ -5,7 +5,7 @@ import sveltekitAdapter from '../../sveltekit-adapter/index.ts';
 import { setupTest } from '../_setup/suite.ts';
 
 const addonId = sveltekitAdapter.id;
-const { test, addonTestCases, prepareServer } = setupTest(
+const { test, testCases, prepareServer } = setupTest(
 	{ [addonId]: sveltekitAdapter },
 	{
 		kinds: [
@@ -16,21 +16,21 @@ const { test, addonTestCases, prepareServer } = setupTest(
 	}
 );
 
-test.concurrent.for(addonTestCases)(
+test.concurrent.for(testCases)(
 	'adapter $kind.type $variant',
-	async (addonTestCase, { page, ...ctx }) => {
-		const cwd = ctx.run(addonTestCase);
+	async (testCase, { page, ...ctx }) => {
+		const cwd = ctx.run(testCase);
 
 		const { close } = await prepareServer({ cwd, page });
 		// kill server process when we're done
 		ctx.onTestFinished(async () => await close());
 
-		if (addonTestCase.kind.type === 'node') {
+		if (testCase.kind.type === 'node') {
 			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
 			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch(
 				'adapter-auto only supports some environments'
 			);
-		} else if (addonTestCase.kind.type === 'auto') {
+		} else if (testCase.kind.type === 'auto') {
 			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch('adapter-auto');
 			expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch(
 				'adapter-auto only supports some environments'

@@ -12,7 +12,7 @@ import { pageServer, pageComp } from './fixtures.ts';
 // only linux is supported for running docker containers in github runners
 const noDocker = process.env.CI && process.platform !== 'linux';
 
-const { test, addonTestCases, prepareServer } = setupTest(
+const { test, testCases, prepareServer } = setupTest(
 	{ drizzle },
 	{
 		kinds: [
@@ -33,7 +33,7 @@ const { test, addonTestCases, prepareServer } = setupTest(
 				options: { drizzle: { database: 'postgresql', postgresql: 'postgres.js', docker: true } }
 			}
 		],
-		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
+		filter: (testCase) => testCase.variant.includes('kit')
 	}
 );
 
@@ -52,13 +52,13 @@ beforeAll(() => {
 	};
 });
 
-test.concurrent.for(addonTestCases)(
+test.concurrent.for(testCases)(
 	'drizzle $kind.type $variant',
-	async (addonTestCase, { page, ...ctx }) => {
-		if (addonTestCase.kind.options.drizzle.docker && noDocker) ctx.skip();
-		const cwd = ctx.run(addonTestCase);
+	async (testCase, { page, ...ctx }) => {
+		if (testCase.kind.options.drizzle.docker && noDocker) ctx.skip();
+		const cwd = ctx.run(testCase);
 
-		const ts = addonTestCase.variant === 'kit-ts';
+		const ts = testCase.variant === 'kit-ts';
 		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);
 		const content = fs.readFileSync(drizzleConfig, 'utf8').replace(/strict: true[,\s]/, '');
 		fs.writeFileSync(drizzleConfig, content, 'utf8');

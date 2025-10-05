@@ -8,16 +8,16 @@ import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';
 
-const { test, addonTestCases, prepareServer } = setupTest(
+const { test, testCases, prepareServer } = setupTest(
 	{ mdsvex },
 	{ kinds: [{ type: 'default', options: { mdsvex: {} } }] }
 );
 
-test.concurrent.for(addonTestCases)('mdsvex $variant', async (addonTestCase, { page, ...ctx }) => {
-	const cwd = ctx.run(addonTestCase);
+test.concurrent.for(testCases)('mdsvex $variant', async (testCase, { page, ...ctx }) => {
+	const cwd = ctx.run(testCase);
 
 	// ...add test files
-	addFixture(cwd, addonTestCase.variant);
+	addFixture(cwd, testCase.variant);
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done

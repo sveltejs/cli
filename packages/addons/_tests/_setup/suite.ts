@@ -53,12 +53,12 @@ export function setupTest<Addons extends AddonMap>(
 		});
 	}
 
-	const addonTestCases: Array<AddonTestCase<Addons>> = [];
+	const testCases: Array<AddonTestCase<Addons>> = [];
 	for (const kind of options?.kinds ?? []) {
 		for (const variant of variants) {
 			const addonTestCase = { variant, kind };
-			if (!options?.filter || options?.filter?.(addonTestCase)) {
-				addonTestCases.push(addonTestCase);
+			if (options?.filter === undefined || options.filter(addonTestCase)) {
+				testCases.push(addonTestCase);
 			}
 		}
 	}
@@ -85,7 +85,7 @@ export function setupTest<Addons extends AddonMap>(
 			})
 		);
 
-		for (const { variant, kind } of addonTestCases) {
+		for (const { variant, kind } of testCases) {
 			const cwd = create({ testId: `${kind.type}-${variant}`, variant });
 
 			// test metadata
@@ -124,7 +124,7 @@ export function setupTest<Addons extends AddonMap>(
 		};
 	});
 
-	return { test, addonTestCases, prepareServer };
+	return { test, testCases, prepareServer };
 }
 
 type PrepareServerOptions = {
