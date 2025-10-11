@@ -589,10 +589,11 @@ export async function runAddCommand(
 	const nextSteps = selectedAddons
 		.map(({ addon }) => {
 			if (!addon.nextSteps) return;
-			let addonMessage = `${pc.green(addon.id)}:\n`;
-
 			const options = official[addon.id];
 			const addonNextSteps = addon.nextSteps({ ...workspace, options, highlighter });
+			if (addonNextSteps.length === 0) return;
+
+			let addonMessage = `${pc.green(addon.id)}:\n`;
 			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
 			return addonMessage;
 		})
