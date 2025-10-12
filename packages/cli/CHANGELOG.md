@@ -1,5 +1,17 @@
 # sv
 
+## 0.9.8
+### Patch Changes
+
+
+- fix(tailwindcss): add `@tailwindcss/oxide` to approve-builds in `pnpm` ([#717](https://github.com/sveltejs/cli/pull/717))
+
+
+- feat(drizzle): user ID is now a string to ease migration to auth ([#733](https://github.com/sveltejs/cli/pull/733))
+
+
+- feat(cli): pnpm config will now be stored in `pnpm-workspace.yaml` (e.g. `onlyBuiltDependencies`) ([#717](https://github.com/sveltejs/cli/pull/717))
+
 ## 0.9.7
 ### Patch Changes
 
