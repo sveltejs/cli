@@ -205,7 +205,7 @@ export function setupPlaygroundProject(
 	// add app import to +page.svelte
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
-	const { script, generateCode } = parseSvelte(content);
+	const { script, generateCode } = parseSvelte(content, { typescript });
 	js.imports.addDefault(script.ast, { as: 'App', from: `$lib/playground/${mainFile.name}` });
 	js.imports.addDefault(script.ast, {
 		as: 'PlaygroundLayout',
