@@ -19,7 +19,7 @@ const options = defineAddonOptions()
 	.add('setup', {
 		question: 'What setup you want to use?',
 		type: 'select',
-		default: 'local',
+		default: 'remote',
 		options: [
 			{ value: 'local', label: 'Local', hint: 'will use stdio' },
 			{ value: 'remote', label: 'Remote', hint: 'will use a remote endpoint' }
