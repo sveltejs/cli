@@ -16,16 +16,6 @@ const options = defineAddonOptions()
 		],
 		required: true
 	})
-	// .add('scope', {
-	// 	question: 'Where do you want to save the MCP config?',
-	// 	type: 'multiselect',
-	// 	default: ['workspace'],
-	// 	options: [
-	// 		{ value: 'workspace', label: 'Workspace', hint: 'Will be available in this workspace' },
-	// 		{ value: 'global', label: 'Global', hint: 'Will be available globally' }
-	// 	],
-	// 	required: true
-	// })
 	.add('setup', {
 		question: 'What setup you want to use?',
 		type: 'select',
