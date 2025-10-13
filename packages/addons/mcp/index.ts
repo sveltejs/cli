@@ -3,7 +3,7 @@ import { parseJson } from '@sveltejs/cli-core/parsers';
 
 const options = defineAddonOptions()
 	.add('ide', {
-		question: 'What environment do you want to use?',
+		question: 'Which client would you like to use?',
 		type: 'multiselect',
 		default: [],
 		options: [
