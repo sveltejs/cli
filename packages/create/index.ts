@@ -19,7 +19,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = TemplateType | LanguageType;
+export type Condition = TemplateType | LanguageType | 'playground';
 
 export type Common = {
 	files: Array<{

@@ -180,26 +180,31 @@ export function setupPlaygroundProject(
 		fs.writeFileSync(filePath, file.content, 'utf8');
 	}
 
-	// add playground layout to lib
+	// add playground shared files
 	{
 		const shared = dist('shared.json');
 		const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
-		const playgroundLayout = files.find((file) => file.name === 'PlaygroundLayout.svelte');
-		if (!playgroundLayout) throw new Error('Failed to find `PlaygroundLayout.svelte`');
+		const playgroundFiles = files.filter((file) => file.include.includes('playground'));
 
-		const playgroundLayoutPath = path.join(cwd, 'src', 'lib', 'PlaygroundLayout.svelte');
-		// getting raw content
-		const { script, template } = parseSvelte(playgroundLayout.contents);
-		// generating new content with the right language style
-		const { generateCode } = parseSvelte('', { typescript });
-		const newContent = generateCode({
-			script: script
-				.generateCode()
-				.replaceAll('$sv-title-$sv', playground.name)
-				.replaceAll('$sv-url-$sv', url),
-			template: template.generateCode()
-		});
-		fs.writeFileSync(playgroundLayoutPath, newContent, 'utf-8');
+		for (const file of playgroundFiles) {
+			let contentToWrite = file.contents;
+
+			if (file.name === 'src/lib/PlaygroundLayout.svelte') {
+				// getting raw content
+				const { script, template } = parseSvelte(file.contents);
+				// generating new content with the right language style
+				const { generateCode } = parseSvelte('', { typescript });
+				contentToWrite = generateCode({
+					script: script
+						.generateCode()
+						.replaceAll('$sv-title-$sv', playground.name)
+						.replaceAll('$sv-url-$sv', url),
+					template: template.generateCode()
+				});
+			}
+
+			fs.writeFileSync(path.join(cwd, file.name), contentToWrite, 'utf-8');
+		}
 	}
 
 	// add app import to +page.svelte
