@@ -75,16 +75,13 @@ test.concurrent.for(testCases)(
 		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);
 		const content = fs.readFileSync(drizzleConfig, 'utf8');
 
-		// Check that we have a drizzle config
-		expect(content.length).toBeGreaterThan(0);
+		expect(content.length, 'drizzle config should have content').toBeGreaterThan(0);
 
-		// If the environment must have docker, Check that we have docker installed
-		if (MUST_HAVE_DOCKER) expect(dockerInstalled).toBe(true);
+		if (MUST_HAVE_DOCKER) expect(dockerInstalled, 'docker must be installed').toBe(true);
 
-		// If the database requires docker, Check that we have the config file
 		if (testCase.kind.options.drizzle.docker) {
-			const dockerCompose = path.resolve(cwd, 'docker-compose.yml');
-			expect(fs.existsSync(dockerCompose)).toBe(true);
+			const dockerCompose = path.resolve(cwd, 'compose.yaml');
+			expect(fs.existsSync(dockerCompose), 'file should exist').toBe(true);
 		}
 
 		const db_can_be_tested =

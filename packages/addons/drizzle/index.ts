@@ -94,7 +94,7 @@ export default defineAddon({
 			}
 		}
 	},
-	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
+	run: ({ sv, typescript, options, kit, dependencyVersion, cwd }) => {
 		const ext = typescript ? 'ts' : 'js';
 
 		sv.devDependency('drizzle-orm', '^0.44.5');
@@ -123,7 +123,15 @@ export default defineAddon({
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
-			sv.file('compose.yaml', (content) => {
+			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
+			let composeFile = '';
+			for (const option of composeFileOptions) {
+				composeFile = option;
+				if (fs.existsSync(path.resolve(cwd, option))) break;
+			}
+			if (composeFile === '') throw new Error('unreachable state...');
+
+			sv.file(composeFile, (content) => {
 				// if the file already exists, don't modify it
 				// (in the future, we could add some tooling for modifying yaml)
 				if (content.length > 0) return content;
