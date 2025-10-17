@@ -39,6 +39,7 @@ const { test, testCases, prepareServer } = setupTest(
 );
 
 beforeAll(() => {
+	if (!MUST_HAVE_DOCKER) return;
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 
 	try {
