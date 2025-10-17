@@ -123,7 +123,7 @@ export default defineAddon({
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
-			sv.file('docker-compose.yml', (content) => {
+			sv.file('compose.yaml', (content) => {
 				// if the file already exists, don't modify it
 				// (in the future, we could add some tooling for modifying yaml)
 				if (content.length > 0) return content;
