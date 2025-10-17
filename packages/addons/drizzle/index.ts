@@ -73,30 +73,28 @@ export default defineAddon({
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unsupported, runsAfter, cwd, typescript }) => {
+	setup: ({ kit, unsupported, runsAfter }) => {
 		runsAfter('prettier');
 
-		const ext = typescript ? 'ts' : 'js';
-		if (!kit) {
-			return unsupported('Requires SvelteKit');
-		}
+		if (!kit) return unsupported('Requires SvelteKit');
+	},
+	run: ({ sv, typescript, options, kit, dependencyVersion, cwd, cancel }) => {
+		if (!kit) throw new Error('SvelteKit is required');
 
-		const baseDBPath = path.resolve(kit.libDirectory, 'server', 'db');
+		const ext = typescript ? 'ts' : 'js';
+		const baseDBPath = path.resolve(cwd, kit.libDirectory, 'server', 'db');
 		const paths = {
-			'drizzle config': path.relative(cwd, path.resolve(cwd, `drizzle.config.${ext}`)),
-			'database schema': path.relative(cwd, path.resolve(baseDBPath, `schema.${ext}`)),
-			database: path.relative(cwd, path.resolve(baseDBPath, `index.${ext}`))
+			'drizzle config': path.resolve(cwd, `drizzle.config.${ext}`),
+			'database schema': path.resolve(baseDBPath, `schema.${ext}`),
+			database: path.resolve(baseDBPath, `index.${ext}`)
 		};
 
 		for (const [fileType, filePath] of Object.entries(paths)) {
 			if (fs.existsSync(filePath)) {
-				unsupported(`Preexisting ${fileType} file at '${filePath}'`);
+				return cancel(`Preexisting ${fileType} file at '${filePath}'`);
 			}
 		}
-	},
-	run: ({ sv, typescript, options, kit, dependencyVersion, cwd }) => {
-		const ext = typescript ? 'ts' : 'js';
-
+		console.log(`no preexisting files`);
 		sv.devDependency('drizzle-orm', '^0.44.5');
 		sv.devDependency('drizzle-kit', '^0.31.4');
 		sv.devDependency('@types/node', getNodeTypesVersion());
@@ -214,7 +212,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(`drizzle.config.${ext}`, (content) => {
+		sv.file(paths['drizzle config'], (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
@@ -242,7 +240,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${kit?.libDirectory}/server/db/schema.${ext}`, (content) => {
+		sv.file(paths['database schema'], (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			let userSchemaExpression;
@@ -294,7 +292,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${kit?.libDirectory}/server/db/index.${ext}`, (content) => {
+		sv.file(paths['database'], (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			imports.addNamed(ast, {

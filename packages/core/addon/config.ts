@@ -40,7 +40,9 @@ export type Addon<Args extends OptionDefinition> = {
 			runsAfter: (addonName: string) => void;
 		}
 	) => MaybePromise<void>;
-	run: (workspace: Workspace<Args> & { sv: SvApi }) => MaybePromise<void>;
+	run: (
+		workspace: Workspace<Args> & { sv: SvApi; cancel: (reason: string) => void }
+	) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
