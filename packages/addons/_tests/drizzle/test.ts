@@ -48,19 +48,19 @@ beforeAll(() => {
 		dockerInstalled = false;
 	}
 
-	if (dockerInstalled) {
+	if (dockerInstalled && MUST_HAVE_DOCKER) {
 		execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
 	}
 
 	// cleans up the containers on interrupts (ctrl+c)
 	process.addListener('SIGINT', () => {
-		if (dockerInstalled) {
+		if (dockerInstalled && MUST_HAVE_DOCKER) {
 			execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
 		}
 	});
 
 	return () => {
-		if (dockerInstalled) {
+		if (dockerInstalled && MUST_HAVE_DOCKER) {
 			execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
 		}
 	};
