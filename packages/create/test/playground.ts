@@ -165,11 +165,29 @@ test('real world download and convert playground async', async () => {
 		svelteVersion: '5.38.7'
 	});
 
-	setupPlaygroundProject(playground, directory, true);
+	setupPlaygroundProject(
+		'https://svelte.dev/playground/770bbef086034b9f8e337bab57efe8d8',
+		playground,
+		directory,
+		true,
+		true
+	);
 
 	const pageFilePath = path.join(directory, 'src/routes/+page.svelte');
 	const pageContent = fs.readFileSync(pageFilePath, 'utf-8');
 	expect(pageContent).toContain('<App />');
+	expect(pageContent).toContain('<PlaygroundLayout>');
+
+	const playgroundLayoutPath = path.join(directory, 'src/lib/PlaygroundLayout.svelte');
+	const playgroundLayoutContent = fs.readFileSync(playgroundLayoutPath, 'utf-8');
+	expect(playgroundLayoutContent).toContain('localStorage.getItem');
+	expect(playgroundLayoutContent).toContain('sv:theme');
+	expect(playgroundLayoutContent).toContain('770bbef086034b9f8e337bab57efe8d8');
+	// parse & print issue
+	expect(playgroundLayoutContent).not.toContain('"{()"');
+	expect(playgroundLayoutContent).not.toContain('&gt;');
+	expect(playgroundLayoutContent).not.toContain('onclick="{switchTheme}"');
+	expect(playgroundLayoutContent).toContain('onclick={switchTheme}');
 
 	const packageJsonPath = path.join(directory, 'package.json');
 	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
@@ -199,7 +217,13 @@ test('real world download and convert playground without async', async () => {
 		svelteVersion: '5.0.5'
 	});
 
-	setupPlaygroundProject(playground, directory, true);
+	setupPlaygroundProject(
+		'https://svelte.dev/playground/770bbef086034b9f8e337bab57efe8d8',
+		playground,
+		directory,
+		true,
+		true
+	);
 
 	const packageJsonPath = path.join(directory, 'package.json');
 	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
