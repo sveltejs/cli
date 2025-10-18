@@ -5,7 +5,7 @@ import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { detect } from 'package-manager-detector';
 import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
-import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
+import { commonFilePaths, getAllPaths, getPackageJson, readFile } from './utils.ts';
 import { getUserAgent } from '../../utils/package-manager.ts';
 
 type CreateWorkspaceOptions = {
@@ -32,18 +32,19 @@ export async function createWorkspace({
 		: commonFilePaths.viteConfig;
 
 	let dependencies: Record<string, string> = {};
-	let directory = resolvedCwd;
-	const root = findRoot(resolvedCwd);
-	while (directory && directory !== root) {
-		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
-			const { data: packageJson } = getPackageJson(directory);
+	const directory = resolvedCwd;
+	const workspaceRoot = findWorkspaceRoot(directory);
+	const allPathsUntilWorkspaceRoot = getAllPaths(workspaceRoot, directory);
+	for (const dir of allPathsUntilWorkspaceRoot) {
+		if (fs.existsSync(path.join(dir, commonFilePaths.packageJson))) {
+			const { data: packageJson } = getPackageJson(dir);
 			dependencies = {
+				...dependencies,
+				// prioritize deeper dependency versions
 				...packageJson.devDependencies,
-				...packageJson.dependencies,
-				...dependencies
+				...packageJson.dependencies
 			};
 		}
-		directory = path.dirname(directory);
 	}
 	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
 	for (const [key, value] of Object.entries(dependencies)) {
@@ -61,14 +62,16 @@ export async function createWorkspace({
 	};
 }
 
-function findRoot(cwd: string): string {
+function findWorkspaceRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {
 		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+			// in pnpm it can be a file
 			if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
 				return directory;
 			}
+			// in other package managers it's a workspaces key in the package.json
 			const { data } = getPackageJson(directory);
 			if (data.workspaces) {
 				return directory;
@@ -76,7 +79,7 @@ function findRoot(cwd: string): string {
 		}
 		directory = path.dirname(directory);
 	}
-	return root;
+	return cwd;
 }
 
 function parseKitOptions(cwd: string) {

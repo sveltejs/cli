@@ -125,3 +125,18 @@ export function getHighlighter(): Highlighter {
 		website: (str) => pc.whiteBright(str)
 	};
 }
+
+export function getAllPaths(from: string, to: string): string[] {
+	const relativePath = path.relative(from, to);
+	const pathSegments = relativePath.split(path.sep).filter(Boolean);
+
+	const allPathsUntilWorkspaceRoot = [from];
+	let currentPath = from;
+
+	for (const segment of pathSegments) {
+		currentPath = path.join(currentPath, segment);
+		allPathsUntilWorkspaceRoot.push(currentPath);
+	}
+
+	return allPathsUntilWorkspaceRoot;
+}
