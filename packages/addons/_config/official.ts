@@ -6,6 +6,7 @@ import eslint from '../eslint/index.ts';
 import lucia from '../lucia/index.ts';
 import mdsvex from '../mdsvex/index.ts';
 import paraglide from '../paraglide/index.ts';
+import mcp from '../mcp/index.ts';
 import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
 import storybook from '../storybook/index.ts';
@@ -26,6 +27,7 @@ type OfficialAddons = {
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
+	mcp: Addon<any>;
 };
 
 // The order of addons here determines the order they are displayed inside the CLI
@@ -42,7 +44,8 @@ export const officialAddons: OfficialAddons = {
 	lucia,
 	mdsvex,
 	paraglide,
-	storybook
+	storybook,
+	mcp
 };
 
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
