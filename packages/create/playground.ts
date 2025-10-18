@@ -3,6 +3,8 @@ import path from 'node:path';
 import * as js from '@sveltejs/cli-core/js';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import { dist } from './utils.ts';
+import type { Common } from './index.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -154,9 +156,11 @@ function extractPackageVersion(pkgName: string) {
 }
 
 export function setupPlaygroundProject(
+	url: string,
 	playground: PlaygroundData,
 	cwd: string,
-	installDependencies: boolean
+	installDependencies: boolean,
+	typescript: boolean
 ): void {
 	const mainFile = playground.files.find((file) => file.name === 'App.svelte');
 	if (!mainFile) throw new Error('Failed to find `App.svelte` entrypoint.');
@@ -171,17 +175,56 @@ export function setupPlaygroundProject(
 		}
 
 		// write file to disk
-		const filePath = path.join(cwd, 'src', 'routes', file.name);
+		const filePath = path.join(cwd, 'src', 'lib', 'playground', file.name);
 		fs.mkdirSync(path.dirname(filePath), { recursive: true });
 		fs.writeFileSync(filePath, file.content, 'utf8');
+	}
+
+	// add playground shared files
+	{
+		const shared = dist('shared.json');
+		const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
+		const playgroundFiles = files.filter((file) => file.include.includes('playground'));
+
+		for (const file of playgroundFiles) {
+			let contentToWrite = file.contents;
+
+			if (file.name === 'src/lib/PlaygroundLayout.svelte') {
+				// getting raw content
+				const { script, template, css } = parseSvelte(file.contents);
+				// generating new content with the right language style
+				const { generateCode } = parseSvelte('', { typescript });
+				contentToWrite = generateCode({
+					script: script
+						.generateCode()
+						.replaceAll('$sv-title-$sv', playground.name)
+						.replaceAll('$sv-url-$sv', url),
+					template: template
+						.generateCode()
+						.replaceAll('onclick="{switchTheme}"', 'onclick={switchTheme}'),
+					css: css.generateCode()
+				});
+			}
+
+			fs.writeFileSync(path.join(cwd, file.name), contentToWrite, 'utf-8');
+		}
 	}
 
 	// add app import to +page.svelte
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
-	const { script, generateCode } = parseSvelte(content);
-	js.imports.addDefault(script.ast, { from: `./${mainFile.name}`, as: 'App' });
-	const newContent = generateCode({ script: script.generateCode(), template: `<App />` });
+	const { script, generateCode } = parseSvelte(content, { typescript });
+	js.imports.addDefault(script.ast, { as: 'App', from: `$lib/playground/${mainFile.name}` });
+	js.imports.addDefault(script.ast, {
+		as: 'PlaygroundLayout',
+		from: `$lib/PlaygroundLayout.svelte`
+	});
+	const newContent = generateCode({
+		script: script.generateCode(),
+		template: `<PlaygroundLayout>
+	<App />
+</PlaygroundLayout>`
+	});
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested

@@ -512,14 +512,30 @@ export async function runAddonsApply(
 	const details = officialDetails.concat(commDetails);
 
 	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
-	const { filesToFormat, pnpmBuildDependencies: addonPnpmBuildDependencies } = await applyAddons({
+	const { filesToFormat, pnpmBuildDependencies, status } = await applyAddons({
 		workspace,
 		addonSetupResults,
 		addons: addonMap,
 		options: answersOfficial
 	});
 
-	p.log.success('Successfully setup add-ons');
+	const addonSuccess: string[] = [];
+	for (const [addonId, info] of Object.entries(status)) {
+		if (info === 'success') addonSuccess.push(addonId);
+		else {
+			p.log.warn(`Canceled ${addonId}: ${info.join(', ')}`);
+			selectedAddons = selectedAddons.filter((a) => a.addon.id !== addonId);
+		}
+	}
+
+	if (addonSuccess.length === 0) {
+		p.cancel('All selected add-ons were canceled.');
+		process.exit(1);
+	} else if (addonSuccess.length === Object.entries(status).length) {
+		p.log.success('Successfully setup add-ons');
+	} else {
+		p.log.success(`Successfully setup: ${addonSuccess.join(', ')}`);
+	}
 
 	// prompt for package manager and install dependencies
 	let packageManager: PackageManager | undefined;
@@ -532,7 +548,7 @@ export async function runAddonsApply(
 
 			await addPnpmBuildDependencies(workspace.cwd, packageManager, [
 				'esbuild',
-				...addonPnpmBuildDependencies
+				...pnpmBuildDependencies
 			]);
 
 			await installDependencies(packageManager, options.cwd);
@@ -559,10 +575,11 @@ export async function runAddonsApply(
 	const nextSteps = selectedAddons
 		.map(({ addon }) => {
 			if (!addon.nextSteps) return;
-			let addonMessage = `${pc.green(addon.id)}:\n`;
-
 			const options = answersOfficial[addon.id];
 			const addonNextSteps = addon.nextSteps({ ...workspace, options, highlighter });
+			if (addonNextSteps.length === 0) return;
+
+			let addonMessage = `${pc.green(addon.id)}:\n`;
 			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
 			return addonMessage;
 		})

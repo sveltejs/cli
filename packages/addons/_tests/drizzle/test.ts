@@ -10,7 +10,8 @@ import drizzle from '../../drizzle/index.ts';
 import { pageServer, pageComp } from './fixtures.ts';
 
 // only linux is supported for running docker containers in github runners
-const noDocker = process.env.CI && process.platform !== 'linux';
+const MUST_HAVE_DOCKER = process.env.CI && process.platform === 'linux';
+let dockerInstalled = false;
 
 const { test, testCases, prepareServer } = setupTest(
 	{ drizzle },
@@ -38,44 +39,67 @@ const { test, testCases, prepareServer } = setupTest(
 );
 
 beforeAll(() => {
-	if (noDocker) return;
+	if (!MUST_HAVE_DOCKER) return;
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
-	execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
+
+	try {
+		execSync('docker --version', { cwd, stdio: 'pipe' });
+		dockerInstalled = true;
+	} catch {
+		dockerInstalled = false;
+	}
+
+	if (dockerInstalled) execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
 
 	// cleans up the containers on interrupts (ctrl+c)
 	process.addListener('SIGINT', () => {
-		execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
+		if (dockerInstalled) execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
 	});
 
 	return () => {
-		execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
+		if (dockerInstalled) execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
 	};
 });
 
 test.concurrent.for(testCases)(
 	'drizzle $kind.type $variant',
 	async (testCase, { page, ...ctx }) => {
-		if (testCase.kind.options.drizzle.docker && noDocker) ctx.skip();
 		const cwd = ctx.cwd(testCase);
 
-		const ts = testCase.variant === 'kit-ts';
+		const ts = testCase.variant.endsWith('ts');
 		const drizzleConfig = path.resolve(cwd, `drizzle.config.${ts ? 'ts' : 'js'}`);
-		const content = fs.readFileSync(drizzleConfig, 'utf8').replace(/strict: true[,\s]/, '');
-		fs.writeFileSync(drizzleConfig, content, 'utf8');
+		const content = fs.readFileSync(drizzleConfig, 'utf8');
 
-		const routes = path.resolve(cwd, 'src', 'routes');
-		const pagePath = path.resolve(routes, '+page.svelte');
-		fs.writeFileSync(pagePath, pageComp, 'utf8');
+		expect(content.length, 'drizzle config should have content').toBeGreaterThan(0);
 
-		const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
-		fs.writeFileSync(pageServerPath, pageServer, 'utf8');
+		if (MUST_HAVE_DOCKER) expect(dockerInstalled, 'docker must be installed').toBe(true);
 
-		execSync('npm run db:push', { cwd, stdio: 'pipe' });
+		if (testCase.kind.options.drizzle.docker) {
+			const dockerCompose = path.resolve(cwd, 'compose.yaml');
+			expect(fs.existsSync(dockerCompose), 'file should exist').toBe(true);
+		}
 
-		const { close } = await prepareServer({ cwd, page });
-		// kill server process when we're done
-		ctx.onTestFinished(async () => await close());
+		const db_can_be_tested =
+			!testCase.kind.options.drizzle.docker ||
+			(testCase.kind.options.drizzle.docker && dockerInstalled);
 
-		expect(page.locator('[data-testid]')).toBeTruthy();
+		if (db_can_be_tested) {
+			fs.writeFileSync(drizzleConfig, content.replace(/strict: true[,\s]/, ''), 'utf8');
+
+			const routes = path.resolve(cwd, 'src', 'routes');
+			const pagePath = path.resolve(routes, '+page.svelte');
+			fs.writeFileSync(pagePath, pageComp, 'utf8');
+
+			const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
+			fs.writeFileSync(pageServerPath, pageServer, 'utf8');
+
+			execSync('npm run db:push', { cwd, stdio: 'pipe' });
+
+			const { close } = await prepareServer({ cwd, page });
+			// kill server process when we're done
+			ctx.onTestFinished(async () => await close());
+
+			expect(page.locator('[data-testid]')).toBeTruthy();
+		}
 	}
 );

@@ -1,5 +1,23 @@
 # sv
 
+## 0.9.9
+### Patch Changes
+
+
+- fix(drizzle): `--cwd` option in `add` command is now taken into account ([#738](https://github.com/sveltejs/cli/pull/738))
+
+
+- feat(drizzle): Docker Compose file is now stored in `compose.yaml` instead of `docker-compose.yml` ([#738](https://github.com/sveltejs/cli/pull/738))
+
+
+- fix(add): include monorepo root in dependency detection ([#740](https://github.com/sveltejs/cli/pull/740))
+
+
+- feat(cli): add new add-on `mcp` to configure your project ([#735](https://github.com/sveltejs/cli/pull/735))
+
+
+- feat(cli): `--from-playground` will now bring a PlaygroundLayout to get a more consistent experience with the online playground ([#731](https://github.com/sveltejs/cli/pull/731))
+
 ## 0.9.8
 ### Patch Changes
 

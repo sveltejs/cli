@@ -54,9 +54,11 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	pnpmBuildDependencies: string[];
+	status: Record<string, string[] | 'success'>;
 }> {
 	const filesToFormat = new Set<string>();
 	const allPnpmBuildDependencies: string[] = [];
+	const status: Record<string, string[] | 'success'> = {};
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, addonSetupResults);
@@ -64,7 +66,7 @@ export async function applyAddons({
 	for (const addon of ordered) {
 		workspace = await createWorkspace({ ...workspace, options: options[addon.id] });
 
-		const { files, pnpmBuildDependencies } = await runAddon({
+		const { files, pnpmBuildDependencies, cancels } = await runAddon({
 			workspace,
 			addon,
 			multiple: ordered.length > 1
@@ -72,11 +74,17 @@ export async function applyAddons({
 
 		files.forEach((f) => filesToFormat.add(f));
 		pnpmBuildDependencies.forEach((s) => allPnpmBuildDependencies.push(s));
+		if (cancels.length === 0) {
+			status[addon.id] = 'success';
+		} else {
+			status[addon.id] = cancels;
+		}
 	}
 
 	return {
 		filesToFormat: Array.from(filesToFormat),
-		pnpmBuildDependencies: allPnpmBuildDependencies
+		pnpmBuildDependencies: allPnpmBuildDependencies,
+		status
 	};
 }
 
@@ -177,14 +185,25 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 			pnpmBuildDependencies.push(pkg);
 		}
 	};
-	await addon.run({ ...workspace, sv });
 
-	const pkgPath = installPackages(dependencies, workspace);
-	files.add(pkgPath);
+	const cancels: string[] = [];
+	await addon.run({
+		cancel: (reason) => {
+			cancels.push(reason);
+		},
+		...workspace,
+		sv
+	});
+
+	if (cancels.length === 0) {
+		const pkgPath = installPackages(dependencies, workspace);
+		files.add(pkgPath);
+	}
 
 	return {
 		files: Array.from(files),
-		pnpmBuildDependencies
+		pnpmBuildDependencies,
+		cancels
 	};
 }
 
