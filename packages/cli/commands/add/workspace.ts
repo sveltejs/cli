@@ -5,7 +5,7 @@ import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { detect } from 'package-manager-detector';
 import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
-import { commonFilePaths, getAllPaths, getPackageJson, readFile } from './utils.ts';
+import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import { getUserAgent } from '../../utils/package-manager.ts';
 
 type CreateWorkspaceOptions = {
@@ -32,19 +32,19 @@ export async function createWorkspace({
 		: commonFilePaths.viteConfig;
 
 	let dependencies: Record<string, string> = {};
-	const directory = resolvedCwd;
-	const workspaceRoot = findWorkspaceRoot(directory);
-	const allPathsUntilWorkspaceRoot = getAllPaths(workspaceRoot, directory);
-	for (const dir of allPathsUntilWorkspaceRoot) {
-		if (fs.existsSync(path.join(dir, commonFilePaths.packageJson))) {
-			const { data: packageJson } = getPackageJson(dir);
+	let directory = resolvedCwd;
+	const rootWorkspace = findWorkspaceRoot(directory);
+	const { root } = path.parse(directory);
+	while (directory && directory.length >= rootWorkspace.length && directory !== root) {
+		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+			const { data: packageJson } = getPackageJson(directory);
 			dependencies = {
-				...dependencies,
-				// prioritize deeper dependency versions
 				...packageJson.devDependencies,
-				...packageJson.dependencies
+				...packageJson.dependencies,
+				...dependencies
 			};
 		}
+		directory = path.dirname(directory);
 	}
 	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
 	for (const [key, value] of Object.entries(dependencies)) {
@@ -79,6 +79,8 @@ function findWorkspaceRoot(cwd: string): string {
 		}
 		directory = path.dirname(directory);
 	}
+	// We didn't find a workspace root, so we return the original directory
+	// it's a standalone project
 	return cwd;
 }
 

@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix(add): dependency detection now checks each package.json until the workspace root (included)
+fix(add): include monorepo root in dependency detection
