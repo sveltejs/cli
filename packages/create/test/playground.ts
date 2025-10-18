@@ -183,6 +183,8 @@ test('real world download and convert playground async', async () => {
 	expect(playgroundLayoutContent).toContain('localStorage.getItem');
 	expect(playgroundLayoutContent).toContain('sv:theme');
 	expect(playgroundLayoutContent).toContain('770bbef086034b9f8e337bab57efe8d8');
+	// parse & print issue
+	expect(playgroundLayoutContent).not.toContain('"{()"');
 
 	const packageJsonPath = path.join(directory, 'package.json');
 	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
