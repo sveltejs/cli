@@ -1,10 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as v from 'valibot';
-import { Command, Option } from 'commander';
 import * as p from '@clack/prompts';
-import pc from 'picocolors';
+import type { OptionValues } from '@sveltejs/cli-core';
 import {
 	create as createKit,
 	templates,
@@ -12,15 +10,18 @@ import {
 	type TemplateType
 } from '@sveltejs/create';
 import {
+	detectPlaygroundDependencies,
 	downloadPlaygroundData,
 	parsePlaygroundUrl,
 	setupPlaygroundProject,
-	validatePlaygroundUrl,
-	detectPlaygroundDependencies
+	validatePlaygroundUrl
 } from '@sveltejs/create/playground';
-import * as common from '../utils/common.ts';
-import { runAddCommand } from './add/index.ts';
+import { Command, Option } from 'commander';
 import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
+import pc from 'picocolors';
+import * as v from 'valibot';
+
+import * as common from '../utils/common.ts';
 import {
 	addPnpmBuildDependencies,
 	AGENT_NAMES,
@@ -29,6 +30,13 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
+import {
+	addonArgsHandler,
+	promptAddonQuestions,
+	runAddonsApply,
+	sanitizeAddons,
+	type SelectedAddon
+} from './add/index.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -41,6 +49,8 @@ const langOption = new Option('--types <lang>', 'add type checking').choices(lan
 const templateOption = new Option('--template <type>', 'template to scaffold').choices(
 	templateChoices
 );
+const noAddonsOption = new Option('--no-add-ons', 'do not prompt to add add-ons').conflicts('add');
+const addOption = new Option('--add <addon...>', 'add-on to include').default([]);
 
 const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
@@ -49,6 +59,7 @@ const OptionsSchema = v.strictObject({
 		v.transform((lang) => langMap[String(lang)])
 	),
 	addOns: v.boolean(),
+	add: v.array(v.string()),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string())
@@ -62,7 +73,8 @@ export const create = new Command('create')
 	.addOption(templateOption)
 	.addOption(langOption)
 	.option('--no-types')
-	.option('--no-add-ons', 'skips interactive add-on installer')
+	.addOption(noAddonsOption)
+	.addOption(addOption)
 	.option('--no-install', 'skip installing dependencies')
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.addOption(installOption)
@@ -117,7 +129,8 @@ export const create = new Command('create')
 
 			p.note(steps.join('\n'), "What's next?", { format: (line) => line });
 		});
-	});
+	})
+	.showHelpAfterError(true);
 
 async function createProject(cwd: ProjectPath, options: Options) {
 	if (options.fromPlayground) {
@@ -187,6 +200,38 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	);
 
 	const projectPath = path.resolve(directory);
+
+	let selectedAddons: SelectedAddon[] = [];
+	let answersOfficial: Record<string, OptionValues<any>> = {};
+	let answersCommunity: Record<string, OptionValues<any>> = {};
+	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
+
+	if (options.addOns || options.add.length > 0) {
+		const addons = options.add.reduce(addonArgsHandler, []);
+		sanitizedAddonsMap = sanitizeAddons(addons).reduce<Record<string, string[] | undefined>>(
+			(acc, curr) => {
+				acc[curr.id] = curr.options;
+				return acc;
+			},
+			{}
+		);
+
+		const result = await promptAddonQuestions(
+			{
+				cwd: projectPath,
+				install: false,
+				gitCheck: false,
+				community: [],
+				addons: sanitizedAddonsMap
+			},
+			Object.keys(sanitizedAddonsMap)
+		);
+
+		selectedAddons = result.selectedAddons;
+		answersOfficial = result.answersOfficial;
+		answersCommunity = result.answersCommunity;
+	}
+
 	createKit(projectPath, {
 		name: path.basename(projectPath),
 		template,
@@ -212,18 +257,19 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		if (packageManager) await installDependencies(packageManager, projectPath);
 	};
 
-	if (options.addOns) {
-		// `runAddCommand` includes installing dependencies
-		const { nextSteps, packageManager: pm } = await runAddCommand(
+	if (options.addOns || options.add.length > 0) {
+		const { nextSteps, packageManager: pm } = await runAddonsApply(
+			{ answersOfficial, answersCommunity },
 			{
 				cwd: projectPath,
-				install: options.install,
+				install: false,
 				gitCheck: false,
 				community: [],
-				addons: {}
+				addons: sanitizedAddonsMap
 			},
-			[]
+			selectedAddons
 		);
+
 		packageManager = pm;
 		addOnNextSteps = nextSteps;
 	} else if (options.install) {
