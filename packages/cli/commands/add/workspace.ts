@@ -33,8 +33,14 @@ export async function createWorkspace({
 
 	let dependencies: Record<string, string> = {};
 	let directory = resolvedCwd;
-	const root = findRoot(resolvedCwd);
-	while (directory && directory !== root) {
+	const workspaceRoot = findWorkspaceRoot(directory);
+	const { root } = path.parse(directory);
+	while (
+		// we have a directory
+		directory &&
+		// we are still in the workspace (including the workspace root)
+		directory.length >= workspaceRoot.length
+	) {
 		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
 			const { data: packageJson } = getPackageJson(directory);
 			dependencies = {
@@ -43,6 +49,7 @@ export async function createWorkspace({
 				...dependencies
 			};
 		}
+		if (root === directory) break; // we are at the root root, let's stop
 		directory = path.dirname(directory);
 	}
 	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
@@ -61,14 +68,16 @@ export async function createWorkspace({
 	};
 }
 
-function findRoot(cwd: string): string {
+function findWorkspaceRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {
 		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+			// in pnpm it can be a file
 			if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
 				return directory;
 			}
+			// in other package managers it's a workspaces key in the package.json
 			const { data } = getPackageJson(directory);
 			if (data.workspaces) {
 				return directory;
@@ -76,7 +85,9 @@ function findRoot(cwd: string): string {
 		}
 		directory = path.dirname(directory);
 	}
-	return root;
+	// We didn't find a workspace root, so we return the original directory
+	// it's a standalone project
+	return cwd;
 }
 
 function parseKitOptions(cwd: string) {
