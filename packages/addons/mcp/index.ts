@@ -113,16 +113,9 @@ export default defineAddon({
 		const steps = [];
 
 		if (options.ide.includes('other')) {
-			if (options.setup === 'local') {
-				steps.push(
-					`For other clients: ${highlighter.website(`https://svelte.dev/docs/mcp/local-setup#Other-clients`)}`
-				);
-			}
-			if (options.setup === 'remote') {
-				steps.push(
-					`For other clients: ${highlighter.website(`https://svelte.dev/docs/mcp/remote-setup#Other-clients`)}`
-				);
-			}
+			steps.push(
+				`For other clients: ${highlighter.website(`https://svelte.dev/docs/mcp/${options.setup}-setup#Other-clients`)}`
+			);
 		}
 
 		return steps;
