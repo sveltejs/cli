@@ -191,7 +191,7 @@ export function setupPlaygroundProject(
 
 			if (file.name === 'src/lib/PlaygroundLayout.svelte') {
 				// getting raw content
-				const { script, template } = parseSvelte(file.contents);
+				const { script, template, css } = parseSvelte(file.contents);
 				// generating new content with the right language style
 				const { generateCode } = parseSvelte('', { typescript });
 				contentToWrite = generateCode({
@@ -199,7 +199,10 @@ export function setupPlaygroundProject(
 						.generateCode()
 						.replaceAll('$sv-title-$sv', playground.name)
 						.replaceAll('$sv-url-$sv', url),
-					template: template.generateCode()
+					template: template
+						.generateCode()
+						.replaceAll('onclick="{switchTheme}"', 'onclick={switchTheme}'),
+					css: css.generateCode()
 				});
 			}
 

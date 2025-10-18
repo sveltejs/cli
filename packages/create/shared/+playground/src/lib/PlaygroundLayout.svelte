@@ -9,18 +9,20 @@
 	let prefersDark = $state(true);
 	let isDark = $state(true);
 
-	function setTheme(/** @type {'dark' | 'light' | 'system'} */ value) {
+	function switchTheme() {
+		const value = isDark ? 'light' : 'dark';
+
 		isDark = value === 'dark';
 		localStorage.setItem('sv:theme', isDark === prefersDark ? 'system' : value);
 	}
 
 	$effect(() => {
 		document.documentElement.classList.remove('light', 'dark');
-
 		prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-		const theme = localStorage.getItem('sv:theme');
-		isDark = theme === 'dark' || (theme === 'system' && prefersDark);
 
+		const theme = localStorage.getItem('sv:theme');
+
+		isDark = !theme ? prefersDark : theme === 'dark' || (theme === 'system' && prefersDark);
 		document.documentElement.classList.add(isDark ? 'dark' : 'light');
 	});
 </script>
@@ -55,11 +57,7 @@
 				--to-playground
 				<span aria-hidden="true" style="margin-left:0.25em;"> ↗</span>
 			</a>
-			<button
-				class="raised theme-toggle"
-				onclick={() => setTheme(isDark ? 'light' : 'dark')}
-				aria-label="Toggle theme"
-			>
+			<button class="raised theme-toggle" onclick={switchTheme} aria-label="Toggle theme">
 				<span class="icon"></span>
 			</button>
 		</div>
