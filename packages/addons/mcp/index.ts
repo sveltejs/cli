@@ -91,22 +91,22 @@ export default defineAddon({
 
 		for (const ide of options.ide) {
 			const value = configurator[ide];
-			if (!('other' in value)) {
-				const { mcpServersKey, filePath, typeLocal, typeRemote, env, schema } = value;
-				sv.file(filePath, (content) => {
-					const { data, generateCode } = parseJson(content);
-					if (schema) {
-						data['$schema'] = schema;
-					}
-					const key = mcpServersKey || 'mcpServers';
-					data[key] ??= {};
-					data[key].svelte =
-						options.setup === 'local'
-							? getLocalConfig({ type: typeLocal, env })
-							: getRemoteConfig({ type: typeRemote });
-					return generateCode();
-				});
-			}
+			if ('other' in value) continue;
+
+			const { mcpServersKey, filePath, typeLocal, typeRemote, env, schema } = value;
+			sv.file(filePath, (content) => {
+				const { data, generateCode } = parseJson(content);
+				if (schema) {
+					data['$schema'] = schema;
+				}
+				const key = mcpServersKey || 'mcpServers';
+				data[key] ??= {};
+				data[key].svelte =
+					options.setup === 'local'
+						? getLocalConfig({ type: typeLocal, env })
+						: getRemoteConfig({ type: typeRemote });
+				return generateCode();
+			});
 		}
 	},
 	nextSteps({ highlighter, options }) {
