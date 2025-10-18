@@ -33,9 +33,14 @@ export async function createWorkspace({
 
 	let dependencies: Record<string, string> = {};
 	let directory = resolvedCwd;
-	const rootWorkspace = findWorkspaceRoot(directory);
+	const workspaceRoot = findWorkspaceRoot(directory);
 	const { root } = path.parse(directory);
-	while (directory && directory.length >= rootWorkspace.length && directory !== root) {
+	while (
+		// we have a directory
+		directory &&
+		// we are still in the workspace (including the workspace root)
+		directory.length >= workspaceRoot.length
+	) {
 		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
 			const { data: packageJson } = getPackageJson(directory);
 			dependencies = {
@@ -44,6 +49,7 @@ export async function createWorkspace({
 				...dependencies
 			};
 		}
+		if (root === directory) break; // we are at the root root, let's stop
 		directory = path.dirname(directory);
 	}
 	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
