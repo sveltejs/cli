@@ -95,16 +95,16 @@ export default defineAddon({
 			}
 		}
 		console.log(`no preexisting files`);
-		sv.devDependency('drizzle-orm', '^0.44.5');
-		sv.devDependency('drizzle-kit', '^0.31.4');
+		sv.devDependency('drizzle-orm', '^0.44.6');
+		sv.devDependency('drizzle-kit', '^0.31.5');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.0');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.2');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
-		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^1.0.1');
+		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^1.0.2');
 		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.7');
 
 		// SQLite
