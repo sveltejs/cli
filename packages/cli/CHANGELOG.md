@@ -1,5 +1,11 @@
 # sv
 
+## 0.9.10
+### Patch Changes
+
+
+- chore(cli): bump defaults versions ([#744](https://github.com/sveltejs/cli/pull/744))
+
 ## 0.9.9
 ### Patch Changes
 
