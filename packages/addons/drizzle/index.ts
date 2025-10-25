@@ -158,7 +158,7 @@ export default defineAddon({
                       POSTGRES_PASSWORD: ${PASSWORD}
                       POSTGRES_DB: ${DB_NAME}
                     volumes:
-                      - pgdata:/var/lib/postgresql/data
+                      - pgdata:/var/lib/postgresql
                 volumes:
                   pgdata:
                 `;
