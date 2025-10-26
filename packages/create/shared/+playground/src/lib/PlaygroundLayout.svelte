@@ -64,7 +64,7 @@
 	</nav>
 
 	<main class="content">
-		{@render children?.()}
+		{@render children()}
 	</main>
 </div>
 
