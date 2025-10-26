@@ -14,7 +14,7 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
-import ts from 'esrap/languages/ts';
+import ts, { type AdditionalComment } from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 
@@ -93,11 +93,12 @@ export function parseScript(content: string): {
 export function serializeScript(
 	ast: TsEstree.Node,
 	comments: TsEstree.Comment[],
-	previousContent?: string
+	previousContent?: string,
+	additionalComments?: WeakMap<TsEstree.Node, AdditionalComment[]>
 ): string {
 	// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
 	// which is causing these errors. But they are simmilar enough to work together.
-	const { code } = esrapPrint(ast, ts({ comments }), {
+	const { code } = esrapPrint(ast, ts({ comments, additionalComments }), {
 		indent: guessIndentString(previousContent)
 	});
 	return code;
