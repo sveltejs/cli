@@ -225,7 +225,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				addons: sanitizedAddonsMap
 			},
 			Object.keys(sanitizedAddonsMap),
-			await createVirtualWorkspace(template, projectPath, 'npm')
+			await createVirtualWorkspace({
+				cwd: projectPath,
+				template,
+				packageManager: 'npm',
+				type: language
+			})
 		);
 
 		selectedAddons = result.selectedAddons;
@@ -270,7 +275,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			selectedAddons,
 			undefined,
-			await createVirtualWorkspace(template, projectPath, 'npm')
+			await createVirtualWorkspace({
+				cwd: projectPath,
+				template,
+				packageManager: 'npm',
+				type: language
+			})
 		);
 
 		packageManager = pm;
@@ -324,17 +334,25 @@ async function confirmExternalDependencies(dependencies: string[]): Promise<bool
 	return installDeps;
 }
 
-export async function createVirtualWorkspace(
-	template: TemplateType,
-	cwd: string,
-	packageManager?: PackageManager
-): Promise<Workspace<any>> {
+interface CreateVirtualWorkspaceOptions {
+	cwd: string;
+	template: TemplateType;
+	packageManager?: PackageManager;
+	type?: LanguageType;
+}
+
+export async function createVirtualWorkspace({
+	cwd,
+	template,
+	packageManager,
+	type = 'none'
+}: CreateVirtualWorkspaceOptions): Promise<Workspace<any>> {
 	const workspace: Workspace<any> = {
 		cwd: path.resolve(cwd),
 		options: {},
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
-		typescript: false,
-		viteConfigFile: 'vite.config.js',
+		typescript: type === 'typescript',
+		viteConfigFile: type === 'typescript' ? 'vite.config.ts' : 'vite.config.js',
 		kit: undefined,
 		dependencyVersion: () => undefined
 	};
