@@ -167,8 +167,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2
       esrap:
-        specifier: https://pkg.pr.new/sveltejs/esrap@718afce
-        version: https://pkg.pr.new/sveltejs/esrap@718afce
+        specifier: https://pkg.pr.new/sveltejs/esrap@af12b38
+        version: https://pkg.pr.new/sveltejs/esrap@af12b38
       htmlparser2:
         specifier: ^9.1.0
         version: 9.1.0
@@ -1339,8 +1339,8 @@ packages:
   esrap@1.4.9:
     resolution: {integrity: sha512-3OMlcd0a03UGuZpPeUC1HxR3nA23l+HEyCiZw3b3FumJIN9KphoGzDJKMXI1S72jVS1dsenDyQC0kJlO1U9E1g==}
 
-  esrap@https://pkg.pr.new/sveltejs/esrap@718afce:
-    resolution: {tarball: https://pkg.pr.new/sveltejs/esrap@718afce}
+  esrap@https://pkg.pr.new/sveltejs/esrap@af12b38:
+    resolution: {tarball: https://pkg.pr.new/sveltejs/esrap@af12b38}
     version: 2.1.0
 
   esrecurse@4.3.0:
@@ -3402,7 +3402,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  esrap@https://pkg.pr.new/sveltejs/esrap@718afce:
+  esrap@https://pkg.pr.new/sveltejs/esrap@af12b38:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
