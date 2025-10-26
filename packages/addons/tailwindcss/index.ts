@@ -32,7 +32,7 @@ export default defineAddon({
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
-	run: ({ sv, options, viteConfigFile, typescript, kit, dependencyVersion }) => {
+	run: ({ sv, options, files, typescript, kit, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('tailwindcss', '^4.1.14');
@@ -48,7 +48,7 @@ export default defineAddon({
 		}
 
 		// add the vite plugin
-		sv.file(viteConfigFile, (content) => {
+		sv.file(files.viteConfig, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'tailwindcss';
