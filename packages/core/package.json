@@ -40,6 +40,7 @@
 		"picocolors": "^1.1.1",
 		"postcss": "^8.5.6",
 		"silver-fleece": "^1.2.1",
+		"svelte": "https://pkg.pr.new/sveltejs/svelte@1377c40",
 		"yaml": "^2.8.1",
 		"zimmerframe": "^1.1.2"
 	},

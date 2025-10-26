@@ -17,6 +17,7 @@ import { print as esrapPrint } from 'esrap';
 import ts, { type AdditionalComment } from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
+import { parse as svelteParse, type AST as SvelteAst, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
 
 type AdditionalCommentMap = WeakMap<TsEstree.Node, AdditionalComment[]>;
@@ -41,6 +42,7 @@ export {
 export type {
 	// html
 	ChildNode as HtmlChildNode,
+	SvelteAst,
 
 	// js
 	TsEstree as AstTypes,
@@ -215,4 +217,12 @@ export function parseYaml(content: string): ReturnType<typeof yaml.parseDocument
 
 export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): string {
 	return yaml.stringify(data, { singleQuote: true });
+}
+
+export function parseSvelte(content: string): SvelteAst.Root {
+	return svelteParse(content, { modern: true });
+}
+
+export function serializeSvelte(ast: SvelteAst.Root): string {
+	return sveltePrint(ast).code;
 }
