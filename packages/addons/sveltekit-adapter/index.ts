@@ -49,7 +49,7 @@ export default defineAddon({
 		sv.devDependency(adapter.package, adapter.version);
 
 		sv.file('svelte.config.js', (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, comments, generateCode } = parseScript(content);
 
 			// finds any existing adapter's import declaration
 			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -79,12 +79,20 @@ export default defineAddon({
 			) as AstTypes.Property | undefined;
 
 			if (kitConfig && kitConfig.value.type === 'ObjectExpression') {
-				const adapterProp = kitConfig.value.properties.find(
-					(p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'adapter'
+				// removes any existing adapter auto comments
+				const adapterAutoComments = comments.filter(
+					(c) =>
+						c.loc &&
+						kitConfig.loc &&
+						c.loc.start.line >= kitConfig.loc.start.line &&
+						c.loc.end.line <= kitConfig.loc.end.line
 				);
-				if (adapterProp) {
-					adapterProp.leadingComments = [];
-				}
+				// modify the array in place
+				comments.splice(
+					0,
+					comments.length,
+					...comments.filter((c) => !adapterAutoComments.includes(c))
+				);
 
 				// only overrides the `adapter` property so we can reset it's args
 				object.overrideProperties(kitConfig.value, {
