@@ -16,13 +16,13 @@ for (const categoryDirectory of categoryDirectories) {
 
 				const inputFilePath = join(testDirectoryPath, 'input.ts');
 				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath, 'utf8') : '';
-				const { ast, comments } = parseScript(input);
+				const { ast, comments, additionalComments } = parseScript(input);
 
 				// dynamic imports always need to provide the path inline for static analysis
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
-				module.run(ast);
+				module.run(ast, additionalComments);
 
-				let output = serializeScript(ast, comments, input);
+				let output = serializeScript(ast, comments, input, additionalComments);
 				if (!output.endsWith('\n')) output += '\n';
 				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
 			});

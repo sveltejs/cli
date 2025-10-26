@@ -1,18 +1,30 @@
-import { type AstTypes, Walker, parseScript, serializeScript, stripAst } from '../index.ts';
+import {
+	type AdditionalCommentMap,
+	type AstTypes,
+	Walker,
+	parseScript,
+	serializeScript,
+	stripAst
+} from '../index.ts';
 import decircular from 'decircular';
 import dedent from 'dedent';
 
-export function addJsDocTypeComment(node: AstTypes.Node, options: { type: string }): void {
+export function addJsDocTypeComment(
+	node: AstTypes.Node,
+	additionalComments: AdditionalCommentMap,
+	options: { type: string }
+): void {
 	const comment: AstTypes.Comment = {
 		type: 'Block',
 		value: `* @type {${options.type}} `
 	};
 
-	addComment(node, comment);
+	addComment(node, additionalComments, comment);
 }
 
 export function addJsDocComment(
 	node: AstTypes.Node,
+	additionalComments: AdditionalCommentMap,
 	options: { params: Record<string, string> }
 ): void {
 	const commentLines: string[] = [];
@@ -25,16 +37,23 @@ export function addJsDocComment(
 		value: `*\n * ${commentLines.join('\n * ')}\n `
 	};
 
-	addComment(node, comment);
+	addComment(node, additionalComments, comment);
 }
 
-function addComment(node: AstTypes.Node, comment: AstTypes.Comment) {
-	node.leadingComments ??= [];
+function addComment(
+	node: AstTypes.Node,
+	additionalComments: AdditionalCommentMap,
+	comment: AstTypes.Comment
+) {
+	const found = additionalComments
+		.get(node)
+		?.find((item) => item.type === 'Block' && item.value === comment.value);
 
-	const found = node.leadingComments.find(
-		(item) => item.type === 'Block' && item.value === comment.value
-	);
-	if (!found) node.leadingComments.push(comment);
+	if (!found) {
+		const comments = additionalComments.get(node) ?? [];
+		comments.push({ ...comment, position: 'leading' });
+		additionalComments.set(node, comments);
+	}
 }
 
 export function typeAnnotate(

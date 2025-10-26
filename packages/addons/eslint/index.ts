@@ -154,7 +154,9 @@ export default defineAddon({
 
 			// type annotate config
 			if (!typescript)
-				common.addJsDocTypeComment(astNode, { type: "import('eslint').Linter.Config[]" });
+				common.addJsDocTypeComment(astNode, additionalComments, {
+					type: "import('eslint').Linter.Config[]"
+				});
 
 			if (typescript) imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
 			imports.addNamed(ast, { from: 'node:url', imports: ['fileURLToPath'] });

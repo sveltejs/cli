@@ -1,7 +1,5 @@
 import * as utils from './index.ts';
 import MagicString from 'magic-string';
-import type { TsEstree } from './js/ts-estree.ts';
-import type { AdditionalComment } from 'esrap/languages/ts';
 
 type ParseBase = {
 	source: string;
@@ -11,7 +9,7 @@ type ParseBase = {
 export function parseScript(source: string): {
 	ast: utils.AstTypes.Program;
 	comments: utils.AstTypes.Comment[];
-	additionalComments: WeakMap<TsEstree.Node, AdditionalComment[]>;
+	additionalComments: utils.AdditionalCommentMap;
 } & ParseBase {
 	const { ast, comments, additionalComments } = utils.parseScript(source);
 	const generateCode = () => utils.serializeScript(ast, comments, source, additionalComments);

@@ -18,6 +18,8 @@ import ts, { type AdditionalComment } from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 
+type AdditionalCommentMap = WeakMap<TsEstree.Node, AdditionalComment[]>;
+
 export {
 	// html
 	Document as HtmlDocument,
@@ -41,6 +43,7 @@ export type {
 
 	// js
 	TsEstree as AstTypes,
+	AdditionalCommentMap,
 
 	//css
 	CssChildNode
@@ -53,7 +56,7 @@ export type {
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
 	comments: TsEstree.Comment[];
-	additionalComments: WeakMap<TsEstree.Node, AdditionalComment[]>;
+	additionalComments: AdditionalCommentMap;
 } {
 	const comments: TsEstree.Comment[] = [];
 
@@ -96,7 +99,7 @@ export function serializeScript(
 	ast: TsEstree.Node,
 	comments: TsEstree.Comment[],
 	previousContent?: string,
-	additionalComments?: WeakMap<TsEstree.Node, AdditionalComment[]>
+	additionalComments?: AdditionalCommentMap
 ): string {
 	// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
 	// which is causing these errors. But they are simmilar enough to work together.
