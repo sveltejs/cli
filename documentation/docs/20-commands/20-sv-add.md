@@ -31,6 +31,7 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
 - [`lucia`](lucia)
+- [`mcp`](mcp)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
 - [`playwright`](playwright)

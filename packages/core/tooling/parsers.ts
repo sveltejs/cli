@@ -39,6 +39,16 @@ export function parseJson(source: string): { data: any } & ParseBase {
 	return { data, source, generateCode };
 }
 
+export function parseYaml(
+	source: string
+): { data: ReturnType<typeof utils.parseYaml> } & ParseBase {
+	if (!source) source = '';
+	const data = utils.parseYaml(source);
+	const generateCode = () => utils.serializeYaml(data);
+
+	return { data, source, generateCode };
+}
+
 type SvelteGenerator = (code: {
 	script?: string;
 	module?: string;

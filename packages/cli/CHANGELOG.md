@@ -1,5 +1,77 @@
 # sv
 
+## 0.9.9
+### Patch Changes
+
+
+- fix(drizzle): `--cwd` option in `add` command is now taken into account ([#738](https://github.com/sveltejs/cli/pull/738))
+
+
+- feat(drizzle): Docker Compose file is now stored in `compose.yaml` instead of `docker-compose.yml` ([#738](https://github.com/sveltejs/cli/pull/738))
+
+
+- fix(add): include monorepo root in dependency detection ([#740](https://github.com/sveltejs/cli/pull/740))
+
+
+- feat(cli): add new add-on `mcp` to configure your project ([#735](https://github.com/sveltejs/cli/pull/735))
+
+
+- feat(cli): `--from-playground` will now bring a PlaygroundLayout to get a more consistent experience with the online playground ([#731](https://github.com/sveltejs/cli/pull/731))
+
+## 0.9.8
+### Patch Changes
+
+
+- fix(tailwindcss): add `@tailwindcss/oxide` to approve-builds in `pnpm` ([#717](https://github.com/sveltejs/cli/pull/717))
+
+
+- feat(drizzle): user ID is now a string to ease migration to auth ([#733](https://github.com/sveltejs/cli/pull/733))
+
+
+- feat(cli): pnpm config will now be stored in `pnpm-workspace.yaml` (e.g. `onlyBuiltDependencies`) ([#717](https://github.com/sveltejs/cli/pull/717))
+
+## 0.9.7
+### Patch Changes
+
+
+- fix(cli): export types ([#719](https://github.com/sveltejs/cli/pull/719))
+
+
+- chore(cli): improve `typescript` detection ([#710](https://github.com/sveltejs/cli/pull/710))
+
+
+- chore(cli): bump defaults versions ([#722](https://github.com/sveltejs/cli/pull/722))
+
+
+- fix(cli): `--from-playground` will create projects with `experimental.async` enabled _(if svelte version allows it)_ ([#729](https://github.com/sveltejs/cli/pull/729))
+
+
+- fix(cli): `--from-playground` option now works correctly from node 20 ([#720](https://github.com/sveltejs/cli/pull/720))
+
+## 0.9.6
+### Patch Changes
+
+
+- fix(vitest): now import `defineConfig` from `vitest/config` ([#703](https://github.com/sveltejs/cli/pull/703))
+
+## 0.9.5
+### Patch Changes
+
+
+- feat(cli): create projects from the svelte playground with `npx sv create --from-playground <url>` ([#662](https://github.com/sveltejs/cli/pull/662))
+
+
+- chore(cli): speedup internal tests ([#698](https://github.com/sveltejs/cli/pull/698))
+
+
+- chore(core): streamline object helpers ([#685](https://github.com/sveltejs/cli/pull/685))
+
+
+- fix(eslint): update eslint to `^9.22.0` and use `defineConfig` from `eslint/config` _(to fix a deprecation warning)_ ([#712](https://github.com/sveltejs/cli/pull/712))
+
+
+- fix(eslint): add `@types/node` in devDependencies ([#711](https://github.com/sveltejs/cli/pull/711))
+
 ## 0.9.4
 ### Patch Changes
 

@@ -7,7 +7,7 @@ import * as pkg from 'empathic/package';
 import * as p from '@clack/prompts';
 import { Command } from 'commander';
 import {
-	officialAddons,
+	officialAddons as _officialAddons,
 	getAddonDetails,
 	communityAddonIds,
 	getCommunityAddon
@@ -28,6 +28,7 @@ import {
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
 
+const officialAddons = Object.values(_officialAddons);
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
 const addonOptions = getAddonOptionFlags();
 const communityDetails: AddonWithoutExplicitArgs[] = [];
@@ -204,7 +205,7 @@ export async function runAddCommand(
 	options: Options,
 	selectedAddonIds: string[]
 ): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
-	const selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
+	let selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
 		type: 'official',
 		addon: getAddonDetails(id)
 	}));
@@ -404,7 +405,7 @@ export async function runAddCommand(
 		}
 
 		for (const id of selected) {
-			const addon = officialAddons.find((addon) => addon.id === id)!;
+			const addon = getAddonDetails(id);
 			selectedAddons.push({ type: 'official', addon });
 		}
 	}
@@ -422,7 +423,7 @@ export async function runAddCommand(
 
 		for (const depId of missingDependencies) {
 			// TODO: this will have to be adjusted when we work on community add-ons
-			const dependency = officialAddons.find((a) => a.id === depId);
+			const dependency = getAddonDetails(depId);
 			if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
 
 			// prompt to install the dependent
@@ -541,14 +542,30 @@ export async function runAddCommand(
 	const details = officialDetails.concat(commDetails);
 
 	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
-	const { filesToFormat, pnpmBuildDependencies: addonPnpmBuildDependencies } = await applyAddons({
+	const { filesToFormat, pnpmBuildDependencies, status } = await applyAddons({
 		workspace,
 		addonSetupResults,
 		addons: addonMap,
 		options: official
 	});
 
-	p.log.success('Successfully setup add-ons');
+	const addonSuccess: string[] = [];
+	for (const [addonId, info] of Object.entries(status)) {
+		if (info === 'success') addonSuccess.push(addonId);
+		else {
+			p.log.warn(`Canceled ${addonId}: ${info.join(', ')}`);
+			selectedAddons = selectedAddons.filter((a) => a.addon.id !== addonId);
+		}
+	}
+
+	if (addonSuccess.length === 0) {
+		p.cancel('All selected add-ons were canceled.');
+		process.exit(1);
+	} else if (addonSuccess.length === Object.entries(status).length) {
+		p.log.success('Successfully setup add-ons');
+	} else {
+		p.log.success(`Successfully setup: ${addonSuccess.join(', ')}`);
+	}
 
 	// prompt for package manager and install dependencies
 	let packageManager: PackageManager | undefined;
@@ -559,9 +576,9 @@ export async function runAddCommand(
 		if (packageManager) {
 			workspace.packageManager = packageManager;
 
-			addPnpmBuildDependencies(workspace.cwd, packageManager, [
+			await addPnpmBuildDependencies(workspace.cwd, packageManager, [
 				'esbuild',
-				...addonPnpmBuildDependencies
+				...pnpmBuildDependencies
 			]);
 
 			await installDependencies(packageManager, options.cwd);
@@ -588,10 +605,11 @@ export async function runAddCommand(
 	const nextSteps = selectedAddons
 		.map(({ addon }) => {
 			if (!addon.nextSteps) return;
-			let addonMessage = `${pc.green(addon.id)}:\n`;
-
 			const options = official[addon.id];
 			const addonNextSteps = addon.nextSteps({ ...workspace, options, highlighter });
+			if (addonNextSteps.length === 0) return;
+
+			let addonMessage = `${pc.green(addon.id)}:\n`;
 			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
 			return addonMessage;
 		})

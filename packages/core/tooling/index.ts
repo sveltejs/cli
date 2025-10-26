@@ -17,6 +17,7 @@ import { print as esrapPrint } from 'esrap';
 import ts, { type AdditionalComment } from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
+import * as yaml from 'yaml';
 
 type AdditionalCommentMap = WeakMap<TsEstree.Node, AdditionalComment[]>;
 
@@ -206,4 +207,12 @@ export function guessIndentString(str: string | undefined): string {
 	} else {
 		return '\t';
 	}
+}
+
+export function parseYaml(content: string): ReturnType<typeof yaml.parseDocument> {
+	return yaml.parseDocument(content);
+}
+
+export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): string {
+	return yaml.stringify(data, { singleQuote: true });
 }

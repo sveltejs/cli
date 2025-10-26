@@ -8,21 +8,24 @@ import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';
 
-const { test, variants, prepareServer } = setupTest({ mdsvex });
+const { test, testCases, prepareServer } = setupTest(
+	{ mdsvex },
+	{ kinds: [{ type: 'default', options: { mdsvex: {} } }] }
+);
 
-test.concurrent.for(variants)('core - %s', async (variant, { page, ...ctx }) => {
-	const cwd = await ctx.run(variant, { mdsvex: {} });
+test.concurrent.for(testCases)('mdsvex $variant', async (testCase, { page, ...ctx }) => {
+	const cwd = ctx.cwd(testCase);
 
 	// ...add test files
-	addFixture(cwd, variant);
+	addFixture(cwd, testCase.variant);
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
-	expect(await page.$('.mdsvex h1')).toBeTruthy();
-	expect(await page.$('.mdsvex h2')).toBeTruthy();
-	expect(await page.$('.mdsvex p')).toBeTruthy();
+	expect(page.locator('.mdsvex h1')).toBeTruthy();
+	expect(page.locator('.mdsvex h2')).toBeTruthy();
+	expect(page.locator('.mdsvex p')).toBeTruthy();
 });
 
 function addFixture(cwd: string, variant: string) {

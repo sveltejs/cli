@@ -1,10 +1,12 @@
-import { expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import dedent from 'dedent';
 import {
 	parseScript,
 	serializeScript,
 	guessIndentString,
-	type AstTypes
+	type AstTypes,
+	serializeYaml,
+	parseYaml
 } from '../tooling/index.ts';
 
 test('guessIndentString - one tab', () => {
@@ -130,4 +132,88 @@ test('integration - preserves comments', () => {
 		"/** @type {string} */
 		let foo = 'bar';"
 	`);
+});
+
+describe('yaml', () => {
+	test('read and write', () => {
+		const input = dedent`foo:  
+ - bar
+ - baz`;
+		const output = serializeYaml(parseYaml(input));
+		expect(output).toMatchInlineSnapshot(`
+			"foo:
+			  - bar
+			  - baz
+			"
+		`);
+	});
+
+	test('edit object', () => {
+		const input = dedent`foo:  
+ # nice comment
+ - bar
+ - baz`;
+		const doc = parseYaml(input);
+		const foo = doc.get('foo');
+		if (foo) foo.add('yop');
+		else doc.set('foo', ['yop']);
+		expect(serializeYaml(doc)).toMatchInlineSnapshot(`
+			"foo:
+			  # nice comment
+			  - bar
+			  - baz
+			  - yop
+			"
+		`);
+	});
+
+	test('add to array (keeping comments)', () => {
+		const input = dedent`foo:
+ - bar 
+ # com 
+ - baz`;
+		const doc = parseYaml(input);
+		const toAdd = ['bar', 'yop1', 'yop2', 'yop1'];
+		const foo = doc.get('foo');
+		const items: Array<{ value: string } | string> = foo?.items ?? [];
+		for (const item of toAdd) {
+			if (items.includes(item)) continue;
+			if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
+			items.push(item);
+		}
+		doc.set('foo', new Set(items));
+		expect(serializeYaml(doc)).toMatchInlineSnapshot(`
+			"foo:
+			  - bar
+			  # com 
+			  - baz
+			  - yop1
+			  - yop2
+			"
+		`);
+	});
+
+	test('create object', () => {
+		const input = dedent`# this is my file`;
+		const doc = parseYaml(input);
+		const foo = doc.get('foo');
+		if (foo) foo.add('yop');
+		else doc.set('foo', ['yop']);
+		expect(serializeYaml(doc)).toMatchInlineSnapshot(`
+			"# this is my file
+
+			foo:
+			  - yop
+			"
+		`);
+	});
+
+	test('array of foo', () => {
+		const input = dedent`foo:  # nice comment - bar - baz`;
+		const output = serializeYaml(parseYaml(input));
+		expect(output).toMatchInlineSnapshot(`
+			"foo: # nice comment - bar - baz
+			"
+		`);
+	});
 });
