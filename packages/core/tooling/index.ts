@@ -53,6 +53,7 @@ export type {
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
 	comments: TsEstree.Comment[];
+	additionalComments: WeakMap<TsEstree.Node, AdditionalComment[]>;
 } {
 	const comments: TsEstree.Comment[] = [];
 
@@ -86,7 +87,8 @@ export function parseScript(content: string): {
 
 	return {
 		ast,
-		comments
+		comments,
+		additionalComments: new WeakMap()
 	};
 }
 

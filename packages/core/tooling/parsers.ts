@@ -1,18 +1,22 @@
 import * as utils from './index.ts';
 import MagicString from 'magic-string';
+import type { TsEstree } from './js/ts-estree.ts';
+import type { AdditionalComment } from 'esrap/languages/ts';
 
 type ParseBase = {
 	source: string;
 	generateCode(): string;
 };
 
-export function parseScript(
-	source: string
-): { ast: utils.AstTypes.Program; comments: utils.AstTypes.Comment[] } & ParseBase {
-	const { ast, comments } = utils.parseScript(source);
-	const generateCode = () => utils.serializeScript(ast, comments, source);
+export function parseScript(source: string): {
+	ast: utils.AstTypes.Program;
+	comments: utils.AstTypes.Comment[];
+	additionalComments: WeakMap<TsEstree.Node, AdditionalComment[]>;
+} & ParseBase {
+	const { ast, comments, additionalComments } = utils.parseScript(source);
+	const generateCode = () => utils.serializeScript(ast, comments, source, additionalComments);
 
-	return { ast, comments, source, generateCode };
+	return { ast, comments, additionalComments, source, generateCode };
 }
 
 export function parseCss(source: string): { ast: utils.CssAst } & ParseBase {
