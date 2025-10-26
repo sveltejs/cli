@@ -12,7 +12,8 @@ import type {
 	AddonSetupResult,
 	AddonWithoutExplicitArgs,
 	OptionValues,
-	PackageManager
+	PackageManager,
+	Workspace
 } from '@sveltejs/cli-core';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
@@ -22,6 +23,7 @@ import * as v from 'valibot';
 
 import { applyAddons, setupAddons, type AddonMap } from '../../lib/install.ts';
 import * as common from '../../utils/common.ts';
+import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import {
 	addPnpmBuildDependencies,
 	AGENT_NAMES,
@@ -190,7 +192,11 @@ export const add = new Command('add')
 
 export type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
 
-export async function promptAddonQuestions(options: Options, selectedAddonIds: string[]) {
+export async function promptAddonQuestions(
+	options: Options,
+	selectedAddonIds: string[],
+	virtualWorkspace?: Workspace<any>
+) {
 	const selectedOfficialAddons: Array<SelectedAddon['addon']> = [];
 
 	// Find which official addons were specified in the args
@@ -326,19 +332,18 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 		...selectedCommunityAddons.map((addon) => ({ type: 'community' as const, addon }))
 	];
 
-	// TODO_ONE: run setup if we have access to workspace
+	// run setup if we have access to workspace
 	// prepare official addons
-	// let workspace = await createWorkspace({ cwd: options.cwd });
-	// const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
-	// const addonSetupResults = setupAddons(setups, workspace);
+	let workspace = virtualWorkspace || (await createWorkspace({ cwd: options.cwd }));
+	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
+	const addonSetupResults = setupAddons(setups, workspace);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
-		// const allSetupResults = setupAddons(officialAddons, workspace);
+		const allSetupResults = setupAddons(officialAddons, workspace);
 		const addonOptions = officialAddons
-			// TODO_ONE: do the filter if we have access to workspace
 			// only display supported addons relative to the current environment
-			// .filter(({ id }) => allSetupResults[id].unsupported.length === 0)
+			.filter(({ id }) => allSetupResults[id].unsupported.length === 0)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
@@ -361,63 +366,63 @@ export async function promptAddonQuestions(options: Options, selectedAddonIds: s
 		}
 	}
 
-	// TODO_ONE: add verifications and inter-addon deps
+	// add verifications and inter-addon deps
 
-	// // add inter-addon dependencies
-	// for (const { addon } of selectedAddons) {
-	// 	workspace = await createWorkspace(workspace);
+	// add inter-addon dependencies
+	for (const { addon } of selectedAddons) {
+		workspace = virtualWorkspace || (await createWorkspace({ ...workspace }));
 
-	// 	const setupResult = addonSetupResults[addon.id];
-	// 	const missingDependencies = setupResult.dependsOn.filter(
-	// 		(depId) => !selectedAddons.some((a) => a.addon.id === depId)
-	// 	);
+		const setupResult = addonSetupResults[addon.id];
+		const missingDependencies = setupResult.dependsOn.filter(
+			(depId) => !selectedAddons.some((a) => a.addon.id === depId)
+		);
 
-	// 	for (const depId of missingDependencies) {
-	// 		// TODO: this will have to be adjusted when we work on community add-ons
-	// 		const dependency = officialAddons.find((a) => a.id === depId);
-	// 		if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
+		for (const depId of missingDependencies) {
+			// TODO: this will have to be adjusted when we work on community add-ons
+			const dependency = officialAddons.find((a) => a.id === depId);
+			if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
 
-	// 		// prompt to install the dependent
-	// 		const install = await p.confirm({
-	// 			message: `The ${pc.bold(pc.cyan(addon.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
-	// 		});
-	// 		if (install !== true) {
-	// 			p.cancel('Operation cancelled.');
-	// 			process.exit(1);
-	// 		}
-	// 		selectedAddons.push({ type: 'official', addon: dependency });
-	// 	}
-	// }
+			// prompt to install the dependent
+			const install = await p.confirm({
+				message: `The ${pc.bold(pc.cyan(addon.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
+			});
+			if (install !== true) {
+				p.cancel('Operation cancelled.');
+				process.exit(1);
+			}
+			selectedAddons.push({ type: 'official', addon: dependency });
+		}
+	}
 
-	// // run all setups after inter-addon deps have been added
-	// const addons = selectedAddons.map(({ addon }) => addon);
-	// const verifications = [
-	// 	...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
-	// 	...verifyUnsupportedAddons(addons, addonSetupResults)
-	// ];
+	// run all setups after inter-addon deps have been added
+	const addons = selectedAddons.map(({ addon }) => addon);
+	const verifications = [
+		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
+		...verifyUnsupportedAddons(addons, addonSetupResults)
+	];
 
-	// const fails: Array<{ name: string; message?: string }> = [];
-	// for (const verification of verifications) {
-	// 	const { message, success } = await verification.run();
-	// 	if (!success) fails.push({ name: verification.name, message });
-	// }
+	const fails: Array<{ name: string; message?: string }> = [];
+	for (const verification of verifications) {
+		const { message, success } = await verification.run();
+		if (!success) fails.push({ name: verification.name, message });
+	}
 
-	// if (fails.length > 0) {
-	// 	const message = fails
-	// 		.map(({ name, message }) => pc.yellow(`${name} (${message})`))
-	// 		.join('\n- ');
+	if (fails.length > 0) {
+		const message = fails
+			.map(({ name, message }) => pc.yellow(`${name} (${message})`))
+			.join('\n- ');
 
-	// 	p.note(`- ${message}`, 'Verifications not met', { format: (line) => line });
+		p.note(`- ${message}`, 'Verifications not met', { format: (line) => line });
 
-	// 	const force = await p.confirm({
-	// 		message: 'Verifications failed. Do you wish to continue?',
-	// 		initialValue: false
-	// 	});
-	// 	if (p.isCancel(force) || !force) {
-	// 		p.cancel('Operation cancelled.');
-	// 		process.exit(1);
-	// 	}
-	// }
+		const force = await p.confirm({
+			message: 'Verifications failed. Do you wish to continue?',
+			initialValue: false
+		});
+		if (p.isCancel(force) || !force) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
+		}
+	}
 
 	// ask remaining questions
 	for (const { addon, type } of selectedAddons) {
@@ -491,9 +496,10 @@ export async function runAddonsApply(
 	},
 	options: Options,
 	selectedAddons: SelectedAddon[],
-	addonSetupResults?: Record<string, AddonSetupResult>
+	addonSetupResults?: Record<string, AddonSetupResult>,
+	virtualWorkspace?: Workspace<any>
 ): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
-	let workspace = await createWorkspace({ cwd: options.cwd });
+	let workspace = virtualWorkspace || (await createWorkspace({ cwd: options.cwd }));
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
 			? selectedAddons.map(({ addon }) => addon)
@@ -556,7 +562,7 @@ export async function runAddonsApply(
 	}
 
 	// format modified/created files with prettier (if available)
-	workspace = await createWorkspace(workspace);
+	workspace = virtualWorkspace || (await createWorkspace({ ...workspace }));
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');

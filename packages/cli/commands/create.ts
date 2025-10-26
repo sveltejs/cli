@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import type { OptionValues } from '@sveltejs/cli-core';
+import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
 import {
 	create as createKit,
 	templates,
@@ -224,7 +224,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				community: [],
 				addons: sanitizedAddonsMap
 			},
-			Object.keys(sanitizedAddonsMap)
+			Object.keys(sanitizedAddonsMap),
+			await createVirtualWorkspace(template, projectPath, 'npm')
 		);
 
 		selectedAddons = result.selectedAddons;
@@ -267,7 +268,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				community: [],
 				addons: sanitizedAddonsMap
 			},
-			selectedAddons
+			selectedAddons,
+			undefined,
+			await createVirtualWorkspace(template, projectPath, 'npm')
 		);
 
 		packageManager = pm;
@@ -319,4 +322,29 @@ async function confirmExternalDependencies(dependencies: string[]): Promise<bool
 	}
 
 	return installDeps;
+}
+
+export async function createVirtualWorkspace(
+	template: TemplateType,
+	cwd: string,
+	packageManager?: PackageManager
+): Promise<Workspace<any>> {
+	const workspace: Workspace<any> = {
+		cwd: path.resolve(cwd),
+		options: {},
+		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
+		typescript: false,
+		viteConfigFile: 'vite.config.js',
+		kit: undefined,
+		dependencyVersion: () => undefined
+	};
+
+	if (template === 'minimal' || template === 'demo' || template === 'library') {
+		workspace.kit = {
+			routesDirectory: 'src/routes',
+			libDirectory: 'src/lib'
+		};
+	}
+
+	return workspace;
 }
