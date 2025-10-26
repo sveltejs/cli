@@ -29,7 +29,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options }) => {
+	run: ({ sv, options, files }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -48,7 +48,7 @@ export default defineAddon({
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file('svelte.config.js', (content) => {
+		sv.file(files.svelteConfig, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			// finds any existing adapter's import declaration
