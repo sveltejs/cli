@@ -264,9 +264,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	};
 
 	if (options.addOns || options.add.length > 0) {
-		const { nextSteps, packageManager: pm } = await runAddonsApply(
-			{ answersOfficial, answersCommunity },
-			{
+		const { nextSteps, packageManager: pm } = await runAddonsApply({
+			answersOfficial,
+			answersCommunity,
+			options: {
 				cwd: projectPath,
 				install: false,
 				gitCheck: false,
@@ -274,14 +275,14 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				addons: sanitizedAddonsMap
 			},
 			selectedAddons,
-			undefined,
-			await createVirtualWorkspace({
+			addonSetupResults: undefined,
+			virtualWorkspace: await createVirtualWorkspace({
 				cwd: projectPath,
 				template,
 				packageManager: 'npm',
 				type: language
 			})
-		);
+		});
 
 		packageManager = pm;
 		addOnNextSteps = nextSteps;

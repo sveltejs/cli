@@ -179,11 +179,12 @@ export const add = new Command('add')
 				selectedAddonIds
 			);
 
-			const { nextSteps } = await runAddonsApply(
-				{ answersCommunity, answersOfficial },
+			const { nextSteps } = await runAddonsApply({
+				answersOfficial,
+				answersCommunity,
 				options,
 				selectedAddons
-			);
+			});
 			if (nextSteps.length > 0) {
 				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
 			}
@@ -486,19 +487,21 @@ export async function promptAddonQuestions(
 	return { selectedAddons, answersOfficial, answersCommunity };
 }
 
-export async function runAddonsApply(
-	{
-		answersOfficial,
-		answersCommunity
-	}: {
-		answersOfficial: Record<string, OptionValues<any>>;
-		answersCommunity: Record<string, OptionValues<any>>;
-	},
-	options: Options,
-	selectedAddons: SelectedAddon[],
-	addonSetupResults?: Record<string, AddonSetupResult>,
-	virtualWorkspace?: Workspace<any>
-): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
+export async function runAddonsApply({
+	answersOfficial,
+	answersCommunity,
+	options,
+	selectedAddons,
+	addonSetupResults,
+	virtualWorkspace
+}: {
+	answersOfficial: Record<string, OptionValues<any>>;
+	answersCommunity: Record<string, OptionValues<any>>;
+	options: Options;
+	selectedAddons: SelectedAddon[];
+	addonSetupResults?: Record<string, AddonSetupResult>;
+	virtualWorkspace?: Workspace<any>;
+}): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
 	let workspace = virtualWorkspace || (await createWorkspace({ cwd: options.cwd }));
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
