@@ -87,7 +87,7 @@ test('integration - simple', () => {
 		    console.log("bar");
 
 		    const foobar = "foo";
-		    const foobar2 = "test";
+		    const foobar2 = 'test';
 		}"
 	`);
 });
