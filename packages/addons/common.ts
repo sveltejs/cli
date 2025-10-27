@@ -1,4 +1,5 @@
 import { imports, exports, common } from '@sveltejs/cli-core/js';
+import { toSvelteFragment, type SvelteAst } from '@sveltejs/cli-core/html';
 import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import process from 'node:process';
 
@@ -64,17 +65,29 @@ export function addEslintConfigPrettier(content: string): string {
 }
 
 export function addToDemoPage(content: string, path: string): string {
-	const { template, generateCode } = parseSvelte(content);
+	const { ast, generateCode } = parseSvelte(content);
 
-	for (const node of template.ast.childNodes) {
-		if (node.type === 'tag' && node.attribs['href'] === `/demo/${path}`) {
-			return content;
+	for (const node of ast.fragment.nodes) {
+		if (node.type === 'RegularElement') {
+			const hrefAttribute = node.attributes.find(
+				(x) => x.type === 'Attribute' && x.name === 'href'
+			) as SvelteAst.Attribute;
+			if (!hrefAttribute || !hrefAttribute.value) continue;
+
+			if (!Array.isArray(hrefAttribute.value)) continue;
+
+			const hasDemo = hrefAttribute.value.find(
+				(x) => x.type === 'Text' && x.data === `/demo/${path}`
+			);
+			if (hasDemo) {
+				return content;
+			}
 		}
 	}
 
-	const newLine = template.source ? '\n' : '';
-	const src = template.source + `${newLine}<a href="/demo/${path}">${path}</a>`;
-	return generateCode({ template: src });
+	ast.fragment.nodes.push(...toSvelteFragment(`<a href="/demo/${path}">${path}</a>`));
+
+	return generateCode();
 }
 
 /**
