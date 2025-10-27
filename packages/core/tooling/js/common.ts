@@ -1,18 +1,30 @@
-import { type AstTypes, Walker, parseScript, serializeScript, stripAst } from '../index.ts';
+import {
+	type AdditionalCommentMap,
+	type AstTypes,
+	Walker,
+	parseScript,
+	serializeScript,
+	stripAst
+} from '../index.ts';
 import decircular from 'decircular';
 import dedent from 'dedent';
 
-export function addJsDocTypeComment(node: AstTypes.Node, options: { type: string }): void {
+export function addJsDocTypeComment(
+	node: AstTypes.Node,
+	additionalComments: AdditionalCommentMap,
+	options: { type: string }
+): void {
 	const comment: AstTypes.Comment = {
 		type: 'Block',
 		value: `* @type {${options.type}} `
 	};
 
-	addComment(node, comment);
+	addComment(node, additionalComments, comment);
 }
 
 export function addJsDocComment(
 	node: AstTypes.Node,
+	additionalComments: AdditionalCommentMap,
 	options: { params: Record<string, string> }
 ): void {
 	const commentLines: string[] = [];
@@ -25,16 +37,23 @@ export function addJsDocComment(
 		value: `*\n * ${commentLines.join('\n * ')}\n `
 	};
 
-	addComment(node, comment);
+	addComment(node, additionalComments, comment);
 }
 
-function addComment(node: AstTypes.Node, comment: AstTypes.Comment) {
-	node.leadingComments ??= [];
+function addComment(
+	node: AstTypes.Node,
+	additionalComments: AdditionalCommentMap,
+	comment: AstTypes.Comment
+) {
+	const found = additionalComments
+		.get(node)
+		?.find((item) => item.type === 'Block' && item.value === comment.value);
 
-	const found = node.leadingComments.find(
-		(item) => item.type === 'Block' && item.value === comment.value
-	);
-	if (!found) node.leadingComments.push(comment);
+	if (!found) {
+		const comments = additionalComments.get(node) ?? [];
+		comments.push({ ...comment, position: 'leading' });
+		additionalComments.set(node, comments);
+	}
 }
 
 export function typeAnnotate(
@@ -93,7 +112,7 @@ export function areNodesEqual(node: AstTypes.Node, otherNode: AstTypes.Node): bo
 
 	const nodeClone = stripAst(decircular(node), ['loc', 'raw']);
 	const otherNodeClone = stripAst(decircular(otherNode), ['loc', 'raw']);
-	return serializeScript(nodeClone) === serializeScript(otherNodeClone);
+	return serializeScript(nodeClone, []) === serializeScript(otherNodeClone, []);
 }
 
 export function createBlockStatement(): AstTypes.BlockStatement {
@@ -118,18 +137,18 @@ export function appendFromString(
 	node: AstTypes.BlockStatement | AstTypes.Program,
 	options: { code: string }
 ): void {
-	const program = parseScript(dedent(options.code));
+	const { ast } = parseScript(dedent(options.code));
 
-	for (const childNode of program.body) {
+	for (const childNode of ast.body) {
 		// @ts-expect-error
 		node.body.push(childNode);
 	}
 }
 
 export function parseExpression(code: string): AstTypes.Expression {
-	const program = parseScript(dedent(code));
-	stripAst(program, ['raw']);
-	const statement = program.body[0]!;
+	const { ast } = parseScript(dedent(code));
+	stripAst(ast, ['raw']);
+	const statement = ast.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
 		throw new Error('Code provided was not an expression');
 	}
@@ -142,8 +161,8 @@ export function parseStatement(code: string): AstTypes.Statement {
 }
 
 export function parseFromString<T extends AstTypes.Node>(code: string): T {
-	const program = parseScript(dedent(code));
-	const statement = program.body[0]!;
+	const { ast } = parseScript(dedent(code));
+	const statement = ast.body[0]!;
 
 	return statement as T;
 }

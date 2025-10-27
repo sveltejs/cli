@@ -37,6 +37,5 @@ export function run(ast: AstTypes.Program): void {
 		name: 'created2',
 		value: createdObject2
 	});
-	createdVariable2.leadingComments = [{ type: 'Line', value: ' prettier-ignore' }];
 	ast.body.push(createdVariable2);
 }
