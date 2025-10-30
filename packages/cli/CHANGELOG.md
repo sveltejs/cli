@@ -1,5 +1,20 @@
 # sv
 
+## 0.9.10
+### Patch Changes
+
+
+- chore(cli): bump defaults versions ([#744](https://github.com/sveltejs/cli/pull/744))
+
+
+- feat(drizzle): update docker pgdata volume for postgres 18 ([#749](https://github.com/sveltejs/cli/pull/749))
+
+
+- feat(cli): workspace now gives `files` object with `viteConfig` and `svelteConfig` paths to be used in add-ons ([#755](https://github.com/sveltejs/cli/pull/755))
+
+
+- fix(cli): `+layout.svelte` doesn't use optional chaining now ([#753](https://github.com/sveltejs/cli/pull/753))
+
 ## 0.9.9
 ### Patch Changes
 
