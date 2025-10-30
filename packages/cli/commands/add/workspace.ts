@@ -27,9 +27,13 @@ export async function createWorkspace({
 
 	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	const viteConfigFile = fs.existsSync(viteConfigPath)
+	const viteConfig = fs.existsSync(viteConfigPath)
 		? commonFilePaths.viteConfigTS
 		: commonFilePaths.viteConfig;
+	const sveteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const svelteConfig = fs.existsSync(sveteConfigPath)
+		? commonFilePaths.svelteConfigTS
+		: commonFilePaths.svelteConfig;
 
 	let dependencies: Record<string, string> = {};
 	let directory = resolvedCwd;
@@ -62,7 +66,7 @@ export async function createWorkspace({
 		options,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
-		viteConfigFile,
+		files: { viteConfig, svelteConfig },
 		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
