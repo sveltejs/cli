@@ -269,3 +269,85 @@ describe('yaml', () => {
 		`);
 	});
 });
+
+test('tsdown escapes script tags in bundled source code', async () => {
+	const { execSync } = await import('node:child_process');
+	const fs = await import('node:fs');
+	const path = await import('node:path');
+
+	const testDir = path.join('../..', '.test-output', `tsdown-test`);
+	fs.rmSync(testDir, { recursive: true, force: true });
+	fs.mkdirSync(testDir, { recursive: true });
+
+	// Create a test file that uses dedent with script tags
+	const testFileLiteral = path.join(testDir, 'testLiteral.ts');
+	fs.writeFileSync(
+		testFileLiteral,
+		`import dedent from 'dedent';
+
+export const result = dedent\`
+	<script lang="ts">
+		console.log('Hello Literal');
+	</script>
+\`;
+`
+	);
+
+	const testFileFunction = path.join(testDir, 'testFunction.ts');
+	fs.writeFileSync(
+		testFileFunction,
+		`import dedent from 'dedent';
+
+export const result = dedent(\`
+	<script lang="ts">
+		console.log('Hello Function');
+	</script>
+\`);
+`
+	);
+
+	// Create a tsdown config
+	const configFile = path.join(testDir, 'tsdown.config.ts');
+	fs.writeFileSync(
+		configFile,
+		`import { defineConfig } from 'tsdown';
+
+export default defineConfig({
+	entry: ['testLiteral.ts', 'testFunction.ts'],
+	format: ['esm'],
+	outDir: 'dist',
+});
+`
+	);
+
+	// Create package.json with tsdown
+	const pkgJson = {
+		name: 'test',
+		type: 'module',
+		devDependencies: {
+			tsdown: '^0.15.2',
+			dedent: '^1.6.0'
+		}
+	};
+	fs.writeFileSync(path.join(testDir, 'package.json'), JSON.stringify(pkgJson, null, 2));
+
+	// Install dependencies and build
+	execSync('npm install', { cwd: testDir, stdio: 'pipe' });
+	execSync('npx tsdown', { cwd: testDir, stdio: 'pipe' });
+
+	// Read the bundled output
+	const bundledFileLiteral = path.join(testDir, 'dist', 'testLiteral.js');
+	const bundledFileFunction = path.join(testDir, 'dist', 'testFunction.js');
+	const bundledCodeLiteral = fs.readFileSync(bundledFileLiteral, 'utf-8');
+	const bundledCodeFunction = fs.readFileSync(bundledFileFunction, 'utf-8');
+
+	// Check if the bundled code contains escaped script tags
+	const hasEscapedScriptTagLiteral = bundledCodeLiteral.includes('<\\/script>');
+	const hasEscapedScriptTagFunction = bundledCodeFunction.includes('<\\/script>');
+
+	// This test demonstrates the issue: tsdown escapes </script> in the bundled source
+	// Expected: Bundled code should NOT contain escaped script tags
+	// Actual: Bundled code contains <\/script> when using dedent`...` syntax
+	expect(hasEscapedScriptTagLiteral).toBe(true);
+	expect(hasEscapedScriptTagFunction).toBe(false);
+}, 30000); // 30s timeout for npm install and build
