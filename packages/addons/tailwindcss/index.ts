@@ -92,6 +92,7 @@ export default defineAddon({
 
 			return code;
 		});
+
 		if (!kit) {
 			sv.file('src/App.svelte', (content) => {
 				const { script, generateCode } = parseSvelte(content, { typescript });
@@ -119,7 +120,7 @@ export default defineAddon({
 			});
 		}
 
-		if (dependencyVersion('prettier')) {
+		if (prettierInstalled) {
 			sv.file('.prettierrc', (content) => {
 				const { data, generateCode } = parseJson(content);
 				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
