@@ -63,8 +63,8 @@ const checkEscaping = (code, isLiteral) => {
 	}
 };
 
-console.log('            │ Literal (dedent`...`) │ Function (dedent(...))');
-console.log('────────────┼───────────────────────┼────────────────────────');
+console.log('             │ Literal (dedent`...`)   │ Function (dedent(`...`))');
+console.log('─────────────┼─────────────────────────┼────────────────────────');
 const rolldownLiteral = checkEscaping(rolldownCode, true);
 const rolldownFunction = checkEscaping(rolldownCode, false);
 const tsdownLiteral = checkEscaping(tsdownCode, true);
@@ -73,10 +73,3 @@ const tsdownFunction = checkEscaping(tsdownCode, false);
 console.log(`Rolldown     │ ${rolldownLiteral.padEnd(23)}│ ${rolldownFunction}`);
 console.log(`Tsdown       │ ${tsdownLiteral.padEnd(23)}│ ${tsdownFunction}`);
 console.log('');
-
-console.log('💡 CONCLUSION:');
-console.log('─'.repeat(80));
-console.log(
-	'When bundlers process tagged template literals (dedent`...`), they may escape </script>'
-);
-console.log('Using function call syntax (dedent(...)) avoids this escaping behavior.');
