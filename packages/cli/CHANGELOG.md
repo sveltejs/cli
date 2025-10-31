@@ -1,5 +1,14 @@
 # sv
 
+## 0.9.11
+### Patch Changes
+
+
+- fix(prettier): add tailwindcss plugin to prettier config if tailwindcss is installed ([#756](https://github.com/sveltejs/cli/pull/756))
+
+
+- fix(cli): generating closing </script> tags now works correctly ([#763](https://github.com/sveltejs/cli/pull/763))
+
 ## 0.9.10
 ### Patch Changes
 
