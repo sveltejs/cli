@@ -10,8 +10,8 @@ import { getUserAgent } from '../../utils/package-manager.ts';
 
 type CreateWorkspaceOptions = {
 	cwd: string;
-	packageManager?: PackageManager;
 	options?: OptionValues<any>;
+	packageManager?: PackageManager;
 };
 export async function createWorkspace({
 	cwd,

@@ -41,6 +41,16 @@ Whether and how to add typechecking to the project:
 
 Prevent typechecking from being added. Not recommended!
 
+### `--add [add-ons...]`
+
+Add add-ons to the project in the `create` command. Following the same format as [sv add](sv-add#Usage).
+
+Example:
+
+```sh
+npx sv create --add eslint prettier
+```
+
 ### `--no-add-ons`
 
 Run the command without the interactive add-ons prompt

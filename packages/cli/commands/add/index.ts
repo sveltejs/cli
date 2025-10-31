@@ -1,23 +1,29 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import pc from 'picocolors';
-import * as v from 'valibot';
-import * as pkg from 'empathic/package';
 import * as p from '@clack/prompts';
-import { Command } from 'commander';
 import {
 	officialAddons as _officialAddons,
-	getAddonDetails,
 	communityAddonIds,
+	getAddonDetails,
 	getCommunityAddon
 } from '@sveltejs/addons';
-import type { AgentName } from 'package-manager-detector';
-import type { AddonWithoutExplicitArgs, OptionValues, PackageManager } from '@sveltejs/cli-core';
+import type {
+	AddonSetupResult,
+	AddonWithoutExplicitArgs,
+	OptionValues,
+	PackageManager,
+	Workspace
+} from '@sveltejs/cli-core';
+import { Command } from 'commander';
+import * as pkg from 'empathic/package';
+import { type AgentName } from 'package-manager-detector';
+import pc from 'picocolors';
+import * as v from 'valibot';
+
+import { applyAddons, setupAddons, type AddonMap } from '../../lib/install.ts';
 import * as common from '../../utils/common.ts';
-import { createWorkspace } from './workspace.ts';
-import { formatFiles, getHighlighter } from './utils.ts';
-import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
+import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import {
 	addPnpmBuildDependencies,
 	AGENT_NAMES,
@@ -25,8 +31,9 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../../utils/package-manager.ts';
-import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
-import { type AddonMap, applyAddons, setupAddons } from '../../lib/install.ts';
+import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
+import { formatFiles, getHighlighter } from './utils.ts';
+import { createWorkspace } from './workspace.ts';
 
 const officialAddons = Object.values(_officialAddons);
 const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
@@ -43,35 +50,16 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-type AddonArgs = { id: string; options: string[] | undefined };
+export type AddonArgs = { id: string; options: string[] | undefined };
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
-	.argument('[add-on...]', `add-ons to install`, (value, prev: AddonArgs[] = []) => {
-		const [addonId, optionFlags] = value.split('=', 2);
-
-		// validates that there are no repeated add-ons (e.g. `sv add foo=demo:yes foo=demo:no`)
-		const repeatedAddons = prev.find(({ id }) => id === addonId);
-		if (repeatedAddons) {
-			console.error(`Malformed arguments: Add-on '${addonId}' is repeated multiple times.`);
-			process.exit(1);
-		}
-
-		try {
-			const options = common.parseAddonOptions(optionFlags);
-			prev.push({ id: addonId, options });
-		} catch (error) {
-			if (error instanceof Error) {
-				console.error(error.message);
-			}
-			process.exit(1);
-		}
-
-		return prev;
-	})
+	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonArgs[] = []) =>
+		addonArgsHandler(previous, value)
+	)
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
 	.option('--no-install', 'skip installing dependencies')
@@ -178,57 +166,68 @@ export const add = new Command('add')
 			process.exit(1);
 		}
 
-		const addonIds = officialAddons.map((addon) => addon.id);
-		const invalidAddons = addonArgs
-			.filter(({ id }) => !addonIds.includes(id) && !aliases.includes(id))
-			.map(({ id }) => id);
-		if (invalidAddons.length > 0) {
-			console.error(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
-			process.exit(1);
-		}
+		const selectedAddonArgs = sanitizeAddons(addonArgs);
 
 		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
-		const selectedAddons = transformAliases(addonArgs);
-		selectedAddons.forEach((addon) => (options.addons[addon.id] = addon.options));
+		selectedAddonArgs.forEach((addon) => (options.addons[addon.id] = addon.options));
 
 		common.runCommand(async () => {
-			const selectedAddonIds = selectedAddons.map(({ id }) => id);
-			const { nextSteps } = await runAddCommand(options, selectedAddonIds);
+			const selectedAddonIds = selectedAddonArgs.map(({ id }) => id);
+
+			const { answersCommunity, answersOfficial, selectedAddons } = await promptAddonQuestions(
+				options,
+				selectedAddonIds
+			);
+
+			const { nextSteps } = await runAddonsApply({
+				answersOfficial,
+				answersCommunity,
+				options,
+				selectedAddons
+			});
 			if (nextSteps.length > 0) {
 				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
 			}
 		});
 	});
 
-type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
-export async function runAddCommand(
+export type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
+
+export async function promptAddonQuestions(
 	options: Options,
-	selectedAddonIds: string[]
-): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
-	let selectedAddons: SelectedAddon[] = selectedAddonIds.map((id) => ({
-		type: 'official',
-		addon: getAddonDetails(id)
-	}));
+	selectedAddonIds: string[],
+	virtualWorkspace?: Workspace<any>
+) {
+	const selectedOfficialAddons: Array<SelectedAddon['addon']> = [];
 
-	type AddonId = string;
-	type QuestionValues = OptionValues<any>;
-	type AddonOption = Record<AddonId, QuestionValues>;
+	// Find which official addons were specified in the args
+	selectedAddonIds.map((id) => {
+		if (officialAddons.find((a) => a.id === id)) {
+			selectedOfficialAddons.push(getAddonDetails(id));
+		}
+	});
 
-	const official: AddonOption = {};
-	const community: AddonOption = {};
+	const emptyAnswersReducer = (acc: Record<string, OptionValues<any>>, id: string) => {
+		acc[id] = {};
+		return acc;
+	};
 
-	// apply specified options from flags
+	const answersOfficial: Record<string, OptionValues<any>> = selectedOfficialAddons
+		.map(({ id }) => id)
+		.reduce(emptyAnswersReducer, {});
+
+	// apply specified options from CLI, inquire about the rest
 	for (const addonOption of addonOptions) {
 		const addonId = addonOption.id;
 		const specifiedOptions = options.addons[addonId];
 		if (!specifiedOptions) continue;
 
 		const details = getAddonDetails(addonId);
-		if (!selectedAddons.find((d) => d.addon === details)) {
-			selectedAddons.push({ type: 'official', addon: details });
+		if (!selectedOfficialAddons.find((d) => d === details)) {
+			selectedOfficialAddons.push(details);
 		}
 
-		official[addonId] ??= {};
+		answersOfficial[addonId] ??= {};
 
 		const optionEntries = Object.entries(details.options);
 		for (const option of specifiedOptions) {
@@ -251,7 +250,7 @@ export async function runAddCommand(
 			if (question.type === 'multiselect' && optionValue === 'none') optionValue = '';
 
 			// validate that there are no conflicts
-			let existingOption = official[addonId][questionId];
+			let existingOption = answersOfficial[addonId][questionId];
 			if (existingOption !== undefined) {
 				if (typeof existingOption === 'boolean') {
 					// need to transform the boolean back to `yes` or `no`
@@ -263,24 +262,26 @@ export async function runAddCommand(
 			}
 
 			if (question.type === 'boolean') {
-				official[addonId][questionId] = optionValue === 'yes';
+				answersOfficial[addonId][questionId] = optionValue === 'yes';
 			} else if (question.type === 'number') {
-				official[addonId][questionId] = Number(optionValue);
+				answersOfficial[addonId][questionId] = Number(optionValue);
 			} else {
-				official[addonId][questionId] = optionValue;
+				answersOfficial[addonId][questionId] = optionValue;
 			}
 		}
 
 		// apply defaults to unspecified options
 		for (const [id, question] of Object.entries(details.options)) {
 			// we'll only apply defaults to options that don't explicitly fail their conditions
-			if (question.condition?.(official[addonId]) !== false) {
-				official[addonId][id] ??= question.default;
+			if (question.condition?.(answersOfficial[addonId]) !== false) {
+				answersOfficial[addonId][id] ??= question.default;
 			} else {
 				// we'll also error out if a specified option is incompatible with other options.
 				// (e.g. `libsql` isn't a valid client for a `mysql` database: `sv add drizzle=database:mysql2,client:libsql`)
-				if (official[addonId][id] !== undefined) {
-					throw new Error(`Incompatible '${addonId}' option specified: '${official[addonId][id]}'`);
+				if (answersOfficial[addonId][id] !== undefined) {
+					throw new Error(
+						`Incompatible '${addonId}' option specified: '${answersOfficial[addonId][id]}'`
+					);
 				}
 			}
 		}
@@ -315,72 +316,28 @@ export async function runAddCommand(
 		options.community = selected;
 	}
 
-	// validate and download community addons
+	// we'll prepare empty answers for selected community addons
+	const selectedCommunityAddons: Array<SelectedAddon['addon']> = [];
+	const answersCommunity: Record<string, OptionValues<any>> = selectedCommunityAddons
+		.map(({ id }) => id)
+		.reduce(emptyAnswersReducer, {});
+
+	// Find community addons specified in the --community option as well as
+	// the ones selected above
 	if (Array.isArray(options.community) && options.community.length > 0) {
-		// validate addons
-		const addons = options.community.map((id) => {
-			// ids with directives are passed unmodified so they can be processed during downloads
-			const hasDirective = Object.values(Directive).some((directive) => id.startsWith(directive));
-			if (hasDirective) return id;
-
-			const validAddon = communityAddonIds.includes(id);
-			if (!validAddon) {
-				throw new Error(
-					`Invalid community add-on specified: '${id}'\nAvailable options: ${communityAddonIds.join(', ')}`
-				);
-			}
-			return id;
-		});
-
-		// get addon details from remote addons
-		const { start, stop } = p.spinner();
-		try {
-			start('Resolving community add-on packages');
-			const pkgs = await Promise.all(
-				addons.map(async (id) => {
-					return await getPackageJSON({ cwd: options.cwd, packageName: id });
-				})
-			);
-			stop('Resolved community add-on packages');
-
-			p.log.warn(
-				'The Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
-			);
-
-			const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
-			const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
-
-			const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
-				const name = pc.yellowBright(pkg.name.padEnd(paddingName));
-				const version = pc.dim(`(v${pkg.version})`.padEnd(paddingVersion));
-				const repo = pc.dim(`(${_repo})`);
-				return `${name} ${version} ${repo}`;
-			});
-			p.log.message(packageInfos.join('\n'));
-
-			const confirm = await p.confirm({ message: 'Would you like to continue?' });
-			if (confirm !== true) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
-			}
-
-			start('Downloading community add-on packages');
-			const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
-			for (const addon of details) {
-				const id = addon.id;
-				community[id] ??= {};
-				communityDetails.push(addon);
-				selectedAddons.push({ type: 'community', addon });
-			}
-			stop('Downloaded community add-on packages');
-		} catch (err) {
-			stop('Failed to resolve community add-on packages', 1);
-			throw err;
-		}
+		selectedCommunityAddons.push(...(await resolveCommunityAddons(options.cwd, options.community)));
 	}
 
+	const selectedAddons: SelectedAddon[] = [
+		...selectedOfficialAddons.map((addon) => ({ type: 'official' as const, addon })),
+		...selectedCommunityAddons.map((addon) => ({ type: 'community' as const, addon }))
+	];
+
+	// run setup if we have access to workspace
 	// prepare official addons
-	let workspace = await createWorkspace({ cwd: options.cwd });
+	let workspace = virtualWorkspace || (await createWorkspace({ cwd: options.cwd }));
+	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
+	const addonSetupResults = setupAddons(setups, workspace);
 
 	// prompt which addons to apply
 	if (selectedAddons.length === 0) {
@@ -410,20 +367,20 @@ export async function runAddCommand(
 		}
 	}
 
+	// add verifications and inter-addon deps
+
 	// add inter-addon dependencies
 	for (const { addon } of selectedAddons) {
-		workspace = await createWorkspace(workspace);
+		workspace = virtualWorkspace || (await createWorkspace({ ...workspace }));
 
-		const setups = selectedAddons.map(({ addon }) => addon);
-		const setupResult = setupAddons(setups, workspace)[addon.id];
-
+		const setupResult = addonSetupResults[addon.id];
 		const missingDependencies = setupResult.dependsOn.filter(
 			(depId) => !selectedAddons.some((a) => a.addon.id === depId)
 		);
 
 		for (const depId of missingDependencies) {
 			// TODO: this will have to be adjusted when we work on community add-ons
-			const dependency = getAddonDetails(depId);
+			const dependency = officialAddons.find((a) => a.id === depId);
 			if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
 
 			// prompt to install the dependent
@@ -440,9 +397,6 @@ export async function runAddCommand(
 
 	// run all setups after inter-addon deps have been added
 	const addons = selectedAddons.map(({ addon }) => addon);
-	const addonSetupResults = setupAddons(addons, workspace);
-
-	// run verifications
 	const verifications = [
 		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
 		...verifyUnsupportedAddons(addons, addonSetupResults)
@@ -476,14 +430,14 @@ export async function runAddCommand(
 		const addonId = addon.id;
 		const questionPrefix = selectedAddons.length > 1 ? `${addon.id}: ` : '';
 
-		let values: QuestionValues = {};
+		let values: OptionValues<any> = {};
 		if (type === 'official') {
-			official[addonId] ??= {};
-			values = official[addonId];
+			answersOfficial[addonId] ??= {};
+			values = answersOfficial[addonId];
 		}
 		if (type === 'community') {
-			community[addonId] ??= {};
-			values = community[addonId];
+			answersCommunity[addonId] ??= {};
+			values = answersCommunity[addonId];
 		}
 
 		for (const [questionId, question] of Object.entries(addon.options)) {
@@ -530,13 +484,38 @@ export async function runAddCommand(
 		}
 	}
 
+	return { selectedAddons, answersOfficial, answersCommunity };
+}
+
+export async function runAddonsApply({
+	answersOfficial,
+	answersCommunity,
+	options,
+	selectedAddons,
+	addonSetupResults,
+	virtualWorkspace
+}: {
+	answersOfficial: Record<string, OptionValues<any>>;
+	answersCommunity: Record<string, OptionValues<any>>;
+	options: Options;
+	selectedAddons: SelectedAddon[];
+	addonSetupResults?: Record<string, AddonSetupResult>;
+	virtualWorkspace?: Workspace<any>;
+}): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
+	let workspace = virtualWorkspace || (await createWorkspace({ cwd: options.cwd }));
+	if (!addonSetupResults) {
+		const setups = selectedAddons.length
+			? selectedAddons.map(({ addon }) => addon)
+			: officialAddons;
+		addonSetupResults = setupAddons(setups, workspace);
+	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
 	if (selectedAddons.length === 0) return { packageManager: null, nextSteps: [] };
 
 	// apply addons
-	const officialDetails = Object.keys(official).map((id) => getAddonDetails(id));
-	const commDetails = Object.keys(community).map(
+	const officialDetails = Object.keys(answersOfficial).map((id) => getAddonDetails(id));
+	const commDetails = Object.keys(answersCommunity).map(
 		(id) => communityDetails.find((a) => a.id === id)!
 	);
 	const details = officialDetails.concat(commDetails);
@@ -546,7 +525,7 @@ export async function runAddCommand(
 		workspace,
 		addonSetupResults,
 		addons: addonMap,
-		options: official
+		options: answersOfficial
 	});
 
 	const addonSuccess: string[] = [];
@@ -586,7 +565,7 @@ export async function runAddCommand(
 	}
 
 	// format modified/created files with prettier (if available)
-	workspace = await createWorkspace(workspace);
+	workspace = virtualWorkspace || (await createWorkspace({ ...workspace }));
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
@@ -605,7 +584,7 @@ export async function runAddCommand(
 	const nextSteps = selectedAddons
 		.map(({ addon }) => {
 			if (!addon.nextSteps) return;
-			const options = official[addon.id];
+			const options = answersOfficial[addon.id];
 			const addonNextSteps = addon.nextSteps({ ...workspace, options, highlighter });
 			if (addonNextSteps.length === 0) return;
 
@@ -616,6 +595,49 @@ export async function runAddCommand(
 		.filter((msg) => msg !== undefined);
 
 	return { nextSteps, packageManager };
+}
+
+/**
+ * Sanitizes the add-on arguments by checking for invalid add-ons and transforming aliases.
+ * @param addonArgs The add-on arguments to sanitize.
+ * @returns The sanitized add-on arguments.
+ */
+export function sanitizeAddons(addonArgs: AddonArgs[]): AddonArgs[] {
+	const officialAddonIds = officialAddons.map((addon) => addon.id);
+	const invalidAddons = addonArgs
+		.filter(({ id }) => !officialAddonIds.includes(id) && !aliases.includes(id))
+		.map(({ id }) => id);
+	if (invalidAddons.length > 0) {
+		console.error(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
+		process.exit(1);
+	}
+	return transformAliases(addonArgs);
+}
+
+/**
+ * Handles passed add-on arguments, accumulating them into an array of {@link AddonArgs}.
+ */
+export function addonArgsHandler(acc: AddonArgs[], current: string): AddonArgs[] {
+	const [addonId, optionFlags] = current.split('=', 2);
+
+	// validates that there are no repeated add-ons (e.g. `sv add foo=demo:yes foo=demo:no`)
+	const repeatedAddons = acc.find(({ id }) => id === addonId);
+	if (repeatedAddons) {
+		console.error(`Malformed arguments: Add-on '${addonId}' is repeated multiple times.`);
+		process.exit(1);
+	}
+
+	try {
+		const options = common.parseAddonOptions(optionFlags);
+		acc.push({ id: addonId, options });
+	} catch (error) {
+		if (error instanceof Error) {
+			console.error(error.message);
+		}
+		process.exit(1);
+	}
+
+	return acc;
 }
 
 /**
@@ -696,4 +718,64 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 		groups[groupId].push(...values);
 	}
 	return { choices, defaults, groups };
+}
+
+async function resolveCommunityAddons(cwd: string, community: string[]) {
+	const selectedAddons: Array<SelectedAddon['addon']> = [];
+	const addons = community.map((id) => {
+		// ids with directives are passed unmodified so they can be processed during downloads
+		const hasDirective = Object.values(Directive).some((directive) => id.startsWith(directive));
+		if (hasDirective) return id;
+
+		const validAddon = communityAddonIds.includes(id);
+		if (!validAddon) {
+			throw new Error(
+				`Invalid community add-on specified: '${id}'\nAvailable options: ${communityAddonIds.join(', ')}`
+			);
+		}
+		return id;
+	});
+	const { start, stop } = p.spinner();
+	try {
+		start('Resolving community add-on packages');
+		const pkgs = await Promise.all(
+			addons.map(async (id) => {
+				return await getPackageJSON({ cwd, packageName: id });
+			})
+		);
+		stop('Resolved community add-on packages');
+
+		p.log.warn(
+			'The Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
+		);
+
+		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
+		const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
+
+		const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
+			const name = pc.yellowBright(pkg.name.padEnd(paddingName));
+			const version = pc.dim(`(v${pkg.version})`.padEnd(paddingVersion));
+			const repo = pc.dim(`(${_repo})`);
+			return `${name} ${version} ${repo}`;
+		});
+		p.log.message(packageInfos.join('\n'));
+
+		const confirm = await p.confirm({ message: 'Would you like to continue?' });
+		if (confirm !== true) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
+		}
+
+		start('Downloading community add-on packages');
+		const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
+		for (const addon of details) {
+			communityDetails.push(addon);
+			selectedAddons.push(addon);
+		}
+		stop('Downloaded community add-on packages');
+	} catch (err) {
+		stop('Failed to resolve community add-on packages', 1);
+		throw err;
+	}
+	return selectedAddons;
 }
