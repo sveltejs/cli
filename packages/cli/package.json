@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.9.10",
+	"version": "0.9.11",
 	"type": "module",
 	"description": "A CLI for creating and updating SvelteKit projects",
 	"license": "MIT",
