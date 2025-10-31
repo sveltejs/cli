@@ -1,3 +1,7 @@
+<script lang="ts">
+	import { resolve } from '$app/paths';
+</script>
+
 <svelte:head>
 	<title>About</title>
 	<meta name="description" content="About this app" />
@@ -20,7 +24,7 @@
 	</p>
 
 	<p>
-		The <a href="/sverdle">Sverdle</a> page illustrates SvelteKit's data loading and form handling. Try
-		using it with JavaScript disabled!
+		The <a href={resolve('/sverdle')}>Sverdle</a> page illustrates SvelteKit's data loading and form
+		handling. Try using it with JavaScript disabled!
 	</p>
 </div>
