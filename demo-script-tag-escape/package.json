@@ -1,0 +1,14 @@
+{
+	"name": "demo-script-tag-escape",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"build:rolldown": "rolldown --config rolldown.config.js",
+		"build:tsdown": "tsdown",
+		"test": "node test.js"
+	},
+	"devDependencies": {
+		"rolldown": "1.0.0-beta.45",
+		"tsdown": "^0.15.2"
+	}
+}
