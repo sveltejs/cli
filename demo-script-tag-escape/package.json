@@ -3,12 +3,13 @@
 	"version": "1.0.0",
 	"type": "module",
 	"scripts": {
+		"build": "npm run build:rolldown && npm run build:tsdown",
 		"build:rolldown": "rolldown --config rolldown.config.js",
 		"build:tsdown": "tsdown",
-		"test": "node test.js"
+		"test": "npm run build && node test.js"
 	},
 	"devDependencies": {
-		"rolldown": "1.0.0-beta.45",
+		"rolldown": "1.0.0-beta.1",
 		"tsdown": "^0.15.2"
 	}
 }
