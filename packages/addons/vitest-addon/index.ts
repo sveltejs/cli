@@ -1,5 +1,5 @@
 import { dedent, defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { array, imports, object, vite } from '@sveltejs/cli-core/js';
+import { array, imports, object, functions, vite } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const options = defineAddonOptions()
@@ -25,11 +25,11 @@ export default defineAddon({
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
-		sv.devDependency('vitest', '^3.2.4');
+		sv.devDependency('vitest', '^4.0.5');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser', '^3.2.4');
-			sv.devDependency('vitest-browser-svelte', '^1.1.0');
+			sv.devDependency('@vitest/browser-playwright', '^4.0.5');
+			sv.devDependency('vitest-browser-svelte', '^2.0.1');
 			sv.devDependency('playwright', '^1.56.1');
 		}
 
@@ -71,7 +71,7 @@ export default defineAddon({
 				if (content) return content;
 
 				return dedent`
-						import { page } from '@vitest/browser/context';
+						import { page } from 'vitest/browser';
 						import { describe, expect, it } from 'vitest';
 						import { render } from 'vitest-browser-svelte';
 						${kit ? "import Page from './+page.svelte';" : "import App from './App.svelte';"}
@@ -86,15 +86,6 @@ export default defineAddon({
 						});
 					`;
 			});
-
-			sv.file(`vitest-setup-client.${ext}`, (content) => {
-				if (content) return content;
-
-				return dedent`
-					/// <reference types="@vitest/browser/matchers" />
-					/// <reference types="@vitest/browser/providers/playwright" />
-				`;
-			});
 		}
 
 		sv.file(files.viteConfig, (content) => {
@@ -104,15 +95,13 @@ export default defineAddon({
 				extends: `./${files.viteConfig}`,
 				test: {
 					name: 'client',
-					environment: 'browser',
 					browser: {
 						enabled: true,
-						provider: 'playwright',
-						instances: [{ browser: 'chromium' }]
+						provider: functions.createCall({ name: 'playwright', args: [] }),
+						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					exclude: ['src/lib/server/**'],
-					setupFiles: [`./vitest-setup-client.${ext}`]
+					exclude: ['src/lib/server/**']
 				}
 			});
 
@@ -146,6 +135,8 @@ export default defineAddon({
 			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
 
 			// Manage imports
+			if (componentTesting)
+				imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
 			const importName = 'defineConfig';
 			const { statement, alias } = imports.find(ast, { name: importName, from: 'vite' });
 			if (statement) {
