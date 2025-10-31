@@ -270,7 +270,8 @@ describe('yaml', () => {
 	});
 });
 
-test('tsdown escapes script tags in bundled source code', async () => {
+// TODO: fix https://github.com/rolldown/tsdown/issues/575 to remove the `skip`
+test.skip('tsdown escapes script tags in bundled source code', async () => {
 	const { execSync } = await import('node:child_process');
 	const fs = await import('node:fs');
 	const path = await import('node:path');
@@ -348,6 +349,6 @@ export default defineConfig({
 	// This test demonstrates the issue: tsdown escapes </script> in the bundled source
 	// Expected: Bundled code should NOT contain escaped script tags
 	// Actual: Bundled code contains <\/script> when using dedent`...` syntax
-	expect(hasEscapedScriptTagLiteral).toBe(true);
+	expect(hasEscapedScriptTagLiteral).toBe(false);
 	expect(hasEscapedScriptTagFunction).toBe(false);
 }, 30000); // 30s timeout for npm install and build
