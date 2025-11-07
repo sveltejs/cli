@@ -1,5 +1,16 @@
 # sv
 
+## 0.9.12
+### Patch Changes
+
+
+- feat(vitest): update to vitest `4.0` ([#760](https://github.com/sveltejs/cli/pull/760))
+  
+  - removing `@vitest/browser` in favor of `@vitest/browser-playwright`
+  - run browser tests in headless mode
+
+- fix(cli): Check existing conditions for specified options ([#771](https://github.com/sveltejs/cli/pull/771))
+
 ## 0.9.11
 ### Patch Changes
 
