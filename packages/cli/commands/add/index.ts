@@ -12,7 +12,6 @@ import type {
 	AddonSetupResult,
 	AddonWithoutExplicitArgs,
 	OptionValues,
-	PackageManager,
 	Workspace
 } from '@sveltejs/cli-core';
 import { Command } from 'commander';
@@ -585,7 +584,49 @@ export async function runAddonsApply({
 		...pnpmBuildDependencies
 	]);
 
-	const argsFormattedAddons = ['coucou'];
+	const argsFormattedAddons: string[] = [];
+	for (const { addon, type } of selectedAddons) {
+		const addonId = addon.id;
+		const answers = type === 'official' ? answersOfficial[addonId] : answersCommunity[addonId];
+		if (!answers) continue;
+
+		const addonDetails = type === 'official' ? getAddonDetails(addonId) : addon;
+		const optionParts: string[] = [];
+
+		for (const [optionId, value] of Object.entries(answers)) {
+			if (value === undefined) continue;
+
+			const question = addonDetails.options[optionId];
+			if (!question) continue;
+
+			let formattedValue: string;
+			if (question.type === 'boolean') {
+				formattedValue = value ? 'yes' : 'no';
+			} else if (question.type === 'number') {
+				formattedValue = String(value);
+			} else if (question.type === 'multiselect') {
+				if (Array.isArray(value)) {
+					if (value.length === 0) {
+						formattedValue = 'none';
+					} else {
+						formattedValue = value.join(',');
+					}
+				} else {
+					formattedValue = String(value);
+				}
+			} else {
+				formattedValue = String(value);
+			}
+
+			optionParts.push(`${optionId}:${formattedValue}`);
+		}
+
+		if (optionParts.length > 0) {
+			argsFormattedAddons.push(`${addonId}=${optionParts.join('+')}`);
+		} else {
+			argsFormattedAddons.push(addonId);
+		}
+	}
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
