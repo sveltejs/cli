@@ -119,6 +119,7 @@ export const commonFilePaths = {
 
 export function getHighlighter(): Highlighter {
 	return {
+		addon: (str) => pc.green(str),
 		command: (str) => pc.bold(pc.cyanBright(str)),
 		env: (str) => pc.yellow(str),
 		path: (str) => pc.green(str),

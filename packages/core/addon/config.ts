@@ -53,6 +53,7 @@ export type Addon<Args extends OptionDefinition> = {
 };
 
 export type Highlighter = {
+	addon: (str: string) => string;
 	path: (str: string) => string;
 	command: (str: string) => string;
 	website: (str: string) => string;

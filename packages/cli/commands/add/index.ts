@@ -529,7 +529,7 @@ export async function runAddonsApply({
 	selectedAddons: SelectedAddon[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
-}): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
+}): Promise<{ nextSteps: string[] }> {
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
 			? selectedAddons.map(({ addon }) => addon)
@@ -538,7 +538,7 @@ export async function runAddonsApply({
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0) return { packageManager: null, nextSteps: [] };
+	if (selectedAddons.length === 0) return { nextSteps: [] };
 
 	// apply addons
 	const officialDetails = Object.keys(answersOfficial).map((id) => getAddonDetails(id));
@@ -567,10 +567,11 @@ export async function runAddonsApply({
 	if (addonSuccess.length === 0) {
 		p.cancel('All selected add-ons were canceled.');
 		process.exit(1);
-	} else if (addonSuccess.length === Object.entries(status).length) {
-		p.log.success('Successfully setup add-ons');
 	} else {
-		p.log.success(`Successfully setup: ${addonSuccess.join(', ')}`);
+		const highlighter = getHighlighter();
+		p.log.success(
+			`Successfully setup add-ons: ${addonSuccess.map((c) => highlighter.addon(c)).join(', ')}`
+		);
 	}
 
 	// prompt for package manager and install dependencies
@@ -620,7 +621,7 @@ export async function runAddonsApply({
 		})
 		.filter((msg) => msg !== undefined);
 
-	return { nextSteps, packageManager };
+	return { nextSteps };
 }
 
 /**

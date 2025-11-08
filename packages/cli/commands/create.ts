@@ -207,10 +207,17 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let answersCommunity: Record<string, OptionValues<any>> = {};
 	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
 
+	const packageManager =
+		options.install === false
+			? null
+			: options.install === true
+				? await packageManagerPrompt(projectPath)
+				: options.install;
+
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
 		template,
-		packageManager: 'npm',
+		packageManager: packageManager ?? 'npm',
 		type: language
 	});
 
@@ -257,17 +264,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	p.log.success('Project created');
 
-	let packageManager: AgentName | undefined | null;
 	let addOnNextSteps: string[] = [];
-
-	const installDeps = async (install: true | AgentName) => {
-		packageManager = install === true ? await packageManagerPrompt(projectPath) : install;
-		await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
-		if (packageManager) await installDependencies(packageManager, projectPath);
-	};
-
 	if (options.addOns || options.add.length > 0) {
-		const { nextSteps, packageManager: pm } = await runAddonsApply({
+		const { nextSteps } = await runAddonsApply({
 			answersOfficial,
 			answersCommunity,
 			options: {
@@ -282,18 +281,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			workspace
 		});
 
-		packageManager = pm;
 		addOnNextSteps = nextSteps;
-	} else if (options.install) {
-		// `--no-add-ons` was set, so we'll prompt to install deps manually
-		await installDeps(options.install);
 	}
 
-	// no add-ons were selected (which means the install prompt was skipped in `runAddCommand`),
-	// so we'll prompt to install
-	if (packageManager === null && options.install) {
-		await installDeps(options.install);
-	}
+	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
+	if (packageManager) await installDependencies(packageManager, projectPath);
 
 	return { directory: projectPath, addOnNextSteps, packageManager };
 }
