@@ -147,3 +147,9 @@ export function logArgs(agent: AgentName, actionName: string, args: string[]) {
 	};
 	p.log.message(pc.dim([agentCmd[agent], actionName, ...args].join(' ')));
 }
+
+export function errorAndExit(message: string) {
+	p.log.error(message);
+	p.cancel('Operation failed.');
+	process.exit(1);
+}

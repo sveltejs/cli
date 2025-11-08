@@ -152,16 +152,14 @@ export const add = new Command('add')
 	.action(async (addonArgs: AddonArgs[], opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
-			console.error(
+			common.errorAndExit(
 				'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
 			);
-			process.exit(1);
 		} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
 			// when `--cwd` is specified, we'll validate that it's a valid workspace
-			console.error(
+			common.errorAndExit(
 				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
 			);
-			process.exit(1);
 		}
 
 		const selectedAddonArgs = sanitizeAddons(addonArgs);
@@ -240,7 +238,7 @@ export async function promptAddonQuestions({
 			specifiedOptions.map((option) => option.split(':', 2))
 		);
 		for (const option of specifiedOptions) {
-			let [optionId, optionValue] = option.split(':', 2);
+			const [optionId, optionValue] = option.split(':', 2);
 
 			// validates that the option exists
 			const optionEntry = optionEntries.find(([id, question]) => {
@@ -250,8 +248,15 @@ export async function promptAddonQuestions({
 				// group match - need to check conditions and value validity
 				if (question.group === optionId) {
 					// does the value exist for this option?
-					if (question.type === 'select' || question.type === 'multiselect') {
+					if (question.type === 'select') {
 						const isValidValue = question.options.some((opt) => opt.value === optionValue);
+						if (!isValidValue) return false;
+					} else if (question.type === 'multiselect') {
+						// For multiselect, split by comma and validate each value
+						const values = optionValue === 'none' ? [] : optionValue.split(',');
+						const isValidValue = values.every((val) =>
+							question.options.some((opt) => opt.value === val.trim())
+						);
 						if (!isValidValue) return false;
 					}
 
@@ -270,15 +275,27 @@ export async function promptAddonQuestions({
 
 			if (!optionEntry) {
 				const { choices } = getOptionChoices(details);
-				throw new Error(
-					`Invalid '${addonId}' option: '${option}'\nAvailable options: ${choices.join(', ')}`
+				common.errorAndExit(
+					`Invalid '${addonId}' add-on option: '${option}'\nAvailable options: ${choices.join(', ')}`
 				);
+				throw new Error();
 			}
 
 			const [questionId, question] = optionEntry;
 
-			// multiselect options can be specified with a `none` option, which equates to an empty string
-			if (question.type === 'multiselect' && optionValue === 'none') optionValue = '';
+			// Validate multiselect values for simple ID matches (already validated for group matches above)
+			if (question.type === 'multiselect' && questionId === optionId) {
+				const values = optionValue === 'none' || optionValue === '' ? [] : optionValue.split(',');
+				const invalidValues = values.filter(
+					(val) => !question.options.some((opt) => opt.value === val.trim())
+				);
+				if (invalidValues.length > 0) {
+					const validValues = question.options.map((opt) => opt.value).join(', ');
+					common.errorAndExit(
+						`Invalid '${addonId}' add-on option: '${option}'\nInvalid values: ${invalidValues.join(', ')}\nAvailable values: ${validValues}`
+					);
+				}
+			}
 
 			// validate that there are no conflicts
 			let existingOption = answersOfficial[addonId][questionId];
@@ -287,7 +304,7 @@ export async function promptAddonQuestions({
 					// need to transform the boolean back to `yes` or `no`
 					existingOption = existingOption ? 'yes' : 'no';
 				}
-				throw new Error(
+				common.errorAndExit(
 					`Conflicting '${addonId}' option: '${option}' conflicts with '${questionId}:${existingOption}'`
 				);
 			}
@@ -296,6 +313,14 @@ export async function promptAddonQuestions({
 				answersOfficial[addonId][questionId] = optionValue === 'yes';
 			} else if (question.type === 'number') {
 				answersOfficial[addonId][questionId] = Number(optionValue);
+			} else if (question.type === 'multiselect') {
+				// multiselect options can be specified with a `none` option, which equates to an empty array
+				if (optionValue === 'none' || optionValue === '') {
+					answersOfficial[addonId][questionId] = [];
+				} else {
+					// split by comma and trim each value
+					answersOfficial[addonId][questionId] = optionValue.split(',').map((v) => v.trim());
+				}
 			} else {
 				answersOfficial[addonId][questionId] = optionValue;
 			}
@@ -676,8 +701,7 @@ export function sanitizeAddons(addonArgs: AddonArgs[]): AddonArgs[] {
 		.filter(({ id }) => !officialAddonIds.includes(id) && !aliases.includes(id))
 		.map(({ id }) => id);
 	if (invalidAddons.length > 0) {
-		console.error(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
-		process.exit(1);
+		common.errorAndExit(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
 	}
 	return transformAliases(addonArgs);
 }
@@ -691,8 +715,7 @@ export function addonArgsHandler(acc: AddonArgs[], current: string): AddonArgs[]
 	// validates that there are no repeated add-ons (e.g. `sv add foo=demo:yes foo=demo:no`)
 	const repeatedAddons = acc.find(({ id }) => id === addonId);
 	if (repeatedAddons) {
-		console.error(`Malformed arguments: Add-on '${addonId}' is repeated multiple times.`);
-		process.exit(1);
+		common.errorAndExit(`Malformed arguments: Add-on '${addonId}' is repeated multiple times.`);
 	}
 
 	try {
@@ -700,8 +723,9 @@ export function addonArgsHandler(acc: AddonArgs[], current: string): AddonArgs[]
 		acc.push({ id: addonId, options });
 	} catch (error) {
 		if (error instanceof Error) {
-			console.error(error.message);
+			common.errorAndExit(error.message);
 		}
+		console.error(error);
 		process.exit(1);
 	}
 
