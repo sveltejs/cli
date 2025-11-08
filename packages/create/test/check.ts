@@ -3,7 +3,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { exec, type PromiseWithChild } from 'node:child_process';
-import { beforeAll, describe, test } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
 import { create, type LanguageType, type TemplateType } from '../index.ts';
 import { installAddon, officialAddons } from '../../cli/lib/index.ts';
 
@@ -57,6 +57,17 @@ for (const template of templates) {
 			const tests = script_test_map.get(script) ?? [];
 			tests.push([`${template}-${types}`, () => exec_async(`pnpm ${script}`, { cwd })]);
 			script_test_map.set(script, tests);
+		}
+
+		if (template === 'demo') {
+			describe(`local import with extentions`, () => {
+				test(`${template}-${types}`, () => {
+					const ending = types === 'typescript' ? 'ts' : 'js';
+					const gameFile = path.join(cwd, `src/routes/sverdle/game.${ending}`);
+					const gameFileContent = fs.readFileSync(gameFile, 'utf-8');
+					expect(gameFileContent).toContain(`./words.server.${ending}`);
+				});
+			});
 		}
 	}
 }
