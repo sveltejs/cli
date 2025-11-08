@@ -1,5 +1,17 @@
 # sv
 
+## 0.9.13
+### Patch Changes
+
+
+- chore(create): add div with `display: contents` to library template ([#773](https://github.com/sveltejs/cli/pull/773))
+
+
+- fix(mcp): generate valid `mcp` local configuration for `opencode` ([#769](https://github.com/sveltejs/cli/pull/769))
+
+
+- feat(demo): include file extensions for local imports ([#757](https://github.com/sveltejs/cli/pull/757))
+
 ## 0.9.12
 ### Patch Changes
 
