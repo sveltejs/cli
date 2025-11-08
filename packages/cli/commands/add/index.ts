@@ -528,7 +528,7 @@ export async function runAddonsApply({
 	selectedAddons: SelectedAddon[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
-}): Promise<{ nextSteps: string[] }> {
+}): Promise<{ nextSteps: string[]; argsFormattedAddons: string[] }> {
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
 			? selectedAddons.map(({ addon }) => addon)
@@ -537,7 +537,7 @@ export async function runAddonsApply({
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0) return { nextSteps: [] };
+	if (selectedAddons.length === 0) return { nextSteps: [], argsFormattedAddons: [] };
 
 	// apply addons
 	const officialDetails = Object.keys(answersOfficial).map((id) => getAddonDetails(id));
@@ -573,22 +573,23 @@ export async function runAddonsApply({
 		);
 	}
 
-	// prompt for package manager and install dependencies
-	let packageManager: PackageManager | undefined;
-	if (options.install) {
-		packageManager =
-			options.install === true ? await packageManagerPrompt(options.cwd) : options.install;
+	const packageManager =
+		options.install === false
+			? null
+			: options.install === true
+				? await packageManagerPrompt(options.cwd)
+				: options.install;
 
-		if (packageManager) {
-			workspace.packageManager = packageManager;
+	await addPnpmBuildDependencies(workspace.cwd, packageManager, [
+		'esbuild',
+		...pnpmBuildDependencies
+	]);
 
-			await addPnpmBuildDependencies(workspace.cwd, packageManager, [
-				'esbuild',
-				...pnpmBuildDependencies
-			]);
+	const argsFormattedAddons = ['coucou'];
 
-			await installDependencies(packageManager, options.cwd);
-		}
+	if (packageManager) {
+		workspace.packageManager = packageManager;
+		await installDependencies(packageManager, options.cwd);
 	}
 
 	// format modified/created files with prettier (if available)
@@ -620,7 +621,7 @@ export async function runAddonsApply({
 		})
 		.filter((msg) => msg !== undefined);
 
-	return { nextSteps };
+	return { nextSteps, argsFormattedAddons };
 }
 
 /**

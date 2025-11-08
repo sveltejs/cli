@@ -5,6 +5,7 @@ import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import type { AgentName } from 'package-manager-detector';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -134,4 +135,15 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	}
 
 	return options;
+}
+
+export function logArgs(agent: AgentName, actionName: string, args: string[]) {
+	const agentCmd: Record<AgentName, string> = {
+		npm: 'npx sv',
+		pnpm: 'pnpm dlx sv',
+		bun: 'bunx sv',
+		deno: 'deno run npm:sv',
+		yarn: 'yarn dlx sv'
+	};
+	p.log.message(pc.dim([agentCmd[agent], actionName, ...args].join(' ')));
 }

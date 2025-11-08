@@ -201,6 +201,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	);
 
 	const projectPath = path.resolve(directory);
+	const projectName = path.basename(projectPath);
 
 	let selectedAddons: SelectedAddon[] = [];
 	let answersOfficial: Record<string, OptionValues<any>> = {};
@@ -249,7 +250,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	}
 
 	createKit(projectPath, {
-		name: path.basename(projectPath),
+		name: projectName,
 		template,
 		types: language
 	});
@@ -265,8 +266,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	p.log.success('Project created');
 
 	let addOnNextSteps: string[] = [];
+	let argsFormattedAddons: string[] = [];
 	if (options.addOns || options.add.length > 0) {
-		const { nextSteps } = await runAddonsApply({
+		const { nextSteps, argsFormattedAddons: tt } = await runAddonsApply({
 			answersOfficial,
 			answersCommunity,
 			options: {
@@ -280,9 +282,26 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			addonSetupResults: undefined,
 			workspace
 		});
+		argsFormattedAddons = tt;
 
 		addOnNextSteps = nextSteps;
 	}
+
+	// Build args for next time based on non-default options
+	const argsFormatted = [projectName];
+
+	argsFormatted.push('--template', template);
+
+	if (language === 'typescript') argsFormatted.push('--types', 'ts');
+	else if (language === 'checkjs') argsFormatted.push('--types', 'jsdoc');
+	else if (language === 'none') argsFormatted.push('--no-types');
+
+	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
+
+	if (packageManager === null || packageManager === undefined) argsFormatted.push('--no-install');
+	else argsFormatted.push('--install', packageManager);
+
+	common.logArgs(packageManager ?? 'npm', 'create', argsFormatted);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) await installDependencies(packageManager, projectPath);
