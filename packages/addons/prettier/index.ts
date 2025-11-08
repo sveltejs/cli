@@ -8,6 +8,9 @@ export default defineAddon({
 	homepage: 'https://prettier.io',
 	options: {},
 	run: ({ sv, dependencyVersion }) => {
+		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
+		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.1');
+
 		sv.devDependency('prettier', '^3.6.2');
 		sv.devDependency('prettier-plugin-svelte', '^3.4.0');
 
@@ -45,13 +48,18 @@ export default defineAddon({
 			}
 
 			data.plugins ??= [];
-			data.overrides ??= [];
-
 			const plugins: string[] = data.plugins;
+			if (tailwindcssInstalled) {
+				if (!plugins.includes('prettier-plugin-tailwindcss')) {
+					data.plugins.unshift('prettier-plugin-tailwindcss');
+				}
+				data.tailwindStylesheet ??= './src/app.css';
+			}
 			if (!plugins.includes('prettier-plugin-svelte')) {
 				data.plugins.unshift('prettier-plugin-svelte');
 			}
 
+			data.overrides ??= [];
 			const overrides: Array<{ files: string | string[]; options?: { parser?: string } }> =
 				data.overrides;
 			const override = overrides.find((o) => o?.options?.parser === 'svelte');

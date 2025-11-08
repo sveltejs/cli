@@ -94,7 +94,6 @@ export default defineAddon({
 				return cancel(`Preexisting ${fileType} file at '${filePath}'`);
 			}
 		}
-		console.log(`no preexisting files`);
 		sv.devDependency('drizzle-orm', '^0.44.6');
 		sv.devDependency('drizzle-kit', '^0.31.5');
 		sv.devDependency('@types/node', getNodeTypesVersion());
@@ -158,7 +157,7 @@ export default defineAddon({
                       POSTGRES_PASSWORD: ${PASSWORD}
                       POSTGRES_DB: ${DB_NAME}
                     volumes:
-                      - pgdata:/var/lib/postgresql/data
+                      - pgdata:/var/lib/postgresql
                 volumes:
                   pgdata:
                 `;

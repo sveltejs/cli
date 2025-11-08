@@ -230,13 +230,38 @@ export async function promptAddonQuestions(
 		answersOfficial[addonId] ??= {};
 
 		const optionEntries = Object.entries(details.options);
+		const specifiedOptionsObject = Object.fromEntries(
+			specifiedOptions.map((option) => option.split(':', 2))
+		);
 		for (const option of specifiedOptions) {
 			let [optionId, optionValue] = option.split(':', 2);
 
 			// validates that the option exists
-			const optionEntry = optionEntries.find(
-				([id, question]) => id === optionId || question.group === optionId
-			);
+			const optionEntry = optionEntries.find(([id, question]) => {
+				// simple ID match
+				if (id === optionId) return true;
+
+				// group match - need to check conditions and value validity
+				if (question.group === optionId) {
+					// does the value exist for this option?
+					if (question.type === 'select' || question.type === 'multiselect') {
+						const isValidValue = question.options.some((opt) => opt.value === optionValue);
+						if (!isValidValue) return false;
+					}
+
+					// if there's a condition, does it pass?
+					if (question.condition) {
+						return question.condition(specifiedOptionsObject);
+					}
+
+					// finally, unconditional
+					return true;
+				}
+
+				// unrecognized optionId
+				return false;
+			});
+
 			if (!optionEntry) {
 				const { choices } = getOptionChoices(details);
 				throw new Error(

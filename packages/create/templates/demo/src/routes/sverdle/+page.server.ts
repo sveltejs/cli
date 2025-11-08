@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { Game } from './game';
+import { Game } from './game.ts';
 import type { PageServerLoad, Actions } from './$types';
 
 /** @satisfies {import('./$types').PageServerLoad} */
