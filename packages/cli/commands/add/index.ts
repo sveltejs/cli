@@ -392,8 +392,6 @@ export async function promptAddonQuestions(
 		}
 	}
 
-	// add verifications and inter-addon deps
-
 	// add inter-addon dependencies
 	for (const { addon } of selectedAddons) {
 		workspace = virtualWorkspace || (await createWorkspace({ ...workspace }));
