@@ -1,22 +1,20 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { Workspace, WorkspaceOptions } from './workspace.ts';
 
-export type ConditionDefinition<Args extends OptionDefinition> = (
-	Workspace: Workspace
-) => boolean;
+export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
-export type PackageDefinition<Args extends OptionDefinition> = {
+export type PackageDefinition = {
 	name: string;
 	version: string;
 	dev: boolean;
-	condition?: ConditionDefinition<Args>;
+	condition?: ConditionDefinition;
 };
 
-export type Scripts<Args extends OptionDefinition> = {
+export type Scripts = {
 	description: string;
 	args: string[];
 	stdio: 'inherit' | 'pipe';
-	condition?: ConditionDefinition<Args>;
+	condition?: ConditionDefinition;
 };
 
 export type SvApi = {
@@ -41,7 +39,11 @@ export type Addon<Args extends OptionDefinition> = {
 		}
 	) => MaybePromise<void>;
 	run: (
-		workspace: Workspace & { options: WorkspaceOptions<Args>; sv: SvApi; cancel: (reason: string) => void }
+		workspace: Workspace & {
+			options: WorkspaceOptions<Args>;
+			sv: SvApi;
+			cancel: (reason: string) => void;
+		}
 	) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
