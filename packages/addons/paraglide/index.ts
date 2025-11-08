@@ -178,7 +178,7 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'paraglide');
+				return addToDemoPage(content, 'paraglide', typescript);
 			});
 
 			// add usage example

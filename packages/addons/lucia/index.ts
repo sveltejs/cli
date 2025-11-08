@@ -396,7 +396,7 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'lucia');
+				return addToDemoPage(content, 'lucia', typescript);
 			});
 
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
