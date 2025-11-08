@@ -17,7 +17,6 @@ import type {
 } from '@sveltejs/cli-core';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
-import { type AgentName } from 'package-manager-detector';
 import pc from 'picocolors';
 import * as v from 'valibot';
 

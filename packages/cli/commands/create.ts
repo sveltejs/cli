@@ -17,7 +17,7 @@ import {
 	validatePlaygroundUrl
 } from '@sveltejs/create/playground';
 import { Command, Option } from 'commander';
-import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
+import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import * as v from 'valibot';
 
