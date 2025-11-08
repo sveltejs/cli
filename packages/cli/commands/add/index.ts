@@ -178,13 +178,16 @@ export const add = new Command('add')
 				workspace
 			});
 
-			const { nextSteps } = await runAddonsApply({
+			const { nextSteps, argsFormattedAddons } = await runAddonsApply({
 				answersOfficial,
 				answersCommunity,
 				options,
 				selectedAddons,
 				workspace
 			});
+
+			common.logArgs(workspace.packageManager ?? 'npm', 'add', argsFormattedAddons);
+
 			if (nextSteps.length > 0) {
 				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
 			}
