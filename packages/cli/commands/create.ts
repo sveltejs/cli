@@ -37,6 +37,7 @@ import {
 	sanitizeAddons,
 	type SelectedAddon
 } from './add/index.ts';
+import { commonFilePaths } from './add/utils.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -353,7 +354,11 @@ export async function createVirtualWorkspace({
 		options: {},
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: type === 'typescript',
-		viteConfigFile: type === 'typescript' ? 'vite.config.ts' : 'vite.config.js',
+		files: {
+			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
+			svelteConfig:
+				type === 'typescript' ? commonFilePaths.svelteConfigTS : commonFilePaths.svelteConfig
+		},
 		kit: undefined,
 		dependencyVersion: () => undefined
 	};
