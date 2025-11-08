@@ -208,17 +208,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let answersCommunity: Record<string, OptionValues<any>> = {};
 	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
 
-	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(projectPath)
-				: options.install;
-
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
 		template,
-		packageManager: packageManager ?? 'npm',
+		// When we create a virtual workspace it's not that important that we use the correct package manager
+		// so we'll just use npm for now like this we can delay the question after
+		packageManager: 'npm',
 		type: language
 	});
 
@@ -286,6 +281,13 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 		addOnNextSteps = nextSteps;
 	}
+
+	const packageManager =
+		options.install === false
+			? null
+			: options.install === true
+				? await packageManagerPrompt(projectPath)
+				: options.install;
 
 	// Build args for next time based on non-default options
 	const argsFormatted = [projectName];
