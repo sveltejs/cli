@@ -207,6 +207,13 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let answersCommunity: Record<string, OptionValues<any>> = {};
 	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
 
+	const workspace = await createVirtualWorkspace({
+		cwd: projectPath,
+		template,
+		packageManager: 'npm',
+		type: language
+	});
+
 	if (options.addOns || options.add.length > 0) {
 		const addons = options.add.reduce(addonArgsHandler, []);
 		sanitizedAddonsMap = sanitizeAddons(addons).reduce<Record<string, string[] | undefined>>(
@@ -217,22 +224,17 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			{}
 		);
 
-		const result = await promptAddonQuestions(
-			{
+		const result = await promptAddonQuestions({
+			options: {
 				cwd: projectPath,
 				install: false,
 				gitCheck: false,
 				community: [],
 				addons: sanitizedAddonsMap
 			},
-			Object.keys(sanitizedAddonsMap),
-			await createVirtualWorkspace({
-				cwd: projectPath,
-				template,
-				packageManager: 'npm',
-				type: language
-			})
-		);
+			selectedAddonIds: Object.keys(sanitizedAddonsMap),
+			workspace
+		});
 
 		selectedAddons = result.selectedAddons;
 		answersOfficial = result.answersOfficial;
@@ -277,12 +279,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			selectedAddons,
 			addonSetupResults: undefined,
-			virtualWorkspace: await createVirtualWorkspace({
-				cwd: projectPath,
-				template,
-				packageManager: 'npm',
-				type: language
-			})
+			workspace
 		});
 
 		packageManager = pm;
@@ -348,10 +345,9 @@ export async function createVirtualWorkspace({
 	template,
 	packageManager,
 	type = 'none'
-}: CreateVirtualWorkspaceOptions): Promise<Workspace<any>> {
-	const workspace: Workspace<any> = {
+}: CreateVirtualWorkspaceOptions): Promise<Workspace> {
+	const workspace: Workspace = {
 		cwd: path.resolve(cwd),
-		options: {},
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: type === 'typescript',
 		files: {

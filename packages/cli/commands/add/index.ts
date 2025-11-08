@@ -151,7 +151,7 @@ export const add = new Command('add')
 			return output.join('\n');
 		}
 	})
-	.action((addonArgs: AddonArgs[], opts) => {
+	.action(async (addonArgs: AddonArgs[], opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
 			console.error(
@@ -171,19 +171,23 @@ export const add = new Command('add')
 		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
 		selectedAddonArgs.forEach((addon) => (options.addons[addon.id] = addon.options));
 
+		const workspace = await createWorkspace({ cwd: options.cwd });
+
 		common.runCommand(async () => {
 			const selectedAddonIds = selectedAddonArgs.map(({ id }) => id);
 
-			const { answersCommunity, answersOfficial, selectedAddons } = await promptAddonQuestions(
+			const { answersCommunity, answersOfficial, selectedAddons } = await promptAddonQuestions({
 				options,
-				selectedAddonIds
-			);
+				selectedAddonIds,
+				workspace
+			});
 
 			const { nextSteps } = await runAddonsApply({
 				answersOfficial,
 				answersCommunity,
 				options,
-				selectedAddons
+				selectedAddons,
+				workspace
 			});
 			if (nextSteps.length > 0) {
 				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
@@ -193,11 +197,15 @@ export const add = new Command('add')
 
 export type SelectedAddon = { type: 'official' | 'community'; addon: AddonWithoutExplicitArgs };
 
-export async function promptAddonQuestions(
-	options: Options,
-	selectedAddonIds: string[],
-	virtualWorkspace?: Workspace<any>
-) {
+export async function promptAddonQuestions({
+	options,
+	selectedAddonIds,
+	workspace
+}: {
+	options: Options;
+	selectedAddonIds: string[];
+	workspace: Workspace;
+}) {
 	const selectedOfficialAddons: Array<SelectedAddon['addon']> = [];
 
 	// Find which official addons were specified in the args
@@ -360,7 +368,6 @@ export async function promptAddonQuestions(
 
 	// run setup if we have access to workspace
 	// prepare official addons
-	let workspace = virtualWorkspace || (await createWorkspace({ cwd: options.cwd }));
 	const setups = selectedAddons.length ? selectedAddons.map(({ addon }) => addon) : officialAddons;
 	const addonSetupResults = setupAddons(setups, workspace);
 
@@ -394,8 +401,6 @@ export async function promptAddonQuestions(
 
 	// add inter-addon dependencies
 	for (const { addon } of selectedAddons) {
-		workspace = virtualWorkspace || (await createWorkspace({ ...workspace }));
-
 		const setupResult = addonSetupResults[addon.id];
 		const missingDependencies = setupResult.dependsOn.filter(
 			(depId) => !selectedAddons.some((a) => a.addon.id === depId)
@@ -516,16 +521,15 @@ export async function runAddonsApply({
 	options,
 	selectedAddons,
 	addonSetupResults,
-	virtualWorkspace
+	workspace
 }: {
 	answersOfficial: Record<string, OptionValues<any>>;
 	answersCommunity: Record<string, OptionValues<any>>;
 	options: Options;
 	selectedAddons: SelectedAddon[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
-	virtualWorkspace?: Workspace<any>;
+	workspace: Workspace;
 }): Promise<{ nextSteps: string[]; packageManager?: AgentName | null }> {
-	let workspace = virtualWorkspace || (await createWorkspace({ cwd: options.cwd }));
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
 			? selectedAddons.map(({ addon }) => addon)
@@ -588,7 +592,6 @@ export async function runAddonsApply({
 	}
 
 	// format modified/created files with prettier (if available)
-	workspace = virtualWorkspace || (await createWorkspace({ ...workspace }));
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
 		const { start, stop } = p.spinner();
 		start('Formatting modified files');
@@ -607,8 +610,8 @@ export async function runAddonsApply({
 	const nextSteps = selectedAddons
 		.map(({ addon }) => {
 			if (!addon.nextSteps) return;
-			const options = answersOfficial[addon.id];
-			const addonNextSteps = addon.nextSteps({ ...workspace, options, highlighter });
+			const addonOptions = answersOfficial[addon.id];
+			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions, highlighter });
 			if (addonNextSteps.length === 0) return;
 
 			let addonMessage = `${pc.green(addon.id)}:\n`;

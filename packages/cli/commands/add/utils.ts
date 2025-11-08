@@ -59,7 +59,7 @@ export function readFile(cwd: string, filePath: string): string {
 
 export function installPackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	workspace: Workspace<any>
+	workspace: Workspace
 ): string {
 	const { data, generateCode } = getPackageJson(workspace.cwd);
 
@@ -89,7 +89,7 @@ function alphabetizeProperties(obj: Record<string, string>) {
 	return orderedObj;
 }
 
-export function writeFile(workspace: Workspace<any>, filePath: string, content: string): void {
+export function writeFile(workspace: Workspace, filePath: string, content: string): void {
 	const fullFilePath = path.resolve(workspace.cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 

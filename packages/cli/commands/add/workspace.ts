@@ -4,20 +4,18 @@ import * as find from 'empathic/find';
 import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { detect } from 'package-manager-detector';
-import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
+import type { PackageManager, Workspace } from '@sveltejs/cli-core';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import { getUserAgent } from '../../utils/package-manager.ts';
 
 type CreateWorkspaceOptions = {
 	cwd: string;
-	options?: OptionValues<any>;
 	packageManager?: PackageManager;
 };
 export async function createWorkspace({
 	cwd,
-	options = {},
 	packageManager
-}: CreateWorkspaceOptions): Promise<Workspace<any>> {
+}: CreateWorkspaceOptions): Promise<Workspace> {
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
@@ -63,7 +61,6 @@ export async function createWorkspace({
 
 	return {
 		cwd: resolvedCwd,
-		options,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
 		files: { viteConfig, svelteConfig },

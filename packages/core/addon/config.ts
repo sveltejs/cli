@@ -1,8 +1,8 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
-import type { Workspace } from './workspace.ts';
+import type { Workspace, WorkspaceOptions } from './workspace.ts';
 
 export type ConditionDefinition<Args extends OptionDefinition> = (
-	Workspace: Workspace<Args>
+	Workspace: Workspace
 ) => boolean;
 
 export type PackageDefinition<Args extends OptionDefinition> = {
@@ -34,19 +34,19 @@ export type Addon<Args extends OptionDefinition> = {
 	homepage?: string;
 	options: Args;
 	setup?: (
-		workspace: Workspace<Args> & {
+		workspace: Workspace & {
 			dependsOn: (name: string) => void;
 			unsupported: (reason: string) => void;
 			runsAfter: (addonName: string) => void;
 		}
 	) => MaybePromise<void>;
 	run: (
-		workspace: Workspace<Args> & { sv: SvApi; cancel: (reason: string) => void }
+		workspace: Workspace & { options: WorkspaceOptions<Args>; sv: SvApi; cancel: (reason: string) => void }
 	) => MaybePromise<void>;
 	nextSteps?: (
 		data: {
 			highlighter: Highlighter;
-		} & Workspace<Args>
+		} & Workspace & { options: WorkspaceOptions<Args> }
 	) => string[];
 };
 
