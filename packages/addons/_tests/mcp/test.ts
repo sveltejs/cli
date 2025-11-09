@@ -112,6 +112,7 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			  },
 			  "gemini": {
 			    "content": {
+			      "$schema": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json",
 			      "mcpServers": {
 			        "svelte": {
 			          "args": [
@@ -183,6 +184,7 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			  },
 			  "gemini": {
 			    "content": {
+			      "$schema": "https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json",
 			      "mcpServers": {
 			        "svelte": {
 			          "url": "https://mcp.svelte.dev/mcp",
