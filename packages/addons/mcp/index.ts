@@ -79,7 +79,8 @@ export default defineAddon({
 				filePath: '.cursor/mcp.json'
 			},
 			gemini: {
-				schema: 'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
+				schema:
+					'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
 				filePath: '.gemini/settings.json'
 			},
 			opencode: {
