@@ -1,4 +1,5 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
+
 import { parseJson } from '@sveltejs/cli-core/parsers';
 import agent from './AGENT.md?raw';
 
@@ -112,12 +113,28 @@ export default defineAddon({
 			const value = configurator[ide];
 			if ('other' in value) continue;
 
-			sv.file('AGENT.md', (content) => {
-				if (content) return content;
+			const {
+				mcpServersKey,
+				agentPath,
+				filePath,
+				typeLocal,
+				typeRemote,
+				env,
+				schema,
+				command,
+				args
+			} = value;
+
+			sv.file(agentPath, (content) => {
+				if (content) {
+					log.warn(
+						`A ${colors.yellow(agentPath)} file already exists. Could not update. See https://svelte.dev/docs/mcp/overview#Usage on how to add the prompt manually.`
+					);
+					return content;
+				}
 				return agent;
 			});
 
-			const { mcpServersKey, filePath, typeLocal, typeRemote, env, schema, command, args } = value;
 			sv.file(filePath, (content) => {
 				const { data, generateCode } = parseJson(content);
 				if (schema) {
