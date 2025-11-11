@@ -1,7 +1,7 @@
+import fs from 'node:fs';
 import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
-
 import { parseJson } from '@sveltejs/cli-core/parsers';
-import agent from './AGENT.md?raw';
+import agent from './AGENTS.md?raw';
 
 const options = defineAddonOptions()
 	.add('ide', {
@@ -125,10 +125,14 @@ export default defineAddon({
 				args
 			} = value;
 
+			const placesToCheck = Object.values(configurator)
+				.filter((_) => 'agentPath' in _)
+				.map(({ agentPath }) => agentPath);
+
 			sv.file(agentPath, (content) => {
-				if (content) {
+				if (placesToCheck.some(fs.existsSync)) {
 					log.warn(
-						`A ${colors.yellow(agentPath)} file already exists. Could not update. See https://svelte.dev/docs/mcp/overview#Usage on how to add the prompt manually.`
+						`A ${colors.yellow(agentPath)} file already exists. Could not update. See https://svelte.dev/docs/mcp/overview#Usage for manual setup.`
 					);
 					return content;
 				}
