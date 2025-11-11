@@ -90,7 +90,7 @@ export default defineAddon({
 				filePath: '.gemini/settings.json'
 			},
 			opencode: {
-				agentPath: '.opencode/agent/AGENTS.md',
+				agentPath: '.opencode/agent/svelte.md',
 				schema: 'https://opencode.ai/config.json',
 				mcpServersKey: 'mcp',
 				filePath: 'opencode.json',
