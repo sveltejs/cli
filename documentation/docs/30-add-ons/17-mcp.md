@@ -12,7 +12,10 @@ npx sv add mcp
 
 ## What you get
 
-- A good mcp configuration for your project depending on your IDE
+Depending on your IDE setup, you’ll receive:
+
+- A MCP configuration
+- A `readme` for agent, either [`AGENTS.md`](https://agents.md/), `CLAUDE.md`, or `GEMINI.md`
 
 ## Options
 
