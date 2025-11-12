@@ -67,7 +67,7 @@ export function addToDemoPage(existingContent: string, path: string, typescript:
 	const { script, template, generateCode } = parseSvelte(existingContent, { typescript });
 
 	for (const node of template.ast.childNodes) {
-		// we use inclules as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
+		// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
 		if (node.type === 'tag' && node.attribs['href'].includes(`/demo/${path}`)) {
 			return existingContent;
 		}
