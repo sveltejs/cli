@@ -1,5 +1,7 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import fs from 'node:fs';
+import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
 import { parseJson } from '@sveltejs/cli-core/parsers';
+import agent from './AGENTS.md?raw';
 
 const options = defineAddonOptions()
 	.add('ide', {
@@ -60,6 +62,7 @@ export default defineAddon({
 			| {
 					schema?: string;
 					mcpServersKey?: string;
+					agentPath: string;
 					filePath: string;
 					typeLocal?: 'stdio' | 'local';
 					typeRemote?: 'http' | 'remote';
@@ -70,20 +73,24 @@ export default defineAddon({
 			| { other: true }
 		> = {
 			'claude-code': {
+				agentPath: 'CLAUDE.md',
 				filePath: '.mcp.json',
 				typeLocal: 'stdio',
 				typeRemote: 'http',
 				env: true
 			},
 			cursor: {
+				agentPath: 'AGENTS.md',
 				filePath: '.cursor/mcp.json'
 			},
 			gemini: {
+				agentPath: 'GEMINI.md',
 				schema:
 					'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
 				filePath: '.gemini/settings.json'
 			},
 			opencode: {
+				agentPath: '.opencode/agent/svelte.md',
 				schema: 'https://opencode.ai/config.json',
 				mcpServersKey: 'mcp',
 				filePath: 'opencode.json',
@@ -93,6 +100,7 @@ export default defineAddon({
 				args: null
 			},
 			vscode: {
+				agentPath: 'AGENTS.md',
 				mcpServersKey: 'servers',
 				filePath: '.vscode/mcp.json'
 			},
@@ -105,7 +113,32 @@ export default defineAddon({
 			const value = configurator[ide];
 			if ('other' in value) continue;
 
-			const { mcpServersKey, filePath, typeLocal, typeRemote, env, schema, command, args } = value;
+			const {
+				mcpServersKey,
+				agentPath,
+				filePath,
+				typeLocal,
+				typeRemote,
+				env,
+				schema,
+				command,
+				args
+			} = value;
+
+			const placesToCheck = Object.values(configurator)
+				.filter((_) => 'agentPath' in _)
+				.map(({ agentPath }) => agentPath);
+
+			sv.file(agentPath, (content) => {
+				if (placesToCheck.some(fs.existsSync)) {
+					log.warn(
+						`A ${colors.yellow(agentPath)} file already exists. Could not update. See https://svelte.dev/docs/mcp/overview#Usage for manual setup.`
+					);
+					return content;
+				}
+				return agent;
+			});
+
 			sv.file(filePath, (content) => {
 				const { data, generateCode } = parseJson(content);
 				if (schema) {
