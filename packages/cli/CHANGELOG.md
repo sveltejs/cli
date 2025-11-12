@@ -1,5 +1,11 @@
 # sv
 
+## 0.9.14
+### Patch Changes
+
+
+- fix(mcp): Add schema definition for Gemini MCP configuration. ([#774](https://github.com/sveltejs/cli/pull/774))
+
 ## 0.9.13
 ### Patch Changes
 
