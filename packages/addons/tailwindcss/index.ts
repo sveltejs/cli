@@ -58,7 +58,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(kit ? `${kit?.routesDirectory}/layout.css`: 'src/app.css', (content) => {
+		sv.file(kit ? `${kit?.routesDirectory}/layout.css` : 'src/app.css', (content) => {
 			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
 
 			const findAtRule = (name: string, params: string) =>
@@ -120,14 +120,14 @@ export default defineAddon({
 			});
 		}
 
-    sv.file('.vscode/settings.json',(content)=>{
-      const {data,generateCode}  =parseJson(content)
+		sv.file('.vscode/settings.json', (content) => {
+			const { data, generateCode } = parseJson(content);
 
-      data['files.associations']??= {}
-      data['files.associations']['*.css'] = 'tailwind'
+			data['files.associations'] ??= {};
+			data['files.associations']['*.css'] = 'tailwind';
 
-      return generateCode()
-    })
+			return generateCode();
+		});
 
 		if (prettierInstalled) {
 			sv.file('.prettierrc', (content) => {
@@ -144,7 +144,5 @@ export default defineAddon({
 				return generateCode();
 			});
 		}
-
-
 	}
 });
