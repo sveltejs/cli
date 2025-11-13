@@ -63,18 +63,22 @@ export function addEslintConfigPrettier(content: string): string {
 	return generateCode();
 }
 
-export function addToDemoPage(content: string, path: string): string {
-	const { template, generateCode } = parseSvelte(content);
+export function addToDemoPage(existingContent: string, path: string, typescript: boolean): string {
+	const { script, template, generateCode } = parseSvelte(existingContent, { typescript });
 
 	for (const node of template.ast.childNodes) {
-		if (node.type === 'tag' && node.attribs['href'] === `/demo/${path}`) {
-			return content;
+		// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
+		if (node.type === 'tag' && node.attribs['href'].includes(`/demo/${path}`)) {
+			return existingContent;
 		}
 	}
 
-	const newLine = template.source ? '\n' : '';
-	const src = template.source + `${newLine}<a href="/demo/${path}">${path}</a>`;
-	return generateCode({ template: src });
+	imports.addNamed(script.ast, { imports: ['resolve'], from: '$app/paths' });
+
+	return generateCode({
+		script: script.generateCode(),
+		template: `<a href={resolve('/demo/${path}')}>${path}</a>\n${template.source}`
+	});
 }
 
 /**
