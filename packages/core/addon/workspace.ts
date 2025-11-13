@@ -1,7 +1,8 @@
 import type { OptionDefinition, OptionValues } from './options.ts';
 
-export type Workspace<Args extends OptionDefinition> = {
-	options: OptionValues<Args>;
+export type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
+
+export type Workspace = {
 	cwd: string;
 	/**
 	 * Returns the dependency version declared in the package.json.

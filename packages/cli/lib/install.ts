@@ -43,7 +43,7 @@ export async function installAddon<Addons extends AddonMap>({
 export type ApplyAddonOptions = {
 	addons: AddonMap;
 	options: OptionMap<AddonMap>;
-	workspace: Workspace<any>;
+	workspace: Workspace;
 	addonSetupResults: Record<string, AddonSetupResult>;
 };
 export async function applyAddons({
@@ -64,10 +64,11 @@ export async function applyAddons({
 	const ordered = orderAddons(mapped, addonSetupResults);
 
 	for (const addon of ordered) {
-		workspace = await createWorkspace({ ...workspace, options: options[addon.id] });
+		const workspaceOptions = options[addon.id] || {};
 
 		const { files, pnpmBuildDependencies, cancels } = await runAddon({
 			workspace,
+			workspaceOptions,
 			addon,
 			multiple: ordered.length > 1
 		});
@@ -90,7 +91,7 @@ export async function applyAddons({
 
 export function setupAddons(
 	addons: Array<Addon<any>>,
-	workspace: Workspace<any>
+	workspace: Workspace
 ): Record<string, AddonSetupResult> {
 	const addonSetupResults: Record<string, AddonSetupResult> = {};
 
@@ -116,18 +117,20 @@ export function setupAddons(
 }
 
 type RunAddon = {
-	workspace: Workspace<any>;
+	workspace: Workspace;
+	workspaceOptions: OptionValues<any>;
 	addon: Addon<Record<string, Question>>;
 	multiple: boolean;
 };
-async function runAddon({ addon, multiple, workspace }: RunAddon) {
+async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAddon) {
 	const files = new Set<string>();
 
 	// apply default addon options
+	const options: OptionValues<any> = { ...workspaceOptions };
 	for (const [id, question] of Object.entries(addon.options)) {
 		// we'll only apply defaults to options that don't explicitly fail their conditions
-		if (question.condition?.(workspace.options) !== false) {
-			workspace.options[id] ??= question.default;
+		if (question.condition?.(options) !== false) {
+			options[id] ??= question.default;
 		}
 	}
 
@@ -193,6 +196,7 @@ async function runAddon({ addon, multiple, workspace }: RunAddon) {
 			cancels.push(reason);
 		},
 		...workspace,
+		options,
 		sv
 	});
 
