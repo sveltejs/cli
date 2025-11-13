@@ -120,6 +120,15 @@ export default defineAddon({
 			});
 		}
 
+    sv.file('.vscode/settings.json',(content)=>{
+      const {data,generateCode}  =parseJson(content)
+
+      data['files.associations']??= {}
+      data['files.associations']['*.css'] = 'tailwind'
+
+      return generateCode()
+    })
+
 		if (prettierInstalled) {
 			sv.file('.prettierrc', (content) => {
 				const { data, generateCode } = parseJson(content);
@@ -135,5 +144,7 @@ export default defineAddon({
 				return generateCode();
 			});
 		}
+
+
 	}
 });
