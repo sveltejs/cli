@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat(cli): co-locate css file from usage (`+layout.svelte`)
+feat(create): co-locate css file from usage (`layout.css` & `+layout.svelte`)
