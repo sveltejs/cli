@@ -139,7 +139,7 @@ export default defineAddon({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 
-				data.tailwindStylesheet ??= kit ? './src/routes/layout.css' : './src/app.css';
+				data.tailwindStylesheet ??= kit ? `${kit?.routesDirectory}/layout.css` : './src/app.css';
 
 				return generateCode();
 			});
