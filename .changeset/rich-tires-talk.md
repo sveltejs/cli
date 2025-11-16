@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-co-locate the css file from `tailwind`
+feat(cli): co-locate css file from usage (`+layout.svelte`)
