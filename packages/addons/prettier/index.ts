@@ -53,7 +53,6 @@ export default defineAddon({
 				if (!plugins.includes('prettier-plugin-tailwindcss')) {
 					data.plugins.unshift('prettier-plugin-tailwindcss');
 				}
-				data.tailwindStylesheet ??= './src/app.css';
 				data.tailwindStylesheet ??= kit ? `${kit?.routesDirectory}/layout.css` : './src/app.css';
 			}
 			if (!plugins.includes('prettier-plugin-svelte')) {
