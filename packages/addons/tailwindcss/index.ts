@@ -58,7 +58,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('src/app.css', (content) => {
+		sv.file(kit ? `${kit?.routesDirectory}/layout.css` : 'src/app.css', (content) => {
 			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
 
 			const findAtRule = (name: string, params: string) =>
@@ -102,7 +102,7 @@ export default defineAddon({
 		} else {
 			sv.file(`${kit?.routesDirectory}/+layout.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
-				imports.addEmpty(script.ast, { from: '../app.css' });
+				imports.addEmpty(script.ast, { from: './layout.css' });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');
@@ -120,6 +120,15 @@ export default defineAddon({
 			});
 		}
 
+		sv.file('.vscode/settings.json', (content) => {
+			const { data, generateCode } = parseJson(content);
+
+			data['files.associations'] ??= {};
+			data['files.associations']['*.css'] = 'tailwind';
+
+			return generateCode();
+		});
+
 		if (prettierInstalled) {
 			sv.file('.prettierrc', (content) => {
 				const { data, generateCode } = parseJson(content);
@@ -130,7 +139,7 @@ export default defineAddon({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 
-				data.tailwindStylesheet ??= './src/app.css';
+				data.tailwindStylesheet ??= kit ? `${kit?.routesDirectory}/layout.css` : './src/app.css';
 
 				return generateCode();
 			});
