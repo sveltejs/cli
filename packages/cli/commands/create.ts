@@ -142,11 +142,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				});
 			},
 			force: async ({ results: { directory } }) => {
-				if (
-					fs.existsSync(directory!) &&
-					fs.readdirSync(directory!).filter((x) => !x.startsWith('.git')).length > 0 &&
-					options.dirCheck
-				) {
+				const directoryExists = fs.existsSync(directory!);
+				const hasNonIgnoredFiles =
+					fs.readdirSync(directory!).filter((x) => !x.startsWith('.git')).length > 0;
+				if (directoryExists && hasNonIgnoredFiles && options.dirCheck) {
 					const force = await p.confirm({
 						message: 'Directory not empty. Continue?',
 						initialValue: false
