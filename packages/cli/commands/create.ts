@@ -63,7 +63,8 @@ const OptionsSchema = v.strictObject({
 	add: v.array(v.string()),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices)),
-	fromPlayground: v.optional(v.string())
+	fromPlayground: v.optional(v.string()),
+	dirCheck: v.boolean()
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -78,6 +79,7 @@ export const create = new Command('create')
 	.addOption(addOption)
 	.option('--no-install', 'skip installing dependencies')
 	.option('--from-playground <url>', 'create a project from the svelte playground')
+	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
@@ -154,10 +156,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				});
 			},
 			force: async ({ results: { directory } }) => {
-				if (
-					fs.existsSync(directory!) &&
-					fs.readdirSync(directory!).filter((x) => !x.startsWith('.git')).length > 0
-				) {
+				const directoryExists = fs.existsSync(directory!);
+				const hasNonIgnoredFiles =
+					fs.readdirSync(directory!).filter((x) => !x.startsWith('.git')).length > 0;
+				if (directoryExists && hasNonIgnoredFiles && options.dirCheck) {
 					const force = await p.confirm({
 						message: 'Directory not empty. Continue?',
 						initialValue: false

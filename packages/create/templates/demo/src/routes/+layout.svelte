@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Header from './Header.svelte';
-	import '../app.css';
+	import './layout.css';
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();

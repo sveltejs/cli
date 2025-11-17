@@ -35,6 +35,16 @@ export default defineAddon({
 	run: ({ sv, options, files, typescript, kit, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
+		const stylesheet = kit
+			? ({
+					rootPath: `${kit.routesDirectory}/layout.css`,
+					relativePath: './layout.css'
+				} as const)
+			: ({
+					rootPath: 'src/app.css',
+					relativePath: './app.css'
+				} as const);
+
 		sv.devDependency('tailwindcss', '^4.1.14');
 		sv.devDependency('@tailwindcss/vite', '^4.1.14');
 		sv.pnpmBuildDependency('@tailwindcss/oxide');
@@ -58,7 +68,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('src/app.css', (content) => {
+		sv.file(stylesheet.rootPath, (content) => {
 			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
 
 			const findAtRule = (name: string, params: string) =>
@@ -96,13 +106,13 @@ export default defineAddon({
 		if (!kit) {
 			sv.file('src/App.svelte', (content) => {
 				const { script, generateCode } = parseSvelte(content, { typescript });
-				imports.addEmpty(script.ast, { from: './app.css' });
+				imports.addEmpty(script.ast, { from: stylesheet.relativePath });
 				return generateCode({ script: script.generateCode() });
 			});
 		} else {
 			sv.file(`${kit?.routesDirectory}/+layout.svelte`, (content) => {
 				const { script, template, generateCode } = parseSvelte(content, { typescript });
-				imports.addEmpty(script.ast, { from: '../app.css' });
+				imports.addEmpty(script.ast, { from: stylesheet.relativePath });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');
@@ -120,6 +130,15 @@ export default defineAddon({
 			});
 		}
 
+		sv.file('.vscode/settings.json', (content) => {
+			const { data, generateCode } = parseJson(content);
+
+			data['files.associations'] ??= {};
+			data['files.associations']['*.css'] = 'tailwind';
+
+			return generateCode();
+		});
+
 		if (prettierInstalled) {
 			sv.file('.prettierrc', (content) => {
 				const { data, generateCode } = parseJson(content);
@@ -130,7 +149,7 @@ export default defineAddon({
 
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 
-				data.tailwindStylesheet ??= './src/app.css';
+				data.tailwindStylesheet ??= stylesheet.rootPath;
 
 				return generateCode();
 			});
