@@ -292,7 +292,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				: options.install;
 
 	// Build args for next time based on non-default options
-	const argsFormatted = [projectName];
+	const argsFormatted = [cwd ?? projectName];
 
 	argsFormatted.push('--template', template);
 
