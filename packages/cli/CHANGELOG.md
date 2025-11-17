@@ -1,5 +1,20 @@
 # sv
 
+## 0.9.14
+### Patch Changes
+
+
+- feat(tailwind): add vscode setting for tailwind ([#780](https://github.com/sveltejs/cli/pull/780))
+
+
+- feat(cli): wrap links with `resolve()` function to follow [best practices](https://svelte.dev/docs/kit/$app-paths#resolve) ([#754](https://github.com/sveltejs/cli/pull/754))
+
+
+- feat(create): co-locate css file from usage (`layout.css` & `+layout.svelte`) ([#780](https://github.com/sveltejs/cli/pull/780))
+
+
+- fix(mcp): Add schema definition for Gemini MCP configuration. ([#774](https://github.com/sveltejs/cli/pull/774))
+
 ## 0.9.13
 ### Patch Changes
 
