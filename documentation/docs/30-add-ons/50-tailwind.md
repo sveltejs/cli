@@ -14,7 +14,7 @@ npx sv add tailwindcss
 
 - Tailwind setup following the [Tailwind for SvelteKit guide](https://tailwindcss.com/docs/installation/framework-guides/sveltekit)
 - Tailwind Vite plugin
-- updated `app.css` and `+layout.svelte` (for SvelteKit) or `App.svelte` (for non-SvelteKit Vite apps)
+- updated `layout.css` and `+layout.svelte` (for SvelteKit) or `app.css` and `App.svelte` (for non-SvelteKit Vite apps)
 - integration with `prettier` if using that package
 
 ## Options
