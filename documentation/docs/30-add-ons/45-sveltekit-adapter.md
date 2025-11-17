@@ -28,5 +28,5 @@ Which SvelteKit adapter to use:
 - `netlify` — [`@sveltejs/adapter-netlify`](/docs/kit/adapter-netlify) allows you to deploy to Netlify
 
 ```sh
-npx sv add sveltekit-adapter=adapter:node
+npx sv add sveltekit-adapter="adapter:node"
 ```
