@@ -178,15 +178,13 @@ export const add = new Command('add')
 				workspace
 			});
 
-			const { nextSteps, argsFormattedAddons } = await runAddonsApply({
+			const { nextSteps } = await runAddonsApply({
 				answersOfficial,
 				answersCommunity,
 				options,
 				selectedAddons,
 				workspace
 			});
-
-			common.logArgs(workspace.packageManager ?? 'npm', 'add', argsFormattedAddons);
 
 			if (nextSteps.length > 0) {
 				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
@@ -555,7 +553,7 @@ export async function runAddonsApply({
 	selectedAddons: SelectedAddon[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
-}): Promise<{ nextSteps: string[]; argsFormattedAddons: string[] }> {
+}): Promise<{ nextSteps: string[] }> {
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
 			? selectedAddons.map(({ addon }) => addon)
@@ -564,7 +562,7 @@ export async function runAddonsApply({
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0) return { nextSteps: [], argsFormattedAddons: [] };
+	if (selectedAddons.length === 0) return { nextSteps: [] };
 
 	// apply addons
 	const officialDetails = Object.keys(answersOfficial).map((id) => getAddonDetails(id));
@@ -656,6 +654,12 @@ export async function runAddonsApply({
 		}
 	}
 
+	if (packageManager === null || packageManager === undefined)
+		argsFormattedAddons.push('--no-install');
+	else argsFormattedAddons.push('--install', packageManager);
+
+	common.logArgs(packageManager ?? 'npm', 'add', argsFormattedAddons);
+
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 		await installDependencies(packageManager, options.cwd);
@@ -690,7 +694,7 @@ export async function runAddonsApply({
 		})
 		.filter((msg) => msg !== undefined);
 
-	return { nextSteps, argsFormattedAddons };
+	return { nextSteps };
 }
 
 /**
