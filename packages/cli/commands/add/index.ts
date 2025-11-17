@@ -650,7 +650,7 @@ export async function runAddonsApply({
 		}
 
 		if (optionParts.length > 0) {
-			argsFormattedAddons.push(`${addonId}=${optionParts.join('+')}`);
+			argsFormattedAddons.push(`${addonId}="${optionParts.join('+')}"`);
 		} else {
 			argsFormattedAddons.push(addonId);
 		}
