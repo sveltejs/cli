@@ -183,7 +183,8 @@ export const add = new Command('add')
 				answersCommunity,
 				options,
 				selectedAddons,
-				workspace
+				workspace,
+				withLogArgs: true
 			});
 
 			if (nextSteps.length > 0) {
@@ -545,7 +546,8 @@ export async function runAddonsApply({
 	options,
 	selectedAddons,
 	addonSetupResults,
-	workspace
+	workspace,
+	withLogArgs
 }: {
 	answersOfficial: Record<string, OptionValues<any>>;
 	answersCommunity: Record<string, OptionValues<any>>;
@@ -553,7 +555,8 @@ export async function runAddonsApply({
 	selectedAddons: SelectedAddon[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
-}): Promise<{ nextSteps: string[] }> {
+	withLogArgs?: boolean;
+}): Promise<{ nextSteps: string[]; argsFormattedAddons: string[] }> {
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
 			? selectedAddons.map(({ addon }) => addon)
@@ -562,7 +565,7 @@ export async function runAddonsApply({
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0) return { nextSteps: [] };
+	if (selectedAddons.length === 0) return { nextSteps: [], argsFormattedAddons: [] };
 
 	// apply addons
 	const officialDetails = Object.keys(answersOfficial).map((id) => getAddonDetails(id));
@@ -658,7 +661,7 @@ export async function runAddonsApply({
 		argsFormattedAddons.push('--no-install');
 	else argsFormattedAddons.push('--install', packageManager);
 
-	common.logArgs(packageManager ?? 'npm', 'add', argsFormattedAddons);
+	if (withLogArgs) common.logArgs(packageManager ?? 'npm', 'add', argsFormattedAddons);
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
@@ -673,6 +676,8 @@ export async function runAddonsApply({
 			await formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
 			stop('Successfully formatted modified files');
 		} catch (e) {
+			console.log(`e`, e);
+
 			stop('Failed to format files');
 			if (e instanceof Error) p.log.error(e.message);
 		}
@@ -694,7 +699,7 @@ export async function runAddonsApply({
 		})
 		.filter((msg) => msg !== undefined);
 
-	return { nextSteps };
+	return { nextSteps, argsFormattedAddons };
 }
 
 /**

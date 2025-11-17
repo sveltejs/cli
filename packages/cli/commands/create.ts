@@ -265,7 +265,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnNextSteps: string[] = [];
 	let argsFormattedAddons: string[] = [];
 	if (options.addOns || options.add.length > 0) {
-		const { nextSteps, argsFormattedAddons: tt } = await runAddonsApply({
+		const { nextSteps, argsFormattedAddons: argsFormatted } = await runAddonsApply({
 			answersOfficial,
 			answersCommunity,
 			options: {
@@ -279,7 +279,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			addonSetupResults: undefined,
 			workspace
 		});
-		argsFormattedAddons = tt;
+		argsFormattedAddons = argsFormatted;
 
 		addOnNextSteps = nextSteps;
 	}
