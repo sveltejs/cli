@@ -94,12 +94,12 @@ export default defineAddon({
 				return cancel(`Preexisting ${fileType} file at '${filePath}'`);
 			}
 		}
-		sv.devDependency('drizzle-orm', '^0.44.6');
-		sv.devDependency('drizzle-kit', '^0.31.5');
+		sv.devDependency('drizzle-orm', '^0.44.7');
+		sv.devDependency('drizzle-kit', '^0.31.7');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.2');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.3');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
