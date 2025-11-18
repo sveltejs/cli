@@ -24,7 +24,7 @@ Depending on your IDE setup, you’ll receive:
 The IDE you want to use like `'claude-code'`, `'cursor'`, `'gemini'`, `'opencode'`, `'vscode'`, `'other'`.
 
 ```sh
-npx sv add mcp=ide:cursor,vscode
+npx sv add mcp="ide:cursor,vscode"
 ```
 
 ### setup
@@ -32,5 +32,5 @@ npx sv add mcp=ide:cursor,vscode
 The setup you want to use.
 
 ```sh
-npx sv add mcp=setup:local
+npx sv add mcp="setup:local"
 ```

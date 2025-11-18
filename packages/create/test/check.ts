@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { exec, type PromiseWithChild } from 'node:child_process';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { create, type LanguageType, type TemplateType } from '../index.ts';
+import { installAddon, officialAddons } from '../../cli/lib/index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
@@ -42,13 +43,13 @@ for (const template of templates) {
 		fs.rmSync(cwd, { recursive: true, force: true });
 
 		create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
+		await installAddon({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
 
 		// run provided scripts that are non-blocking. All of them should exit with 0
 		// package script requires lib dir
-		// TODO: lint should run before format
-		const scripts_to_test = ['format', 'lint', 'check', 'build', 'package'].filter(
+		const scripts_to_test = ['lint', 'format', 'check', 'build', 'package'].filter(
 			(s) => s in pkg.scripts
 		);
 

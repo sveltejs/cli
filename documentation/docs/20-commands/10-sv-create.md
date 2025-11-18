@@ -59,6 +59,10 @@ Installs dependencies with a specified package manager:
 
 Prevents installing dependencies.
 
+### `--no-dir-check`
+
+Skip checking whether the target directory is empty.
+
 <!-- ## Programmatic interface
 
 ```js
