@@ -25,10 +25,10 @@ export default defineAddon({
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
-		sv.devDependency('vitest', '^4.0.5');
+		sv.devDependency('vitest', '^4.0.10');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser-playwright', '^4.0.5');
+			sv.devDependency('@vitest/browser-playwright', '^4.0.10');
 			sv.devDependency('vitest-browser-svelte', '^2.0.1');
 			sv.devDependency('playwright', '^1.56.1');
 		}
