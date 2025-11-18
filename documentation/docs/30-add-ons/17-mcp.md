@@ -12,10 +12,8 @@ npx sv add mcp
 
 ## What you get
 
-Depending on your IDE selection, you’ll receive:
-
-- A [MCP configuration](https://svelte.dev/docs/mcp/overview#Setup)
-- A [`README for agents`](https://agents.md/)
+- A MCP configuration for [local](https://svelte.dev/docs/mcp/local-setup) or [remote](https://svelte.dev/docs/mcp/remote-setup) setup
+- A [README for agents](https://agents.md/) to help you use the MCP server effectively
 
 ## Options
 
