@@ -18,7 +18,7 @@ const CI = Boolean(process.env.CI);
 beforeAll(async () => {
 	if (CI) {
 		// prefetch the storybook cli during ci to reduce fetching errors in tests
-		await exec(`pnpm dlx create-storybook@${STORYBOOK_VERSION} --version`);
+		await exec('pnpm', ['dlx', `create-storybook@${STORYBOOK_VERSION}`, '--version']);
 	}
 });
 
