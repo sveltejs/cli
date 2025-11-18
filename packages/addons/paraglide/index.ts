@@ -61,7 +61,7 @@ export default defineAddon({
 
 		const paraglideOutDir = 'src/lib/paraglide';
 
-		sv.devDependency('@inlang/paraglide-js', '^2.4.0');
+		sv.devDependency('@inlang/paraglide-js', '^2.5.0');
 
 		sv.file('project.inlang/settings.json', (content) => {
 			if (content) return content;
@@ -167,7 +167,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('.gitignore', (content) => {
+		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
 
 			if (!content.includes(`\n${paraglideOutDir}`)) {

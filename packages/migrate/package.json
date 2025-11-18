@@ -28,21 +28,21 @@
 	},
 	"dependencies": {
 		"@clack/prompts": "1.0.0-alpha.1",
-		"import-meta-resolve": "^4.1.0",
-		"magic-string": "^0.30.17",
+		"import-meta-resolve": "^4.2.0",
+		"magic-string": "^0.30.21",
 		"package-manager-detector": "^0.2.11",
 		"picocolors": "^1.1.1",
-		"semver": "^7.7.2",
+		"semver": "^7.7.3",
 		"tiny-glob": "^0.2.9",
 		"ts-morph": "^24.0.0",
-		"typescript": "^5.8.3",
-		"zimmerframe": "^1.1.2"
+		"typescript": "^5.9.3",
+		"zimmerframe": "^1.1.4"
 	},
 	"devDependencies": {
-		"@types/node": "^18.19.112",
+		"@types/node": "^18.19.130",
 		"@types/prompts": "^2.4.9",
-		"@types/semver": "^7.7.0",
-		"svelte": "^5.34.0"
+		"@types/semver": "^7.7.1",
+		"svelte": "^5.43.8"
 	},
 	"keywords": [
 		"migration",

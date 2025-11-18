@@ -15,8 +15,21 @@ export type Workspace = {
 	dependencyVersion: (pkg: string) => string | undefined;
 	typescript: boolean;
 	files: {
-		viteConfig: string;
-		svelteConfig: string;
+		viteConfig: 'vite.config.js' | 'vite.config.ts';
+		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
+		/** `${kit.routesDirectory}/layout.css` or `src/app.css` */
+		stylesheet: `${string}/layout.css` | 'src/app.css';
+		package: 'package.json';
+		gitignore: '.gitignore';
+
+		prettierignore: '.prettierignore';
+		prettierrc: '.prettierrc';
+		eslintConfig: 'eslint.config.js';
+
+		vscodeSettings: '.vscode/settings.json';
+
+		/** Get the relative path between two files */
+		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 	};
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
 	packageManager: PackageManager;

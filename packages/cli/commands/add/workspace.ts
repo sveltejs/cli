@@ -59,12 +59,36 @@ export async function createWorkspace({
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
+	const kit = dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined;
+	const stylesheet: `${string}/layout.css` | 'src/app.css' = kit
+		? `${kit.routesDirectory}/layout.css`
+		: 'src/app.css';
+
 	return {
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
-		files: { viteConfig, svelteConfig },
-		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
+		files: {
+			viteConfig,
+			svelteConfig,
+			stylesheet,
+			package: 'package.json',
+			gitignore: '.gitignore',
+			prettierignore: '.prettierignore',
+			prettierrc: '.prettierrc',
+			eslintConfig: 'eslint.config.js',
+			vscodeSettings: '.vscode/settings.json',
+			getRelative({ from, to }) {
+				from = from ?? '';
+				let relativePath = path.posix.relative(path.posix.dirname(from), to);
+				// Ensure relative paths start with ./ for proper relative path syntax
+				if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
+					relativePath = `./${relativePath}`;
+				}
+				return relativePath;
+			}
+		},
+		kit,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
 }

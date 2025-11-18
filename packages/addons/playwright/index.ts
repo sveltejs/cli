@@ -7,12 +7,12 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, typescript }) => {
+	run: ({ sv, typescript, files }) => {
 		const ext = typescript ? 'ts' : 'js';
 
 		sv.devDependency('@playwright/test', '^1.56.1');
 
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
@@ -24,7 +24,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('.gitignore', (content) => {
+		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
 			if (content.includes('test-results')) return content;
 			return 'test-results\n' + content.trim();
