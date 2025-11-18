@@ -34,13 +34,19 @@ export default defineAddon({
 	homepage: 'https://svelte.dev/docs/mcp',
 	options,
 	run: ({ sv, options }) => {
-		const getLocalConfig = (o?: { type?: 'stdio' | 'local'; env?: boolean }) => {
-			return {
+		const getLocalConfig = (o?: {
+			type?: 'stdio' | 'local';
+			env?: boolean;
+			command?: string | string[];
+			args?: string[] | null;
+		}) => {
+			const config: any = {
 				...(o?.type ? { type: o.type } : {}),
-				command: 'npx',
-				args: ['-y', '@sveltejs/mcp'],
-				...(o?.env ? { env: {} } : {})
+				command: o?.command ?? 'npx',
+				...(o?.env ? { env: {} } : {}),
+				...(o?.args === null ? {} : { args: o?.args ?? ['-y', '@sveltejs/mcp'] })
 			};
+			return config;
 		};
 		const getRemoteConfig = (o?: { type?: 'http' | 'remote' }) => {
 			return {
@@ -58,6 +64,8 @@ export default defineAddon({
 					typeLocal?: 'stdio' | 'local';
 					typeRemote?: 'http' | 'remote';
 					env?: boolean;
+					command?: string | string[];
+					args?: string[] | null;
 			  }
 			| { other: true }
 		> = {
@@ -71,6 +79,8 @@ export default defineAddon({
 				filePath: '.cursor/mcp.json'
 			},
 			gemini: {
+				schema:
+					'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
 				filePath: '.gemini/settings.json'
 			},
 			opencode: {
@@ -78,7 +88,9 @@ export default defineAddon({
 				mcpServersKey: 'mcp',
 				filePath: 'opencode.json',
 				typeLocal: 'local',
-				typeRemote: 'remote'
+				typeRemote: 'remote',
+				command: ['npx', '-y', '@sveltejs/mcp'],
+				args: null
 			},
 			vscode: {
 				mcpServersKey: 'servers',
@@ -93,7 +105,7 @@ export default defineAddon({
 			const value = configurator[ide];
 			if ('other' in value) continue;
 
-			const { mcpServersKey, filePath, typeLocal, typeRemote, env, schema } = value;
+			const { mcpServersKey, filePath, typeLocal, typeRemote, env, schema, command, args } = value;
 			sv.file(filePath, (content) => {
 				const { data, generateCode } = parseJson(content);
 				if (schema) {
@@ -103,7 +115,7 @@ export default defineAddon({
 				data[key] ??= {};
 				data[key].svelte =
 					options.setup === 'local'
-						? getLocalConfig({ type: typeLocal, env })
+						? getLocalConfig({ type: typeLocal, env, command, args })
 						: getRemoteConfig({ type: typeRemote });
 				return generateCode();
 			});
