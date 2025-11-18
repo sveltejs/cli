@@ -109,7 +109,8 @@ export default defineAddon({
 			}
 		};
 
-		const alreadyExists: string[] = [];
+		const filesAdded: string[] = [];
+		const filesExistingAlready: string[] = [];
 
 		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('mcp'));
 		const agentFile = sharedFiles.find((file) => file.name === 'AGENTS.md');
@@ -130,20 +131,24 @@ export default defineAddon({
 				args
 			} = value;
 
-			sv.file(agentPath, (content) => {
-				if (content) {
-					alreadyExists.push(agentPath);
-					return content;
-				}
+			// We only add the agent file if it's not already added
+			if (!filesAdded.includes(agentPath)) {
+				sv.file(agentPath, (content) => {
+					if (content) {
+						filesExistingAlready.push(agentPath);
+						return content;
+					}
+					filesAdded.push(agentPath);
 
-				const newContent: string[] = [];
+					const newContent: string[] = [];
 
-				const prefixFile = sharedFiles.find((file) => file.name === `${ide}-prefix-AGENTS.md`);
-				if (prefixFile) newContent.push(prefixFile.contents);
-				if (agentFile) newContent.push(agentFile.contents);
+					const prefixFile = sharedFiles.find((file) => file.name === `${ide}-prefix-AGENTS.md`);
+					if (prefixFile) newContent.push(prefixFile.contents);
+					if (agentFile) newContent.push(agentFile.contents);
 
-				return newContent.join('\n');
-			});
+					return newContent.join('\n');
+				});
+			}
 
 			sv.file(mcpPath, (content) => {
 				const { data, generateCode } = parseJson(content);
@@ -160,10 +165,10 @@ export default defineAddon({
 			});
 		}
 
-		if (alreadyExists.length > 0) {
+		if (filesExistingAlready.length > 0) {
 			const highlighter = getHighlighter();
 			log.warn(
-				`${alreadyExists.map((path) => highlighter.path(path)).join(', ')} already exists, we didn't touch ${alreadyExists.length > 1 ? 'them' : 'it'}. ` +
+				`${filesExistingAlready.map((path) => highlighter.path(path)).join(', ')} already exists, we didn't touch ${filesExistingAlready.length > 1 ? 'them' : 'it'}. ` +
 					`See ${highlighter.website('https://svelte.dev/docs/mcp/overview#Usage')} for manual setup.`
 			);
 		}
