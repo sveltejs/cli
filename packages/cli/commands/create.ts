@@ -156,18 +156,19 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				});
 			},
 			force: async ({ results: { directory } }) => {
-				const directoryExists = fs.existsSync(directory!);
-				const hasNonIgnoredFiles =
-					fs.readdirSync(directory!).filter((x) => !x.startsWith('.git')).length > 0;
-				if (directoryExists && hasNonIgnoredFiles && options.dirCheck) {
-					const force = await p.confirm({
-						message: 'Directory not empty. Continue?',
-						initialValue: false
-					});
-					if (p.isCancel(force) || !force) {
-						p.cancel('Exiting.');
-						process.exit(0);
-					}
+				if (!options.dirCheck) return;
+
+				const files = fs.readdirSync(directory!);
+				const hasNonIgnoredFiles = files.some((file) => !file.startsWith('.git'));
+				if (!hasNonIgnoredFiles) return;
+
+				const force = await p.confirm({
+					message: 'Directory not empty. Continue?',
+					initialValue: false
+				});
+				if (p.isCancel(force) || !force) {
+					p.cancel('Exiting.');
+					process.exit(0);
 				}
 			},
 			template: () => {

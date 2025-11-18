@@ -18,7 +18,7 @@ const CI = Boolean(process.env.CI);
 beforeAll(() => {
 	if (CI) {
 		// prefetch the storybook cli during ci to reduce fetching errors in tests
-		execSync('pnpx create-storybook@latest --version');
+		execSync('pnpm dlx create-storybook@latest --version');
 	}
 });
 
