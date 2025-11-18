@@ -676,8 +676,6 @@ export async function runAddonsApply({
 			await formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
 			stop('Successfully formatted modified files');
 		} catch (e) {
-			console.log(`e`, e);
-
 			stop('Failed to format files');
 			if (e instanceof Error) p.log.error(e.message);
 		}
