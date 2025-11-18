@@ -355,15 +355,15 @@ async function confirmExternalDependencies(dependencies: string[]): Promise<bool
 interface CreateVirtualWorkspaceOptions {
 	cwd: string;
 	template: TemplateType;
-	packageManager?: PackageManager;
-	type?: LanguageType;
+	packageManager: PackageManager;
+	type: LanguageType;
 }
 
 export async function createVirtualWorkspace({
 	cwd,
 	template,
 	packageManager,
-	type = 'none'
+	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
 	const tentativeWorkspace = await createWorkspace({ cwd, packageManager });
 	const virtualWorkspace: Workspace = {
