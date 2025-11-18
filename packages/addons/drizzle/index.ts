@@ -78,7 +78,7 @@ export default defineAddon({
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, typescript, options, kit, dependencyVersion, cwd, cancel }) => {
+	run: ({ sv, typescript, options, kit, dependencyVersion, cwd, cancel, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const ext = typescript ? 'ts' : 'js';
@@ -177,7 +177,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
@@ -191,7 +191,7 @@ export default defineAddon({
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
-			sv.file('.prettierignore', (content) => {
+			sv.file(files.prettierignore, (content) => {
 				if (!content.includes(`/drizzle/`)) {
 					return content.trimEnd() + '\n/drizzle/';
 				}
@@ -200,7 +200,7 @@ export default defineAddon({
 		}
 
 		if (options.database === 'sqlite') {
-			sv.file('.gitignore', (content) => {
+			sv.file(files.gitignore, (content) => {
 				// Adds the db file to the gitignore if an ignore is present
 				if (content.length === 0) return content;
 

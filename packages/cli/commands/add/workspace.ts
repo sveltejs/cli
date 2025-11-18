@@ -75,6 +75,12 @@ export async function createWorkspace({
 			viteConfig,
 			svelteConfig,
 			stylesheet,
+			package: 'package.json',
+			gitignore: '.gitignore',
+			prettierignore: '.prettierignore',
+			prettierrc: '.prettierrc',
+			eslintConfig: 'eslint.config.js',
+			vscodeSettings: '.vscode/settings.json',
 			getRelative({ from, to }) {
 				from = from ?? '';
 				let relativePath = path.posix.relative(path.posix.dirname(from), to);

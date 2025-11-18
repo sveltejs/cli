@@ -124,7 +124,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file('.vscode/settings.json', (content) => {
+		sv.file(files.vscodeSettings, (content) => {
 			const { data, generateCode } = parseJson(content);
 
 			data['files.associations'] ??= {};
@@ -134,7 +134,7 @@ export default defineAddon({
 		});
 
 		if (prettierInstalled) {
-			sv.file('.prettierrc', (content) => {
+			sv.file(files.prettierrc, (content) => {
 				const { data, generateCode } = parseJson(content);
 				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
 

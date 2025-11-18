@@ -167,7 +167,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('.gitignore', (content) => {
+		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
 
 			if (!content.includes(`\n${paraglideOutDir}`)) {

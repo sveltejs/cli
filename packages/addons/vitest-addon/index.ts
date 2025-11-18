@@ -33,7 +33,7 @@ export default defineAddon({
 			sv.devDependency('playwright', '^1.56.1');
 		}
 
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
