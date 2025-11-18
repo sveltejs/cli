@@ -14,7 +14,13 @@ export default defineAddon({
 		runsAfter('eslint');
 	},
 	run: async ({ sv }) => {
-		const args = [`create-storybook@${STORYBOOK_VERSION}`, '--skip-install', '--no-dev'];
+		const args = [
+			`create-storybook@${STORYBOOK_VERSION}`,
+			'--skip-install',
+			'--no-dev',
+			'--features',
+			'docs'
+		];
 
 		// skips the onboarding prompt during tests
 		if (process.env.NODE_ENV?.toLowerCase() === 'test') args.push('--yes');
