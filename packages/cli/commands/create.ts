@@ -38,6 +38,7 @@ import {
 	type SelectedAddon
 } from './add/index.ts';
 import { commonFilePaths } from './add/utils.ts';
+import { createWorkspace } from './add/workspace.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -364,11 +365,12 @@ export async function createVirtualWorkspace({
 	packageManager,
 	type = 'none'
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
-	const workspace: Workspace = {
-		cwd: path.resolve(cwd),
-		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
+	const tentativeWorkspace = await createWorkspace({ cwd, packageManager });
+	const virtualWorkspace: Workspace = {
+		...tentativeWorkspace,
 		typescript: type === 'typescript',
 		files: {
+			...tentativeWorkspace.files,
 			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
 			svelteConfig:
 				type === 'typescript' ? commonFilePaths.svelteConfigTS : commonFilePaths.svelteConfig
@@ -378,11 +380,11 @@ export async function createVirtualWorkspace({
 	};
 
 	if (template === 'minimal' || template === 'demo' || template === 'library') {
-		workspace.kit = {
+		virtualWorkspace.kit = {
 			routesDirectory: 'src/routes',
 			libDirectory: 'src/lib'
 		};
 	}
 
-	return workspace;
+	return virtualWorkspace;
 }
