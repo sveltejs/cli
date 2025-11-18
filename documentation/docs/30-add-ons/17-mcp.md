@@ -12,10 +12,10 @@ npx sv add mcp
 
 ## What you get
 
-Depending on your IDE setup, you’ll receive:
+Depending on your IDE selection, you’ll receive:
 
-- A MCP configuration
-- A `readme` for agent, either [`AGENTS.md`](https://agents.md/), `CLAUDE.md`, or `GEMINI.md`
+- A [MCP configuration](https://svelte.dev/docs/mcp/overview#Setup)
+- A [`README for agents`](https://agents.md/)
 
 ## Options
 
