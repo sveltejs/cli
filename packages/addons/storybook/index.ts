@@ -18,8 +18,7 @@ export default defineAddon({
 			`create-storybook@${STORYBOOK_VERSION}`,
 			'--skip-install',
 			'--no-dev',
-			'--features',
-			'docs'
+			'--no-features'
 		];
 
 		// skips the onboarding prompt during tests
