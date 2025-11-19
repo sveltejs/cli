@@ -17,21 +17,21 @@ export default defineAddon({
 	shortDescription: 'linter',
 	homepage: 'https://eslint.org',
 	options: {},
-	run: ({ sv, typescript, dependencyVersion }) => {
+	run: ({ sv, typescript, dependencyVersion, files }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('eslint', '^9.38.0');
+		sv.devDependency('eslint', '^9.39.1');
 		sv.devDependency('@eslint/compat', '^1.4.0');
-		sv.devDependency('eslint-plugin-svelte', '^3.12.4');
-		sv.devDependency('globals', '^16.4.0');
-		sv.devDependency('@eslint/js', '^9.38.0');
+		sv.devDependency('eslint-plugin-svelte', '^3.13.0');
+		sv.devDependency('globals', '^16.5.0');
+		sv.devDependency('@eslint/js', '^9.39.1');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
-		if (typescript) sv.devDependency('typescript-eslint', '^8.46.1');
+		if (typescript) sv.devDependency('typescript-eslint', '^8.47.0');
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
@@ -41,7 +41,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('.vscode/settings.json', (content) => {
+		sv.file(files.vscodeSettings, (content) => {
 			if (!content) return content;
 
 			const { data, generateCode } = parseJson(content);
@@ -52,7 +52,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('eslint.config.js', (content) => {
+		sv.file(files.eslintConfig, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
@@ -170,7 +170,7 @@ export default defineAddon({
 		});
 
 		if (prettierInstalled) {
-			sv.file('eslint.config.js', addEslintConfigPrettier);
+			sv.file(files.eslintConfig, addEslintConfigPrettier);
 		}
 	}
 });
