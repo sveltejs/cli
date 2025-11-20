@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix(demo): using `rewriteRelativeImportExtensions` that implies `allowImportingTsExtensions` in `tsconfig.json` to rewrite relative imports extentions in JavaScript equivalent
+fix(demo): rewrite relative import extensions to JavaScript equivalents _(`tsconfig.json` update)_
