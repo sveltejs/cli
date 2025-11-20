@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { mkdirp, copy, dist } from './utils.ts';
+import { mkdirp, copy, dist, getSharedFiles } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
@@ -19,7 +19,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = TemplateType | LanguageType | 'playground';
+export type Condition = TemplateType | LanguageType | 'playground' | 'mcp';
 
 export type Common = {
 	files: Array<{
@@ -66,8 +66,7 @@ function write_template_files(template: string, types: LanguageType, name: strin
 }
 
 function write_common_files(cwd: string, options: Options, name: string) {
-	const shared = dist('shared.json');
-	const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
+	const files = getSharedFiles();
 
 	const pkg_file = path.join(cwd, 'package.json');
 	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
