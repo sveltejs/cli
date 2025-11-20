@@ -90,7 +90,7 @@ export default defineAddon({
 				mcpPath: '.gemini/settings.json'
 			},
 			opencode: {
-				agentPath: '.opencode/agent/svelte.md',
+				agentPath: 'AGENTS.md',
 				schema: 'https://opencode.ai/config.json',
 				mcpServersKey: 'mcp',
 				mcpPath: 'opencode.json',
@@ -139,14 +139,7 @@ export default defineAddon({
 						return content;
 					}
 					filesAdded.push(agentPath);
-
-					const newContent: string[] = [];
-
-					const prefixFile = sharedFiles.find((file) => file.name === `${ide}-prefix-AGENTS.md`);
-					if (prefixFile) newContent.push(prefixFile.contents);
-					if (agentFile) newContent.push(agentFile.contents);
-
-					return newContent.join('\n');
+					return agentFile?.contents ?? '';
 				});
 			}
 
@@ -155,7 +148,7 @@ export default defineAddon({
 				if (schema) {
 					data['$schema'] = schema;
 				}
-				const key = mcpServersKey || 'mcpServers';
+				const key = mcpServersKey ?? 'mcpServers';
 				data[key] ??= {};
 				data[key].svelte =
 					options.setup === 'local'
