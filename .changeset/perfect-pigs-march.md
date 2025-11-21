@@ -1,5 +1,5 @@
 ---
-"@sveltejs/addons": patch
+"sv": patch
 ---
 
-docs: use consistent wording for setup question
+fix(mcp): use consistent wording for setup question
