@@ -13,7 +13,7 @@
 		"checkJs": true,
 		"moduleResolution": "NodeNext",
 		"module": "NodeNext",
-		"allowImportingTsExtensions": true,
+		"rewriteRelativeImportExtensions": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,

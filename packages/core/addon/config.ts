@@ -59,6 +59,7 @@ export type Highlighter = {
 	website: (str: string) => string;
 	route: (str: string) => string;
 	env: (str: string) => string; // used for printing environment variable names
+	optional: (str: string) => string;
 };
 
 export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>): Addon<Args> {

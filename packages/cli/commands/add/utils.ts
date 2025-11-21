@@ -124,6 +124,7 @@ export function getHighlighter(): Highlighter {
 		env: (str) => pc.yellow(str),
 		path: (str) => pc.green(str),
 		route: (str) => pc.bold(str),
-		website: (str) => pc.whiteBright(str)
+		website: (str) => pc.whiteBright(str),
+		optional: (str) => pc.gray(str)
 	};
 }

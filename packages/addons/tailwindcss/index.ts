@@ -128,7 +128,7 @@ export default defineAddon({
 			const { data, generateCode } = parseJson(content);
 
 			data['files.associations'] ??= {};
-			data['files.associations']['*.css'] = 'tailwind';
+			data['files.associations']['*.css'] = 'tailwindcss';
 
 			return generateCode();
 		});

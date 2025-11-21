@@ -1,5 +1,7 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
+import { defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
 import { parseJson } from '@sveltejs/cli-core/parsers';
+import { getSharedFiles } from '../../create/utils.ts';
+import { getHighlighter } from '../../cli/commands/add/utils.ts';
 
 const options = defineAddonOptions()
 	.add('ide', {
@@ -60,7 +62,8 @@ export default defineAddon({
 			| {
 					schema?: string;
 					mcpServersKey?: string;
-					filePath: string;
+					agentPath: string;
+					mcpPath: string;
 					typeLocal?: 'stdio' | 'local';
 					typeRemote?: 'http' | 'remote';
 					env?: boolean;
@@ -70,36 +73,47 @@ export default defineAddon({
 			| { other: true }
 		> = {
 			'claude-code': {
-				filePath: '.mcp.json',
+				agentPath: 'CLAUDE.md',
+				mcpPath: '.mcp.json',
 				typeLocal: 'stdio',
 				typeRemote: 'http',
 				env: true
 			},
 			cursor: {
-				filePath: '.cursor/mcp.json'
+				agentPath: 'AGENTS.md',
+				mcpPath: '.cursor/mcp.json'
 			},
 			gemini: {
+				agentPath: 'GEMINI.md',
 				schema:
 					'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
-				filePath: '.gemini/settings.json'
+				mcpPath: '.gemini/settings.json'
 			},
 			opencode: {
+				agentPath: 'AGENTS.md',
 				schema: 'https://opencode.ai/config.json',
 				mcpServersKey: 'mcp',
-				filePath: 'opencode.json',
+				mcpPath: 'opencode.json',
 				typeLocal: 'local',
 				typeRemote: 'remote',
 				command: ['npx', '-y', '@sveltejs/mcp'],
 				args: null
 			},
 			vscode: {
+				agentPath: 'AGENTS.md',
 				mcpServersKey: 'servers',
-				filePath: '.vscode/mcp.json'
+				mcpPath: '.vscode/mcp.json'
 			},
 			other: {
 				other: true
 			}
 		};
+
+		const filesAdded: string[] = [];
+		const filesExistingAlready: string[] = [];
+
+		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('mcp'));
+		const agentFile = sharedFiles.find((file) => file.name === 'AGENTS.md');
 
 		for (const ide of options.ide) {
 			const value = configurator[ide];
@@ -107,13 +121,36 @@ export default defineAddon({
 			if (value === undefined) continue;
 			if ('other' in value) continue;
 
-			const { mcpServersKey, filePath, typeLocal, typeRemote, env, schema, command, args } = value;
-			sv.file(filePath, (content) => {
+			const {
+				mcpServersKey,
+				agentPath,
+				mcpPath,
+				typeLocal,
+				typeRemote,
+				env,
+				schema,
+				command,
+				args
+			} = value;
+
+			// We only add the agent file if it's not already added
+			if (!filesAdded.includes(agentPath)) {
+				sv.file(agentPath, (content) => {
+					if (content) {
+						filesExistingAlready.push(agentPath);
+						return content;
+					}
+					filesAdded.push(agentPath);
+					return agentFile?.contents ?? '';
+				});
+			}
+
+			sv.file(mcpPath, (content) => {
 				const { data, generateCode } = parseJson(content);
 				if (schema) {
 					data['$schema'] = schema;
 				}
-				const key = mcpServersKey || 'mcpServers';
+				const key = mcpServersKey ?? 'mcpServers';
 				data[key] ??= {};
 				data[key].svelte =
 					options.setup === 'local'
@@ -121,6 +158,14 @@ export default defineAddon({
 						: getRemoteConfig({ type: typeRemote });
 				return generateCode();
 			});
+		}
+
+		if (filesExistingAlready.length > 0) {
+			const highlighter = getHighlighter();
+			log.warn(
+				`${filesExistingAlready.map((path) => highlighter.path(path)).join(', ')} already exists, we didn't touch ${filesExistingAlready.length > 1 ? 'them' : 'it'}. ` +
+					`See ${highlighter.website('https://svelte.dev/docs/mcp/overview#Usage')} for manual setup.`
+			);
 		}
 	},
 	nextSteps({ highlighter, options }) {

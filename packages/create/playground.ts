@@ -3,8 +3,7 @@ import path from 'node:path';
 import * as js from '@sveltejs/cli-core/js';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
-import { dist } from './utils.ts';
-import type { Common } from './index.ts';
+import { getSharedFiles } from './utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -182,9 +181,7 @@ export function setupPlaygroundProject(
 
 	// add playground shared files
 	{
-		const shared = dist('shared.json');
-		const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
-		const playgroundFiles = files.filter((file) => file.include.includes('playground'));
+		const playgroundFiles = getSharedFiles().filter((file) => file.include.includes('playground'));
 
 		for (const file of playgroundFiles) {
 			let contentToWrite = file.contents;
