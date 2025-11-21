@@ -307,7 +307,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
-	common.logArgs(packageManager, 'create', argsFormatted, [cwd ?? projectName ?? defaultPath]);
+	common.logArgs(packageManager, 'create', argsFormatted, [cwd ?? defaultPath]);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) await installDependencies(packageManager, projectPath);
