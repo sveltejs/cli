@@ -1,5 +1,17 @@
 # sv
 
+## 0.10.0
+### Minor Changes
+
+
+- feat(cli): `npx sv create` now supports a new argument `--add` to add add-ons to the project in the same command. ([#695](https://github.com/sveltejs/cli/pull/695))
+
+
+### Patch Changes
+
+
+- feat(cli): show args used so that you can run the cli without any prompt next time ([#695](https://github.com/sveltejs/cli/pull/695))
+
 ## 0.9.15
 ### Patch Changes
 
