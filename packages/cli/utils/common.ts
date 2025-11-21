@@ -137,11 +137,20 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	return options;
 }
 
-export function logArgs(agent: AgentName, actionName: string, args: string[]) {
-	const defaultArgs = ['sv', actionName, ...args];
-	const res = resolveCommand(agent, 'execute', defaultArgs);
-	if (res) p.log.message(pc.dim([res.command, ...res.args].join(' ')));
-	else p.log.message(pc.dim([`npx`, ...defaultArgs].join(' ')));
+export function logArgs(
+	agent: AgentName | null | undefined,
+	command: 'create' | 'add',
+	args: string[],
+	lastArgs: string[] = []
+) {
+	const allArgs = ['sv', command, ...args];
+
+	// Handle install option
+	if (agent === null || agent === undefined) allArgs.push('--no-install');
+	else allArgs.push('--install', agent);
+
+	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
+	p.log.message(pc.dim([res.command, ...res.args].join(' ')));
 }
 
 export function errorAndExit(message: string) {

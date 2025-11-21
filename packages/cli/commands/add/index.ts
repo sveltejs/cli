@@ -184,7 +184,7 @@ export const add = new Command('add')
 				options,
 				selectedAddons,
 				workspace,
-				withLogArgs: true
+				fromCommand: 'add'
 			});
 
 			if (nextSteps.length > 0) {
@@ -547,7 +547,7 @@ export async function runAddonsApply({
 	selectedAddons,
 	addonSetupResults,
 	workspace,
-	withLogArgs
+	fromCommand
 }: {
 	answersOfficial: Record<string, OptionValues<any>>;
 	answersCommunity: Record<string, OptionValues<any>>;
@@ -555,7 +555,7 @@ export async function runAddonsApply({
 	selectedAddons: SelectedAddon[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
-	withLogArgs?: boolean;
+	fromCommand: 'create' | 'add';
 }): Promise<{ nextSteps: string[]; argsFormattedAddons: string[] }> {
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
@@ -657,11 +657,7 @@ export async function runAddonsApply({
 		}
 	}
 
-	if (packageManager === null || packageManager === undefined)
-		argsFormattedAddons.push('--no-install');
-	else argsFormattedAddons.push('--install', packageManager);
-
-	if (withLogArgs) common.logArgs(packageManager ?? 'npm', 'add', argsFormattedAddons);
+	if (fromCommand === 'add') common.logArgs(packageManager, 'add', argsFormattedAddons);
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;

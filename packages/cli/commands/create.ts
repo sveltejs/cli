@@ -281,7 +281,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			selectedAddons,
 			addonSetupResults: undefined,
-			workspace
+			workspace,
+			fromCommand: 'create'
 		});
 		argsFormattedAddons = argsFormatted;
 
@@ -296,7 +297,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				: options.install;
 
 	// Build args for next time based on non-default options
-	const argsFormatted = [cwd ?? defaultPath];
+	const argsFormatted: string[] = [];
 
 	argsFormatted.push('--template', template);
 
@@ -306,10 +307,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
-	if (packageManager === null || packageManager === undefined) argsFormatted.push('--no-install');
-	else argsFormatted.push('--install', packageManager);
-
-	common.logArgs(packageManager ?? 'npm', 'create', argsFormatted);
+	common.logArgs(packageManager, 'create', argsFormatted, [cwd ?? defaultPath]);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) await installDependencies(packageManager, projectPath);
