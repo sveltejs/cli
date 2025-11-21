@@ -1,10 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as v from 'valibot';
-import { Command, Option } from 'commander';
 import * as p from '@clack/prompts';
-import pc from 'picocolors';
+import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
 import {
 	create as createKit,
 	templates,
@@ -12,15 +10,18 @@ import {
 	type TemplateType
 } from '@sveltejs/create';
 import {
+	detectPlaygroundDependencies,
 	downloadPlaygroundData,
 	parsePlaygroundUrl,
 	setupPlaygroundProject,
-	validatePlaygroundUrl,
-	detectPlaygroundDependencies
+	validatePlaygroundUrl
 } from '@sveltejs/create/playground';
+import { Command, Option } from 'commander';
+import { detect, resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
+import * as v from 'valibot';
+
 import * as common from '../utils/common.ts';
-import { runAddCommand } from './add/index.ts';
-import { detect, resolveCommand, type AgentName } from 'package-manager-detector';
 import {
 	addPnpmBuildDependencies,
 	AGENT_NAMES,
@@ -29,6 +30,15 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
+import {
+	addonArgsHandler,
+	promptAddonQuestions,
+	runAddonsApply,
+	sanitizeAddons,
+	type SelectedAddon
+} from './add/index.ts';
+import { commonFilePaths } from './add/utils.ts';
+import { createWorkspace } from './add/workspace.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -41,6 +51,8 @@ const langOption = new Option('--types <lang>', 'add type checking').choices(lan
 const templateOption = new Option('--template <type>', 'template to scaffold').choices(
 	templateChoices
 );
+const noAddonsOption = new Option('--no-add-ons', 'do not prompt to add add-ons').conflicts('add');
+const addOption = new Option('--add <addon...>', 'add-on to include').default([]);
 
 const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
@@ -49,6 +61,7 @@ const OptionsSchema = v.strictObject({
 		v.transform((lang) => langMap[String(lang)])
 	),
 	addOns: v.boolean(),
+	add: v.array(v.string()),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
@@ -56,6 +69,7 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
+const defaultPath = './';
 
 export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
@@ -63,7 +77,8 @@ export const create = new Command('create')
 	.addOption(templateOption)
 	.addOption(langOption)
 	.option('--no-types')
-	.option('--no-add-ons', 'skips interactive add-on installer')
+	.addOption(noAddonsOption)
+	.addOption(addOption)
 	.option('--no-install', 'skip installing dependencies')
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
@@ -119,7 +134,8 @@ export const create = new Command('create')
 
 			p.note(steps.join('\n'), "What's next?", { format: (line) => line });
 		});
-	});
+	})
+	.showHelpAfterError(true);
 
 async function createProject(cwd: ProjectPath, options: Options) {
 	if (options.fromPlayground) {
@@ -134,7 +150,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				if (cwd) {
 					return Promise.resolve(path.resolve(cwd));
 				}
-				const defaultPath = './';
 				return p.text({
 					message: 'Where would you like your project to be created?',
 					placeholder: `  (hit Enter to use '${defaultPath}')`,
@@ -192,8 +207,51 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	);
 
 	const projectPath = path.resolve(directory);
+	const projectName = path.basename(projectPath);
+
+	let selectedAddons: SelectedAddon[] = [];
+	let answersOfficial: Record<string, OptionValues<any>> = {};
+	let answersCommunity: Record<string, OptionValues<any>> = {};
+	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
+
+	const workspace = await createVirtualWorkspace({
+		cwd: projectPath,
+		template,
+		// When we create a virtual workspace it's not that important that we use the correct package manager
+		// so we'll just use npm for now like this we can delay the question after
+		packageManager: 'npm',
+		type: language
+	});
+
+	if (options.addOns || options.add.length > 0) {
+		const addons = options.add.reduce(addonArgsHandler, []);
+		sanitizedAddonsMap = sanitizeAddons(addons).reduce<Record<string, string[] | undefined>>(
+			(acc, curr) => {
+				acc[curr.id] = curr.options;
+				return acc;
+			},
+			{}
+		);
+
+		const result = await promptAddonQuestions({
+			options: {
+				cwd: projectPath,
+				install: false,
+				gitCheck: false,
+				community: [],
+				addons: sanitizedAddonsMap
+			},
+			selectedAddonIds: Object.keys(sanitizedAddonsMap),
+			workspace
+		});
+
+		selectedAddons = result.selectedAddons;
+		answersOfficial = result.answersOfficial;
+		answersCommunity = result.answersCommunity;
+	}
+
 	createKit(projectPath, {
-		name: path.basename(projectPath),
+		name: projectName,
 		template,
 		types: language
 	});
@@ -208,39 +266,53 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	p.log.success('Project created');
 
-	let packageManager: AgentName | undefined | null;
 	let addOnNextSteps: string[] = [];
-
-	const installDeps = async (install: true | AgentName) => {
-		packageManager = install === true ? await packageManagerPrompt(projectPath) : install;
-		await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
-		if (packageManager) await installDependencies(packageManager, projectPath);
-	};
-
-	if (options.addOns) {
-		// `runAddCommand` includes installing dependencies
-		const { nextSteps, packageManager: pm } = await runAddCommand(
-			{
+	let argsFormattedAddons: string[] = [];
+	if (options.addOns || options.add.length > 0) {
+		const { nextSteps, argsFormattedAddons: argsFormatted } = await runAddonsApply({
+			answersOfficial,
+			answersCommunity,
+			options: {
 				cwd: projectPath,
-				install: options.install,
+				install: false,
 				gitCheck: false,
 				community: [],
-				addons: {}
+				addons: sanitizedAddonsMap
 			},
-			[]
-		);
-		packageManager = pm;
+			selectedAddons,
+			addonSetupResults: undefined,
+			workspace
+		});
+		argsFormattedAddons = argsFormatted;
+
 		addOnNextSteps = nextSteps;
-	} else if (options.install) {
-		// `--no-add-ons` was set, so we'll prompt to install deps manually
-		await installDeps(options.install);
 	}
 
-	// no add-ons were selected (which means the install prompt was skipped in `runAddCommand`),
-	// so we'll prompt to install
-	if (packageManager === null && options.install) {
-		await installDeps(options.install);
-	}
+	const packageManager =
+		options.install === false
+			? null
+			: options.install === true
+				? await packageManagerPrompt(projectPath)
+				: options.install;
+
+	// Build args for next time based on non-default options
+	const argsFormatted = [cwd ?? defaultPath];
+
+	argsFormatted.push('--template', template);
+
+	if (language === 'typescript') argsFormatted.push('--types', 'ts');
+	else if (language === 'checkjs') argsFormatted.push('--types', 'jsdoc');
+	else if (language === 'none') argsFormatted.push('--no-types');
+
+	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
+
+	if (packageManager === null || packageManager === undefined) argsFormatted.push('--no-install');
+	else argsFormatted.push('--install', packageManager);
+
+	common.logArgs(packageManager ?? 'npm', 'create', argsFormatted);
+
+	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
+	if (packageManager) await installDependencies(packageManager, projectPath);
 
 	return { directory: projectPath, addOnNextSteps, packageManager };
 }
@@ -278,4 +350,41 @@ async function confirmExternalDependencies(dependencies: string[]): Promise<bool
 	}
 
 	return installDeps;
+}
+
+interface CreateVirtualWorkspaceOptions {
+	cwd: string;
+	template: TemplateType;
+	packageManager: PackageManager;
+	type: LanguageType;
+}
+
+export async function createVirtualWorkspace({
+	cwd,
+	template,
+	packageManager,
+	type
+}: CreateVirtualWorkspaceOptions): Promise<Workspace> {
+	const tentativeWorkspace = await createWorkspace({ cwd, packageManager });
+	const virtualWorkspace: Workspace = {
+		...tentativeWorkspace,
+		typescript: type === 'typescript',
+		files: {
+			...tentativeWorkspace.files,
+			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
+			svelteConfig:
+				type === 'typescript' ? commonFilePaths.svelteConfigTS : commonFilePaths.svelteConfig
+		},
+		kit: undefined,
+		dependencyVersion: () => undefined
+	};
+
+	if (template === 'minimal' || template === 'demo' || template === 'library') {
+		virtualWorkspace.kit = {
+			routesDirectory: 'src/routes',
+			libDirectory: 'src/lib'
+		};
+	}
+
+	return virtualWorkspace;
 }

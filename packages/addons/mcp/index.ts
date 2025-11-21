@@ -117,6 +117,8 @@ export default defineAddon({
 
 		for (const ide of options.ide) {
 			const value = configurator[ide];
+
+			if (value === undefined) continue;
 			if ('other' in value) continue;
 
 			const {

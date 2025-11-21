@@ -14,6 +14,7 @@ import {
 } from 'package-manager-detector';
 import { parseJson, parseYaml } from '@sveltejs/cli-core/parsers';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import { getHighlighter } from '../commands/add/utils.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -49,8 +50,9 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
+	const highlighter = getHighlighter();
 	const task = p.taskLog({
-		title: `Installing dependencies with ${agent}...`,
+		title: `Installing dependencies with ${highlighter.command(agent)}...`,
 		limit: Math.ceil(process.stdout.rows / 2),
 		spacing: 0,
 		retainLog: true
@@ -69,7 +71,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 			task.message(line, { raw: true });
 		}
 
-		task.success('Successfully installed dependencies');
+		task.success(`Successfully installed dependencies with ${highlighter.command(agent)}`);
 	} catch {
 		task.error('Failed to install dependencies');
 		p.cancel('Operation failed.');

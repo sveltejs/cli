@@ -5,6 +5,7 @@ import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import { resolveCommand, type AgentName } from 'package-manager-detector';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -134,4 +135,17 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	}
 
 	return options;
+}
+
+export function logArgs(agent: AgentName, actionName: string, args: string[]) {
+	const defaultArgs = ['sv', actionName, ...args];
+	const res = resolveCommand(agent, 'execute', defaultArgs);
+	if (res) p.log.message(pc.dim([res.command, ...res.args].join(' ')));
+	else p.log.message(pc.dim([`npx`, ...defaultArgs].join(' ')));
+}
+
+export function errorAndExit(message: string) {
+	p.log.error(message);
+	p.cancel('Operation failed.');
+	process.exit(1);
 }
