@@ -1,5 +1,23 @@
 # sv
 
+## 0.9.15
+### Patch Changes
+
+
+- fix(tailwind): update vscode setting `files.associations` to `tailwindcss` ([#796](https://github.com/sveltejs/cli/pull/796))
+
+
+- feat(cli): add `--no-dir-check` option to `sv create`. With this flag, even if the folder is not empty, no prompt will be shown ([#785](https://github.com/sveltejs/cli/pull/785))
+
+
+- feat(mcp): include an `AGENTS.md` or similar when using the `mcp` addon ([#777](https://github.com/sveltejs/cli/pull/777))
+
+
+- feat(vitest): when `add vitest` is used within a project that uses vitest@3, the addon will display some next steps to finalize the migration to vitest@4 ([#797](https://github.com/sveltejs/cli/pull/797))
+
+
+- fix(demo): rewrite relative import extensions to JavaScript equivalents _(`tsconfig.json` update)_ ([#801](https://github.com/sveltejs/cli/pull/801))
+
 ## 0.9.14
 ### Patch Changes
 
