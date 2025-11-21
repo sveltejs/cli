@@ -91,6 +91,9 @@ importers:
       package-manager-detector:
         specifier: ^0.2.11
         version: 0.2.11
+      tinyexec:
+        specifier: ^0.3.2
+        version: 0.3.2
 
   packages/cli:
     devDependencies:

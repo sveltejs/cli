@@ -15,6 +15,7 @@
 		"@sveltejs/cli-core": "workspace:*"
 	},
 	"devDependencies": {
-		"package-manager-detector": "^0.2.11"
+		"package-manager-detector": "^0.2.11",
+		"tinyexec": "^0.3.2"
 	}
 }
