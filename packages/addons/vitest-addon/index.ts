@@ -15,15 +15,24 @@ const options = defineAddonOptions()
 	})
 	.build();
 
+// Manage only version before current
+let vitestV3Installed = false;
+
 export default defineAddon({
 	id: 'vitest',
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,
-	run: ({ sv, files, typescript, kit, options }) => {
+
+	run: ({ sv, files, typescript, kit, options, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
+
+		vitestV3Installed = (dependencyVersion('vitest') ?? '')
+			.replaceAll('^', '')
+			.replaceAll('~', '')
+			?.startsWith('3.');
 
 		sv.devDependency('vitest', '^4.0.10');
 
@@ -149,5 +158,27 @@ export default defineAddon({
 
 			return generateCode();
 		});
+	},
+
+	nextSteps: ({ highlighter, typescript, options }) => {
+		const toReturn: string[] = [];
+
+		if (vitestV3Installed) {
+			const componentTesting = options.usages.includes('component');
+			if (componentTesting) {
+				toReturn.push(`Uninstall ${highlighter.command('@vitest/browser')} package`);
+				toReturn.push(
+					`Update usage from ${highlighter.command("'@vitest/browser...'")} to ${highlighter.command("'vitest/browser'")}`
+				);
+			}
+			toReturn.push(
+				`${highlighter.optional('Optional')} Check ${highlighter.path('./vite.config.ts')} and remove duplicate project definitions`
+			);
+			toReturn.push(
+				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
+			);
+		}
+
+		return toReturn;
 	}
 });
