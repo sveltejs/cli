@@ -19,7 +19,7 @@ const options = defineAddonOptions()
 		required: true
 	})
 	.add('setup', {
-		question: 'What setup you want to use?',
+		question: 'What setup would you like to use?',
 		type: 'select',
 		default: 'remote',
 		options: [
