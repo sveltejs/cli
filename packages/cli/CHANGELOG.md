@@ -1,5 +1,11 @@
 # sv
 
+## 0.10.1
+### Patch Changes
+
+
+- fix(cli): avoid printing duplicated `--no-install` flag ([#803](https://github.com/sveltejs/cli/pull/803))
+
 ## 0.10.0
 ### Minor Changes
 
