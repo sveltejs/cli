@@ -69,6 +69,7 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
+const defaultPath = './';
 
 export const create = new Command('create')
 	.description('scaffolds a new SvelteKit project')
@@ -149,7 +150,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				if (cwd) {
 					return Promise.resolve(path.resolve(cwd));
 				}
-				const defaultPath = './';
 				return p.text({
 					message: 'Where would you like your project to be created?',
 					placeholder: `  (hit Enter to use '${defaultPath}')`,
@@ -307,7 +307,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
-	common.logArgs(packageManager, 'create', argsFormatted, [directory]);
+	common.logArgs(packageManager, 'create', argsFormatted, [cwd ?? defaultPath]);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) await installDependencies(packageManager, projectPath);
