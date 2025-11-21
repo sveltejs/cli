@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix(cli): display agrs with no duplicates
+fix(cli): avoid printing duplicated `--no-install` flag
