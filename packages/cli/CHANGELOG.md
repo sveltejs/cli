@@ -1,5 +1,14 @@
 # sv
 
+## 0.10.2
+### Patch Changes
+
+
+- fix(cli): printed args now also display path used during directory prompt ([#805](https://github.com/sveltejs/cli/pull/805))
+
+
+- fix(mcp): use consistent wording for setup question ([#806](https://github.com/sveltejs/cli/pull/806))
+
 ## 0.10.1
 ### Patch Changes
 
