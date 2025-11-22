@@ -359,7 +359,6 @@ interface CreateVirtualWorkspaceOptions {
 
 export async function createVirtualWorkspace({
 	cwd,
-	template,
 	packageManager,
 	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
@@ -373,16 +372,9 @@ export async function createVirtualWorkspace({
 			svelteConfig:
 				type === 'typescript' ? commonFilePaths.svelteConfigTS : commonFilePaths.svelteConfig
 		},
-		kit: undefined,
 		dependencyVersion: () => undefined
 	};
 
-	if (template === 'minimal' || template === 'demo' || template === 'library') {
-		virtualWorkspace.kit = {
-			routesDirectory: 'src/routes',
-			libDirectory: 'src/lib'
-		};
-	}
 
 	return virtualWorkspace;
 }
