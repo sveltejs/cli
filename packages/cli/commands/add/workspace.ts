@@ -28,8 +28,8 @@ export async function createWorkspace({
 	const viteConfig = fs.existsSync(viteConfigPath)
 		? commonFilePaths.viteConfigTS
 		: commonFilePaths.viteConfig;
-	const sveteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
-	const svelteConfig = fs.existsSync(sveteConfigPath)
+	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const svelteConfig = fs.existsSync(svelteConfigPath)
 		? commonFilePaths.svelteConfigTS
 		: commonFilePaths.svelteConfig;
 
