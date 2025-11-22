@@ -59,10 +59,12 @@ export async function createWorkspace({
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
-  const kit = dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : {
-    routesDirectory: 'src/routes',
-    libDirectory: 'src/lib'
-  };
+	const kit = dependencies['@sveltejs/kit']
+		? parseKitOptions(resolvedCwd)
+		: {
+				routesDirectory: 'src/routes',
+				libDirectory: 'src/lib'
+			};
 
 	return {
 		cwd: resolvedCwd,

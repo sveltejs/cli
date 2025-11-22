@@ -375,6 +375,5 @@ export async function createVirtualWorkspace({
 		dependencyVersion: () => undefined
 	};
 
-
 	return virtualWorkspace;
 }
