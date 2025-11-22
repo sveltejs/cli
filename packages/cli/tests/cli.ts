@@ -16,9 +16,32 @@ beforeAll(() => {
 });
 
 describe('cli', () => {
-	it('should be able to create a new project with cli command', async () => {
+	const testCases = [
+		{ projectName: 'create-only', args: ['--no-add-ons'] },
+		{
+			projectName: 'create-with-all-addons',
+			args: [
+				'--add',
+				'prettier',
+				'eslint',
+				'vitest=usages:unit,component',
+				'playwright',
+				'tailwindcss=plugins:typography,forms',
+				'sveltekit-adapter=adapter:node',
+				'devtools-json',
+				'drizzle=database:sqlite+sqlite:libsql',
+				'lucia=demo:yes',
+				'mdsvex',
+				'paraglide=languageTags:en,es+demo:yes',
+				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
+			]
+		}
+	];
+
+	it.for(testCases)('should create a new project with name $projectName', async (testCase) => {
+		const { projectName, args } = testCase;
 		const svBinPath = path.resolve(monoRepoPath, 'packages', 'cli', 'dist', 'bin.js');
-		const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', 'test-project');
+		const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
 
 		const result = await exec(
 			'node',
@@ -31,7 +54,7 @@ describe('cli', () => {
 				'--types',
 				'ts',
 				'--no-install',
-				'--no-add-ons'
+				...args
 			],
 			{ nodeOptions: { stdio: 'ignore' } }
 		);
@@ -45,6 +68,6 @@ describe('cli', () => {
 		// package.json has a name
 		const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 		const packageJson = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
-		expect(packageJson.name).toBe('test-project');
+		expect(packageJson.name).toBe(projectName);
 	});
 });

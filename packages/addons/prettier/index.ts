@@ -7,7 +7,7 @@ export default defineAddon({
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
-	run: ({ sv, dependencyVersion, kit, files }) => {
+	run: ({ sv, dependencyVersion, files }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.1');
 
@@ -53,7 +53,7 @@ export default defineAddon({
 				if (!plugins.includes('prettier-plugin-tailwindcss')) {
 					data.plugins.unshift('prettier-plugin-tailwindcss');
 				}
-				data.tailwindStylesheet ??= kit ? `${kit?.routesDirectory}/layout.css` : './src/app.css';
+				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 			}
 			if (!plugins.includes('prettier-plugin-svelte')) {
 				data.plugins.unshift('prettier-plugin-svelte');
