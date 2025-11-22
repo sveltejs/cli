@@ -11,10 +11,14 @@ import { getUserAgent } from '../../utils/package-manager.ts';
 type CreateWorkspaceOptions = {
 	cwd: string;
 	packageManager?: PackageManager;
+	override?: {
+		kit?: Workspace['kit'];
+	};
 };
 export async function createWorkspace({
 	cwd,
-	packageManager
+	packageManager,
+	override
 }: CreateWorkspaceOptions): Promise<Workspace> {
 	const resolvedCwd = path.resolve(cwd);
 
@@ -59,12 +63,15 @@ export async function createWorkspace({
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
-	const kit = dependencies['@sveltejs/kit']
-		? parseKitOptions(resolvedCwd)
-		: {
-				routesDirectory: 'src/routes',
-				libDirectory: 'src/lib'
-			};
+	const kit = override?.kit
+		? override.kit
+		: dependencies['@sveltejs/kit']
+			? parseKitOptions(resolvedCwd)
+			: undefined;
+
+	const stylesheet: `${string}/layout.css` | 'src/app.css' = kit
+		? `${kit.routesDirectory}/layout.css`
+		: 'src/app.css';
 
 	return {
 		cwd: resolvedCwd,
@@ -73,7 +80,7 @@ export async function createWorkspace({
 		files: {
 			viteConfig,
 			svelteConfig,
-			stylesheet: kit ? `${kit.routesDirectory}/layout.css` : 'src/app.css',
+			stylesheet,
 			package: 'package.json',
 			gitignore: '.gitignore',
 			prettierignore: '.prettierignore',

@@ -363,7 +363,18 @@ export async function createVirtualWorkspace({
 	packageManager,
 	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
-	const tentativeWorkspace = await createWorkspace({ cwd, packageManager });
+	let kit: Workspace['kit'] | undefined = undefined;
+
+	// These are our default project structure so we know that it's a kit project
+	if (template === 'minimal' || template === 'demo' || template === 'library') {
+		kit = {
+			routesDirectory: 'src/routes',
+			libDirectory: 'src/lib'
+		};
+	}
+
+	const tentativeWorkspace = await createWorkspace({ cwd, packageManager, override: { kit } });
+
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
 		typescript: type === 'typescript',
@@ -372,17 +383,8 @@ export async function createVirtualWorkspace({
 			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
 			svelteConfig:
 				type === 'typescript' ? commonFilePaths.svelteConfigTS : commonFilePaths.svelteConfig
-		},
-		kit: undefined,
-		dependencyVersion: () => undefined
+		}
 	};
-	// check if it is a kit project
-	if (template === 'minimal' || template === 'demo' || template === 'library') {
-		virtualWorkspace.kit = {
-			routesDirectory: 'src/routes',
-			libDirectory: 'src/lib'
-		};
-	}
 
 	return virtualWorkspace;
 }
