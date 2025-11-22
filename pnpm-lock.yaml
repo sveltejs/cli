@@ -167,8 +167,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2
       esrap:
-        specifier: https://pkg.pr.new/sveltejs/esrap@af12b38
-        version: https://pkg.pr.new/sveltejs/esrap@af12b38
+        specifier: ^2.1.3
+        version: 2.1.3
       htmlparser2:
         specifier: ^9.1.0
         version: 9.1.0
@@ -185,8 +185,8 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       svelte:
-        specifier: https://pkg.pr.new/sveltejs/svelte@1377c40
-        version: https://pkg.pr.new/sveltejs/svelte@1377c40
+        specifier: https://pkg.pr.new/sveltejs/svelte@2372f17
+        version: https://pkg.pr.new/sveltejs/svelte@2372f17
       yaml:
         specifier: ^2.8.1
         version: 2.8.1
@@ -259,10 +259,6 @@ importers:
         version: 5.43.8
 
 packages:
-
-  '@ampproject/remapping@2.3.0':
-    resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
-    engines: {node: '>=6.0.0'}
 
   '@babel/generator@7.28.5':
     resolution: {integrity: sha512-3EwLFhZ38J4VyIP6WNtt2kUdW9dokXA9Cr4IVIFHuCpZ3H8/YFOl5JjZHisrn1fATPBmKKqXzDFvh9fUwHz6CQ==}
@@ -1348,15 +1344,8 @@ packages:
     resolution: {integrity: sha512-ca9pw9fomFcKPvFLXhBKUK90ZvGibiGOvRJNbjljY7s7uq/5YO4BOzcYtJqExdx99rF6aAcnRxHmcUHcz6sQsg==}
     engines: {node: '>=0.10'}
 
-  esrap@2.1.0:
-    resolution: {integrity: sha512-yzmPNpl7TBbMRC5Lj2JlJZNPml0tzqoqP5B1JXycNUwtqma9AKCO0M2wHrdgsHcy1WRW7S9rJknAMtByg3usgA==}
-
   esrap@2.1.3:
     resolution: {integrity: sha512-T/Dhhv/QH+yYmiaLz9SA3PW+YyenlnRKDNdtlYJrSOBmNsH4nvPux+mTwx7p+wAedlJrGoZtXNI0a0MjQ2QkVg==}
-
-  esrap@https://pkg.pr.new/sveltejs/esrap@af12b38:
-    resolution: {tarball: https://pkg.pr.new/sveltejs/esrap@af12b38}
-    version: 2.1.0
 
   esrecurse@4.3.0:
     resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==}
@@ -2063,9 +2052,9 @@ packages:
     resolution: {integrity: sha512-d53/xClCjHsuFXuHsn7+F/0NKkkwgRv8kLg2his5YBYqVtfIrBqkvWd+5ZjYN6ryk/jv/rJF00vexXHkK8ofXA==}
     engines: {node: '>=18'}
 
-  svelte@https://pkg.pr.new/sveltejs/svelte@1377c40:
-    resolution: {tarball: https://pkg.pr.new/sveltejs/svelte@1377c40}
-    version: 5.34.9
+  svelte@https://pkg.pr.new/sveltejs/svelte@2372f17:
+    resolution: {tarball: https://pkg.pr.new/sveltejs/svelte@2372f17}
+    version: 5.43.14
     engines: {node: '>=18'}
 
   synckit@0.11.11:
@@ -2331,11 +2320,6 @@ packages:
     resolution: {integrity: sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ==}
 
 snapshots:
-
-  '@ampproject/remapping@2.3.0':
-    dependencies:
-      '@jridgewell/gen-mapping': 0.3.13
-      '@jridgewell/trace-mapping': 0.3.31
 
   '@babel/generator@7.28.5':
     dependencies:
@@ -3419,15 +3403,7 @@ snapshots:
     dependencies:
       estraverse: 5.3.0
 
-  esrap@2.1.0:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
-
   esrap@2.1.3:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
-
-  esrap@https://pkg.pr.new/sveltejs/esrap@af12b38:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
@@ -4092,9 +4068,9 @@ snapshots:
       magic-string: 0.30.21
       zimmerframe: 1.1.4
 
-  svelte@https://pkg.pr.new/sveltejs/svelte@1377c40:
+  svelte@https://pkg.pr.new/sveltejs/svelte@2372f17:
     dependencies:
-      '@ampproject/remapping': 2.3.0
+      '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
       '@sveltejs/acorn-typescript': 1.0.7(acorn@8.15.0)
       '@types/estree': 1.0.8
@@ -4103,7 +4079,7 @@ snapshots:
       axobject-query: 4.1.0
       clsx: 2.1.1
       esm-env: 1.2.2
-      esrap: 2.1.0
+      esrap: 2.1.3
       is-reference: 3.0.3
       locate-character: 3.0.0
       magic-string: 0.30.21
