@@ -7,9 +7,11 @@ import {
 	parseHtml
 } from '../index.ts';
 import { appendFromString } from '../js/common.ts';
+import { parseSvelte } from '../parsers.ts';
+import type { AST as SvelteAst } from 'svelte/compiler';
 
 export { HtmlElement, HtmlElementType };
-export type { HtmlDocument };
+export type { HtmlDocument, SvelteAst };
 
 export function createDiv(attributes: Record<string, string> = {}): HtmlElement {
 	return createElement('div', attributes);
@@ -57,4 +59,10 @@ export function addSlot(
 		code: 'let { children } = $props();'
 	});
 	addFromRawHtml(options.htmlAst.childNodes, '{@render children()}');
+}
+
+export function toSvelteFragment(content: string): SvelteAst.Fragment['nodes'] {
+	// TODO write test
+	const { ast } = parseSvelte(content);
+	return ast.fragment.nodes;
 }

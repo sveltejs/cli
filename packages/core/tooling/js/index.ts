@@ -7,4 +7,4 @@ export * as variables from './variables.ts';
 export * as exports from './exports.ts';
 export * as kit from './kit.ts';
 export * as vite from './vite.ts';
-export type { AstTypes } from '../index.ts';
+export type { AstTypes, AdditionalCommentMap } from '../index.ts';
