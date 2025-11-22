@@ -376,7 +376,7 @@ export async function createVirtualWorkspace({
 		kit: undefined,
 		dependencyVersion: () => undefined
 	};
-  // check if it is a kit project
+	// check if it is a kit project
 	if (template === 'minimal' || template === 'demo' || template === 'library') {
 		virtualWorkspace.kit = {
 			routesDirectory: 'src/routes',
