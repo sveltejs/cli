@@ -78,7 +78,7 @@ export default defineAddon({
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, typescript, options, kit, dependencyVersion, cwd, cancel }) => {
+	run: ({ sv, typescript, options, kit, dependencyVersion, cwd, cancel, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const ext = typescript ? 'ts' : 'js';
@@ -94,13 +94,12 @@ export default defineAddon({
 				return cancel(`Preexisting ${fileType} file at '${filePath}'`);
 			}
 		}
-		console.log(`no preexisting files`);
-		sv.devDependency('drizzle-orm', '^0.44.6');
-		sv.devDependency('drizzle-kit', '^0.31.5');
+		sv.devDependency('drizzle-orm', '^0.44.7');
+		sv.devDependency('drizzle-kit', '^0.31.7');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.2');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.3');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
@@ -158,7 +157,7 @@ export default defineAddon({
                       POSTGRES_PASSWORD: ${PASSWORD}
                       POSTGRES_DB: ${DB_NAME}
                     volumes:
-                      - pgdata:/var/lib/postgresql/data
+                      - pgdata:/var/lib/postgresql
                 volumes:
                   pgdata:
                 `;
@@ -178,7 +177,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
@@ -192,7 +191,7 @@ export default defineAddon({
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
-			sv.file('.prettierignore', (content) => {
+			sv.file(files.prettierignore, (content) => {
 				if (!content.includes(`/drizzle/`)) {
 					return content.trimEnd() + '\n/drizzle/';
 				}
@@ -201,7 +200,7 @@ export default defineAddon({
 		}
 
 		if (options.database === 'sqlite') {
-			sv.file('.gitignore', (content) => {
+			sv.file(files.gitignore, (content) => {
 				// Adds the db file to the gitignore if an ignore is present
 				if (content.length === 0) return content;
 

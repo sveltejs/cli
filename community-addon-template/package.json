@@ -18,9 +18,9 @@
 		"@sveltejs/cli-core": "workspace:*"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.53.1",
+		"@playwright/test": "^1.56.1",
 		"sv": "workspace:*",
-		"vitest": "4.0.0-beta.6"
+		"vitest": "4.0.7"
 	},
 	"keywords": [
 		"svelte-add-on",

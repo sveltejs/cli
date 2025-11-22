@@ -59,7 +59,7 @@ export function readFile(cwd: string, filePath: string): string {
 
 export function installPackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	workspace: Workspace<any>
+	workspace: Workspace
 ): string {
 	const { data, generateCode } = getPackageJson(workspace.cwd);
 
@@ -89,7 +89,7 @@ function alphabetizeProperties(obj: Record<string, string>) {
 	return orderedObj;
 }
 
-export function writeFile(workspace: Workspace<any>, filePath: string, content: string): void {
+export function writeFile(workspace: Workspace, filePath: string, content: string): void {
 	const fullFilePath = path.resolve(workspace.cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
@@ -110,6 +110,7 @@ export function fileExists(cwd: string, filePath: string): boolean {
 export const commonFilePaths = {
 	packageJson: 'package.json',
 	svelteConfig: 'svelte.config.js',
+	svelteConfigTS: 'svelte.config.ts',
 	jsconfig: 'jsconfig.json',
 	tsconfig: 'tsconfig.json',
 	viteConfig: 'vite.config.js',
@@ -118,10 +119,12 @@ export const commonFilePaths = {
 
 export function getHighlighter(): Highlighter {
 	return {
+		addon: (str) => pc.green(str),
 		command: (str) => pc.bold(pc.cyanBright(str)),
 		env: (str) => pc.yellow(str),
 		path: (str) => pc.green(str),
 		route: (str) => pc.bold(str),
-		website: (str) => pc.whiteBright(str)
+		website: (str) => pc.whiteBright(str),
+		optional: (str) => pc.gray(str)
 	};
 }

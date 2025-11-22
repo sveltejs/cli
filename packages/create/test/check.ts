@@ -3,8 +3,9 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { exec, type PromiseWithChild } from 'node:child_process';
-import { beforeAll, describe, test } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
 import { create, type LanguageType, type TemplateType } from '../index.ts';
+import { installAddon, officialAddons } from '../../cli/lib/index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
@@ -42,13 +43,13 @@ for (const template of templates) {
 		fs.rmSync(cwd, { recursive: true, force: true });
 
 		create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
+		await installAddon({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
 
 		// run provided scripts that are non-blocking. All of them should exit with 0
 		// package script requires lib dir
-		// TODO: lint should run before format
-		const scripts_to_test = ['format', 'lint', 'check', 'build', 'package'].filter(
+		const scripts_to_test = ['lint', 'format', 'check', 'build', 'package'].filter(
 			(s) => s in pkg.scripts
 		);
 
@@ -56,6 +57,17 @@ for (const template of templates) {
 			const tests = script_test_map.get(script) ?? [];
 			tests.push([`${template}-${types}`, () => exec_async(`pnpm ${script}`, { cwd })]);
 			script_test_map.set(script, tests);
+		}
+
+		if (template === 'demo') {
+			describe(`local import with extentions`, () => {
+				test(`${template}-${types}`, () => {
+					const ending = types === 'typescript' ? 'ts' : 'js';
+					const gameFile = path.join(cwd, `src/routes/sverdle/game.${ending}`);
+					const gameFileContent = fs.readFileSync(gameFile, 'utf-8');
+					expect(gameFileContent).toContain(`./words.server.${ending}`);
+				});
+			});
 		}
 	}
 }

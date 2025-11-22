@@ -64,8 +64,8 @@ export function addEslintConfigPrettier(content: string): string {
 	return generateCode();
 }
 
-export function addToDemoPage(content: string, path: string): string {
-	const { ast, generateCode } = parseSvelte(content);
+export function addToDemoPage(existingContent: string, path: string): string {
+	const { ast, generateCode } = parseSvelte(existingContent);
 
 	for (const node of ast.fragment.nodes) {
 		if (node.type === 'RegularElement') {
@@ -80,7 +80,7 @@ export function addToDemoPage(content: string, path: string): string {
 				(x) => x.type === 'Text' && x.data === `/demo/${path}`
 			);
 			if (hasDemo) {
-				return content;
+				return existingContent;
 			}
 		}
 	}

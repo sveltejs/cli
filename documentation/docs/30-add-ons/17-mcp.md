@@ -12,7 +12,8 @@ npx sv add mcp
 
 ## What you get
 
-- A good mcp configuration for your project depending on your IDE
+- An MCP configuration for [local](https://svelte.dev/docs/mcp/local-setup) or [remote](https://svelte.dev/docs/mcp/remote-setup) setup
+- A [README for agents](https://agents.md/) to help you use the MCP server effectively
 
 ## Options
 
@@ -21,7 +22,7 @@ npx sv add mcp
 The IDE you want to use like `'claude-code'`, `'cursor'`, `'gemini'`, `'opencode'`, `'vscode'`, `'other'`.
 
 ```sh
-npx sv add mcp=ide:cursor,vscode
+npx sv add mcp="ide:cursor,vscode"
 ```
 
 ### setup
@@ -29,5 +30,5 @@ npx sv add mcp=ide:cursor,vscode
 The setup you want to use.
 
 ```sh
-npx sv add mcp=setup:local
+npx sv add mcp="setup:local"
 ```

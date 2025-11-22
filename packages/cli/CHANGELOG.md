@@ -1,5 +1,112 @@
 # sv
 
+## 0.10.2
+### Patch Changes
+
+
+- fix(cli): printed args now also display path used during directory prompt ([#805](https://github.com/sveltejs/cli/pull/805))
+
+
+- fix(mcp): use consistent wording for setup question ([#806](https://github.com/sveltejs/cli/pull/806))
+
+## 0.10.1
+### Patch Changes
+
+
+- fix(cli): avoid printing duplicated `--no-install` flag ([#803](https://github.com/sveltejs/cli/pull/803))
+
+## 0.10.0
+### Minor Changes
+
+
+- feat(cli): `npx sv create` now supports a new argument `--add` to add add-ons to the project in the same command. ([#695](https://github.com/sveltejs/cli/pull/695))
+
+
+### Patch Changes
+
+
+- feat(cli): show args used so that you can run the cli without any prompt next time ([#695](https://github.com/sveltejs/cli/pull/695))
+
+## 0.9.15
+### Patch Changes
+
+
+- fix(tailwind): update vscode setting `files.associations` to `tailwindcss` ([#796](https://github.com/sveltejs/cli/pull/796))
+
+
+- feat(cli): add `--no-dir-check` option to `sv create`. With this flag, even if the folder is not empty, no prompt will be shown ([#785](https://github.com/sveltejs/cli/pull/785))
+
+
+- feat(mcp): include an `AGENTS.md` or similar when using the `mcp` addon ([#777](https://github.com/sveltejs/cli/pull/777))
+
+
+- feat(vitest): when `add vitest` is used within a project that uses vitest@3, the addon will display some next steps to finalize the migration to vitest@4 ([#797](https://github.com/sveltejs/cli/pull/797))
+
+
+- fix(demo): rewrite relative import extensions to JavaScript equivalents _(`tsconfig.json` update)_ ([#801](https://github.com/sveltejs/cli/pull/801))
+
+## 0.9.14
+### Patch Changes
+
+
+- feat(tailwind): add vscode setting for tailwind ([#780](https://github.com/sveltejs/cli/pull/780))
+
+
+- feat(cli): wrap links with `resolve()` function to follow [best practices](https://svelte.dev/docs/kit/$app-paths#resolve) ([#754](https://github.com/sveltejs/cli/pull/754))
+
+
+- feat(create): co-locate css file from usage (`layout.css` & `+layout.svelte`) ([#780](https://github.com/sveltejs/cli/pull/780))
+
+
+- fix(mcp): Add schema definition for Gemini MCP configuration. ([#774](https://github.com/sveltejs/cli/pull/774))
+
+## 0.9.13
+### Patch Changes
+
+
+- chore(create): add div with `display: contents` to library template ([#773](https://github.com/sveltejs/cli/pull/773))
+
+
+- fix(mcp): generate valid `mcp` local configuration for `opencode` ([#769](https://github.com/sveltejs/cli/pull/769))
+
+
+- feat(demo): include file extensions for local imports ([#757](https://github.com/sveltejs/cli/pull/757))
+
+## 0.9.12
+### Patch Changes
+
+
+- feat(vitest): update to vitest `4.0` ([#760](https://github.com/sveltejs/cli/pull/760))
+  
+  - removing `@vitest/browser` in favor of `@vitest/browser-playwright`
+  - run browser tests in headless mode
+
+- fix(cli): Check existing conditions for specified options ([#771](https://github.com/sveltejs/cli/pull/771))
+
+## 0.9.11
+### Patch Changes
+
+
+- fix(prettier): add tailwindcss plugin to prettier config if tailwindcss is installed ([#756](https://github.com/sveltejs/cli/pull/756))
+
+
+- fix(cli): generating closing </script> tags now works correctly ([#763](https://github.com/sveltejs/cli/pull/763))
+
+## 0.9.10
+### Patch Changes
+
+
+- chore(cli): bump defaults versions ([#744](https://github.com/sveltejs/cli/pull/744))
+
+
+- feat(drizzle): update docker pgdata volume for postgres 18 ([#749](https://github.com/sveltejs/cli/pull/749))
+
+
+- feat(cli): workspace now gives `files` object with `viteConfig` and `svelteConfig` paths to be used in add-ons ([#755](https://github.com/sveltejs/cli/pull/755))
+
+
+- fix(cli): `+layout.svelte` doesn't use optional chaining now ([#753](https://github.com/sveltejs/cli/pull/753))
+
 ## 0.9.9
 ### Patch Changes
 

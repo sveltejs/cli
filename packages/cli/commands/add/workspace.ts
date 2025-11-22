@@ -4,20 +4,18 @@ import * as find from 'empathic/find';
 import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { detect } from 'package-manager-detector';
-import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
+import type { PackageManager, Workspace } from '@sveltejs/cli-core';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import { getUserAgent } from '../../utils/package-manager.ts';
 
 type CreateWorkspaceOptions = {
 	cwd: string;
 	packageManager?: PackageManager;
-	options?: OptionValues<any>;
 };
 export async function createWorkspace({
 	cwd,
-	options = {},
 	packageManager
-}: CreateWorkspaceOptions): Promise<Workspace<any>> {
+}: CreateWorkspaceOptions): Promise<Workspace> {
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
@@ -27,9 +25,13 @@ export async function createWorkspace({
 
 	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	const viteConfigFile = fs.existsSync(viteConfigPath)
+	const viteConfig = fs.existsSync(viteConfigPath)
 		? commonFilePaths.viteConfigTS
 		: commonFilePaths.viteConfig;
+	const sveteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const svelteConfig = fs.existsSync(sveteConfigPath)
+		? commonFilePaths.svelteConfigTS
+		: commonFilePaths.svelteConfig;
 
 	let dependencies: Record<string, string> = {};
 	let directory = resolvedCwd;
@@ -57,13 +59,36 @@ export async function createWorkspace({
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
+	const kit = dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined;
+	const stylesheet: `${string}/layout.css` | 'src/app.css' = kit
+		? `${kit.routesDirectory}/layout.css`
+		: 'src/app.css';
+
 	return {
 		cwd: resolvedCwd,
-		options,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
-		viteConfigFile,
-		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
+		files: {
+			viteConfig,
+			svelteConfig,
+			stylesheet,
+			package: 'package.json',
+			gitignore: '.gitignore',
+			prettierignore: '.prettierignore',
+			prettierrc: '.prettierrc',
+			eslintConfig: 'eslint.config.js',
+			vscodeSettings: '.vscode/settings.json',
+			getRelative({ from, to }) {
+				from = from ?? '';
+				let relativePath = path.posix.relative(path.posix.dirname(from), to);
+				// Ensure relative paths start with ./ for proper relative path syntax
+				if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
+					relativePath = `./${relativePath}`;
+				}
+				return relativePath;
+			}
+		},
+		kit,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
 }
