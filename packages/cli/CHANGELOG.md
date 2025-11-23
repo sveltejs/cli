@@ -1,5 +1,14 @@
 # sv
 
+## 0.10.3
+### Patch Changes
+
+
+- fix(cli): fix `svelte.config.js` detection during create ([#817](https://github.com/sveltejs/cli/pull/817))
+
+
+- fix(cli): `kit` projects were detected incorrectly ([#810](https://github.com/sveltejs/cli/pull/810))
+
 ## 0.10.2
 ### Patch Changes
 
