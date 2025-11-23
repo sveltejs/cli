@@ -37,8 +37,9 @@ import {
 	sanitizeAddons,
 	type SelectedAddon
 } from './add/index.ts';
-import { commonFilePaths } from './add/utils.ts';
+import { commonFilePaths, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
+import { dist } from '../../create/utils.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -363,7 +364,10 @@ export async function createVirtualWorkspace({
 	packageManager,
 	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
-	const override: { kit?: Workspace['kit'] } = {};
+	const override: {
+		kit?: Workspace['kit'];
+		dependencies: Record<string, string>;
+	} = { dependencies: {} };
 
 	// These are our default project structure so we know that it's a kit project
 	if (template === 'minimal' || template === 'demo' || template === 'library') {
@@ -373,12 +377,20 @@ export async function createVirtualWorkspace({
 		};
 	}
 
+	// Let's read the package.json of the template we will use and add the dependencies to the override
+	const templatePackageJsonPath = dist(`templates/${template}`);
+	const { data: packageJson } = getPackageJson(templatePackageJsonPath);
+	override.dependencies = {
+		...packageJson.devDependencies,
+		...packageJson.dependencies,
+		...override.dependencies
+	};
+
 	const tentativeWorkspace = await createWorkspace({ cwd, packageManager, override });
 
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
 		typescript: type === 'typescript',
-		dependencyVersion: () => undefined,
 		files: {
 			...tentativeWorkspace.files,
 			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
