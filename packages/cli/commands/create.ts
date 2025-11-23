@@ -38,6 +38,7 @@ import {
 	type SelectedAddon
 } from './add/index.ts';
 import { createWorkspace } from './add/workspace.ts';
+import { commonFilePaths } from './add/utils.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -377,8 +378,14 @@ export async function createVirtualWorkspace({
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
 		typescript: type === 'typescript',
-		dependencyVersion: () => undefined
+		dependencyVersion: () => undefined,
+		files: {
+			...tentativeWorkspace.files,
+			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
+			svelteConfig: commonFilePaths.svelteConfig // currently we always use js files, never typescript files
+		}
 	};
 
+	console.log(virtualWorkspace);
 	return virtualWorkspace;
 }
