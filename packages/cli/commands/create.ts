@@ -363,17 +363,17 @@ export async function createVirtualWorkspace({
 	packageManager,
 	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
-	let kit: Workspace['kit'] | undefined = undefined;
+	const override: { kit?: Workspace['kit'] } = {};
 
 	// These are our default project structure so we know that it's a kit project
 	if (template === 'minimal' || template === 'demo' || template === 'library') {
-		kit = {
+		override.kit = {
 			routesDirectory: 'src/routes',
 			libDirectory: 'src/lib'
 		};
 	}
 
-	const tentativeWorkspace = await createWorkspace({ cwd, packageManager, override: { kit } });
+	const tentativeWorkspace = await createWorkspace({ cwd, packageManager, override });
 
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
