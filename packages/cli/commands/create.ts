@@ -374,26 +374,10 @@ export async function createVirtualWorkspace({
 	}
 
 	const tentativeWorkspace = await createWorkspace({ cwd, packageManager, override });
-	const resolvedCwd = path.resolve(cwd);
-
-	// This is not linked with typescript detection
-	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	const viteConfig = fs.existsSync(viteConfigPath)
-		? commonFilePaths.viteConfigTS
-		: commonFilePaths.viteConfig;
-	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
-	const svelteConfig = fs.existsSync(svelteConfigPath)
-		? commonFilePaths.svelteConfigTS
-		: commonFilePaths.svelteConfig;
 
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
 		typescript: type === 'typescript',
-		files: {
-			...tentativeWorkspace.files,
-			viteConfig,
-			svelteConfig
-		},
 		dependencyVersion: () => undefined
 	};
 
