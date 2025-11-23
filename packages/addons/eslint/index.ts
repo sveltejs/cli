@@ -56,7 +56,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
-			imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
+			imports.addDefault(ast, { from: files.svelteConfig, as: 'svelteConfig' });
 			const gitIgnorePathStatement = common.parseStatement(
 				"\nconst gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));"
 			);

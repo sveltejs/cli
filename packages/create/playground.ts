@@ -4,6 +4,7 @@ import * as js from '@sveltejs/cli-core/js';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
 import { getSharedFiles } from './utils.ts';
+import { commonFilePaths } from '../cli/commands/add/utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -239,15 +240,21 @@ export function setupPlaygroundProject(
 
 	let experimentalAsyncNeeded = true;
 	const addExperimentalAsync = () => {
-		const svelteConfigPath = path.join(cwd, 'svelte.config.js');
-		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
-		const { ast, generateCode } = parseScript(svelteConfig);
+		// Even if the user selected TypeScript, the actual config file might still be JavaScript,
+		const svelteConfigTsPath = path.join(cwd, commonFilePaths.svelteConfigTS);
+		const svelteConfigFileName = fs.existsSync(svelteConfigTsPath)
+			? commonFilePaths.svelteConfigTS
+			: commonFilePaths.svelteConfig;
+
+		const svelteConfigPath = path.join(cwd, svelteConfigFileName);
+		const svelteConfigContent = fs.readFileSync(svelteConfigPath, 'utf-8');
+		const { ast, generateCode } = parseScript(svelteConfigContent);
 		const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
 		js.object.overrideProperties(config, { compilerOptions: { experimental: { async: true } } });
 		fs.writeFileSync(svelteConfigPath, generateCode(), 'utf-8');
 	};
 
-	// we want to change the svelte version, even if the user decieded
+	// we want to change the svelte version, even if the user decided
 	// to not install external dependencies
 	if (playground.svelteVersion) {
 		updatePackageJson = true;
