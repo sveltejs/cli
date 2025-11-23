@@ -375,14 +375,16 @@ export async function createVirtualWorkspace({
 
 	const tentativeWorkspace = await createWorkspace({ cwd, packageManager, override });
 
+	const typescript = type === 'typescript';
+
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
-		typescript: type === 'typescript',
+		typescript,
 		dependencyVersion: () => undefined,
 		files: {
 			...tentativeWorkspace.files,
-			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
-			svelteConfig: commonFilePaths.svelteConfig // currently we always use js files, never typescript files
+			viteConfig: typescript ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
+			svelteConfig: typescript ? commonFilePaths.svelteConfigTS : commonFilePaths.svelteConfig
 		}
 	};
 
