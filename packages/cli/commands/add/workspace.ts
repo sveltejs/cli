@@ -11,10 +11,14 @@ import { getUserAgent } from '../../utils/package-manager.ts';
 type CreateWorkspaceOptions = {
 	cwd: string;
 	packageManager?: PackageManager;
+	override?: {
+		kit?: Workspace['kit'];
+	};
 };
 export async function createWorkspace({
 	cwd,
-	packageManager
+	packageManager,
+	override
 }: CreateWorkspaceOptions): Promise<Workspace> {
 	const resolvedCwd = path.resolve(cwd);
 
@@ -28,8 +32,8 @@ export async function createWorkspace({
 	const viteConfig = fs.existsSync(viteConfigPath)
 		? commonFilePaths.viteConfigTS
 		: commonFilePaths.viteConfig;
-	const sveteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
-	const svelteConfig = fs.existsSync(sveteConfigPath)
+	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const svelteConfig = fs.existsSync(svelteConfigPath)
 		? commonFilePaths.svelteConfigTS
 		: commonFilePaths.svelteConfig;
 
@@ -59,7 +63,12 @@ export async function createWorkspace({
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
-	const kit = dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined;
+	const kit = override?.kit
+		? override.kit
+		: dependencies['@sveltejs/kit']
+			? parseKitOptions(resolvedCwd)
+			: undefined;
+
 	const stylesheet: `${string}/layout.css` | 'src/app.css' = kit
 		? `${kit.routesDirectory}/layout.css`
 		: 'src/app.css';
