@@ -37,7 +37,6 @@ import {
 	sanitizeAddons,
 	type SelectedAddon
 } from './add/index.ts';
-import { commonFilePaths } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
