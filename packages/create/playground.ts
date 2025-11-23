@@ -240,9 +240,7 @@ export function setupPlaygroundProject(
 
 	let experimentalAsyncNeeded = true;
 	const addExperimentalAsync = () => {
-		// Even if the user selected TypeScript, the actual config file might still be JavaScript,
-		const svelteConfigTsPath = path.join(cwd, commonFilePaths.svelteConfigTS);
-		const svelteConfigFileName = fs.existsSync(svelteConfigTsPath)
+		const svelteConfigFileName = typescript
 			? commonFilePaths.svelteConfigTS
 			: commonFilePaths.svelteConfig;
 
