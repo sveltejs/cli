@@ -1,5 +1,11 @@
 # sv
 
+## 0.10.4
+### Patch Changes
+
+
+- fix(cli): `dependencyVersion` is now properly populated during `sv create` ([#819](https://github.com/sveltejs/cli/pull/819))
+
 ## 0.10.3
 ### Patch Changes
 
