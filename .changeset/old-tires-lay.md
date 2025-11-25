@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-chore: remove `esModuleInterop` from library template
+chore(create): remove `esModuleInterop` from library template
