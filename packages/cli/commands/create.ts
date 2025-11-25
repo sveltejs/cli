@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
+import type { OptionValues, Workspace } from '@sveltejs/cli-core';
 import {
 	create as createKit,
 	templates,
@@ -218,9 +218,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
 		template,
-		// When we create a virtual workspace it's not that important that we use the correct package manager
-		// so we'll just use npm for now like this we can delay the question after
-		packageManager: 'npm',
 		type: language
 	});
 
@@ -354,14 +351,12 @@ async function confirmExternalDependencies(dependencies: string[]): Promise<bool
 interface CreateVirtualWorkspaceOptions {
 	cwd: string;
 	template: TemplateType;
-	packageManager: PackageManager;
 	type: LanguageType;
 }
 
 export async function createVirtualWorkspace({
 	cwd,
 	template,
-	packageManager,
 	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
 	const override: {
@@ -386,7 +381,7 @@ export async function createVirtualWorkspace({
 		...override.dependencies
 	};
 
-	const tentativeWorkspace = await createWorkspace({ cwd, packageManager, override });
+	const tentativeWorkspace = await createWorkspace({ cwd, override });
 
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
