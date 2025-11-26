@@ -1,5 +1,17 @@
 # sv
 
+## 0.10.5
+### Patch Changes
+
+
+- fix(cli): reload workspace before executing each addon ([#823](https://github.com/sveltejs/cli/pull/823))
+
+
+- chore(create): remove `esModuleInterop` from library template ([#822](https://github.com/sveltejs/cli/pull/822))
+
+
+- fix(create): correctly detect executing package manager ([#823](https://github.com/sveltejs/cli/pull/823))
+
 ## 0.10.4
 ### Patch Changes
 
