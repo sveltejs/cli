@@ -1,5 +1,5 @@
 import { dedent, defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { array, imports, object, vite } from '@sveltejs/cli-core/js';
+import { array, imports, object, functions, vite } from '@sveltejs/cli-core/js';
 import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
 
 const options = defineAddonOptions()
@@ -15,25 +15,34 @@ const options = defineAddonOptions()
 	})
 	.build();
 
+// Manage only version before current
+let vitestV3Installed = false;
+
 export default defineAddon({
 	id: 'vitest',
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,
-	run: ({ sv, viteConfigFile, typescript, kit, options }) => {
+
+	run: ({ sv, files, typescript, kit, options, dependencyVersion }) => {
 		const ext = typescript ? 'ts' : 'js';
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
-		sv.devDependency('vitest', '^3.2.4');
+		vitestV3Installed = (dependencyVersion('vitest') ?? '')
+			.replaceAll('^', '')
+			.replaceAll('~', '')
+			?.startsWith('3.');
+
+		sv.devDependency('vitest', '^4.0.10');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser', '^3.2.4');
-			sv.devDependency('vitest-browser-svelte', '^1.1.0');
+			sv.devDependency('@vitest/browser-playwright', '^4.0.10');
+			sv.devDependency('vitest-browser-svelte', '^2.0.1');
 			sv.devDependency('playwright', '^1.56.1');
 		}
 
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
@@ -71,7 +80,7 @@ export default defineAddon({
 				if (content) return content;
 
 				return dedent`
-						import { page } from '@vitest/browser/context';
+						import { page } from 'vitest/browser';
 						import { describe, expect, it } from 'vitest';
 						import { render } from 'vitest-browser-svelte';
 						${kit ? "import Page from './+page.svelte';" : "import App from './App.svelte';"}
@@ -86,38 +95,27 @@ export default defineAddon({
 						});
 					`;
 			});
-
-			sv.file(`vitest-setup-client.${ext}`, (content) => {
-				if (content) return content;
-
-				return dedent`
-					/// <reference types="@vitest/browser/matchers" />
-					/// <reference types="@vitest/browser/providers/playwright" />
-				`;
-			});
 		}
 
-		sv.file(viteConfigFile, (content) => {
+		sv.file(files.viteConfig, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
 			const clientObjectExpression = object.create({
-				extends: `./${viteConfigFile}`,
+				extends: `./${files.viteConfig}`,
 				test: {
 					name: 'client',
-					environment: 'browser',
 					browser: {
 						enabled: true,
-						provider: 'playwright',
-						instances: [{ browser: 'chromium' }]
+						provider: functions.createCall({ name: 'playwright', args: [] }),
+						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					exclude: ['src/lib/server/**'],
-					setupFiles: [`./vitest-setup-client.${ext}`]
+					exclude: ['src/lib/server/**']
 				}
 			});
 
 			const serverObjectExpression = object.create({
-				extends: `./${viteConfigFile}`,
+				extends: `./${files.viteConfig}`,
 				test: {
 					name: 'server',
 					environment: 'node',
@@ -146,6 +144,8 @@ export default defineAddon({
 			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
 
 			// Manage imports
+			if (componentTesting)
+				imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
 			const importName = 'defineConfig';
 			const { statement, alias } = imports.find(ast, { name: importName, from: 'vite' });
 			if (statement) {
@@ -158,5 +158,27 @@ export default defineAddon({
 
 			return generateCode();
 		});
+	},
+
+	nextSteps: ({ highlighter, typescript, options }) => {
+		const toReturn: string[] = [];
+
+		if (vitestV3Installed) {
+			const componentTesting = options.usages.includes('component');
+			if (componentTesting) {
+				toReturn.push(`Uninstall ${highlighter.command('@vitest/browser')} package`);
+				toReturn.push(
+					`Update usage from ${highlighter.command("'@vitest/browser...'")} to ${highlighter.command("'vitest/browser'")}`
+				);
+			}
+			toReturn.push(
+				`${highlighter.optional('Optional')} Check ${highlighter.path('./vite.config.ts')} and remove duplicate project definitions`
+			);
+			toReturn.push(
+				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
+			);
+		}
+
+		return toReturn;
 	}
 });

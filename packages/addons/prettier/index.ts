@@ -7,11 +7,14 @@ export default defineAddon({
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
-	run: ({ sv, dependencyVersion }) => {
+	run: ({ sv, dependencyVersion, files }) => {
+		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
+		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.1');
+
 		sv.devDependency('prettier', '^3.6.2');
 		sv.devDependency('prettier-plugin-svelte', '^3.4.0');
 
-		sv.file('.prettierignore', (content) => {
+		sv.file(files.prettierignore, (content) => {
 			if (content) return content;
 			return dedent`
 				# Package Managers
@@ -26,7 +29,7 @@ export default defineAddon({
 			`;
 		});
 
-		sv.file('.prettierrc', (content) => {
+		sv.file(files.prettierrc, (content) => {
 			let data, generateCode;
 			try {
 				({ data, generateCode } = parseJson(content));
@@ -45,13 +48,18 @@ export default defineAddon({
 			}
 
 			data.plugins ??= [];
-			data.overrides ??= [];
-
 			const plugins: string[] = data.plugins;
+			if (tailwindcssInstalled) {
+				if (!plugins.includes('prettier-plugin-tailwindcss')) {
+					data.plugins.unshift('prettier-plugin-tailwindcss');
+				}
+				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
+			}
 			if (!plugins.includes('prettier-plugin-svelte')) {
 				data.plugins.unshift('prettier-plugin-svelte');
 			}
 
+			data.overrides ??= [];
 			const overrides: Array<{ files: string | string[]; options?: { parser?: string } }> =
 				data.overrides;
 			const override = overrides.find((o) => o?.options?.parser === 'svelte');
@@ -64,7 +72,7 @@ export default defineAddon({
 		const eslintVersion = dependencyVersion('eslint');
 		const eslintInstalled = hasEslint(eslintVersion);
 
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 
 			data.scripts ??= {};
@@ -91,7 +99,7 @@ export default defineAddon({
 
 		if (eslintInstalled) {
 			sv.devDependency('eslint-config-prettier', '^10.1.8');
-			sv.file('eslint.config.js', addEslintConfigPrettier);
+			sv.file(files.eslintConfig, addEslintConfigPrettier);
 		}
 	}
 });

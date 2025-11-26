@@ -18,10 +18,27 @@ You can select multiple space-separated add-ons from [the list below](#Official-
 
 ## Options
 
-- `-C`, `--cwd` — path to the root of your Svelte(Kit) project
-- `--no-git-check` — even if some files are dirty, no prompt will be shown
-- `--install` — installs dependencies with a specified package manager
-- `--no-install` — prevents installing dependencies
+### `-C`, `--cwd`
+
+Path to the root of your Svelte(Kit) project.
+
+### `--no-git-check`
+
+Even if some files are dirty, no prompt will be shown
+
+### `--install <package-manager>`
+
+Installs dependencies with a specified package manager:
+
+- `npm`
+- `pnpm`
+- `yarn`
+- `bun`
+- `deno`
+
+### `--no-install`
+
+Prevents installing dependencies
 
 ## Official add-ons
 

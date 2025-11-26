@@ -4,20 +4,23 @@ import * as find from 'empathic/find';
 import { common, object, type AstTypes } from '@sveltejs/cli-core/js';
 import { parseScript } from '@sveltejs/cli-core/parsers';
 import { detect } from 'package-manager-detector';
-import type { OptionValues, PackageManager, Workspace } from '@sveltejs/cli-core';
+import type { PackageManager, Workspace } from '@sveltejs/cli-core';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 import { getUserAgent } from '../../utils/package-manager.ts';
 
 type CreateWorkspaceOptions = {
 	cwd: string;
 	packageManager?: PackageManager;
-	options?: OptionValues<any>;
+	override?: {
+		kit?: Workspace['kit'];
+		dependencies: Record<string, string>;
+	};
 };
 export async function createWorkspace({
 	cwd,
-	options = {},
-	packageManager
-}: CreateWorkspaceOptions): Promise<Workspace<any>> {
+	packageManager,
+	override
+}: CreateWorkspaceOptions): Promise<Workspace> {
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
@@ -27,43 +30,80 @@ export async function createWorkspace({
 
 	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	const viteConfigFile = fs.existsSync(viteConfigPath)
+	const viteConfig = fs.existsSync(viteConfigPath)
 		? commonFilePaths.viteConfigTS
 		: commonFilePaths.viteConfig;
+	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const svelteConfig = fs.existsSync(svelteConfigPath)
+		? commonFilePaths.svelteConfigTS
+		: commonFilePaths.svelteConfig;
 
 	let dependencies: Record<string, string> = {};
-	let directory = resolvedCwd;
-	const workspaceRoot = findWorkspaceRoot(directory);
-	const { root } = path.parse(directory);
-	while (
-		// we have a directory
-		directory &&
-		// we are still in the workspace (including the workspace root)
-		directory.length >= workspaceRoot.length
-	) {
-		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
-			const { data: packageJson } = getPackageJson(directory);
-			dependencies = {
-				...packageJson.devDependencies,
-				...packageJson.dependencies,
-				...dependencies
-			};
+	if (override?.dependencies) {
+		dependencies = override.dependencies;
+	} else {
+		let directory = resolvedCwd;
+		const workspaceRoot = findWorkspaceRoot(directory);
+		const { root } = path.parse(directory);
+		while (
+			// we have a directory
+			directory &&
+			// we are still in the workspace (including the workspace root)
+			directory.length >= workspaceRoot.length
+		) {
+			if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+				const { data: packageJson } = getPackageJson(directory);
+				dependencies = {
+					...packageJson.devDependencies,
+					...packageJson.dependencies,
+					...dependencies
+				};
+			}
+			if (root === directory) break; // we are at the root root, let's stop
+			directory = path.dirname(directory);
 		}
-		if (root === directory) break; // we are at the root root, let's stop
-		directory = path.dirname(directory);
 	}
+
 	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
 	for (const [key, value] of Object.entries(dependencies)) {
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
+	const kit = override?.kit
+		? override.kit
+		: dependencies['@sveltejs/kit']
+			? parseKitOptions(resolvedCwd)
+			: undefined;
+
+	const stylesheet: `${string}/layout.css` | 'src/app.css' = kit
+		? `${kit.routesDirectory}/layout.css`
+		: 'src/app.css';
+
 	return {
 		cwd: resolvedCwd,
-		options,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
 		typescript: usesTypescript,
-		viteConfigFile,
-		kit: dependencies['@sveltejs/kit'] ? parseKitOptions(resolvedCwd) : undefined,
+		files: {
+			viteConfig,
+			svelteConfig,
+			stylesheet,
+			package: 'package.json',
+			gitignore: '.gitignore',
+			prettierignore: '.prettierignore',
+			prettierrc: '.prettierrc',
+			eslintConfig: 'eslint.config.js',
+			vscodeSettings: '.vscode/settings.json',
+			getRelative({ from, to }) {
+				from = from ?? '';
+				let relativePath = path.posix.relative(path.posix.dirname(from), to);
+				// Ensure relative paths start with ./ for proper relative path syntax
+				if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
+					relativePath = `./${relativePath}`;
+				}
+				return relativePath;
+			}
+		},
+		kit,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
 }

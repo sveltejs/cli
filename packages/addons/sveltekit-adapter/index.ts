@@ -6,7 +6,7 @@ const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.4.0' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.10' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.0.0' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.1.1' },
 	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.4' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.2.4' }
 ] as const;
@@ -29,11 +29,11 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options }) => {
+	run: ({ sv, options, files }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
-		sv.file('package.json', (content) => {
+		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 			const devDeps = data['devDependencies'];
 
@@ -48,7 +48,7 @@ export default defineAddon({
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file('svelte.config.js', (content) => {
+		sv.file(files.svelteConfig, (content) => {
 			const { ast, comments, generateCode } = parseScript(content);
 
 			// finds any existing adapter's import declaration

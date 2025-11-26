@@ -5,6 +5,7 @@ import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import { resolveCommand, type AgentName } from 'package-manager-detector';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -134,4 +135,26 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	}
 
 	return options;
+}
+
+export function logArgs(
+	agent: AgentName | null | undefined,
+	command: 'create' | 'add',
+	args: string[],
+	lastArgs: string[] = []
+) {
+	const allArgs = ['sv', command, ...args];
+
+	// Handle install option
+	if (agent === null || agent === undefined) allArgs.push('--no-install');
+	else allArgs.push('--install', agent);
+
+	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
+	p.log.message(pc.dim([res.command, ...res.args].join(' ')));
+}
+
+export function errorAndExit(message: string) {
+	p.log.error(message);
+	p.cancel('Operation failed.');
+	process.exit(1);
 }
