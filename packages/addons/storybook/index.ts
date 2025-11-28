@@ -2,7 +2,7 @@ import process from 'node:process';
 import { defineAddon } from '@sveltejs/cli-core';
 import { getNodeTypesVersion } from '../common.ts';
 
-export const STORYBOOK_VERSION = '0.0.0-pr-32717-sha-f340a68b';
+export const STORYBOOK_VERSION = '10.1.0';
 
 export default defineAddon({
 	id: 'storybook',
