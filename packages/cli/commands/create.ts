@@ -272,7 +272,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			answersCommunity,
 			options: {
 				cwd: projectPath,
-				install: false,
+				install: options.install,
 				gitCheck: false,
 				community: [],
 				addons: sanitizedAddonsMap
