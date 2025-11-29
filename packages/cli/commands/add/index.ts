@@ -582,6 +582,12 @@ export async function runAddonsApply({
 		options: answersOfficial
 	});
 
+	// reload workspace to capture any changes made by the addons
+	workspace = await createWorkspace({
+		cwd: workspace.cwd,
+		packageManager: workspace.packageManager
+	});
+
 	const addonSuccess: string[] = [];
 	for (const [addonId, info] of Object.entries(status)) {
 		if (info === 'success') addonSuccess.push(addonId);
