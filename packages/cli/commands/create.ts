@@ -37,7 +37,7 @@ import {
 	sanitizeAddons,
 	type SelectedAddon
 } from './add/index.ts';
-import { commonFilePaths, getPackageJson } from './add/utils.ts';
+import { commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
 import { dist } from '../../create/utils.ts';
 
@@ -266,13 +266,19 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	let addOnNextSteps: string[] = [];
 	let argsFormattedAddons: string[] = [];
+	let addOnFilesToFormat: string[] = [];
 	if (options.addOns || options.add.length > 0) {
-		const { nextSteps, argsFormattedAddons: argsFormatted } = await runAddonsApply({
+		const {
+			nextSteps,
+			argsFormattedAddons: argsFormatted,
+			filesToFormat
+		} = await runAddonsApply({
 			answersOfficial,
 			answersCommunity,
 			options: {
 				cwd: projectPath,
-				install: options.install,
+				// in the create command, we don't want to install dependencies, we want to do it after the project is created
+				install: false,
 				gitCheck: false,
 				community: [],
 				addons: sanitizedAddonsMap
@@ -283,7 +289,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			fromCommand: 'create'
 		});
 		argsFormattedAddons = argsFormatted;
-
+		addOnFilesToFormat = filesToFormat;
 		addOnNextSteps = nextSteps;
 	}
 
@@ -308,7 +314,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	common.logArgs(packageManager, 'create', argsFormatted, [directory]);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
-	if (packageManager) await installDependencies(packageManager, projectPath);
+	if (packageManager) {
+		await installDependencies(packageManager, projectPath);
+		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
+	}
 
 	return { directory: projectPath, addOnNextSteps, packageManager };
 }
