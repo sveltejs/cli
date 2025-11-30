@@ -33,7 +33,8 @@ describe('cli', () => {
 				'lucia=demo:yes',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
+				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local',
+				'storybook'
 			]
 		}
 	];
@@ -56,7 +57,7 @@ describe('cli', () => {
 				'--no-install',
 				...args
 			],
-			{ nodeOptions: { stdio: 'ignore' } }
+			{ nodeOptions: { stdio: 'pipe' } }
 		);
 
 		// cli finished well
@@ -69,5 +70,23 @@ describe('cli', () => {
 		const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 		const packageJson = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
 		expect(packageJson.name).toBe(projectName);
+
+		if (projectName === 'create-with-all-addons') {
+			const snapPath = path.resolve(
+				monoRepoPath,
+				'packages',
+				'cli',
+				'tests',
+				'create-with-all-addons'
+			);
+			const relativeFiles = fs.readdirSync(snapPath, { recursive: true }) as string[];
+
+			for (const relativeFile of relativeFiles) {
+				if (!fs.statSync(path.resolve(snapPath, relativeFile)).isFile()) continue;
+				const generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
+				const snap = fs.readFileSync(path.resolve(snapPath, relativeFile), 'utf-8');
+				expect(generated, `file "${relativeFile}" does not match snapshot`).toBe(snap);
+			}
+		}
 	});
 });
