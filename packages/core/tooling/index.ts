@@ -235,10 +235,6 @@ export class CommentState {
 	}
 }
 
-/**
- * A helper class for managing comments that should be added to AST nodes during code generation.
- * Provides methods to add leading comments (before a node) and trailing comments (after a node).
- */
 export class Comments {
 	/** The original comments parsed from source code */
 	original: TsEstree.Comment[];
