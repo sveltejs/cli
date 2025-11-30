@@ -28,3 +28,6 @@ src/lib/paraglide
 
 # SQLite
 *.db
+
+*storybook.log
+storybook-static
