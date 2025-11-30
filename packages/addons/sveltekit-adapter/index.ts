@@ -49,7 +49,7 @@ export default defineAddon({
 		sv.devDependency(adapter.package, adapter.version);
 
 		sv.file(files.svelteConfig, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, comments, generateCode } = parseScript(content);
 
 			// finds any existing adapter's import declaration
 			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -86,8 +86,21 @@ export default defineAddon({
 			if (adapter.package !== '@sveltejs/adapter-auto') {
 				const fallback = object.create({});
 				const cfgKitValue = object.property(config, { name: 'kit', fallback });
-				const cfgAdapter = object.propertyNode(cfgKitValue, { name: 'adapter', fallback });
-				cfgAdapter.leadingComments = [];
+
+				// removes any existing adapter auto comments
+				const adapterAutoComments = comments.original.filter(
+					(c) =>
+						c.loc &&
+						cfgKitValue.loc &&
+						c.loc.start.line >= cfgKitValue.loc.start.line &&
+						c.loc.end.line <= cfgKitValue.loc.end.line
+				);
+				// modify the array in place
+				comments.original.splice(
+					0,
+					comments.original.length,
+					...comments.original.filter((c) => !adapterAutoComments.includes(c))
+				);
 			}
 
 			return generateCode();

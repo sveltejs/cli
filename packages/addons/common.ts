@@ -1,4 +1,5 @@
 import { imports, exports, common } from '@sveltejs/cli-core/js';
+import { toSvelteFragment, type SvelteAst } from '@sveltejs/cli-core/html';
 import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import process from 'node:process';
 
@@ -63,22 +64,30 @@ export function addEslintConfigPrettier(content: string): string {
 	return generateCode();
 }
 
-export function addToDemoPage(existingContent: string, path: string, typescript: boolean): string {
-	const { script, template, generateCode } = parseSvelte(existingContent, { typescript });
+export function addToDemoPage(existingContent: string, path: string): string {
+	const { ast, generateCode } = parseSvelte(existingContent);
 
-	for (const node of template.ast.childNodes) {
-		// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
-		if (node.type === 'tag' && node.attribs['href'].includes(`/demo/${path}`)) {
-			return existingContent;
+	for (const node of ast.fragment.nodes) {
+		if (node.type === 'RegularElement') {
+			const hrefAttribute = node.attributes.find(
+				(x) => x.type === 'Attribute' && x.name === 'href'
+			) as SvelteAst.Attribute;
+			if (!hrefAttribute || !hrefAttribute.value) continue;
+
+			if (!Array.isArray(hrefAttribute.value)) continue;
+
+			const hasDemo = hrefAttribute.value.find(
+				(x) => x.type === 'Text' && x.data === `/demo/${path}`
+			);
+			if (hasDemo) {
+				return existingContent;
+			}
 		}
 	}
 
-	imports.addNamed(script.ast, { imports: ['resolve'], from: '$app/paths' });
+	ast.fragment.nodes.push(...toSvelteFragment(`<a href="/demo/${path}">${path}</a>`));
 
-	return generateCode({
-		script: script.generateCode(),
-		template: `<a href={resolve('/demo/${path}')}>${path}</a>\n${template.source}`
-	});
+	return generateCode();
 }
 
 /**

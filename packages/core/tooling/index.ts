@@ -14,8 +14,10 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
+import ts from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
+import { parse as svelteParse, type AST as SvelteAst, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
 
 export {
@@ -38,6 +40,7 @@ export {
 export type {
 	// html
 	ChildNode as HtmlChildNode,
+	SvelteAst,
 
 	// js
 	TsEstree as AstTypes,
@@ -48,19 +51,20 @@ export type {
 
 /**
  * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
- * https://github.com/sveltejs/esrap/blob/9daf5dd43b31f17f596aa7da91678f2650666dd0/test/common.js#L12
+ * https://github.com/sveltejs/esrap/blob/920491535d31484ac5fae2327c7826839d851aed/test/common.js#L14
  */
-export function parseScript(content: string): TsEstree.Program {
-	const comments: TsEstree.Comment[] = [];
-
+export function parseScript(content: string): {
+	ast: TsEstree.Program;
+	commentState: CommentState;
+} {
 	const acornTs = acorn.Parser.extend(tsPlugin());
+	const commentState = new CommentState();
 
-	// Acorn doesn't add comments to the AST by itself. This factory returns the capabilities to add them after the fact.
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 		locations: true,
-		onComment: (block, value, start, end) => {
+		onComment: (block, value, start, end, startLoc, endLoc) => {
 			if (block && /\n/.test(value)) {
 				let a = start;
 				while (a > 0 && content[a - 1] !== '\n') a -= 1;
@@ -72,39 +76,43 @@ export function parseScript(content: string): TsEstree.Program {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
+			commentState.comments.original.push({
+				type: block ? 'Block' : 'Line',
+				value,
+				start,
+				end,
+				loc: { start: startLoc as TsEstree.Position, end: endLoc as TsEstree.Position }
+			});
 		}
 	}) as TsEstree.Program;
 
-	Walker.walk(ast as TsEstree.Node, null, {
-		_(commentNode, { next }) {
-			let comment: TsEstree.Comment;
-
-			while (comments[0] && commentNode.start && comments[0].start! < commentNode.start) {
-				comment = comments.shift()!;
-				(commentNode.leadingComments ??= []).push(comment);
-			}
-
-			next();
-
-			if (comments[0]) {
-				const slice = content.slice(commentNode.end, comments[0].start);
-
-				if (/^[,) \t]*$/.test(slice)) {
-					commentNode.trailingComments = [comments.shift()!];
-				}
-			}
-		}
-	});
-
-	return ast;
+	return {
+		ast,
+		commentState
+	};
 }
 
-export function serializeScript(ast: TsEstree.Node, previousContent?: string): string {
-	const { code } = esrapPrint(ast, {
-		indent: guessIndentString(previousContent),
-		quotes: guessQuoteStyle(ast)
-	});
+export function serializeScript(
+	ast: TsEstree.Node,
+	commentState?: CommentState,
+	previousContent?: string
+): string {
+	const { code } = esrapPrint(
+		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
+		// which is causing these errors. But they are similar enough to work together.
+		ast,
+		ts({
+			// @ts-expect-error see above
+			comments: commentState?.comments.original,
+			// @ts-expect-error see above
+			getLeadingComments: (node) => commentState?.leading.get(node),
+			// @ts-expect-error see above
+			getTrailingComments: (node) => commentState?.trailing.get(node)
+		}),
+		{
+			indent: guessIndentString(previousContent)
+		}
+	);
 	return code;
 }
 
@@ -207,43 +215,63 @@ export function guessIndentString(str: string | undefined): string {
 	}
 }
 
-export function guessQuoteStyle(ast: TsEstree.Node): 'single' | 'double' | undefined {
-	let singleCount = 0;
-	let doubleCount = 0;
-
-	Walker.walk(ast, null, {
-		Literal(node) {
-			if (node.raw && node.raw.length >= 2) {
-				// we have at least two characters in the raw string that could represent both quotes
-				const quotes = [node.raw[0], node.raw[node.raw.length - 1]];
-				for (const quote of quotes) {
-					switch (quote) {
-						case "'":
-							singleCount++;
-							break;
-						case '"':
-							doubleCount++;
-							break;
-						default:
-							break;
-					}
-				}
-			}
-		}
-	});
-
-	if (singleCount === 0 && doubleCount === 0) {
-		// new file or file without any quotes
-		return undefined;
-	}
-
-	return singleCount > doubleCount ? 'single' : 'double';
-}
-
 export function parseYaml(content: string): ReturnType<typeof yaml.parseDocument> {
 	return yaml.parseDocument(content);
 }
 
 export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): string {
 	return yaml.stringify(data, { singleQuote: true });
+}
+
+export function parseSvelte(content: string): SvelteAst.Root {
+	return svelteParse(content, { modern: true });
+}
+
+export function serializeSvelte(ast: SvelteAst.Root): string {
+	return sveltePrint(ast).code;
+}
+
+export type CommentType = { type: 'Line' | 'Block'; value: string };
+
+export class CommentState {
+	comments: Comments;
+	leading: WeakMap<TsEstree.Node, CommentType[]>;
+	trailing: WeakMap<TsEstree.Node, CommentType[]>;
+
+	constructor() {
+		this.leading = new WeakMap();
+		this.trailing = new WeakMap();
+		this.comments = new Comments([], this.leading, this.trailing);
+	}
+}
+
+export class Comments {
+	/** The original comments parsed from source code */
+	original: TsEstree.Comment[];
+	#leading: WeakMap<TsEstree.Node, CommentType[]>;
+	#trailing: WeakMap<TsEstree.Node, CommentType[]>;
+
+	constructor(
+		original: TsEstree.Comment[],
+		leading: WeakMap<TsEstree.Node, CommentType[]>,
+		trailing: WeakMap<TsEstree.Node, CommentType[]>
+	) {
+		this.original = original;
+		this.#leading = leading;
+		this.#trailing = trailing;
+	}
+
+	/** Add a comment that will appear before the given node */
+	addLeading(node: TsEstree.Node, comment: CommentType): void {
+		const list = this.#leading.get(node) ?? [];
+		list.push(comment);
+		this.#leading.set(node, list);
+	}
+
+	/** Add a comment that will appear after the given node */
+	addTrailing(node: TsEstree.Node, comment: CommentType): void {
+		const list = this.#trailing.get(node) ?? [];
+		list.push(comment);
+		this.#trailing.set(node, list);
+	}
 }
