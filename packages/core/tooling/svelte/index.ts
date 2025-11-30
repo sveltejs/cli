@@ -44,7 +44,7 @@ export function addSlot(ast: SvelteAst.Root, options: { svelteVersion: string })
 
 	const scriptAst = ensureScript(ast);
 	appendFromString(scriptAst, {
-		code: 'let { children } = $props();'
+		code: 'const { children } = $props();'
 	});
 
 	ast.fragment.nodes.push({
