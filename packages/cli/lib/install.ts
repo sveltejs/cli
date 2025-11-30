@@ -151,6 +151,7 @@ async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAdd
 				fileContent = content(fileContent);
 				if (!fileContent) return fileContent;
 
+				writeFile(workspace, path, fileContent);
 				files.add(path);
 			} catch (e) {
 				if (e instanceof Error) {
