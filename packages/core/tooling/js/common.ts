@@ -1,6 +1,7 @@
 import {
-	type AdditionalCommentMap,
 	type AstTypes,
+	type Comments,
+	InternalComments,
 	Walker,
 	parseScript,
 	serializeScript,
@@ -11,7 +12,7 @@ import dedent from 'dedent';
 
 export function addJsDocTypeComment(
 	node: AstTypes.Node,
-	additionalComments: AdditionalCommentMap,
+	comments: Comments,
 	options: { type: string }
 ): void {
 	const comment: AstTypes.Comment = {
@@ -19,12 +20,12 @@ export function addJsDocTypeComment(
 		value: `* @type {${options.type}} `
 	};
 
-	addComment(node, additionalComments, comment);
+	addComment(node, comments, comment);
 }
 
 export function addJsDocComment(
 	node: AstTypes.Node,
-	additionalComments: AdditionalCommentMap,
+	comments: Comments,
 	options: { params: Record<string, string> }
 ): void {
 	const commentLines: string[] = [];
@@ -37,22 +38,16 @@ export function addJsDocComment(
 		value: `*\n * ${commentLines.join('\n * ')}\n `
 	};
 
-	addComment(node, additionalComments, comment);
+	addComment(node, comments, comment);
 }
 
-function addComment(
-	node: AstTypes.Node,
-	additionalComments: AdditionalCommentMap,
-	comment: AstTypes.Comment
-) {
-	const found = additionalComments
-		.get(node)
-		?.find((item) => item.type === 'Block' && item.value === comment.value);
+function addComment(node: AstTypes.Node, comments: Comments, comment: AstTypes.Comment) {
+	const found = comments.original.find(
+		(item) => item.type === 'Block' && item.value === comment.value
+	);
 
 	if (!found) {
-		const comments = additionalComments.get(node) ?? [];
-		comments.push({ ...comment, position: 'leading' });
-		additionalComments.set(node, comments);
+		comments.addLeading(node, comment);
 	}
 }
 
@@ -112,7 +107,10 @@ export function areNodesEqual(node: AstTypes.Node, otherNode: AstTypes.Node): bo
 
 	const nodeClone = stripAst(decircular(node), ['loc', 'raw']);
 	const otherNodeClone = stripAst(decircular(otherNode), ['loc', 'raw']);
-	return serializeScript(nodeClone, []) === serializeScript(otherNodeClone, []);
+	return (
+		serializeScript(nodeClone, new InternalComments()) ===
+		serializeScript(otherNodeClone, new InternalComments())
+	);
 }
 
 export function createBlockStatement(): AstTypes.BlockStatement {

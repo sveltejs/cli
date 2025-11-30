@@ -14,12 +14,59 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
-import ts, { type AdditionalComment } from 'esrap/languages/ts';
+import ts from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 import * as yaml from 'yaml';
 
-type AdditionalCommentMap = WeakMap<TsEstree.Node, AdditionalComment[]>;
+export type CommentType = { type: 'Line' | 'Block'; value: string };
+
+export class InternalComments {
+	comments: Comments;
+	leading: WeakMap<TsEstree.Node, CommentType[]>;
+	trailing: WeakMap<TsEstree.Node, CommentType[]>;
+
+	constructor() {
+		this.leading = new WeakMap();
+		this.trailing = new WeakMap();
+		this.comments = new Comments([], this.leading, this.trailing);
+	}
+}
+
+/**
+ * A helper class for managing comments that should be added to AST nodes during code generation.
+ * Provides methods to add leading comments (before a node) and trailing comments (after a node).
+ */
+export class Comments {
+	/** The original comments parsed from source code */
+	original: TsEstree.Comment[];
+	#leading: WeakMap<TsEstree.Node, CommentType[]>;
+	#trailing: WeakMap<TsEstree.Node, CommentType[]>;
+
+	constructor(
+		original: TsEstree.Comment[],
+		leading: WeakMap<TsEstree.Node, CommentType[]>,
+		trailing: WeakMap<TsEstree.Node, CommentType[]>
+	) {
+		this.original = original;
+		this.#leading = leading;
+		this.#trailing = trailing;
+	}
+
+	/** Add a comment that will appear before the given node */
+	addLeading(node: TsEstree.Node, comment: CommentType): void {
+		const list = this.#leading.get(node) ?? [];
+		list.push(comment);
+		this.#leading.set(node, list);
+	}
+
+	/** Add a comment that will appear after the given node */
+	addTrailing(node: TsEstree.Node, comment: CommentType): void {
+		const list = this.#trailing.get(node) ?? [];
+		list.push(comment);
+		this.#trailing.set(node, list);
+	}
+}
 
 export {
 	// html
@@ -44,7 +91,6 @@ export type {
 
 	// js
 	TsEstree as AstTypes,
-	AdditionalCommentMap,
 
 	//css
 	CssChildNode
@@ -54,14 +100,15 @@ export type {
  * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
  * https://github.com/sveltejs/esrap/blob/920491535d31484ac5fae2327c7826839d851aed/test/common.js#L14
  */
-export function parseScript(content: string): {
+export function parseScript(
+	content: string,
+	internalComments?: InternalComments
+): {
 	ast: TsEstree.Program;
-	comments: TsEstree.Comment[];
-	additionalComments: AdditionalCommentMap;
+	comments: Comments;
 } {
-	const comments: TsEstree.Comment[] = [];
-
 	const acornTs = acorn.Parser.extend(tsPlugin());
+	internalComments ??= new InternalComments();
 
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
@@ -79,7 +126,7 @@ export function parseScript(content: string): {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			comments.push({
+			internalComments.comments.original.push({
 				type: block ? 'Block' : 'Line',
 				value,
 				start,
@@ -91,22 +138,37 @@ export function parseScript(content: string): {
 
 	return {
 		ast,
-		comments,
-		additionalComments: new WeakMap()
+		comments: internalComments.comments
 	};
 }
 
 export function serializeScript(
 	ast: TsEstree.Node,
-	comments: TsEstree.Comment[],
-	previousContent?: string,
-	additionalComments?: AdditionalCommentMap
+	comments: Comments | InternalComments,
+	previousContent?: string
 ): string {
-	// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
-	// which is causing these errors. But they are simmilar enough to work together.
-	const { code } = esrapPrint(ast, ts({ comments, additionalComments }), {
-		indent: guessIndentString(previousContent)
-	});
+	const originalComments = 'comments' in comments ? comments.comments.original : comments.original;
+	const trailingComments =
+		'trailing' in comments ? comments.trailing : new WeakMap<TsEstree.Node, CommentType[]>();
+	const leadingComments =
+		'leading' in comments ? comments.leading : new WeakMap<TsEstree.Node, CommentType[]>();
+
+	const { code } = esrapPrint(
+		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
+		// which is causing these errors. But they are simmilar enough to work together.
+		ast,
+		ts({
+			// @ts-expect-error see above
+			comments: originalComments?.original,
+			// @ts-expect-error see above
+			getLeadingComments: (node) => leadingComments?.get(node),
+			// @ts-expect-error see above
+			getTrailingComments: (node) => trailingComments?.get(node)
+		}),
+		{
+			indent: guessIndentString(previousContent)
+		}
+	);
 	return code;
 }
 

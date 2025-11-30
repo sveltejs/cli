@@ -8,13 +8,14 @@ type ParseBase = {
 
 export function parseScript(source: string): {
 	ast: utils.AstTypes.Program;
-	comments: utils.AstTypes.Comment[];
-	additionalComments: utils.AdditionalCommentMap;
+	comments: utils.Comments;
 } & ParseBase {
-	const { ast, comments, additionalComments } = utils.parseScript(source);
-	const generateCode = () => utils.serializeScript(ast, comments, source, additionalComments);
+	const internalComments = new utils.InternalComments();
 
-	return { ast, comments, additionalComments, source, generateCode };
+	const { ast, comments } = utils.parseScript(source, internalComments);
+	const generateCode = () => utils.serializeScript(ast, internalComments, source);
+
+	return { ast, comments, source, generateCode };
 }
 
 export function parseCss(source: string): { ast: utils.CssAst } & ParseBase {

@@ -88,7 +88,7 @@ export default defineAddon({
 				const cfgKitValue = object.property(config, { name: 'kit', fallback });
 
 				// removes any existing adapter auto comments
-				const adapterAutoComments = comments.filter(
+				const adapterAutoComments = comments.original.filter(
 					(c) =>
 						c.loc &&
 						cfgKitValue.loc &&
@@ -96,10 +96,10 @@ export default defineAddon({
 						c.loc.end.line <= cfgKitValue.loc.end.line
 				);
 				// modify the array in place
-				comments.splice(
+				comments.original.splice(
 					0,
-					comments.length,
-					...comments.filter((c) => !adapterAutoComments.includes(c))
+					comments.original.length,
+					...comments.original.filter((c) => !adapterAutoComments.includes(c))
 				);
 			}
 
