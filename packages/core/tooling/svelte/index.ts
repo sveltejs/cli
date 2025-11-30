@@ -66,7 +66,6 @@ export function addSlot(ast: SvelteAst.Root, options: { svelteVersion: string })
 }
 
 export function toFragment(content: string): SvelteAst.Fragment['nodes'] {
-	// TODO write test
 	const { ast } = parseSvelte(content);
 	return ast.fragment.nodes;
 }
