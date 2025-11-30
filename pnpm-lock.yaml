@@ -211,6 +211,9 @@ importers:
       tiny-glob:
         specifier: ^0.2.9
         version: 0.2.9
+      zimmerframe:
+        specifier: ^1.1.4
+        version: 1.1.4
 
   packages/migrate:
     dependencies:
