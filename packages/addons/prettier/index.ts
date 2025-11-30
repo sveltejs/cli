@@ -56,7 +56,7 @@ export default defineAddon({
 				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 			}
 			if (!plugins.includes('prettier-plugin-svelte')) {
-				data.plugins.unshift('prettier-plugin-svelte');
+				data.plugins.push('prettier-plugin-svelte');
 			}
 
 			data.overrides ??= [];
