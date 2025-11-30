@@ -97,7 +97,7 @@ export function serializeScript(
 ): string {
 	const { code } = esrapPrint(
 		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
-		// which is causing these errors. But they are simmilar enough to work together.
+		// which is causing these errors. But they are similar enough to work together.
 		ast,
 		ts({
 			// @ts-expect-error see above
