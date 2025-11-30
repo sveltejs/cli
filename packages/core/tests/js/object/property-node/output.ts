@@ -1,6 +1,6 @@
 const test = {
-	/** a comment */
+	/*a comment updated*/ /** a comment */
 	foo: 1,
 
-	james: '007'
+	/*aka: bond, james bond*/ james: '007'
 };
