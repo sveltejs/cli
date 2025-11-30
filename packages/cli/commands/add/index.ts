@@ -672,15 +672,7 @@ export async function runAddonsApply({
 
 	// format modified/created files with prettier (if available)
 	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
-		const { start, stop } = p.spinner();
-		start('Formatting modified files');
-		try {
-			await formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
-			stop('Successfully formatted modified files');
-		} catch (e) {
-			stop('Failed to format files');
-			if (e instanceof Error) p.log.error(e.message);
-		}
+		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
 	}
 
 	const highlighter = getHighlighter();
