@@ -4,6 +4,7 @@ import { expect } from '@playwright/test';
 import { parseSvelte } from '@sveltejs/cli-core/parsers';
 import { imports } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
+import * as svelte from '@sveltejs/cli-core/svelte';
 import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';
@@ -40,18 +41,17 @@ function addFixture(cwd: string, variant: string) {
 	}
 
 	const src = fs.readFileSync(page, 'utf8');
-	const { script, template, generateCode } = parseSvelte(src);
-	imports.addDefault(script.ast, { from: './Demo.svx', as: 'Demo' });
+	const { ast, generateCode } = parseSvelte(src);
+	const scriptAst = svelte.ensureScript(ast);
+	imports.addDefault(scriptAst, { from: './Demo.svx', as: 'Demo' });
 
+	// TODO: what are we trying to do here?
 	const div = html.createDiv({ class: 'mdsvex' });
 	html.appendElement(template.ast.childNodes, div);
 	const mdsvexNode = html.createElement('Demo');
 	html.appendElement(div.childNodes, mdsvexNode);
 
-	const content = generateCode({
-		script: script.generateCode(),
-		template: template.generateCode()
-	});
+	const content = generateCode();
 
 	fs.writeFileSync(page, content, 'utf8');
 	fs.writeFileSync(svx, svxFile, 'utf8');
