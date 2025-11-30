@@ -1,7 +1,7 @@
 import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
 import { imports, vite } from '@sveltejs/cli-core/js';
+import * as svelte from '@sveltejs/cli-core/svelte';
 import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
-import { addSlot } from '@sveltejs/cli-core/html';
 
 const plugins = [
 	{
@@ -32,7 +32,7 @@ export default defineAddon({
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
-	run: ({ sv, options, files, typescript, kit, dependencyVersion }) => {
+	run: ({ sv, options, files, kit, dependencyVersion }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('tailwindcss', '^4.1.17');
@@ -97,30 +97,28 @@ export default defineAddon({
 			const appSvelte = 'src/App.svelte';
 			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
 			sv.file(appSvelte, (content) => {
-				const { script, generateCode } = parseSvelte(content, { typescript });
-				imports.addEmpty(script.ast, { from: stylesheetRelative });
-				return generateCode({ script: script.generateCode() });
+				const { ast, generateCode } = parseSvelte(content);
+				const scriptAst = svelte.ensureScript(ast);
+				imports.addEmpty(scriptAst, { from: stylesheetRelative });
+				return generateCode();
 			});
 		} else {
 			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
 			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
 			sv.file(layoutSvelte, (content) => {
-				const { script, template, generateCode } = parseSvelte(content, { typescript });
-				imports.addEmpty(script.ast, { from: stylesheetRelative });
+				const { ast, generateCode } = parseSvelte(content);
+				const scriptAst = svelte.ensureScript(ast);
+				imports.addEmpty(scriptAst, { from: stylesheetRelative });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');
 					if (!svelteVersion) throw new Error('Failed to determine svelte version');
-					addSlot(script.ast, {
-						htmlAst: template.ast,
+					svelte.addSlot(ast, {
 						svelteVersion
 					});
 				}
 
-				return generateCode({
-					script: script.generateCode(),
-					template: content.length === 0 ? template.generateCode() : undefined
-				});
+				return generateCode();
 			});
 		}
 

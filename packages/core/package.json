@@ -22,6 +22,7 @@
 		"./css": "./tooling/css/index.ts",
 		"./html": "./tooling/html/index.ts",
 		"./js": "./tooling/js/index.ts",
+		"./svelte": "./tooling/svelte/index.ts",
 		"./parsers": "./tooling/parsers.ts"
 	},
 	"devDependencies": {

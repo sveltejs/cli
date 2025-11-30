@@ -1,6 +1,7 @@
 import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
 import { common, imports, variables, exports, kit as kitJs, vite } from '@sveltejs/cli-core/js';
 import * as html from '@sveltejs/cli-core/html';
+import * as svelte from '@sveltejs/cli-core/svelte';
 import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { addToDemoPage } from '../common.ts';
 
@@ -177,25 +178,13 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'paraglide', typescript);
+				return addToDemoPage(content, 'paraglide');
 			});
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { ast, generateCode } = parseSvelte(content);
-
-				let scriptAst = ast.instance?.content;
-				if (!scriptAst) {
-					scriptAst = parseScript('').ast;
-					ast.instance = {
-						type: 'Script',
-						start: 0,
-						end: 0,
-						context: 'default',
-						attributes: [],
-						content: scriptAst
-					};
-				}
+				const scriptAst = svelte.ensureScript(ast);
 
 				imports.addNamed(scriptAst, { imports: { m: 'm' }, from: '$lib/paraglide/messages.js' });
 				imports.addNamed(scriptAst, {
@@ -219,7 +208,7 @@ export default defineAddon({
 				templateCode +=
 					'<p>If you use VSCode, install the <a href="https://marketplace.visualstudio.com/items?itemName=inlang.vs-code-extension" target="_blank">Sherlock i18n extension</a> for a better i18n experience.</p>';
 
-				ast.fragment.nodes.push(...html.toSvelteFragment(templateCode));
+				ast.fragment.nodes.push(...svelte.toFragment(templateCode));
 
 				return generateCode();
 			});
