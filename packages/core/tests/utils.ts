@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import dedent from 'dedent';
 import {
-	CommentState,
 	parseScript,
 	serializeScript,
 	guessIndentString,
@@ -77,8 +76,7 @@ test('integration - simple', () => {
         const foobar = "foo";
     }
     `;
-	const commentState = new CommentState();
-	const { ast } = parseScript(code, commentState);
+	const { ast, commentState } = parseScript(code);
 	const method = ast.body[1] as AstTypes.FunctionDeclaration;
 
 	method.body.body.push(newVariableDeclaration);
@@ -105,8 +103,7 @@ test('integration - simple 2', () => {
       const foobar = 'foo';
     }
     `;
-	const commentState = new CommentState();
-	const { ast } = parseScript(code, commentState);
+	const { ast, commentState } = parseScript(code);
 	const method = ast.body[1] as AstTypes.FunctionDeclaration;
 
 	method.body.body.push(newVariableDeclaration);
@@ -129,8 +126,7 @@ test('integration - preserves comments', () => {
 	  /** @type {string} */
     let foo = 'bar';
     `;
-	const commentState = new CommentState();
-	const { ast } = parseScript(code, commentState);
+	const { ast, commentState } = parseScript(code);
 
 	expect(serializeScript(ast, commentState, code)).toMatchInlineSnapshot(`
 		"/** @type {string} */
