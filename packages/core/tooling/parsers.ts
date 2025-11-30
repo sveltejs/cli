@@ -7,13 +7,12 @@ type ParseBase = {
 
 export function parseScript(source: string): {
 	ast: utils.AstTypes.Program;
-	comments: utils.AstTypes.Comment[];
-	additionalComments: utils.AdditionalCommentMap;
+	comments: utils.Comments;
 } & ParseBase {
-	const { ast, comments, additionalComments } = utils.parseScript(source);
-	const generateCode = () => utils.serializeScript(ast, comments, source, additionalComments);
+	const { ast, commentState } = utils.parseScript(source);
+	const generateCode = () => utils.serializeScript(ast, commentState, source);
 
-	return { ast, comments, additionalComments, source, generateCode };
+	return { ast, comments: commentState.comments, source, generateCode };
 }
 
 export function parseCss(source: string): { ast: utils.CssAst } & ParseBase {

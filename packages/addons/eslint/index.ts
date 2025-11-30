@@ -53,7 +53,7 @@ export default defineAddon({
 		});
 
 		sv.file(files.eslintConfig, (content) => {
-			const { ast, additionalComments, generateCode } = parseScript(content);
+			const { ast, comments, generateCode } = parseScript(content);
 
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 			imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
@@ -85,20 +85,16 @@ export default defineAddon({
 			if (rules.properties[0].type !== 'Property') {
 				throw new Error('rules.properties[0].type !== "Property"');
 			}
-			additionalComments.set(rules.properties[0].key, [
-				{
-					type: 'Line',
-					value:
-						' typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.',
-					position: 'leading'
-				},
-				{
-					type: 'Line',
-					value:
-						' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors',
-					position: 'leading'
-				}
-			]);
+			comments.addLeading(rules.properties[0].key, {
+				type: 'Line',
+				value:
+					' typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.'
+			});
+			comments.addLeading(rules.properties[0].key, {
+				type: 'Line',
+				value:
+					' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'
+			});
 
 			const globalsConfig = object.create({
 				languageOptions: {
@@ -155,7 +151,7 @@ export default defineAddon({
 
 			// type annotate config
 			if (!typescript)
-				common.addJsDocTypeComment(astNode, additionalComments, {
+				common.addJsDocTypeComment(astNode, comments, {
 					type: "import('eslint').Linter.Config[]"
 				});
 

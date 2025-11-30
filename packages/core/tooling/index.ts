@@ -14,13 +14,11 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
-import ts, { type AdditionalComment } from 'esrap/languages/ts';
+import ts from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 import { parse as svelteParse, type AST as SvelteAst, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
-
-type AdditionalCommentMap = WeakMap<TsEstree.Node, AdditionalComment[]>;
 
 export {
 	// html
@@ -46,7 +44,6 @@ export type {
 
 	// js
 	TsEstree as AstTypes,
-	AdditionalCommentMap,
 
 	//css
 	CssChildNode
@@ -58,12 +55,10 @@ export type {
  */
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
-	comments: TsEstree.Comment[];
-	additionalComments: AdditionalCommentMap;
+	commentState: CommentState;
 } {
-	const comments: TsEstree.Comment[] = [];
-
 	const acornTs = acorn.Parser.extend(tsPlugin());
+	const commentState = new CommentState();
 
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
@@ -81,7 +76,7 @@ export function parseScript(content: string): {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			comments.push({
+			commentState.comments.original.push({
 				type: block ? 'Block' : 'Line',
 				value,
 				start,
@@ -93,22 +88,31 @@ export function parseScript(content: string): {
 
 	return {
 		ast,
-		comments,
-		additionalComments: new WeakMap()
+		commentState
 	};
 }
 
 export function serializeScript(
 	ast: TsEstree.Node,
-	comments: TsEstree.Comment[],
-	previousContent?: string,
-	additionalComments?: AdditionalCommentMap
+	commentState?: CommentState,
+	previousContent?: string
 ): string {
-	// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
-	// which is causing these errors. But they are simmilar enough to work together.
-	const { code } = esrapPrint(ast, ts({ comments, additionalComments }), {
-		indent: guessIndentString(previousContent)
-	});
+	const { code } = esrapPrint(
+		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
+		// which is causing these errors. But they are similar enough to work together.
+		ast,
+		ts({
+			// @ts-expect-error see above
+			comments: commentState?.comments.original,
+			// @ts-expect-error see above
+			getLeadingComments: (node) => commentState?.leading.get(node),
+			// @ts-expect-error see above
+			getTrailingComments: (node) => commentState?.trailing.get(node)
+		}),
+		{
+			indent: guessIndentString(previousContent)
+		}
+	);
 	return code;
 }
 
@@ -225,4 +229,49 @@ export function parseSvelte(content: string): SvelteAst.Root {
 
 export function serializeSvelte(ast: SvelteAst.Root): string {
 	return sveltePrint(ast).code;
+}
+
+export type CommentType = { type: 'Line' | 'Block'; value: string };
+
+export class CommentState {
+	comments: Comments;
+	leading: WeakMap<TsEstree.Node, CommentType[]>;
+	trailing: WeakMap<TsEstree.Node, CommentType[]>;
+
+	constructor() {
+		this.leading = new WeakMap();
+		this.trailing = new WeakMap();
+		this.comments = new Comments([], this.leading, this.trailing);
+	}
+}
+
+export class Comments {
+	/** The original comments parsed from source code */
+	original: TsEstree.Comment[];
+	#leading: WeakMap<TsEstree.Node, CommentType[]>;
+	#trailing: WeakMap<TsEstree.Node, CommentType[]>;
+
+	constructor(
+		original: TsEstree.Comment[],
+		leading: WeakMap<TsEstree.Node, CommentType[]>,
+		trailing: WeakMap<TsEstree.Node, CommentType[]>
+	) {
+		this.original = original;
+		this.#leading = leading;
+		this.#trailing = trailing;
+	}
+
+	/** Add a comment that will appear before the given node */
+	addLeading(node: TsEstree.Node, comment: CommentType): void {
+		const list = this.#leading.get(node) ?? [];
+		list.push(comment);
+		this.#leading.set(node, list);
+	}
+
+	/** Add a comment that will appear after the given node */
+	addTrailing(node: TsEstree.Node, comment: CommentType): void {
+		const list = this.#trailing.get(node) ?? [];
+		list.push(comment);
+		this.#trailing.set(node, list);
+	}
 }

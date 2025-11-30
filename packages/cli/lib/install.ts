@@ -66,8 +66,14 @@ export async function applyAddons({
 	for (const addon of ordered) {
 		const workspaceOptions = options[addon.id] || {};
 
+		// reload workspace for every addon, as previous addons might have changed it
+		const addonWorkspace = await createWorkspace({
+			cwd: workspace.cwd,
+			packageManager: workspace.packageManager
+		});
+
 		const { files, pnpmBuildDependencies, cancels } = await runAddon({
-			workspace,
+			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
 			multiple: ordered.length > 1
