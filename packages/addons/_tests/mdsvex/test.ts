@@ -3,7 +3,6 @@ import path from 'node:path';
 import { expect } from '@playwright/test';
 import { parseSvelte } from '@sveltejs/cli-core/parsers';
 import { imports } from '@sveltejs/cli-core/js';
-import * as html from '@sveltejs/cli-core/html';
 import * as svelte from '@sveltejs/cli-core/svelte';
 import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
@@ -45,11 +44,25 @@ function addFixture(cwd: string, variant: string) {
 	const scriptAst = svelte.ensureScript(ast);
 	imports.addDefault(scriptAst, { from: './Demo.svx', as: 'Demo' });
 
-	// TODO: what are we trying to do here?
-	const div = html.createDiv({ class: 'mdsvex' });
-	html.appendElement(template.ast.childNodes, div);
-	const mdsvexNode = html.createElement('Demo');
-	html.appendElement(div.childNodes, mdsvexNode);
+	ast.fragment.nodes.push({
+		type: 'RegularElement',
+		name: 'div',
+		attributes: [
+			{
+				type: 'Attribute',
+				name: 'class',
+				value: [{ type: 'Text', data: 'mdsvex', raw: 'mdsvex', start: 0, end: 0 }],
+				start: 0,
+				end: 0
+			}
+		],
+		fragment: {
+			type: 'Fragment',
+			nodes: svelte.toFragment('<Demo />')
+		},
+		start: 0,
+		end: 0
+	});
 
 	const content = generateCode();
 
