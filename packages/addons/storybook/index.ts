@@ -1,3 +1,4 @@
+import process from 'node:process';
 import { defineAddon } from '@sveltejs/cli-core';
 import { getNodeTypesVersion } from '../common.ts';
 
@@ -19,6 +20,9 @@ export default defineAddon({
 			'--no-dev',
 			'--no-features'
 		];
+
+		// skips the onboarding prompt during tests
+		if (process.env.NODE_ENV?.toLowerCase() === 'test') args.push('--yes');
 
 		await sv.execute(args, 'inherit');
 		sv.devDependency(`@types/node`, getNodeTypesVersion());
