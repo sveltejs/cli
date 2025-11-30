@@ -117,7 +117,10 @@ describe('cli', () => {
 
 						expect(generatedPackageJson).toStrictEqual(snapPackageJson);
 					} else {
-						expect(generated, `file "${relativeFile}" does not match snapshot`).toBe(snap);
+						expect(
+							generated.replace(/\r\n/g, '\n'),
+							`file "${relativeFile}" does not match snapshot`
+						).toBe(snap.replace(/\r\n/g, '\n'));
 					}
 				}
 			}
