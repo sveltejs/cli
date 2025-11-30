@@ -1,5 +1,11 @@
 # sv
 
+## 0.10.6
+### Patch Changes
+
+
+- fix(cli): files will be formatted after create ([#827](https://github.com/sveltejs/cli/pull/827))
+
 ## 0.10.5
 ### Patch Changes
 
