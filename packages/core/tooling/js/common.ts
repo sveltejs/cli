@@ -1,7 +1,6 @@
 import {
 	type AstTypes,
 	type Comments,
-	InternalComments,
 	Walker,
 	parseScript,
 	serializeScript,
@@ -107,10 +106,7 @@ export function areNodesEqual(node: AstTypes.Node, otherNode: AstTypes.Node): bo
 
 	const nodeClone = stripAst(decircular(node), ['loc', 'raw']);
 	const otherNodeClone = stripAst(decircular(otherNode), ['loc', 'raw']);
-	return (
-		serializeScript(nodeClone, new InternalComments()) ===
-		serializeScript(otherNodeClone, new InternalComments())
-	);
+	return serializeScript(nodeClone) === serializeScript(otherNodeClone);
 }
 
 export function createBlockStatement(): AstTypes.BlockStatement {

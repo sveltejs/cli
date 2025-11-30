@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { parseScript, serializeScript } from '../../tooling/index.ts';
+import { CommentState, parseScript, serializeScript } from '../../tooling/index.ts';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
 const categoryDirectories = getDirectoryNames(baseDir);
@@ -16,13 +16,14 @@ for (const categoryDirectory of categoryDirectories) {
 
 				const inputFilePath = join(testDirectoryPath, 'input.ts');
 				const input = fs.existsSync(inputFilePath) ? fs.readFileSync(inputFilePath, 'utf8') : '';
-				const { ast, comments } = parseScript(input);
+				const commentState = new CommentState();
+				const { ast, comments } = parseScript(input, commentState);
 
 				// dynamic imports always need to provide the path inline for static analysis
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
 				module.run(ast, comments);
 
-				let output = serializeScript(ast, comments, input);
+				let output = serializeScript(ast, commentState, input);
 				if (!output.endsWith('\n')) output += '\n';
 				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.ts`);
 			});

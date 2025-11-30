@@ -21,7 +21,7 @@ import * as yaml from 'yaml';
 
 export type CommentType = { type: 'Line' | 'Block'; value: string };
 
-export class InternalComments {
+export class CommentState {
 	comments: Comments;
 	leading: WeakMap<TsEstree.Node, CommentType[]>;
 	trailing: WeakMap<TsEstree.Node, CommentType[]>;
@@ -102,13 +102,13 @@ export type {
  */
 export function parseScript(
 	content: string,
-	internalComments?: InternalComments
+	commentState?: CommentState
 ): {
 	ast: TsEstree.Program;
 	comments: Comments;
 } {
 	const acornTs = acorn.Parser.extend(tsPlugin());
-	internalComments ??= new InternalComments();
+	commentState ??= new CommentState();
 
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
@@ -126,7 +126,7 @@ export function parseScript(
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			internalComments.comments.original.push({
+			commentState.comments.original.push({
 				type: block ? 'Block' : 'Line',
 				value,
 				start,
@@ -138,32 +138,26 @@ export function parseScript(
 
 	return {
 		ast,
-		comments: internalComments.comments
+		comments: commentState.comments
 	};
 }
 
 export function serializeScript(
 	ast: TsEstree.Node,
-	comments: Comments | InternalComments,
+	commentState?: CommentState,
 	previousContent?: string
 ): string {
-	const originalComments = 'comments' in comments ? comments.comments.original : comments.original;
-	const trailingComments =
-		'trailing' in comments ? comments.trailing : new WeakMap<TsEstree.Node, CommentType[]>();
-	const leadingComments =
-		'leading' in comments ? comments.leading : new WeakMap<TsEstree.Node, CommentType[]>();
-
 	const { code } = esrapPrint(
 		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
 		// which is causing these errors. But they are simmilar enough to work together.
 		ast,
 		ts({
 			// @ts-expect-error see above
-			comments: originalComments?.original,
+			comments: commentState?.comments.original,
 			// @ts-expect-error see above
-			getLeadingComments: (node) => leadingComments?.get(node),
+			getLeadingComments: (node) => commentState?.leading.get(node),
 			// @ts-expect-error see above
-			getTrailingComments: (node) => trailingComments?.get(node)
+			getTrailingComments: (node) => commentState?.trailing.get(node)
 		}),
 		{
 			indent: guessIndentString(previousContent)

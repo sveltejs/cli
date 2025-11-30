@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import dedent from 'dedent';
 import {
+	CommentState,
 	parseScript,
 	serializeScript,
 	guessIndentString,
@@ -76,13 +77,14 @@ test('integration - simple', () => {
         const foobar = "foo";
     }
     `;
-	const { ast, comments } = parseScript(code);
+	const commentState = new CommentState();
+	const { ast } = parseScript(code, commentState);
 	const method = ast.body[1] as AstTypes.FunctionDeclaration;
 
 	method.body.body.push(newVariableDeclaration);
 
 	// new variable is added with correct indentation and matching quotes
-	expect(serializeScript(ast, comments, code)).toMatchInlineSnapshot(`
+	expect(serializeScript(ast, commentState, code)).toMatchInlineSnapshot(`
 		"import foo from 'bar';
 
 		function bar() {
@@ -103,13 +105,14 @@ test('integration - simple 2', () => {
       const foobar = 'foo';
     }
     `;
-	const { ast, comments } = parseScript(code);
+	const commentState = new CommentState();
+	const { ast } = parseScript(code, commentState);
 	const method = ast.body[1] as AstTypes.FunctionDeclaration;
 
 	method.body.body.push(newVariableDeclaration);
 
 	// new variable is added with correct indentation and matching quotes
-	expect(serializeScript(ast, comments, code)).toMatchInlineSnapshot(`
+	expect(serializeScript(ast, commentState, code)).toMatchInlineSnapshot(`
 		"import foo from 'bar';
 
 		function bar() {
@@ -126,9 +129,10 @@ test('integration - preserves comments', () => {
 	  /** @type {string} */
     let foo = 'bar';
     `;
-	const { ast, comments } = parseScript(code);
+	const commentState = new CommentState();
+	const { ast } = parseScript(code, commentState);
 
-	expect(serializeScript(ast, comments, code)).toMatchInlineSnapshot(`
+	expect(serializeScript(ast, commentState, code)).toMatchInlineSnapshot(`
 		"/** @type {string} */
 		let foo = 'bar';"
 	`);
