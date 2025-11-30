@@ -98,13 +98,27 @@ describe('cli', () => {
 						}
 					});
 				}
-				const relativeFiles = fs.readdirSync(snapPath, { recursive: true }) as string[];
 
+				const relativeFiles = fs.readdirSync(snapPath, { recursive: true }) as string[];
 				for (const relativeFile of relativeFiles) {
 					if (!fs.statSync(path.resolve(snapPath, relativeFile)).isFile()) continue;
 					const generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 					const snap = fs.readFileSync(path.resolve(snapPath, relativeFile), 'utf-8');
-					expect(generated, `file "${relativeFile}" does not match snapshot`).toBe(snap);
+
+					// special cases!
+					// 1. package.json & "@types/node"
+					if (relativeFile === 'package.json') {
+						const generatedPackageJson = parseJson(generated);
+						const snapPackageJson = parseJson(snap);
+
+						// As you can test this on different node version... Let's just copy the generated version all the time.
+						snapPackageJson.devDependencies['@types/node'] =
+							generatedPackageJson.devDependencies['@types/node'];
+
+						expect(generatedPackageJson).toStrictEqual(snapPackageJson);
+					} else {
+						expect(generated, `file "${relativeFile}" does not match snapshot`).toBe(snap);
+					}
 				}
 			}
 		}
