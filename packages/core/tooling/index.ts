@@ -105,7 +105,8 @@ export function serializeScript(
 			// @ts-expect-error see above
 			getLeadingComments: (node) => commentState?.leading.get(node),
 			// @ts-expect-error see above
-			getTrailingComments: (node) => commentState?.trailing.get(node)
+			getTrailingComments: (node) => commentState?.trailing.get(node),
+			quotes: guessQuoteStyle(ast)
 		}),
 		{
 			indent: guessIndentString(previousContent)
@@ -211,6 +212,39 @@ export function guessIndentString(str: string | undefined): string {
 	} else {
 		return '\t';
 	}
+}
+
+export function guessQuoteStyle(ast: TsEstree.Node): 'single' | 'double' | undefined {
+	let singleCount = 0;
+	let doubleCount = 0;
+
+	Walker.walk(ast, null, {
+		Literal(node) {
+			if (node.raw && node.raw.length >= 2) {
+				// we have at least two characters in the raw string that could represent both quotes
+				const quotes = [node.raw[0], node.raw[node.raw.length - 1]];
+				for (const quote of quotes) {
+					switch (quote) {
+						case "'":
+							singleCount++;
+							break;
+						case '"':
+							doubleCount++;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+	});
+
+	if (singleCount === 0 && doubleCount === 0) {
+		// new file or file without any quotes
+		return undefined;
+	}
+
+	return singleCount > doubleCount ? 'single' : 'double';
 }
 
 export function parseYaml(content: string): ReturnType<typeof yaml.parseDocument> {

@@ -6,7 +6,8 @@ import {
 	guessIndentString,
 	type AstTypes,
 	serializeYaml,
-	parseYaml
+	parseYaml,
+	guessQuoteStyle
 } from '../tooling/index.ts';
 
 test('guessIndentString - one tab', () => {
@@ -49,6 +50,57 @@ test('guessIndentString - eight spaces', () => {
 	expect(guessIndentString(code)).toBe('        ');
 });
 
+test('guessQuoteStyle - single simple', () => {
+	const code = dedent`
+    console.log('asd');
+    `;
+	const { ast } = parseScript(code);
+
+	expect(guessQuoteStyle(ast)).toBe('single');
+});
+
+test('guessQuoteStyle - single complex', () => {
+	const code = dedent`
+    import foo from 'bar';
+
+    console.log("bar");
+    const foobar = 'foo';
+    `;
+	const { ast } = parseScript(code);
+
+	expect(guessQuoteStyle(ast)).toBe('single');
+});
+
+test('guessQuoteStyle - double simple', () => {
+	const code = dedent`
+    console.log("asd");
+    `;
+	const { ast } = parseScript(code);
+
+	expect(guessQuoteStyle(ast)).toBe('double');
+});
+
+test('guessQuoteStyle - double complex', () => {
+	const code = dedent`
+    import foo from 'bar';
+
+    console.log("bar");
+    const foobar = "foo";
+    `;
+	const { ast } = parseScript(code);
+
+	expect(guessQuoteStyle(ast)).toBe('double');
+});
+
+test('guessQuoteStyle - no quotes', () => {
+	const code = dedent`
+    const foo = true;
+    `;
+	const { ast } = parseScript(code);
+
+	expect(guessQuoteStyle(ast)).toBe(undefined);
+});
+
 const newVariableDeclaration: AstTypes.VariableDeclaration = {
 	type: 'VariableDeclaration',
 	kind: 'const',
@@ -89,7 +141,7 @@ test('integration - simple', () => {
 		    console.log("bar");
 
 		    const foobar = "foo";
-		    const foobar2 = 'test';
+		    const foobar2 = "test";
 		}"
 	`);
 });
