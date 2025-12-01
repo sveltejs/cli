@@ -82,7 +82,6 @@ describe('cli', () => {
 				'snapshots',
 				projectName
 			);
-
 			const relativeFiles = fs.readdirSync(testOutputPath, { recursive: true }) as string[];
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
