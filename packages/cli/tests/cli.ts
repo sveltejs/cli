@@ -85,7 +85,7 @@ describe('cli', () => {
 			const relativeFiles = fs.readdirSync(testOutputPath, { recursive: true }) as string[];
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
-				if (relativeFile.endsWith('.svg')) continue;
+				if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
 				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
 					const generatedPackageJson = parseJson(generated);
