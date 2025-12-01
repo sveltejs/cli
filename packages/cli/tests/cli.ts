@@ -94,7 +94,8 @@ describe('cli', () => {
 					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
 				}
 				await expect(generated.replaceAll('\r\n', '\n')).toMatchFileSnapshot(
-					path.resolve(snapPath, relativeFile)
+					path.resolve(snapPath, relativeFile),
+					`file "${relativeFile}" does not match snapshot`
 				);
 			}
 		}
