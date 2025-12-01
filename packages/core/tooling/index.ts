@@ -18,6 +18,7 @@ import ts from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 import * as yaml from 'yaml';
+import type { BaseNode } from 'estree';
 
 export {
 	// html
@@ -99,9 +100,7 @@ export function serializeScript(
 		ts({
 			// @ts-expect-error see above
 			comments: comments?.original,
-			// @ts-expect-error see above
 			getLeadingComments: (node) => comments?.leading.get(node),
-			// @ts-expect-error see above
 			getTrailingComments: (node) => comments?.trailing.get(node),
 			quotes: guessQuoteStyle(ast)
 		}),
@@ -257,8 +256,8 @@ export type CommentType = { type: 'Line' | 'Block'; value: string };
 export class Comments {
 	/** The original comments parsed from source code */
 	original: TsEstree.Comment[];
-	leading: WeakMap<TsEstree.Node, CommentType[]>;
-	trailing: WeakMap<TsEstree.Node, CommentType[]>;
+	leading: WeakMap<BaseNode, CommentType[]>;
+	trailing: WeakMap<BaseNode, CommentType[]>;
 
 	constructor() {
 		this.original = [];
@@ -267,14 +266,14 @@ export class Comments {
 	}
 
 	/** Add a comment that will appear before the given node */
-	addLeading(node: TsEstree.Node, comment: CommentType): void {
+	addLeading(node: BaseNode, comment: CommentType): void {
 		const list = this.leading.get(node) ?? [];
 		list.push(comment);
 		this.leading.set(node, list);
 	}
 
 	/** Add a comment that will appear after the given node */
-	addTrailing(node: TsEstree.Node, comment: CommentType): void {
+	addTrailing(node: BaseNode, comment: CommentType): void {
 		const list = this.trailing.get(node) ?? [];
 		list.push(comment);
 		this.trailing.set(node, list);
