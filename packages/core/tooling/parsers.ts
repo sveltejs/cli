@@ -10,10 +10,10 @@ export function parseScript(source: string): {
 	ast: utils.AstTypes.Program;
 	comments: utils.Comments;
 } & ParseBase {
-	const { ast, commentState } = utils.parseScript(source);
-	const generateCode = () => utils.serializeScript(ast, commentState, source);
+	const { ast, comments } = utils.parseScript(source);
+	const generateCode = () => utils.serializeScript(ast, comments, source);
 
-	return { ast, comments: commentState.comments, source, generateCode };
+	return { ast, comments, source, generateCode };
 }
 
 export function parseCss(source: string): { ast: utils.CssAst } & ParseBase {

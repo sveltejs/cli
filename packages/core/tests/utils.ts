@@ -128,13 +128,13 @@ test('integration - simple', () => {
         const foobar = "foo";
     }
     `;
-	const { ast, commentState } = parseScript(code);
+	const { ast, comments } = parseScript(code);
 	const method = ast.body[1] as AstTypes.FunctionDeclaration;
 
 	method.body.body.push(newVariableDeclaration);
 
 	// new variable is added with correct indentation and matching quotes
-	expect(serializeScript(ast, commentState, code)).toMatchInlineSnapshot(`
+	expect(serializeScript(ast, comments, code)).toMatchInlineSnapshot(`
 		"import foo from 'bar';
 
 		function bar() {
@@ -155,13 +155,13 @@ test('integration - simple 2', () => {
       const foobar = 'foo';
     }
     `;
-	const { ast, commentState } = parseScript(code);
+	const { ast, comments } = parseScript(code);
 	const method = ast.body[1] as AstTypes.FunctionDeclaration;
 
 	method.body.body.push(newVariableDeclaration);
 
 	// new variable is added with correct indentation and matching quotes
-	expect(serializeScript(ast, commentState, code)).toMatchInlineSnapshot(`
+	expect(serializeScript(ast, comments, code)).toMatchInlineSnapshot(`
 		"import foo from 'bar';
 
 		function bar() {
@@ -178,9 +178,9 @@ test('integration - preserves comments', () => {
 	  /** @type {string} */
     let foo = 'bar';
     `;
-	const { ast, commentState } = parseScript(code);
+	const { ast, comments } = parseScript(code);
 
-	expect(serializeScript(ast, commentState, code)).toMatchInlineSnapshot(`
+	expect(serializeScript(ast, comments, code)).toMatchInlineSnapshot(`
 		"/** @type {string} */
 		let foo = 'bar';"
 	`);
