@@ -86,8 +86,16 @@ describe('cli', () => {
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
 				if (relativeFile.endsWith('.svg')) continue;
-				const generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
-				await expect(generated).toMatchFileSnapshot(path.resolve(snapPath, relativeFile));
+				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
+				if (relativeFile === 'package.json') {
+					const generatedPackageJson = parseJson(generated);
+					// remove @types/node from generated package.json as we test on different node versions
+					delete generatedPackageJson.devDependencies['@types/node'];
+					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
+				}
+				await expect(generated.replaceAll('\r\n', '\n')).toMatchFileSnapshot(
+					path.resolve(snapPath, relativeFile)
+				);
 			}
 		}
 	);
