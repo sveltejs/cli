@@ -86,6 +86,7 @@ describe('cli', () => {
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
 				if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
+
 				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
 					const generatedPackageJson = parseJson(generated);
@@ -93,7 +94,11 @@ describe('cli', () => {
 					delete generatedPackageJson.devDependencies['@types/node'];
 					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
 				}
-				await expect(generated.replaceAll('\r\n', '\n')).toMatchFileSnapshot(
+
+				generated = generated.replaceAll('\r\n', '\n'); // make it work on Windows too
+				if (!generated.endsWith('\n')) generated += '\n'; // ensure trailing newline
+
+				await expect(generated).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
 				);
