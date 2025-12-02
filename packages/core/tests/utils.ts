@@ -186,6 +186,27 @@ test('integration - preserves comments', () => {
 	`);
 });
 
+test('integration - removes comments', () => {
+	const code = dedent`
+		let foo = {
+			/** @type {string} */
+			bar: 'baz',
+			/** @type {number} */
+			baz: 1,
+		};
+    `;
+	const { ast, comments } = parseScript(code);
+	comments.remove((c) => c.value.includes('number'));
+	expect(serializeScript(ast, comments, code)).toMatchInlineSnapshot(`
+		"let foo = {
+			/** @type {string} */
+			bar: 'baz',
+
+			baz: 1
+		};"
+	`);
+});
+
 describe('yaml', () => {
 	test('read and write', () => {
 		const input = dedent`foo:  

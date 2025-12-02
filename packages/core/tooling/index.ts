@@ -75,7 +75,7 @@ export function parseScript(content: string): {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			comments.original.push({
+			comments.addOriginal({
 				type: block ? 'Block' : 'Line',
 				value,
 				start,
@@ -99,9 +99,9 @@ export function serializeScript(
 		ast,
 		ts({
 			// @ts-expect-error see above
-			comments: comments?.original,
-			getLeadingComments: (node) => comments?.leading.get(node),
-			getTrailingComments: (node) => comments?.trailing.get(node),
+			comments: comments?.getOriginal(),
+			getLeadingComments: (node) => comments?.getLeading(node),
+			getTrailingComments: (node) => comments?.getTrailing(node),
 			quotes: guessQuoteStyle(ast)
 		}),
 		{
@@ -254,10 +254,9 @@ export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): stri
 export type CommentType = { type: 'Line' | 'Block'; value: string };
 
 export class Comments {
-	/** The original comments parsed from source code */
-	original: TsEstree.Comment[];
-	leading: WeakMap<BaseNode, CommentType[]>;
-	trailing: WeakMap<BaseNode, CommentType[]>;
+	private original: TsEstree.Comment[];
+	private leading: WeakMap<BaseNode, CommentType[]>;
+	private trailing: WeakMap<BaseNode, CommentType[]>;
 
 	constructor() {
 		this.original = [];
@@ -265,17 +264,36 @@ export class Comments {
 		this.trailing = new WeakMap();
 	}
 
-	/** Add a comment that will appear before the given node */
-	addLeading(node: BaseNode, comment: CommentType): void {
-		const list = this.leading.get(node) ?? [];
-		list.push(comment);
-		this.leading.set(node, list);
+	addOriginal(comment: TsEstree.Comment): void {
+		this.original.push(comment);
 	}
 
-	/** Add a comment that will appear after the given node */
-	addTrailing(node: BaseNode, comment: CommentType): void {
-		const list = this.trailing.get(node) ?? [];
-		list.push(comment);
-		this.trailing.set(node, list);
+	getOriginal(): TsEstree.Comment[] {
+		return this.original;
+	}
+
+	getLeading(node: BaseNode): CommentType[] | undefined {
+		return this.leading.get(node);
+	}
+
+	getTrailing(node: BaseNode): CommentType[] | undefined {
+		return this.trailing.get(node);
+	}
+
+	add(node: BaseNode, comment: CommentType, options?: { position?: 'leading' | 'trailing' }): void {
+		const { position = 'leading' } = options ?? {};
+		const map = position === 'leading' ? this.leading : this.trailing;
+		const list = map.get(node) ?? [];
+		// Let's not add 2 times the same comment to one node!
+		if (!list.find((c) => c.value === comment.value)) {
+			list.push(comment);
+			map.set(node, list);
+		}
+	}
+
+	remove(predicate: (comment: TsEstree.Comment) => boolean | undefined | null): void {
+		const filtered = this.original.filter((c) => !predicate(c));
+		this.original.length = 0;
+		this.original.push(...filtered);
 	}
 }
