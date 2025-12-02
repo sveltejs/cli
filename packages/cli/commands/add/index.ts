@@ -556,7 +556,7 @@ export async function runAddonsApply({
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
 	fromCommand: 'create' | 'add';
-}): Promise<{ nextSteps: string[]; argsFormattedAddons: string[] }> {
+}): Promise<{ nextSteps: string[]; argsFormattedAddons: string[]; filesToFormat: string[] }> {
 	if (!addonSetupResults) {
 		const setups = selectedAddons.length
 			? selectedAddons.map(({ addon }) => addon)
@@ -565,7 +565,8 @@ export async function runAddonsApply({
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0) return { nextSteps: [], argsFormattedAddons: [] };
+	if (selectedAddons.length === 0)
+		return { nextSteps: [], argsFormattedAddons: [], filesToFormat: [] };
 
 	// apply addons
 	const officialDetails = Object.keys(answersOfficial).map((id) => getAddonDetails(id));
@@ -662,19 +663,7 @@ export async function runAddonsApply({
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 		await installDependencies(packageManager, options.cwd);
-	}
-
-	// format modified/created files with prettier (if available)
-	if (filesToFormat.length > 0 && packageManager && !!workspace.dependencyVersion('prettier')) {
-		const { start, stop } = p.spinner();
-		start('Formatting modified files');
-		try {
-			await formatFiles({ packageManager, cwd: options.cwd, paths: filesToFormat });
-			stop('Successfully formatted modified files');
-		} catch (e) {
-			stop('Failed to format files');
-			if (e instanceof Error) p.log.error(e.message);
-		}
+		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
 	}
 
 	const highlighter = getHighlighter();
@@ -693,7 +682,7 @@ export async function runAddonsApply({
 		})
 		.filter((msg) => msg !== undefined);
 
-	return { nextSteps, argsFormattedAddons };
+	return { nextSteps, argsFormattedAddons, filesToFormat };
 }
 
 /**
