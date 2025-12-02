@@ -58,6 +58,7 @@ export function parseScript(content: string): {
 } {
 	const acornTs = acorn.Parser.extend(tsPlugin());
 	const comments = new Comments();
+	const internal = transformToInternal(comments);
 
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
@@ -75,7 +76,7 @@ export function parseScript(content: string): {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			comments.addOriginal({
+			internal.original.push({
 				type: block ? 'Block' : 'Line',
 				value,
 				start,
@@ -93,15 +94,16 @@ export function serializeScript(
 	comments?: Comments,
 	previousContent?: string
 ): string {
+	const internal = transformToInternal(comments);
 	const { code } = esrapPrint(
 		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
 		// which is causing these errors. But they are similar enough to work together.
 		ast,
 		ts({
 			// @ts-expect-error see above
-			comments: comments?.getOriginal(),
-			getLeadingComments: (node) => comments?.getLeading(node),
-			getTrailingComments: (node) => comments?.getTrailing(node),
+			comments: internal.original,
+			getLeadingComments: (node) => internal.leading.get(node),
+			getTrailingComments: (node) => internal.trailing.get(node),
 			quotes: guessQuoteStyle(ast)
 		}),
 		{
@@ -264,22 +266,6 @@ export class Comments {
 		this.trailing = new WeakMap();
 	}
 
-	addOriginal(comment: TsEstree.Comment): void {
-		this.original.push(comment);
-	}
-
-	getOriginal(): TsEstree.Comment[] {
-		return this.original;
-	}
-
-	getLeading(node: BaseNode): CommentType[] | undefined {
-		return this.leading.get(node);
-	}
-
-	getTrailing(node: BaseNode): CommentType[] | undefined {
-		return this.trailing.get(node);
-	}
-
 	add(node: BaseNode, comment: CommentType, options?: { position?: 'leading' | 'trailing' }): void {
 		const { position = 'leading' } = options ?? {};
 		const map = position === 'leading' ? this.leading : this.trailing;
@@ -292,8 +278,16 @@ export class Comments {
 	}
 
 	remove(predicate: (comment: TsEstree.Comment) => boolean | undefined | null): void {
-		const filtered = this.original.filter((c) => !predicate(c));
-		this.original.length = 0;
-		this.original.push(...filtered);
+		this.original = this.original.filter((c) => !predicate(c));
 	}
+}
+
+interface CommentsInternal {
+	original: TsEstree.Comment[];
+	leading: WeakMap<BaseNode, CommentType[]>;
+	trailing: WeakMap<BaseNode, CommentType[]>;
+}
+
+function transformToInternal(comments: Comments | undefined): CommentsInternal {
+	return (comments ?? new Comments()) as unknown as CommentsInternal;
 }
