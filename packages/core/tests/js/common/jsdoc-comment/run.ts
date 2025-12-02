@@ -6,4 +6,9 @@ export function run(ast: AstTypes.Program, comments: Comments): void {
 	common.addJsDocComment(functionDeclaration, comments, {
 		params: { 'import("$lib/paraglide/runtime").AvailableLanguageTag': 'newLanguage' }
 	});
+
+	// Adding 2 times the same comment should not add it twice!
+	common.addJsDocComment(functionDeclaration, comments, {
+		params: { 'import("$lib/paraglide/runtime").AvailableLanguageTag': 'newLanguage' }
+	});
 }
