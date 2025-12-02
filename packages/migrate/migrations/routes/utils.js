@@ -276,7 +276,7 @@ export function unwrap(node) {
 /**
  * @param {ts.Node} node
  * @param {string} name
- * @returns {node is ts.isNewExpression}
+ * @returns {node is ts.NewExpression}
  */
 export function is_new(node, name) {
 	return (

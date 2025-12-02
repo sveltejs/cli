@@ -90,7 +90,7 @@ export function migrate_page(content, filename) {
 							const message = is_string_like(nodes.error)
 								? nodes.error.getText()
 								: is_new(nodes.error, 'Error')
-									? /** @type {string | undefined} */ (nodes.error.arguments[0]?.getText())
+									? /** @type {string | undefined} */ (nodes.error.arguments?.[0]?.getText())
 									: false;
 
 							if (message !== false) {
