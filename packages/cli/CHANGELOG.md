@@ -1,5 +1,11 @@
 # sv
 
+## 0.10.7
+### Patch Changes
+
+
+- fix(add): storybook is back to using `@latest` version ([#833](https://github.com/sveltejs/cli/pull/833))
+
 ## 0.10.6
 ### Patch Changes
 
