@@ -8,11 +8,11 @@ export function run(ast: AstTypes.Program, comments: Comments): void {
 		name: 'foo',
 		fallback: object.create({})
 	});
-	comments.addLeading(p1, { type: 'Block', value: 'a comment updated' });
+	comments.add(p1, { type: 'Block', value: 'a comment updated' });
 
 	const p2 = object.propertyNode(obj, {
 		name: 'james',
 		fallback: common.createLiteral('007')
 	});
-	comments.addLeading(p2, { type: 'Block', value: 'aka: bond, james bond' });
+	comments.add(p2, { type: 'Block', value: 'aka: bond, james bond' });
 }
