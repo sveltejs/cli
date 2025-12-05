@@ -64,7 +64,7 @@ export function addEslintConfigPrettier(content: string): string {
 	return generateCode();
 }
 
-export function addToDemoPage(existingContent: string, path: string): string {
+export function addToDemoPage(existingContent: string, path: string, langTs: boolean): string {
 	const { ast, generateCode } = parseSvelte(existingContent);
 
 	for (const node of ast.fragment.nodes) {
@@ -85,7 +85,7 @@ export function addToDemoPage(existingContent: string, path: string): string {
 		}
 	}
 
-	imports.addNamed(ensureScript(ast), { imports: ['resolve'], from: '$app/paths' });
+	imports.addNamed(ensureScript(ast, { langTs }), { imports: ['resolve'], from: '$app/paths' });
 	ast.fragment.nodes.push(...toFragment(`<a href={resolve('/demo/${path}')}>${path}</a>`));
 
 	return generateCode();

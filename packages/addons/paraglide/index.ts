@@ -178,13 +178,13 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'paraglide');
+				return addToDemoPage(content, 'paraglide', typescript);
 			});
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { ast, generateCode } = parseSvelte(content);
-				const scriptAst = svelte.ensureScript(ast);
+				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
 				imports.addNamed(scriptAst, { imports: { m: 'm' }, from: '$lib/paraglide/messages.js' });
 				imports.addNamed(scriptAst, {
