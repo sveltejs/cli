@@ -14,9 +14,11 @@ import {
 } from 'postcss';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
+import ts from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 import * as yaml from 'yaml';
+import type { BaseNode } from 'estree';
 
 export {
 	// html
@@ -48,19 +50,21 @@ export type {
 
 /**
  * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
- * https://github.com/sveltejs/esrap/blob/9daf5dd43b31f17f596aa7da91678f2650666dd0/test/common.js#L12
+ * https://github.com/sveltejs/esrap/blob/920491535d31484ac5fae2327c7826839d851aed/test/common.js#L14
  */
-export function parseScript(content: string): TsEstree.Program {
-	const comments: TsEstree.Comment[] = [];
-
+export function parseScript(content: string): {
+	ast: TsEstree.Program;
+	comments: Comments;
+} {
 	const acornTs = acorn.Parser.extend(tsPlugin());
+	const comments = new Comments();
+	const internal = transformToInternal(comments);
 
-	// Acorn doesn't add comments to the AST by itself. This factory returns the capabilities to add them after the fact.
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
 		locations: true,
-		onComment: (block, value, start, end) => {
+		onComment: (block, value, start, end, startLoc, endLoc) => {
 			if (block && /\n/.test(value)) {
 				let a = start;
 				while (a > 0 && content[a - 1] !== '\n') a -= 1;
@@ -72,39 +76,40 @@ export function parseScript(content: string): TsEstree.Program {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
+			internal.original.push({
+				type: block ? 'Block' : 'Line',
+				value,
+				start,
+				end,
+				loc: { start: startLoc as TsEstree.Position, end: endLoc as TsEstree.Position }
+			});
 		}
 	}) as TsEstree.Program;
 
-	Walker.walk(ast as TsEstree.Node, null, {
-		_(commentNode, { next }) {
-			let comment: TsEstree.Comment;
-
-			while (comments[0] && commentNode.start && comments[0].start! < commentNode.start) {
-				comment = comments.shift()!;
-				(commentNode.leadingComments ??= []).push(comment);
-			}
-
-			next();
-
-			if (comments[0]) {
-				const slice = content.slice(commentNode.end, comments[0].start);
-
-				if (/^[,) \t]*$/.test(slice)) {
-					commentNode.trailingComments = [comments.shift()!];
-				}
-			}
-		}
-	});
-
-	return ast;
+	return { ast, comments };
 }
 
-export function serializeScript(ast: TsEstree.Node, previousContent?: string): string {
-	const { code } = esrapPrint(ast, {
-		indent: guessIndentString(previousContent),
-		quotes: guessQuoteStyle(ast)
-	});
+export function serializeScript(
+	ast: TsEstree.Node,
+	comments?: Comments,
+	previousContent?: string
+): string {
+	const internal = transformToInternal(comments);
+	const { code } = esrapPrint(
+		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
+		// which is causing these errors. But they are similar enough to work together.
+		ast,
+		ts({
+			// @ts-expect-error see above
+			comments: internal.original,
+			getLeadingComments: (node) => internal.leading.get(node),
+			getTrailingComments: (node) => internal.trailing.get(node),
+			quotes: guessQuoteStyle(ast)
+		}),
+		{
+			indent: guessIndentString(previousContent)
+		}
+	);
 	return code;
 }
 
@@ -246,4 +251,43 @@ export function parseYaml(content: string): ReturnType<typeof yaml.parseDocument
 
 export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): string {
 	return yaml.stringify(data, { singleQuote: true });
+}
+
+export type CommentType = { type: 'Line' | 'Block'; value: string };
+
+export class Comments {
+	private original: TsEstree.Comment[];
+	private leading: WeakMap<BaseNode, CommentType[]>;
+	private trailing: WeakMap<BaseNode, CommentType[]>;
+
+	constructor() {
+		this.original = [];
+		this.leading = new WeakMap();
+		this.trailing = new WeakMap();
+	}
+
+	add(node: BaseNode, comment: CommentType, options?: { position?: 'leading' | 'trailing' }): void {
+		const { position = 'leading' } = options ?? {};
+		const map = position === 'leading' ? this.leading : this.trailing;
+		const list = map.get(node) ?? [];
+		// Let's not add 2 times the same comment to one node!
+		if (!list.find((c) => c.value === comment.value)) {
+			list.push(comment);
+			map.set(node, list);
+		}
+	}
+
+	remove(predicate: (comment: TsEstree.Comment) => boolean | undefined | null): void {
+		this.original = this.original.filter((c) => !predicate(c));
+	}
+}
+
+interface CommentsInternal {
+	original: TsEstree.Comment[];
+	leading: WeakMap<BaseNode, CommentType[]>;
+	trailing: WeakMap<BaseNode, CommentType[]>;
+}
+
+function transformToInternal(comments: Comments | undefined): CommentsInternal {
+	return (comments ?? new Comments()) as unknown as CommentsInternal;
 }

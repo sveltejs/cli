@@ -1,2 +1,1 @@
-/** @type {number} */
-const foo = 42;
+/** @type {number} */ const foo = 42;

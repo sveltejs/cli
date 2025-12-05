@@ -1,18 +1,30 @@
-import { type AstTypes, Walker, parseScript, serializeScript, stripAst } from '../index.ts';
+import {
+	type AstTypes,
+	type Comments,
+	Walker,
+	parseScript,
+	serializeScript,
+	stripAst
+} from '../index.ts';
 import decircular from 'decircular';
 import dedent from 'dedent';
 
-export function addJsDocTypeComment(node: AstTypes.Node, options: { type: string }): void {
+export function addJsDocTypeComment(
+	node: AstTypes.Node,
+	comments: Comments,
+	options: { type: string }
+): void {
 	const comment: AstTypes.Comment = {
 		type: 'Block',
 		value: `* @type {${options.type}} `
 	};
 
-	addComment(node, comment);
+	comments.add(node, comment);
 }
 
 export function addJsDocComment(
 	node: AstTypes.Node,
+	comments: Comments,
 	options: { params: Record<string, string> }
 ): void {
 	const commentLines: string[] = [];
@@ -25,16 +37,7 @@ export function addJsDocComment(
 		value: `*\n * ${commentLines.join('\n * ')}\n `
 	};
 
-	addComment(node, comment);
-}
-
-function addComment(node: AstTypes.Node, comment: AstTypes.Comment) {
-	node.leadingComments ??= [];
-
-	const found = node.leadingComments.find(
-		(item) => item.type === 'Block' && item.value === comment.value
-	);
-	if (!found) node.leadingComments.push(comment);
+	comments.add(node, comment);
 }
 
 export function typeAnnotate(
@@ -118,18 +121,18 @@ export function appendFromString(
 	node: AstTypes.BlockStatement | AstTypes.Program,
 	options: { code: string }
 ): void {
-	const program = parseScript(dedent(options.code));
+	const { ast } = parseScript(dedent(options.code));
 
-	for (const childNode of program.body) {
+	for (const childNode of ast.body) {
 		// @ts-expect-error
 		node.body.push(childNode);
 	}
 }
 
 export function parseExpression(code: string): AstTypes.Expression {
-	const program = parseScript(dedent(code));
-	stripAst(program, ['raw']);
-	const statement = program.body[0]!;
+	const { ast } = parseScript(dedent(code));
+	stripAst(ast, ['raw']);
+	const statement = ast.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
 		throw new Error('Code provided was not an expression');
 	}
@@ -142,8 +145,8 @@ export function parseStatement(code: string): AstTypes.Statement {
 }
 
 export function parseFromString<T extends AstTypes.Node>(code: string): T {
-	const program = parseScript(dedent(code));
-	const statement = program.body[0]!;
+	const { ast } = parseScript(dedent(code));
+	const statement = ast.body[0]!;
 
 	return statement as T;
 }
