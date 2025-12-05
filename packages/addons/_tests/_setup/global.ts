@@ -4,8 +4,6 @@ import type { TestProject } from 'vitest/node';
 import process from 'node:process';
 import { exec } from 'tinyexec';
 
-import { STORYBOOK_VERSION } from '../../storybook/index.ts';
-
 const TEST_DIR = fileURLToPath(new URL('../../../../.test-output/addons/', import.meta.url));
 const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 const CI = Boolean(process.env.CI);
@@ -13,11 +11,7 @@ const CI = Boolean(process.env.CI);
 export default async function ({ provide }: TestProject) {
 	if (CI) {
 		// prefetch the storybook cli during ci to reduce fetching errors in tests
-		const { stdout } = await exec('pnpm', [
-			'dlx',
-			`create-storybook@${STORYBOOK_VERSION}`,
-			'--version'
-		]);
+		const { stdout } = await exec('pnpm', ['dlx', `create-storybook@latest`, '--version']);
 		console.info('storybook version:', stdout);
 	}
 
