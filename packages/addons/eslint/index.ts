@@ -85,12 +85,12 @@ export default defineAddon({
 			if (rules.properties[0].type !== 'Property') {
 				throw new Error('rules.properties[0].type !== "Property"');
 			}
-			comments.addLeading(rules.properties[0].key, {
+			comments.add(rules.properties[0].key, {
 				type: 'Line',
 				value:
 					' typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.'
 			});
-			comments.addLeading(rules.properties[0].key, {
+			comments.add(rules.properties[0].key, {
 				type: 'Line',
 				value:
 					' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'

@@ -19,7 +19,7 @@ export function addJsDocTypeComment(
 		value: `* @type {${options.type}} `
 	};
 
-	addComment(node, comments, comment);
+	comments.add(node, comment);
 }
 
 export function addJsDocComment(
@@ -37,17 +37,7 @@ export function addJsDocComment(
 		value: `*\n * ${commentLines.join('\n * ')}\n `
 	};
 
-	addComment(node, comments, comment);
-}
-
-function addComment(node: AstTypes.Node, comments: Comments, comment: AstTypes.Comment) {
-	const found = comments.original.find(
-		(item) => item.type === 'Block' && item.value === comment.value
-	);
-
-	if (!found) {
-		comments.addLeading(node, comment);
-	}
+	comments.add(node, comment);
 }
 
 export function typeAnnotate(

@@ -5,6 +5,7 @@ import { exec } from 'tinyexec';
 import { parseJson } from '@sveltejs/cli-core/parsers';
 import { resolveCommand, type AgentName } from 'package-manager-detector';
 import type { Highlighter, Workspace } from '@sveltejs/cli-core';
+import * as p from '@clack/prompts';
 
 export type Package = {
 	name: string;
@@ -35,14 +36,32 @@ export function getPackageJson(cwd: string): {
 export async function formatFiles(options: {
 	packageManager: AgentName;
 	cwd: string;
-	paths: string[];
+	filesToFormat: string[];
 }): Promise<void> {
-	const args = ['prettier', '--write', '--ignore-unknown', ...options.paths];
+	if (options.filesToFormat.length === 0) return;
+	const { start, stop } = p.spinner();
+	start('Formatting modified files');
+
+	const args = ['prettier', '--write', '--ignore-unknown', ...options.filesToFormat];
 	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
-	await exec(cmd.command, cmd.args, {
-		nodeOptions: { cwd: options.cwd, stdio: 'pipe' },
-		throwOnError: true
-	});
+
+	try {
+		const result = await exec(cmd.command, cmd.args, {
+			nodeOptions: { cwd: options.cwd, stdio: 'pipe' },
+			throwOnError: true
+		});
+		if (result.exitCode !== 0) {
+			stop('Failed to format files');
+			p.log.error(result.stderr);
+			return;
+		}
+	} catch (e) {
+		stop('Failed to format files');
+		// @ts-expect-error
+		p.log.error(e?.output?.stderr || 'unknown error');
+		return;
+	}
+	stop('Successfully formatted modified files');
 }
 
 export function readFile(cwd: string, filePath: string): string {

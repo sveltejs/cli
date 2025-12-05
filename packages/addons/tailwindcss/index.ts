@@ -139,7 +139,7 @@ export default defineAddon({
 				data.plugins ??= [];
 				const plugins: string[] = data.plugins;
 
-				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
+				if (!plugins.includes(PLUGIN_NAME)) plugins.unshift(PLUGIN_NAME);
 
 				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 

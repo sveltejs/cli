@@ -91,6 +91,9 @@ importers:
       package-manager-detector:
         specifier: ^0.2.11
         version: 0.2.11
+      tinyexec:
+        specifier: ^0.3.2
+        version: 0.3.2
 
   packages/cli:
     devDependencies:
@@ -167,8 +170,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2
       esrap:
-        specifier: ^2.2.0
-        version: 2.2.0
+        specifier: ^2.2.1
+        version: 2.2.1
       htmlparser2:
         specifier: ^9.1.0
         version: 9.1.0
@@ -1355,6 +1358,9 @@ packages:
 
   esrap@2.2.0:
     resolution: {integrity: sha512-WBmtxe7R9C5mvL4n2le8nMUe4mD5V9oiK2vJpQ9I3y20ENPUomPcphBXE8D1x/Bm84oN1V+lOfgXxtqmxTp3Xg==}
+
+  esrap@2.2.1:
+    resolution: {integrity: sha512-GiYWG34AN/4CUyaWAgunGt0Rxvr1PTMlGC0vvEov/uOQYWne2bpN03Um+k8jT+q3op33mKouP2zeJ6OlM+qeUg==}
 
   esrecurse@4.3.0:
     resolution: {integrity: sha512-KmfKL3b6G+RXvP8N1vr3Tq1kL/oCFgn2NYXEtqP8/L3pKapUA4G8cFVaoF3SU323CD4XypR/ffioHmkti6/Tag==}
@@ -3418,6 +3424,10 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   esrap@2.2.0:
+    dependencies:
+      '@jridgewell/sourcemap-codec': 1.5.5
+
+  esrap@2.2.1:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 

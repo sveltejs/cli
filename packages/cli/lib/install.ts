@@ -63,6 +63,8 @@ export async function applyAddons({
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, addonSetupResults);
 
+	let hasFormatter = false;
+
 	for (const addon of ordered) {
 		const workspaceOptions = options[addon.id] || {};
 
@@ -71,6 +73,8 @@ export async function applyAddons({
 			cwd: workspace.cwd,
 			packageManager: workspace.packageManager
 		});
+		// If we don't have a formatter yet, check if the addon adds one
+		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
 		const { files, pnpmBuildDependencies, cancels } = await runAddon({
 			workspace: addonWorkspace,
@@ -89,7 +93,7 @@ export async function applyAddons({
 	}
 
 	return {
-		filesToFormat: Array.from(filesToFormat),
+		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
 		pnpmBuildDependencies: allPnpmBuildDependencies,
 		status
 	};

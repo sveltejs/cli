@@ -19,6 +19,7 @@ import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
 import { parse as svelteParse, type AST as SvelteAst, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
+import type { BaseNode } from 'estree';
 
 export {
 	// html
@@ -55,10 +56,11 @@ export type {
  */
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
-	commentState: CommentState;
+	comments: Comments;
 } {
 	const acornTs = acorn.Parser.extend(tsPlugin());
-	const commentState = new CommentState();
+	const comments = new Comments();
+	const internal = transformToInternal(comments);
 
 	const ast = acornTs.parse(content, {
 		ecmaVersion: 'latest',
@@ -76,7 +78,7 @@ export function parseScript(content: string): {
 				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
 			}
 
-			commentState.comments.original.push({
+			internal.original.push({
 				type: block ? 'Block' : 'Line',
 				value,
 				start,
@@ -86,28 +88,25 @@ export function parseScript(content: string): {
 		}
 	}) as TsEstree.Program;
 
-	return {
-		ast,
-		commentState
-	};
+	return { ast, comments };
 }
 
 export function serializeScript(
 	ast: TsEstree.Node,
-	commentState?: CommentState,
+	comments?: Comments,
 	previousContent?: string
 ): string {
+	const internal = transformToInternal(comments);
 	const { code } = esrapPrint(
 		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
 		// which is causing these errors. But they are similar enough to work together.
 		ast,
 		ts({
 			// @ts-expect-error see above
-			comments: commentState?.comments.original,
-			// @ts-expect-error see above
-			getLeadingComments: (node) => commentState?.leading.get(node),
-			// @ts-expect-error see above
-			getTrailingComments: (node) => commentState?.trailing.get(node)
+			comments: internal.original,
+			getLeadingComments: (node) => internal.leading.get(node),
+			getTrailingComments: (node) => internal.trailing.get(node),
+			quotes: guessQuoteStyle(ast)
 		}),
 		{
 			indent: guessIndentString(previousContent)
@@ -223,55 +222,49 @@ export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): stri
 	return yaml.stringify(data, { singleQuote: true });
 }
 
+export type CommentType = { type: 'Line' | 'Block'; value: string };
+
+export class Comments {
+	private original: TsEstree.Comment[];
+	private leading: WeakMap<BaseNode, CommentType[]>;
+	private trailing: WeakMap<BaseNode, CommentType[]>;
+
+	constructor() {
+		this.original = [];
+		this.leading = new WeakMap();
+		this.trailing = new WeakMap();
+	}
+
+	add(node: BaseNode, comment: CommentType, options?: { position?: 'leading' | 'trailing' }): void {
+		const { position = 'leading' } = options ?? {};
+		const map = position === 'leading' ? this.leading : this.trailing;
+		const list = map.get(node) ?? [];
+		// Let's not add 2 times the same comment to one node!
+		if (!list.find((c) => c.value === comment.value)) {
+			list.push(comment);
+			map.set(node, list);
+		}
+	}
+
+	remove(predicate: (comment: TsEstree.Comment) => boolean | undefined | null): void {
+		this.original = this.original.filter((c) => !predicate(c));
+	}
+}
+
+interface CommentsInternal {
+	original: TsEstree.Comment[];
+	leading: WeakMap<BaseNode, CommentType[]>;
+	trailing: WeakMap<BaseNode, CommentType[]>;
+}
+
+function transformToInternal(comments: Comments | undefined): CommentsInternal {
+	return (comments ?? new Comments()) as unknown as CommentsInternal;
+}
+
 export function parseSvelte(content: string): SvelteAst.Root {
 	return svelteParse(content, { modern: true });
 }
 
 export function serializeSvelte(ast: SvelteAst.Root): string {
 	return sveltePrint(ast).code;
-}
-
-export type CommentType = { type: 'Line' | 'Block'; value: string };
-
-export class CommentState {
-	comments: Comments;
-	leading: WeakMap<TsEstree.Node, CommentType[]>;
-	trailing: WeakMap<TsEstree.Node, CommentType[]>;
-
-	constructor() {
-		this.leading = new WeakMap();
-		this.trailing = new WeakMap();
-		this.comments = new Comments([], this.leading, this.trailing);
-	}
-}
-
-export class Comments {
-	/** The original comments parsed from source code */
-	original: TsEstree.Comment[];
-	#leading: WeakMap<TsEstree.Node, CommentType[]>;
-	#trailing: WeakMap<TsEstree.Node, CommentType[]>;
-
-	constructor(
-		original: TsEstree.Comment[],
-		leading: WeakMap<TsEstree.Node, CommentType[]>,
-		trailing: WeakMap<TsEstree.Node, CommentType[]>
-	) {
-		this.original = original;
-		this.#leading = leading;
-		this.#trailing = trailing;
-	}
-
-	/** Add a comment that will appear before the given node */
-	addLeading(node: TsEstree.Node, comment: CommentType): void {
-		const list = this.#leading.get(node) ?? [];
-		list.push(comment);
-		this.#leading.set(node, list);
-	}
-
-	/** Add a comment that will appear after the given node */
-	addTrailing(node: TsEstree.Node, comment: CommentType): void {
-		const list = this.#trailing.get(node) ?? [];
-		list.push(comment);
-		this.#trailing.set(node, list);
-	}
 }

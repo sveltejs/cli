@@ -35,7 +35,7 @@
 		"dom-serializer": "^2.0.0",
 		"domhandler": "^5.0.3",
 		"domutils": "^3.2.2",
-		"esrap": "^2.2.0",
+		"esrap": "^2.2.1",
 		"htmlparser2": "^9.1.0",
 		"magic-string": "^0.30.21",
 		"picocolors": "^1.1.1",
