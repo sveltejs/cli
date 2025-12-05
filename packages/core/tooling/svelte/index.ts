@@ -4,7 +4,10 @@ import { appendFromString } from '../js/common.ts';
 
 export type { SvelteAst };
 
-export function ensureScript(ast: SvelteAst.Root): AstTypes.Program {
+export function ensureScript(
+	ast: SvelteAst.Root,
+	options?: { langTs?: boolean }
+): AstTypes.Program {
 	let scriptAst = ast.instance?.content;
 	if (!scriptAst) {
 		scriptAst = parseScript('').ast;
@@ -13,7 +16,17 @@ export function ensureScript(ast: SvelteAst.Root): AstTypes.Program {
 			start: 0,
 			end: 0,
 			context: 'default',
-			attributes: [],
+			attributes: options?.langTs
+				? [
+						{
+							type: 'Attribute',
+							start: 8,
+							end: 17,
+							name: 'lang',
+							value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
+						}
+					]
+				: [],
 			content: scriptAst
 		};
 	}
