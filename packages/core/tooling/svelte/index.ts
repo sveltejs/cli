@@ -34,7 +34,10 @@ export function ensureScript(
 	return scriptAst;
 }
 
-export function addSlot(ast: SvelteAst.Root, options: { svelteVersion: string }): void {
+export function addSlot(
+	ast: SvelteAst.Root,
+	options: { svelteVersion: string; langTs?: boolean }
+): void {
 	const slotSyntax =
 		options.svelteVersion &&
 		(options.svelteVersion.startsWith('4') || options.svelteVersion.startsWith('3'));
@@ -55,7 +58,7 @@ export function addSlot(ast: SvelteAst.Root, options: { svelteVersion: string })
 		return;
 	}
 
-	const scriptAst = ensureScript(ast);
+	const scriptAst = ensureScript(ast, { langTs: options.langTs });
 	appendFromString(scriptAst, {
 		code: 'const { children } = $props();'
 	});
