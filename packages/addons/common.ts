@@ -1,5 +1,5 @@
 import { imports, exports, common } from '@sveltejs/cli-core/js';
-import { toFragment, type SvelteAst } from '@sveltejs/cli-core/svelte';
+import { toFragment, type SvelteAst, ensureScript } from '@sveltejs/cli-core/svelte';
 import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import process from 'node:process';
 
@@ -85,7 +85,8 @@ export function addToDemoPage(existingContent: string, path: string): string {
 		}
 	}
 
-	ast.fragment.nodes.push(...toFragment(`<a href="/demo/${path}">${path}</a>`));
+	imports.addNamed(ensureScript(ast), { imports: ['resolve'], from: '$app/paths' });
+	ast.fragment.nodes.push(...toFragment(`<a href={resolve('/demo/${path}')}>${path}</a>`));
 
 	return generateCode();
 }
