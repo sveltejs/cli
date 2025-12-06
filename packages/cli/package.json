@@ -18,15 +18,15 @@
 	"files": [
 		"dist"
 	],
-	"bin": "./dist/bin.js",
+	"bin": "./dist/bin.mjs",
 	"exports": {
 		".": {
 			"types": "./dist/lib/index.d.ts",
-			"default": "./dist/lib/index.js"
+			"default": "./dist/lib/index.mjs"
 		},
 		"./testing": {
 			"types": "./dist/lib/testing.d.ts",
-			"default": "./dist/lib/testing.js"
+			"default": "./dist/lib/testing.mjs"
 		}
 	},
 	"devDependencies": {

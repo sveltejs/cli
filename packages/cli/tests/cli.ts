@@ -44,7 +44,7 @@ describe('cli', () => {
 		{ timeout: 10_000 },
 		async (testCase) => {
 			const { projectName, args } = testCase;
-			const svBinPath = path.resolve(monoRepoPath, 'packages', 'cli', 'dist', 'bin.js');
+			const svBinPath = path.resolve(monoRepoPath, 'packages', 'cli', 'dist', 'bin.mjs');
 			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
 
 			const result = await exec(
