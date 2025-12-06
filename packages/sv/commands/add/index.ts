@@ -19,7 +19,7 @@ import * as pkg from 'empathic/package';
 import pc from 'picocolors';
 import * as v from 'valibot';
 
-import { applyAddons, setupAddons, type AddonMap } from '../../lib/install.ts';
+import { applyAddons, setupAddons, type AddonMap } from '../../lib/addons/install.ts';
 import * as common from '../../utils/common.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import {

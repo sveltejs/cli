@@ -3,7 +3,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { exec, execSync } from 'node:child_process';
 import * as vitest from 'vitest';
-import { installAddon, type AddonMap, type OptionMap } from '../../../install.ts';
+import { installAddon, type AddonMap, type OptionMap } from '../../../addons/install.ts';
 import {
 	createProject,
 	startPreview,
