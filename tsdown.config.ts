@@ -1,4 +1,4 @@
-// import { buildTemplates } from '@sveltejs/create/build';
+import { buildTemplates } from './packages/sv/lib/create/scripts/build-templates.js';
 import MagicString from 'magic-string';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -36,14 +36,16 @@ export default defineConfig({
 	},
 	hooks: {
 		async 'build:before'() {
-			// await buildCliTemplates();
+			await buildCliTemplates();
 		}
 	}
 });
 
-// export async function buildCliTemplates() {
-// 	const start = performance.now();
-// 	await buildTemplates(path.resolve('packages/cli/dist'));
-// 	await buildTemplates(path.resolve('packages/create/dist'));
-// 	console.log(`  Build templates in ${Math.round(performance.now() - start)}ms`);
-// }
+export async function buildCliTemplates() {
+	const start = performance.now();
+	await buildTemplates(path.resolve('packages/cli/dist'));
+	await buildTemplates(path.resolve('packages/create/dist'));
+	const green = '\x1b[32m';
+	const reset = '\x1b[0m';
+	console.log(`${green}✔${reset} Templates built in ${Math.round(performance.now() - start)}ms`);
+}
