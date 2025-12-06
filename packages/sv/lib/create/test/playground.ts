@@ -150,7 +150,7 @@ test('detect dependencies from playground files', () => {
 test('real world download and convert playground async', async () => {
 	const directory = path.join(testWorkspaceDir, 'real-world-playground');
 	if (fs.existsSync(directory)) {
-		fs.rmdirSync(directory, { recursive: true });
+		fs.rmSync(directory, { recursive: true });
 	}
 
 	create(directory, {
@@ -201,7 +201,7 @@ test('real world download and convert playground async', async () => {
 test('real world download and convert playground without async', async () => {
 	const directory = path.join(testWorkspaceDir, 'real-world-playground-old');
 	if (fs.existsSync(directory)) {
-		fs.rmdirSync(directory, { recursive: true });
+		fs.rmSync(directory, { recursive: true });
 	}
 
 	create(directory, {

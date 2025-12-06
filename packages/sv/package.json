@@ -31,18 +31,6 @@
 		"./core": {
 			"types": "./dist/lib/core/index.d.ts",
 			"default": "./dist/lib/core/index.mjs"
-		},
-		"./core/js": {
-			"types": "./dist/lib/core/js/index.d.ts",
-			"default": "./dist/lib/core/js/index.mjs"
-		},
-		"./core/svelte": {
-			"types": "./dist/lib/core/svelte/index.d.ts",
-			"default": "./dist/lib/core/svelte/index.mjs"
-		},
-		"./core/parsers": {
-			"types": "./dist/lib/core/parsers/index.d.ts",
-			"default": "./dist/lib/core/parsers/index.mjs"
 		}
 	},
 	"devDependencies": {

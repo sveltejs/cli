@@ -11,3 +11,6 @@ export type * from './addon/config.ts';
 export type * from './addon/workspace.ts';
 
 export { Walker } from './tooling/index.ts';
+export * as js from './tooling/js/index.ts';
+export * as svelte from './tooling/svelte/index.ts';
+export { parseSvelte } from './tooling/parsers.ts';

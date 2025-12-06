@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { exec, type PromiseWithChild } from 'node:child_process';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { create, type LanguageType, type TemplateType } from '../index.ts';
-import { installAddon, officialAddons } from '../../cli/lib/index.ts';
+import { installAddon, officialAddons } from '../../../../sv/lib/index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));

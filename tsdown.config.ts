@@ -7,7 +7,7 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig({
 	cwd: 'packages/sv',
-	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts'],
+	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts', 'lib/core/index.ts'],
 	sourcemap: !process.env.CI,
 	dts: {
 		oxc: true

@@ -1,7 +1,4 @@
-import { defineAddon, defineAddonOptions } from 'sv/core';
-import { imports } from 'sv/core/js';
-import * as svelte from 'sv/core/svelte';
-import { parseSvelte } from 'sv/core/parsers';
+import { defineAddon, defineAddonOptions, js, svelte, parseSvelte } from 'sv/core';
 
 export const options = defineAddonOptions()
 	.add('demo', {
@@ -29,7 +26,7 @@ export default defineAddon({
 			if (!options.demo) return content;
 			const { ast, generateCode } = parseSvelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
-			imports.addDefault(scriptAst, { from: '../addon-template-demo.txt?raw', as: 'demo' });
+			js.imports.addDefault(scriptAst, { from: '../addon-template-demo.txt?raw', as: 'demo' });
 			return generateCode();
 		});
 	}
