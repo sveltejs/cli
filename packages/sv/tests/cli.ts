@@ -77,7 +77,7 @@ describe('cli', () => {
 			const snapPath = path.resolve(
 				monoRepoPath,
 				'packages',
-				'cli',
+				'sv',
 				'tests',
 				'snapshots',
 				projectName
