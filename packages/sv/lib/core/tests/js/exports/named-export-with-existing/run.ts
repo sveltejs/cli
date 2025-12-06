@@ -1,4 +1,4 @@
-import { common, variables, object, exports, type AstTypes } from '@sveltejs/cli-core/js';
+import { common, variables, object, exports, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const variableFallback = variables.declaration(ast, {

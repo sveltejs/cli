@@ -1,4 +1,4 @@
-import { common, type Comments, type AstTypes } from '@sveltejs/cli-core/js';
+import { common, type Comments, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program, comments: Comments): void {
 	const functionDeclaration = ast.body[0] as AstTypes.FunctionDeclaration;

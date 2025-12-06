@@ -1,4 +1,4 @@
-import { variables, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { variables, object, type AstTypes } from '../../../tooling/js/index.ts';
 
 export const getTestObjectExpression = (ast: AstTypes.Program): AstTypes.ObjectExpression => {
 	const variable = variables.declaration(ast, {

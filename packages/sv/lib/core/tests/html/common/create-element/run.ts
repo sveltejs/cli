@@ -3,7 +3,7 @@ import {
 	appendElement,
 	insertElement,
 	type HtmlDocument
-} from '@sveltejs/cli-core/html';
+} from '../../../../tooling/html/index.ts';
 
 export function run(ast: HtmlDocument): void {
 	const emptySpan = createElement('span');

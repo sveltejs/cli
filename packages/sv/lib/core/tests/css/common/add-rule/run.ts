@@ -1,4 +1,4 @@
-import { addDeclaration, addRule, type CssAst } from '@sveltejs/cli-core/css';
+import { addDeclaration, addRule, type CssAst } from '../../../../tooling/css/index.ts';
 
 export function run(ast: CssAst): void {
 	const barSelectorRule = addRule(ast, {

@@ -1,4 +1,4 @@
-import { common, exports, type AstTypes } from '@sveltejs/cli-core/js';
+import { common, exports, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	exports.createDefault(ast, {

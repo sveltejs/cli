@@ -1,4 +1,4 @@
-import { variables, common, object, type AstTypes } from '@sveltejs/cli-core/js';
+import { variables, common, object, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const testNumberVariable = variables.declaration(ast, {

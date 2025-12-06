@@ -1,4 +1,4 @@
-import { array, variables, type AstTypes } from '@sveltejs/cli-core/js';
+import { array, variables, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const array1 = array.create();

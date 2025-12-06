@@ -3,14 +3,14 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { exec, execSync } from 'node:child_process';
 import * as vitest from 'vitest';
-import { installAddon, type AddonMap, type OptionMap } from 'sv';
+import { installAddon, type AddonMap, type OptionMap } from '../../../install.ts';
 import {
 	createProject,
 	startPreview,
 	addPnpmBuildDependencies,
 	type CreateProject,
 	type ProjectVariant
-} from 'sv/testing';
+} from '../../../testing.ts';
 import { chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const cwd = vitest.inject('testDir');

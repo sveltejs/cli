@@ -1,4 +1,4 @@
-import { object, type AstTypes } from '@sveltejs/cli-core/js';
+import { object, type AstTypes } from '../../../../tooling/js/index.ts';
 import { getTestObjectExpression } from '../objectTestHelper.ts';
 
 export function run(ast: AstTypes.Program): void {

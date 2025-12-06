@@ -1,4 +1,4 @@
-import { common, variables, type Comments, type AstTypes } from '@sveltejs/cli-core/js';
+import { common, variables, type Comments, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program, comments: Comments): void {
 	const declaration = variables.declaration(ast, {

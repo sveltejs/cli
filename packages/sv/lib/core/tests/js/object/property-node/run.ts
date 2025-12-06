@@ -1,4 +1,4 @@
-import { object, common, type AstTypes, type Comments } from '@sveltejs/cli-core/js';
+import { object, common, type AstTypes, type Comments } from '../../../../tooling/js/index.ts';
 import { getTestObjectExpression } from '../objectTestHelper.ts';
 
 export function run(ast: AstTypes.Program, comments: Comments): void {

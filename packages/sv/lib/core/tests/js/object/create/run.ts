@@ -1,4 +1,4 @@
-import { variables, object, common, type AstTypes } from '@sveltejs/cli-core/js';
+import { variables, object, common, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const emptyObject = object.create({});

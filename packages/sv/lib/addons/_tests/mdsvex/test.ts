@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from '@playwright/test';
-import { parseSvelte } from '@sveltejs/cli-core/parsers';
-import { imports } from '@sveltejs/cli-core/js';
-import * as svelte from '@sveltejs/cli-core/svelte';
+import { parseSvelte } from '../../../core/tooling/parsers.ts';
+import { imports } from '../../../core/tooling/js/index.ts';
+import * as svelte from '../../../core/tooling/svelte/index.ts';
 import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';

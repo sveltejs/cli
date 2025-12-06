@@ -1,4 +1,4 @@
-import { type SvelteAst, ensureScript } from '@sveltejs/cli-core/svelte';
+import { type SvelteAst, ensureScript } from '../../../../tooling/svelte/index.ts';
 
 export function run(ast: SvelteAst.Root): void {
 	ensureScript(ast);

@@ -1,4 +1,4 @@
-import { imports, vite, type AstTypes } from '@sveltejs/cli-core/js';
+import { imports, vite, type AstTypes } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const pMiddle = 'middlePlugin';

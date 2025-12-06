@@ -15,17 +15,17 @@ export const Directive = { file: 'file:', npm: 'npm:' };
 function verifyPackage(pkg: Record<string, any>, specifier: string) {
 	const deps = { ...pkg.dependencies, ...pkg.peerDependencies };
 	// valid addons should always have a dependency on `core`
-	if (!deps['@sveltejs/cli-core']) {
+	if (!deps['sv']) {
 		throw new Error(
-			`Invalid add-on package specified: '${specifier}' is missing a dependency on '@sveltejs/cli-core' in its 'package.json'`
+			`Invalid add-on package specified: '${specifier}' is missing a dependency on 'sv' in its 'package.json'`
 		);
 	}
-	// addons should never have any external dependencies outside of `core`.
+	// addons should never have any external dependencies outside of `sv`.
 	// if the addon does have an external dependency, then we'll throw a helpful error guiding them to the solution
 	for (const dep of Object.keys(deps)) {
-		if (dep === '@sveltejs/cli-core') continue;
+		if (dep === 'sv') continue;
 		throw new Error(
-			`Invalid add-on package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides '@sveltejs/cli-core'. Consider bundling your dependencies if they are necessary`
+			`Invalid add-on package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides 'sv'. Consider bundling your dependencies if they are necessary`
 		);
 	}
 }
