@@ -22,8 +22,7 @@ export type InstallOptions<Addons extends AddonMap> = {
 	packageManager?: PackageManager;
 };
 
-// @ts-expect-error TODO: this _should_ be `Addon<any>`, but the types won't infer properly with it
-export type AddonMap = Record<string, Addon>;
+export type AddonMap = Record<string, Addon<any>>;
 export type OptionMap<Addons extends AddonMap> = {
 	[K in keyof Addons]: Partial<OptionValues<Addons[K]['options']>>;
 };
