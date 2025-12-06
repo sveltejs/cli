@@ -255,11 +255,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	});
 
 	if (options.fromPlayground) {
-		await createProjectFromPlayground(
-			options.fromPlayground,
-			projectPath,
-			language === 'typescript'
-		);
+		await createProjectFromPlayground(options.fromPlayground, projectPath);
 	}
 
 	p.log.success('Project created');
@@ -322,11 +318,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	return { directory: projectPath, addOnNextSteps, packageManager };
 }
 
-async function createProjectFromPlayground(
-	url: string,
-	cwd: string,
-	typescript: boolean
-): Promise<void> {
+async function createProjectFromPlayground(url: string, cwd: string): Promise<void> {
 	const urlData = parsePlaygroundUrl(url);
 	const playground = await downloadPlaygroundData(urlData);
 
@@ -334,7 +326,7 @@ async function createProjectFromPlayground(
 	const dependencies = detectPlaygroundDependencies(playground.files);
 	const installDependencies = await confirmExternalDependencies(Array.from(dependencies.keys()));
 
-	setupPlaygroundProject(url, playground, cwd, installDependencies, typescript);
+	setupPlaygroundProject(url, playground, cwd, installDependencies);
 }
 
 async function confirmExternalDependencies(dependencies: string[]): Promise<boolean> {

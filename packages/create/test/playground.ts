@@ -169,7 +169,6 @@ test('real world download and convert playground async', async () => {
 		'https://svelte.dev/playground/770bbef086034b9f8e337bab57efe8d8',
 		playground,
 		directory,
-		true,
 		true
 	);
 
@@ -221,7 +220,6 @@ test('real world download and convert playground without async', async () => {
 		'https://svelte.dev/playground/770bbef086034b9f8e337bab57efe8d8',
 		playground,
 		directory,
-		true,
 		true
 	);
 
