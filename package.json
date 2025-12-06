@@ -25,6 +25,7 @@
 		"@sveltejs/eslint-config": "^8.3.4",
 		"@svitejs/changesets-changelog-github-compact": "^1.2.0",
 		"@types/node": "^22.19.1",
+		"@typescript/native-preview": "7.0.0-dev.20251204.1",
 		"@vitest/ui": "4.0.7",
 		"eslint": "^9.39.1",
 		"eslint-plugin-svelte": "^3.13.0",
@@ -35,7 +36,6 @@
 		"sv": "workspace:*",
 		"svelte": "^5.43.8",
 		"tsdown": "^0.15.12",
-		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.47.0",
 		"vitest": "4.0.7"
 	},
