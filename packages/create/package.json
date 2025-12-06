@@ -13,7 +13,7 @@
 	"homepage": "https://svelte.dev",
 	"scripts": {
 		"build:dist": "node scripts/build-templates dist",
-		"check": "tsc",
+		"check": "tsgo",
 		"format": "pnpm lint --write",
 		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
 		"test": "vitest run",
