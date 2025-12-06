@@ -77,7 +77,7 @@ We split tests into packages & sub projects.
 Run specific tests by specifying a project flag to the package and running the test command. Eg:
 
 ```sh
-pnpm test --project sv # core / addons / create / migrate
+pnpm test --project cli # core / addons / create / migrate
 ```
 
 Example of how to debug an addon failing test. Once, you ran the test command, you will have a directory in `.test-output` with the test id. A good starting point is to `cd` into the failing tests dir. Proceed to `build` it. Then `preview` it. From here you will have increased information to help in the debug process. Eg:

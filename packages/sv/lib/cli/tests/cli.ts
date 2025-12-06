@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { exec } from 'tinyexec';
 import path from 'node:path';
 import fs from 'node:fs';
-import { parseJson } from '../lib/core/tooling/index.ts';
+import { parseJson } from '../../core/tooling/index.ts';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..');
 
@@ -44,7 +44,15 @@ describe('cli', () => {
 		{ timeout: 10_000 },
 		async (testCase) => {
 			const { projectName, args } = testCase;
-			const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
+			const svBinPath = path.resolve(
+				monoRepoPath,
+				'packages',
+				'sv',
+				'lib',
+				'cli',
+				'dist',
+				'bin.mjs'
+			);
 			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
 
 			const result = await exec(
@@ -78,6 +86,8 @@ describe('cli', () => {
 				monoRepoPath,
 				'packages',
 				'sv',
+				'lib',
+				'cli',
 				'tests',
 				'snapshots',
 				projectName
