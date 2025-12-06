@@ -68,7 +68,7 @@ export default defineAddon({
 
 		const paraglideOutDir = 'src/lib/paraglide';
 
-		sv.devDependency('@inlang/paraglide-js', '^2.5.0');
+		sv.devDependency('@inlang/paraglide-js', '^2.6.0');
 
 		sv.file('project.inlang/settings.json', (content) => {
 			if (content) return content;

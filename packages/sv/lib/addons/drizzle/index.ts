@@ -101,8 +101,8 @@ export default defineAddon({
 				return cancel(`Preexisting ${fileType} file at '${filePath}'`);
 			}
 		}
-		sv.devDependency('drizzle-orm', '^0.44.7');
-		sv.devDependency('drizzle-kit', '^0.31.7');
+		sv.devDependency('drizzle-orm', '^0.45.0');
+		sv.devDependency('drizzle-kit', '^0.31.8');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
@@ -115,7 +115,7 @@ export default defineAddon({
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
-			sv.dependency('better-sqlite3', '^12.4.1');
+			sv.dependency('better-sqlite3', '^12.5.0');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			sv.pnpmBuildDependency('better-sqlite3');
 		}

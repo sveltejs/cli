@@ -9,9 +9,9 @@ export default defineAddon({
 	options: {},
 	run: ({ sv, dependencyVersion, files }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
-		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.1');
+		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
 
-		sv.devDependency('prettier', '^3.6.2');
+		sv.devDependency('prettier', '^3.7.4');
 		sv.devDependency('prettier-plugin-svelte', '^3.4.0');
 
 		sv.file(files.prettierignore, (content) => {

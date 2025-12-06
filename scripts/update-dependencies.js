@@ -3,7 +3,7 @@ import path from 'node:path';
 import { styleText } from 'node:util';
 
 async function updateAddonDependencies() {
-	const addonsBasePath = path.resolve('packages', 'addons');
+	const addonsBasePath = path.resolve('packages', 'sv', 'lib', 'addons');
 	const addonFolders = fs
 		.readdirSync(addonsBasePath, { withFileTypes: true })
 		.filter((item) => item.isDirectory())
@@ -73,6 +73,7 @@ async function updatePackageFiles(basePath, fileName, type) {
 		console.log(`Checking deps for ${styleText(['cyanBright', 'bold'], folder)} ${type}`);
 
 		const content = fs.readFileSync(filePath, { encoding: 'utf8' });
+		/** @type {{ dependencies?: Record<string, string>, devDependencies?: Record<string, string> }} */
 		const packageJson = JSON.parse(content);
 
 		let hasUpdates = false;
@@ -142,7 +143,7 @@ async function getLatestVersion(name) {
 await updateAddonDependencies();
 
 // Update template package.template.json files
-await updatePackageFiles('packages/create/templates', 'package.template.json', 'template');
-	
+await updatePackageFiles('packages/sv/lib/create/templates', 'package.template.json', 'template');
+
 // Update shared package.json files
-await updatePackageFiles('packages/create/shared', 'package.json', 'shared');
+await updatePackageFiles('packages/sv/lib/create/shared', 'package.json', 'shared');

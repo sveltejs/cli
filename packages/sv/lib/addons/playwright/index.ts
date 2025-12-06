@@ -10,7 +10,7 @@ export default defineAddon({
 	run: ({ sv, typescript, files }) => {
 		const ext = typescript ? 'ts' : 'js';
 
-		sv.devDependency('@playwright/test', '^1.56.1');
+		sv.devDependency('@playwright/test', '^1.57.0');
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
