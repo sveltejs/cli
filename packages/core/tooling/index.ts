@@ -17,6 +17,7 @@ import { print as esrapPrint } from 'esrap';
 import ts from 'esrap/languages/ts';
 import * as acorn from 'acorn';
 import { tsPlugin } from '@sveltejs/acorn-typescript';
+import { parse as svelteParse, type AST as SvelteAst, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
 import type { BaseNode } from 'estree';
 
@@ -40,6 +41,7 @@ export {
 export type {
 	// html
 	ChildNode as HtmlChildNode,
+	SvelteAst,
 
 	// js
 	TsEstree as AstTypes,
@@ -290,4 +292,12 @@ interface CommentsInternal {
 
 function transformToInternal(comments: Comments | undefined): CommentsInternal {
 	return (comments ?? new Comments()) as unknown as CommentsInternal;
+}
+
+export function parseSvelte(content: string): SvelteAst.Root {
+	return svelteParse(content, { modern: true });
+}
+
+export function serializeSvelte(ast: SvelteAst.Root): string {
+	return sveltePrint(ast).code;
 }

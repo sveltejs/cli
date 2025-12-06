@@ -1,12 +1,10 @@
 import {
-	type AstTypes,
 	type HtmlChildNode,
 	type HtmlDocument,
 	HtmlElement,
 	HtmlElementType,
 	parseHtml
 } from '../index.ts';
-import { appendFromString } from '../js/common.ts';
 
 export { HtmlElement, HtmlElementType };
 export type { HtmlDocument };
@@ -37,24 +35,4 @@ export function addFromRawHtml(childNodes: HtmlChildNode[], html: string): void 
 	for (const childNode of document.childNodes) {
 		childNodes.push(childNode);
 	}
-}
-
-export function addSlot(
-	jsAst: AstTypes.Program,
-	options: { htmlAst: HtmlDocument; svelteVersion: string }
-): void {
-	const slotSyntax =
-		options.svelteVersion &&
-		(options.svelteVersion.startsWith('4') || options.svelteVersion.startsWith('3'));
-
-	if (slotSyntax) {
-		const slot = createElement('slot');
-		appendElement(options.htmlAst.childNodes, slot);
-		return;
-	}
-
-	appendFromString(jsAst, {
-		code: 'let { children } = $props();'
-	});
-	addFromRawHtml(options.htmlAst.childNodes, '{@render children()}');
 }

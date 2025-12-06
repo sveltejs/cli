@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as js from '@sveltejs/cli-core/js';
+import * as svelte from '@sveltejs/cli-core/svelte';
 import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
 import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
 import { getSharedFiles } from './utils.ts';
+import { walk } from 'zimmerframe';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -100,7 +102,8 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	for (const file of files) {
 		let ast: js.AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
-			ast = parseSvelte(file.content).script.ast;
+			const { ast: svelteAst } = parseSvelte(file.content);
+			ast = svelte.ensureScript(svelteAst);
 		} else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
 			ast = parseScript(file.content).ast;
 		}
@@ -158,8 +161,7 @@ export function setupPlaygroundProject(
 	url: string,
 	playground: PlaygroundData,
 	cwd: string,
-	installDependencies: boolean,
-	typescript: boolean
+	installDependencies: boolean
 ): void {
 	const mainFile = playground.files.find((file) => file.name === 'App.svelte');
 	if (!mainFile) throw new Error('Failed to find `App.svelte` entrypoint.');
@@ -188,19 +190,22 @@ export function setupPlaygroundProject(
 
 			if (file.name === 'src/lib/PlaygroundLayout.svelte') {
 				// getting raw content
-				const { script, template, css } = parseSvelte(file.contents);
-				// generating new content with the right language style
-				const { generateCode } = parseSvelte('', { typescript });
-				contentToWrite = generateCode({
-					script: script
-						.generateCode()
-						.replaceAll('$sv-title-$sv', playground.name)
-						.replaceAll('$sv-url-$sv', url),
-					template: template
-						.generateCode()
-						.replaceAll('onclick="{switchTheme}"', 'onclick={switchTheme}'),
-					css: css.generateCode()
+				const { ast, generateCode } = parseSvelte(file.contents);
+				// change title and url placeholders
+				const scriptAst = svelte.ensureScript(ast);
+				walk(scriptAst as js.AstTypes.Node, null, {
+					Literal(node) {
+						if (node.value === '$sv-title-$sv') {
+							node.value = playground.name;
+							node.raw = undefined;
+						} else if (node.value === '$sv-url-$sv') {
+							node.value = url;
+							node.raw = undefined;
+						}
+					}
 				});
+
+				contentToWrite = generateCode();
 			}
 
 			fs.writeFileSync(path.join(cwd, file.name), contentToWrite, 'utf-8');
@@ -210,18 +215,19 @@ export function setupPlaygroundProject(
 	// add app import to +page.svelte
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
-	const { script, generateCode } = parseSvelte(content, { typescript });
-	js.imports.addDefault(script.ast, { as: 'App', from: `$lib/playground/${mainFile.name}` });
-	js.imports.addDefault(script.ast, {
+	const { ast, generateCode } = parseSvelte(content);
+	const scriptAst = svelte.ensureScript(ast);
+	js.imports.addDefault(scriptAst, { as: 'App', from: `$lib/playground/${mainFile.name}` });
+	js.imports.addDefault(scriptAst, {
 		as: 'PlaygroundLayout',
 		from: `$lib/PlaygroundLayout.svelte`
 	});
-	const newContent = generateCode({
-		script: script.generateCode(),
-		template: `<PlaygroundLayout>
+	ast.fragment.nodes.push(
+		...svelte.toFragment(`<PlaygroundLayout>
 	<App />
-</PlaygroundLayout>`
-	});
+</PlaygroundLayout>`)
+	);
+	const newContent = generateCode();
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested

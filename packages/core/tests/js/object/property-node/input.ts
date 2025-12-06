@@ -1,4 +1,4 @@
 const test = {
-	/** a comment */
+	// prettier-ignore
 	foo: 1
 };
