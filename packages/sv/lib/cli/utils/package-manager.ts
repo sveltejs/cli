@@ -12,9 +12,9 @@ import {
 	detect,
 	type AgentName
 } from 'package-manager-detector';
-import { parseJson, parseYaml } from '../lib/core/tooling/parsers.ts';
-import { isVersionUnsupportedBelow } from '../lib/core/index.ts';
-import { getHighlighter } from '../commands/add/utils.ts';
+import { parseJson, parseYaml } from '../../core/tooling/parsers.ts';
+import { isVersionUnsupportedBelow } from '../../core/index.ts';
+import { getHighlighter } from '../../cli/add/utils.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')

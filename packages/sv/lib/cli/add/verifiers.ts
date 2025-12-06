@@ -1,11 +1,7 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import type {
-	AddonSetupResult,
-	AddonWithoutExplicitArgs,
-	Verification
-} from '../../lib/core/index.ts';
-import { UnsupportedError } from '../../utils/errors.ts';
+import type { AddonSetupResult, AddonWithoutExplicitArgs, Verification } from '../../core/index.ts';
+import { UnsupportedError } from '../utils/errors.ts';
 
 export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 	const verifications: Verification[] = [];

@@ -6,7 +6,7 @@ import { x, exec } from 'tinyexec';
 import { create } from './create/index.ts';
 import pstree, { type PS } from 'ps-tree';
 
-export { addPnpmBuildDependencies } from '../utils/package-manager.ts';
+export { addPnpmBuildDependencies } from './cli/utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 
 const TEMPLATES_DIR = '.templates';

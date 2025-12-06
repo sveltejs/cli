@@ -7,20 +7,20 @@ import {
 	communityAddonIds,
 	getAddonDetails,
 	getCommunityAddon
-} from '../../lib/addons/index.ts';
+} from '../../addons/index.ts';
 import type {
 	AddonSetupResult,
 	AddonWithoutExplicitArgs,
 	OptionValues,
 	Workspace
-} from '../../lib/core/index.ts';
+} from '../../core/index.ts';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import pc from 'picocolors';
 import * as v from 'valibot';
 
-import { applyAddons, setupAddons, type AddonMap } from '../../lib/addons/install.ts';
-import * as common from '../../utils/common.ts';
+import { applyAddons, setupAddons, type AddonMap } from '../../addons/install.ts';
+import * as common from '../utils/common.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import {
 	addPnpmBuildDependencies,
@@ -28,7 +28,7 @@ import {
 	installDependencies,
 	installOption,
 	packageManagerPrompt
-} from '../../utils/package-manager.ts';
+} from '../utils/package-manager.ts';
 import { Directive, downloadPackage, getPackageJSON } from './fetch-packages.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
 import { createWorkspace } from './workspace.ts';

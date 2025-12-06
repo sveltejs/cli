@@ -2,8 +2,8 @@ import { execSync } from 'node:child_process';
 import process from 'node:process';
 import { Command } from 'commander';
 import { resolveCommand } from 'package-manager-detector';
-import { getUserAgent } from '../utils/package-manager.ts';
-import { forwardExitCode } from '../utils/common.js';
+import { getUserAgent } from './utils/package-manager.ts';
+import { forwardExitCode } from './utils/common.ts';
 
 export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')

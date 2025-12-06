@@ -4,8 +4,8 @@ import pc from 'picocolors';
 import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
 import { resolveCommand } from 'package-manager-detector/commands';
-import { getUserAgent } from '../utils/package-manager.ts';
-import { forwardExitCode } from '../utils/common.js';
+import { getUserAgent } from './utils/package-manager.ts';
+import { forwardExitCode } from './utils/common.ts';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')

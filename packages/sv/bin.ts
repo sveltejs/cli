@@ -2,11 +2,11 @@
 
 import pkg from './package.json' with { type: 'json' };
 import { program } from 'commander';
-import { add } from './commands/add/index.ts';
-import { create } from './commands/create.ts';
-import { migrate } from './commands/migrate.ts';
-import { check } from './commands/check.ts';
-import { helpConfig } from './utils/common.ts';
+import { add } from './lib/cli/add/index.ts';
+import { create } from './lib/cli/create.ts';
+import { migrate } from './lib/cli/migrate.ts';
+import { check } from './lib/cli/check.ts';
+import { helpConfig } from './lib/cli/utils/common.ts';
 
 // adds a gap of spacing between the executing command and the output
 console.log();
