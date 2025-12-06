@@ -5,7 +5,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { parseJson } from '../../core/tooling/index.ts';
 
-const monoRepoPath = path.resolve(__dirname, '..', '..', '..');
+const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
 
 beforeAll(() => {
 	const testOutputCliPath = path.resolve(monoRepoPath, '.test-output', 'cli');
@@ -44,15 +44,7 @@ describe('cli', () => {
 		{ timeout: 10_000 },
 		async (testCase) => {
 			const { projectName, args } = testCase;
-			const svBinPath = path.resolve(
-				monoRepoPath,
-				'packages',
-				'sv',
-				'lib',
-				'cli',
-				'dist',
-				'bin.mjs'
-			);
+			const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
 			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
 
 			const result = await exec(

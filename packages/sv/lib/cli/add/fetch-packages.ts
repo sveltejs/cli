@@ -3,8 +3,6 @@ import path from 'node:path';
 import { createGunzip } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
-// TODO: replace tar-fs
-// import { extract } from 'tar-fs';
 import type { AddonWithoutExplicitArgs } from '../../core/index.ts';
 
 // path to the `node_modules` directory of `sv`
