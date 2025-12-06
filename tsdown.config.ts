@@ -5,17 +5,12 @@ import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
 
-const pkgJson = fs.readFileSync(path.resolve('packages', 'sv', 'package.json'), 'utf8');
-const pkg = JSON.parse(pkgJson);
-
 export default defineConfig({
 	cwd: 'packages/sv',
 	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
 	dts: {
-		oxc: true,
-		// setting `resolve: true` seems to anger Rolldown due to our `postcss` dep
-		resolve: Object.keys(pkg.devDependencies)
+		oxc: true
 	},
 	plugins: [
 		{

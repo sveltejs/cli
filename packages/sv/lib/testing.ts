@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import degit from 'degit';
 import { x, exec } from 'tinyexec';
-import { create } from '@sveltejs/create';
+import { create } from './create/index.ts';
 import pstree, { type PS } from 'ps-tree';
 
 export { addPnpmBuildDependencies } from '../utils/package-manager.ts';
