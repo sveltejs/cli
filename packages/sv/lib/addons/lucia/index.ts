@@ -7,10 +7,10 @@ import {
 	log,
 	utils,
 	Walker
-} from '@sveltejs/cli-core';
-import * as js from '@sveltejs/cli-core/js';
-import type { AstTypes } from '@sveltejs/cli-core/js';
-import { parseScript } from '@sveltejs/cli-core/parsers';
+} from '../../core/index.ts';
+import * as js from '../../core/tooling/js/index.ts';
+import type { AstTypes } from '../../core/tooling/js/index.ts';
+import { parseScript } from '../../core/tooling/parsers.ts';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { addToDemoPage } from '../common.ts';
 

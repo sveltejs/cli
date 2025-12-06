@@ -1,6 +1,6 @@
-import { imports, exports, common } from '@sveltejs/cli-core/js';
-import { toFragment, type SvelteAst, ensureScript } from '@sveltejs/cli-core/svelte';
-import { parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
+import { imports, exports, common } from '../core/tooling/js/index.ts';
+import { toFragment, type SvelteAst, ensureScript } from '../core/tooling/svelte/index.ts';
+import { parseScript, parseSvelte } from '../core/tooling/parsers.ts';
 import process from 'node:process';
 
 export function addEslintConfigPrettier(content: string): string {

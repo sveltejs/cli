@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import * as js from '@sveltejs/cli-core/js';
-import * as svelte from '@sveltejs/cli-core/svelte';
-import { parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
-import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import * as js from '../core/tooling/js/index.ts';
+import * as svelte from '../core/tooling/svelte/index.ts';
+import { parseJson, parseScript, parseSvelte } from '../core/tooling/parsers.ts';
+import { isVersionUnsupportedBelow } from '../core/index.ts';
 import { getSharedFiles } from './utils.ts';
 import { walk } from 'zimmerframe';
 

@@ -1,6 +1,6 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { exports, functions, imports, object } from '@sveltejs/cli-core/js';
-import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { defineAddon, defineAddonOptions } from '../../core/index.ts';
+import { exports, functions, imports, object } from '../../core/tooling/js/index.ts';
+import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },

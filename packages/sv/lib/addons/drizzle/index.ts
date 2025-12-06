@@ -1,8 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { common, exports, functions, imports, object, variables } from '@sveltejs/cli-core/js';
-import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '@sveltejs/cli-core';
-import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import {
+	common,
+	exports,
+	functions,
+	imports,
+	object,
+	variables
+} from '../../core/tooling/js/index.ts';
+import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '../../core/index.ts';
+import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
 

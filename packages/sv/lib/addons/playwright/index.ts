@@ -1,6 +1,6 @@
-import { dedent, defineAddon, log } from '@sveltejs/cli-core';
-import { common, exports, imports, object } from '@sveltejs/cli-core/js';
-import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { dedent, defineAddon, log } from '../../core/index.ts';
+import { common, exports, imports, object } from '../../core/tooling/js/index.ts';
+import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 
 export default defineAddon({
 	id: 'playwright',

@@ -1,6 +1,6 @@
-import { dedent, defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { array, imports, object, functions, vite } from '@sveltejs/cli-core/js';
-import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+import { dedent, defineAddon, defineAddonOptions } from '../../core/index.ts';
+import { array, imports, object, functions, vite } from '../../core/tooling/js/index.ts';
+import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {

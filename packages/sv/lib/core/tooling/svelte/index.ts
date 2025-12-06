@@ -16,6 +16,7 @@ export function ensureScript(
 			start: 0,
 			end: 0,
 			context: 'default',
+			// @ts-expect-error
 			attributes: options?.langTs
 				? [
 						{
@@ -43,6 +44,7 @@ export function addSlot(
 		(options.svelteVersion.startsWith('4') || options.svelteVersion.startsWith('3'));
 
 	if (slotSyntax) {
+		// @ts-expect-error
 		ast.fragment.nodes.push({
 			type: 'SlotElement',
 			attributes: [],

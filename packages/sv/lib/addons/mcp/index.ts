@@ -1,7 +1,7 @@
-import { defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
-import { parseJson } from '@sveltejs/cli-core/parsers';
+import { defineAddon, defineAddonOptions, log } from '../../core/index.ts';
+import { parseJson } from '../../core/tooling/parsers.ts';
 import { getSharedFiles } from '../../create/utils.ts';
-import { getHighlighter } from '../../cli/commands/add/utils.ts';
+import { getHighlighter } from '../../../commands/add/utils.ts';
 
 const options = defineAddonOptions()
 	.add('ide', {

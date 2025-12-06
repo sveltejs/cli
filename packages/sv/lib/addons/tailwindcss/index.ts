@@ -1,7 +1,7 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { imports, vite } from '@sveltejs/cli-core/js';
-import * as svelte from '@sveltejs/cli-core/svelte';
-import { parseCss, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
+import { defineAddon, defineAddonOptions } from '../../core/index.ts';
+import { imports, vite } from '../../core/tooling/js/index.ts';
+import * as svelte from '../../core/tooling/svelte/index.ts';
+import { parseCss, parseJson, parseScript, parseSvelte } from '../../core/tooling/parsers.ts';
 
 const plugins = [
 	{

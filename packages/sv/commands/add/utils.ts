@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
-import { parseJson } from '@sveltejs/cli-core/parsers';
+import { parseJson } from '../../lib/core/tooling/parsers.ts';
 import { resolveCommand, type AgentName } from 'package-manager-detector';
-import type { Highlighter, Workspace } from '@sveltejs/cli-core';
+import type { Highlighter, Workspace } from '../../lib/core/index.ts';
 import * as p from '@clack/prompts';
 
 export type Package = {

@@ -1,6 +1,6 @@
-import { dedent, defineAddon, log, colors } from '@sveltejs/cli-core';
+import { dedent, defineAddon, log, colors } from '../../core/index.ts';
 import { addEslintConfigPrettier } from '../common.ts';
-import { parseJson } from '@sveltejs/cli-core/parsers';
+import { parseJson } from '../../core/tooling/parsers.ts';
 
 export default defineAddon({
 	id: 'prettier',

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
 // TODO: replace tar-fs
 // import { extract } from 'tar-fs';
-import type { AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
+import type { AddonWithoutExplicitArgs } from '../../lib/core/index.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));

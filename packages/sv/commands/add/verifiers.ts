@@ -1,6 +1,10 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { AddonSetupResult, AddonWithoutExplicitArgs, Verification } from '@sveltejs/cli-core';
+import type {
+	AddonSetupResult,
+	AddonWithoutExplicitArgs,
+	Verification
+} from '../../lib/core/index.ts';
 import { UnsupportedError } from '../../utils/errors.ts';
 
 export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {

@@ -1,5 +1,5 @@
 import process from 'node:process';
-import { defineAddon } from '@sveltejs/cli-core';
+import { defineAddon } from '../../core/index.ts';
 import { getNodeTypesVersion } from '../common.ts';
 
 export default defineAddon({

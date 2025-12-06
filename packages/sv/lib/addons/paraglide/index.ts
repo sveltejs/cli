@@ -1,8 +1,15 @@
-import { colors, defineAddon, defineAddonOptions, log } from '@sveltejs/cli-core';
-import { common, imports, variables, exports, kit as kitJs, vite } from '@sveltejs/cli-core/js';
-import * as html from '@sveltejs/cli-core/html';
-import * as svelte from '@sveltejs/cli-core/svelte';
-import { parseHtml, parseJson, parseScript, parseSvelte } from '@sveltejs/cli-core/parsers';
+import { colors, defineAddon, defineAddonOptions, log } from '../../core/index.ts';
+import {
+	common,
+	imports,
+	variables,
+	exports,
+	kit as kitJs,
+	vite
+} from '../../core/tooling/js/index.ts';
+import * as html from '../../core/tooling/html/index.ts';
+import * as svelte from '../../core/tooling/svelte/index.ts';
+import { parseHtml, parseJson, parseScript, parseSvelte } from '../../core/tooling/parsers.ts';
 import { addToDemoPage } from '../common.ts';
 
 const DEFAULT_INLANG_PROJECT = {

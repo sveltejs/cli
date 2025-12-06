@@ -12,8 +12,8 @@ import {
 	detect,
 	type AgentName
 } from 'package-manager-detector';
-import { parseJson, parseYaml } from '@sveltejs/cli-core/parsers';
-import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import { parseJson, parseYaml } from '../lib/core/tooling/parsers.ts';
+import { isVersionUnsupportedBelow } from '../lib/core/index.ts';
 import { getHighlighter } from '../commands/add/utils.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(

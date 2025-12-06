@@ -1,4 +1,4 @@
-import { defineAddon, log } from '@sveltejs/cli-core';
+import { defineAddon, log } from '../../core/index.ts';
 import {
 	array,
 	common,
@@ -8,8 +8,8 @@ import {
 	object,
 	variables,
 	type AstTypes
-} from '@sveltejs/cli-core/js';
-import { parseJson, parseScript } from '@sveltejs/cli-core/parsers';
+} from '../../core/tooling/js/index.ts';
+import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 import { addEslintConfigPrettier, getNodeTypesVersion } from '../common.ts';
 
 export default defineAddon({

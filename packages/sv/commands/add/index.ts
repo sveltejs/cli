@@ -7,13 +7,13 @@ import {
 	communityAddonIds,
 	getAddonDetails,
 	getCommunityAddon
-} from '@sveltejs/addons';
+} from '../../lib/addons/index.ts';
 import type {
 	AddonSetupResult,
 	AddonWithoutExplicitArgs,
 	OptionValues,
 	Workspace
-} from '@sveltejs/cli-core';
+} from '../../lib/core/index.ts';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import pc from 'picocolors';

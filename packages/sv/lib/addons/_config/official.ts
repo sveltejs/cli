@@ -1,4 +1,4 @@
-import type { Addon, AddonWithoutExplicitArgs } from '@sveltejs/cli-core';
+import type { Addon, AddonWithoutExplicitArgs } from '../../core/index.ts';
 
 import devtoolsJson from '../devtools-json/index.ts';
 import drizzle from '../drizzle/index.ts';

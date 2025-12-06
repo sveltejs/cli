@@ -4,7 +4,7 @@ import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
-import { isVersionUnsupportedBelow } from '@sveltejs/cli-core';
+import { isVersionUnsupportedBelow } from '../lib/core/index.ts';
 import { resolveCommand, type AgentName } from 'package-manager-detector';
 
 const NO_PREFIX = '--no-';

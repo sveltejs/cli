@@ -1,15 +1,15 @@
-import { buildTemplates } from '@sveltejs/create/build';
+// import { buildTemplates } from '@sveltejs/create/build';
 import MagicString from 'magic-string';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
 
-const pkgJson = fs.readFileSync(path.resolve('packages', 'cli', 'package.json'), 'utf8');
+const pkgJson = fs.readFileSync(path.resolve('packages', 'sv', 'package.json'), 'utf8');
 const pkg = JSON.parse(pkgJson);
 
 export default defineConfig({
-	cwd: 'packages/cli',
+	cwd: 'packages/sv',
 	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
 	dts: {
@@ -41,14 +41,14 @@ export default defineConfig({
 	},
 	hooks: {
 		async 'build:before'() {
-			await buildCliTemplates();
+			// await buildCliTemplates();
 		}
 	}
 });
 
-export async function buildCliTemplates() {
-	const start = performance.now();
-	await buildTemplates(path.resolve('packages/cli/dist'));
-	await buildTemplates(path.resolve('packages/create/dist'));
-	console.log(`  Build templates in ${Math.round(performance.now() - start)}ms`);
-}
+// export async function buildCliTemplates() {
+// 	const start = performance.now();
+// 	await buildTemplates(path.resolve('packages/cli/dist'));
+// 	await buildTemplates(path.resolve('packages/create/dist'));
+// 	console.log(`  Build templates in ${Math.round(performance.now() - start)}ms`);
+// }

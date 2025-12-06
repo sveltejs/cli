@@ -2,20 +2,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import type { OptionValues, Workspace } from '@sveltejs/cli-core';
+import type { OptionValues, Workspace } from '../lib/core/index.ts';
 import {
 	create as createKit,
 	templates,
 	type LanguageType,
 	type TemplateType
-} from '@sveltejs/create';
+} from '../lib/create/index.ts';
 import {
 	detectPlaygroundDependencies,
 	downloadPlaygroundData,
 	parsePlaygroundUrl,
 	setupPlaygroundProject,
 	validatePlaygroundUrl
-} from '@sveltejs/create/playground';
+} from '../lib/create/playground.ts';
 import { Command, Option } from 'commander';
 import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
@@ -39,7 +39,7 @@ import {
 } from './add/index.ts';
 import { commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
-import { dist } from '../../create/utils.ts';
+import { dist } from '../lib/create/utils.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {

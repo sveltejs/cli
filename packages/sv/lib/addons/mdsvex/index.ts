@@ -1,6 +1,6 @@
-import { defineAddon } from '@sveltejs/cli-core';
-import { array, exports, functions, imports, object } from '@sveltejs/cli-core/js';
-import { parseScript } from '@sveltejs/cli-core/parsers';
+import { defineAddon } from '../../core/index.ts';
+import { array, exports, functions, imports, object } from '../../core/tooling/js/index.ts';
+import { parseScript } from '../../core/tooling/parsers.ts';
 
 export default defineAddon({
 	id: 'mdsvex',
