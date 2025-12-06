@@ -1,7 +1,7 @@
-import { defineAddon, defineAddonOptions } from '@sveltejs/cli-core';
-import { imports } from '@sveltejs/cli-core/js';
-import * as svelte from '@sveltejs/cli-core/svelte';
-import { parseSvelte } from '@sveltejs/cli-core/parsers';
+import { defineAddon, defineAddonOptions } from 'sv/core';
+import { imports } from 'sv/core/js';
+import * as svelte from 'sv/core/svelte';
+import { parseSvelte } from 'sv/core/parsers';
 
 export const options = defineAddonOptions()
 	.add('demo', {
