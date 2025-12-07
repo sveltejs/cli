@@ -55,7 +55,6 @@
 		"magic-string": "^0.30.21",
 		"package-manager-detector": "^0.2.11",
 		"picocolors": "^1.1.1",
-		"postcss": "^8.5.6",
 		"ps-tree": "^1.2.0",
 		"silver-fleece": "^1.2.1",
 		"sucrase": "^3.35.0",
