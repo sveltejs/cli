@@ -6,9 +6,7 @@
 	"scripts": {
 		"demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
 		"demo-add": "sv add -C demo --community file:../ --no-git-check --no-install",
-		"test": "vitest run",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch"
+		"test": "vitest run"
 	},
 	"files": [
 		"src",
@@ -20,8 +18,6 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.56.1",
-		"svelte-check": "^4.3.4",
-		"typescript": "^5.9.3",
 		"vitest": "4.0.7"
 	},
 	"keywords": [

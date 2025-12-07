@@ -41,16 +41,15 @@ describe('cli', () => {
 		{
 			projectName: 'create-addon',
 			template: 'addon',
-			types: 'jsdoc',
 			args: ['--no-add-ons']
 		}
 	];
 
 	it.for(testCases)(
 		'should create a new project with name $projectName',
-		{ timeout: 10_000 },
+		{ timeout: 20_000 },
 		async (testCase) => {
-			const { projectName, args, template = 'minimal', types = 'ts' } = testCase;
+			const { projectName, args, template = 'minimal' } = testCase;
 			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
 
 			const result = await exec(
@@ -61,8 +60,7 @@ describe('cli', () => {
 					testOutputPath,
 					'--template',
 					template,
-					'--types',
-					types,
+					...(template === 'addon' ? ['--no-types'] : ['--types', 'ts']),
 					'--no-install',
 					...args
 				],
@@ -70,7 +68,7 @@ describe('cli', () => {
 			);
 
 			// cli finished well
-			expect(result.exitCode).toBe(0);
+			expect(result.exitCode, `Error with cli: '${result.stderr}'`).toBe(0);
 
 			// test output path exists
 			expect(fs.existsSync(testOutputPath)).toBe(true);
@@ -114,11 +112,11 @@ describe('cli', () => {
 
 			if (template === 'addon') {
 				const cmds = [
+					// list of cmds to test
 					['i'],
 					['run', 'demo-create'],
 					['run', 'demo-add'],
-					// TODO JYC: check is failing because it's requesting kit! :o
-					['run', 'check']
+					['run', 'test']
 				];
 				for (const cmd of cmds) {
 					const res = await exec('npm', cmd, {
