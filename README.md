@@ -8,7 +8,7 @@ Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details
 
 | Package                            | Changelog                                  | Documentation                                           |
 | ---------------------------------- | ------------------------------------------ | ------------------------------------------------------- |
-| [sv](packages/cli)                 | [Changelog](packages/cli/CHANGELOG.md)     | [Documentation](https://svelte.dev/docs/cli/overview)   |
+| [sv](packages/sv)                  | [Changelog](packages/sv/CHANGELOG.md)      | [Documentation](https://svelte.dev/docs/cli/overview)   |
 | [svelte-migrate](packages/migrate) | [Changelog](packages/migrate/CHANGELOG.md) | [Documentation](https://svelte.dev/docs/cli/sv-migrate) |
 
 ## Contributing

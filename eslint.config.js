@@ -24,15 +24,14 @@ export default [
 	},
 	{
 		ignores: [
-			'packages/create/shared/**/*',
-			'packages/create/scripts/**/*',
-			'packages/create/templates/**/*',
 			'**/temp/*',
 			'**/.test-output/*',
 			'**/dist/*',
-			'packages/**/tests/**/{output,input}.ts',
-			'packages/cli/tests/snapshots/*',
-			'rolldown.config.js',
+			'packages/sv/lib/create/shared/**/*',
+			'packages/sv/lib/create/scripts/**/*',
+			'packages/sv/lib/create/templates/**/*',
+			'packages/sv/lib/cli/tests/snapshots/*',
+			'packages/sv/lib/**/tests/**/{output,input}.ts',
 			'community-addon-template/tests/*'
 		]
 	}

@@ -1,21 +1,16 @@
-import { buildTemplates } from '@sveltejs/create/build';
+import { buildTemplates } from './packages/sv/lib/create/scripts/build-templates.js';
 import MagicString from 'magic-string';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
 
-const pkgJson = fs.readFileSync(path.resolve('packages', 'cli', 'package.json'), 'utf8');
-const pkg = JSON.parse(pkgJson);
-
 export default defineConfig({
-	cwd: 'packages/cli',
-	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts'],
+	cwd: 'packages/sv',
+	entry: ['lib/index.ts', 'lib/testing.ts', 'bin.ts', 'lib/core/index.ts'],
 	sourcemap: !process.env.CI,
 	dts: {
-		oxc: true,
-		// setting `resolve: true` seems to anger Rolldown due to our `postcss` dep
-		resolve: Object.keys(pkg.devDependencies)
+		oxc: true
 	},
 	plugins: [
 		{
@@ -48,7 +43,9 @@ export default defineConfig({
 
 export async function buildCliTemplates() {
 	const start = performance.now();
-	await buildTemplates(path.resolve('packages/cli/dist'));
-	await buildTemplates(path.resolve('packages/create/dist'));
-	console.log(`  Build templates in ${Math.round(performance.now() - start)}ms`);
+	await buildTemplates(path.resolve('packages/sv/dist'));
+	await buildTemplates(path.resolve('packages/sv/lib/create/dist'));
+	const green = '\x1b[32m';
+	const reset = '\x1b[0m';
+	console.log(`${green}✔${reset} Templates built in ${Math.round(performance.now() - start)}ms`);
 }

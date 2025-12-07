@@ -15,11 +15,10 @@
 	],
 	"exports": "./src/index.js",
 	"dependencies": {
-		"@sveltejs/cli-core": "workspace:*"
+		"sv": "workspace:*"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.56.1",
-		"sv": "workspace:*",
 		"vitest": "4.0.7"
 	},
 	"keywords": [
