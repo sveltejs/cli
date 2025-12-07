@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { mkdirp, copy, dist, getSharedFiles } from './utils.ts';
+import { mkdirp, copy, dist, getSharedFiles, replace } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
@@ -49,10 +49,16 @@ export const templates: TemplateMetadata[] = templateTypes.map((dir) => {
 	};
 });
 
+const kv = (name: string) => {
+	return {
+		'~SV-NAME-TODO~': name
+	};
+};
+
 function write_template_files(template: string, types: LanguageType, name: string, cwd: string) {
 	const dir = dist(`templates/${template}`);
-	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'));
-	copy(`${dir}/package.json`, `${cwd}/package.json`);
+	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'), kv(name));
+	copy(`${dir}/package.json`, `${cwd}/package.json`, undefined, kv(name));
 
 	const manifest = `${dir}/files.types=${types}.json`;
 	const files = JSON.parse(fs.readFileSync(manifest, 'utf-8')) as File[];
@@ -60,8 +66,7 @@ function write_template_files(template: string, types: LanguageType, name: strin
 	files.forEach((file) => {
 		const dest = path.join(cwd, file.name);
 		mkdirp(path.dirname(dest));
-
-		fs.writeFileSync(dest, file.contents.replace(/~SV-NAME-TODO~/g, name));
+		fs.writeFileSync(dest, replace(file.contents, kv(name)));
 	});
 }
 
@@ -69,7 +74,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 	const files = getSharedFiles();
 
 	const pkg_file = path.join(cwd, 'package.json');
-	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
+	const pkg = JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
 
 	sort_files(files).forEach((file) => {
 		const include = file.include.every((condition) => matches_condition(condition, options));
@@ -83,7 +88,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 		} else {
 			const dest = path.join(cwd, file.name);
 			mkdirp(path.dirname(dest));
-			fs.writeFileSync(dest, file.contents.replace(/~SV-NAME-TODO~/g, name));
+			fs.writeFileSync(dest, replace(file.contents, kv(name)));
 		}
 	});
 

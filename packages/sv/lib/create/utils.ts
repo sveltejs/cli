@@ -17,22 +17,29 @@ function identity<T>(x: T): T {
 	return x;
 }
 
+export function replace(contents: string, kv: Record<string, string>): string {
+	for (const [key, value] of Object.entries(kv)) {
+		contents = contents.replaceAll(key, value);
+	}
+	return contents;
+}
+
 export function copy(
 	from: string,
 	to: string,
-	rename: (basename: string) => string = identity
+	rename: (basename: string) => string = identity,
+	kv: Record<string, string> = {}
 ): void {
 	if (!fs.existsSync(from)) return;
-
 	const stats = fs.statSync(from);
 
 	if (stats.isDirectory()) {
 		fs.readdirSync(from).forEach((file) => {
-			copy(path.join(from, file), path.join(to, rename(file)));
+			copy(path.join(from, file), path.join(to, rename(file)), rename, kv);
 		});
 	} else {
 		mkdirp(path.dirname(to));
-		fs.copyFileSync(from, to);
+		fs.writeFileSync(to, replace(fs.readFileSync(from, 'utf-8'), kv));
 	}
 }
 

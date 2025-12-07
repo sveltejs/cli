@@ -1,4 +1,4 @@
-# sv community addon: ~SV-NAME-TODO~
+# sv community addon: create-addon
 
 > [!IMPORTANT]
 > Community add-ons are currently not supported. Please see [#184](https://github.com/sveltejs/cli/issues/184) for details.
@@ -41,7 +41,7 @@ Your published add-on can now be used by anyone!
 To execute the newly published package with `sv`, run:
 
 ```shell
-npx sv add npm:~SV-NAME-TODO~
+npx sv add npm:create-addon
 ```
 
 ## Things to be aware of

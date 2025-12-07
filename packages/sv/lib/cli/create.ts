@@ -219,10 +219,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
 		template,
-		type: language
+		type: language as LanguageType
 	});
 
-	if ((options.addOns || options.add.length > 0) && options.template !== 'addon') {
+	if (options.template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const addons = options.add.reduce(addonArgsHandler, []);
 		sanitizedAddonsMap = sanitizeAddons(addons).reduce<Record<string, string[] | undefined>>(
 			(acc, curr) => {
@@ -252,7 +252,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	createKit(projectPath, {
 		name: projectName,
 		template,
-		types: language
+		types: language as LanguageType
 	});
 
 	if (options.fromPlayground) {
@@ -264,7 +264,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnNextSteps: string[] = [];
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
-	if (options.addOns || options.add.length > 0) {
+	if (options.template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
 			nextSteps,
 			argsFormattedAddons: argsFormatted,

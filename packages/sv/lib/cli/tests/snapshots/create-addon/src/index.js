@@ -9,18 +9,18 @@ export const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: '~SV-NAME-TODO~',
+	id: 'create-addon',
 	options,
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, typescript }) => {
-		sv.file(`src/lib/~SV-NAME-TODO~/addon-template-demo.txt`, (content) => {
+		sv.file(`src/lib/create-addon/addon-template-demo.txt`, (content) => {
 			// if (!options.demo) return content;
-			return `This is a text file made by the Community Addon Template demo! with your add-on: ~SV-NAME-TODO~!`;
+			return `This is a text file made by the Community Addon Template demo! with your add-on: create-addon!`;
 		});
 
-		sv.file(`src/lib/~SV-NAME-TODO~/DemoComponent.svelte`, (content) => {
+		sv.file(`src/lib/create-addon/DemoComponent.svelte`, (content) => {
 			// if (!options.demo) return content;
 			const { ast, generateCode } = parseSvelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
@@ -36,7 +36,7 @@ export default defineAddon({
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
 			js.imports.addDefault(scriptAst, {
-				from: `$lib/~SV-NAME-TODO~/DemoComponent.svelte`,
+				from: `$lib/create-addon/DemoComponent.svelte`,
 				as: 'DemoComponent'
 			});
 

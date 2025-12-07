@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import { parseJson } from '../../core/tooling/index.ts';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
+const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
 
 beforeAll(() => {
 	const testOutputCliPath = path.resolve(monoRepoPath, '.test-output', 'cli');
@@ -36,6 +37,12 @@ describe('cli', () => {
 				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
 				// 'storybook' // No storybook addon during tests!
 			]
+		},
+		{
+			projectName: 'create-addon',
+			template: 'addon',
+			types: 'jsdoc',
+			args: ['--no-add-ons']
 		}
 	];
 
@@ -43,8 +50,7 @@ describe('cli', () => {
 		'should create a new project with name $projectName',
 		{ timeout: 10_000 },
 		async (testCase) => {
-			const { projectName, args } = testCase;
-			const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
+			const { projectName, args, template = 'minimal', types = 'ts' } = testCase;
 			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
 
 			const result = await exec(
@@ -54,9 +60,9 @@ describe('cli', () => {
 					'create',
 					testOutputPath,
 					'--template',
-					'minimal',
+					template,
 					'--types',
-					'ts',
+					types,
 					'--no-install',
 					...args
 				],
@@ -104,6 +110,22 @@ describe('cli', () => {
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
 				);
+			}
+
+			if (template === 'addon') {
+				const cmds = [
+					['i'],
+					['run', 'demo-create'],
+					['run', 'demo-add'],
+					// TODO JYC: check is failing because it's requesting kit! :o
+					['run', 'check']
+				];
+				for (const cmd of cmds) {
+					const res = await exec('npm', cmd, {
+						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+					});
+					expect(res.exitCode, `Error with cmd: '${cmd}' -> ${res.stderr}`).toBe(0);
+				}
 			}
 		}
 	);

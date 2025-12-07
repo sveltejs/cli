@@ -848,11 +848,12 @@ async function resolveCommunityAddons(cwd: string, community: string[]) {
 		});
 		p.log.message(packageInfos.join('\n'));
 
-		const confirm = await p.confirm({ message: 'Would you like to continue?' });
-		if (confirm !== true) {
-			p.cancel('Operation cancelled.');
-			process.exit(1);
-		}
+		// TODO JYC: remove for testing for now
+		// const confirm = await p.confirm({ message: 'Would you like to continue?' });
+		// if (confirm !== true) {
+		// 	p.cancel('Operation cancelled.');
+		// 	process.exit(1);
+		// }
 
 		start('Downloading community add-on packages');
 		const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));

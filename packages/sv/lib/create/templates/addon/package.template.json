@@ -4,19 +4,18 @@
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"create": "sv create demo --types ts --template minimal --no-add-ons",
-		"add": "sv add -C demo --community file:../ --no-git-check",
+		"demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
+		"demo-add": "sv add -C demo --community file:../ --no-git-check --no-install",
 		"test": "vitest run"
 	},
 	"files": ["src", "!src/**/*.test.*"],
 	"exports": "./src/index.js",
 	"dependencies": {
-		"@sveltejs/cli-core": "workspace:*"
+		"sv": "workspace:*"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.53.1",
-		"sv": "workspace:*",
-		"vitest": "4.0.0-beta.6"
+		"@playwright/test": "^1.56.1",
+		"vitest": "4.0.7"
 	},
 	"keywords": ["svelte-add-on", "sv", "sv-add-on"]
 }
