@@ -111,7 +111,12 @@ export function serializeCss(ast: SvelteAst.CSS.StyleSheet): string {
 		const child = ast.children[i];
 		result += sveltePrint(child).code;
 
-		if (i < ast.children.length - 1) result += '\n\n';
+		if (i < ast.children.length - 1) {
+			const next = ast.children[i + 1];
+
+			if (child.type === 'Atrule' && next.type === 'Atrule') result += '\n';
+			else result += '\n\n';
+		}
 	}
 
 	return result;
