@@ -66,19 +66,6 @@ importers:
         specifier: 4.0.7
         version: 4.0.7(@types/node@22.19.1)(@vitest/ui@4.0.7)(jiti@2.6.1)(yaml@2.8.1)
 
-  community-addon-template:
-    dependencies:
-      sv:
-        specifier: workspace:*
-        version: link:../packages/sv
-    devDependencies:
-      '@playwright/test':
-        specifier: ^1.56.1
-        version: 1.56.1
-      vitest:
-        specifier: 4.0.7
-        version: 4.0.7(@types/node@22.19.1)(@vitest/ui@4.0.7)(jiti@2.6.1)(yaml@2.8.1)
-
   packages/migrate:
     dependencies:
       '@clack/prompts':

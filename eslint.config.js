@@ -31,8 +31,7 @@ export default [
 			'packages/sv/lib/create/scripts/**/*',
 			'packages/sv/lib/create/templates/**/*',
 			'packages/sv/lib/cli/tests/snapshots/*',
-			'packages/sv/lib/**/tests/**/{output,input}.ts',
-			'community-addon-template/tests/*'
+			'packages/sv/lib/**/tests/**/{output,input}.ts'
 		]
 	}
 ];

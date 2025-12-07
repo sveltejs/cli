@@ -5,7 +5,7 @@ import { mkdirp, copy, dist, getSharedFiles } from './utils.ts';
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
 
-const templateTypes = ['minimal', 'demo', 'library'] as const;
+const templateTypes = ['minimal', 'demo', 'library', 'addon'] as const;
 const languageTypes = ['typescript', 'checkjs', 'none'] as const;
 
 export type Options = {
@@ -61,7 +61,7 @@ function write_template_files(template: string, types: LanguageType, name: strin
 		const dest = path.join(cwd, file.name);
 		mkdirp(path.dirname(dest));
 
-		fs.writeFileSync(dest, file.contents.replace(/~TODO~/g, name));
+		fs.writeFileSync(dest, file.contents.replace(/~SV-NAME-TODO~/g, name));
 	});
 }
 
@@ -83,7 +83,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 		} else {
 			const dest = path.join(cwd, file.name);
 			mkdirp(path.dirname(dest));
-			fs.writeFileSync(dest, file.contents);
+			fs.writeFileSync(dest, file.contents.replace(/~SV-NAME-TODO~/g, name));
 		}
 	});
 

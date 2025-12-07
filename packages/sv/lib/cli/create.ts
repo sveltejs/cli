@@ -186,8 +186,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 					options: templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }))
 				});
 			},
-			language: () => {
+			language: (o) => {
 				if (options.types) return Promise.resolve(options.types);
+				if (o.results.template === 'addon') return Promise.resolve('none');
 				return p.select<LanguageType>({
 					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
@@ -221,7 +222,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		type: language
 	});
 
-	if (options.addOns || options.add.length > 0) {
+	if ((options.addOns || options.add.length > 0) && options.template !== 'addon') {
 		const addons = options.add.reduce(addonArgsHandler, []);
 		sanitizedAddonsMap = sanitizeAddons(addons).reduce<Record<string, string[] | undefined>>(
 			(acc, curr) => {
