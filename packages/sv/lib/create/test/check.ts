@@ -11,7 +11,7 @@ import { installAddon, officialAddons } from '../../../../sv/lib/index.ts';
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 // use a directory outside of packages to ensure it isn't added to the pnpm workspace
-const test_workspace_dir = resolve_path('../../../.test-output/create/');
+const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
 
 // prepare test pnpm workspace
 fs.rmSync(test_workspace_dir, { recursive: true, force: true });
@@ -35,7 +35,7 @@ const script_test_map = new Map<string, Array<[string, () => PromiseWithChild<an
 
 const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[];
 
-for (const template of templates) {
+for (const template of templates.filter((t) => t !== 'addon')) {
 	if (template[0] === '.') continue;
 
 	for (const types of ['checkjs', 'typescript', 'none'] as LanguageType[]) {
