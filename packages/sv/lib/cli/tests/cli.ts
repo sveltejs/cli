@@ -39,7 +39,7 @@ describe('cli', () => {
 			]
 		},
 		{
-			projectName: 'create-addon',
+			projectName: 'hello',
 			template: 'addon',
 			args: ['--no-add-ons']
 		}
