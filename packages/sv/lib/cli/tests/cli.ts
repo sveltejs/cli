@@ -114,7 +114,7 @@ describe('cli', () => {
 				// replace sv version in package.json for tests
 				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 				const packageJson = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
-				packageJson.dependencies['sv'] = 'file:../../packages/sv';
+				packageJson.dependencies['sv'] = 'file:../../../packages/sv';
 				fs.writeFileSync(
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
