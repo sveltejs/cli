@@ -14,7 +14,7 @@
 	],
 	"exports": "./src/index.js",
 	"dependencies": {
-		"sv": "file:../../packages/sv"
+		"sv": "latest"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.56.1",

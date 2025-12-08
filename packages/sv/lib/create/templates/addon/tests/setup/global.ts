@@ -1,8 +1,7 @@
 import { fileURLToPath } from 'node:url';
-import { setup, type ProjectVariant } from 'sv/testing';
+import { setup, variants, type ProjectVariant } from 'sv/testing';
 import type { TestProject } from 'vitest/node';
 
-const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 const TEST_DIR = fileURLToPath(new URL('../../.test-output/', import.meta.url));
 
 export default async function ({ provide }: TestProject) {

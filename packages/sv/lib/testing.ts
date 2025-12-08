@@ -8,6 +8,7 @@ import pstree, { type PS } from 'ps-tree';
 
 export { addPnpmBuildDependencies } from './cli/utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
+export const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 
 const TEMPLATES_DIR = '.templates';
 

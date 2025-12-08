@@ -1,35 +1,49 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { promisify } from 'node:util';
+import { exec, execSync } from 'node:child_process';
 import * as vitest from 'vitest';
 import { installAddon } from 'sv';
-import { addPnpmBuildDependencies, createProject, startPreview } from 'sv/testing';
+import { createProject, startPreview, addPnpmBuildDependencies } from 'sv/testing';
 import { chromium } from '@playwright/test';
-import { fileURLToPath } from 'node:url';
 
 const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');
 const variants = vitest.inject('variants');
 
-const SETUP_DIR = fileURLToPath(new URL('.', import.meta.url));
+export const execAsync = promisify(exec);
 
-export function setupTest(addons) {
+export function setupTest(addons, options) {
+	const test = vitest.test.extend({});
+
+	const withBrowser = options?.browser ?? true;
+
 	let create;
 	let browser;
 
-	const test = vitest.test.extend({});
+	if (withBrowser) {
+		vitest.beforeAll(async () => {
+			browser = await chromium.launch();
+			return async () => {
+				await browser.close();
+			};
+		});
+	}
 
-	vitest.beforeAll(async () => {
-		browser = await chromium.launch();
-		return async () => {
-			await browser.close();
-		};
-	});
+	const testCases = [];
+	for (const kind of options?.kinds ?? []) {
+		for (const variant of variants) {
+			const addonTestCase = { variant, kind };
+			if (options?.filter === undefined || options.filter(addonTestCase)) {
+				testCases.push(addonTestCase);
+			}
+		}
+	}
+	let testName;
+	vitest.beforeAll(async ({ name }) => {
+		testName = path.dirname(name).split('/').at(-1);
 
-	vitest.beforeAll(({ name }) => {
-		const testName = path.parse(name).name.replace('.test', '');
-
-		// constructs a builder for create test projects
+		// constructs a builder to create test projects
 		create = createProject({ cwd, templatesDir, testName });
 
 		// creates a pnpm workspace in each addon dir
@@ -47,72 +61,77 @@ export function setupTest(addons) {
 				private: true
 			})
 		);
+
+		for (const addonTestCase of testCases) {
+			const { variant, kind } = addonTestCase;
+			const cwd = create({ testId: `${kind.type}-${variant}`, variant });
+
+			// test metadata
+			const metaPath = path.resolve(cwd, 'meta.json');
+			fs.writeFileSync(metaPath, JSON.stringify({ variant, kind }, null, '\t'), 'utf8');
+
+			if (options?.preInstallAddon) {
+				await options.preInstallAddon({ addonTestCase, cwd });
+			}
+			const { pnpmBuildDependencies } = await installAddon({
+				cwd,
+				addons,
+				options: kind.options,
+				packageManager: 'pnpm'
+			});
+			await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+		}
+
+		execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
 	});
 
 	// runs before each test case
 	vitest.beforeEach(async (ctx) => {
-		const browserCtx = await browser.newContext();
-		ctx.page = await browserCtx.newPage();
-		ctx.run = async (variant, options) => {
-			const cwd = create({ testId: ctx.task.id, variant });
+		let browserCtx;
+		if (withBrowser) {
+			browserCtx = await browser.newContext();
+			ctx.page = await browserCtx.newPage();
+		}
 
-			// test metadata
-			const metaPath = path.resolve(cwd, 'meta.json');
-			fs.writeFileSync(metaPath, JSON.stringify({ variant, options }, null, '\t'), 'utf8');
-
-			// run addon
-			const { pnpmBuildDependencies } = await installAddon({
-				cwd,
-				addons,
-				options,
-				packageManager: 'pnpm'
-			});
-			addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
-
-			return cwd;
+		ctx.cwd = (addonTestCase) => {
+			return path.join(cwd, testName, `${addonTestCase.kind.type}-${addonTestCase.variant}`);
 		};
 
 		return async () => {
-			await browserCtx.close();
+			if (withBrowser) {
+				await browserCtx.close();
+			}
 			// ...other tear downs
 		};
 	});
 
-	return {
-		test,
-		variants,
-		prepareServer
-	};
+	return { test, testCases, prepareServer };
 }
 
-/**
- * Installs dependencies, builds the project, and spins up the preview server
- */
-async function prepareServer({ cwd, page }) {
-	// install deps
-	execSync('pnpm install --no-frozen-lockfile', { cwd, stdio: 'pipe' });
-
-	// ...do commands and any other extra stuff
-
+// installs dependencies, builds the project, and spins up the preview server
+async function prepareServer({
+	cwd,
+	page,
+	buildCommand = 'pnpm build',
+	previewCommand = 'pnpm preview'
+}) {
 	// build project
-	execSync('npm run build', { cwd, stdio: 'pipe' });
+	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
 
-	// start preview server `vite preview`
-	const { url, close } = await startPreview({ cwd });
+	// start preview server
+	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
-	// navigate to the page
-	await page.goto(url);
+	// increases timeout as 30s is not always enough when running the full suite
+	page.setDefaultNavigationTimeout(60_000);
+
+	try {
+		// navigate to the page
+		await page.goto(url);
+	} catch (e) {
+		// cleanup in the instance of a timeout
+		await close();
+		throw e;
+	}
 
 	return { url, close };
-}
-
-/**
- * Applies a fixture to the target path
- */
-export function fixture({ name, target }) {
-	const fixturePath = path.resolve(SETUP_DIR, '..', 'fixtures', name);
-	if (!fs.existsSync(fixturePath)) {
-		throw new Error(`Fixture does not exist at: ${fixturePath}`);
-	}
-	fs.copyFileSync(fixturePath, target);
 }

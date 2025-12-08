@@ -1,11 +1,10 @@
 import { fileURLToPath } from 'node:url';
-import { setup, type ProjectVariant } from 'sv/testing';
+import { setup, variants, type ProjectVariant } from '../../../testing.ts';
 import type { TestProject } from 'vitest/node';
 import process from 'node:process';
 import { exec } from 'tinyexec';
 
 const TEST_DIR = fileURLToPath(new URL('../../../../.test-output/addons/', import.meta.url));
-const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 const CI = Boolean(process.env.CI);
 
 export default async function ({ provide }: TestProject) {

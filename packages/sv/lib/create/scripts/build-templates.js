@@ -96,14 +96,7 @@ async function generate_templates(dist, shared) {
 			// package.json in newly created projects (based on package.template.json)
 			if (name === 'package.template.json') {
 				let contents = fs.readFileSync(path.join(cwd, name), 'utf8');
-				// TODO package-specific versions
-				contents = contents.replace(/workspace:\*/g, 'next');
-
-				// TODO JYC (maybe could be a dev mode and prod mode ?)
-				const pkg = JSON.parse(contents);
-				if (pkg.dependencies && pkg.dependencies['sv'])
-					pkg.dependencies['sv'] = 'file:../../packages/sv';
-				contents = JSON.stringify(pkg, null, '\t');
+				contents = contents.replace(/workspace:\*/g, 'latest');
 
 				fs.writeFileSync(path.join(dir, 'package.json'), contents);
 				continue;
