@@ -156,9 +156,9 @@ export default defineAddon({
 		sv.file('src/app.html', (content) => {
 			const { ast, generateCode } = parseHtml(content);
 
-			const htmlNode = ast.children.find(
-				(child): child is html.HtmlElement =>
-					child.type === html.HtmlElementType.Tag && child.name === 'html'
+			const htmlNode = ast.nodes.find(
+				(child): child is html.SvelteAst.RegularElement =>
+					child.type === 'RegularElement' && child.name === 'html'
 			);
 			if (!htmlNode) {
 				log.warn(
@@ -166,10 +166,7 @@ export default defineAddon({
 				);
 				return generateCode();
 			}
-			htmlNode.attribs = {
-				...htmlNode.attribs,
-				lang: '%paraglide.lang%'
-			};
+			html.addAttribute(htmlNode, 'lang', '%paraglide.lang%');
 
 			return generateCode();
 		});
