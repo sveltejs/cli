@@ -5,7 +5,7 @@
 	"license": "MIT",
 	"scripts": {
 		"demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
-		"demo-add": "sv add -C demo --community file:../ --no-git-check --no-install",
+		"demo-add": "sv add --cwd demo --community file:../ --no-git-check --no-install",
 		"test": "vitest run"
 	},
 	"files": [
