@@ -11,6 +11,7 @@
 		"build": "tsdown",
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
+		"check:w": "pnpm --parallel check -w",
 		"dev": "tsdown -w",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",

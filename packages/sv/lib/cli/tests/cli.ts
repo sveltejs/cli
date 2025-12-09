@@ -131,7 +131,10 @@ describe('cli', () => {
 					const res = await exec('npm', cmd, {
 						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 					});
-					expect(res.exitCode, `Error addon test: '${cmd}' -> ${res.stderr}`).toBe(0);
+					expect(
+						res.exitCode,
+						`Error addon test: '${cmd}' -> ${JSON.stringify(res, null, 2)}`
+					).toBe(0);
 				}
 			}
 		}

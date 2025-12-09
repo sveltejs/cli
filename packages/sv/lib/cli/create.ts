@@ -237,7 +237,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				cwd: projectPath,
 				install: false,
 				gitCheck: false,
-				community: [],
 				addons: sanitizedAddonsMap
 			},
 			selectedAddonIds: Object.keys(sanitizedAddonsMap),
@@ -277,7 +276,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				// in the create command, we don't want to install dependencies, we want to do it after the project is created
 				install: false,
 				gitCheck: false,
-				community: [],
 				addons: sanitizedAddonsMap
 			},
 			selectedAddons,

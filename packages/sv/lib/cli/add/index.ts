@@ -2,12 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import {
-	officialAddons as _officialAddons,
-	communityAddonIds,
-	getAddonDetails,
-	getCommunityAddon
-} from '../../addons/index.ts';
+import { officialAddons as _officialAddons, getAddonDetails } from '../../addons/index.ts';
 import type {
 	AddonSetupResult,
 	AddonWithoutExplicitArgs,
@@ -34,36 +29,32 @@ import { formatFiles, getHighlighter } from './utils.ts';
 import { createWorkspace } from './workspace.ts';
 
 const officialAddons = Object.values(_officialAddons);
-const aliases = officialAddons.map((c) => c.alias).filter((v) => v !== undefined);
 const addonOptions = getAddonOptionFlags();
-const communityDetails: AddonWithoutExplicitArgs[] = [];
+// const communityDetails: AddonWithoutExplicitArgs[] = [];
 
-const AddonsSchema = v.array(v.string());
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	gitCheck: v.boolean(),
-	community: v.optional(v.union([AddonsSchema, v.boolean()])),
 	addons: v.record(v.string(), v.optional(v.array(v.string())))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-export type AddonArgs = { id: string; options: string[] | undefined };
+type AddonArgsIn = { id: string; options?: string[] };
+type AddonArgsOut = AddonArgsIn & { options: string[]; kind: 'official' | 'file' };
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
-	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonArgs[] = []) =>
+	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonArgsOut[] = []) =>
 		addonArgsHandler(previous, value)
 	)
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
-	// TODO JYC: remove the flag
-	.option('--community [add-on...]', 'community addons to install')
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
@@ -150,7 +141,7 @@ export const add = new Command('add')
 			return output.join('\n');
 		}
 	})
-	.action(async (addonArgs: AddonArgs[], opts) => {
+	.action(async (addonArgs: AddonArgsIn[], opts) => {
 		// validate workspace
 		if (opts.cwd === undefined) {
 			common.errorAndExit(
@@ -163,17 +154,33 @@ export const add = new Command('add')
 			);
 		}
 
+		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
 		const selectedAddonArgs = sanitizeAddons(addonArgs);
 
-		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
-		selectedAddonArgs.forEach((addon) => (options.addons[addon.id] = addon.options));
+		const officialAddons = selectedAddonArgs.filter((addon) => addon.kind === 'official');
+		officialAddons.forEach((addon) => {
+			options.addons[addon.id] = addon.options;
+		});
 
 		const workspace = await createWorkspace({ cwd: options.cwd });
 
 		common.runCommand(async () => {
+			const nonOfficialAddons = selectedAddonArgs.filter((addon) => addon.kind !== 'official');
+			if (nonOfficialAddons.length > 0) {
+				const nonOfficialAddonDetails = await resolveNonOfficialAddons(
+					options.cwd,
+					nonOfficialAddons.map((addon) => addon.id)
+				);
+				nonOfficialAddons.forEach((addon) => {
+					options.addons[addon.id] = (nonOfficialAddonDetails.find(
+						(detail) => detail.id === addon.id
+					)?.options ?? []) as string[];
+				});
+			}
+
 			const selectedAddonIds = selectedAddonArgs.map(({ id }) => id);
 
-			const { answersCommunity, answersOfficial, selectedAddons } = await promptAddonQuestions({
+			const { answersOfficial, answersCommunity, selectedAddons } = await promptAddonQuestions({
 				options,
 				selectedAddonIds,
 				workspace
@@ -346,34 +353,34 @@ export async function promptAddonQuestions({
 		}
 	}
 
-	// we'll let the user choose community addons when `--community` is specified without args
-	if (options.community === true) {
-		const communityAddons = await Promise.all(
-			communityAddonIds.map(async (id) => await getCommunityAddon(id))
-		);
+	// // we'll let the user choose community addons when `--community` is specified without args
+	// if (options.community === true) {
+	// 	const communityAddons = await Promise.all(
+	// 		communityAddonIds.map(async (id) => await getCommunityAddon(id))
+	// 	);
 
-		const promptOptions = communityAddons.map((addon) => ({
-			value: addon.id,
-			label: addon.id,
-			hint: 'https://www.npmjs.com/package/' + addon.id
-		}));
+	// 	const promptOptions = communityAddons.map((addon) => ({
+	// 		value: addon.id,
+	// 		label: addon.id,
+	// 		hint: 'https://www.npmjs.com/package/' + addon.id
+	// 	}));
 
-		const selected = await p.multiselect({
-			message: 'Which community tools would you like to add to your project?',
-			options: promptOptions,
-			required: false
-		});
+	// 	const selected = await p.multiselect({
+	// 		message: 'Which community tools would you like to add to your project?',
+	// 		options: promptOptions,
+	// 		required: false
+	// 	});
 
-		if (p.isCancel(selected)) {
-			p.cancel('Operation cancelled.');
-			process.exit(1);
-		} else if (selected.length === 0) {
-			p.cancel('No add-ons selected. Exiting.');
-			process.exit(1);
-		}
+	// 	if (p.isCancel(selected)) {
+	// 		p.cancel('Operation cancelled.');
+	// 		process.exit(1);
+	// 	} else if (selected.length === 0) {
+	// 		p.cancel('No add-ons selected. Exiting.');
+	// 		process.exit(1);
+	// 	}
 
-		options.community = selected;
-	}
+	// 	options.community = selected;
+	// }
 
 	// we'll prepare empty answers for selected community addons
 	const selectedCommunityAddons: Array<SelectedAddon['addon']> = [];
@@ -383,9 +390,9 @@ export async function promptAddonQuestions({
 
 	// Find community addons specified in the --community option as well as
 	// the ones selected above
-	if (Array.isArray(options.community) && options.community.length > 0) {
-		selectedCommunityAddons.push(...(await resolveCommunityAddons(options.cwd, options.community)));
-	}
+	// if (Array.isArray(options.community) && options.community.length > 0) {
+	// 	selectedCommunityAddons.push(...(await resolveCommunityAddons(options.cwd, options.community)));
+	// }
 
 	const selectedAddons: SelectedAddon[] = [
 		...selectedOfficialAddons.map((addon) => ({ type: 'official' as const, addon })),
@@ -571,10 +578,11 @@ export async function runAddonsApply({
 
 	// apply addons
 	const officialDetails = Object.keys(answersOfficial).map((id) => getAddonDetails(id));
-	const commDetails = Object.keys(answersCommunity).map(
-		(id) => communityDetails.find((a) => a.id === id)!
-	);
-	const details = officialDetails.concat(commDetails);
+	// const commDetails = Object.keys(answersCommunity).map(
+	// 	(id) => communityDetails.find((a) => a.id === id)!
+	// );
+	// const details = officialDetails.concat(commDetails);
+	const details = officialDetails;
 
 	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
 	const { filesToFormat, pnpmBuildDependencies, status } = await applyAddons({
@@ -686,26 +694,43 @@ export async function runAddonsApply({
 	return { nextSteps, argsFormattedAddons, filesToFormat };
 }
 
-/**
- * Sanitizes the add-on arguments by checking for invalid add-ons and transforming aliases.
- * @param addonArgs The add-on arguments to sanitize.
- * @returns The sanitized add-on arguments.
- */
-export function sanitizeAddons(addonArgs: AddonArgs[]): AddonArgs[] {
-	const officialAddonIds = officialAddons.map((addon) => addon.id);
-	const invalidAddons = addonArgs
-		.filter(({ id }) => !officialAddonIds.includes(id) && !aliases.includes(id))
-		.map(({ id }) => id);
-	if (invalidAddons.length > 0) {
-		common.errorAndExit(`Invalid add-ons specified: ${invalidAddons.join(', ')}`);
+export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
+	const toRet = new Map<string, AddonArgsOut>();
+
+	const invalidAddons: string[] = [];
+	for (const addon of addonArgs) {
+		const official = officialAddons.find((a) => a.id === addon.id || a.alias === addon.id);
+		if (official) {
+			toRet.set(official.id, {
+				id: official.id,
+				options: addon.options ?? [],
+				kind: 'official'
+			});
+		} else if (addon.id.startsWith('file:')) {
+			const id = addon.id.replace('file:', '').trim();
+			if (!id) {
+				invalidAddons.push('file:');
+				continue;
+			}
+			toRet.set(addon.id, { id: addon.id, options: addon.options ?? [], kind: 'file' });
+		} else {
+			invalidAddons.push(addon.id);
+		}
 	}
-	return transformAliases(addonArgs);
+	if (invalidAddons.length > 0) {
+		const highlighter = getHighlighter();
+		common.errorAndExit(
+			`Invalid add-ons specified: ${invalidAddons.map((id) => highlighter.command(id)).join(', ')}`
+		);
+	}
+
+	return Array.from(toRet.values());
 }
 
 /**
  * Handles passed add-on arguments, accumulating them into an array of {@link AddonArgs}.
  */
-export function addonArgsHandler(acc: AddonArgs[], current: string): AddonArgs[] {
+export function addonArgsHandler(acc: AddonArgsIn[], current: string): AddonArgsIn[] {
 	const [addonId, optionFlags] = current.split('=', 2);
 
 	// validates that there are no repeated add-ons (e.g. `sv add foo=demo:yes foo=demo:no`)
@@ -726,23 +751,6 @@ export function addonArgsHandler(acc: AddonArgs[], current: string): AddonArgs[]
 	}
 
 	return acc;
-}
-
-/**
- * Dedupes and transforms aliases into their respective addon id
- */
-function transformAliases(addons: AddonArgs[]): AddonArgs[] {
-	const set = new Map<string, AddonArgs>();
-
-	for (const addon of addons) {
-		if (aliases.includes(addon.id)) {
-			const officialAddon = officialAddons.find((a) => a.alias === addon.id)!;
-			set.set(officialAddon.id, { id: officialAddon.id, options: addon.options });
-		} else {
-			set.set(addon.id, addon);
-		}
-	}
-	return Array.from(set.values());
 }
 
 function getAddonOptionFlags() {
@@ -808,21 +816,8 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 	return { choices, defaults, groups };
 }
 
-async function resolveCommunityAddons(cwd: string, community: string[]) {
+async function resolveNonOfficialAddons(cwd: string, addons: string[]) {
 	const selectedAddons: Array<SelectedAddon['addon']> = [];
-	const addons = community.map((id) => {
-		// ids with directives are passed unmodified so they can be processed during downloads
-		const hasDirective = Object.values(Directive).some((directive) => id.startsWith(directive));
-		if (hasDirective) return id;
-
-		const validAddon = communityAddonIds.includes(id);
-		if (!validAddon) {
-			throw new Error(
-				`Invalid community add-on specified: '${id}'\nAvailable options: ${communityAddonIds.join(', ')}`
-			);
-		}
-		return id;
-	});
 	const { start, stop } = p.spinner();
 	try {
 		start('Resolving community add-on packages');
@@ -848,17 +843,17 @@ async function resolveCommunityAddons(cwd: string, community: string[]) {
 		});
 		p.log.message(packageInfos.join('\n'));
 
-		// TODO JYC: remove for testing for now
+		// TODO JYC: remove for testing for now... Need to add a flag? --no-confirm-check
 		// const confirm = await p.confirm({ message: 'Would you like to continue?' });
 		// if (confirm !== true) {
 		// 	p.cancel('Operation cancelled.');
 		// 	process.exit(1);
 		// }
 
-		start('Downloading community add-on packages');
+		start('Downloading non-official add-on packages');
 		const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
 		for (const addon of details) {
-			communityDetails.push(addon);
+			// communityDetails.push(addon);
 			selectedAddons.push(addon);
 		}
 		stop('Downloaded community add-on packages');
