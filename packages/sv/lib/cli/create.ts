@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import type { OptionValues, Workspace } from '../core/index.ts';
+import type { AddonWithoutExplicitArgs, OptionValues, Workspace } from '../core/index.ts';
 import {
 	create as createKit,
 	templates,
@@ -33,6 +33,7 @@ import {
 import {
 	addonArgsHandler,
 	promptAddonQuestions,
+	resolveNonOfficialAddons,
 	runAddonsApply,
 	sanitizeAddons,
 	type SelectedAddon
@@ -212,8 +213,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const projectName = path.basename(projectPath);
 
 	let selectedAddons: SelectedAddon[] = [];
-	let answersOfficial: Record<string, OptionValues<any>> = {};
-	let answersCommunity: Record<string, OptionValues<any>> = {};
+	let answers: Record<string, OptionValues<any>> = {};
 	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
 
 	const workspace = await createVirtualWorkspace({
@@ -224,13 +224,29 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (options.template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const addons = options.add.reduce(addonArgsHandler, []);
-		sanitizedAddonsMap = sanitizeAddons(addons).reduce<Record<string, string[] | undefined>>(
+		const sanitizedAddons = sanitizeAddons(addons);
+		sanitizedAddonsMap = sanitizedAddons.reduce<Record<string, string[] | undefined>>(
 			(acc, curr) => {
 				acc[curr.id] = curr.options;
 				return acc;
 			},
 			{}
 		);
+
+		// Resolve non-official addons early
+		const nonOfficialAddons = sanitizedAddons.filter((addon) => addon.kind !== 'official');
+		let nonOfficialAddonDetails: AddonWithoutExplicitArgs[] = [];
+		if (nonOfficialAddons.length > 0) {
+			nonOfficialAddonDetails = await resolveNonOfficialAddons(
+				projectPath,
+				nonOfficialAddons.map((addon) => addon.id)
+			);
+			nonOfficialAddons.forEach((addon) => {
+				sanitizedAddonsMap[addon.id] = (nonOfficialAddonDetails.find(
+					(detail) => detail.id === addon.id
+				)?.options ?? []) as string[];
+			});
+		}
 
 		const result = await promptAddonQuestions({
 			options: {
@@ -240,12 +256,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				addons: sanitizedAddonsMap
 			},
 			selectedAddonIds: Object.keys(sanitizedAddonsMap),
+			nonOfficialAddonDetails,
 			workspace
 		});
 
 		selectedAddons = result.selectedAddons;
-		answersOfficial = result.answersOfficial;
-		answersCommunity = result.answersCommunity;
+		answers = result.answers;
 	}
 
 	createKit(projectPath, {
@@ -269,8 +285,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat
 		} = await runAddonsApply({
-			answersOfficial,
-			answersCommunity,
+			answers,
 			options: {
 				cwd: projectPath,
 				// in the create command, we don't want to install dependencies, we want to do it after the project is created

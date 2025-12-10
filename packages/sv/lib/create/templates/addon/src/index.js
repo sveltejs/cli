@@ -1,12 +1,11 @@
 import { js, parseSvelte, defineAddon, defineAddonOptions, svelte } from 'sv/core';
 
-// JYC TODO: how to pass community addon options...
 const options = defineAddonOptions()
-	// .add('who', {
-	// 	question: 'To whom should the addon say hello?',
-	// 	type: 'string',
-	// 	default: 'me'
-	// })
+	.add('who', {
+		question: 'To whom should the addon say hello?',
+		type: 'string',
+		default: 'me'
+	})
 	.build();
 
 export default defineAddon({

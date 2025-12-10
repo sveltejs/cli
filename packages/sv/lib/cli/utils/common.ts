@@ -155,6 +155,7 @@ export function logArgs(
 
 export function errorAndExit(message: string) {
 	p.log.error(message);
+	p.log.message();
 	p.cancel('Operation failed.');
 	process.exit(1);
 }
