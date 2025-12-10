@@ -224,7 +224,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		type: language as LanguageType
 	});
 
-	if (options.template !== 'addon' && (options.addOns || options.add.length > 0)) {
+	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const addons = options.add.reduce(addonArgsHandler, []);
 		const sanitizedAddons = sanitizeAddons(addons);
 		sanitizedAddonsMap = sanitizedAddons.reduce<Record<string, string[] | undefined>>(
@@ -283,7 +283,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnNextSteps: string[] = [];
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
-	if (options.template !== 'addon' && (options.addOns || options.add.length > 0)) {
+	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
 			nextSteps,
 			argsFormattedAddons: argsFormatted,
