@@ -27,22 +27,23 @@ export function createElement(
 }
 
 export function addAttribute(element: SvelteAst.RegularElement, name: string, value: string): void {
-	element.attributes.push({
-		type: 'Attribute',
-		name,
-		value: [
-			{
-				type: 'Text',
-				data: value,
-				raw: value,
-				start: 0,
-				end: 0
-			}
-		],
-		start: 0,
-		end: 0,
-		name_loc: { start: { column: 0, line: 0 }, end: { column: 0, line: 0 } }
-	});
+	let existing = element.attributes.find(
+		(attr): attr is SvelteAst.Attribute => attr.type === 'Attribute' && attr.name === name
+	);
+
+	if (!existing) {
+		existing = {
+			type: 'Attribute',
+			name,
+			value: [],
+			start: 0,
+			end: 0,
+			name_loc: { start: { column: 0, line: 0 }, end: { column: 0, line: 0 } }
+		};
+		element.attributes.push(existing);
+	}
+
+	existing.value = [{ type: 'Text', data: value, raw: value, start: 0, end: 0 }];
 }
 
 export function insertElement(

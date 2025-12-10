@@ -152,7 +152,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		// add the text-direction and lang attribute placeholders to app.html
+		// add the lang attribute placeholder to app.html
 		sv.file('src/app.html', (content) => {
 			const { ast, generateCode } = parseHtml(content);
 
