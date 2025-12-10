@@ -39,7 +39,7 @@ describe('cli', () => {
 			]
 		},
 		{
-			projectName: 'hello',
+			projectName: 'sv-hello',
 			template: 'addon',
 			args: ['--no-add-ons']
 		}

@@ -1,11 +1,11 @@
 {
-	"name": "hello",
+	"name": "sv-hello",
 	"version": "0.0.0",
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
-		"demo-add": "sv add file:../ --cwd demo --no-git-check --no-install",
+		"demo-create": "sv create demo-sv-hello --types ts --template minimal --no-add-ons --no-install",
+		"demo-add": "sv add file:../ --cwd demo-sv-hello --no-git-check --no-download-check --no-install",
 		"test": "vitest run"
 	},
 	"files": [

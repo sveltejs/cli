@@ -4,7 +4,7 @@ const options = defineAddonOptions()
 	.add('who', {
 		question: 'To whom should the addon say hello?',
 		type: 'string',
-		default: 'me'
+		default: 'you! 🤗'
 	})
 	.build();
 

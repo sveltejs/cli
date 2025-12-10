@@ -1,16 +1,15 @@
 import { js, parseSvelte, defineAddon, defineAddonOptions, svelte } from 'sv/core';
 
-// JYC TODO: how to pass community addon options...
 const options = defineAddonOptions()
-	// .add('who', {
-	// 	question: 'To whom should the addon say hello?',
-	// 	type: 'string',
-	// 	default: 'me'
-	// })
+	.add('who', {
+		question: 'To whom should the addon say hello?',
+		type: 'string',
+		default: 'you! 🤗'
+	})
 	.build();
 
 export default defineAddon({
-	id: 'hello',
+	id: 'sv-hello',
 	options,
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
@@ -18,11 +17,11 @@ export default defineAddon({
 	run: ({ kit, sv, options, typescript }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
-		sv.file(`src/lib/hello/content.txt`, (content) => {
-			return `This is a text file made by the Community Addon Template demo for the add-on: 'hello'!`;
+		sv.file(`src/lib/sv-hello/content.txt`, (content) => {
+			return `This is a text file made by the Community Addon Template demo for the add-on: 'sv-hello'!`;
 		});
 
-		sv.file(`src/lib/hello/HelloComponent.svelte`, (content) => {
+		sv.file(`src/lib/sv-hello/HelloComponent.svelte`, (content) => {
 			// if (!options.demo) return content;
 			const { ast, generateCode } = parseSvelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
@@ -44,7 +43,7 @@ export default defineAddon({
 
 			js.imports.addDefault(scriptAst, {
 				as: 'HelloComponent',
-				from: `$lib/hello/HelloComponent.svelte`
+				from: `$lib/sv-hello/HelloComponent.svelte`
 			});
 
 			ast.fragment.nodes.push(...svelte.toFragment('<HelloComponent />'));
