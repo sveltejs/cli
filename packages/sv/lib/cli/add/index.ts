@@ -167,6 +167,10 @@ export const add = new Command('add')
 
 		common.runCommand(async () => {
 			const nonOfficialAddons = selectedAddonArgs.filter((addon) => addon.kind !== 'official');
+			// Store options for non-official addons before resolution
+			nonOfficialAddons.forEach((addon) => {
+				options.addons[addon.id] = addon.options;
+			});
 			let nonOfficialAddonDetails: AddonWithoutExplicitArgs[] = [];
 			// Map from original specifier (e.g., "file:../cli/hello") to resolved addon ID (e.g., "hello")
 			const specifierToResolvedId = new Map<string, string>();
@@ -542,7 +546,7 @@ export async function promptAddonQuestions({
 			if (question.type === 'string' || question.type === 'number') {
 				answer = await p.text({
 					message,
-					initialValue: question.default.toString(),
+					initialValue: question.default?.toString() ?? (question.type === 'number' ? '0' : ''),
 					placeholder: question.placeholder,
 					validate: question.validate
 				});
@@ -806,7 +810,7 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 		}
 		if (question.type === 'string' || question.type === 'number') {
 			values = ['<user-input>'];
-			if (applyDefault) {
+			if (applyDefault && question.default !== undefined) {
 				options[id] = question.default;
 				defaults.push(question.default.toString());
 			}

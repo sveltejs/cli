@@ -4,7 +4,7 @@ const options = defineAddonOptions()
 	.add('who', {
 		question: 'To whom should the addon say hello?',
 		type: 'string',
-		default: 'you! 🤗'
+		default: ''
 	})
 	.build();
 
@@ -29,9 +29,7 @@ export default defineAddon({
 			js.imports.addDefault(scriptAst, { as: 'content', from: './content.txt?raw' });
 
 			ast.fragment.nodes.push(...svelte.toFragment('<p>{content}</p>'));
-			ast.fragment.nodes.push(
-				...svelte.toFragment(`<h2>Hello ${options.who ?? 'Manuel & JYC'}!</h2>`)
-			);
+			ast.fragment.nodes.push(...svelte.toFragment(`<h2>Hello ${options.who}!</h2>`));
 
 			return generateCode();
 		});
