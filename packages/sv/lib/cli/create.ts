@@ -67,7 +67,8 @@ const OptionsSchema = v.strictObject({
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
-	dirCheck: v.boolean()
+	dirCheck: v.boolean(),
+	downloadCheck: v.boolean()
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -83,6 +84,7 @@ export const create = new Command('create')
 	.option('--no-install', 'skip installing dependencies')
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
+	.option('--no-download-check', 'skip all download confirmation prompts')
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
@@ -239,7 +241,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		if (nonOfficialAddons.length > 0) {
 			nonOfficialAddonDetails = await resolveNonOfficialAddons(
 				projectPath,
-				nonOfficialAddons.map((addon) => addon.id)
+				nonOfficialAddons.map((addon) => addon.id),
+				options.downloadCheck
 			);
 			nonOfficialAddons.forEach((addon) => {
 				sanitizedAddonsMap[addon.id] = (nonOfficialAddonDetails.find(
@@ -253,6 +256,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				cwd: projectPath,
 				install: false,
 				gitCheck: false,
+				downloadCheck: options.downloadCheck,
 				addons: sanitizedAddonsMap
 			},
 			selectedAddonIds: Object.keys(sanitizedAddonsMap),
@@ -291,6 +295,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				// in the create command, we don't want to install dependencies, we want to do it after the project is created
 				install: false,
 				gitCheck: false,
+				downloadCheck: options.downloadCheck,
 				addons: sanitizedAddonsMap
 			},
 			selectedAddons,

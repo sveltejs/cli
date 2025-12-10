@@ -224,7 +224,24 @@ export const add = new Command('add')
 		});
 	});
 
-export type SelectedAddon = { type: 'official' | 'nonOfficial'; addon: AddonWithoutExplicitArgs };
+export type SelectedAddon = AddonWithoutExplicitArgs;
+
+/**
+ * Creates a unified lookup map for addons by ID.
+ * Checks official addons first, then falls back to the provided non-official addons map.
+ */
+function getAddonById(
+	id: string,
+	nonOfficialAddonsMap: Map<string, AddonWithoutExplicitArgs>
+): AddonWithoutExplicitArgs | undefined {
+	// Check official addons first
+	const official = officialAddons.find((a) => a.id === id);
+	if (official) {
+		return getAddonDetails(id);
+	}
+	// Fall back to non-official addons
+	return nonOfficialAddonsMap.get(id);
+}
 
 export async function promptAddonQuestions({
 	options,
@@ -237,21 +254,18 @@ export async function promptAddonQuestions({
 	nonOfficialAddonDetails: AddonWithoutExplicitArgs[];
 	workspace: Workspace;
 }) {
-	const selectedAddons: Array<SelectedAddon['addon']> = [];
+	// Create a unified lookup map for non-official addons
+	const nonOfficialAddonsMap = new Map(nonOfficialAddonDetails.map((addon) => [addon.id, addon]));
 
-	// Find which official addons were specified in the args
-	selectedAddonIds.forEach((id) => {
-		const official = officialAddons.find((a) => a.id === id);
-		if (official) {
-			selectedAddons.push(getAddonDetails(id));
-		} else {
-			// Check if it's a non-official addon
-			const nonOfficial = nonOfficialAddonDetails.find((a) => a.id === id);
-			if (nonOfficial) {
-				selectedAddons.push(nonOfficial);
-			}
+	const selectedAddons: SelectedAddon[] = [];
+
+	// Find addons by ID using unified lookup
+	for (const id of selectedAddonIds) {
+		const addon = getAddonById(id, nonOfficialAddonsMap);
+		if (addon) {
+			selectedAddons.push(addon);
 		}
-	});
+	}
 
 	const emptyAnswersReducer = (acc: Record<string, OptionValues<any>>, id: string) => {
 		acc[id] = {};
@@ -263,17 +277,12 @@ export async function promptAddonQuestions({
 		.reduce(emptyAnswersReducer, {});
 
 	// apply specified options from CLI, inquire about the rest
-	// Process both official and non-official addons
 	for (const addonId of Object.keys(options.addons)) {
 		const specifiedOptions = options.addons[addonId];
 		if (!specifiedOptions) continue;
 
-		// Get addon details - could be official or non-official
-		const details: AddonWithoutExplicitArgs | undefined = officialAddons.find(
-			(a) => a.id === addonId
-		)
-			? getAddonDetails(addonId)
-			: nonOfficialAddonDetails.find((a) => a.id === addonId);
+		// Get addon details using unified lookup
+		const details = getAddonById(addonId, nonOfficialAddonsMap);
 
 		if (!details) continue;
 
@@ -398,16 +407,10 @@ export async function promptAddonQuestions({
 
 	// Process all selected addons (including those without CLI options) to ensure they're initialized
 	// Note: We don't apply defaults here - defaults will be used as initial values when asking questions
-	// This ensures non-official addons without CLI options still get questions asked
 	for (const addon of selectedAddons) {
 		const addonId = addon.id;
 		answers[addonId] ??= {};
 	}
-
-	const selectedAddonsWithType: SelectedAddon[] = selectedAddons.map((addon) => {
-		const isOfficial = officialAddons.some((a) => a.id === addon.id);
-		return { type: isOfficial ? 'official' : 'nonOfficial', addon };
-	});
 
 	// run setup if we have access to workspace
 	// prepare addons (both official and non-official)
@@ -440,7 +443,6 @@ export async function promptAddonQuestions({
 		for (const id of selected) {
 			const addon = getAddonDetails(id);
 			selectedAddons.push(addon);
-			selectedAddonsWithType.push({ type: 'official', addon });
 			answers[id] = {};
 		}
 
@@ -450,10 +452,10 @@ export async function promptAddonQuestions({
 	}
 
 	// add inter-addon dependencies
-	for (const { addon } of selectedAddonsWithType) {
+	for (const addon of selectedAddons) {
 		const setupResult = addonSetupResults[addon.id];
 		const missingDependencies = setupResult.dependsOn.filter(
-			(depId) => !selectedAddonsWithType.some((a) => a.addon.id === depId)
+			(depId) => !selectedAddons.some((a) => a.id === depId)
 		);
 
 		for (const depId of missingDependencies) {
@@ -471,13 +473,12 @@ export async function promptAddonQuestions({
 			}
 			const depAddon = getAddonDetails(depId);
 			selectedAddons.push(depAddon);
-			selectedAddonsWithType.push({ type: 'official', addon: depAddon });
 			answers[depId] = {};
 		}
 	}
 
 	// run all setups after inter-addon deps have been added
-	const addons = selectedAddonsWithType.map(({ addon }) => addon);
+	const addons = selectedAddons;
 	const verifications = [
 		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
 		...verifyUnsupportedAddons(addons, addonSetupResults)
@@ -507,9 +508,9 @@ export async function promptAddonQuestions({
 	}
 
 	// ask remaining questions
-	for (const { addon } of selectedAddonsWithType) {
+	for (const addon of selectedAddons) {
 		const addonId = addon.id;
-		const questionPrefix = selectedAddonsWithType.length > 1 ? `${addon.id}: ` : '';
+		const questionPrefix = selectedAddons.length > 1 ? `${addon.id}: ` : '';
 
 		answers[addonId] ??= {};
 		const values = answers[addonId];
@@ -558,7 +559,7 @@ export async function promptAddonQuestions({
 		}
 	}
 
-	return { selectedAddons: selectedAddonsWithType, answers };
+	return { selectedAddons, answers };
 }
 
 export async function runAddonsApply({
@@ -577,9 +578,7 @@ export async function runAddonsApply({
 	fromCommand: 'create' | 'add';
 }): Promise<{ nextSteps: string[]; argsFormattedAddons: string[]; filesToFormat: string[] }> {
 	if (!addonSetupResults) {
-		const setups = selectedAddons.length
-			? selectedAddons.map(({ addon }) => addon)
-			: officialAddons;
+		const setups = selectedAddons.length ? selectedAddons : officialAddons;
 		addonSetupResults = setupAddons(setups, workspace);
 	}
 	// we'll return early when no addons are selected,
@@ -587,10 +586,8 @@ export async function runAddonsApply({
 	if (selectedAddons.length === 0)
 		return { nextSteps: [], argsFormattedAddons: [], filesToFormat: [] };
 
-	// apply addons - get details for all selected addons
-	const details = selectedAddons.map(({ addon }) => addon);
-
-	const addonMap: AddonMap = Object.assign({}, ...details.map((a) => ({ [a.id]: a })));
+	// apply addons
+	const addonMap: AddonMap = Object.assign({}, ...selectedAddons.map((a) => ({ [a.id]: a })));
 	const { filesToFormat, pnpmBuildDependencies, status } = await applyAddons({
 		workspace,
 		addonSetupResults,
@@ -603,7 +600,7 @@ export async function runAddonsApply({
 		if (info === 'success') addonSuccess.push(addonId);
 		else {
 			p.log.warn(`Canceled ${addonId}: ${info.join(', ')}`);
-			selectedAddons = selectedAddons.filter((a) => a.addon.id !== addonId);
+			selectedAddons = selectedAddons.filter((a) => a.id !== addonId);
 		}
 	}
 
@@ -630,7 +627,7 @@ export async function runAddonsApply({
 	]);
 
 	const argsFormattedAddons: string[] = [];
-	for (const { addon } of selectedAddons) {
+	for (const addon of selectedAddons) {
 		const addonId = addon.id;
 		const addonAnswers = answers[addonId];
 		if (!addonAnswers) continue;
@@ -687,7 +684,7 @@ export async function runAddonsApply({
 
 	// print next steps
 	const nextSteps = selectedAddons
-		.map(({ addon }) => {
+		.map((addon) => {
 			if (!addon.nextSteps) return;
 			const addonOptions = answers[addon.id];
 			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions, highlighter });
@@ -829,7 +826,7 @@ export async function resolveNonOfficialAddons(
 	addons: string[],
 	downloadCheck: boolean
 ) {
-	const selectedAddons: Array<SelectedAddon['addon']> = [];
+	const selectedAddons: SelectedAddon[] = [];
 	const highlighter = getHighlighter();
 	const { start, stop } = p.spinner();
 
