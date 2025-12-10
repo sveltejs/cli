@@ -35,6 +35,7 @@ const OptionsSchema = v.strictObject({
 	cwd: v.string(),
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	gitCheck: v.boolean(),
+	downloadCheck: v.boolean(),
 	addons: v.record(v.string(), v.optional(v.array(v.string())))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
@@ -52,6 +53,7 @@ export const add = new Command('add')
 	)
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.option('--no-download-check', 'skip all download confirmation prompts')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
 	.configureHelp({
@@ -171,7 +173,11 @@ export const add = new Command('add')
 
 			if (nonOfficialAddons.length > 0) {
 				const originalSpecifiers = nonOfficialAddons.map((addon) => addon.id);
-				nonOfficialAddonDetails = await resolveNonOfficialAddons(options.cwd, originalSpecifiers);
+				nonOfficialAddonDetails = await resolveNonOfficialAddons(
+					options.cwd,
+					originalSpecifiers,
+					options.downloadCheck
+				);
 
 				// Create mapping from original specifier to resolved addon ID
 				// Match by position since they're resolved in the same order
@@ -666,6 +672,9 @@ export async function runAddonsApply({
 		}
 	}
 
+	if (!options.downloadCheck) argsFormattedAddons.push('--no-download-check');
+	if (!options.gitCheck) argsFormattedAddons.push('--no-git-check');
+
 	if (fromCommand === 'add') common.logArgs(packageManager, 'add', argsFormattedAddons);
 
 	if (packageManager) {
@@ -815,7 +824,11 @@ function getOptionChoices(details: AddonWithoutExplicitArgs) {
 	return { choices, defaults, groups };
 }
 
-export async function resolveNonOfficialAddons(cwd: string, addons: string[]) {
+export async function resolveNonOfficialAddons(
+	cwd: string,
+	addons: string[],
+	downloadCheck: boolean
+) {
 	const selectedAddons: Array<SelectedAddon['addon']> = [];
 	const highlighter = getHighlighter();
 	const { start, stop } = p.spinner();
@@ -830,7 +843,7 @@ export async function resolveNonOfficialAddons(cwd: string, addons: string[]) {
 		stop('Resolved community add-on packages');
 
 		p.log.warn(
-			'The Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
+			'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
 		);
 
 		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
@@ -844,12 +857,13 @@ export async function resolveNonOfficialAddons(cwd: string, addons: string[]) {
 		});
 		p.log.message(packageInfos.join('\n'));
 
-		// TODO JYC: remove for testing for now... Need to add a flag? --no-confirm-check
-		// const confirm = await p.confirm({ message: 'Would you like to continue?' });
-		// if (confirm !== true) {
-		// 	p.cancel('Operation cancelled.');
-		// 	process.exit(1);
-		// }
+		if (downloadCheck) {
+			const confirm = await p.confirm({ message: 'Would you like to continue?' });
+			if (confirm !== true) {
+				p.cancel('Operation cancelled.');
+				process.exit(1);
+			}
+		}
 
 		start('Downloading community add-on packages');
 		const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
