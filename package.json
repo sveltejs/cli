@@ -12,7 +12,7 @@
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
 		"check:w": "pnpm --parallel check -w",
-		"dev": "tsdown -w",
+		"dev": "tsdown -w & pnpm check:w & wait",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"test": "vitest run --silent",
