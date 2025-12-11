@@ -57,3 +57,23 @@ Prevents installing dependencies
 - [`sveltekit-adapter`](sveltekit-adapter)
 - [`tailwindcss`](tailwind)
 - [`vitest`](vitest)
+
+## Community add-ons
+
+> [!NOTE]
+> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.
+
+You can find community add-ons on npm by searching for `keywords:sv-add` on [npm](https://www.npmjs.com/search?q=keywords%3Asv-add).
+
+### protocols
+
+We support two protocols for community add-ons:
+
+- `file:[PATH_TO_ADDON]` - for local add-ons
+- `@[ORG]/[ADDON_NAME]` - for add-ons published under an npm organization
+
+### requirements
+
+Any `sv add-on` should export a function that returns a `defineAddon` object.
+
+It should also have a `package.json` with an `exports` field that points to the main entry point of the add-on.
