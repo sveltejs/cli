@@ -21,11 +21,11 @@
 	"bin": "./dist/bin.mjs",
 	"exports": {
 		".": {
-			"types": "./dist/lib/index.d.ts",
+			"types": "./dist/index.d.mts",
 			"default": "./dist/lib/index.mjs"
 		},
 		"./testing": {
-			"types": "./dist/lib/testing.d.ts",
+			"types": "./dist/testing.d.mts",
 			"default": "./dist/lib/testing.mjs"
 		},
 		"./core": {
