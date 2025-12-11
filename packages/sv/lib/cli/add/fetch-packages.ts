@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createGunzip } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
-import type { AddonWithoutExplicitArgs } from '../../core.ts';
+import type { ResolvedAddon } from '../../core.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
@@ -33,7 +33,7 @@ type DownloadOptions = { path?: string; pkg: any };
  * Downloads and installs the package into the `node_modules` of `sv`.
  * @returns the details of the downloaded addon
  */
-export async function downloadPackage(options: DownloadOptions): Promise<AddonWithoutExplicitArgs> {
+export async function downloadPackage(options: DownloadOptions): Promise<ResolvedAddon> {
 	const { pkg } = options;
 	if (options.path) {
 		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`

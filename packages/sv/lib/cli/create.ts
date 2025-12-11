@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import type { OptionValues, Workspace } from '../core.ts';
+import type { OptionValues, Workspace, ResolvedAddon } from '../core.ts';
 import {
 	create as createKit,
 	templates,
@@ -35,8 +35,7 @@ import {
 	promptAddonQuestions,
 	resolveAddons,
 	runAddonsApply,
-	sanitizeAddons,
-	type SelectedAddon
+	sanitizeAddons
 } from './add/index.ts';
 import { commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
@@ -219,7 +218,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const projectPath = path.resolve(directory);
 	const projectName = path.basename(projectPath);
 
-	let selectedAddons: SelectedAddon[] = [];
+	let selectedAddons: ResolvedAddon[] = [];
 	let answers: Record<string, OptionValues<any>> = {};
 	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
 

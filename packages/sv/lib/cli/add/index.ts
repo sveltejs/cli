@@ -3,12 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
 import { officialAddons as _officialAddons, getAddonDetails } from '../../addons/index.ts';
-import type {
-	AddonSetupResult,
-	AddonWithoutExplicitArgs,
-	OptionValues,
-	Workspace
-} from '../../core.ts';
+import type { AddonSetupResult, ResolvedAddon, OptionValues, Workspace } from '../../core.ts';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import pc from 'picocolors';
@@ -201,21 +196,19 @@ export const add = new Command('add')
 		});
 	});
 
-export type SelectedAddon = AddonWithoutExplicitArgs;
-
 /**
  * Resolves all addons (official and community) into a unified structure.
- * Returns a map of resolved addons and a mapping from original specifiers to resolved IDs.
+ * Returns a map of resolved addons keyed by their resolved ID.
  */
 export async function resolveAddons(
 	addonArgs: AddonArgsOut[],
 	cwd: string,
 	downloadCheck: boolean
 ): Promise<{
-	resolvedAddons: Map<string, AddonWithoutExplicitArgs>;
+	resolvedAddons: Map<string, ResolvedAddon>;
 	specifierToId: Map<string, string>;
 }> {
-	const resolvedAddons = new Map<string, AddonWithoutExplicitArgs>();
+	const resolvedAddons = new Map<string, ResolvedAddon>();
 	const specifierToId = new Map<string, string>();
 
 	// Separate official and community addons for resolution
@@ -225,6 +218,7 @@ export async function resolveAddons(
 	// Resolve official addons
 	for (const addonArg of officialAddonArgs) {
 		const addon = getAddonDetails(addonArg.id);
+		// Official addons don't need originalSpecifier since they're referenced by ID
 		resolvedAddons.set(addon.id, addon);
 		specifierToId.set(addonArg.id, addon.id);
 	}
@@ -238,6 +232,8 @@ export async function resolveAddons(
 		communitySpecifiers.forEach((specifier, index) => {
 			const resolvedAddon = communityAddons[index];
 			if (resolvedAddon) {
+				// Store the original specifier directly on the addon
+				resolvedAddon.originalSpecifier = specifier;
 				resolvedAddons.set(resolvedAddon.id, resolvedAddon);
 				specifierToId.set(specifier, resolvedAddon.id);
 			}
@@ -255,10 +251,10 @@ export async function promptAddonQuestions({
 }: {
 	options: Options;
 	selectedAddonIds: string[];
-	allAddons: Map<string, AddonWithoutExplicitArgs>;
+	allAddons: Map<string, ResolvedAddon>;
 	workspace: Workspace;
 }) {
-	const selectedAddons: SelectedAddon[] = [];
+	const selectedAddons: ResolvedAddon[] = [];
 
 	// Find addons by ID using unified lookup
 	for (const id of selectedAddonIds) {
@@ -590,7 +586,7 @@ export async function runAddonsApply({
 }: {
 	answers: Record<string, OptionValues<any>>;
 	options: Options;
-	selectedAddons: SelectedAddon[];
+	selectedAddons: ResolvedAddon[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
 	fromCommand: 'create' | 'add';
@@ -652,6 +648,9 @@ export async function runAddonsApply({
 		const addonAnswers = answers[addonId];
 		if (!addonAnswers) continue;
 
+		// Use original specifier if available, otherwise fall back to resolved ID
+		const addonSpecifier = addon.originalSpecifier ?? addonId;
+
 		const optionParts: string[] = [];
 
 		for (const [optionId, value] of Object.entries(addonAnswers)) {
@@ -683,9 +682,9 @@ export async function runAddonsApply({
 		}
 
 		if (optionParts.length > 0) {
-			argsFormattedAddons.push(`${addonId}="${optionParts.join('+')}"`);
+			argsFormattedAddons.push(`${addonSpecifier}="${optionParts.join('+')}"`);
 		} else {
-			argsFormattedAddons.push(addonId);
+			argsFormattedAddons.push(addonSpecifier);
 		}
 	}
 
@@ -798,7 +797,7 @@ function getAddonOptionFlags() {
 	return options;
 }
 
-function getOptionChoices(details: AddonWithoutExplicitArgs) {
+function getOptionChoices(details: ResolvedAddon) {
 	const choices: string[] = [];
 	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
@@ -849,7 +848,7 @@ export async function resolveNonOfficialAddons(
 	addons: string[],
 	downloadCheck: boolean
 ) {
-	const selectedAddons: SelectedAddon[] = [];
+	const selectedAddons: ResolvedAddon[] = [];
 	const highlighter = getHighlighter();
 	const { start, stop } = p.spinner();
 

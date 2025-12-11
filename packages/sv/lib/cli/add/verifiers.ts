@@ -1,6 +1,6 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { AddonSetupResult, AddonWithoutExplicitArgs, Verification } from '../../core.ts';
+import type { AddonSetupResult, ResolvedAddon, Verification } from '../../core.ts';
 import { UnsupportedError } from '../utils/errors.ts';
 
 export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
@@ -38,7 +38,7 @@ export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 }
 
 export function verifyUnsupportedAddons(
-	addons: AddonWithoutExplicitArgs[],
+	addons: ResolvedAddon[],
 	addonSetupResult: Record<string, AddonSetupResult>
 ) {
 	const verifications: Verification[] = [];

@@ -1,4 +1,4 @@
-import type { Addon, AddonWithoutExplicitArgs } from '../../core.ts';
+import type { Addon, ResolvedAddon } from '../../core.ts';
 
 import devtoolsJson from '../devtools-json/index.ts';
 import drizzle from '../drizzle/index.ts';
@@ -48,11 +48,11 @@ export const officialAddons: OfficialAddons = {
 	mcp
 };
 
-export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
+export function getAddonDetails(id: string): ResolvedAddon {
 	const details = Object.values(officialAddons).find((a) => a.id === id);
 	if (!details) {
 		throw new Error(`Invalid add-on: ${id}`);
 	}
 
-	return details as AddonWithoutExplicitArgs;
+	return details as ResolvedAddon;
 }
