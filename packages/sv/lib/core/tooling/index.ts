@@ -1,14 +1,5 @@
 import * as Walker from 'zimmerframe';
 import type { TsEstree } from './js/ts-estree.ts';
-import {
-	Root as CssAst,
-	Declaration,
-	Rule,
-	AtRule,
-	Comment,
-	parse as postcssParse,
-	type ChildNode as CssChildNode
-} from 'postcss';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
 import ts from 'esrap/languages/ts';
@@ -19,13 +10,6 @@ import * as yaml from 'yaml';
 import type { BaseNode } from 'estree';
 
 export {
-	// css
-	CssAst,
-	Declaration,
-	Rule,
-	AtRule,
-	Comment,
-
 	// ast walker
 	Walker
 };
@@ -35,10 +19,7 @@ export type {
 	SvelteAst,
 
 	// js
-	TsEstree as AstTypes,
-
-	//css
-	CssChildNode
+	TsEstree as AstTypes
 };
 
 /**
@@ -106,12 +87,30 @@ export function serializeScript(
 	return code;
 }
 
-export function parseCss(content: string): CssAst {
-	return postcssParse(content);
+export function parseCss(content: string): SvelteAst.CSS.StyleSheet {
+	const ast = parseSvelte(`<style>${content}</style>`);
+	return ast.css!;
 }
 
-export function serializeCss(ast: CssAst): string {
-	return ast.toString();
+export function serializeCss(ast: SvelteAst.CSS.StyleSheet): string {
+	// `svelte` can print the stylesheet directly. But this adds the style tags (<style>) that we do not want here.
+	// `svelte` is unable to print an array of rules (ast.children) directly, therefore we concatenate the printed rules manually.
+
+	let result = '';
+
+	for (let i = 0; i < ast.children.length; i++) {
+		const child = ast.children[i];
+		result += sveltePrint(child).code;
+
+		if (i < ast.children.length - 1) {
+			const next = ast.children[i + 1];
+
+			if (child.type === 'Atrule' && next.type === 'Atrule') result += '\n';
+			else result += '\n\n';
+		}
+	}
+
+	return result;
 }
 
 export function parseHtml(content: string): SvelteAst.Fragment {
