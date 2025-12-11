@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { setup, variants, type ProjectVariant } from 'sv/testing';
 import type { TestProject } from 'vitest/node';
 
-const TEST_DIR = fileURLToPath(new URL('../../.test-output/', import.meta.url));
+const TEST_DIR = fileURLToPath(new URL('.test-output/', import.meta.url));
 
 export default async function ({ provide }: TestProject) {
 	// global setup (e.g. spin up docker containers)

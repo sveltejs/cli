@@ -21,8 +21,6 @@
 		"vitest": "4.0.7"
 	},
 	"keywords": [
-		"svelte-add-on",
-		"sv",
-		"sv-add-on"
+		"sv-add"
 	]
 }

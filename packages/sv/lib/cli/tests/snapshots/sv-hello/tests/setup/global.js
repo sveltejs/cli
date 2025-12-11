@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { setup, variants } from 'sv/testing';
 
-const TEST_DIR = fileURLToPath(new URL('../../.test-output/', import.meta.url));
+const TEST_DIR = fileURLToPath(new URL('.test-output/', import.meta.url));
 
 export default async function ({ provide }) {
 	// global setup (e.g. spin up docker containers)

@@ -1,4 +1,4 @@
-import { defineAddon, log } from '../../core.ts';
+import { defineAddon, log, parseJson, parseScript } from '../../../lib/core.ts';
 import {
 	array,
 	common,
@@ -9,7 +9,6 @@ import {
 	variables,
 	type AstTypes
 } from '../../core/tooling/js/index.ts';
-import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 import { addEslintConfigPrettier, getNodeTypesVersion } from '../common.ts';
 
 export default defineAddon({

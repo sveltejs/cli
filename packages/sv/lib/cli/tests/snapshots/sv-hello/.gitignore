@@ -1,5 +1,6 @@
 node_modules
-demo/
+sv-hello/
+.test-output/
 
 # Output
 .output

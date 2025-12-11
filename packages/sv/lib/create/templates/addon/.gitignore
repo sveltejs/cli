@@ -1,5 +1,6 @@
 node_modules
-demo/
+~SV-NAME-TODO~/
+.test-output/
 
 # Output
 .output

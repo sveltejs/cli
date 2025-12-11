@@ -4,8 +4,8 @@
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"demo-create": "sv create demo-sv-hello --types ts --template minimal --no-add-ons --no-install",
-		"demo-add": "sv add file:../=who:you --cwd demo-sv-hello --no-git-check --no-download-check --no-install",
+		"demo-create": "sv create demo-~SV-NAME-TODO~ --types ts --template minimal --no-add-ons --no-install",
+		"demo-add": "sv add file:../=who:you --cwd demo-~SV-NAME-TODO~ --no-git-check --no-download-check --no-install",
 		"test": "vitest run"
 	},
 	"files": ["src", "!src/**/*.test.*"],
@@ -17,5 +17,5 @@
 		"@playwright/test": "^1.56.1",
 		"vitest": "4.0.7"
 	},
-	"keywords": ["svelte-add-on", "sv", "sv-add-on"]
+	"keywords": ["sv-add"]
 }

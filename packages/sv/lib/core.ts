@@ -13,5 +13,12 @@ export type * from './core/addon/workspace.ts';
 
 export * as js from './core/tooling/js/index.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
-export { parseSvelte } from './core/tooling/parsers.ts';
+export {
+	parseSvelte,
+	parseScript,
+	parseCss,
+	parseHtml,
+	parseJson,
+	parseYaml
+} from './core/tooling/parsers.ts';
 export { Walker } from './core/tooling/index.ts';
