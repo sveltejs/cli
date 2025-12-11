@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createGunzip } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
+import { platform } from 'node:os';
 import type { ResolvedAddon } from '../../core.ts';
 
 // path to the `node_modules` directory of `sv`
@@ -28,6 +29,37 @@ function verifyPackage(pkg: Record<string, any>, specifier: string) {
 	}
 }
 
+/**
+ * Recursively copies a directory from source to destination
+ * Skips node_modules directories
+ */
+function copyDirectorySync(src: string, dest: string) {
+	const stats = fs.statSync(src);
+	if (stats.isDirectory()) {
+		// Skip node_modules directories - they'll be installed separately
+		if (path.basename(src) === 'node_modules') {
+			return;
+		}
+
+		if (!fs.existsSync(dest)) {
+			fs.mkdirSync(dest, { recursive: true });
+		}
+		const entries = fs.readdirSync(src, { withFileTypes: true });
+		for (const entry of entries) {
+			const srcPath = path.join(src, entry.name);
+			const destPath = path.join(dest, entry.name);
+
+			if (entry.isDirectory()) {
+				copyDirectorySync(srcPath, destPath);
+			} else {
+				fs.copyFileSync(srcPath, destPath);
+			}
+		}
+	} else {
+		fs.copyFileSync(src, dest);
+	}
+}
+
 type DownloadOptions = { path?: string; pkg: any };
 /**
  * Downloads and installs the package into the `node_modules` of `sv`.
@@ -37,11 +69,12 @@ export async function downloadPackage(options: DownloadOptions): Promise<Resolve
 	const { pkg } = options;
 	if (options.path) {
 		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
+		// On Windows, symlinks require admin privileges, so we fall back to copying if symlink fails
 		const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
 
-		// ensures that a new symlink is always created
+		// ensures that a new symlink/copy is always created
 		if (fs.existsSync(dest)) {
-			fs.rmSync(dest);
+			fs.rmSync(dest, { recursive: true });
 		}
 
 		// `symlinkSync` doesn't recursively create directories to the `destination` path,
@@ -50,7 +83,19 @@ export async function downloadPackage(options: DownloadOptions): Promise<Resolve
 		if (!fs.existsSync(dir)) {
 			fs.mkdirSync(dir, { recursive: true });
 		}
-		fs.symlinkSync(options.path, dest);
+
+		// Try to create a symlink, but fall back to copying on Windows if it fails with EPERM
+		try {
+			fs.symlinkSync(options.path, dest, 'dir');
+		} catch (error: any) {
+			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
+			// In that case, fall back to copying the directory
+			if (platform() === 'win32' && (error.code === 'EPERM' || error.code === 'EACCES')) {
+				copyDirectorySync(options.path, dest);
+			} else {
+				throw error;
+			}
+		}
 
 		const { default: details } = await import(pkg.name);
 		return details;

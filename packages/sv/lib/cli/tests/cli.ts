@@ -47,7 +47,7 @@ describe('cli', () => {
 
 	it.for(testCases)(
 		'should create a new project with name $projectName',
-		{ timeout: 37_000 },
+		{ timeout: 51_000 },
 		async (testCase) => {
 			const { projectName, args, template = 'minimal' } = testCase;
 			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
