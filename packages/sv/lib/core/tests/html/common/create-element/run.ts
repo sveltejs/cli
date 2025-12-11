@@ -2,11 +2,11 @@ import {
 	createElement,
 	appendElement,
 	insertElement,
-	type HtmlDocument
+	type SvelteAst
 } from '../../../../tooling/html/index.ts';
 
-export function run(ast: HtmlDocument): void {
+export function run(ast: SvelteAst.Fragment): void {
 	const emptySpan = createElement('span');
-	insertElement(ast.childNodes, emptySpan);
-	appendElement(ast.childNodes, emptySpan);
+	insertElement(ast, emptySpan);
+	appendElement(ast, emptySpan);
 }

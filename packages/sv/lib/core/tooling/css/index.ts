@@ -1,76 +1,142 @@
-import { Declaration, Rule, AtRule, Comment, type CssAst, type CssChildNode } from '../index.ts';
+import type { SvelteAst } from '../index.ts';
 
-export type { CssAst };
-
-export function addRule(node: CssAst, options: { selector: string }): Rule {
-	const rules = node.nodes.filter((x): x is Rule => x.type === 'rule');
-	let rule = rules.find((x) => x.selector === options.selector);
+export function addRule(
+	node: SvelteAst.CSS.StyleSheet,
+	options: { selector: string }
+): SvelteAst.CSS.Rule {
+	// we do not check for existing rules here, as the selector AST from svelte is really complex
+	const rules = node.children.filter((x) => x.type === 'Rule');
+	let rule = rules.find((x) => {
+		const selector = x.prelude.children[0].children[0].selectors[0];
+		return selector.type === 'ClassSelector' && selector.name === options.selector;
+	});
 
 	if (!rule) {
-		rule = new Rule();
-		rule.selector = options.selector;
-		node.nodes.push(rule);
+		rule = {
+			type: 'Rule',
+			prelude: {
+				type: 'SelectorList',
+				children: [
+					{
+						type: 'ComplexSelector',
+						children: [
+							{
+								type: 'RelativeSelector',
+								selectors: [
+									{
+										type: 'ClassSelector',
+										name: options.selector,
+										start: 0,
+										end: 0
+									}
+								],
+								combinator: null,
+								start: 0,
+								end: 0
+							}
+						],
+						start: 0,
+						end: 0
+					}
+				],
+				start: 0,
+				end: 0
+			},
+			block: { type: 'Block', children: [], start: 0, end: 0 },
+			start: 0,
+			end: 0
+		};
+		node.children.push(rule);
 	}
 
 	return rule;
 }
 
 export function addDeclaration(
-	node: Rule | CssAst,
+	node: SvelteAst.CSS.Rule,
 	options: { property: string; value: string }
 ): void {
-	const declarations = node.nodes.filter((x): x is Declaration => x.type === 'decl');
-	let declaration = declarations.find((x) => x.prop === options.property);
+	const declarations = node.block.children.filter((x) => x.type === 'Declaration');
+	let declaration = declarations.find((x) => x.property === options.property);
 
 	if (!declaration) {
-		declaration = new Declaration({ prop: options.property, value: options.value });
-		node.append(declaration);
+		declaration = {
+			type: 'Declaration',
+			property: options.property,
+			value: options.value,
+			start: 0,
+			end: 0
+		};
+		node.block.children.push(declaration);
 	} else {
 		declaration.value = options.value;
 	}
 }
 
-export function addImports(node: Rule | CssAst, options: { imports: string[] }): CssChildNode[] {
-	let prev: CssChildNode | undefined;
-	const nodes = options.imports.map((param) => {
-		const found = node.nodes.find(
-			(x) => x.type === 'atrule' && x.name === 'import' && x.params === param
+export function addImports(node: SvelteAst.CSS.StyleSheet, options: { imports: string[] }): void {
+	let lastImportIndex = -1;
+
+	// Find the last existing @import to insert after it
+	for (let i = 0; i < node.children.length; i++) {
+		const child = node.children[i];
+		if (child.type === 'Atrule' && child.name === 'import') {
+			lastImportIndex = i;
+		}
+	}
+
+	for (const param of options.imports) {
+		const found = node.children.find(
+			(x) => x.type === 'Atrule' && x.name === 'import' && x.prelude === param
 		);
 
-		if (found) return (prev = found);
+		if (found) continue;
 
-		const rule = new AtRule({ name: 'import', params: param });
-		if (prev) node.insertAfter(prev, rule);
-		else node.prepend(rule);
+		const atRule: SvelteAst.CSS.Atrule = {
+			type: 'Atrule',
+			name: 'import',
+			prelude: param,
+			block: null,
+			start: 0,
+			end: 0
+		};
 
-		return (prev = rule);
-	});
-
-	return nodes;
+		if (lastImportIndex >= 0) {
+			// Insert after the last @import
+			lastImportIndex++;
+			node.children.splice(lastImportIndex, 0, atRule);
+		} else {
+			// No existing imports, prepend at the start
+			node.children.unshift(atRule);
+			lastImportIndex = 0;
+		}
+	}
 }
 
 export function addAtRule(
-	node: CssAst,
+	node: SvelteAst.CSS.StyleSheet,
 	options: { name: string; params: string; append: boolean }
-): AtRule {
-	const atRules = node.nodes.filter((x): x is AtRule => x.type === 'atrule');
-	let atRule = atRules.find((x) => x.name === options.name && x.params === options.params);
+): SvelteAst.CSS.Atrule {
+	const atRules = node.children.filter((x) => x.type === 'Atrule');
+	let atRule = atRules.find((x) => x.name === options.name && x.prelude === options.params);
 
 	if (atRule) {
 		return atRule;
 	}
 
-	atRule = new AtRule({ name: options.name, params: options.params });
+	atRule = {
+		type: 'Atrule',
+		name: options.name,
+		prelude: options.params,
+		block: null,
+		start: 0,
+		end: 0
+	};
+
 	if (!options.append) {
-		node.prepend(atRule);
+		node.children.unshift(atRule);
 	} else {
-		node.append(atRule);
+		node.children.push(atRule);
 	}
 
 	return atRule;
-}
-
-export function addComment(node: CssAst, options: { value: string }): void {
-	const comment = new Comment({ text: options.value });
-	node.append(comment);
 }

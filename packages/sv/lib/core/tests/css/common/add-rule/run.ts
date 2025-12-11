@@ -1,8 +1,9 @@
-import { addDeclaration, addRule, type CssAst } from '../../../../tooling/css/index.ts';
+import { addDeclaration, addRule } from '../../../../tooling/css/index.ts';
+import { type SvelteAst } from '../../../../tooling/index.ts';
 
-export function run(ast: CssAst): void {
+export function run(ast: SvelteAst.CSS.StyleSheet): void {
 	const barSelectorRule = addRule(ast, {
-		selector: '.bar'
+		selector: 'bar'
 	});
 	addDeclaration(barSelectorRule, {
 		property: 'color',

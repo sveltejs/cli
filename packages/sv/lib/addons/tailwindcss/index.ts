@@ -1,6 +1,7 @@
 import { defineAddon, defineAddonOptions } from '../../core.ts';
 import { imports, vite } from '../../core/tooling/js/index.ts';
 import * as svelte from '../../core/tooling/svelte/index.ts';
+import * as css from '../../core/tooling/css/index.ts';
 import { parseCss, parseJson, parseScript, parseSvelte } from '../../core/tooling/parsers.ts';
 
 const plugins = [
@@ -59,38 +60,28 @@ export default defineAddon({
 		});
 
 		sv.file(files.stylesheet, (content) => {
-			let atRules = parseCss(content).ast.nodes.filter((node) => node.type === 'atrule');
+			const { ast, generateCode } = parseCss(content);
 
-			const findAtRule = (name: string, params: string) =>
-				atRules.find(
-					(rule) =>
-						rule.name === name &&
-						// checks for both double and single quote variants
-						rule.params.replace(/['"]/g, '') === params
-				);
-
-			let code = content;
-			const importsTailwind = findAtRule('import', 'tailwindcss');
-			if (!importsTailwind) {
-				code = "@import 'tailwindcss';\n" + code;
-				// reparse to account for the newly added tailwindcss import
-				atRules = parseCss(code).ast.nodes.filter((node) => node.type === 'atrule');
-			}
-
-			const lastAtRule = atRules.findLast((rule) => ['plugin', 'import'].includes(rule.name));
-			const pluginPos = lastAtRule!.source!.end!.offset;
+			// since we are prepending all the `AtRule` let's add them in reverse order,
+			// so they appear in the expected order in the final file
 
 			for (const plugin of plugins) {
 				if (!options.plugins.includes(plugin.id)) continue;
 
-				const pluginRule = findAtRule('plugin', plugin.package);
-				if (!pluginRule) {
-					const pluginImport = `\n@plugin '${plugin.package}';`;
-					code = code.substring(0, pluginPos) + pluginImport + code.substring(pluginPos);
-				}
+				css.addAtRule(ast, {
+					name: 'plugin',
+					params: `'${plugin.package}'`,
+					append: false
+				});
 			}
 
-			return code;
+			css.addAtRule(ast, {
+				name: 'import',
+				params: `'tailwindcss'`,
+				append: false
+			});
+
+			return generateCode();
 		});
 
 		if (!kit) {

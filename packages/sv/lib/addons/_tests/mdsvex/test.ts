@@ -4,6 +4,7 @@ import { expect } from '@playwright/test';
 import { parseSvelte } from '../../../core/tooling/parsers.ts';
 import { imports } from '../../../core/tooling/js/index.ts';
 import * as svelte from '../../../core/tooling/svelte/index.ts';
+import * as html from '../../../core/tooling/html/index.ts';
 import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';
@@ -44,25 +45,8 @@ function addFixture(cwd: string, variant: string) {
 	const scriptAst = svelte.ensureScript(ast);
 	imports.addDefault(scriptAst, { from: './Demo.svx', as: 'Demo' });
 
-	ast.fragment.nodes.push({
-		type: 'RegularElement',
-		name: 'div',
-		attributes: [
-			{
-				type: 'Attribute',
-				name: 'class',
-				value: [{ type: 'Text', data: 'mdsvex', raw: 'mdsvex', start: 0, end: 0 }],
-				start: 0,
-				end: 0
-			}
-		],
-		fragment: {
-			type: 'Fragment',
-			nodes: svelte.toFragment('<Demo />')
-		},
-		start: 0,
-		end: 0
-	});
+	const div = html.createElement('div', { class: 'mdsvex' });
+	div.fragment.nodes = svelte.toFragment('<Demo />');
 
 	const content = generateCode();
 

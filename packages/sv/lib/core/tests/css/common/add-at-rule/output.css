@@ -1,5 +1,7 @@
 @tailwind 'lib/path/file.ext';
+
 .foo {
 	color: red;
 }
+
 @tailwind 'lib/path/file1.ext';

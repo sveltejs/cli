@@ -15,14 +15,14 @@ export function parseScript(source: string): {
 	return { ast, comments, source, generateCode };
 }
 
-export function parseCss(source: string): { ast: utils.CssAst } & ParseBase {
+export function parseCss(source: string): { ast: utils.SvelteAst.CSS.StyleSheet } & ParseBase {
 	const ast = utils.parseCss(source);
-	const generateCode = () => ast.toString();
+	const generateCode = () => utils.serializeCss(ast);
 
 	return { ast, source, generateCode };
 }
 
-export function parseHtml(source: string): { ast: utils.HtmlDocument } & ParseBase {
+export function parseHtml(source: string): { ast: utils.SvelteAst.Fragment } & ParseBase {
 	const ast = utils.parseHtml(source);
 	const generateCode = () => utils.serializeHtml(ast);
 
