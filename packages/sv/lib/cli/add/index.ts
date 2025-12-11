@@ -747,7 +747,8 @@ export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
 	if (invalidAddons.length > 0) {
 		const highlighter = getHighlighter();
 		common.errorAndExit(
-			`Invalid add-ons specified: ${invalidAddons.map((id) => highlighter.command(id)).join(', ')}`
+			`Invalid add-ons specified: ${invalidAddons.map((id) => highlighter.command(id)).join(', ')}\n` +
+				`${highlighter.optional('Check the documentation for valid add-on specifiers:')} ${highlighter.website('https://svelte.dev/docs/cli/sv-add')}`
 		);
 	}
 

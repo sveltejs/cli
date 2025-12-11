@@ -117,7 +117,7 @@ export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions
 async function fetchPackageJSON(packageName: string) {
 	let pkgName = packageName;
 	let scope = '';
-	if (packageName.startsWith('@')) {
+	if (packageName.startsWith('@') && packageName.includes('/')) {
 		const [org, name] = pkgName.split('/', 2);
 		scope = `${org}/`;
 		pkgName = name!;
