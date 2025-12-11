@@ -161,7 +161,7 @@ export default defineAddon({
 			if (!content) return content;
 
 			if (!content.includes(`\n${paraglideOutDir}`)) {
-				content = content.trimEnd() + `\n\n# Paraglide\n${paraglideOutDir}`;
+				content = content.trimEnd() + `\n\n# Paraglide\n${paraglideOutDir}\nproject.inlang/cache/`;
 			}
 			return content;
 		});
@@ -181,11 +181,6 @@ export default defineAddon({
 			data.locales = validLanguageTags;
 
 			return generateCode();
-		});
-
-		sv.file('project.inlang/.gitignore', (content) => {
-			if (content) return content;
-			return `cache/`;
 		});
 
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
