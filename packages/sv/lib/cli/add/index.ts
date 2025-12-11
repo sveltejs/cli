@@ -8,7 +8,7 @@ import type {
 	AddonWithoutExplicitArgs,
 	OptionValues,
 	Workspace
-} from '../../core/index.ts';
+} from '../../core.ts';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import pc from 'picocolors';
@@ -27,6 +27,7 @@ import {
 import { downloadPackage, getPackageJSON } from './fetch-packages.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
 import { createWorkspace } from './workspace.ts';
+import { noDownloadCheckOption, noInstallOption } from '../create.ts';
 
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();
@@ -53,8 +54,8 @@ export const add = new Command('add')
 	)
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
-	.option('--no-download-check', 'skip all download confirmation prompts')
-	.option('--no-install', 'skip installing dependencies')
+	.addOption(noDownloadCheckOption)
+	.addOption(noInstallOption)
 	.addOption(installOption)
 	.configureHelp({
 		...common.helpConfig,

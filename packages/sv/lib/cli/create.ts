@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import type { AddonWithoutExplicitArgs, OptionValues, Workspace } from '../core/index.ts';
+import type { AddonWithoutExplicitArgs, OptionValues, Workspace } from '../core.ts';
 import {
 	create as createKit,
 	templates,
@@ -55,6 +55,11 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 );
 const noAddonsOption = new Option('--no-add-ons', 'do not prompt to add add-ons').conflicts('add');
 const addOption = new Option('--add <addon...>', 'add-on to include').default([]);
+export const noDownloadCheckOption = new Option(
+	'--no-download-check',
+	'skip all download confirmation prompts'
+);
+export const noInstallOption = new Option('--no-install', 'skip installing dependencies');
 
 const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
@@ -81,10 +86,10 @@ export const create = new Command('create')
 	.option('--no-types')
 	.addOption(noAddonsOption)
 	.addOption(addOption)
-	.option('--no-install', 'skip installing dependencies')
+	.addOption(noInstallOption)
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
-	.option('--no-download-check', 'skip all download confirmation prompts')
+	.addOption(noDownloadCheckOption)
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {

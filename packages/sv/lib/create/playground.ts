@@ -3,7 +3,7 @@ import path from 'node:path';
 import * as js from '../core/tooling/js/index.ts';
 import * as svelte from '../core/tooling/svelte/index.ts';
 import { parseJson, parseScript, parseSvelte } from '../core/tooling/parsers.ts';
-import { isVersionUnsupportedBelow } from '../core/index.ts';
+import { isVersionUnsupportedBelow } from '../core.ts';
 import { getSharedFiles } from './utils.ts';
 import { walk } from 'zimmerframe';
 

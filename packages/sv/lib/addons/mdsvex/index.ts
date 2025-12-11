@@ -1,4 +1,4 @@
-import { defineAddon } from '../../core/index.ts';
+import { defineAddon } from '../../core.ts';
 import { array, exports, functions, imports, object } from '../../core/tooling/js/index.ts';
 import { parseScript } from '../../core/tooling/parsers.ts';
 

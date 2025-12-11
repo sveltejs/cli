@@ -6,7 +6,7 @@ import type {
 	Question,
 	SvApi,
 	AddonSetupResult
-} from '../core/index.ts';
+} from '../core.ts';
 import pc from 'picocolors';
 import * as p from '@clack/prompts';
 import { exec, NonZeroExitError } from 'tinyexec';

@@ -1,4 +1,4 @@
-import { dedent, defineAddon, log, colors } from '../../core/index.ts';
+import { dedent, defineAddon, log, colors } from '../../core.ts';
 import { addEslintConfigPrettier } from '../common.ts';
 import { parseJson } from '../../core/tooling/parsers.ts';
 

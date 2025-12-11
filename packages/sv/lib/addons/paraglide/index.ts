@@ -1,4 +1,4 @@
-import { colors, defineAddon, defineAddonOptions, log } from '../../core/index.ts';
+import { colors, defineAddon, defineAddonOptions, log } from '../../core.ts';
 import {
 	common,
 	imports,

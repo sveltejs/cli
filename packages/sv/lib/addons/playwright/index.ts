@@ -1,4 +1,4 @@
-import { dedent, defineAddon, log } from '../../core/index.ts';
+import { dedent, defineAddon, log } from '../../core.ts';
 import { common, exports, imports, object } from '../../core/tooling/js/index.ts';
 import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 

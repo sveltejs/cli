@@ -1,13 +1,5 @@
 import MagicString from 'magic-string';
-import {
-	colors,
-	dedent,
-	defineAddon,
-	defineAddonOptions,
-	log,
-	utils,
-	Walker
-} from '../../core/index.ts';
+import { colors, dedent, defineAddon, defineAddonOptions, log, utils, Walker } from '../../core.ts';
 import * as js from '../../core/tooling/js/index.ts';
 import type { AstTypes } from '../../core/tooling/js/index.ts';
 import { parseScript } from '../../core/tooling/parsers.ts';

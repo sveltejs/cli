@@ -8,7 +8,7 @@ import {
 	object,
 	variables
 } from '../../core/tooling/js/index.ts';
-import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '../../core/index.ts';
+import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '../../core.ts';
 import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';

@@ -1,4 +1,4 @@
-import { defineAddon, defineAddonOptions } from '../../core/index.ts';
+import { defineAddon, defineAddonOptions } from '../../core.ts';
 import { imports, vite } from '../../core/tooling/js/index.ts';
 import * as svelte from '../../core/tooling/svelte/index.ts';
 import { parseCss, parseJson, parseScript, parseSvelte } from '../../core/tooling/parsers.ts';

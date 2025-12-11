@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createGunzip } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { pipeline } from 'node:stream/promises';
-import type { AddonWithoutExplicitArgs } from '../../core/index.ts';
+import type { AddonWithoutExplicitArgs } from '../../core.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));

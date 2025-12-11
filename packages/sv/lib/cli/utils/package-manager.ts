@@ -13,7 +13,7 @@ import {
 	type AgentName
 } from 'package-manager-detector';
 import { parseJson, parseYaml } from '../../core/tooling/parsers.ts';
-import { isVersionUnsupportedBelow } from '../../core/index.ts';
+import { isVersionUnsupportedBelow } from '../../core.ts';
 import { getHighlighter } from '../../cli/add/utils.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(

@@ -4,7 +4,7 @@ import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
-import { isVersionUnsupportedBelow } from '../../core/index.ts';
+import { isVersionUnsupportedBelow } from '../../core.ts';
 import { resolveCommand, type AgentName } from 'package-manager-detector';
 
 const NO_PREFIX = '--no-';

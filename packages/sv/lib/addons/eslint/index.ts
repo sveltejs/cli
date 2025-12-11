@@ -1,4 +1,4 @@
-import { defineAddon, log } from '../../core/index.ts';
+import { defineAddon, log } from '../../core.ts';
 import {
 	array,
 	common,

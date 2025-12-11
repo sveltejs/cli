@@ -1,4 +1,4 @@
-import type { Addon, AddonWithoutExplicitArgs } from '../../core/index.ts';
+import type { Addon, AddonWithoutExplicitArgs } from '../../core.ts';
 
 import devtoolsJson from '../devtools-json/index.ts';
 import drizzle from '../drizzle/index.ts';

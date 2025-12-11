@@ -17,12 +17,11 @@ export default defineAddon({
 	run: ({ kit, sv, options, typescript }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
-		sv.file(`src/lib/~SV-NAME-TODO~/content.txt`, (content) => {
+		sv.file(`src/lib/~SV-NAME-TODO~/content.txt`, () => {
 			return `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
 		});
 
 		sv.file(`src/lib/~SV-NAME-TODO~/HelloComponent.svelte`, (content) => {
-			// if (!options.demo) return content;
 			const { ast, generateCode } = parseSvelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
@@ -35,7 +34,6 @@ export default defineAddon({
 		});
 
 		sv.file('src/routes/+page.svelte', (content) => {
-			// if (!options.demo) return content;
 			const { ast, generateCode } = parseSvelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
