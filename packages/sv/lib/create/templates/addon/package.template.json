@@ -9,7 +9,11 @@
 		"test": "vitest run"
 	},
 	"files": ["src", "!src/**/*.test.*"],
-	"exports": "./src/index.js",
+	"exports": {
+		".": {
+			"default": "./src/index.js"
+		}
+	},
 	"dependencies": {
 		"sv": "workspace:*"
 	},

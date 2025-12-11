@@ -717,8 +717,8 @@ export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
 				kind: 'official'
 			});
 		} else if (addon.id.startsWith('file:')) {
-			const id = addon.id.replace('file:', '').trim();
-			if (!id) {
+			const location = addon.id.replace('file:', '').trim();
+			if (!location) {
 				invalidAddons.push('file:');
 				continue;
 			}
