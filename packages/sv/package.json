@@ -54,7 +54,7 @@
 		"ps-tree": "^1.2.0",
 		"silver-fleece": "^1.2.1",
 		"sucrase": "^3.35.0",
-		"svelte": "^5.45.7",
+		"svelte": "^5.45.9",
 		"tiny-glob": "^0.2.9",
 		"tinyexec": "^0.3.2",
 		"valibot": "^0.41.0",

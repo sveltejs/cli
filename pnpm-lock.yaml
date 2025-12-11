@@ -188,8 +188,8 @@ importers:
         specifier: ^3.35.0
         version: 3.35.1
       svelte:
-        specifier: ^5.45.7
-        version: 5.45.7
+        specifier: ^5.45.9
+        version: 5.45.9
       tiny-glob:
         specifier: ^0.2.9
         version: 0.2.9
@@ -1941,8 +1941,8 @@ packages:
     resolution: {integrity: sha512-d53/xClCjHsuFXuHsn7+F/0NKkkwgRv8kLg2his5YBYqVtfIrBqkvWd+5ZjYN6ryk/jv/rJF00vexXHkK8ofXA==}
     engines: {node: '>=18'}
 
-  svelte@5.45.7:
-    resolution: {integrity: sha512-A+vXOLTjErrPRkpbY0h+cZuXjRQS8RZeyF8cx8IU513ORL7ld8o9exQAYAabh8NgNW5bLcIKhrSNwgpj4ykb+w==}
+  svelte@5.45.9:
+    resolution: {integrity: sha512-dehRiT8dmImrEMAx22/h1V54ibH5aEdCH2uywGAw2y2uLMOBhQMBx9KS/9TlfTHIA2/00rHyG/F2IxpLJO9DPQ==}
     engines: {node: '>=18'}
 
   synckit@0.11.11:
@@ -3883,7 +3883,7 @@ snapshots:
       magic-string: 0.30.21
       zimmerframe: 1.1.4
 
-  svelte@5.45.7:
+  svelte@5.45.9:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
