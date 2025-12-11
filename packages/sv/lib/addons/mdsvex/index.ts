@@ -1,6 +1,4 @@
-import { defineAddon } from '../../core.ts';
-import { array, exports, functions, imports, object } from '../../core/tooling/js/index.ts';
-import { parseScript } from '../../core/tooling/parsers.ts';
+import { defineAddon, parseScript, js } from '../../core.ts';
 
 export default defineAddon({
 	id: 'mdsvex',
@@ -13,38 +11,38 @@ export default defineAddon({
 		sv.file(files.svelteConfig, (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });
+			js.imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });
 
-			const { value: exportDefault } = exports.createDefault(ast, {
-				fallback: object.create({})
+			const { value: exportDefault } = js.exports.createDefault(ast, {
+				fallback: js.object.create({})
 			});
 
 			// preprocess
-			let preprocessorArray = object.property(exportDefault, {
+			let preprocessorArray = js.object.property(exportDefault, {
 				name: 'preprocess',
-				fallback: array.create()
+				fallback: js.array.create()
 			});
 			const isArray = preprocessorArray.type === 'ArrayExpression';
 
 			if (!isArray) {
 				const previousElement = preprocessorArray;
-				preprocessorArray = array.create();
-				array.append(preprocessorArray, previousElement);
-				object.overrideProperties(exportDefault, {
+				preprocessorArray = js.array.create();
+				js.array.append(preprocessorArray, previousElement);
+				js.object.overrideProperties(exportDefault, {
 					preprocess: preprocessorArray
 				});
 			}
 
-			const mdsvexCall = functions.createCall({ name: 'mdsvex', args: [] });
-			array.append(preprocessorArray, mdsvexCall);
+			const mdsvexCall = js.functions.createCall({ name: 'mdsvex', args: [] });
+			js.array.append(preprocessorArray, mdsvexCall);
 
 			// extensions
-			const extensionsArray = object.property(exportDefault, {
+			const extensionsArray = js.object.property(exportDefault, {
 				name: 'extensions',
-				fallback: array.create()
+				fallback: js.array.create()
 			});
-			array.append(extensionsArray, '.svelte');
-			array.append(extensionsArray, '.svx');
+			js.array.append(extensionsArray, '.svelte');
+			js.array.append(extensionsArray, '.svx');
 
 			return generateCode();
 		});

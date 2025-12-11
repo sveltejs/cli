@@ -10,7 +10,6 @@
 		"lib/cli/tests/snapshots/**"
 	],
 	"compilerOptions": {
-		"checkJs": false,
-		"isolatedDeclarations": true
+		"checkJs": false
 	}
 }

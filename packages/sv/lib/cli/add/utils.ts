@@ -2,9 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
-import { parseJson } from '../../core/tooling/parsers.ts';
+import { parseJson, type Highlighter, type Workspace } from '../../core.ts';
 import { resolveCommand, type AgentName } from 'package-manager-detector';
-import type { Highlighter, Workspace } from '../../core.ts';
 import * as p from '@clack/prompts';
 
 export type Package = {

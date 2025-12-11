@@ -1,6 +1,5 @@
-import { dedent, defineAddon, log, colors } from '../../core.ts';
+import { dedent, defineAddon, log, colors, parseJson } from '../../core.ts';
 import { addEslintConfigPrettier } from '../common.ts';
-import { parseJson } from '../../core/tooling/parsers.ts';
 
 export default defineAddon({
 	id: 'prettier',

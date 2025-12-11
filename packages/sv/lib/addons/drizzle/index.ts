@@ -1,15 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-	common,
-	exports,
-	functions,
-	imports,
-	object,
-	variables
-} from '../../core/tooling/js/index.ts';
-import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '../../core.ts';
-import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
+	defineAddon,
+	defineAddonOptions,
+	dedent,
+	type OptionValues,
+	parseJson,
+	parseScript,
+	js
+} from '../../core.ts';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
 
@@ -221,16 +220,16 @@ export default defineAddon({
 		sv.file(paths['drizzle config'], (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
+			js.imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
 			ast.body.push(
-				common.parseStatement(
+				js.common.parseStatement(
 					"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
 				)
 			);
 
-			exports.createDefault(ast, {
-				fallback: common.parseExpression(`
+			js.exports.createDefault(ast, {
+				fallback: js.common.parseExpression(`
 					defineConfig({
 						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
 						dialect: "${options.sqlite === 'turso' ? 'turso' : options.database}",
@@ -251,46 +250,46 @@ export default defineAddon({
 
 			let userSchemaExpression;
 			if (options.database === 'sqlite') {
-				imports.addNamed(ast, {
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
 					imports: ['integer', 'sqliteTable', 'text']
 				});
 
-				userSchemaExpression = common.parseExpression(`sqliteTable('user', {
+				userSchemaExpression = js.common.parseExpression(`sqliteTable('user', {
 					id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
 					age: integer('age')
 				})`);
 			}
 			if (options.database === 'mysql') {
-				imports.addNamed(ast, {
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/mysql-core',
 					imports: ['mysqlTable', 'serial', 'int']
 				});
 
-				userSchemaExpression = common.parseExpression(`mysqlTable('user', {
+				userSchemaExpression = js.common.parseExpression(`mysqlTable('user', {
 					id: serial('id').primaryKey(),
 					age: int('age'),
 				})`);
 			}
 			if (options.database === 'postgresql') {
-				imports.addNamed(ast, {
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/pg-core',
 					imports: ['pgTable', 'serial', 'integer']
 				});
 
-				userSchemaExpression = common.parseExpression(`pgTable('user', {
+				userSchemaExpression = js.common.parseExpression(`pgTable('user', {
 					id: serial('id').primaryKey(),
 					age: integer('age'),
 				})`);
 			}
 
 			if (!userSchemaExpression) throw new Error('unreachable state...');
-			const userIdentifier = variables.declaration(ast, {
+			const userIdentifier = js.variables.declaration(ast, {
 				kind: 'const',
 				name: 'user',
 				value: userSchemaExpression
 			});
-			exports.createNamed(ast, {
+			js.exports.createNamed(ast, {
 				name: 'user',
 				fallback: userIdentifier
 			});
@@ -301,14 +300,14 @@ export default defineAddon({
 		sv.file(paths['database'], (content) => {
 			const { ast, generateCode } = parseScript(content);
 
-			imports.addNamed(ast, {
+			js.imports.addNamed(ast, {
 				from: '$env/dynamic/private',
 				imports: ['env']
 			});
-			imports.addNamespace(ast, { from: './schema', as: 'schema' });
+			js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
 			// env var checks
-			const dbURLCheck = common.parseStatement(
+			const dbURLCheck = js.common.parseStatement(
 				"if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
 			);
 			ast.body.push(dbURLCheck);
@@ -316,78 +315,78 @@ export default defineAddon({
 			let clientExpression;
 			// SQLite
 			if (options.sqlite === 'better-sqlite3') {
-				imports.addDefault(ast, { from: 'better-sqlite3', as: 'Database' });
-				imports.addNamed(ast, {
+				js.imports.addDefault(ast, { from: 'better-sqlite3', as: 'Database' });
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/better-sqlite3',
 					imports: ['drizzle']
 				});
 
-				clientExpression = common.parseExpression('new Database(env.DATABASE_URL)');
+				clientExpression = js.common.parseExpression('new Database(env.DATABASE_URL)');
 			}
 			if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
-				imports.addNamed(ast, {
+				js.imports.addNamed(ast, {
 					from: '@libsql/client',
 					imports: ['createClient']
 				});
-				imports.addNamed(ast, {
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/libsql',
 					imports: ['drizzle']
 				});
 
 				if (options.sqlite === 'turso') {
-					imports.addNamed(ast, {
+					js.imports.addNamed(ast, {
 						from: '$app/environment',
 						imports: ['dev']
 					});
 					// auth token check in prod
-					const authTokenCheck = common.parseStatement(
+					const authTokenCheck = js.common.parseStatement(
 						"if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
 					);
 					ast.body.push(authTokenCheck);
 
-					clientExpression = common.parseExpression(
+					clientExpression = js.common.parseExpression(
 						'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
 					);
 				} else {
-					clientExpression = common.parseExpression('createClient({ url: env.DATABASE_URL })');
+					clientExpression = js.common.parseExpression('createClient({ url: env.DATABASE_URL })');
 				}
 			}
 			// MySQL
 			if (options.mysql === 'mysql2' || options.mysql === 'planetscale') {
-				imports.addDefault(ast, { from: 'mysql2/promise', as: 'mysql' });
-				imports.addNamed(ast, {
+				js.imports.addDefault(ast, { from: 'mysql2/promise', as: 'mysql' });
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/mysql2',
 					imports: ['drizzle']
 				});
 
-				clientExpression = common.parseExpression('mysql.createPool(env.DATABASE_URL)');
+				clientExpression = js.common.parseExpression('mysql.createPool(env.DATABASE_URL)');
 			}
 			// PostgreSQL
 			if (options.postgresql === 'neon') {
-				imports.addNamed(ast, {
+				js.imports.addNamed(ast, {
 					from: '@neondatabase/serverless',
 					imports: ['neon']
 				});
-				imports.addNamed(ast, {
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/neon-http',
 					imports: ['drizzle']
 				});
 
-				clientExpression = common.parseExpression('neon(env.DATABASE_URL)');
+				clientExpression = js.common.parseExpression('neon(env.DATABASE_URL)');
 			}
 			if (options.postgresql === 'postgres.js') {
-				imports.addDefault(ast, { from: 'postgres', as: 'postgres' });
-				imports.addNamed(ast, {
+				js.imports.addDefault(ast, { from: 'postgres', as: 'postgres' });
+				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/postgres-js',
 					imports: ['drizzle']
 				});
 
-				clientExpression = common.parseExpression('postgres(env.DATABASE_URL)');
+				clientExpression = js.common.parseExpression('postgres(env.DATABASE_URL)');
 			}
 
 			if (!clientExpression) throw new Error('unreachable state...');
 			ast.body.push(
-				variables.declaration(ast, {
+				js.variables.declaration(ast, {
 					kind: 'const',
 					name: 'client',
 					value: clientExpression
@@ -395,27 +394,27 @@ export default defineAddon({
 			);
 
 			// create drizzle function call
-			const drizzleCall = functions.createCall({
+			const drizzleCall = js.functions.createCall({
 				name: 'drizzle',
 				args: ['client'],
 				useIdentifiers: true
 			});
 
 			// add schema to support `db.query`
-			const paramObject = object.create({
-				schema: variables.createIdentifier('schema')
+			const paramObject = js.object.create({
+				schema: js.variables.createIdentifier('schema')
 			});
 			if (options.database === 'mysql') {
 				const mode = options.mysql === 'planetscale' ? 'planetscale' : 'default';
-				object.property(paramObject, {
+				js.object.property(paramObject, {
 					name: 'mode',
-					fallback: common.createLiteral(mode)
+					fallback: js.common.createLiteral(mode)
 				});
 			}
 			drizzleCall.arguments.push(paramObject);
 
 			// create `db` export
-			const db = variables.declaration(ast, {
+			const db = js.variables.declaration(ast, {
 				kind: 'const',
 				name: 'db',
 				value: drizzleCall

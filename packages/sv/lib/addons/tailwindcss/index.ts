@@ -1,8 +1,14 @@
-import { defineAddon, defineAddonOptions } from '../../core.ts';
-import { imports, vite } from '../../core/tooling/js/index.ts';
-import * as svelte from '../../core/tooling/svelte/index.ts';
-import * as css from '../../core/tooling/css/index.ts';
-import { parseCss, parseJson, parseScript, parseSvelte } from '../../core/tooling/parsers.ts';
+import {
+	defineAddon,
+	defineAddonOptions,
+	js,
+	svelte,
+	css,
+	parseCss,
+	parseJson,
+	parseScript,
+	parseSvelte
+} from '../../core.ts';
 
 const plugins = [
 	{
@@ -53,8 +59,8 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'tailwindcss';
-			imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
-			vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
+			js.imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
+			js.vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
 
 			return generateCode();
 		});
@@ -90,7 +96,7 @@ export default defineAddon({
 			sv.file(appSvelte, (content) => {
 				const { ast, generateCode } = parseSvelte(content);
 				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
-				imports.addEmpty(scriptAst, { from: stylesheetRelative });
+				js.imports.addEmpty(scriptAst, { from: stylesheetRelative });
 				return generateCode();
 			});
 		} else {
@@ -99,7 +105,7 @@ export default defineAddon({
 			sv.file(layoutSvelte, (content) => {
 				const { ast, generateCode } = parseSvelte(content);
 				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
-				imports.addEmpty(scriptAst, { from: stylesheetRelative });
+				js.imports.addEmpty(scriptAst, { from: stylesheetRelative });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');

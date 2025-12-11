@@ -1,15 +1,16 @@
-import { colors, defineAddon, defineAddonOptions, log } from '../../core.ts';
 import {
-	common,
-	imports,
-	variables,
-	exports,
-	kit as kitJs,
-	vite
-} from '../../core/tooling/js/index.ts';
-import * as html from '../../core/tooling/html/index.ts';
-import * as svelte from '../../core/tooling/svelte/index.ts';
-import { parseHtml, parseJson, parseScript, parseSvelte } from '../../core/tooling/parsers.ts';
+	colors,
+	defineAddon,
+	defineAddonOptions,
+	log,
+	parseHtml,
+	parseJson,
+	parseScript,
+	parseSvelte,
+	js,
+	svelte,
+	html
+} from '../../core.ts';
 import { addToDemoPage } from '../common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
@@ -92,8 +93,8 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'paraglideVitePlugin';
-			imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
-			vite.addPlugin(ast, {
+			js.imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
+			js.vite.addPlugin(ast, {
 				code: `${vitePluginName}({ 
 					project: './project.inlang', 
 					outdir: './${paraglideOutDir}' 
@@ -106,19 +107,21 @@ export default defineAddon({
 		// reroute hook
 		sv.file(`src/hooks.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			imports.addNamed(ast, {
+			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/runtime',
 				imports: ['deLocalizeUrl']
 			});
 
-			const expression = common.parseExpression('(request) => deLocalizeUrl(request.url).pathname');
-			const rerouteIdentifier = variables.declaration(ast, {
+			const expression = js.common.parseExpression(
+				'(request) => deLocalizeUrl(request.url).pathname'
+			);
+			const rerouteIdentifier = js.variables.declaration(ast, {
 				kind: 'const',
 				name: 'reroute',
 				value: expression
 			});
 
-			const existingExport = exports.createNamed(ast, {
+			const existingExport = js.exports.createNamed(ast, {
 				name: 'reroute',
 				fallback: rerouteIdentifier
 			});
@@ -132,7 +135,7 @@ export default defineAddon({
 		// handle hook
 		sv.file(`src/hooks.server.${ext}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
-			imports.addNamed(ast, {
+			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
 				imports: ['paraglideMiddleware']
 			});
@@ -143,7 +146,7 @@ export default defineAddon({
 			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
 		});
 	});`;
-			kitJs.addHooksHandle(ast, {
+			js.kit.addHooksHandle(ast, {
 				typescript,
 				newHandleName: 'handleParaglide',
 				handleContent: hookHandleContent
@@ -157,7 +160,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseHtml(content);
 
 			const htmlNode = ast.nodes.find(
-				(child): child is html.SvelteAst.RegularElement =>
+				(child): child is svelte.SvelteAst.RegularElement =>
 					child.type === 'RegularElement' && child.name === 'html'
 			);
 			if (!htmlNode) {
@@ -190,8 +193,8 @@ export default defineAddon({
 				const { ast, generateCode } = parseSvelte(content);
 				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
-				imports.addNamed(scriptAst, { imports: { m: 'm' }, from: '$lib/paraglide/messages.js' });
-				imports.addNamed(scriptAst, {
+				js.imports.addNamed(scriptAst, { imports: { m: 'm' }, from: '$lib/paraglide/messages.js' });
+				js.imports.addNamed(scriptAst, {
 					imports: {
 						setLocale: 'setLocale'
 					},

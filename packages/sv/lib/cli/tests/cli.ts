@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { exec } from 'tinyexec';
 import path from 'node:path';
 import fs from 'node:fs';
-import { parseJson } from '../../core/tooling/index.ts';
+import { parseJson } from '../../core.ts';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
 const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
@@ -75,7 +75,7 @@ describe('cli', () => {
 
 			// package.json has a name
 			const packageJsonPath = path.resolve(testOutputPath, 'package.json');
-			const packageJson = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
+			const { data: packageJson } = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
 			expect(packageJson.name).toBe(projectName);
 
 			const snapPath = path.resolve(
@@ -95,7 +95,7 @@ describe('cli', () => {
 
 				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
-					const generatedPackageJson = parseJson(generated);
+					const { data: generatedPackageJson } = parseJson(generated);
 					// remove @types/node from generated package.json as we test on different node versions
 					delete generatedPackageJson.devDependencies['@types/node'];
 					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
@@ -113,7 +113,7 @@ describe('cli', () => {
 			if (template === 'addon') {
 				// replace sv version in package.json for tests
 				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
-				const packageJson = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
+				const { data: packageJson } = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
 				packageJson.dependencies['sv'] = 'file:../../../packages/sv';
 				fs.writeFileSync(
 					packageJsonPath,

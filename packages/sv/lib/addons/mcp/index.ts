@@ -1,5 +1,4 @@
-import { defineAddon, defineAddonOptions, log } from '../../core.ts';
-import { parseJson } from '../../core/tooling/parsers.ts';
+import { defineAddon, defineAddonOptions, log, parseJson } from '../../core.ts';
 import { getSharedFiles } from '../../create/utils.ts';
 import { getHighlighter } from '../../cli/add/utils.ts';
 

@@ -11,8 +11,10 @@ export type * from './core/addon/options.ts';
 export type * from './core/addon/config.ts';
 export type * from './core/addon/workspace.ts';
 
+export * as css from './core/tooling/css/index.ts';
 export * as js from './core/tooling/js/index.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
+export * as html from './core/tooling/html/index.ts';
 export {
 	parseSvelte,
 	parseScript,
@@ -22,3 +24,5 @@ export {
 	parseYaml
 } from './core/tooling/parsers.ts';
 export { Walker } from './core/tooling/index.ts';
+export type { Comments, AstTypes } from './core/tooling/index.ts';
+export type { SvelteAst } from './core/tooling/svelte/index.ts';

@@ -1,6 +1,4 @@
-import { defineAddon, defineAddonOptions } from '../../core.ts';
-import { exports, functions, imports, object } from '../../core/tooling/js/index.ts';
-import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
+import { defineAddon, defineAddonOptions, parseJson, parseScript, js } from '../../core.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
@@ -70,22 +68,22 @@ export default defineAddon({
 				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
 					?.local?.name as string;
 			} else {
-				imports.addDefault(ast, { from: adapter.package, as: adapterName });
+				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
 
-			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
+			const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
 
 			// override the adapter property
-			object.overrideProperties(config, {
+			js.object.overrideProperties(config, {
 				kit: {
-					adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+					adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 				}
 			});
 
 			// reset the comment for non-auto adapters
 			if (adapter.package !== '@sveltejs/adapter-auto') {
-				const fallback = object.create({});
-				const cfgKitValue = object.property(config, { name: 'kit', fallback });
+				const fallback = js.object.create({});
+				const cfgKitValue = js.object.property(config, { name: 'kit', fallback });
 
 				// removes any existing adapter auto comments
 				comments.remove(

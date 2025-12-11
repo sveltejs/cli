@@ -1,8 +1,16 @@
 import MagicString from 'magic-string';
-import { colors, dedent, defineAddon, defineAddonOptions, log, utils, Walker } from '../../core.ts';
-import * as js from '../../core/tooling/js/index.ts';
-import type { AstTypes } from '../../core/tooling/js/index.ts';
-import { parseScript } from '../../core/tooling/parsers.ts';
+import {
+	colors,
+	dedent,
+	defineAddon,
+	defineAddonOptions,
+	log,
+	utils,
+	Walker,
+	parseScript,
+	js,
+	type AstTypes
+} from '../../core.ts';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { addToDemoPage } from '../common.ts';
 

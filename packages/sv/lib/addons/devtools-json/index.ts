@@ -1,6 +1,4 @@
-import { defineAddon } from '../../core.ts';
-import { imports, vite } from '../../core/tooling/js/index.ts';
-import { parseScript } from '../../core/tooling/parsers.ts';
+import { defineAddon, parseScript, js } from '../../core.ts';
 
 export default defineAddon({
 	id: 'devtools-json',
@@ -16,8 +14,8 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 
 			const vitePluginName = 'devtoolsJson';
-			imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
-			vite.addPlugin(ast, { code: `${vitePluginName}()` });
+			js.imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
+			js.vite.addPlugin(ast, { code: `${vitePluginName}()` });
 
 			return generateCode();
 		});
