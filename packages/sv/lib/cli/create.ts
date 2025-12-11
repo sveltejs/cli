@@ -147,7 +147,7 @@ export const create = new Command('create')
 async function createProject(cwd: ProjectPath, options: Options) {
 	if (options.fromPlayground) {
 		p.log.warn(
-			'The Svelte maintainers have not reviewed playgrounds for malicious code. Use at your discretion.'
+			'Svelte maintainers have not reviewed playgrounds for malicious code. Use at your discretion.'
 		);
 	}
 

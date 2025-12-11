@@ -1,31 +1,36 @@
-# sv community addon: ~SV-NAME-TODO~
+# [sv](https://svelte.dev/docs/cli/overview) community add-on: ~SV-NAME-TODO~
 
 > [!IMPORTANT]
-> Community add-ons are currently not supported. Please see [#184](https://github.com/sveltejs/cli/issues/184) for details.
+> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion
 
-> [!IMPORTANT]
-> This template's dependencies may not be up-to-date; be sure to update them to the latest!
+## Usage
 
-> If you get stuck, check out the [implementations of official add-ons](https://github.com/sveltejs/cli/tree/main/packages/addons).
-
-created with [`sv`](https://svelte.dev/docs/cli/sv-create#Options-template-name).
-
-## Using the add-on
-
-To run the add-on, we'll first need a project to apply it to.
-
-Create the project with the following script:
+To use ~SV-NAME-TODO~, run:
 
 ```shell
-npm run demo-create
+npx sv add ~SV-NAME-TODO~
 ```
 
-This will create a SvelteKit project in the `demo` directory.
+## What you get
 
-To execute the add-on, run:
+- A super cool stuff
+- Another one!
 
-```shell
+---
+
+## Developing the add-on
+
+Some convinient scripts are provided to help you develop the add-on.
+
+```sh
+## create a new demo project
+npm run demo-create
+
+## add your add-on to the demo project
 npm run demo-add
+
+## run the tests
+npm run test
 ```
 
 ## Sharing your add-on
@@ -34,14 +39,6 @@ When you're ready to publish your add-on to npm, run:
 
 ```shell
 npm publish
-```
-
-Your published add-on can now be used by anyone!
-
-To execute the newly published package with `sv`, run:
-
-```shell
-npx sv add npm:~SV-NAME-TODO~
 ```
 
 ## Things to be aware of
