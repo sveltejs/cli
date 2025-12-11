@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import type { AddonWithoutExplicitArgs, OptionValues, Workspace } from '../core.ts';
+import type { OptionValues, Workspace } from '../core.ts';
 import {
 	create as createKit,
 	templates,
@@ -33,7 +33,7 @@ import {
 import {
 	addonArgsHandler,
 	promptAddonQuestions,
-	resolveNonOfficialAddons,
+	resolveAddons,
 	runAddonsApply,
 	sanitizeAddons,
 	type SelectedAddon
@@ -232,28 +232,19 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const addons = options.add.reduce(addonArgsHandler, []);
 		const sanitizedAddons = sanitizeAddons(addons);
-		sanitizedAddonsMap = sanitizedAddons.reduce<Record<string, string[] | undefined>>(
-			(acc, curr) => {
-				acc[curr.id] = curr.options;
-				return acc;
-			},
-			{}
+
+		// Resolve all addons (official and community) into a unified structure
+		const { resolvedAddons, specifierToId } = await resolveAddons(
+			sanitizedAddons,
+			projectPath,
+			options.downloadCheck
 		);
 
-		// Resolve non-official addons early
-		const nonOfficialAddons = sanitizedAddons.filter((addon) => addon.kind !== 'official');
-		let nonOfficialAddonDetails: AddonWithoutExplicitArgs[] = [];
-		if (nonOfficialAddons.length > 0) {
-			nonOfficialAddonDetails = await resolveNonOfficialAddons(
-				projectPath,
-				nonOfficialAddons.map((addon) => addon.id),
-				options.downloadCheck
-			);
-			nonOfficialAddons.forEach((addon) => {
-				sanitizedAddonsMap[addon.id] = (nonOfficialAddonDetails.find(
-					(detail) => detail.id === addon.id
-				)?.options ?? []) as string[];
-			});
+		// Map options from original specifiers to resolved IDs
+		sanitizedAddonsMap = {};
+		for (const addonArg of sanitizedAddons) {
+			const resolvedId = specifierToId.get(addonArg.id) ?? addonArg.id;
+			sanitizedAddonsMap[resolvedId] = addonArg.options;
 		}
 
 		const result = await promptAddonQuestions({
@@ -265,7 +256,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				addons: sanitizedAddonsMap
 			},
 			selectedAddonIds: Object.keys(sanitizedAddonsMap),
-			nonOfficialAddonDetails,
+			allAddons: resolvedAddons,
 			workspace
 		});
 

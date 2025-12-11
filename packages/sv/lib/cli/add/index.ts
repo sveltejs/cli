@@ -42,7 +42,7 @@ const OptionsSchema = v.strictObject({
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 type AddonArgsIn = { id: string; options?: string[] };
-type AddonArgsOut = AddonArgsIn & { options: string[]; kind: 'official' | 'file' };
+type AddonArgsOut = AddonArgsIn & { options: string[]; kind: 'official' | 'file' | 'scoped' };
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
@@ -159,59 +159,31 @@ export const add = new Command('add')
 		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
 		const selectedAddonArgs = sanitizeAddons(addonArgs);
 
-		const officialAddons = selectedAddonArgs.filter((addon) => addon.kind === 'official');
-		officialAddons.forEach((addon) => {
-			options.addons[addon.id] = addon.options;
-		});
-
 		const workspace = await createWorkspace({ cwd: options.cwd });
 
 		common.runCommand(async () => {
-			const nonOfficialAddons = selectedAddonArgs.filter((addon) => addon.kind !== 'official');
-			// Store options for non-official addons before resolution
-			nonOfficialAddons.forEach((addon) => {
-				options.addons[addon.id] = addon.options;
-			});
-			let nonOfficialAddonDetails: AddonWithoutExplicitArgs[] = [];
-			// Map from original specifier (e.g., "file:../cli/hello") to resolved addon ID (e.g., "hello")
-			const specifierToResolvedId = new Map<string, string>();
+			// Resolve all addons (official and community) into a unified structure
+			const { resolvedAddons, specifierToId } = await resolveAddons(
+				selectedAddonArgs,
+				options.cwd,
+				options.downloadCheck
+			);
 
-			if (nonOfficialAddons.length > 0) {
-				const originalSpecifiers = nonOfficialAddons.map((addon) => addon.id);
-				nonOfficialAddonDetails = await resolveNonOfficialAddons(
-					options.cwd,
-					originalSpecifiers,
-					options.downloadCheck
-				);
-
-				// Create mapping from original specifier to resolved addon ID
-				// Match by position since they're resolved in the same order
-				originalSpecifiers.forEach((specifier, index) => {
-					const resolvedAddon = nonOfficialAddonDetails[index];
-					if (resolvedAddon) {
-						specifierToResolvedId.set(specifier, resolvedAddon.id);
-						// Update options.addons to use resolved ID instead of specifier
-						const resolvedId = resolvedAddon.id;
-						const originalOptions = options.addons[specifier];
-						if (originalOptions !== undefined) {
-							options.addons[resolvedId] = originalOptions;
-							delete options.addons[specifier];
-						} else {
-							options.addons[resolvedId] = [];
-						}
-					}
-				});
+			// Map options from original specifiers to resolved IDs
+			for (const addonArg of selectedAddonArgs) {
+				const resolvedId = specifierToId.get(addonArg.id) ?? addonArg.id;
+				options.addons[resolvedId] = addonArg.options;
 			}
 
-			// Map selectedAddonIds to use resolved IDs for non-official addons
+			// Map selectedAddonIds to use resolved IDs
 			const selectedAddonIds = selectedAddonArgs.map(({ id }) => {
-				return specifierToResolvedId.get(id) ?? id;
+				return specifierToId.get(id) ?? id;
 			});
 
 			const { answers, selectedAddons } = await promptAddonQuestions({
 				options,
 				selectedAddonIds,
-				nonOfficialAddonDetails,
+				allAddons: resolvedAddons,
 				workspace
 			});
 
@@ -232,41 +204,65 @@ export const add = new Command('add')
 export type SelectedAddon = AddonWithoutExplicitArgs;
 
 /**
- * Creates a unified lookup map for addons by ID.
- * Checks official addons first, then falls back to the provided non-official addons map.
+ * Resolves all addons (official and community) into a unified structure.
+ * Returns a map of resolved addons and a mapping from original specifiers to resolved IDs.
  */
-function getAddonById(
-	id: string,
-	nonOfficialAddonsMap: Map<string, AddonWithoutExplicitArgs>
-): AddonWithoutExplicitArgs | undefined {
-	// Check official addons first
-	const official = officialAddons.find((a) => a.id === id);
-	if (official) {
-		return getAddonDetails(id);
+export async function resolveAddons(
+	addonArgs: AddonArgsOut[],
+	cwd: string,
+	downloadCheck: boolean
+): Promise<{
+	resolvedAddons: Map<string, AddonWithoutExplicitArgs>;
+	specifierToId: Map<string, string>;
+}> {
+	const resolvedAddons = new Map<string, AddonWithoutExplicitArgs>();
+	const specifierToId = new Map<string, string>();
+
+	// Separate official and community addons for resolution
+	const officialAddonArgs = addonArgs.filter((addon) => addon.kind === 'official');
+	const communityAddonArgs = addonArgs.filter((addon) => addon.kind !== 'official');
+
+	// Resolve official addons
+	for (const addonArg of officialAddonArgs) {
+		const addon = getAddonDetails(addonArg.id);
+		resolvedAddons.set(addon.id, addon);
+		specifierToId.set(addonArg.id, addon.id);
 	}
-	// Fall back to non-official addons
-	return nonOfficialAddonsMap.get(id);
+
+	// Resolve community addons (file: and scoped packages)
+	if (communityAddonArgs.length > 0) {
+		const communitySpecifiers = communityAddonArgs.map((addon) => addon.id);
+		const communityAddons = await resolveNonOfficialAddons(cwd, communitySpecifiers, downloadCheck);
+
+		// Map community addons by position (they're resolved in the same order)
+		communitySpecifiers.forEach((specifier, index) => {
+			const resolvedAddon = communityAddons[index];
+			if (resolvedAddon) {
+				resolvedAddons.set(resolvedAddon.id, resolvedAddon);
+				specifierToId.set(specifier, resolvedAddon.id);
+			}
+		});
+	}
+
+	return { resolvedAddons, specifierToId };
 }
 
 export async function promptAddonQuestions({
 	options,
 	selectedAddonIds,
-	nonOfficialAddonDetails,
+	allAddons,
 	workspace
 }: {
 	options: Options;
 	selectedAddonIds: string[];
-	nonOfficialAddonDetails: AddonWithoutExplicitArgs[];
+	allAddons: Map<string, AddonWithoutExplicitArgs>;
 	workspace: Workspace;
 }) {
-	// Create a unified lookup map for non-official addons
-	const nonOfficialAddonsMap = new Map(nonOfficialAddonDetails.map((addon) => [addon.id, addon]));
-
 	const selectedAddons: SelectedAddon[] = [];
 
 	// Find addons by ID using unified lookup
 	for (const id of selectedAddonIds) {
-		const addon = getAddonById(id, nonOfficialAddonsMap);
+		const addon = allAddons.get(id);
 		if (addon) {
 			selectedAddons.push(addon);
 		}
@@ -287,7 +283,7 @@ export async function promptAddonQuestions({
 		if (!specifiedOptions) continue;
 
 		// Get addon details using unified lookup
-		const details = getAddonById(addonId, nonOfficialAddonsMap);
+		const details = allAddons.get(addonId);
 
 		if (!details) continue;
 
@@ -419,14 +415,18 @@ export async function promptAddonQuestions({
 
 	// run setup if we have access to workspace
 	// prepare addons (both official and non-official)
-	let setups = selectedAddons.length ? selectedAddons : officialAddons;
+	// When no addons are selected, use official addons for setup
+	const officialAddonsList = Array.from(allAddons.values()).filter((addon) =>
+		officialAddons.some((o) => o.id === addon.id)
+	);
+	let setups = selectedAddons.length ? selectedAddons : officialAddonsList;
 	let addonSetupResults = setupAddons(setups, workspace);
 
 	// prompt which addons to apply (only when no addons were specified)
 	// Only show selection prompt if no addons were specified at all
 	if (selectedAddonIds.length === 0) {
-		const allSetupResults = setupAddons(officialAddons, workspace);
-		const addonOptions = officialAddons
+		const allSetupResults = setupAddons(officialAddonsList, workspace);
+		const addonOptions = officialAddonsList
 			// only display supported addons relative to the current environment
 			.filter(({ id }) => allSetupResults[id].unsupported.length === 0)
 			.map(({ id, homepage, shortDescription }) => ({
@@ -446,9 +446,11 @@ export async function promptAddonQuestions({
 		}
 
 		for (const id of selected) {
-			const addon = getAddonDetails(id);
-			selectedAddons.push(addon);
-			answers[id] = {};
+			const addon = allAddons.get(id);
+			if (addon) {
+				selectedAddons.push(addon);
+				answers[id] = {};
+			}
 		}
 
 		// Re-run setup for the newly selected addons
@@ -465,8 +467,20 @@ export async function promptAddonQuestions({
 
 		for (const depId of missingDependencies) {
 			// Dependencies are always official addons
-			const dependency = officialAddons.find((a) => a.id === depId);
-			if (!dependency) throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
+			const depAddon = allAddons.get(depId);
+			if (!depAddon) {
+				// If not in resolved addons, try to get it (dependencies are always official)
+				const officialDep = officialAddons.find((a) => a.id === depId);
+				if (!officialDep) {
+					throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
+				}
+				// Add official dependency to the map and use it
+				const officialAddonDetails = getAddonDetails(depId);
+				allAddons.set(depId, officialAddonDetails);
+				selectedAddons.push(officialAddonDetails);
+				answers[depId] = {};
+				continue;
+			}
 
 			// prompt to install the dependent
 			const install = await p.confirm({
@@ -476,7 +490,6 @@ export async function promptAddonQuestions({
 				p.cancel('Operation cancelled.');
 				process.exit(1);
 			}
-			const depAddon = getAddonDetails(depId);
 			selectedAddons.push(depAddon);
 			answers[depId] = {};
 		}
@@ -583,7 +596,9 @@ export async function runAddonsApply({
 	fromCommand: 'create' | 'add';
 }): Promise<{ nextSteps: string[]; argsFormattedAddons: string[]; filesToFormat: string[] }> {
 	if (!addonSetupResults) {
-		const setups = selectedAddons.length ? selectedAddons : officialAddons;
+		// When no addons are selected, use official addons for setup
+		const officialAddonsList = officialAddons;
+		const setups = selectedAddons.length ? selectedAddons : officialAddonsList;
 		addonSetupResults = setupAddons(setups, workspace);
 	}
 	// we'll return early when no addons are selected,
@@ -723,6 +738,9 @@ export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
 				continue;
 			}
 			toRet.set(addon.id, { id: addon.id, options: addon.options ?? [], kind: 'file' });
+		} else if (addon.id.startsWith('@')) {
+			// Scoped package (e.g., @org/name)
+			toRet.set(addon.id, { id: addon.id, options: addon.options ?? [], kind: 'scoped' });
 		} else {
 			invalidAddons.push(addon.id);
 		}
