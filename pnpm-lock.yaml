@@ -190,9 +190,6 @@ importers:
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.6
       ps-tree:
         specifier: ^1.2.0
         version: 1.2.0
@@ -203,8 +200,8 @@ importers:
         specifier: ^3.35.0
         version: 3.35.1
       svelte:
-        specifier: ^5.45.0
-        version: 5.45.6
+        specifier: ^5.45.7
+        version: 5.45.7
       tiny-glob:
         specifier: ^0.2.9
         version: 0.2.9
@@ -1976,8 +1973,8 @@ packages:
     resolution: {integrity: sha512-d53/xClCjHsuFXuHsn7+F/0NKkkwgRv8kLg2his5YBYqVtfIrBqkvWd+5ZjYN6ryk/jv/rJF00vexXHkK8ofXA==}
     engines: {node: '>=18'}
 
-  svelte@5.45.6:
-    resolution: {integrity: sha512-V3aVXthzPyPt1UB1wLEoXnEXpwPsvs7NHrR0xkCor8c11v71VqBj477MClqPZYyrcXrAH21sNGhOj9FJvSwXfQ==}
+  svelte@5.45.7:
+    resolution: {integrity: sha512-A+vXOLTjErrPRkpbY0h+cZuXjRQS8RZeyF8cx8IU513ORL7ld8o9exQAYAabh8NgNW5bLcIKhrSNwgpj4ykb+w==}
     engines: {node: '>=18'}
 
   synckit@0.11.11:
@@ -3945,7 +3942,7 @@ snapshots:
       magic-string: 0.30.21
       zimmerframe: 1.1.4
 
-  svelte@5.45.6:
+  svelte@5.45.7:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
