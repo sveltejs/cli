@@ -1,5 +1,5 @@
-import { addFromRawHtml, type HtmlDocument } from '../../../../tooling/html/index.ts';
+import { addFromRawHtml, type SvelteAst } from '../../../../tooling/html/index.ts';
 
-export function run(ast: HtmlDocument): void {
-	addFromRawHtml(ast.childNodes, '<div style="display: flex" data-foo="bar">foo</div>');
+export function run(ast: SvelteAst.Fragment): void {
+	addFromRawHtml(ast, '<div style="display: flex" data-foo="bar">foo</div>');
 }

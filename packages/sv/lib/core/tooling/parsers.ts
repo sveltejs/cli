@@ -22,7 +22,7 @@ export function parseCss(source: string): { ast: utils.SvelteAst.CSS.StyleSheet 
 	return { ast, source, generateCode };
 }
 
-export function parseHtml(source: string): { ast: utils.HtmlDocument } & ParseBase {
+export function parseHtml(source: string): { ast: utils.SvelteAst.Fragment } & ParseBase {
 	const ast = utils.parseHtml(source);
 	const generateCode = () => utils.serializeHtml(ast);
 

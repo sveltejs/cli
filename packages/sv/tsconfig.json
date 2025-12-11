@@ -1,4 +1,15 @@
 {
 	"extends": "../../tsconfig.json",
-	"include": ["bin.ts"]
+	"include": ["bin.ts", "lib/**/*.ts"],
+	"exclude": [
+		"dist/**",
+		"lib/core/tests/**/input.ts",
+		"lib/core/tests/**/output.ts",
+		"lib/create/templates/demo/**",
+		"lib/create/shared/vite.config.ts",
+		"lib/cli/tests/snapshots/**"
+	],
+	"compilerOptions": {
+		"checkJs": false
+	}
 }

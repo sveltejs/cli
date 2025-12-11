@@ -1,8 +1,5 @@
 import * as Walker from 'zimmerframe';
 import type { TsEstree } from './js/ts-estree.ts';
-import { Document, Element, type ChildNode } from 'domhandler';
-import { ElementType, parseDocument } from 'htmlparser2';
-import serializeDom from 'dom-serializer';
 import * as fleece from 'silver-fleece';
 import { print as esrapPrint } from 'esrap';
 import ts from 'esrap/languages/ts';
@@ -13,18 +10,12 @@ import * as yaml from 'yaml';
 import type { BaseNode } from 'estree';
 
 export {
-	// html
-	Document as HtmlDocument,
-	Element as HtmlElement,
-	ElementType as HtmlElementType,
-
 	// ast walker
 	Walker
 };
 
 export type {
 	// html
-	ChildNode as HtmlChildNode,
 	SvelteAst,
 
 	// js
@@ -122,15 +113,12 @@ export function serializeCss(ast: SvelteAst.CSS.StyleSheet): string {
 	return result;
 }
 
-export function parseHtml(content: string): Document {
-	return parseDocument(content, {
-		recognizeSelfClosing: true,
-		lowerCaseTags: false
-	});
+export function parseHtml(content: string): SvelteAst.Fragment {
+	return parseSvelte(content).fragment;
 }
 
-export function serializeHtml(ast: Document): string {
-	return serializeDom(ast, { encodeEntities: 'utf8', selfClosingTags: true });
+export function serializeHtml(ast: SvelteAst.Fragment): string {
+	return serializeSvelte(ast);
 }
 
 export function stripAst<T>(node: T, propsToRemove: string[]): T {
@@ -297,6 +285,6 @@ export function parseSvelte(content: string): SvelteAst.Root {
 	return svelteParse(content, { modern: true });
 }
 
-export function serializeSvelte(ast: SvelteAst.Root): string {
+export function serializeSvelte(ast: SvelteAst.SvelteNode): string {
 	return sveltePrint(ast).code;
 }

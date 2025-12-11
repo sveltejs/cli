@@ -21,11 +21,11 @@
 	"bin": "./dist/bin.mjs",
 	"exports": {
 		".": {
-			"types": "./dist/lib/index.d.ts",
+			"types": "./dist/index.d.mts",
 			"default": "./dist/lib/index.mjs"
 		},
 		"./testing": {
-			"types": "./dist/lib/testing.d.ts",
+			"types": "./dist/testing.d.mts",
 			"default": "./dist/lib/testing.mjs"
 		},
 		"./core": {
@@ -45,20 +45,16 @@
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.0",
 		"degit": "^2.8.4",
-		"dom-serializer": "^2.0.0",
-		"domhandler": "^5.0.3",
-		"domutils": "^3.2.2",
 		"empathic": "^1.1.0",
 		"esrap": "^2.2.1",
 		"gitignore-parser": "^0.0.2",
-		"htmlparser2": "^9.1.0",
 		"magic-string": "^0.30.21",
 		"package-manager-detector": "^0.2.11",
 		"picocolors": "^1.1.1",
 		"ps-tree": "^1.2.0",
 		"silver-fleece": "^1.2.1",
 		"sucrase": "^3.35.0",
-		"svelte": "^5.45.7",
+		"svelte": "^5.45.9",
 		"tiny-glob": "^0.2.9",
 		"tinyexec": "^0.3.2",
 		"valibot": "^0.41.0",
