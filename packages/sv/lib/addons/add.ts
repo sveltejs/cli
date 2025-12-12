@@ -28,7 +28,7 @@ export type OptionMap<Addons extends AddonMap> = {
 	[K in keyof Addons]: Partial<OptionValues<Addons[K]['options']>>;
 };
 
-export async function installAddon<Addons extends AddonMap>({
+export async function add<Addons extends AddonMap>({
 	addons,
 	cwd,
 	options,

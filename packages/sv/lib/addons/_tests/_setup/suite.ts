@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
-import { installAddon, type AddonMap } from '../../../addons/install.ts';
+import { add, type AddonMap } from '../../../addons/add.ts';
 import {
 	createProject,
 	startPreview,
@@ -88,7 +88,7 @@ export function setupTest<Addons extends AddonMap>(
 			if (options?.preInstallAddon) {
 				await options.preInstallAddon({ addonTestCase, cwd });
 			}
-			const { pnpmBuildDependencies } = await installAddon({
+			const { pnpmBuildDependencies } = await add({
 				cwd,
 				addons,
 				options: kind.options,
