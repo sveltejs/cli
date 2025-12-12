@@ -1,4 +1,12 @@
-import { dedent, defineAddon, defineAddonOptions, js, parseJson, parseScript } from '../../core.ts';
+import {
+	dedent,
+	defineAddon,
+	defineAddonOptions,
+	js,
+	parseJson,
+	parseScript,
+	style
+} from '../../core.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {
@@ -158,22 +166,22 @@ export default defineAddon({
 		});
 	},
 
-	nextSteps: ({ highlighter, typescript, options }) => {
+	nextSteps: ({ typescript, options }) => {
 		const toReturn: string[] = [];
 
 		if (vitestV3Installed) {
 			const componentTesting = options.usages.includes('component');
 			if (componentTesting) {
-				toReturn.push(`Uninstall ${highlighter.command('@vitest/browser')} package`);
+				toReturn.push(`Uninstall ${style.command('@vitest/browser')} package`);
 				toReturn.push(
-					`Update usage from ${highlighter.command("'@vitest/browser...'")} to ${highlighter.command("'vitest/browser'")}`
+					`Update usage from ${style.command("'@vitest/browser...'")} to ${style.command("'vitest/browser'")}`
 				);
 			}
 			toReturn.push(
-				`${highlighter.optional('Optional')} Check ${highlighter.path('./vite.config.ts')} and remove duplicate project definitions`
+				`${style.optional('Optional')} Check ${style.path('./vite.config.ts')} and remove duplicate project definitions`
 			);
 			toReturn.push(
-				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
+				`${style.optional('Optional')} Remove ${style.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
 			);
 		}
 

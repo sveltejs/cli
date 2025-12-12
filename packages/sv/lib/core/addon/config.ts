@@ -45,11 +45,7 @@ export type Addon<Args extends OptionDefinition> = {
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
-	nextSteps?: (
-		data: {
-			highlighter: Highlighter;
-		} & Workspace & { options: WorkspaceOptions<Args> }
-	) => string[];
+	nextSteps?: (data: Workspace & { options: WorkspaceOptions<Args> }) => string[];
 };
 
 export type Highlighter = {

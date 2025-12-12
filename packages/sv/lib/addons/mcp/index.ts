@@ -1,10 +1,10 @@
 import {
 	defineAddon,
 	defineAddonOptions,
-	getHighlighter,
 	getSharedFiles,
 	log,
-	parseJson
+	parseJson,
+	style
 } from '../../core.ts';
 
 const options = defineAddonOptions()
@@ -165,19 +165,18 @@ export default defineAddon({
 		}
 
 		if (filesExistingAlready.length > 0) {
-			const highlighter = getHighlighter();
 			log.warn(
-				`${filesExistingAlready.map((path) => highlighter.path(path)).join(', ')} already exists, we didn't touch ${filesExistingAlready.length > 1 ? 'them' : 'it'}. ` +
-					`See ${highlighter.website('https://svelte.dev/docs/mcp/overview#Usage')} for manual setup.`
+				`${filesExistingAlready.map((path) => style.path(path)).join(', ')} already exists, we didn't touch ${filesExistingAlready.length > 1 ? 'them' : 'it'}. ` +
+					`See ${style.website('https://svelte.dev/docs/mcp/overview#Usage')} for manual setup.`
 			);
 		}
 	},
-	nextSteps({ highlighter, options }) {
+	nextSteps({ options }) {
 		const steps = [];
 
 		if (options.ide.includes('other')) {
 			steps.push(
-				`For other clients: ${highlighter.website(`https://svelte.dev/docs/mcp/${options.setup}-setup#Other-clients`)}`
+				`For other clients: ${style.website(`https://svelte.dev/docs/mcp/${options.setup}-setup#Other-clients`)}`
 			);
 		}
 

@@ -23,7 +23,7 @@ import {
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
 import { downloadPackage, getPackageJSON } from './fetch-packages.ts';
-import { formatFiles, getHighlighter } from './utils.ts';
+import { formatFiles, style } from './utils.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import { createWorkspace } from './workspace.ts';
 
@@ -660,9 +660,8 @@ export async function runAddonsApply({
 		p.cancel('All selected add-ons were canceled.');
 		process.exit(1);
 	} else {
-		const highlighter = getHighlighter();
 		p.log.success(
-			`Successfully setup add-ons: ${addonSuccess.map((c) => highlighter.addon(c)).join(', ')}`
+			`Successfully setup add-ons: ${addonSuccess.map((c) => style.addon(c)).join(', ')}`
 		);
 	}
 
@@ -735,14 +734,12 @@ export async function runAddonsApply({
 		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
 	}
 
-	const highlighter = getHighlighter();
-
 	// print next steps
 	const nextSteps = selectedAddons
 		.map((addon) => {
 			if (!addon.nextSteps) return;
 			const addonOptions = answers[addon.id];
-			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions, highlighter });
+			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions });
 			if (addonNextSteps.length === 0) return;
 
 			let addonMessage = `${pc.green(addon.id)}:\n`;
@@ -793,10 +790,9 @@ export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
 		}
 	}
 	if (invalidAddons.length > 0) {
-		const highlighter = getHighlighter();
 		common.errorAndExit(
-			`Invalid add-ons specified: ${invalidAddons.map((id) => highlighter.command(id)).join(', ')}\n` +
-				`${highlighter.optional('Check the documentation for valid add-on specifiers:')} ${highlighter.website('https://svelte.dev/docs/cli/sv-add')}`
+			`Invalid add-ons specified: ${invalidAddons.map((id) => style.command(id)).join(', ')}\n` +
+				`${style.optional('Check the documentation for valid add-on specifiers:')} ${style.website('https://svelte.dev/docs/cli/sv-add')}`
 		);
 	}
 
@@ -898,11 +894,10 @@ export async function resolveNonOfficialAddons(
 	downloadCheck: boolean
 ) {
 	const selectedAddons: ResolvedAddon[] = [];
-	const highlighter = getHighlighter();
 	const { start, stop } = p.spinner();
 
 	try {
-		start(`Resolving ${addons.map((a) => highlighter.addon(a.id)).join(', ')} packages`);
+		start(`Resolving ${addons.map((a) => style.addon(a.id)).join(', ')} packages`);
 
 		// Do this only for npm addons
 		// const npmAddons = addons.filter((a) => a.kind !== 'file' && a.kind !== 'official');
@@ -918,9 +913,8 @@ export async function resolveNonOfficialAddons(
 		// 	}
 		// 	const blockedNpmAddons = npmAddons.filter((a) => blocklist.npm_names.includes(a.resolvedId));
 		// 	if (blockedNpmAddons.length > 0) {
-		// 		const h = getHighlighter();
 		// 		common.errorAndExit(
-		// 			`${blockedNpmAddons.map((a) => h.env(a.id)).join(', ')} blocked from being installed.`
+		// 			`${blockedNpmAddons.map((a) => style.env(a.id)).join(', ')} blocked from being installed.`
 		// 		);
 		// 	}
 		// }
@@ -964,7 +958,7 @@ export async function resolveNonOfficialAddons(
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : 'Unknown error';
 		common.errorAndExit(
-			`Failed to resolve ${addons.map((a) => highlighter.addon(a.id)).join(', ')}\n${highlighter.optional(msg)}`
+			`Failed to resolve ${addons.map((a) => style.addon(a.id)).join(', ')}\n${style.optional(msg)}`
 		);
 	}
 	return selectedAddons;

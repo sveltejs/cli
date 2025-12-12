@@ -1,6 +1,5 @@
 import {
 	addToDemoPage,
-	colors,
 	defineAddon,
 	defineAddonOptions,
 	html,
@@ -10,6 +9,7 @@ import {
 	parseJson,
 	parseScript,
 	parseSvelte,
+	style,
 	svelte
 } from '../../core.ts';
 
@@ -26,7 +26,7 @@ const DEFAULT_INLANG_PROJECT = {
 
 const options = defineAddonOptions()
 	.add('languageTags', {
-		question: `Which languages would you like to support? ${colors.gray('(e.g. en,de-ch)')}`,
+		question: `Which languages would you like to support? ${style.optional('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en, es',
 		validate(input) {
@@ -250,10 +250,10 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: ({ highlighter }) => {
-		const steps = [`Edit your messages in ${highlighter.path('messages/en.json')}`];
+	nextSteps: () => {
+		const steps = [`Edit your messages in ${style.path('messages/en.json')}`];
 		if (options.demo) {
-			steps.push(`Visit ${highlighter.route('/demo/paraglide')} route to view the demo`);
+			steps.push(`Visit ${style.route('/demo/paraglide')} route to view the demo`);
 		}
 
 		return steps;
