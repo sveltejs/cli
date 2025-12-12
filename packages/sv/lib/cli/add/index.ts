@@ -7,7 +7,10 @@ import process from 'node:process';
 import pc from 'picocolors';
 import * as v from 'valibot';
 
-import { officialAddons as _officialAddons, getAddonDetails } from '../../addons/index.ts';
+import {
+	officialAddons as _officialAddons,
+	getAddonDetails
+} from '../../addons/_config/official.ts';
 import { type AddonMap, applyAddons, setupAddons } from '../../addons/install.ts';
 import type { AddonSetupResult, OptionValues, ResolvedAddon, Workspace } from '../../core.ts';
 import { noDownloadCheckOption, noInstallOption } from '../create.ts';
