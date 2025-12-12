@@ -33,8 +33,17 @@ export type Addon<Args extends OptionDefinition> = {
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
+			/** On what official addons does this addon depend on? */
 			dependsOn: (name: string) => void;
+
+			/** Why is this addon not supported?
+			 *
+			 * @example
+			 * if (!kit) unsupported('Requires SvelteKit');
+			 */
 			unsupported: (reason: string) => void;
+
+			/** On what official addons does this addon run after? */
 			runsAfter: (addonName: string) => void;
 		}
 	) => MaybePromise<void>;
@@ -103,6 +112,18 @@ export type OptionBuilder<T extends OptionDefinition> = {
 };
 
 // Initializing with an empty object is intended given that the starting state _is_ empty.
+/**
+ * Example:
+ * ```ts
+ * const options = defineAddonOptions()
+ *   .add('demo', {
+ *     question: `Do you want to include a demo? ${style.optional('(includes a login/register page)')}`
+ *     type: 'boolean' | 'string' | 'number' | 'select' | 'multiselect' | 'boolean',
+ *     default: true,
+ *   })
+ *   .build();
+ * ```
+ */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export function defineAddonOptions(): OptionBuilder<{}> {
 	return createOptionBuilder({});
