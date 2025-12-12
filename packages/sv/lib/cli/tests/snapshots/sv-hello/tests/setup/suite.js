@@ -1,11 +1,11 @@
+import { chromium } from '@playwright/test';
+import { exec, execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { exec, execSync } from 'node:child_process';
-import * as vitest from 'vitest';
 import { installAddon } from 'sv';
-import { createProject, startPreview, addPnpmBuildDependencies } from 'sv/testing';
-import { chromium } from '@playwright/test';
+import { addPnpmBuildDependencies, createProject, startPreview } from 'sv/testing';
+import * as vitest from 'vitest';
 
 const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');
