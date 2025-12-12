@@ -5,7 +5,7 @@ import { type AgentName, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
 
-import { type Highlighter, type Workspace, parseJson } from '../../core.ts';
+import { type Workspace, parseJson } from '../../core.ts';
 
 export type Package = {
 	name: string;
