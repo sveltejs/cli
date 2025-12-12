@@ -1,6 +1,7 @@
 {
 	"name": "@my-org/sv",
-	"version": "0.0.0",
+	"description": "sv add-on for @my-org/sv",
+	"version": "0.0.1",
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
@@ -26,5 +27,9 @@
 	},
 	"keywords": [
 		"sv-add"
-	]
+	],
+	"publishConfig": {
+		"directory": "dist",
+		"access": "public"
+	}
 }
