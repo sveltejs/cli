@@ -1,4 +1,4 @@
-import { parseHtml, type SvelteAst } from '../index.ts';
+import { type SvelteAst, parseHtml } from '../index.ts';
 
 export type { SvelteAst };
 

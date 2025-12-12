@@ -1,11 +1,11 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
+import { type AgentName, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
-import { parseJson } from '../../core/tooling/parsers.ts';
-import { resolveCommand, type AgentName } from 'package-manager-detector';
-import type { Highlighter, Workspace } from '../../core/index.ts';
-import * as p from '@clack/prompts';
+
+import { type Workspace, parseJson } from '../../core.ts';
 
 export type Package = {
 	name: string;
@@ -136,14 +136,13 @@ export const commonFilePaths = {
 	viteConfigTS: 'vite.config.ts'
 } as const;
 
-export function getHighlighter(): Highlighter {
-	return {
-		addon: (str) => pc.green(str),
-		command: (str) => pc.bold(pc.cyanBright(str)),
-		env: (str) => pc.yellow(str),
-		path: (str) => pc.green(str),
-		route: (str) => pc.bold(str),
-		website: (str) => pc.whiteBright(str),
-		optional: (str) => pc.gray(str)
-	};
-}
+export const style = {
+	addon: (str: string): string => pc.green(str),
+	command: (str: string): string => pc.bold(pc.cyanBright(str)),
+	env: (str: string): string => pc.yellow(str),
+	path: (str: string): string => pc.green(str),
+	route: (str: string): string => pc.bold(str),
+	website: (str: string): string => pc.whiteBright(str),
+	optional: (str: string): string => pc.gray(str),
+	warning: (str: string): string => pc.yellow(str)
+};

@@ -1,6 +1,4 @@
-import { dedent, defineAddon, log, colors } from '../../core/index.ts';
-import { addEslintConfigPrettier } from '../common.ts';
-import { parseJson } from '../../core/tooling/parsers.ts';
+import { addEslintConfigPrettier, dedent, defineAddon, log, parseJson, style } from '../../core.ts';
 
 export default defineAddon({
 	id: 'prettier',
@@ -35,7 +33,7 @@ export default defineAddon({
 				({ data, generateCode } = parseJson(content));
 			} catch {
 				log.warn(
-					`A ${colors.yellow('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
+					`A ${style.warning('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
 				);
 				return content;
 			}
@@ -91,9 +89,9 @@ export default defineAddon({
 
 		if (eslintVersion?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
 			log.warn(
-				`An older major version of ${colors.yellow(
+				`An older major version of ${style.warning(
 					'eslint'
-				)} was detected. Skipping ${colors.yellow('eslint-config-prettier')} installation.`
+				)} was detected. Skipping ${style.warning('eslint-config-prettier')} installation.`
 			);
 		}
 

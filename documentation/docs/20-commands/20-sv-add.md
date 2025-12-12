@@ -42,8 +42,6 @@ Prevents installing dependencies
 
 ## Official add-ons
 
-<!-- TODO: it'd be nice for this to live on the "add-ons" page, but we first need svelte.dev to support making pages from headings -->
-
 - [`devtools-json`](devtools-json)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
@@ -57,3 +55,37 @@ Prevents installing dependencies
 - [`sveltekit-adapter`](sveltekit-adapter)
 - [`tailwindcss`](tailwind)
 - [`vitest`](vitest)
+
+## Community add-ons
+
+> [!NOTE]
+> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.
+
+You can find community add-ons on npm by searching for `keywords:sv-add` on [npm](https://www.npmjs.com/search?q=keywords%3Asv-add).
+
+### Protocols
+
+We support two protocols for community add-ons:
+
+- `file:[PATH_TO_ADDON]` - for local add-ons
+- `@[ORG]` - for add-ons published under an npm organization. _Technically, it will look for `@[ORG]/sv`_
+
+### How to create a community add-on
+
+To start on a good track, create your add-on with the `addon` template.
+
+```sh
+npx sv create --template addon [path]
+```
+
+In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` to get started.
+
+To get some inspiration, check out [official addons source code](https://github.com/sveltejs/cli/tree/main/packages/sv/lib/addons).
+
+### How to publish a community add-on
+
+To publish your add-on to npm, run:
+
+```sh
+npm publish
+```

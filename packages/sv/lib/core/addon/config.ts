@@ -33,8 +33,17 @@ export type Addon<Args extends OptionDefinition> = {
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
+			/** On what official addons does this addon depend on? */
 			dependsOn: (name: string) => void;
+
+			/** Why is this addon not supported?
+			 *
+			 * @example
+			 * if (!kit) unsupported('Requires SvelteKit');
+			 */
 			unsupported: (reason: string) => void;
+
+			/** On what official addons does this addon run after? */
 			runsAfter: (addonName: string) => void;
 		}
 	) => MaybePromise<void>;
@@ -45,11 +54,7 @@ export type Addon<Args extends OptionDefinition> = {
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
-	nextSteps?: (
-		data: {
-			highlighter: Highlighter;
-		} & Workspace & { options: WorkspaceOptions<Args> }
-	) => string[];
+	nextSteps?: (data: Workspace & { options: WorkspaceOptions<Args> }) => string[];
 };
 
 export type Highlighter = {
@@ -68,7 +73,10 @@ export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>):
 
 export type AddonSetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
 
-export type AddonWithoutExplicitArgs = Addon<Record<string, Question<any>>>;
+export type ResolvedAddon = Addon<Record<string, Question<any>>> & {
+	/** Original specifier used to reference this addon (e.g., "file:../path" or "@scope/name") */
+	originalSpecifier?: string;
+};
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
@@ -104,6 +112,18 @@ export type OptionBuilder<T extends OptionDefinition> = {
 };
 
 // Initializing with an empty object is intended given that the starting state _is_ empty.
+/**
+ * Example:
+ * ```ts
+ * const options = defineAddonOptions()
+ *   .add('demo', {
+ *     question: `Do you want to include a demo? ${style.optional('(includes a login/register page)')}`
+ *     type: 'boolean' | 'string' | 'number' | 'select' | 'multiselect' | 'boolean',
+ *     default: true,
+ *   })
+ *   .build();
+ * ```
+ */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export function defineAddonOptions(): OptionBuilder<{}> {
 	return createOptionBuilder({});

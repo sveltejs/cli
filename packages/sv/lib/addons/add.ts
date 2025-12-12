@@ -1,19 +1,20 @@
+import * as p from '@clack/prompts';
+import { resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
+import { NonZeroExitError, exec } from 'tinyexec';
+
+import { fileExists, installPackages, readFile, writeFile } from '../cli/add/utils.ts';
+import { createWorkspace } from '../cli/add/workspace.ts';
+import { TESTING } from '../cli/utils/env.ts';
 import type {
 	Addon,
-	Workspace,
-	PackageManager,
+	AddonSetupResult,
 	OptionValues,
+	PackageManager,
 	Question,
 	SvApi,
-	AddonSetupResult
-} from '../core/index.ts';
-import pc from 'picocolors';
-import * as p from '@clack/prompts';
-import { exec, NonZeroExitError } from 'tinyexec';
-import { resolveCommand } from 'package-manager-detector';
-import { TESTING } from '../cli/utils/env.ts';
-import { createWorkspace } from '../cli/add/workspace.ts';
-import { fileExists, installPackages, readFile, writeFile } from '../cli/add/utils.ts';
+	Workspace
+} from '../core.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
@@ -27,7 +28,7 @@ export type OptionMap<Addons extends AddonMap> = {
 	[K in keyof Addons]: Partial<OptionValues<Addons[K]['options']>>;
 };
 
-export async function installAddon<Addons extends AddonMap>({
+export async function add<Addons extends AddonMap>({
 	addons,
 	cwd,
 	options,

@@ -1,6 +1,6 @@
-import { parseScript, type AstTypes, type SvelteAst } from '../index.ts';
-import { parseSvelte } from '../parsers.ts';
+import { type AstTypes, type SvelteAst, parseScript } from '../index.ts';
 import { appendFromString } from '../js/common.ts';
+import { parseSvelte } from '../parsers.ts';
 
 export type { SvelteAst };
 

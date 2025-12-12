@@ -1,6 +1,5 @@
 packages:
   - 'packages/*'
-  - 'community-addon-template'
   - '!.test-tmp/**'
 
 onlyBuiltDependencies:

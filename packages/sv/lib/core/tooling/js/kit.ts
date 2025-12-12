@@ -1,9 +1,9 @@
-import { Walker, type AstTypes } from '../index.ts';
+import { type AstTypes, Walker } from '../index.ts';
 import * as common from './common.ts';
+import * as exports from './exports.ts';
 import * as functions from './function.ts';
 import * as imports from './imports.ts';
 import * as variables from './variables.ts';
-import * as exports from './exports.ts';
 
 export function addGlobalAppInterface(
 	node: AstTypes.TSProgram,
