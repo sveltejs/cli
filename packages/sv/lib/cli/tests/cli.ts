@@ -9,7 +9,7 @@ const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
 const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
 
 beforeAll(() => {
-	const testOutputCliPath = path.resolve(monoRepoPath, '.test-output', 'cli');
+	const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
 
 	if (fs.existsSync(testOutputCliPath)) {
 		fs.rmSync(testOutputCliPath, { force: true, recursive: true });
@@ -51,7 +51,14 @@ describe('cli', () => {
 		async (testCase) => {
 			const { projectName, args, template = 'minimal' } = testCase;
 
-			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
+			const testOutputPath = path.resolve(
+				monoRepoPath,
+				'packages',
+				'sv',
+				'.test-output',
+				'cli',
+				projectName
+			);
 
 			const result = await exec(
 				'node',
@@ -115,7 +122,7 @@ describe('cli', () => {
 				// replace sv version in package.json for tests
 				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 				const { data: packageJson } = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
-				packageJson.dependencies['sv'] = 'file:../../../packages/sv';
+				packageJson.dependencies['sv'] = 'file:../../../..';
 				fs.writeFileSync(
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
