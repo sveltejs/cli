@@ -78,7 +78,9 @@ To start on a good track, create your add-on with the `addon` template.
 npx sv create --template addon [path]
 ```
 
-In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` files for more information.
+In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` to get started.
+
+To get some inspiration, check out [official addons source code](https://github.com/sveltejs/cli/tree/main/packages/sv/lib/addons).
 
 ### How to publish a community add-on
 
