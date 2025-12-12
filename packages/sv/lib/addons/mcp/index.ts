@@ -1,10 +1,10 @@
 import {
 	defineAddon,
 	defineAddonOptions,
-	log,
-	parseJson,
 	getHighlighter,
-	getSharedFiles
+	getSharedFiles,
+	log,
+	parseJson
 } from '../../core.ts';
 
 const options = defineAddonOptions()

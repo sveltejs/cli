@@ -1,10 +1,11 @@
+import degit from 'degit';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import degit from 'degit';
-import { x, exec } from 'tinyexec';
-import { create } from './create/index.ts';
 import pstree, { type PS } from 'ps-tree';
+import { exec, x } from 'tinyexec';
+
+import { create } from './create/index.ts';
 
 export { addPnpmBuildDependencies } from './cli/utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';

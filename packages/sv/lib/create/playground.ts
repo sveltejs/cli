@@ -1,15 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { walk } from 'zimmerframe';
+
 import {
+	isVersionUnsupportedBelow,
 	js,
-	svelte,
 	parseJson,
 	parseScript,
 	parseSvelte,
-	isVersionUnsupportedBelow
+	svelte
 } from '../core.ts';
 import { getSharedFiles } from './utils.ts';
-import { walk } from 'zimmerframe';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {

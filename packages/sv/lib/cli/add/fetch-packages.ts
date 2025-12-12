@@ -1,9 +1,10 @@
 import fs from 'node:fs';
-import path from 'node:path';
-import { createGunzip } from 'node:zlib';
-import { fileURLToPath } from 'node:url';
-import { pipeline } from 'node:stream/promises';
 import { platform } from 'node:os';
+import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { fileURLToPath } from 'node:url';
+import { createGunzip } from 'node:zlib';
+
 import type { ResolvedAddon } from '../../core.ts';
 
 // path to the `node_modules` directory of `sv`

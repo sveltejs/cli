@@ -1,20 +1,20 @@
+import * as p from '@clack/prompts';
+import { Option } from 'commander';
+import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as find from 'empathic/find';
-import { exec } from 'tinyexec';
-import { Option } from 'commander';
-import * as p from '@clack/prompts';
 import {
 	AGENTS,
+	type AgentName,
 	COMMANDS,
 	constructCommand,
-	detect,
-	type AgentName
+	detect
 } from 'package-manager-detector';
-import { parseJson, parseYaml, isVersionUnsupportedBelow } from '../../core.ts';
+import { exec } from 'tinyexec';
 
 import { getHighlighter } from '../../cli/add/utils.ts';
+import { isVersionUnsupportedBelow, parseJson, parseYaml } from '../../core.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')

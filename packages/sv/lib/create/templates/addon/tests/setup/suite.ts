@@ -1,17 +1,17 @@
+import { type Browser, type BrowserContext, type Page, chromium } from '@playwright/test';
+import { exec, execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { exec, execSync } from 'node:child_process';
-import * as vitest from 'vitest';
-import { installAddon, type AddonMap, type OptionMap } from 'sv';
+import { type AddonMap, type OptionMap, installAddon } from 'sv';
 import {
-	createProject,
-	startPreview,
-	addPnpmBuildDependencies,
 	type CreateProject,
-	type ProjectVariant
+	type ProjectVariant,
+	addPnpmBuildDependencies,
+	createProject,
+	startPreview
 } from 'sv/testing';
-import { chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import * as vitest from 'vitest';
 
 const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');

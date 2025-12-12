@@ -1,12 +1,12 @@
 import {
+	type AstTypes,
 	addEslintConfigPrettier,
-	getNodeTypesVersion,
 	defineAddon,
+	getNodeTypesVersion,
+	js,
 	log,
 	parseJson,
-	parseScript,
-	js,
-	type AstTypes
+	parseScript
 } from '../../core.ts';
 
 export default defineAddon({

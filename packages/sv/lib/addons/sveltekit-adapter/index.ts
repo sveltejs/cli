@@ -1,4 +1,4 @@
-import { defineAddon, defineAddonOptions, parseJson, parseScript, js } from '../../core.ts';
+import { defineAddon, defineAddonOptions, js, parseJson, parseScript } from '../../core.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },

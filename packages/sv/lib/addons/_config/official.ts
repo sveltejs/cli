@@ -1,12 +1,11 @@
 import type { Addon, ResolvedAddon } from '../../core.ts';
-
 import devtoolsJson from '../devtools-json/index.ts';
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
 import lucia from '../lucia/index.ts';
+import mcp from '../mcp/index.ts';
 import mdsvex from '../mdsvex/index.ts';
 import paraglide from '../paraglide/index.ts';
-import mcp from '../mcp/index.ts';
 import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
 import storybook from '../storybook/index.ts';

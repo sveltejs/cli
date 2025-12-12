@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { setup, variants, type ProjectVariant } from 'sv/testing';
+import { type ProjectVariant, setup, variants } from 'sv/testing';
 import type { TestProject } from 'vitest/node';
 
 const TEST_DIR = fileURLToPath(new URL('.test-output/', import.meta.url));

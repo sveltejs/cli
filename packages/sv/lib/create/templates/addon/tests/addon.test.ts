@@ -1,8 +1,9 @@
 import { expect } from '@playwright/test';
-import { setupTest } from './setup/suite.js';
-import addon from '../src/index.js';
-import path from 'node:path';
 import fs from 'node:fs';
+import path from 'node:path';
+
+import addon from '../src/index.js';
+import { setupTest } from './setup/suite.js';
 
 const id = addon.id;
 

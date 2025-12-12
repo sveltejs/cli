@@ -1,15 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
+
 import {
+	type OptionValues,
+	dedent,
 	defineAddon,
 	defineAddonOptions,
-	dedent,
-	type OptionValues,
+	getNodeTypesVersion,
+	js,
 	parseJson,
 	parseScript,
-	js,
-	resolveCommand,
-	getNodeTypesVersion
+	resolveCommand
 } from '../../core.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';

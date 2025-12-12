@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { parseAddonOptions } from '../utils/common.ts';
 
 describe('parseAddonOptions', () => {

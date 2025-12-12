@@ -1,17 +1,18 @@
 import MagicString from 'magic-string';
+
 import {
+	type AstTypes,
+	Walker,
+	addToDemoPage,
 	colors,
 	dedent,
 	defineAddon,
 	defineAddonOptions,
-	log,
-	utils,
-	Walker,
-	parseScript,
 	js,
-	type AstTypes,
+	log,
+	parseScript,
 	resolveCommand,
-	addToDemoPage
+	utils
 } from '../../core.ts';
 
 const TABLE_TYPE = {

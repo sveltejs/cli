@@ -1,13 +1,13 @@
 import {
+	css,
 	defineAddon,
 	defineAddonOptions,
 	js,
-	svelte,
-	css,
 	parseCss,
 	parseJson,
 	parseScript,
-	parseSvelte
+	parseSvelte,
+	svelte
 } from '../../core.ts';
 
 const plugins = [

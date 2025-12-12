@@ -1,11 +1,11 @@
 // @ts-check
+import parser from 'gitignore-parser';
 import fs from 'node:fs';
 import path from 'node:path';
-import parser from 'gitignore-parser';
+import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
-import { fileURLToPath } from 'node:url';
 
 /** @import { File, LanguageType } from '../index.ts' */
 

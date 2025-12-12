@@ -1,10 +1,11 @@
+import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import * as find from 'empathic/find';
-import { parseScript, js, type AstTypes, type Workspace, type PackageManager } from '../../core.ts';
 import { detect } from 'package-manager-detector';
-import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
+
+import { type AstTypes, type PackageManager, type Workspace, js, parseScript } from '../../core.ts';
 import { getUserAgent } from '../utils/package-manager.ts';
+import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 
 type CreateWorkspaceOptions = {
 	cwd: string;

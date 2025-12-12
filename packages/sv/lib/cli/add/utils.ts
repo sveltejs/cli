@@ -1,10 +1,11 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
+import { type AgentName, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
-import { parseJson, type Highlighter, type Workspace } from '../../core.ts';
-import { resolveCommand, type AgentName } from 'package-manager-detector';
-import * as p from '@clack/prompts';
+
+import { type Highlighter, type Workspace, parseJson } from '../../core.ts';
 
 export type Package = {
 	name: string;

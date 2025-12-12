@@ -1,8 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { exec } from 'tinyexec';
-import path from 'node:path';
-import fs from 'node:fs';
 import { parseJson } from '../../core.ts';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');

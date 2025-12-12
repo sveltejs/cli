@@ -1,13 +1,18 @@
+import * as p from '@clack/prompts';
+import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as p from '@clack/prompts';
-import type { OptionValues, Workspace, ResolvedAddon } from '../core.ts';
+import { detect, resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
+import * as v from 'valibot';
+
+import type { OptionValues, ResolvedAddon, Workspace } from '../core.ts';
 import {
-	create as createKit,
-	templates,
 	type LanguageType,
-	type TemplateType
+	type TemplateType,
+	create as createKit,
+	templates
 } from '../create/index.ts';
 import {
 	detectPlaygroundDependencies,
@@ -16,20 +21,7 @@ import {
 	setupPlaygroundProject,
 	validatePlaygroundUrl
 } from '../create/playground.ts';
-import { Command, Option } from 'commander';
-import { detect, resolveCommand } from 'package-manager-detector';
-import pc from 'picocolors';
-import * as v from 'valibot';
-
-import * as common from './utils/common.ts';
-import {
-	addPnpmBuildDependencies,
-	AGENT_NAMES,
-	getUserAgent,
-	installDependencies,
-	installOption,
-	packageManagerPrompt
-} from './utils/package-manager.ts';
+import { dist } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	promptAddonQuestions,
@@ -39,7 +31,15 @@ import {
 } from './add/index.ts';
 import { commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
-import { dist } from '../create/utils.ts';
+import * as common from './utils/common.ts';
+import {
+	AGENT_NAMES,
+	addPnpmBuildDependencies,
+	getUserAgent,
+	installDependencies,
+	installOption,
+	packageManagerPrompt
+} from './utils/package-manager.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {

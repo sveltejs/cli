@@ -1,3 +1,6 @@
+import decircular from 'decircular';
+import dedent from 'dedent';
+
 import {
 	type AstTypes,
 	type Comments,
@@ -6,8 +9,6 @@ import {
 	serializeScript,
 	stripAst
 } from '../index.ts';
-import decircular from 'decircular';
-import dedent from 'dedent';
 
 export function addJsDocTypeComment(
 	node: AstTypes.Node,

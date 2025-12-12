@@ -1,16 +1,16 @@
 import {
+	addToDemoPage,
 	colors,
 	defineAddon,
 	defineAddonOptions,
+	html,
+	js,
 	log,
 	parseHtml,
 	parseJson,
 	parseScript,
 	parseSvelte,
-	js,
-	svelte,
-	html,
-	addToDemoPage
+	svelte
 } from '../../core.ts';
 
 const DEFAULT_INLANG_PROJECT = {

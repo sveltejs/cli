@@ -1,11 +1,12 @@
-import pc from 'picocolors';
-import pkg from '../../../package.json' with { type: 'json' };
 import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
+import { type AgentName, resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
+
+import pkg from '../../../package.json' with { type: 'json' };
 import { isVersionUnsupportedBelow } from '../../core.ts';
-import { resolveCommand, type AgentName } from 'package-manager-detector';
+import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];

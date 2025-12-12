@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { mkdirp, copy, dist, getSharedFiles, replace } from './utils.ts';
+
+import { copy, dist, getSharedFiles, mkdirp, replace } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];

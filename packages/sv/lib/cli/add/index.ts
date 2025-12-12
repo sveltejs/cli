@@ -1,28 +1,28 @@
+import * as p from '@clack/prompts';
+import { Command } from 'commander';
+import * as pkg from 'empathic/package';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as p from '@clack/prompts';
-import { officialAddons as _officialAddons, getAddonDetails } from '../../addons/index.ts';
-import type { AddonSetupResult, ResolvedAddon, OptionValues, Workspace } from '../../core.ts';
-import { Command } from 'commander';
-import * as pkg from 'empathic/package';
 import pc from 'picocolors';
 import * as v from 'valibot';
 
-import { applyAddons, setupAddons, type AddonMap } from '../../addons/install.ts';
+import { officialAddons as _officialAddons, getAddonDetails } from '../../addons/index.ts';
+import { type AddonMap, applyAddons, setupAddons } from '../../addons/install.ts';
+import type { AddonSetupResult, OptionValues, ResolvedAddon, Workspace } from '../../core.ts';
+import { noDownloadCheckOption, noInstallOption } from '../create.ts';
 import * as common from '../utils/common.ts';
-import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import {
-	addPnpmBuildDependencies,
 	AGENT_NAMES,
+	addPnpmBuildDependencies,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
 import { downloadPackage, getPackageJSON } from './fetch-packages.ts';
 import { formatFiles, getHighlighter } from './utils.ts';
+import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import { createWorkspace } from './workspace.ts';
-import { noDownloadCheckOption, noInstallOption } from '../create.ts';
 
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();

@@ -1,4 +1,4 @@
-import { parseJson, parseScript, js, defineAddonOptions, defineAddon, dedent } from '../../core.ts';
+import { dedent, defineAddon, defineAddonOptions, js, parseJson, parseScript } from '../../core.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {
