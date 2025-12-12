@@ -418,16 +418,20 @@ export async function promptAddonQuestions({
 
 	// run setup if we have access to workspace
 	// prepare addons (both official and non-official)
-	// When no addons are selected, use official addons for setup
-	const officialAddonsList = Array.from(allAddons.values()).filter((addon) =>
-		officialAddons.some((o) => o.id === addon.id)
-	);
-	let setups = selectedAddons.length ? selectedAddons : officialAddonsList;
-	let addonSetupResults = setupAddons(setups, workspace);
+	let addonSetupResults: Record<string, AddonSetupResult> = {};
+
+	// If we have selected addons, run setup on them (regardless of official status)
+	if (selectedAddons.length > 0) {
+		addonSetupResults = setupAddons(selectedAddons, workspace);
+	}
 
 	// prompt which addons to apply (only when no addons were specified)
 	// Only show selection prompt if no addons were specified at all
 	if (selectedAddonIds.length === 0) {
+		// For the prompt, we only show official addons
+		const officialAddonsList = Array.from(allAddons.values()).filter((addon) =>
+			officialAddons.some((o) => o.id === addon.id)
+		);
 		const allSetupResults = setupAddons(officialAddonsList, workspace);
 		const addonOptions = officialAddonsList
 			// only display supported addons relative to the current environment
@@ -456,45 +460,70 @@ export async function promptAddonQuestions({
 			}
 		}
 
-		// Re-run setup for the newly selected addons
-		setups = selectedAddons;
-		addonSetupResults = setupAddons(setups, workspace);
+		// Re-run setup for all selected addons (including any that were added via CLI options)
+		addonSetupResults = setupAddons(selectedAddons, workspace);
+	}
+
+	// Ensure all selected addons have setup results
+	// This should always be the case, but we add a safeguard
+	const missingSetupResults = selectedAddons.filter((addon) => !addonSetupResults[addon.id]);
+	if (missingSetupResults.length > 0) {
+		const additionalSetupResults = setupAddons(missingSetupResults, workspace);
+		Object.assign(addonSetupResults, additionalSetupResults);
 	}
 
 	// add inter-addon dependencies
-	for (const addon of selectedAddons) {
-		const setupResult = addonSetupResults[addon.id];
-		const missingDependencies = setupResult.dependsOn.filter(
-			(depId) => !selectedAddons.some((a) => a.id === depId)
-		);
+	// We need to iterate until no new dependencies are added (to handle transitive dependencies)
+	let hasNewDependencies = true;
+	while (hasNewDependencies) {
+		hasNewDependencies = false;
+		const addonsToProcess = [...selectedAddons]; // Work with a snapshot to avoid infinite loops
 
-		for (const depId of missingDependencies) {
-			// Dependencies are always official addons
-			const depAddon = allAddons.get(depId);
-			if (!depAddon) {
-				// If not in resolved addons, try to get it (dependencies are always official)
-				const officialDep = officialAddons.find((a) => a.id === depId);
-				if (!officialDep) {
-					throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
+		for (const addon of addonsToProcess) {
+			const setupResult = addonSetupResults[addon.id];
+			if (!setupResult) {
+				common.errorAndExit(`Setup result missing for addon: ${addon.id}`);
+			}
+			const missingDependencies = setupResult.dependsOn.filter(
+				(depId) => !selectedAddons.some((a) => a.id === depId)
+			);
+
+			for (const depId of missingDependencies) {
+				hasNewDependencies = true;
+				// Dependencies are always official addons
+				const depAddon = allAddons.get(depId);
+				if (!depAddon) {
+					// If not in resolved addons, try to get it (dependencies are always official)
+					const officialDep = officialAddons.find((a) => a.id === depId);
+					if (!officialDep) {
+						throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
+					}
+					// Add official dependency to the map and use it
+					const officialAddonDetails = getAddonDetails(depId);
+					allAddons.set(depId, officialAddonDetails);
+					selectedAddons.push(officialAddonDetails);
+					answers[depId] = {};
+					continue;
 				}
-				// Add official dependency to the map and use it
-				const officialAddonDetails = getAddonDetails(depId);
-				allAddons.set(depId, officialAddonDetails);
-				selectedAddons.push(officialAddonDetails);
-				answers[depId] = {};
-				continue;
-			}
 
-			// prompt to install the dependent
-			const install = await p.confirm({
-				message: `The ${pc.bold(pc.cyan(addon.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
-			});
-			if (install !== true) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
+				// prompt to install the dependent
+				const install = await p.confirm({
+					message: `The ${pc.bold(pc.cyan(addon.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
+				});
+				if (install !== true) {
+					p.cancel('Operation cancelled.');
+					process.exit(1);
+				}
+				selectedAddons.push(depAddon);
+				answers[depId] = {};
 			}
-			selectedAddons.push(depAddon);
-			answers[depId] = {};
+		}
+
+		// Run setup for any newly added dependencies
+		const newlyAddedAddons = selectedAddons.filter((addon) => !addonSetupResults[addon.id]);
+		if (newlyAddedAddons.length > 0) {
+			const newSetupResults = setupAddons(newlyAddedAddons, workspace);
+			Object.assign(addonSetupResults, newSetupResults);
 		}
 	}
 
