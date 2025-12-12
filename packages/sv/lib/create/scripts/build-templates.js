@@ -224,7 +224,7 @@ async function generate_templates(dist, shared) {
 /**
  * @param {string} string
  * @param {RegExp} regexp
- * @param {{ (m: any, attrs: string, typescript: string): Promise<string>; (arg0: any): any; }} replacer
+ * @param {(m: any, attrs: string, typescript: string) => Promise<string>} replacer
  */
 async function replace_async(string, regexp, replacer) {
 	const replacements = await Promise.all(
