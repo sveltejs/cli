@@ -17,13 +17,12 @@ const variants = vitest.inject('variants');
  * @param {object} addons - The addons to test
  * @param {object} [options] - Configuration options for test setup
  * @param {Array<object>} [options.kinds] - Array of addon test case kinds to generate. Each kind has `type` (string) and `options` (Object) properties.
- * @param {Function} [options.filter] - Optional filter function to exclude certain test cases. Receives an object with `variant` (string) and `kind` (Object) properties, returns boolean.
+ * @param {(addonTestCase: { variant: string; kind: { type: string; options?: object } }) => boolean} [options.filter] - Optional filter function to exclude certain test cases. Receives an object with `variant` (string) and `kind` (Object) properties, returns boolean.
  * @param {boolean} [options.browser=true] - Whether to enable browser testing with Playwright
  * @param {Function} [options.preAdd] - Optional hook called before adding addons to each test case. Receives an object with `addonTestCase` (Object with `variant` and `kind`) and `cwd` (string) properties. May return Promise or void.
- * @returns {object} Object containing: `test` (Function) - The extended Vitest test function with fixtures; `testCases` (Array<object>) - Array of test cases, each with `variant` (string) and `kind` (Object) properties; `prepareServer` (Function) - Function to build and start preview server
+ * @returns {{ test: import('vitest').TestAPI<{}>; testCases: Array<{ variant: string; kind: { type: string; options?: object } }>; prepareServer: (options: { cwd: string; page: import('@playwright/test').Page; buildCommand?: string; previewCommand?: string }) => Promise<{ url: string; close: Function }> }} Object containing: `test` - The extended Vitest test function with fixtures; `testCases` - Array of test cases, each with `variant` (string) and `kind` (Object) properties; `prepareServer` - Function to build and start preview server
  */
 export function setupTest(addons, options) {
-	/** @type {Function} */
 	const test = vitest.test.extend({});
 
 	const withBrowser = options?.browser ?? true;
