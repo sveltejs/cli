@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 
 import type { ResolvedAddon } from '../../core.ts';
+import { extract } from 'tar-fs';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
@@ -103,6 +104,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<Resolve
 	}
 
 	const tarballUrl: string = pkg.dist.tarball;
+
 	const data = await fetch(tarballUrl);
 	if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
 
@@ -110,15 +112,15 @@ export async function downloadPackage(options: DownloadOptions): Promise<Resolve
 	// so that we can dynamically import the package via `import(pkg-name)`
 	await pipeline(
 		data.body,
-		createGunzip()
-		// extract(NODE_MODULES, {
-		// 	map: (header) => {
-		// 		// file paths from the tarball will always have a `package/` prefix,
-		// 		// so we'll need to replace it with the name of the package
-		// 		header.name = header.name.replace('package', pkg.name);
-		// 		return header;
-		// 	}
-		// })
+		createGunzip(),
+		extract(NODE_MODULES, {
+			map: (header: any) => {
+				// file paths from the tarball will always have a `package/` prefix,
+				// so we'll need to replace it with the name of the package
+				header.name = header.name.replace('package', pkg.name);
+				return header;
+			}
+		})
 	);
 
 	const { default: details } = await import(pkg.name);
@@ -163,10 +165,15 @@ export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions
 async function fetchPackageJSON(packageName: string) {
 	let pkgName = packageName;
 	let scope = '';
-	if (packageName.startsWith('@') && packageName.includes('/')) {
-		const [org, name] = pkgName.split('/', 2);
-		scope = `${org}/`;
-		pkgName = name!;
+	if (packageName.startsWith('@')) {
+		if (packageName.includes('/')) {
+			const [org, name] = pkgName.split('/', 2);
+			scope = `${org}/`;
+			pkgName = name;
+		} else {
+			scope = `${packageName}/`;
+			pkgName = 'sv';
+		}
 	}
 
 	const [name, tag = 'latest'] = pkgName.split('@');
@@ -179,5 +186,6 @@ async function fetchPackageJSON(packageName: string) {
 		throw new Error(`Failed to fetch '${pkgUrl}' - GET ${resp.status}`);
 	}
 
-	return await resp.json();
+	const data = await resp.json();
+	return data;
 }

@@ -1,6 +1,7 @@
 {
 	"name": "~SV-NAME-TODO~",
-	"version": "0.0.0",
+	"description": "sv add-on for ~SV-NAME-TODO~",
+	"version": "0.0.1",
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
@@ -21,5 +22,9 @@
 		"@playwright/test": "^1.56.1",
 		"vitest": "4.0.7"
 	},
-	"keywords": ["sv-add"]
+	"keywords": ["sv-add"],
+	"publishConfig": {
+		"directory": "dist",
+		"access": "public"
+	}
 }
