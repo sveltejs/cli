@@ -914,7 +914,7 @@ export async function resolveNonOfficialAddons(
 		// 	const blockedNpmAddons = npmAddons.filter((a) => blocklist.npm_names.includes(a.resolvedId));
 		// 	if (blockedNpmAddons.length > 0) {
 		// 		common.errorAndExit(
-		// 			`${blockedNpmAddons.map((a) => style.env(a.id)).join(', ')} blocked from being installed.`
+		// 			`${blockedNpmAddons.map((a) => style.warning(a.id)).join(', ')} blocked from being installed.`
 		// 		);
 		// 	}
 		// }

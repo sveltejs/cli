@@ -144,6 +144,5 @@ export const style = {
 	route: (str: string): string => pc.bold(str),
 	website: (str: string): string => pc.whiteBright(str),
 	optional: (str: string): string => pc.gray(str),
-	issue: (str: string): string => pc.red(str),
 	warning: (str: string): string => pc.yellow(str)
 };
