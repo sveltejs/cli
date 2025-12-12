@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { beforeAll, describe, expect, test } from 'vitest';
 
-import { installAddon, officialAddons } from '../../../../sv/lib/index.ts';
+import { add, officialAddons } from '../../../../sv/lib/index.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 
 // Resolve the given path relative to the current file
@@ -44,7 +44,7 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 		fs.rmSync(cwd, { recursive: true, force: true });
 
 		create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
-		await installAddon({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+		await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
 

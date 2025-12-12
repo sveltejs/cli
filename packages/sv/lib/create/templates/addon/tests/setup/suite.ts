@@ -2,7 +2,7 @@ import { type Browser, type BrowserContext, type Page, chromium } from '@playwri
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { type AddonMap, installAddon } from 'sv';
+import { type AddonMap, add } from 'sv';
 import {
 	type CreateProject,
 	addPnpmBuildDependencies,
@@ -23,10 +23,7 @@ export function setupTest<Addons extends AddonMap>(
 		kinds: Array<AddonTestCase<Addons>['kind']>;
 		filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
 		browser?: boolean;
-		preInstallAddon?: (o: {
-			addonTestCase: AddonTestCase<Addons>;
-			cwd: string;
-		}) => Promise<void> | void;
+		preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
 	}
 ) {
 	const test = vitest.test.extend<Fixtures>({} as any);
@@ -85,10 +82,10 @@ export function setupTest<Addons extends AddonMap>(
 			const metaPath = path.resolve(cwd, 'meta.json');
 			fs.writeFileSync(metaPath, JSON.stringify({ variant, kind }, null, '\t'), 'utf8');
 
-			if (options?.preInstallAddon) {
-				await options.preInstallAddon({ addonTestCase, cwd });
+			if (options?.preAdd) {
+				await options.preAdd({ addonTestCase, cwd });
 			}
-			const { pnpmBuildDependencies } = await installAddon({
+			const { pnpmBuildDependencies } = await add({
 				cwd,
 				addons,
 				options: kind.options,

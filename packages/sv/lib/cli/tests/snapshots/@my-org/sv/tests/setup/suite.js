@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { installAddon } from 'sv';
+import { add } from 'sv';
 import { addPnpmBuildDependencies, createProject, startPreview } from 'sv/testing';
 import * as vitest from 'vitest';
 
@@ -67,10 +67,10 @@ export function setupTest(addons, options) {
 			const metaPath = path.resolve(cwd, 'meta.json');
 			fs.writeFileSync(metaPath, JSON.stringify({ variant, kind }, null, '\t'), 'utf8');
 
-			if (options?.preInstallAddon) {
-				await options.preInstallAddon({ addonTestCase, cwd });
+			if (options?.preAdd) {
+				await options.preAdd({ addonTestCase, cwd });
 			}
-			const { pnpmBuildDependencies } = await installAddon({
+			const { pnpmBuildDependencies } = await add({
 				cwd,
 				addons,
 				options: kind.options,
