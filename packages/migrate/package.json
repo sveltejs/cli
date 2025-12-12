@@ -39,10 +39,10 @@
 		"zimmerframe": "^1.1.4"
 	},
 	"devDependencies": {
-		"@types/node": "^18.19.130",
+		"@types/node": "^20.14.8",
 		"@types/prompts": "^2.4.9",
 		"@types/semver": "^7.7.1",
-		"svelte": "^5.43.8"
+		"svelte": "^5.45.10"
 	},
 	"keywords": [
 		"migration",
