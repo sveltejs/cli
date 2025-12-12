@@ -36,6 +36,12 @@ export function create(cwd: string, options: Options): void {
 
 	write_template_files(options.template, options.types, options.name, cwd);
 	write_common_files(cwd, options, options.name);
+
+	// Files that are not relevant for addon projects
+	if (options.template === 'addon') {
+		fs.rmSync(path.join(cwd, 'svelte.config.js'));
+		fs.rmSync(path.join(cwd, 'vite.config.js'));
+	}
 }
 
 export type TemplateMetadata = { name: TemplateType; title: string; description: string };
