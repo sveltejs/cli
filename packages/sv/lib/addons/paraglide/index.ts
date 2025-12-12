@@ -186,11 +186,11 @@ export default defineAddon({
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
 			const { ast, generateCode } = parseSvelte(content);
 			const scriptAst = svelte.ensureScript(ast);
-			imports.addNamed(scriptAst, {
+			js.imports.addNamed(scriptAst, {
 				imports: ['locales', 'localizeHref'],
 				from: '$lib/paraglide/runtime'
 			});
-			imports.addNamed(scriptAst, { imports: ['page'], from: '$app/state' });
+			js.imports.addNamed(scriptAst, { imports: ['page'], from: '$app/state' });
 			ast.fragment.nodes.push(
 				...svelte.toFragment(`<div style="display:none">
 	{#each locales as locale}
