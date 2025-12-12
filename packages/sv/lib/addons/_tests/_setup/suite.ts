@@ -1,33 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { promisify } from 'node:util';
-import { exec, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import * as vitest from 'vitest';
-import { installAddon, type AddonMap, type OptionMap } from '../../../addons/install.ts';
+import { installAddon, type AddonMap } from '../../../addons/install.ts';
 import {
 	createProject,
 	startPreview,
 	addPnpmBuildDependencies,
 	type CreateProject,
-	type ProjectVariant
+	type AddonTestCase,
+	type Fixtures
 } from '../../../testing.ts';
 import { chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 const cwd = vitest.inject('testDir');
 const templatesDir = vitest.inject('templatesDir');
 const variants = vitest.inject('variants');
-
-export const execAsync = promisify(exec);
-
-type Fixtures = {
-	page: Page;
-	cwd(addonTestCase: AddonTestCase<any>): string;
-};
-
-type AddonTestCase<Addons extends AddonMap> = {
-	variant: ProjectVariant;
-	kind: { type: string; options: OptionMap<Addons> };
-};
 
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,

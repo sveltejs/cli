@@ -7,6 +7,8 @@ import { exec, x } from 'tinyexec';
 
 import { create } from './create/index.ts';
 import type { TestProject } from 'vitest/node';
+import type { AddonMap, OptionMap } from './addons/install.ts';
+import type { Page } from '@playwright/test';
 
 export { addPnpmBuildDependencies } from './cli/utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
@@ -191,3 +193,13 @@ export function setupGlobal({
 		};
 	};
 }
+
+export type Fixtures = {
+	page: Page;
+	cwd(addonTestCase: AddonTestCase<any>): string;
+};
+
+export type AddonTestCase<Addons extends AddonMap> = {
+	variant: ProjectVariant;
+	kind: { type: string; options: OptionMap<Addons> };
+};
