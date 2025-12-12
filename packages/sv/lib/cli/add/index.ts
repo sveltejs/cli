@@ -40,7 +40,11 @@ const OptionsSchema = v.strictObject({
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 type AddonArgsIn = { id: string; options?: string[] };
-type AddonArgsOut = AddonArgsIn & { options: string[]; kind: 'official' | 'file' | 'scoped' };
+type AddonArgsOut = AddonArgsIn & {
+	options: string[];
+	kind: 'official' | 'file' | 'scoped';
+	resolvedId: string;
+};
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
@@ -229,7 +233,7 @@ export async function resolveAddons(
 	// Resolve community addons (file: and scoped packages)
 	if (communityAddonArgs.length > 0) {
 		const communitySpecifiers = communityAddonArgs.map((addon) => addon.id);
-		const communityAddons = await resolveNonOfficialAddons(cwd, communitySpecifiers, downloadCheck);
+		const communityAddons = await resolveNonOfficialAddons(cwd, communityAddonArgs, downloadCheck);
 
 		// Map community addons by position (they're resolved in the same order)
 		communitySpecifiers.forEach((specifier, index) => {
@@ -731,18 +735,30 @@ export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
 			toRet.set(official.id, {
 				id: official.id,
 				options: addon.options ?? [],
-				kind: 'official'
+				kind: 'official',
+				resolvedId: official.id
 			});
 		} else if (addon.id.startsWith('file:')) {
-			const location = addon.id.replace('file:', '').trim();
-			if (!location) {
+			const resolvedId = addon.id.replace('file:', '').trim();
+			if (!resolvedId) {
 				invalidAddons.push('file:');
 				continue;
 			}
-			toRet.set(addon.id, { id: addon.id, options: addon.options ?? [], kind: 'file' });
+			toRet.set(addon.id, {
+				id: addon.id,
+				options: addon.options ?? [],
+				kind: 'file',
+				resolvedId
+			});
 		} else if (addon.id.startsWith('@')) {
 			// Scoped package (e.g., @org/name)
-			toRet.set(addon.id, { id: addon.id, options: addon.options ?? [], kind: 'scoped' });
+			const resolvedId = addon.id.includes('/') ? addon.id : addon.id + '/sv';
+			toRet.set(addon.id, {
+				id: addon.id,
+				options: addon.options ?? [],
+				kind: 'scoped',
+				resolvedId
+			});
 		} else {
 			invalidAddons.push(addon.id);
 		}
@@ -849,7 +865,7 @@ function getOptionChoices(details: ResolvedAddon) {
 
 export async function resolveNonOfficialAddons(
 	cwd: string,
-	addons: string[],
+	addons: AddonArgsOut[],
 	downloadCheck: boolean
 ) {
 	const selectedAddons: ResolvedAddon[] = [];
@@ -857,10 +873,32 @@ export async function resolveNonOfficialAddons(
 	const { start, stop } = p.spinner();
 
 	try {
-		start(`Resolving ${addons.map((id) => highlighter.addon(id)).join(', ')} packages`);
+		start(`Resolving ${addons.map((a) => highlighter.addon(a.id)).join(', ')} packages`);
+
+		// Do this only for npm addons
+		// const npmAddons = addons.filter((a) => a.kind !== 'file' && a.kind !== 'official');
+		// if (npmAddons.length > 0) {
+		// 	let blocklist: { npm_names: string[] } = { npm_names: [] } as any;
+		// 	try {
+		// 		const res = await fetch(
+		// 			'https://raw.githubusercontent.com/sveltejs/cli/refs/heads/feat/community-add-on-draft-0/packages/sv/blocklist.json'
+		// 		);
+		// 		blocklist = await res.json();
+		// 	} catch {
+		// 		throw new Error('Failed to fetch blocklist');
+		// 	}
+		// 	const blockedNpmAddons = npmAddons.filter((a) => blocklist.npm_names.includes(a.resolvedId));
+		// 	if (blockedNpmAddons.length > 0) {
+		// 		const h = getHighlighter();
+		// 		common.errorAndExit(
+		// 			`${blockedNpmAddons.map((a) => h.env(a.id)).join(', ')} blocked from being installed.`
+		// 		);
+		// 	}
+		// }
+
 		const pkgs = await Promise.all(
-			addons.map(async (id) => {
-				return await getPackageJSON({ cwd, packageName: id });
+			addons.map(async (a) => {
+				return await getPackageJSON({ cwd, packageName: a.id });
 			})
 		);
 		stop('Resolved community add-on packages');
@@ -897,7 +935,7 @@ export async function resolveNonOfficialAddons(
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : 'Unknown error';
 		common.errorAndExit(
-			`Failed to resolve ${addons.map((id) => highlighter.addon(id)).join(', ')}\n${highlighter.optional(msg)}`
+			`Failed to resolve ${addons.map((a) => highlighter.addon(a.id)).join(', ')}\n${highlighter.optional(msg)}`
 		);
 	}
 	return selectedAddons;
