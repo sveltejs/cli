@@ -9,9 +9,9 @@ import {
 	parseSvelte,
 	js,
 	svelte,
-	html
+	html,
+	addToDemoPage
 } from '../../core.ts';
-import { addToDemoPage } from '../common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',

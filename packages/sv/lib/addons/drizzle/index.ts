@@ -7,10 +7,10 @@ import {
 	type OptionValues,
 	parseJson,
 	parseScript,
-	js
+	js,
+	resolveCommand,
+	getNodeTypesVersion
 } from '../../core.ts';
-import { resolveCommand } from 'package-manager-detector/commands';
-import { getNodeTypesVersion } from '../common.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';
 const PORTS: Record<Database, string> = {
@@ -419,7 +419,7 @@ export default defineAddon({
 				name: 'db',
 				value: drizzleCall
 			});
-			exports.createNamed(ast, {
+			js.exports.createNamed(ast, {
 				name: 'db',
 				fallback: db
 			});

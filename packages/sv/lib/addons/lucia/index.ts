@@ -9,10 +9,10 @@ import {
 	Walker,
 	parseScript,
 	js,
-	type AstTypes
+	type AstTypes,
+	resolveCommand,
+	addToDemoPage
 } from '../../core.ts';
-import { resolveCommand } from 'package-manager-detector/commands';
-import { addToDemoPage } from '../common.ts';
 
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',

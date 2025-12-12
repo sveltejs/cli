@@ -1,6 +1,11 @@
-import { defineAddon, defineAddonOptions, log, parseJson } from '../../core.ts';
-import { getSharedFiles } from '../../create/utils.ts';
-import { getHighlighter } from '../../cli/add/utils.ts';
+import {
+	defineAddon,
+	defineAddonOptions,
+	log,
+	parseJson,
+	getHighlighter,
+	getSharedFiles
+} from '../../core.ts';
 
 const options = defineAddonOptions()
 	.add('ide', {

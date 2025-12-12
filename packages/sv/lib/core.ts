@@ -26,3 +26,7 @@ export {
 export { Walker } from './core/tooling/index.ts';
 export type { Comments, AstTypes } from './core/tooling/index.ts';
 export type { SvelteAst } from './core/tooling/svelte/index.ts';
+export { resolveCommand } from 'package-manager-detector/commands';
+export { getNodeTypesVersion, addToDemoPage, addEslintConfigPrettier } from './addons/common.ts';
+export { getSharedFiles } from './create/utils.ts';
+export { getHighlighter } from './cli/add/utils.ts';
