@@ -4,7 +4,7 @@ import process from 'node:process';
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-	cwd: 'packages/sv',
+	cwd: path.resolve('packages/sv'),
 	entry: ['lib/index.ts', 'lib/testing.ts', 'lib/core.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
 	dts: {
