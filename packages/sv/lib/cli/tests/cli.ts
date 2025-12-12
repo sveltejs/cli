@@ -39,9 +39,9 @@ describe('cli', () => {
 			]
 		},
 		{
-			projectName: 'sv-hello',
+			projectName: '@my-org/sv',
 			template: 'addon',
-			args: ['--no-add-ons']
+			args: []
 		}
 	];
 
@@ -50,6 +50,7 @@ describe('cli', () => {
 		{ timeout: 51_000 },
 		async (testCase) => {
 			const { projectName, args, template = 'minimal' } = testCase;
+
 			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
 
 			const result = await exec(

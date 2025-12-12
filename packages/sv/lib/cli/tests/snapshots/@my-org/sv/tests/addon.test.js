@@ -20,14 +20,14 @@ const { test, prepareServer, testCases } = setupTest(
 );
 
 test.concurrent.for(testCases)(
-	'sv-hello $kind.type $variant',
+	'@my-org/sv $kind.type $variant',
 	async (testCase, { page, ...ctx }) => {
 		const cwd = ctx.cwd(testCase);
 
 		const msg =
-			"This is a text file made by the Community Addon Template demo for the add-on: 'sv-hello'!";
+			"This is a text file made by the Community Addon Template demo for the add-on: '@my-org/sv'!";
 
-		const contentPath = path.resolve(cwd, `src/lib/sv-hello/content.txt`);
+		const contentPath = path.resolve(cwd, `src/lib/@my-org/sv/content.txt`);
 		const contentContent = fs.readFileSync(contentPath, 'utf8');
 
 		// Check if we have the imports

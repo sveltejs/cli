@@ -1,26 +1,6 @@
-# [sv](https://svelte.dev/docs/cli/overview) community add-on: sv-hello
+# Contributing Guide
 
-> [!IMPORTANT]
-> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion
-
-## Usage
-
-To use sv-hello, run:
-
-```shell
-npx sv add sv-hello
-```
-
-## What you get
-
-- A super cool stuff
-- Another one!
-
----
-
-## Developing the add-on
-
-Some convinient scripts are provided to help you develop the add-on.
+Some convinient scripts are provided to help develop the add-on.
 
 ```sh
 ## create a new demo project

@@ -216,7 +216,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	);
 
 	const projectPath = path.resolve(directory);
-	const projectName = path.basename(projectPath);
+	const basename = path.basename(projectPath);
+	const parentDirName = path.basename(path.dirname(projectPath));
+	const projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
 	let selectedAddons: ResolvedAddon[] = [];
 	let answers: Record<string, OptionValues<any>> = {};

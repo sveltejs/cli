@@ -4,8 +4,8 @@
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"demo-create": "sv create demo-~SV-NAME-TODO~ --types ts --template minimal --no-add-ons --no-install",
-		"demo-add": "sv add file:../=who:you --cwd demo-~SV-NAME-TODO~ --no-git-check --no-download-check --no-install",
+		"demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
+		"demo-add": "sv add file:../=who:you --cwd demo --no-git-check --no-download-check --no-install",
 		"test": "vitest run"
 	},
 	"files": ["src", "!src/**/*.test.*"],

@@ -1,4 +1,4 @@
-# [sv](https://svelte.dev/docs/cli/overview) community add-on: [~SV-NAME-TODO~](https://github.com/~SV-NAME-TODO~)
+# [sv](https://svelte.dev/docs/cli/overview) community add-on: [@my-org/sv](https://github.com/@my-org/sv)
 
 > [!IMPORTANT]
 > Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion
@@ -8,7 +8,7 @@
 To install the add-on, run:
 
 ```shell
-npx sv add ~SV-PROTOCOL-NAME-TODO~
+npx sv add @my-org
 ```
 
 ## What you get [TO BE FILLED...]
@@ -25,5 +25,5 @@ The name of the person to say hello to.
 Default: `you`
 
 ```shell
-npx sv add ~SV-PROTOCOL-NAME-TODO~="who:your-name"
+npx sv add @my-org="who:your-name"
 ```

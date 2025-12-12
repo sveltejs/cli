@@ -9,7 +9,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'sv-hello',
+	id: '@my-org/sv',
 	options,
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
@@ -17,11 +17,11 @@ export default defineAddon({
 	run: ({ kit, sv, options, typescript }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
-		sv.file(`src/lib/sv-hello/content.txt`, () => {
-			return `This is a text file made by the Community Addon Template demo for the add-on: 'sv-hello'!`;
+		sv.file(`src/lib/@my-org/sv/content.txt`, () => {
+			return `This is a text file made by the Community Addon Template demo for the add-on: '@my-org/sv'!`;
 		});
 
-		sv.file(`src/lib/sv-hello/HelloComponent.svelte`, (content) => {
+		sv.file(`src/lib/@my-org/sv/HelloComponent.svelte`, (content) => {
 			const { ast, generateCode } = parseSvelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
@@ -39,7 +39,7 @@ export default defineAddon({
 
 			js.imports.addDefault(scriptAst, {
 				as: 'HelloComponent',
-				from: `$lib/sv-hello/HelloComponent.svelte`
+				from: `$lib/@my-org/sv/HelloComponent.svelte`
 			});
 
 			ast.fragment.nodes.push(...svelte.toFragment('<HelloComponent />'));

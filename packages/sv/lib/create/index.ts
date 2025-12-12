@@ -51,7 +51,9 @@ export const templates: TemplateMetadata[] = templateTypes.map((dir) => {
 });
 
 const kv = (name: string) => {
+	const protocolName = name.startsWith('@') ? name.split('/')[0] : name;
 	return {
+		'~SV-PROTOCOL-NAME-TODO~': protocolName,
 		'~SV-NAME-TODO~': name
 	};
 };
@@ -171,5 +173,5 @@ function to_valid_package_name(name: string) {
 		.toLowerCase()
 		.replace(/\s+/g, '-')
 		.replace(/^[._]/, '')
-		.replace(/[^a-z0-9~.-]+/g, '-');
+		.replace(/[^a-z0-9@/~./-]+/g, '-');
 }
