@@ -131,13 +131,11 @@ export default defineAddon({
 		if (prettierInstalled) {
 			sv.file(files.prettierrc, (content) => {
 				const { data, generateCode } = parseJson(content);
-				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
 
 				data.plugins ??= [];
 				const plugins: string[] = data.plugins;
-
-				if (!plugins.includes(PLUGIN_NAME)) plugins.unshift(PLUGIN_NAME);
-
+				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
+				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 
 				return generateCode();

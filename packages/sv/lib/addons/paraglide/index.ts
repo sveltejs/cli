@@ -71,23 +71,6 @@ export default defineAddon({
 
 		sv.devDependency('@inlang/paraglide-js', '^2.6.0');
 
-		sv.file('project.inlang/settings.json', (content) => {
-			if (content) return content;
-
-			const { data, generateCode } = parseJson(content);
-
-			for (const key in DEFAULT_INLANG_PROJECT) {
-				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
-			}
-			const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
-			const baseLocale = validLanguageTags[0];
-
-			data.baseLocale = baseLocale;
-			data.locales = validLanguageTags;
-
-			return generateCode();
-		});
-
 		// add the vite plugin
 		sv.file(files.viteConfig, (content) => {
 			const { ast, generateCode } = parseScript(content);
@@ -178,9 +161,44 @@ export default defineAddon({
 			if (!content) return content;
 
 			if (!content.includes(`\n${paraglideOutDir}`)) {
-				content = content.trimEnd() + `\n\n# Paraglide\n${paraglideOutDir}`;
+				content = content.trimEnd() + `\n\n# Paraglide\n${paraglideOutDir}\nproject.inlang/cache/`;
 			}
 			return content;
+		});
+
+		sv.file('project.inlang/settings.json', (content) => {
+			if (content) return content;
+
+			const { data, generateCode } = parseJson(content);
+
+			for (const key in DEFAULT_INLANG_PROJECT) {
+				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
+			}
+			const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
+			const baseLocale = validLanguageTags[0];
+
+			data.baseLocale = baseLocale;
+			data.locales = validLanguageTags;
+
+			return generateCode();
+		});
+
+		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
+			const { ast, generateCode } = parseSvelte(content);
+			const scriptAst = svelte.ensureScript(ast);
+			imports.addNamed(scriptAst, {
+				imports: ['locales', 'localizeHref'],
+				from: '$lib/paraglide/runtime'
+			});
+			imports.addNamed(scriptAst, { imports: ['page'], from: '$app/state' });
+			ast.fragment.nodes.push(
+				...svelte.toFragment(`<div style="display:none">
+	{#each locales as locale}
+		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
+	{/each}
+</div>`)
+			);
+			return generateCode();
 		});
 
 		if (options.demo) {

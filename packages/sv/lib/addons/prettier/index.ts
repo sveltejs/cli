@@ -54,14 +54,14 @@ export default defineAddon({
 
 			data.plugins ??= [];
 			const plugins: string[] = data.plugins;
-			if (tailwindcssInstalled) {
-				if (!plugins.includes('prettier-plugin-tailwindcss')) {
-					data.plugins.unshift('prettier-plugin-tailwindcss');
-				}
-				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
+			{
+				const PLUGIN_NAME = 'prettier-plugin-svelte';
+				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 			}
-			if (!plugins.includes('prettier-plugin-svelte')) {
-				data.plugins.push('prettier-plugin-svelte');
+			if (tailwindcssInstalled) {
+				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
+				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
+				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 			}
 
 			data.overrides ??= [];

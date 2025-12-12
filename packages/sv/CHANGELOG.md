@@ -1,5 +1,17 @@
 # sv
 
+## 0.10.8
+### Patch Changes
+
+
+- fix(paraglide): git ignore cache of inlang project ([#844](https://github.com/sveltejs/cli/pull/844))
+
+
+- fix(paraglide): multi language when prerendering is now working by default ([#844](https://github.com/sveltejs/cli/pull/844))
+
+
+- fix(prettier): `prettier-plugin-tailwindcss` plugin is now last in the list ([#845](https://github.com/sveltejs/cli/pull/845))
+
 ## 0.10.7
 ### Patch Changes
 
