@@ -60,24 +60,20 @@ describe('cli', () => {
 				projectName
 			);
 
-			const result = await exec(
-				'node',
-				[
-					svBinPath,
-					'create',
-					testOutputPath,
-					'--template',
-					template,
-					...(template === 'addon' ? ['--no-types'] : ['--types', 'ts']),
-					'--no-install',
-					...args
-				],
-				{ nodeOptions: { stdio: 'pipe' } }
-			);
+			const allArgs = [
+				svBinPath,
+				'create',
+				testOutputPath,
+				'--template',
+				template,
+				...(template === 'addon' ? [] : ['--types', 'ts']),
+				'--no-install',
+				...args
+			];
+			const result = await exec('node', allArgs, { nodeOptions: { stdio: 'pipe' } });
 
 			// cli finished well
 			expect(result.exitCode, `Error with cli: '${result.stderr}'`).toBe(0);
-
 			// test output path exists
 			expect(fs.existsSync(testOutputPath)).toBe(true);
 
@@ -132,7 +128,7 @@ describe('cli', () => {
 					// list of cmds to test
 					['i'],
 					['run', 'demo-create'],
-					['run', 'demo-add'],
+					['run', 'demo-add:ci'],
 					['run', 'test']
 				];
 				for (const cmd of cmds) {

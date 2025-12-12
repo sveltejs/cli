@@ -78,10 +78,7 @@ To start on a good track, create your add-on with the `addon` template.
 npx sv create --template addon [path]
 ```
 
-Two key things to note, your `add-on` should:
-
-- export a function that returns a `defineAddon` object.
-- have a `package.json` with an `exports` field that points to the main entry point of the add-on.
+In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` files for more information.
 
 ### How to publish a community add-on
 
