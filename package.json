@@ -14,6 +14,7 @@
 		"dev": "tsdown -w",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
+		"sv": "pnpm --filter sv run sv",
 		"test": "vitest run --silent",
 		"test:ui": "vitest --ui",
 		"update-deps": "node ./scripts/update-dependencies.js && pnpm format"
