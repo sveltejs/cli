@@ -8,6 +8,7 @@ import { tsPlugin } from '@sveltejs/acorn-typescript';
 import { parse as svelteParse, type AST as SvelteAst, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
 import type { BaseNode } from 'estree';
+import * as toml from 'smol-toml';
 
 export {
 	// ast walker
@@ -287,4 +288,12 @@ export function parseSvelte(content: string): SvelteAst.Root {
 
 export function serializeSvelte(ast: SvelteAst.SvelteNode): string {
 	return sveltePrint(ast).code;
+}
+
+export function parseToml(content: string): toml.TomlTable {
+	return toml.parse(content);
+}
+
+export function serializeToml(data: toml.TomlTable): string {
+	return toml.stringify(data);
 }

@@ -1,6 +1,9 @@
 import { defineAddon, defineAddonOptions } from '../../core/index.ts';
-import { exports, functions, imports, object } from '../../core/tooling/js/index.ts';
-import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
+import { exports, functions, imports, object, type AstTypes } from '../../core/tooling/js/index.ts';
+import { parseJson, parseScript, parseToml } from '../../core/tooling/parsers.ts';
+import { fileExists, readFile } from '../../cli/add/utils.ts';
+import { resolveCommand } from 'package-manager-detector';
+import * as js from '../../core/tooling/js/index.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
@@ -18,6 +21,16 @@ const options = defineAddonOptions()
 		default: 'auto',
 		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package }))
 	})
+	.add('cfTarget', {
+		condition: (options) => options.adapter === 'cloudflare',
+		type: 'select',
+		question: 'Are you deploying to Workers (assets) or Pages?',
+		default: 'workers',
+		options: [
+			{ value: 'workers', label: 'Workers', hint: 'Recommended way to deploy to Cloudflare' },
+			{ value: 'pages', label: 'Pages' }
+		]
+	})
 	.build();
 
 export default defineAddon({
@@ -29,7 +42,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files }) => {
+	run: ({ sv, options, files, cwd, packageManager, typescript }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -99,5 +112,135 @@ export default defineAddon({
 
 			return generateCode();
 		});
+
+		if (adapter.package === '@sveltejs/adapter-cloudflare') {
+			sv.devDependency('wrangler', 'latest');
+
+			// default to jsonc
+			const configFormat = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+
+			// Setup Cloudlfare workers/pages config
+			sv.file(`wrangler.${configFormat}`, (content) => {
+				const { data, generateCode } =
+					configFormat === 'jsonc' ? parseJson(content) : parseToml(content);
+
+				if (configFormat === 'jsonc') {
+					data.$schema ??= './node_modules/wrangler/config-schema.json';
+				}
+
+				if (!data.name) {
+					const pkg = parseJson(readFile(cwd, files.package));
+					data.name = pkg.data.name;
+				}
+
+				data.compatibility_date ??= new Date().toISOString().split('T')[0];
+				data.compatibility_flags ??= [];
+
+				if (
+					!data.compatibility_flags.includes('nodejs_compat') &&
+					!data.compatibility_flags.includes('nodejs_als')
+				) {
+					data.compatibility_flags.push('nodejs_als');
+				}
+
+				switch (options.cfTarget) {
+					case 'workers':
+						data.main = '.svelte-kit/cloudflare/_worker.js';
+						data.assets ??= {};
+						data.assets.binding = 'ASSETS';
+						data.assets.directory = '.svelte-kit/cloudflare';
+						data.workers_dev = true;
+						data.preview_urls = true;
+						break;
+
+					case 'pages':
+						data.pages_build_output_dir = '.svelte-kit/cloudflare';
+						break;
+				}
+
+				return generateCode();
+			});
+
+			const jsconfig = fileExists(cwd, 'jsconfig.json');
+			const typeChecked = typescript || jsconfig;
+
+			if (typeChecked) {
+				// Ignore generated Cloudflare Types
+				sv.file(files.gitignore, (content) => {
+					return content.includes('.wrangler') && content.includes('worker-configuration.d.ts')
+						? content
+						: `${content.trimEnd()}\n\n# Cloudflare Types\n/worker-configuration.d.ts`;
+				});
+
+				// Setup wrangler types command
+				sv.file(files.package, (content) => {
+					const { data, generateCode } = parseJson(content);
+
+					data.scripts ??= {};
+					data.scripts.types = 'wrangler types';
+					const { command, args } = resolveCommand(packageManager, 'run', ['types'])!;
+					data.scripts.prepare = data.scripts.prepare
+						? `${command} ${args.join(' ')} && ${data.scripts.prepare}`
+						: `${command} ${args.join(' ')}`;
+
+					return generateCode();
+				});
+
+				// Add Cloudflare generated types to tsconfig
+				sv.file(`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`, (content) => {
+					const { data, generateCode } = parseJson(content);
+
+					data.compilerOptions ??= {};
+					data.compilerOptions.types ??= [];
+					data.compilerOptions.types.push('worker-configuration.d.ts');
+
+					return generateCode();
+				});
+
+				sv.file('src/app.d.ts', (content) => {
+					const { ast, generateCode } = parseScript(content);
+
+					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
+					if (!platform) {
+						throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
+					}
+
+					platform.body.body.push(
+						createCloudflarePlatformType('env', 'Env'),
+						createCloudflarePlatformType('ctx', 'ExecutionContext'),
+						createCloudflarePlatformType('caches', 'CacheStorage'),
+						createCloudflarePlatformType('cf', 'IncomingRequestCfProperties', true)
+					);
+
+					return generateCode();
+				});
+			}
+		}
 	}
 });
+
+function createCloudflarePlatformType(
+	name: string,
+	value: string,
+	optional = false
+): AstTypes.TSInterfaceBody['body'][number] {
+	return {
+		type: 'TSPropertySignature',
+		key: {
+			type: 'Identifier',
+			name
+		},
+		computed: false,
+		optional,
+		typeAnnotation: {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSTypeReference',
+				typeName: {
+					type: 'Identifier',
+					name: value
+				}
+			}
+		}
+	};
+}

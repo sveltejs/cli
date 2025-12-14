@@ -46,6 +46,7 @@ declare module 'estree' {
 		type: 'TSPropertySignature';
 		computed: boolean;
 		key: Identifier;
+		optional?: boolean;
 		typeAnnotation: TSTypeAnnotation;
 	}
 	interface TSProgram extends Omit<Program, 'body'> {
