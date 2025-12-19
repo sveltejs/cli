@@ -19,25 +19,25 @@
 		"update-deps": "node ./scripts/update-dependencies.js && pnpm format"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.29.7",
-		"@playwright/test": "^1.56.1",
+		"@changesets/cli": "^2.29.8",
+		"@playwright/test": "^1.57.0",
 		"@sveltejs/eslint-config": "^8.3.4",
 		"@svitejs/changesets-changelog-github-compact": "^1.2.0",
-		"@types/node": "^22.19.1",
-		"@typescript/native-preview": "7.0.0-dev.20251204.1",
-		"@vitest/ui": "4.0.7",
+		"@types/node": "^20.14.8",
+		"@typescript/native-preview": "7.0.0-dev.20251212.1",
+		"@vitest/ui": "4.0.15",
 		"eslint": "^9.39.1",
-		"eslint-plugin-svelte": "^3.13.0",
+		"eslint-plugin-svelte": "^3.13.1",
 		"magic-string": "^0.30.21",
-		"prettier": "^3.6.2",
-		"prettier-plugin-packagejson": "^2.5.19",
+		"prettier": "^3.7.4",
+		"prettier-plugin-packagejson": "^2.5.20",
 		"prettier-plugin-svelte": "^3.4.0",
 		"sv": "workspace:*",
-		"svelte": "^5.43.8",
-		"tsdown": "^0.17.0",
+		"svelte": "^5.45.10",
+		"tsdown": "^0.17.3",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.47.0",
-		"vitest": "4.0.7"
+		"typescript-eslint": "^8.49.0",
+		"vitest": "4.0.15"
 	},
 	"packageManager": "pnpm@10.17.0"
 }

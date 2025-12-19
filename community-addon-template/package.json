@@ -18,8 +18,8 @@
 		"sv": "workspace:*"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.56.1",
-		"vitest": "4.0.7"
+		"@playwright/test": "^1.57.0",
+		"vitest": "4.0.15"
 	},
 	"keywords": [
 		"svelte-add-on",
