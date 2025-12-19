@@ -56,6 +56,15 @@ export default defineAddon({
 				}
 			}
 
+			// in sk 3, we will keep "preview": "vite preview" like any other adapter
+			if (options.adapter === 'cloudflare') {
+				if (options.cfTarget === 'workers') {
+					data.scripts.preview = 'wrangler dev .svelte-kit/cloudflare/_worker.js';
+				} else if (options.cfTarget === 'pages') {
+					data.scripts.preview = 'wrangler pages dev .svelte-kit/cloudflare';
+				}
+			}
+
 			return generateCode();
 		});
 
