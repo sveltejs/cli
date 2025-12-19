@@ -114,7 +114,7 @@ export default defineAddon({
 		});
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
-			sv.devDependency('wrangler', 'latest');
+			sv.devDependency('wrangler', '^4.56.0');
 
 			// default to jsonc
 			const configFormat = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
