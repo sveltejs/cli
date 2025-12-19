@@ -4,9 +4,12 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
-
-import type { ResolvedAddon } from '../../core.ts';
 import { extract } from 'tar-fs';
+
+import { style, type ResolvedAddon } from '../../core.ts';
+import * as common from '../utils/common.ts';
+// eslint-disable-next-line no-restricted-imports
+import { downloadJson } from '../../core/downloadJson.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
@@ -177,15 +180,15 @@ async function fetchPackageJSON(packageName: string) {
 	}
 
 	const [name, tag = 'latest'] = pkgName.split('@');
-	const pkgUrl = `${REGISTRY}/${scope + name}/${tag}`;
-	const resp = await fetch(pkgUrl);
-	if (resp.status === 404) {
-		throw new Error(`Package '${packageName}' doesn't exist in the registry: '${pkgUrl}'`);
-	}
-	if (resp.status < 200 && resp.status >= 300) {
-		throw new Error(`Failed to fetch '${pkgUrl}' - GET ${resp.status}`);
-	}
+	const fullName = `${scope + name}`;
+	const pkgUrl = `${REGISTRY}/${fullName}/${tag}`;
 
-	const data = await resp.json();
-	return data;
+	const blocklist = await downloadJson(
+		'https://raw.githubusercontent.com/sveltejs/cli/refs/heads/main/packages/sv/blocklist.json'
+	);
+	const blockedNpmAddons = blocklist.npm_names.includes(fullName);
+	if (blockedNpmAddons)
+		common.errorAndExit(`${style.warning(fullName)} blocked from being installed.`);
+
+	return await downloadJson(pkgUrl);
 }

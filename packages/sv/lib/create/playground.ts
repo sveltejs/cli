@@ -11,6 +11,8 @@ import {
 	svelte
 } from '../core.ts';
 import { getSharedFiles } from './utils.ts';
+// eslint-disable-next-line no-restricted-imports
+import { downloadJson } from '../core/downloadJson.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -59,8 +61,7 @@ export async function downloadPlaygroundData({
 	if (hash) {
 		data = JSON.parse(await decodeAndDecompressText(hash));
 	} else {
-		const response = await fetch(`https://svelte.dev/playground/api/${playgroundId}.json`);
-		data = await response.json();
+		data = await downloadJson(`https://svelte.dev/playground/api/${playgroundId}.json`);
 	}
 
 	// saved playgrounds and playground hashes have a different structure

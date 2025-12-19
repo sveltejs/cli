@@ -899,26 +899,6 @@ export async function resolveNonOfficialAddons(
 	try {
 		start(`Resolving ${addons.map((a) => style.addon(a.id)).join(', ')} packages`);
 
-		// Do this only for npm addons
-		// const npmAddons = addons.filter((a) => a.kind !== 'file' && a.kind !== 'official');
-		// if (npmAddons.length > 0) {
-		// 	let blocklist: { npm_names: string[] } = { npm_names: [] } as any;
-		// 	try {
-		// 		const res = await fetch(
-		// 			'https://raw.githubusercontent.com/sveltejs/cli/refs/heads/feat/community-add-on-draft-0/packages/sv/blocklist.json'
-		// 		);
-		// 		blocklist = await res.json();
-		// 	} catch {
-		// 		throw new Error('Failed to fetch blocklist');
-		// 	}
-		// 	const blockedNpmAddons = npmAddons.filter((a) => blocklist.npm_names.includes(a.resolvedId));
-		// 	if (blockedNpmAddons.length > 0) {
-		// 		common.errorAndExit(
-		// 			`${blockedNpmAddons.map((a) => style.warning(a.id)).join(', ')} blocked from being installed.`
-		// 		);
-		// 	}
-		// }
-
 		const pkgs = await Promise.all(
 			addons.map(async (a) => {
 				return await getPackageJSON({ cwd, packageName: a.id });
