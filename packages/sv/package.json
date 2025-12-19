@@ -2,7 +2,7 @@
 	"name": "sv",
 	"version": "0.10.8",
 	"type": "module",
-	"description": "A CLI for creating and updating SvelteKit projects",
+	"description": "A command line interface (CLI) for creating and maintaining Svelte applications",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
