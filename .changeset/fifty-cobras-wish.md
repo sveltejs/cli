@@ -2,4 +2,4 @@
 'sv': minor
 ---
 
-feat: able to fully setup cloudflare workers/pages
+feat(cloudflare): able to fully setup cloudflare adapter for workers/pages
