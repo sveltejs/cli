@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { setupGlobal } from '../../../testing.ts';
+import { setupGlobal } from 'sv/testing';
 import process from 'node:process';
 import { exec } from 'tinyexec';
 

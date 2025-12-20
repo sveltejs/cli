@@ -2,6 +2,7 @@ import degit from 'degit';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { execSync } from 'node:child_process';
 import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 
@@ -203,3 +204,50 @@ export type AddonTestCase<Addons extends AddonMap> = {
 	variant: ProjectVariant;
 	kind: { type: string; options: OptionMap<Addons> };
 };
+
+export type SetupTestOptions<Addons extends AddonMap> = {
+	kinds: Array<AddonTestCase<Addons>['kind']>;
+	filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
+	browser?: boolean;
+	preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
+};
+
+export type PrepareServerOptions = {
+	cwd: string;
+	page: Page;
+	buildCommand?: string;
+	previewCommand?: string;
+};
+
+export type PrepareServerReturn = {
+	url: string;
+	close: () => Promise<void>;
+};
+
+// installs dependencies, builds the project, and spins up the preview server
+export async function prepareServer({
+	cwd,
+	page,
+	buildCommand = 'pnpm build',
+	previewCommand = 'pnpm preview'
+}: PrepareServerOptions): Promise<PrepareServerReturn> {
+	// build project
+	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
+
+	// start preview server
+	const { url, close } = await startPreview({ cwd, command: previewCommand });
+
+	// increases timeout as 30s is not always enough when running the full suite
+	page.setDefaultNavigationTimeout(60_000);
+
+	try {
+		// navigate to the page
+		await page.goto(url);
+	} catch (e) {
+		// cleanup in the instance of a timeout
+		await close();
+		throw e;
+	}
+
+	return { url, close };
+}
