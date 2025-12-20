@@ -187,10 +187,17 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				// always use the minimal template for playground projects
 				if (options.fromPlayground) return Promise.resolve<TemplateType>('minimal');
 
+				const availableTemplates =
+					options.add.length > 0 ? templates.filter((t) => t.name !== 'addon') : templates;
+
 				return p.select<TemplateType>({
 					message: 'Which template would you like?',
 					initialValue: 'minimal',
-					options: templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }))
+					options: availableTemplates.map((t) => ({
+						label: t.title,
+						value: t.name,
+						hint: t.description
+					}))
 				});
 			},
 			language: (o) => {
