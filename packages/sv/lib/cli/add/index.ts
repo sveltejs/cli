@@ -721,9 +721,12 @@ export async function runAddonsApply({
 	}
 
 	if (!options.downloadCheck) argsFormattedAddons.push('--no-download-check');
-	if (!options.gitCheck) argsFormattedAddons.push('--no-git-check');
 
-	if (fromCommand === 'add') common.logArgs(packageManager, 'add', argsFormattedAddons);
+	if (fromCommand === 'add') {
+		if (!options.gitCheck) argsFormattedAddons.push('--no-git-check');
+
+		common.logArgs(packageManager, 'add', argsFormattedAddons);
+	}
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
