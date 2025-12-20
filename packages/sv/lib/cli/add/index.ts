@@ -429,13 +429,10 @@ export async function promptAddonQuestions({
 	// Only show selection prompt if no addons were specified at all
 	if (selectedAddonIds.length === 0) {
 		// For the prompt, we only show official addons
-		const officialAddonsList = Array.from(allAddons.values()).filter((addon) =>
-			officialAddons.some((o) => o.id === addon.id)
-		);
-		const allSetupResults = setupAddons(officialAddonsList, workspace);
-		const addonOptions = officialAddonsList
+		const results = setupAddons(officialAddons, workspace);
+		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
-			.filter(({ id }) => allSetupResults[id].unsupported.length === 0)
+			.filter(({ id }) => results[id].unsupported.length === 0)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
