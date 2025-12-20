@@ -1,39 +1,36 @@
-import { chromium } from '@playwright/test';
-import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { add } from 'sv';
-import { addPnpmBuildDependencies, createProject, startPreview } from 'sv/testing';
-import * as vitest from 'vitest';
+import { execSync } from 'node:child_process';
+import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
+import { chromium } from '@playwright/test';
 
-const cwd = vitest.inject('testDir');
-const templatesDir = vitest.inject('templatesDir');
-const variants = vitest.inject('variants');
+import { add } from 'sv';
+import { createProject, addPnpmBuildDependencies, prepareServer } from 'sv/testing';
+
+const cwd = inject('testDir');
+const templatesDir = inject('templatesDir');
+const variants = inject('variants');
 
 /**
- * Sets up test infrastructure for addon testing.
- * Creates test projects, configures browser environment, and prepares test cases.
- *
- * @param {object} addons - The addons to test
- * @param {object} [options] - Configuration options for test setup
- * @param {Array<object>} [options.kinds] - Array of addon test case kinds to generate. Each kind has `type` (string) and `options` (Object) properties.
- * @param {(addonTestCase: { variant: string; kind: { type: string; options?: object } }) => boolean} [options.filter] - Optional filter function to exclude certain test cases. Receives an object with `variant` (string) and `kind` (Object) properties, returns boolean.
- * @param {boolean} [options.browser=true] - Whether to enable browser testing with Playwright
- * @param {Function} [options.preAdd] - Optional hook called before adding addons to each test case. Receives an object with `addonTestCase` (Object with `variant` and `kind`) and `cwd` (string) properties. May return Promise or void.
- * @returns {{ test: import('vitest').TestAPI<{}>; testCases: Array<{ variant: string; kind: { type: string; options?: object } }>; prepareServer: (options: { cwd: string; page: import('@playwright/test').Page; buildCommand?: string; previewCommand?: string }) => Promise<{ url: string; close: Function }> }} Object containing: `test` - The extended Vitest test function with fixtures; `testCases` - Array of test cases, each with `variant` (string) and `kind` (Object) properties; `prepareServer` - Function to build and start preview server
+ * @template {import('sv').AddonMap} AddonMap
+ * @param {AddonMap} addons
+ * @param {import('sv/testing').SetupTestOptions<AddonMap>} [options]
+ * @returns {{ test: ReturnType<typeof vitestTest.extend<import('sv/testing').Fixtures>>, testCases: Array<import('sv/testing').AddonTestCase<AddonMap>>, prepareServer: typeof prepareServer }}
  */
 export function setupTest(addons, options) {
-	const test = vitest.test.extend({});
+	/** @type {ReturnType<typeof vitestTest.extend<import('sv/testing').Fixtures>>} */
+	// @ts-ignore - vitest.extend expects fixtures object but we provide it in beforeEach
+	const test = vitestTest.extend({});
 
 	const withBrowser = options?.browser ?? true;
 
-	/** @type {Function} */
+	/** @type {ReturnType<typeof createProject>} */
 	let create;
-	/** @type {import('@playwright/test').Browser} */
+	/** @type {Awaited<ReturnType<typeof chromium.launch>>} */
 	let browser;
 
 	if (withBrowser) {
-		vitest.beforeAll(async () => {
+		beforeAll(async () => {
 			browser = await chromium.launch();
 			return async () => {
 				await browser.close();
@@ -41,16 +38,11 @@ export function setupTest(addons, options) {
 		});
 	}
 
-	/** @type {Array<{ variant: string; kind: { type: string; options?: object } }>} */
+	/** @type {Array<import('sv/testing').AddonTestCase<AddonMap>>} */
 	const testCases = [];
 	for (const kind of options?.kinds ?? []) {
 		for (const variant of variants) {
-			/** @type {{ variant: string; kind: { type: string; options?: object } }} */
-			const addonTestCase =
-				/** @type {{ variant: string; kind: { type: string; options?: object } }} */ ({
-					variant,
-					kind
-				});
+			const addonTestCase = { variant, kind };
 			if (options?.filter === undefined || options.filter(addonTestCase)) {
 				testCases.push(addonTestCase);
 			}
@@ -58,10 +50,8 @@ export function setupTest(addons, options) {
 	}
 	/** @type {string} */
 	let testName;
-	vitest.beforeAll(async ({ name }) => {
-		const testNamePart = path.dirname(name).split('/').at(-1);
-		if (!testNamePart) throw new Error('Could not determine test name');
-		testName = testNamePart;
+	beforeAll(async ({ name }) => {
+		testName = path.dirname(name).split('/').at(-1) ?? '';
 
 		// constructs a builder to create test projects
 		create = createProject({ cwd, templatesDir, testName });
@@ -95,10 +85,8 @@ export function setupTest(addons, options) {
 			}
 			const { pnpmBuildDependencies } = await add({
 				cwd,
-				/** @type {any} */
 				addons,
-				/** @type {any} */
-				options: kind.options || {},
+				options: kind.options,
 				packageManager: 'pnpm'
 			});
 			await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
@@ -108,17 +96,25 @@ export function setupTest(addons, options) {
 	});
 
 	// runs before each test case
-	vitest.beforeEach(async (/** @type {any} */ ctx) => {
-		/** @type {import('@playwright/test').BrowserContext} */
+	/**
+	 * @param {import('sv/testing').Fixtures & import('vitest').TestContext} ctx
+	 */
+	beforeEach(async (ctx) => {
+		/** @type {Awaited<ReturnType<typeof browser.newContext>>} */
 		let browserCtx;
 		if (withBrowser) {
 			browserCtx = await browser.newContext();
-			/** @type {import('@playwright/test').Page} */
-			ctx.page = await browserCtx.newPage();
+			/** @type {import('sv/testing').Fixtures} */ (/** @type {unknown} */ (ctx)).page =
+				await browserCtx.newPage();
 		}
 
-		/** @type {Function} */
-		ctx.cwd = (/** @type {{ variant: string; kind: { type: string } }} */ addonTestCase) => {
+		/**
+		 * @param {import('sv/testing').AddonTestCase<Addons>} addonTestCase
+		 * @returns {string}
+		 */
+		/** @type {import('sv/testing').Fixtures} */ (/** @type {unknown} */ (ctx)).cwd = (
+			addonTestCase
+		) => {
 			return path.join(cwd, testName, `${addonTestCase.kind.type}-${addonTestCase.variant}`);
 		};
 
@@ -131,43 +127,4 @@ export function setupTest(addons, options) {
 	});
 
 	return { test, testCases, prepareServer };
-}
-
-/**
- * Installs dependencies, builds the project, and spins up the preview server.
- * Navigates the browser page to the preview URL and handles cleanup on errors.
- *
- * @param {object} options - Configuration options for server preparation
- * @param {string} options.cwd - The current working directory of the project to build and preview
- * @param {import('@playwright/test').Page} options.page - The Playwright page instance to navigate
- * @param {string} [options.buildCommand='pnpm build'] - Command to build the project
- * @param {string} [options.previewCommand='pnpm preview'] - Command to start the preview server
- * @returns {Promise<object>} Object containing: `url` (string) - The preview server URL; `close` (Function) - Async function to close the preview server
- * @throws {Error} Throws an error if navigation to the preview URL fails, after cleaning up the server
- */
-async function prepareServer({
-	cwd,
-	page,
-	buildCommand = 'pnpm build',
-	previewCommand = 'pnpm preview'
-}) {
-	// build project
-	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
-
-	// start preview server
-	const { url, close } = await startPreview({ cwd, command: previewCommand });
-
-	// increases timeout as 30s is not always enough when running the full suite
-	page.setDefaultNavigationTimeout(60_000);
-
-	try {
-		// navigate to the page
-		await page.goto(url);
-	} catch (e) {
-		// cleanup in the instance of a timeout
-		await close();
-		throw e;
-	}
-
-	return { url, close };
 }
