@@ -1,5 +1,6 @@
 import type { OptionDefinition, OptionValues, Question } from './options.ts';
 import type { Workspace, WorkspaceOptions } from './workspace.ts';
+import type { officialAddons } from '../../addons/_config/official.ts';
 
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
@@ -18,10 +19,15 @@ export type Scripts = {
 };
 
 export type SvApi = {
+	/** Add a package to the pnpm build dependencies. */
 	pnpmBuildDependency: (pkg: string) => void;
+	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
+	/** Add a package to the dev dependencies. */
 	devDependency: (pkg: string, version: string) => void;
+	/** Execute a command in the workspace. */
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
+	/** Edit a file in the workspace. (will create it if it doesn't exist) */
 	file: (path: string, edit: (content: string) => string) => void;
 };
 
@@ -31,10 +37,11 @@ export type Addon<Args extends OptionDefinition> = {
 	shortDescription?: string;
 	homepage?: string;
 	options: Args;
+	/** Setup the addon. Will be called before the addon is run. */
 	setup?: (
 		workspace: Workspace & {
 			/** On what official addons does this addon depend on? */
-			dependsOn: (name: string) => void;
+			dependsOn: (name: keyof typeof officialAddons) => void;
 
 			/** Why is this addon not supported?
 			 *
@@ -44,16 +51,24 @@ export type Addon<Args extends OptionDefinition> = {
 			unsupported: (reason: string) => void;
 
 			/** On what official addons does this addon run after? */
-			runsAfter: (addonName: string) => void;
+			runsAfter: (name: keyof typeof officialAddons) => void;
 		}
 	) => MaybePromise<void>;
+	/** Run the addon. The actual execution of the addon... Add files, edit files, etc. */
 	run: (
 		workspace: Workspace & {
+			/** Add-on sptions */
 			options: WorkspaceOptions<Args>;
+			/** Api to interact with the workspace. */
 			sv: SvApi;
+			/** Cancel the addon at any time!
+			 * @example
+			 * return cancel('There is a problem with...');
+			 */
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
+	/** Next steps to display after the addon is run. */
 	nextSteps?: (data: Workspace & { options: WorkspaceOptions<Args> }) => string[];
 };
 
