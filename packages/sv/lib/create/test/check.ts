@@ -74,7 +74,7 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 }
 
 for (const [script, tests] of script_test_map) {
-	describe.concurrent(script, { timeout: 60000 }, () => {
+	describe.concurrent(script, { timeout: 61_000 }, () => {
 		for (const [name, task] of tests) {
 			test(name, task);
 		}

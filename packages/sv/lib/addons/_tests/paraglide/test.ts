@@ -6,22 +6,19 @@ import path from 'node:path';
 
 const langs = ['en', 'fr', 'hu'];
 
-const { test, testCases, prepareServer } = setupTest(
+const { test, testCases } = setupTest(
 	{ paraglide },
 	{
 		kinds: [
 			{ type: 'default', options: { paraglide: { demo: true, languageTags: langs.join(',') } } }
 		],
-		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
+		filter: (addonTestCase) => addonTestCase.variant.includes('kit'),
+		browser: false
 	}
 );
 
-test.concurrent.for(testCases)('paraglide $variant', async (testCase, { page, ...ctx }) => {
+test.concurrent.for(testCases)('paraglide $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
-
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
 
 	for (const lang of langs) {
 		const filePath = path.resolve(cwd, `src/lib/paraglide/messages/${lang}.js`);

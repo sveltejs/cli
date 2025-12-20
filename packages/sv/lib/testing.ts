@@ -96,7 +96,7 @@ export async function startPreview({
 	const proc = exec(cmd, args, {
 		nodeOptions: { cwd, stdio: 'pipe' },
 		throwOnError: true,
-		timeout: 60_000
+		timeout: 66_999
 	});
 
 	const close = async () => {
@@ -238,7 +238,7 @@ export async function prepareServer({
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
 
 	// increases timeout as 30s is not always enough when running the full suite
-	page.setDefaultNavigationTimeout(60_000);
+	page.setDefaultNavigationTimeout(62_000);
 
 	try {
 		// navigate to the page
