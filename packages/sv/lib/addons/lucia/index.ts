@@ -11,7 +11,7 @@ import {
 	log,
 	parseScript,
 	resolveCommand,
-	style,
+	color,
 	utils
 } from '../../core.ts';
 
@@ -31,7 +31,7 @@ const options = defineAddonOptions()
 	.add('demo', {
 		type: 'boolean',
 		default: true,
-		question: `Do you want to include a demo? ${style.optional('(includes a login/register page)')}`
+		question: `Do you want to include a demo? ${color.optional('(includes a login/register page)')}`
 	})
 	.build();
 
@@ -403,7 +403,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
-					log.warn(`Existing ${style.warning(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -526,7 +526,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`;
-					log.warn(`Existing ${style.warning(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -576,7 +576,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.server.${ext}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
-					log.warn(`Existing ${style.warning(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -618,7 +618,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.svelte`;
-					log.warn(`Existing ${style.warning(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -643,10 +643,10 @@ export default defineAddon({
 	nextSteps: ({ options, packageManager }) => {
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		const steps = [
-			`Run ${style.command(`${command} ${args.join(' ')}`)} to update your database schema`
+			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		];
 		if (options.demo) {
-			steps.push(`Visit ${style.route('/demo/lucia')} route to view the demo`);
+			steps.push(`Visit ${color.route('/demo/lucia')} route to view the demo`);
 		}
 
 		return steps;

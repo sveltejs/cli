@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
 
-import { style, type ResolvedAddon } from '../../core.ts';
+import { color, type ResolvedAddon } from '../../core.ts';
 import * as common from '../utils/common.ts';
 // eslint-disable-next-line no-restricted-imports
 import { downloadJson } from '../../core/downloadJson.ts';
@@ -188,7 +188,7 @@ async function fetchPackageJSON(packageName: string) {
 	);
 	const blockedNpmAddons = blocklist.npm_names.includes(fullName);
 	if (blockedNpmAddons)
-		common.errorAndExit(`${style.warning(fullName)} blocked from being installed.`);
+		common.errorAndExit(`${color.warning(fullName)} blocked from being installed.`);
 
 	return await downloadJson(pkgUrl);
 }

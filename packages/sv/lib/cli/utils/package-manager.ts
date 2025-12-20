@@ -13,7 +13,7 @@ import {
 } from 'package-manager-detector';
 import { exec } from 'tinyexec';
 
-import { style } from '../../cli/add/utils.ts';
+import { color } from '../../cli/add/utils.ts';
 import { isVersionUnsupportedBelow, parseJson, parseYaml } from '../../core.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
@@ -51,7 +51,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
 	const task = p.taskLog({
-		title: `Installing dependencies with ${style.command(agent)}...`,
+		title: `Installing dependencies with ${color.command(agent)}...`,
 		limit: Math.ceil(process.stdout.rows / 2),
 		spacing: 0,
 		retainLog: true
@@ -70,7 +70,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 			task.message(line, { raw: true });
 		}
 
-		task.success(`Successfully installed dependencies with ${style.command(agent)}`);
+		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
 	} catch {
 		task.error('Failed to install dependencies');
 		p.cancel('Operation failed.');

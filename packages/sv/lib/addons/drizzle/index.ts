@@ -11,7 +11,7 @@ import {
 	parseJson,
 	parseScript,
 	resolveCommand,
-	style
+	color
 } from '../../core.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';
@@ -431,21 +431,21 @@ export default defineAddon({
 	},
 	nextSteps: ({ options, packageManager }) => {
 		const steps = [
-			`You will need to set ${style.env('DATABASE_URL')} in your production environment`
+			`You will need to set ${color.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
 			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
-				`Run ${style.command(`${command} ${args.join(' ')}`)} to start the docker container`
+				`Run ${color.command(`${command} ${args.join(' ')}`)} to start the docker container`
 			);
 		} else {
 			steps.push(
-				`Check ${style.env('DATABASE_URL')} in ${style.path('.env')} and adjust it to your needs`
+				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		steps.push(
-			`Run ${style.command(`${command} ${args.join(' ')}`)} to update your database schema`
+			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		);
 
 		return steps;

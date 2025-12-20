@@ -136,7 +136,7 @@ export const commonFilePaths = {
 	viteConfigTS: 'vite.config.ts'
 } as const;
 
-export const style = {
+export const color = {
 	addon: (str: string): string => pc.green(str),
 	command: (str: string): string => pc.bold(pc.cyanBright(str)),
 	env: (str: string): string => pc.yellow(str),

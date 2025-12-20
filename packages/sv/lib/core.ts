@@ -28,4 +28,4 @@ export type { SvelteAst } from './core/tooling/svelte/index.ts';
 export { resolveCommand } from 'package-manager-detector/commands';
 export { getNodeTypesVersion, addToDemoPage, addEslintConfigPrettier } from './addons/common.ts';
 export { getSharedFiles } from './create/utils.ts';
-export { style } from './cli/add/utils.ts';
+export { color } from './cli/add/utils.ts';

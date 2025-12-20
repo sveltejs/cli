@@ -4,7 +4,7 @@ import {
 	getSharedFiles,
 	log,
 	parseJson,
-	style
+	color
 } from '../../core.ts';
 
 const options = defineAddonOptions()
@@ -166,8 +166,8 @@ export default defineAddon({
 
 		if (filesExistingAlready.length > 0) {
 			log.warn(
-				`${filesExistingAlready.map((path) => style.path(path)).join(', ')} already exists, we didn't touch ${filesExistingAlready.length > 1 ? 'them' : 'it'}. ` +
-					`See ${style.website('https://svelte.dev/docs/mcp/overview#Usage')} for manual setup.`
+				`${filesExistingAlready.map((path) => color.path(path)).join(', ')} already exists, we didn't touch ${filesExistingAlready.length > 1 ? 'them' : 'it'}. ` +
+					`See ${color.website('https://svelte.dev/docs/mcp/overview#Usage')} for manual setup.`
 			);
 		}
 	},
@@ -176,7 +176,7 @@ export default defineAddon({
 
 		if (options.ide.includes('other')) {
 			steps.push(
-				`For other clients: ${style.website(`https://svelte.dev/docs/mcp/${options.setup}-setup#Other-clients`)}`
+				`For other clients: ${color.website(`https://svelte.dev/docs/mcp/${options.setup}-setup#Other-clients`)}`
 			);
 		}
 

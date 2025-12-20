@@ -9,7 +9,7 @@ import {
 	parseJson,
 	parseScript,
 	parseSvelte,
-	style,
+	color,
 	svelte
 } from '../../core.ts';
 
@@ -26,7 +26,7 @@ const DEFAULT_INLANG_PROJECT = {
 
 const options = defineAddonOptions()
 	.add('languageTags', {
-		question: `Which languages would you like to support? ${style.optional('(e.g. en,de-ch)')}`,
+		question: `Which languages would you like to support? ${color.optional('(e.g. en,de-ch)')}`,
 		type: 'string',
 		default: 'en, es',
 		validate(input) {
@@ -251,9 +251,9 @@ export default defineAddon({
 	},
 
 	nextSteps: () => {
-		const steps = [`Edit your messages in ${style.path('messages/en.json')}`];
+		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (options.demo) {
-			steps.push(`Visit ${style.route('/demo/paraglide')} route to view the demo`);
+			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
 		}
 
 		return steps;

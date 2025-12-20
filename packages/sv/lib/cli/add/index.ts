@@ -23,7 +23,7 @@ import {
 	packageManagerPrompt
 } from '../utils/package-manager.ts';
 import { downloadPackage, getPackageJSON } from './fetch-packages.ts';
-import { formatFiles, style } from './utils.ts';
+import { formatFiles, color } from './utils.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from './verifiers.ts';
 import { createWorkspace } from './workspace.ts';
 
@@ -658,7 +658,7 @@ export async function runAddonsApply({
 		process.exit(1);
 	} else {
 		p.log.success(
-			`Successfully setup add-ons: ${addonSuccess.map((c) => style.addon(c)).join(', ')}`
+			`Successfully setup add-ons: ${addonSuccess.map((c) => color.addon(c)).join(', ')}`
 		);
 	}
 
@@ -791,8 +791,8 @@ export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
 	}
 	if (invalidAddons.length > 0) {
 		common.errorAndExit(
-			`Invalid add-ons specified: ${invalidAddons.map((id) => style.command(id)).join(', ')}\n` +
-				`${style.optional('Check the documentation for valid add-on specifiers:')} ${style.website('https://svelte.dev/docs/cli/sv-add')}`
+			`Invalid add-ons specified: ${invalidAddons.map((id) => color.command(id)).join(', ')}\n` +
+				`${color.optional('Check the documentation for valid add-on specifiers:')} ${color.website('https://svelte.dev/docs/cli/sv-add')}`
 		);
 	}
 
@@ -897,7 +897,7 @@ export async function resolveNonOfficialAddons(
 	const { start, stop } = p.spinner();
 
 	try {
-		start(`Resolving ${addons.map((a) => style.addon(a.id)).join(', ')} packages`);
+		start(`Resolving ${addons.map((a) => color.addon(a.id)).join(', ')} packages`);
 
 		const pkgs = await Promise.all(
 			addons.map(async (a) => {
@@ -938,7 +938,7 @@ export async function resolveNonOfficialAddons(
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : 'Unknown error';
 		common.errorAndExit(
-			`Failed to resolve ${addons.map((a) => style.addon(a.id)).join(', ')}\n${style.optional(msg)}`
+			`Failed to resolve ${addons.map((a) => color.addon(a.id)).join(', ')}\n${color.optional(msg)}`
 		);
 	}
 	return selectedAddons;

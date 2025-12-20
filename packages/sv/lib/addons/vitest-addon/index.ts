@@ -5,7 +5,7 @@ import {
 	js,
 	parseJson,
 	parseScript,
-	style
+	color
 } from '../../core.ts';
 
 const options = defineAddonOptions()
@@ -172,16 +172,16 @@ export default defineAddon({
 		if (vitestV3Installed) {
 			const componentTesting = options.usages.includes('component');
 			if (componentTesting) {
-				toReturn.push(`Uninstall ${style.command('@vitest/browser')} package`);
+				toReturn.push(`Uninstall ${color.command('@vitest/browser')} package`);
 				toReturn.push(
-					`Update usage from ${style.command("'@vitest/browser...'")} to ${style.command("'vitest/browser'")}`
+					`Update usage from ${color.command("'@vitest/browser...'")} to ${color.command("'vitest/browser'")}`
 				);
 			}
 			toReturn.push(
-				`${style.optional('Optional')} Check ${style.path('./vite.config.ts')} and remove duplicate project definitions`
+				`${color.optional('Optional')} Check ${color.path('./vite.config.ts')} and remove duplicate project definitions`
 			);
 			toReturn.push(
-				`${style.optional('Optional')} Remove ${style.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
+				`${color.optional('Optional')} Remove ${color.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
 			);
 		}
 
