@@ -72,16 +72,6 @@ export type Addon<Args extends OptionDefinition> = {
 	nextSteps?: (data: Workspace & { options: WorkspaceOptions<Args> }) => string[];
 };
 
-export type Highlighter = {
-	addon: (str: string) => string;
-	path: (str: string) => string;
-	command: (str: string) => string;
-	website: (str: string) => string;
-	route: (str: string) => string;
-	env: (str: string) => string; // used for printing environment variable names
-	optional: (str: string) => string;
-};
-
 export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>): Addon<Args> {
 	return config;
 }

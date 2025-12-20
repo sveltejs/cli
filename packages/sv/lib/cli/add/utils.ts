@@ -142,7 +142,7 @@ export const style = {
 	env: (str: string): string => pc.yellow(str),
 	path: (str: string): string => pc.green(str),
 	route: (str: string): string => pc.bold(str),
-	website: (str: string): string => pc.whiteBright(str),
+	website: (str: string): string => pc.cyan(str),
 	optional: (str: string): string => pc.gray(str),
 	warning: (str: string): string => pc.yellow(str)
 };
