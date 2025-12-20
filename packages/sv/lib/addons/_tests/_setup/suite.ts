@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process';
 import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
 import { chromium } from '@playwright/test';
 
-import { add, type AddonMap } from 'sv';
+import { add } from 'sv';
 import {
 	createProject,
 	addPnpmBuildDependencies,
@@ -13,6 +13,7 @@ import {
 	type Fixtures,
 	type SetupTestOptions
 } from 'sv/testing';
+import type { AddonMap } from '../../add.ts';
 
 const cwd = inject('testDir');
 const templatesDir = inject('templatesDir');

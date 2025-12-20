@@ -25,6 +25,7 @@ Your `add-on` should:
 When you're ready to publish your add-on to npm, run:
 
 ```shell
+npm login
 npm publish
 ```
 
