@@ -1,5 +1,11 @@
 # sv
 
+## 0.11.0
+### Minor Changes
+
+
+- feat(cloudflare): able to fully setup cloudflare adapter for workers/pages ([#851](https://github.com/sveltejs/cli/pull/851))
+
 ## 0.10.8
 ### Patch Changes
 
