@@ -26,7 +26,8 @@ export default [
 					patterns: [
 						{
 							group: ['**/core/**/*'],
-							message: 'Import from "lib/core.ts" instead of directly from "../core/..."'
+							message: 'Import from "lib/core.ts" instead of directly from "../core/..."',
+							exclude: ['**/coreInternal.ts']
 						}
 					]
 				}
