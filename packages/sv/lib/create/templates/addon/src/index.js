@@ -33,7 +33,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('src/routes/+page.svelte', (content) => {
+		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
