@@ -41,9 +41,8 @@ function addFixture(cwd: string, variant: string) {
 	}
 
 	const src = fs.readFileSync(page, 'utf8');
-	const { ast, generateCode } = parseSvelte(src);
-	const scriptAst = svelte.ensureScript(ast);
-	imports.addDefault(scriptAst, { from: './Demo.svx', as: 'Demo' });
+	const { script, generateCode } = parseSvelte(src, { ensureScript: { langTs: true } });
+	imports.addDefault(script, { from: './Demo.svx', as: 'Demo' });
 
 	const div = html.createElement('div', { class: 'mdsvex' });
 	div.fragment.nodes = svelte.toFragment('<Demo />');
