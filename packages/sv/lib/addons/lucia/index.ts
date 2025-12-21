@@ -9,7 +9,7 @@ import {
 	defineAddonOptions,
 	js,
 	log,
-	parseScript,
+	parse,
 	resolveCommand,
 	color,
 	utils
@@ -58,7 +58,7 @@ export default defineAddon({
 		}
 
 		sv.file(`drizzle.config.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
@@ -91,7 +91,7 @@ export default defineAddon({
 		});
 
 		sv.file(schemaPath, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			const createTable = (name: string) =>
 				js.functions.createCall({
 					name: TABLE_TYPE[drizzleDialect],
@@ -224,7 +224,7 @@ export default defineAddon({
 		});
 
 		sv.file(`${kit?.libDirectory}/server/auth.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamespace(ast, { from: '$lib/server/db/schema', as: 'table' });
 			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
@@ -361,7 +361,7 @@ export default defineAddon({
 
 		if (typescript) {
 			sv.file('src/app.d.ts', (content) => {
-				const { ast, generateCode } = parseScript(content);
+				const { ast, generateCode } = parse.script(content);
 
 				const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
 				if (!locals) {
@@ -385,7 +385,7 @@ export default defineAddon({
 		}
 
 		sv.file(`src/hooks.server.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			js.imports.addNamespace(ast, { from: '$lib/server/auth', as: 'auth' });
 			js.kit.addHooksHandle(ast, {
 				typescript,

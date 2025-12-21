@@ -1,11 +1,4 @@
-import {
-	defineAddon,
-	defineAddonOptions,
-	getSharedFiles,
-	log,
-	parseJson,
-	color
-} from '../../core.ts';
+import { defineAddon, defineAddonOptions, getSharedFiles, log, parse, color } from '../../core.ts';
 
 const options = defineAddonOptions()
 	.add('ide', {
@@ -150,7 +143,7 @@ export default defineAddon({
 			}
 
 			sv.file(mcpPath, (content) => {
-				const { data, generateCode } = parseJson(content);
+				const { data, generateCode } = parse.json(content);
 				if (schema) {
 					data['$schema'] = schema;
 				}

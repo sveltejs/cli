@@ -5,7 +5,7 @@ import { type AgentName, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
 
-import { type Workspace, parseJson } from '../../core.ts';
+import { type Workspace, parse } from '../../core.ts';
 
 export type Package = {
 	name: string;
@@ -29,7 +29,7 @@ export function getPackageJson(cwd: string): {
 		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
-	const { data, generateCode } = parseJson(packageText);
+	const { data, generateCode } = parse.json(packageText);
 	return { source: packageText, data: data as Package, generateCode };
 }
 

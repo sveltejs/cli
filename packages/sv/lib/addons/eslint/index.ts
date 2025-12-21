@@ -5,8 +5,7 @@ import {
 	getNodeTypesVersion,
 	js,
 	log,
-	parseJson,
-	parseScript
+	parse
 } from '../../core.ts';
 
 export default defineAddon({
@@ -29,7 +28,7 @@ export default defineAddon({
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
 			const LINT_CMD = 'eslint .';
@@ -41,7 +40,7 @@ export default defineAddon({
 		sv.file(files.vscodeSettings, (content) => {
 			if (!content) return content;
 
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			const validate: string[] | undefined = data['eslint.validate'];
 			if (validate && !validate.includes('svelte')) {
 				validate.push('svelte');
@@ -50,7 +49,7 @@ export default defineAddon({
 		});
 
 		sv.file(files.eslintConfig, (content) => {
-			const { ast, comments, generateCode } = parseScript(content);
+			const { ast, comments, generateCode } = parse.script(content);
 
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 			js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });

@@ -1,4 +1,4 @@
-import { defineAddon, defineAddonOptions, js, parseJson, parseScript } from '../../core.ts';
+import { defineAddon, defineAddonOptions, js, parse } from '../../core.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
@@ -32,7 +32,7 @@ export default defineAddon({
 
 		// removes previously installed adapters
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			const devDeps = data['devDependencies'];
 
 			for (const pkg of Object.keys(devDeps)) {
@@ -47,7 +47,7 @@ export default defineAddon({
 		sv.devDependency(adapter.package, adapter.version);
 
 		sv.file(files.svelteConfig, (content) => {
-			const { ast, comments, generateCode } = parseScript(content);
+			const { ast, comments, generateCode } = parse.script(content);
 
 			// finds any existing adapter's import declaration
 			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');

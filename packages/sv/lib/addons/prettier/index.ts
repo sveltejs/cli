@@ -1,4 +1,4 @@
-import { addEslintConfigPrettier, dedent, defineAddon, log, parseJson, color } from '../../core.ts';
+import { addEslintConfigPrettier, dedent, defineAddon, log, parse, color } from '../../core.ts';
 
 export default defineAddon({
 	id: 'prettier',
@@ -30,7 +30,7 @@ export default defineAddon({
 		sv.file(files.prettierrc, (content) => {
 			let data, generateCode;
 			try {
-				({ data, generateCode } = parseJson(content));
+				({ data, generateCode } = parse.json(content));
 			} catch {
 				log.warn(
 					`A ${color.warning('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
@@ -71,7 +71,7 @@ export default defineAddon({
 		const eslintInstalled = hasEslint(eslintVersion);
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;

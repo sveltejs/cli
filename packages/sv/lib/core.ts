@@ -14,14 +14,23 @@ export * as css from './core/tooling/css/index.ts';
 export * as js from './core/tooling/js/index.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
 export * as html from './core/tooling/html/index.ts';
-export {
-	parseSvelte,
-	parseScript,
+import {
 	parseCss,
 	parseHtml,
 	parseJson,
+	parseScript,
+	parseSvelte,
 	parseYaml
 } from './core/tooling/parsers.ts';
+export const parse = {
+	css: parseCss as typeof parseCss,
+	html: parseHtml as typeof parseHtml,
+	json: parseJson as typeof parseJson,
+	script: parseScript as typeof parseScript,
+	svelte: parseSvelte as typeof parseSvelte,
+	yaml: parseYaml as typeof parseYaml
+};
+
 export { Walker } from './core/tooling/index.ts';
 export type { Comments, AstTypes } from './core/tooling/index.ts';
 export type { SvelteAst } from './core/tooling/svelte/index.ts';

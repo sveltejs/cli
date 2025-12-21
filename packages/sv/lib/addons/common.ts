@@ -1,9 +1,9 @@
 import process from 'node:process';
 
-import { type SvelteAst, js, parseScript, parseSvelte, svelte } from '../core.ts';
+import { type SvelteAst, js, parse, svelte } from '../core.ts';
 
 export function addEslintConfigPrettier(content: string): string {
-	const { ast, generateCode } = parseScript(content);
+	const { ast, generateCode } = parse.script(content);
 
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -64,7 +64,7 @@ export function addEslintConfigPrettier(content: string): string {
 }
 
 export function addToDemoPage(existingContent: string, path: string, langTs: boolean): string {
-	const { ast, generateCode } = parseSvelte(existingContent);
+	const { ast, generateCode } = parse.svelte(existingContent);
 
 	for (const node of ast.fragment.nodes) {
 		if (node.type === 'RegularElement') {

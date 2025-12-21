@@ -14,7 +14,7 @@ import {
 import { exec } from 'tinyexec';
 
 import { color } from '../../cli/add/utils.ts';
-import { isVersionUnsupportedBelow, parseJson, parseYaml } from '../../core.ts';
+import { isVersionUnsupportedBelow, parse } from '../../core.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -109,7 +109,7 @@ export async function addPnpmBuildDependencies(
 
 	if (confIn === 'pnpm-workspace.yaml') {
 		const content = found ? fs.readFileSync(found, 'utf-8') : '';
-		const { data, generateCode } = parseYaml(content);
+		const { data, generateCode } = parse.yaml(content);
 
 		const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
 		const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
@@ -129,7 +129,7 @@ export async function addPnpmBuildDependencies(
 		const rootDir = found ? path.dirname(found) : cwd;
 		const pkgPath = path.join(rootDir, 'package.json');
 		const content = fs.readFileSync(pkgPath, 'utf-8');
-		const { data, generateCode } = parseJson(content);
+		const { data, generateCode } = parse.json(content);
 
 		// add the packages where we install scripts should be executed
 		data.pnpm ??= {};

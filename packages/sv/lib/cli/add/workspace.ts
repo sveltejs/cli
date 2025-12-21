@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { detect } from 'package-manager-detector';
 
-import { type AstTypes, type PackageManager, type Workspace, js, parseScript } from '../../core.ts';
+import { type AstTypes, type PackageManager, type Workspace, js, parse } from '../../core.ts';
 import { getUserAgent } from '../utils/package-manager.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 
@@ -131,7 +131,7 @@ function findWorkspaceRoot(cwd: string): string {
 
 function parseKitOptions(cwd: string) {
 	const configSource = readFile(cwd, commonFilePaths.svelteConfig);
-	const { ast } = parseScript(configSource);
+	const { ast } = parse.script(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
 	if (!defaultExport) throw Error('Missing default export in `svelte.config.js`');

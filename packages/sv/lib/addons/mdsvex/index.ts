@@ -1,4 +1,4 @@
-import { defineAddon, js, parseScript } from '../../core.ts';
+import { defineAddon, js, parse } from '../../core.ts';
 
 export default defineAddon({
 	id: 'mdsvex',
@@ -9,7 +9,7 @@ export default defineAddon({
 		sv.devDependency('mdsvex', '^0.12.6');
 
 		sv.file(files.svelteConfig, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });
 

@@ -8,8 +8,7 @@ import {
 	defineAddonOptions,
 	getNodeTypesVersion,
 	js,
-	parseJson,
-	parseScript,
+	parse,
 	resolveCommand,
 	color
 } from '../../core.ts';
@@ -186,7 +185,7 @@ export default defineAddon({
 		}
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
 			if (options.docker) scripts['db:start'] ??= 'docker compose up';
@@ -220,7 +219,7 @@ export default defineAddon({
 		}
 
 		sv.file(paths['drizzle config'], (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
@@ -248,7 +247,7 @@ export default defineAddon({
 		});
 
 		sv.file(paths['database schema'], (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			let userSchemaExpression;
 			if (options.database === 'sqlite') {
@@ -300,7 +299,7 @@ export default defineAddon({
 		});
 
 		sv.file(paths['database'], (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, {
 				from: '$env/dynamic/private',

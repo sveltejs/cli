@@ -1,12 +1,4 @@
-import {
-	dedent,
-	defineAddon,
-	defineAddonOptions,
-	js,
-	parseJson,
-	parseScript,
-	color
-} from '../../core.ts';
+import { dedent, defineAddon, defineAddonOptions, js, parse, color } from '../../core.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {
@@ -49,7 +41,7 @@ export default defineAddon({
 		}
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
 			const TEST_CMD = 'vitest';
@@ -104,7 +96,7 @@ export default defineAddon({
 		}
 
 		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			const clientObjectExpression = js.object.create({
 				extends: `./${files.viteConfig}`,

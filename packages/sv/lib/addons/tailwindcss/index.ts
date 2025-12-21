@@ -1,14 +1,4 @@
-import {
-	css,
-	defineAddon,
-	defineAddonOptions,
-	js,
-	parseCss,
-	parseJson,
-	parseScript,
-	parseSvelte,
-	svelte
-} from '../../core.ts';
+import { css, defineAddon, defineAddonOptions, js, parse, svelte } from '../../core.ts';
 
 const plugins = [
 	{
@@ -56,7 +46,7 @@ export default defineAddon({
 
 		// add the vite plugin
 		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			const vitePluginName = 'tailwindcss';
 			js.imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
@@ -66,7 +56,7 @@ export default defineAddon({
 		});
 
 		sv.file(files.stylesheet, (content) => {
-			const { ast, generateCode } = parseCss(content);
+			const { ast, generateCode } = parse.css(content);
 
 			// since we are prepending all the `AtRule` let's add them in reverse order,
 			// so they appear in the expected order in the final file
@@ -94,7 +84,7 @@ export default defineAddon({
 			const appSvelte = 'src/App.svelte';
 			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
 			sv.file(appSvelte, (content) => {
-				const { ast, generateCode } = parseSvelte(content);
+				const { ast, generateCode } = parse.svelte(content);
 				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 				js.imports.addEmpty(scriptAst, { from: stylesheetRelative });
 				return generateCode();
@@ -103,7 +93,7 @@ export default defineAddon({
 			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
 			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
 			sv.file(layoutSvelte, (content) => {
-				const { ast, generateCode } = parseSvelte(content);
+				const { ast, generateCode } = parse.svelte(content);
 				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 				js.imports.addEmpty(scriptAst, { from: stylesheetRelative });
 
@@ -120,7 +110,7 @@ export default defineAddon({
 		}
 
 		sv.file(files.vscodeSettings, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 
 			data['files.associations'] ??= {};
 			data['files.associations']['*.css'] = 'tailwindcss';
@@ -130,7 +120,7 @@ export default defineAddon({
 
 		if (prettierInstalled) {
 			sv.file(files.prettierrc, (content) => {
-				const { data, generateCode } = parseJson(content);
+				const { data, generateCode } = parse.json(content);
 
 				data.plugins ??= [];
 				const plugins: string[] = data.plugins;

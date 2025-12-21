@@ -1,4 +1,4 @@
-import { defineAddon, js, parseScript } from '../../core.ts';
+import { defineAddon, js, parse } from '../../core.ts';
 
 export default defineAddon({
 	id: 'devtools-json',
@@ -11,7 +11,7 @@ export default defineAddon({
 
 		// add the vite plugin
 		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			const vitePluginName = 'devtoolsJson';
 			js.imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });

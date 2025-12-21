@@ -1,4 +1,4 @@
-import { dedent, defineAddon, js, log, parseJson, parseScript } from '../../core.ts';
+import { dedent, defineAddon, js, log, parse } from '../../core.ts';
 
 export default defineAddon({
 	id: 'playwright',
@@ -11,7 +11,7 @@ export default defineAddon({
 		sv.devDependency('@playwright/test', '^1.57.0');
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
 			const TEST_CMD = 'playwright test';
@@ -42,7 +42,7 @@ export default defineAddon({
 		});
 
 		sv.file(`playwright.config.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			const defineConfig = js.common.parseExpression('defineConfig({})');
 			const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
 
