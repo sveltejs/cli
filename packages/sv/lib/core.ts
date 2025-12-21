@@ -1,9 +1,9 @@
-// TODO JYC: audit these exports... It's our public API!
 export { log } from '@clack/prompts';
 export { default as dedent } from 'dedent';
 
 export { defineAddon, defineAddonOptions } from './core/addon/config.ts';
 export { isVersionUnsupportedBelow, splitVersion } from './core/common.ts';
+export { createPrinter } from './core/utils.ts';
 export { fileExists } from './cli/add/utils.ts';
 export { color } from './cli/add/utils.ts';
 export { resolveCommand } from 'package-manager-detector/commands';
@@ -15,7 +15,6 @@ export type * from './core/addon/options.ts';
 export type * from './core/addon/config.ts';
 export type * from './core/addon/workspace.ts';
 
-export * as utils from './core/utils.ts';
 export * as css from './core/tooling/css/index.ts';
 export * as js from './core/tooling/js/index.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
