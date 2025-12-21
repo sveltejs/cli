@@ -391,13 +391,16 @@ export async function promptAddonQuestions({
 				}
 			}
 
-			// apply defaults to unspecified options (only if CLI options were specified)
+			// Validate incompatible options (only if CLI options were specified)
+			// Note: We don't apply defaults here - all unanswered options will be asked later,
+			// and defaults will be used as initial values when prompting
+			// if you want to skip the prompt, add it in the args! (will be shown before nextSteps)
 			for (const [id, question] of Object.entries(details.options)) {
-				// we'll only apply defaults to options that don't explicitly fail their conditions
-				if (question.condition?.(answers[addonId]) !== false) {
-					answers[addonId][id] ??= question.default;
-				} else {
-					// we'll also error out if a specified option is incompatible with other options.
+				// Check condition: if it returns false, the option should not be asked and value should be undefined
+				const conditionResult = question.condition?.(answers[addonId]);
+				if (conditionResult === false) {
+					// Condition says don't ask - value should remain undefined
+					// Error out if a specified option is incompatible with other options.
 					// (e.g. `libsql` isn't a valid client for a `mysql` database: `sv add drizzle=database:mysql2,client:libsql`)
 					if (answers[addonId][id] !== undefined) {
 						throw new Error(
