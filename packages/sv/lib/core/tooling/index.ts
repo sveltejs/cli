@@ -6,6 +6,7 @@ import type { BaseNode } from 'estree';
 import * as fleece from 'silver-fleece';
 import { type AST as SvelteAst, parse as svelteParse, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
+import * as toml from 'smol-toml';
 import * as Walker from 'zimmerframe';
 
 import type { TsEstree } from './js/ts-estree.ts';
@@ -288,4 +289,12 @@ export function parseSvelte(content: string): SvelteAst.Root {
 
 export function serializeSvelte(ast: SvelteAst.SvelteNode): string {
 	return sveltePrint(ast).code;
+}
+
+export function parseToml(content: string): toml.TomlTable {
+	return toml.parse(content);
+}
+
+export function serializeToml(data: toml.TomlTable): string {
+	return toml.stringify(data);
 }

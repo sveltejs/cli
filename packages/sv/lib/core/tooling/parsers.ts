@@ -1,3 +1,4 @@
+import type { TomlTable } from 'smol-toml';
 import * as utils from './index.ts';
 
 type ParseBase = {
@@ -55,5 +56,15 @@ export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & Par
 		ast,
 		source,
 		generateCode
+	};
+}
+
+export function parseToml(source: string): { data: TomlTable } & ParseBase {
+	const data = utils.parseToml(source);
+
+	return {
+		data,
+		source,
+		generateCode: () => utils.serializeToml(data)
 	};
 }
