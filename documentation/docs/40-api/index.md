@@ -1,3 +1,3 @@
 ---
-title: Api
+title: API
 ---
