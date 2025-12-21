@@ -5,15 +5,13 @@ import path from 'node:path';
 import addon from '../src/index.js';
 import { setupTest } from './setup/suite.js';
 
-const id = addon.id;
-
 // set to true to enable browser testing
 const browser = false;
 
 const { test, prepareServer, testCases } = setupTest(
 	{ addon },
 	{
-		kinds: [{ type: 'default', options: { [id]: addon } }],
+		kinds: [{ type: 'default', options: { addon: { who: 'you' } } }],
 		filter: (testCase) => testCase.variant.includes('kit'),
 		browser
 	}
