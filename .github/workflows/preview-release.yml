@@ -1,15 +1,25 @@
 name: Publish Preview Release
 on:
-  pull_request:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
+    branches:
+      - '**'
 
 jobs:
   preview-release:
-    if: github.repository == 'sveltejs/cli'
+    if: |
+      github.repository == 'sveltejs/cli' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: checkout code repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: pnpm/action-setup@v4
 
