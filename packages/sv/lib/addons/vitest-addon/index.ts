@@ -24,8 +24,7 @@ export default defineAddon({
 	homepage: 'https://vitest.dev',
 	options,
 
-	run: ({ sv, files, typescript, kit, options, dependencyVersion }) => {
-		const ext = typescript ? 'ts' : 'js';
+	run: ({ sv, files, ext, kit, options, dependencyVersion }) => {
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
@@ -160,7 +159,7 @@ export default defineAddon({
 		});
 	},
 
-	nextSteps: ({ highlighter, typescript, options }) => {
+	nextSteps: ({ highlighter, ext, options }) => {
 		const toReturn: string[] = [];
 
 		if (vitestV3Installed) {
@@ -175,7 +174,7 @@ export default defineAddon({
 				`${highlighter.optional('Optional')} Check ${highlighter.path('./vite.config.ts')} and remove duplicate project definitions`
 			);
 			toReturn.push(
-				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
+				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client.' + ext)} file`
 			);
 		}
 

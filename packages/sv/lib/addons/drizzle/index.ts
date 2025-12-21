@@ -85,10 +85,10 @@ export default defineAddon({
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, typescript, options, kit, dependencyVersion, cwd, cancel, files }) => {
+	run: ({ sv, ext, options, kit, dependencyVersion, cwd, cancel, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
-		const ext = typescript ? 'ts' : 'js';
+		const typescript = ext === 'ts';
 		const baseDBPath = path.resolve(cwd, kit.libDirectory, 'server', 'db');
 		const paths = {
 			'drizzle config': path.resolve(cwd, `drizzle.config.${ext}`),

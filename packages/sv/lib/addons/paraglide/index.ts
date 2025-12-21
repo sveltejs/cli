@@ -62,8 +62,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, typescript, kit }) => {
-		const ext = typescript ? 'ts' : 'js';
+	run: ({ sv, options, files, ext, kit }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
@@ -127,7 +126,7 @@ export default defineAddon({
 		});
 	});`;
 			kitJs.addHooksHandle(ast, {
-				typescript,
+				ext,
 				newHandleName: 'handleParaglide',
 				handleContent: hookHandleContent
 			});
@@ -182,7 +181,7 @@ export default defineAddon({
 
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
 			const { ast, script, generateCode } = parseSvelte(content, {
-				ensureScript: { langTs: typescript }
+				ensureScript: { ext }
 			});
 
 			imports.addNamed(script, {
@@ -202,13 +201,13 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'paraglide', typescript);
+				return addToDemoPage(content, 'paraglide', ext);
 			});
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { ast, script, generateCode } = parseSvelte(content, {
-					ensureScript: { langTs: typescript }
+					ensureScript: { ext }
 				});
 
 				imports.addNamed(script, { imports: { m: 'm' }, from: '$lib/paraglide/messages.js' });

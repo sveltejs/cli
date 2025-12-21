@@ -41,7 +41,7 @@ function addFixture(cwd: string, variant: string) {
 	}
 
 	const src = fs.readFileSync(page, 'utf8');
-	const { script, generateCode } = parseSvelte(src, { ensureScript: { langTs: true } });
+	const { script, generateCode } = parseSvelte(src, { ensureScript: { ext: 'ts' } });
 	imports.addDefault(script, { from: './Demo.svx', as: 'Demo' });
 
 	const div = html.createElement('div', { class: 'mdsvex' });
