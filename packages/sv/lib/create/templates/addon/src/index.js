@@ -1,4 +1,4 @@
-import { defineAddon, defineAddonOptions, js, parseSvelte, svelte } from 'sv/core';
+import { defineAddon, defineAddonOptions, js, parse, svelte } from 'sv/core';
 
 const options = defineAddonOptions()
 	.add('who', {
@@ -22,7 +22,7 @@ export default defineAddon({
 		});
 
 		sv.file(`src/lib/~SV-NAME-TODO~/HelloComponent.svelte`, (content) => {
-			const { ast, generateCode } = parseSvelte(content);
+			const { ast, generateCode } = parse.svelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
 			js.imports.addDefault(scriptAst, { as: 'content', from: './content.txt?raw' });
@@ -34,7 +34,7 @@ export default defineAddon({
 		});
 
 		sv.file('src/routes/+page.svelte', (content) => {
-			const { ast, generateCode } = parseSvelte(content);
+			const { ast, generateCode } = parse.svelte(content);
 			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
 
 			js.imports.addDefault(scriptAst, {
