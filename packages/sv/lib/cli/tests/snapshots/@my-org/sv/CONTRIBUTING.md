@@ -1,5 +1,9 @@
 # Contributing Guide
 
+Cheatsheet: [All official add-ons source code](https://github.com/sveltejs/cli/tree/feat/community-add-on-draft-0/packages/sv/lib/addons)
+
+---
+
 Some convenient scripts are provided to help develop the add-on.
 
 ```sh
