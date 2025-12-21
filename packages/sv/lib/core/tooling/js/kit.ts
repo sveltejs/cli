@@ -1,4 +1,4 @@
-import { type AstTypes, Walker } from '../index.ts';
+import { type AstTypes, Walker } from '../../../core.ts';
 import * as common from './common.ts';
 import * as exports from './exports.ts';
 import * as functions from './function.ts';

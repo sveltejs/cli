@@ -7,7 +7,8 @@ import {
 	log,
 	parse,
 	color,
-	svelte
+	svelte,
+	type SvelteAst
 } from '../../core.ts';
 
 const DEFAULT_INLANG_PROJECT = {
@@ -140,7 +141,7 @@ export default defineAddon({
 			const { ast, generateCode } = parse.html(content);
 
 			const htmlNode = ast.nodes.find(
-				(child): child is svelte.SvelteAst.RegularElement =>
+				(child): child is SvelteAst.RegularElement =>
 					child.type === 'RegularElement' && child.name === 'html'
 			);
 			if (!htmlNode) {

@@ -12,7 +12,7 @@ import {
 	parse,
 	resolveCommand,
 	color,
-	createPrinter
+	utils
 } from '../../core.ts';
 
 const TABLE_TYPE = {
@@ -243,7 +243,7 @@ export default defineAddon({
 			}
 
 			const ms = new MagicString(generateCode().trim());
-			const [ts] = createPrinter(typescript);
+			const [ts] = utils.createPrinter(typescript);
 
 			if (!ms.original.includes('const DAY_IN_MS')) {
 				ms.append('\n\nconst DAY_IN_MS = 1000 * 60 * 60 * 24;');
@@ -407,7 +407,7 @@ export default defineAddon({
 					return content;
 				}
 
-				const [ts] = createPrinter(typescript);
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import { hash, verify } from '@node-rs/argon2';
 					import { encodeBase32LowerCase } from '@oslojs/encoding';
@@ -537,7 +537,7 @@ export default defineAddon({
 					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = createPrinter(typescript, svelte5);
+				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
@@ -580,7 +580,7 @@ export default defineAddon({
 					return content;
 				}
 
-				const [ts] = createPrinter(typescript);
+				const [ts] = utils.createPrinter(typescript);
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
@@ -623,7 +623,7 @@ export default defineAddon({
 				}
 
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = createPrinter(typescript, svelte5);
+				const [ts, s5] = utils.createPrinter(typescript, svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';

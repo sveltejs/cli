@@ -7,14 +7,9 @@ import * as fleece from 'silver-fleece';
 import { type AST as SvelteAst, parse as svelteParse, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
 import * as toml from 'smol-toml';
-import * as Walker from 'zimmerframe';
 
+import { Walker } from '../../core.ts';
 import type { TsEstree } from './js/ts-estree.ts';
-
-export {
-	// ast walker
-	Walker
-};
 
 export type {
 	// html

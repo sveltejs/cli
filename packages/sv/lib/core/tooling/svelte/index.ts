@@ -2,8 +2,6 @@ import { type AstTypes, type SvelteAst, parseScript } from '../index.ts';
 import { appendFromString } from '../js/common.ts';
 import { parseSvelte } from '../parsers.ts';
 
-export type { SvelteAst };
-
 export function ensureScript(
 	ast: SvelteAst.Root,
 	options?: { langTs?: boolean }
