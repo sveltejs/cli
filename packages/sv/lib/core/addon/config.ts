@@ -118,6 +118,10 @@ export type OptionBuilder<T extends OptionDefinition> = {
 
 // Initializing with an empty object is intended given that the starting state _is_ empty.
 /**
+ * This is how you define options for an addon.
+ *
+ * These options will be prompted to the user if there are not answered by args when calling the cli.
+ *
  * Example:
  * ```ts
  * const options = defineAddonOptions()
@@ -128,6 +132,8 @@ export type OptionBuilder<T extends OptionDefinition> = {
  *   })
  *   .build();
  * ```
+ *
+ * To define by args, you can do `npx sv add <addon>=<option1>:<value1>+<option2>:<value2>`
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export function defineAddonOptions(): OptionBuilder<{}> {
