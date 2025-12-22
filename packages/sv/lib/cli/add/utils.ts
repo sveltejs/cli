@@ -150,7 +150,7 @@ export function getHighlighter(): Highlighter {
 
 /**
  * Sanitizes a project name for Cloudflare Wrangler compatibility.
- * Wrangler requires names to be alphanumeric, lowercase, dashes only, and max 63 chars.
+ * Wrangler requires names to be alphanumeric, lowercase, dashes only, and max 63 chars (DNS subdomain label length limit).
  * @example sanitizeWranglerName("sub.example.com") // "sub-example-com"
  * @example sanitizeWranglerName("My_Project.Name") // "my-project-name"
  */
