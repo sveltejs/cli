@@ -255,7 +255,7 @@ export function setupPlaygroundProject(
 		fs.writeFileSync(svelteConfigPath, generateCode(), 'utf-8');
 	};
 
-	// we want to change the svelte version, even if the user decieded
+	// we want to change the svelte version, even if the user decided
 	// to not install external dependencies
 	if (playground.svelteVersion) {
 		updatePackageJson = true;
