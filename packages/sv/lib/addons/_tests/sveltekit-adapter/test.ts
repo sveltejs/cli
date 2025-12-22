@@ -46,7 +46,6 @@ test.concurrent.for(testCases)('adapter $kind.type $variant', async (testCase, {
 		expect(nameMatch).toBeTruthy();
 		if (nameMatch) {
 			expect(nameMatch[1]).toMatch(/^[a-z0-9-]+$/);
-			expect(nameMatch[1]).not.toContain('.');
 		}
 	} else if (testCase.kind.type === 'cloudflare-pages') {
 		const wranglerContent = await readFile(join(cwd, 'wrangler.jsonc'), 'utf8');
@@ -56,7 +55,6 @@ test.concurrent.for(testCases)('adapter $kind.type $variant', async (testCase, {
 		expect(nameMatch).toBeTruthy();
 		if (nameMatch) {
 			expect(nameMatch[1]).toMatch(/^[a-z0-9-]+$/);
-			expect(nameMatch[1]).not.toContain('.');
 		}
 	}
 });
