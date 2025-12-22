@@ -390,7 +390,8 @@ export async function createVirtualWorkspace({
 		files: {
 			...tentativeWorkspace.files,
 			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
-			svelteConfig: commonFilePaths.svelteConfig // currently we always use js files, never typescript files
+			// ecosystem doesn't support `svelte.config.ts` https://github.com/sveltejs/cli/issues/816#issuecomment-3568032867
+			svelteConfig: commonFilePaths.svelteConfig
 		}
 	};
 

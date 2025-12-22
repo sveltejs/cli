@@ -246,6 +246,7 @@ export function setupPlaygroundProject(
 
 	let experimentalAsyncNeeded = true;
 	const addExperimentalAsync = () => {
+		// ecosystem doesn't support `svelte.config.ts` https://github.com/sveltejs/cli/issues/816#issuecomment-3568032867
 		const svelteConfigPath = path.join(cwd, commonFilePaths.svelteConfig);
 		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
 		const { ast, generateCode } = parseScript(svelteConfig);
