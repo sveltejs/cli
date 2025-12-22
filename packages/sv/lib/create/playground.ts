@@ -6,6 +6,7 @@ import { parseJson, parseScript, parseSvelte } from '../core/tooling/parsers.ts'
 import { isVersionUnsupportedBelow } from '../core/index.ts';
 import { getSharedFiles } from './utils.ts';
 import { walk } from 'zimmerframe';
+import { commonFilePaths } from '../cli/add/utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -231,7 +232,7 @@ export function setupPlaygroundProject(
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested
-	const pkgPath = path.join(cwd, 'package.json');
+	const pkgPath = path.join(cwd, commonFilePaths.packageJson);
 	const pkgSource = fs.readFileSync(pkgPath, 'utf-8');
 	const pkgJson = parseJson(pkgSource);
 	let updatePackageJson = false;
@@ -245,7 +246,7 @@ export function setupPlaygroundProject(
 
 	let experimentalAsyncNeeded = true;
 	const addExperimentalAsync = () => {
-		const svelteConfigPath = path.join(cwd, 'svelte.config.js');
+		const svelteConfigPath = path.join(cwd, commonFilePaths.svelteConfig);
 		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
 		const { ast, generateCode } = parseScript(svelteConfig);
 		const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
