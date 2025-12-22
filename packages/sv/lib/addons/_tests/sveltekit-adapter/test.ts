@@ -39,8 +39,24 @@ test.concurrent.for(testCases)('adapter $kind.type $variant', async (testCase, {
 			'adapter-auto only supports some environments'
 		);
 	} else if (testCase.kind.type === 'cloudflare-workers') {
-		expect(await readFile(join(cwd, 'wrangler.jsonc'), 'utf8')).toMatch('ASSETS');
+		const wranglerContent = await readFile(join(cwd, 'wrangler.jsonc'), 'utf8');
+		expect(wranglerContent).toMatch('ASSETS');
+
+		const nameMatch = wranglerContent.match(/"name":\s*"([^"]+)"/);
+		expect(nameMatch).toBeTruthy();
+		if (nameMatch) {
+			expect(nameMatch[1]).toMatch(/^[a-z0-9-]+$/);
+			expect(nameMatch[1]).not.toContain('.');
+		}
 	} else if (testCase.kind.type === 'cloudflare-pages') {
-		expect(await readFile(join(cwd, 'wrangler.jsonc'), 'utf8')).toMatch('pages_build_output_dir');
+		const wranglerContent = await readFile(join(cwd, 'wrangler.jsonc'), 'utf8');
+		expect(wranglerContent).toMatch('pages_build_output_dir');
+
+		const nameMatch = wranglerContent.match(/"name":\s*"([^"]+)"/);
+		expect(nameMatch).toBeTruthy();
+		if (nameMatch) {
+			expect(nameMatch[1]).toMatch(/^[a-z0-9-]+$/);
+			expect(nameMatch[1]).not.toContain('.');
+		}
 	}
 });

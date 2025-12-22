@@ -147,3 +147,20 @@ export function getHighlighter(): Highlighter {
 		optional: (str) => pc.gray(str)
 	};
 }
+
+/**
+ * Sanitizes a project name for Cloudflare Wrangler compatibility.
+ * Wrangler requires names to be alphanumeric, lowercase, dashes only, and max 63 chars.
+ * @example sanitizeWranglerName("sub.example.com") // "sub-example-com"
+ * @example sanitizeWranglerName("My_Project.Name") // "my-project-name"
+ */
+export function sanitizeWranglerName(name: string): string {
+	const sanitized = name
+		.toLowerCase()
+		.replace(/[^a-z0-9-]/g, '-')
+		.replace(/-+/g, '-')
+		.slice(0, 63)
+		.replace(/^-|-$/g, '');
+
+	return sanitized || 'undefined-project-name';
+}

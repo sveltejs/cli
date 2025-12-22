@@ -1,7 +1,7 @@
 import { defineAddon, defineAddonOptions } from '../../core/index.ts';
 import { exports, functions, imports, object, type AstTypes } from '../../core/tooling/js/index.ts';
 import { parseJson, parseScript, parseToml } from '../../core/tooling/parsers.ts';
-import { fileExists, readFile } from '../../cli/add/utils.ts';
+import { fileExists, readFile, sanitizeWranglerName } from '../../cli/add/utils.ts';
 import { resolveCommand } from 'package-manager-detector';
 import * as js from '../../core/tooling/js/index.ts';
 
@@ -139,7 +139,7 @@ export default defineAddon({
 
 				if (!data.name) {
 					const pkg = parseJson(readFile(cwd, files.package));
-					data.name = pkg.data.name;
+					data.name = sanitizeWranglerName(pkg.data.name);
 				}
 
 				data.compatibility_date ??= new Date().toISOString().split('T')[0];
