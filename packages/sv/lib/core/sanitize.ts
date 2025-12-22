@@ -1,6 +1,6 @@
 /**
  * @param name - The name to sanitize.
- * @param style - The kind of name to sanitize.
+ * @param style - The sanitization style.
  *   - `package` for package.json
  *   - `wrangler` for Cloudflare Wrangler compatibility
  * @returns The sanitized name.
