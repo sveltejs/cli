@@ -7,27 +7,26 @@ Typically, an `add-on` looks like this:
 _hover keywords in the code to have some more context_
 
 ```js
-import { defineAddon, defineAddonOptions, js, parse, svelte } from 'sv/core';
+import { defineAddon, defineAddonOptions, parse, svelte } from 'sv/core';
 
 // You can define options that will be prompted to the user
 // if they are not provided when calling the cli directly
 const options = defineAddonOptions()
 	.add('who', {
 		question: 'To whom should the addon say hello?',
-		type: 'string', // string, number, boolean, select, multiselect
-		default: ''
+		type: 'string' // string, number, boolean, select, multiselect
 	})
 	.build();
 
 // define the addon
 export default defineAddon({
 	id: 'your-addon-name',
+
 	options,
 
 	// preparing step, check if the addon is compatible with the project
 	// and if it depends on other addons
-	setup: ({ kit, unsupported, dependsOn }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ dependsOn }) => {
 		dependsOn('tailwindcss');
 	},
 

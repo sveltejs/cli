@@ -90,9 +90,7 @@ export function addToDemoPage(existingContent: string, path: string, langTs: boo
 		from: '$app/paths'
 	});
 
-	ast.fragment.nodes.unshift(
-		...svelte.toFragment(`<a href={resolve('/demo/${path}')}>${path}</a>`)
-	);
+	svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { append: false });
 	ast.fragment.nodes.unshift();
 
 	return generateCode();

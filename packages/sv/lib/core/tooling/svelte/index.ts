@@ -81,7 +81,18 @@ export function addSlot(
 	});
 }
 
-export function toFragment(content: string): SvelteAst.Fragment['nodes'] {
-	const { ast } = parseSvelte(content);
-	return ast.fragment.nodes;
+export function addFragment(
+	ast: SvelteAst.Root,
+	content: string,
+	options?: {
+		// JYC TODO: append/prepend ? bool ? direction ? literal ? consistency with others? 2 functions?
+		append?: boolean;
+	}
+): void {
+	const { ast: fragmentAst } = parseSvelte(content);
+	if (options?.append !== false) {
+		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
+	} else {
+		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
+	}
 }

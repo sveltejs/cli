@@ -27,8 +27,8 @@ export default defineAddon({
 
 			js.imports.addDefault(scriptAst, { as: 'content', from: './content.txt?raw' });
 
-			ast.fragment.nodes.push(...svelte.toFragment('<p>{content}</p>'));
-			ast.fragment.nodes.push(...svelte.toFragment(`<h2>Hello ${options.who}!</h2>`));
+			svelte.addFragment(ast, '<p>{content}</p>');
+			svelte.addFragment(ast, `<h2>Hello ${options.who}!</h2>`);
 
 			return generateCode();
 		});
@@ -42,7 +42,7 @@ export default defineAddon({
 				from: `$lib/@my-org/sv/HelloComponent.svelte`
 			});
 
-			ast.fragment.nodes.push(...svelte.toFragment('<HelloComponent />'));
+			svelte.addFragment(ast, '<HelloComponent />');
 
 			return generateCode();
 		});

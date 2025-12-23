@@ -221,10 +221,11 @@ export function setupPlaygroundProject(
 		as: 'PlaygroundLayout',
 		from: `$lib/PlaygroundLayout.svelte`
 	});
-	ast.fragment.nodes.push(
-		...svelte.toFragment(`<PlaygroundLayout>
-	<App />
-</PlaygroundLayout>`)
+	svelte.addFragment(
+		ast,
+		`<PlaygroundLayout>
+		<App />
+	</PlaygroundLayout>`
 	);
 	const newContent = generateCode();
 	fs.writeFileSync(filePath, newContent, 'utf-8');

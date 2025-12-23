@@ -189,12 +189,13 @@ export default defineAddon({
 				from: '$lib/paraglide/runtime'
 			});
 			js.imports.addNamed(scriptAst, { imports: ['page'], from: '$app/state' });
-			ast.fragment.nodes.push(
-				...svelte.toFragment(`<div style="display:none">
+			svelte.addFragment(
+				ast,
+				`<div style="display:none">
 	{#each locales as locale}
 		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
 	{/each}
-</div>`)
+</div>`
 			);
 			return generateCode();
 		});
@@ -231,7 +232,7 @@ export default defineAddon({
 				templateCode +=
 					'<p>If you use VSCode, install the <a href="https://marketplace.visualstudio.com/items?itemName=inlang.vs-code-extension" target="_blank">Sherlock i18n extension</a> for a better i18n experience.</p>';
 
-				ast.fragment.nodes.push(...svelte.toFragment(templateCode));
+				svelte.addFragment(ast, templateCode);
 
 				return generateCode();
 			});
