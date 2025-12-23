@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist, getSharedFiles } from './utils.ts';
+import { sanitizeName } from '../core/sanitize.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
@@ -89,7 +90,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 
 	pkg.dependencies = sort_keys(pkg.dependencies);
 	pkg.devDependencies = sort_keys(pkg.devDependencies);
-	pkg.name = to_valid_package_name(name);
+	pkg.name = sanitizeName(name, 'package');
 
 	fs.writeFileSync(pkg_file, JSON.stringify(pkg, null, '\t') + '\n');
 }
@@ -157,13 +158,4 @@ function sort_files(files: Common['files']) {
 		const different = !f1_more_generic && !f2_more_generic;
 		return same || different ? 0 : f1_more_generic ? -1 : 1;
 	});
-}
-
-function to_valid_package_name(name: string) {
-	return name
-		.trim()
-		.toLowerCase()
-		.replace(/\s+/g, '-')
-		.replace(/^[._]/, '')
-		.replace(/[^a-z0-9~.-]+/g, '-');
 }
