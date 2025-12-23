@@ -31,28 +31,32 @@ import {
 	parseToml,
 	parseYaml
 } from './core/tooling/parsers.ts';
-type Prettify<T> = {
-	[K in keyof T]: T[K];
-} & unknown;
+
 /**
- * A `parser` for all supported languages.
+ * Will help you `parse` code into an `ast` from all supported languages.
+ * Then manipulate the `ast` as you want,
+ * and finally `generateCode()` to write it back to the file.
+ *
+ * ```ts
+ * import { parse } from 'sv/core';
+ *
+ * const { ast, generateCode } = parse.css('body { color: red; }');
+ * const { ast, generateCode } = parse.html('<div>Hello, world!</div>');
+ * const { ast, generateCode } = parse.json('{ "name": "John", "age": 30 }');
+ * const { ast, generateCode } = parse.script('function add(a, b) { return a + b; }');
+ * const { ast, generateCode } = parse.svelte('<div>Hello, world!</div>');
+ * const { ast, generateCode } = parse.toml('name = "John"');
+ * const { ast, generateCode } = parse.yaml('name: John');
+ * ```
  */
-export const parse: Prettify<{
-	css: typeof parseCss;
-	html: typeof parseHtml;
-	json: typeof parseJson;
-	script: typeof parseScript;
-	svelte: typeof parseSvelte;
-	toml: typeof parseToml;
-	yaml: typeof parseYaml;
-}> = {
-	css: parseCss,
-	html: parseHtml,
-	json: parseJson,
-	script: parseScript,
-	svelte: parseSvelte,
-	toml: parseToml,
-	yaml: parseYaml
+export const parse = {
+	css: parseCss as typeof parseCss,
+	html: parseHtml as typeof parseHtml,
+	json: parseJson as typeof parseJson,
+	script: parseScript as typeof parseScript,
+	svelte: parseSvelte as typeof parseSvelte,
+	toml: parseToml as typeof parseToml,
+	yaml: parseYaml as typeof parseYaml
 };
 
 // Types

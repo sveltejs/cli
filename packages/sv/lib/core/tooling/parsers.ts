@@ -4,7 +4,16 @@ import * as utils from './index.ts';
 type ParseBase = {
 	source: string;
 	/**
-	 * Generate the code from after the ast manipulation.
+	 * Generate the code after manipulating the `ast`.
+	 * 
+	 * @example
+	 * ```ts
+	 * const { ast, generateCode } = parse.svelte(content);
+
+			ast.fragment.nodes.push(...svelte.toFragment('<p>Hello World</p>'));
+
+			return generateCode();
+	 * ```
 	 */
 	generateCode(): string;
 };
