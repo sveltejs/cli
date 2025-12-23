@@ -13,7 +13,8 @@
 	"scripts": {
 		"check": "tsgo",
 		"format": "pnpm lint --write",
-		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore",
+		"sv": "node dist/bin.mjs"
 	},
 	"files": [
 		"dist"
