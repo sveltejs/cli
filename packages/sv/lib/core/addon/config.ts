@@ -112,10 +112,25 @@ type Prettify<T> = {
 
 // Builder pattern for addon options
 export type OptionBuilder<T extends OptionDefinition> = {
+	/**
+	 * This type is a bit complex, but in usage, it's quite simple!
+	 *
+	 * The idea is to `add()` options one by one, with the key and the question.
+	 *
+	 * ```ts
+	 *   .add('demo', {
+	 *     question: 'demo?',
+	 *     type: 'boolean',  // string, number, select, multiselect
+	 *     default: true,
+	 *     // condition: (o) => o.previousOption === 'ok',
+	 *   })
+	 * ```
+	 */
 	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
 		key: K,
 		question: Q
 	): OptionBuilder<T & Record<K, Q>>;
+	/** Finalize all options of your `add-on`. */
 	build(): Prettify<T>;
 };
 
@@ -125,7 +140,6 @@ export type OptionBuilder<T extends OptionDefinition> = {
  *
  * Will be prompted to the user if there are not answered by args when calling the cli.
  *
- * Example:
  * ```ts
  * const options = defineAddonOptions()
  *   .add('demo', {

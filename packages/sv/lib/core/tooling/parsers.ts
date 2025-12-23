@@ -5,14 +5,14 @@ type ParseBase = {
 	source: string;
 	/**
 	 * Generate the code after manipulating the `ast`.
-	 * 
-	 * @example
+	 *
 	 * ```ts
+	 * import { svelte } from 'sv/core';
 	 * const { ast, generateCode } = parse.svelte(content);
-
-			ast.fragment.nodes.push(...svelte.toFragment('<p>Hello World</p>'));
-
-			return generateCode();
+	 *
+	 * ast.fragment.nodes.push(...svelte.toFragment('<p>Hello World</p>'));
+	 *
+	 * return generateCode();
 	 * ```
 	 */
 	generateCode(): string;
