@@ -9,37 +9,34 @@ _hover keywords in the code to have some more context_
 ```js
 import { defineAddon, defineAddonOptions, parse, svelte } from 'sv/core';
 
-// You can define options that will be prompted to the user
-// if they are not provided when calling the cli directly
+// Define options that will be prompted to the user (or passed as arguments)
 const options = defineAddonOptions()
 	.add('who', {
 		question: 'To whom should the addon say hello?',
-		type: 'string' // string, number, boolean, select, multiselect
+		type: 'string' // boolean | number | select | multiselect
 	})
 	.build();
 
-// define the addon
+// your add-on definition, the entry point
 export default defineAddon({
 	id: 'your-addon-name',
 
 	options,
 
-	// preparing step, check if the addon is compatible with the project
-	// and if it depends on other addons
+	// preparing step, check requirements and dependencies
 	setup: ({ dependsOn }) => {
 		dependsOn('tailwindcss');
 	},
 
-	// This is the actual execution of the addon.
-	// Add files, edit files, etc.
-	run: ({ kit, sv, options, typescript }) => {
-		if (!kit) throw new Error('SvelteKit is required');
+	// actual execution of the addon
+	run: ({ kit, cancel, sv, options }) => {
+		if (!kit) return cancel('SvelteKit is required');
 
-		// Add "Hello World" to the root page
+		// Add "Hello [who]!"" to the root page
 		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 
-			ast.fragment.nodes.push(...svelte.toFragment('<p>Hello World</p>'));
+			svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
 
 			return generateCode();
 		});

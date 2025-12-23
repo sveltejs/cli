@@ -144,7 +144,7 @@ export type OptionBuilder<T extends OptionDefinition> = {
  * const options = defineAddonOptions()
  *   .add('demo', {
  *     question: `demo? ${color.optional('(a cool one!)')}`
- *     type: 'boolean' | 'string' | 'number' | 'select' | 'multiselect' | 'boolean',
+ *     type: string | boolean | number | select | multiselect,
  *     default: true,
  *   })
  *   .build();

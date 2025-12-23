@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from '@playwright/test';
-import { js, html, svelte, parse } from '../../../core.ts';
+import { js, svelte, parse } from '../../../core.ts';
 import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
 import mdsvex from '../../mdsvex/index.ts';

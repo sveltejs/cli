@@ -11,11 +11,13 @@ const options = defineAddonOptions()
 export default defineAddon({
 	id: '~SV-NAME-TODO~',
 	options,
+
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ kit, sv, options, typescript }) => {
-		if (!kit) throw new Error('SvelteKit is required');
+
+	run: ({ kit, sv, options, typescript, cancel }) => {
+		if (!kit) return cancel('SvelteKit is required');
 
 		sv.file(`src/lib/~SV-NAME-TODO~/content.txt`, () => {
 			return `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
