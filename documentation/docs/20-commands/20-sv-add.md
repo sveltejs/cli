@@ -111,4 +111,6 @@ npx sv create --template addon [path]
 
 In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` to get started.
 
-Then you can continue with the [API docs](/docs/cli/add-on) to start building your add-on. You can also have a look at the [official addons source code](https://github.com/sveltejs/cli/tree/feat/community-add-on-draft-0/packages/sv/lib/addons) to get some inspiration on what can be done.
+<!-- [API docs](/docs/cli/add-on) -->
+
+Then you can continue with the LINK to start building your add-on. You can also have a look at the [official addons source code](https://github.com/sveltejs/cli/tree/feat/community-add-on-draft-0/packages/sv/lib/addons) to get some inspiration on what can be done.

@@ -19,10 +19,6 @@ export const utils = {
 
 // parsing & languages
 export * as css from './core/tooling/css/index.ts';
-/**
- * Utilities for working with JavaScript and TypeScript ASTs.
- * Includes helpers for arrays, objects, functions, imports, exports, variables, and SvelteKit/Vite-specific code manipulation.
- */
 export * as js from './core/tooling/js/index.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
 export * as html from './core/tooling/html/index.ts';
@@ -35,17 +31,28 @@ import {
 	parseToml,
 	parseYaml
 } from './core/tooling/parsers.ts';
+type Prettify<T> = {
+	[K in keyof T]: T[K];
+} & unknown;
 /**
  * A `parser` for all supported languages.
  */
-export const parse = {
-	css: parseCss as typeof parseCss,
-	html: parseHtml as typeof parseHtml,
-	json: parseJson as typeof parseJson,
-	script: parseScript as typeof parseScript,
-	svelte: parseSvelte as typeof parseSvelte,
-	toml: parseToml as typeof parseToml,
-	yaml: parseYaml as typeof parseYaml
+export const parse: Prettify<{
+	css: typeof parseCss;
+	html: typeof parseHtml;
+	json: typeof parseJson;
+	script: typeof parseScript;
+	svelte: typeof parseSvelte;
+	toml: typeof parseToml;
+	yaml: typeof parseYaml;
+}> = {
+	css: parseCss,
+	html: parseHtml,
+	json: parseJson,
+	script: parseScript,
+	svelte: parseSvelte,
+	toml: parseToml,
+	yaml: parseYaml
 };
 
 // Types
