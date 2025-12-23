@@ -9,6 +9,7 @@ import {
 	fileExists,
 	type AstTypes
 } from '../../core.ts';
+import { sanitizeName } from '../../coreInternal.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
@@ -144,7 +145,7 @@ export default defineAddon({
 
 				if (!data.name) {
 					const pkg = parse.json(readFileSync(join(cwd, files.package), 'utf-8'));
-					data.name = pkg.data.name;
+					data.name = sanitizeName(pkg.data.name, 'wrangler');
 				}
 
 				data.compatibility_date ??= new Date().toISOString().split('T')[0];
