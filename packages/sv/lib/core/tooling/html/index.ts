@@ -1,7 +1,5 @@
 import { type SvelteAst, parseHtml } from '../index.ts';
 
-export type { SvelteAst };
-
 export function createElement(
 	tagName: string,
 	attributes: Record<string, string> = {}

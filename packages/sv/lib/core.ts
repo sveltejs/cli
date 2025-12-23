@@ -20,8 +20,16 @@ export const utils = {
 // parsing & languages
 export * as css from './core/tooling/css/index.ts';
 export * as js from './core/tooling/js/index.ts';
-export * as svelte from './core/tooling/svelte/index.ts';
 export * as html from './core/tooling/html/index.ts';
+import { ensureScript, addSlot, addFragment } from './core/tooling/svelte/index.ts';
+/**
+ * Helper functions to manipulate Svelte code.
+ */
+export const svelte = {
+	ensureScript: ensureScript as typeof ensureScript,
+	addSlot: addSlot as typeof addSlot,
+	addFragment: addFragment as typeof addFragment
+};
 import {
 	parseCss,
 	parseHtml,
@@ -31,7 +39,6 @@ import {
 	parseToml,
 	parseYaml
 } from './core/tooling/parsers.ts';
-
 /**
  * Will help you `parse` code into an `ast` from all supported languages.
  * Then manipulate the `ast` as you want,

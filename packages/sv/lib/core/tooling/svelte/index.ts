@@ -85,14 +85,14 @@ export function addFragment(
 	ast: SvelteAst.Root,
 	content: string,
 	options?: {
-		// JYC TODO: append/prepend ? bool ? direction ? literal ? consistency with others? 2 functions?
-		append?: boolean;
+		mode?: 'append' | 'prepend';
 	}
 ): void {
 	const { ast: fragmentAst } = parseSvelte(content);
-	if (options?.append !== false) {
-		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
-	} else {
+
+	if (options?.mode === 'prepend') {
 		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
+	} else {
+		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
 	}
 }
