@@ -59,19 +59,25 @@ Prevents installing dependencies
 ## Community add-ons
 
 > [!NOTE]
-> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.
+> Svelte maintainers have not reviewed community add-ons for malicious code!
 
 You can find [community add-ons on npm](https://www.npmjs.com/search?q=keywords%3Asv-add) by searching for `keywords:sv-add`.
 
 ### How to install a community add-on
 
-To install a community add-on, run:
-
 ```sh
 npx sv add [PROTOCOL][COMMUNITY_ADDON]
 ```
 
-You can also use the `--add` option in the `create` command and mix and match official and community add-ons like:
+You can:
+
+- mix and match official and community add-ons
+- use the interactive prompt or give args to the cli
+- use the `--add` option in the `create` command
+
+```sh
+npx sv add eslint @supacool
+```
 
 ```sh
 npx sv create --add eslint @supacool
@@ -81,22 +87,18 @@ npx sv create --add eslint @supacool
 
 We support two protocols for community add-ons:
 
-- `file:[PATH_TO_ADDON]` - for local add-ons
-
-example:
-
-```sh
-npx sv add file:../path/to/my-addon
-```
-
 - `@[ORG]` - for `sv` add-ons published under an npm organization.
   - Giving only the organization name will look for `@[ORG]/sv` _(preferred)_
-  - This `@[ORG]/my-super-cool-sv-addon` will also work, but less nice!
-
-example:
+  - This `@[ORG]/my-super-cool-sv-addon` will also work, _but less nice!_
 
 ```sh
 npx sv add @supacool
+```
+
+- `file:[PATH_TO_ADDON]` - for local add-ons. It could be useful for scafolding related to a specific project for example.
+
+```sh
+npx sv add file:../path/to/my-addon
 ```
 
 ### How to create a community add-on
@@ -109,45 +111,4 @@ npx sv create --template addon [path]
 
 In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` to get started.
 
-To get some inspiration, of what can be done, check out [official addons source code](https://github.com/sveltejs/cli/tree/feat/community-add-on-draft-0/packages/sv/lib/addons).
-
-### Overview of an add-on
-
-Typically, add `add-on` looks like this:
-
-```js
-import { defineAddon, defineAddonOptions, js, parse, svelte } from 'sv/core';
-
-// You can define options that will be prompted to the user if they are not provided when calling the cli.
-const options = defineAddonOptions()
-	.add('who', {
-		question: 'To whom should the addon say hello?',
-		type: 'string', // string, number, boolean, select, multiselect
-		default: ''
-	})
-	.build();
-
-export default defineAddon({
-	id: 'your-addon-name',
-	options,
-
-	// This is called before the addon is run.
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
-	},
-
-	// This is the actual execution of the addon... Add files, edit files, etc.
-	run: ({ kit, sv, options, typescript }) => {
-		if (!kit) throw new Error('SvelteKit is required');
-
-		// add/edit a file
-		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
-			const { ast, generateCode } = parse.svelte(content);
-
-			ast.fragment.nodes.push(...svelte.toFragment('<p>Hello World</p>'));
-
-			return generateCode();
-		});
-	}
-});
-```
+Then you can continue with the [API docs](/docs/cli/api) to start building your add-on. You can also have a look at the [official addons source code](https://github.com/sveltejs/cli/tree/feat/community-add-on-draft-0/packages/sv/lib/addons) to get some inspiration on what can be done.

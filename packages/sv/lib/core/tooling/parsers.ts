@@ -3,6 +3,9 @@ import * as utils from './index.ts';
 
 type ParseBase = {
 	source: string;
+	/**
+	 * Generate the code from after the ast manipulation.
+	 */
 	generateCode(): string;
 };
 

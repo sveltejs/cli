@@ -19,6 +19,10 @@ export const utils = {
 
 // parsing & languages
 export * as css from './core/tooling/css/index.ts';
+/**
+ * Utilities for working with JavaScript and TypeScript ASTs.
+ * Includes helpers for arrays, objects, functions, imports, exports, variables, and SvelteKit/Vite-specific code manipulation.
+ */
 export * as js from './core/tooling/js/index.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
 export * as html from './core/tooling/html/index.ts';
@@ -31,6 +35,9 @@ import {
 	parseToml,
 	parseYaml
 } from './core/tooling/parsers.ts';
+/**
+ * A `parser` for all supported languages.
+ */
 export const parse = {
 	css: parseCss as typeof parseCss,
 	html: parseHtml as typeof parseHtml,

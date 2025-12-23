@@ -72,6 +72,9 @@ export type Addon<Args extends OptionDefinition> = {
 	nextSteps?: (data: Workspace & { options: WorkspaceOptions<Args> }) => string[];
 };
 
+/**
+ * The entry point for your addon, It will hold every thing! (options, setup, run, nextSteps, ...)
+ */
 export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>): Addon<Args> {
 	return config;
 }
@@ -118,22 +121,25 @@ export type OptionBuilder<T extends OptionDefinition> = {
 
 // Initializing with an empty object is intended given that the starting state _is_ empty.
 /**
- * This is how you define options for an addon.
+ * Options for an addon.
  *
- * These options will be prompted to the user if there are not answered by args when calling the cli.
+ * Will be prompted to the user if there are not answered by args when calling the cli.
  *
  * Example:
  * ```ts
  * const options = defineAddonOptions()
  *   .add('demo', {
- *     question: `Do you want to include a demo? ${style.optional('(includes a login/register page)')}`
+ *     question: `demo? ${color.optional('(a cool one!)')}`
  *     type: 'boolean' | 'string' | 'number' | 'select' | 'multiselect' | 'boolean',
  *     default: true,
  *   })
  *   .build();
  * ```
  *
- * To define by args, you can do `npx sv add <addon>=<option1>:<value1>+<option2>:<value2>`
+ * To define by args, you can do
+ * ```sh
+ * npx sv add <addon>=<option1>:<value1>+<option2>:<value2>
+ * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export function defineAddonOptions(): OptionBuilder<{}> {
