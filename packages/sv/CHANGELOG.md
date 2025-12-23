@@ -1,5 +1,11 @@
 # sv
 
+## 0.11.1
+### Patch Changes
+
+
+- fix(adapter-cloudflare): sanitize wrangler project name to comply with Cloudflare naming requirements ([#861](https://github.com/sveltejs/cli/pull/861))
+
 ## 0.11.0
 ### Minor Changes
 
