@@ -7,9 +7,7 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, typescript, files }) => {
-		const ext = typescript ? 'ts' : 'js';
-
+	run: ({ sv, ext, files }) => {
 		sv.devDependency('@playwright/test', '^1.57.0');
 
 		sv.file(files.package, (content) => {

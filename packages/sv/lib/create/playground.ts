@@ -102,8 +102,8 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	for (const file of files) {
 		let ast: js.AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
-			const { ast: svelteAst } = parseSvelte(file.content);
-			ast = svelte.ensureScript(svelteAst);
+			const { script } = parseSvelte(file.content, { ensureScript: {} });
+			ast = script;
 		} else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
 			ast = parseScript(file.content).ast;
 		}

@@ -61,12 +61,12 @@ export function addGlobalAppInterface(
 export function addHooksHandle(
 	node: AstTypes.Program,
 	options: {
-		typescript: boolean;
+		ext: 'ts' | 'js';
 		newHandleName: string;
 		handleContent: string;
 	}
 ): void {
-	if (options.typescript) {
+	if (options.ext === 'ts') {
 		imports.addNamed(node, {
 			from: '@sveltejs/kit',
 			imports: { Handle: 'Handle' },
@@ -133,7 +133,7 @@ export function addHooksHandle(
 			value: newHandle
 		});
 
-		if (options.typescript) {
+		if (options.ext === 'ts') {
 			const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		}
@@ -145,7 +145,7 @@ export function addHooksHandle(
 			value: variables.createIdentifier(options.newHandleName)
 		});
 
-		if (options.typescript) {
+		if (options.ext === 'ts') {
 			const declarator = handleDecl.declarations[0] as AstTypes.VariableDeclarator;
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		}
@@ -163,7 +163,7 @@ export function addHooksHandle(
 		name: options.newHandleName,
 		value: newHandle
 	});
-	if (options.typescript) {
+	if (options.ext === 'ts') {
 		const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
 		variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 	}
@@ -269,7 +269,7 @@ export function addHooksHandle(
 			name: handleName,
 			value: sequenceCall
 		});
-		if (options.typescript) {
+		if (options.ext === 'ts') {
 			const declarator = finalHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		}

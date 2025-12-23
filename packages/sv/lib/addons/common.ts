@@ -1,5 +1,5 @@
 import { imports, exports, common } from '../core/tooling/js/index.ts';
-import { toFragment, type SvelteAst, ensureScript } from '../core/tooling/svelte/index.ts';
+import { toFragment, type SvelteAst } from '../core/tooling/svelte/index.ts';
 import { parseScript, parseSvelte } from '../core/tooling/parsers.ts';
 import process from 'node:process';
 
@@ -64,8 +64,8 @@ export function addEslintConfigPrettier(content: string): string {
 	return generateCode();
 }
 
-export function addToDemoPage(existingContent: string, path: string, langTs: boolean): string {
-	const { ast, generateCode } = parseSvelte(existingContent);
+export function addToDemoPage(existingContent: string, path: string, ext: 'ts' | 'js'): string {
+	const { ast, script, generateCode } = parseSvelte(existingContent, { ensureScript: { ext } });
 
 	for (const node of ast.fragment.nodes) {
 		if (node.type === 'RegularElement') {
@@ -86,7 +86,7 @@ export function addToDemoPage(existingContent: string, path: string, langTs: boo
 		}
 	}
 
-	imports.addNamed(ensureScript(ast, { langTs }), { imports: ['resolve'], from: '$app/paths' });
+	imports.addNamed(script, { imports: ['resolve'], from: '$app/paths' });
 
 	ast.fragment.nodes.unshift(...toFragment(`<a href={resolve('/demo/${path}')}>${path}</a>`));
 	ast.fragment.nodes.unshift();

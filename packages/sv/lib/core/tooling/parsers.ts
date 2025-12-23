@@ -1,5 +1,6 @@
 import type { TomlTable } from 'smol-toml';
 import * as utils from './index.ts';
+import { ensureScript } from './svelte/index.ts';
 
 type ParseBase = {
 	source: string;
@@ -48,12 +49,30 @@ export function parseYaml(
 	return { data, source, generateCode };
 }
 
-export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & ParseBase {
+export function parseSvelte(
+	source: string,
+	options: { ensureScript: Parameters<typeof ensureScript>[1] }
+): { ast: utils.SvelteAst.Root; script: utils.AstTypes.Program } & ParseBase;
+export function parseSvelte(
+	source: string,
+	options?: { ensureScript?: Parameters<typeof ensureScript>[1] }
+): { ast: utils.SvelteAst.Root; script?: utils.AstTypes.Program } & ParseBase;
+export function parseSvelte(
+	source: string,
+	options?: { ensureScript?: Parameters<typeof ensureScript>[1] }
+): { ast: utils.SvelteAst.Root; script?: utils.AstTypes.Program } & ParseBase {
 	const ast = utils.parseSvelte(source);
+
+	let script = ast.instance?.content;
+	if (options?.ensureScript) {
+		script = ensureScript(ast, options.ensureScript);
+	}
+
 	const generateCode = () => utils.serializeSvelte(ast);
 
 	return {
 		ast,
+		script,
 		source,
 		generateCode
 	};

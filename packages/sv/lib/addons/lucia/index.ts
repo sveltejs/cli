@@ -45,8 +45,8 @@ export default defineAddon({
 
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
-		const ext = typescript ? 'ts' : 'js';
+	run: ({ sv, ext, options, kit, dependencyVersion }) => {
+		const typescript = ext === 'ts';
 
 		sv.devDependency('@oslojs/crypto', '^1.0.1');
 		sv.devDependency('@oslojs/encoding', '^1.1.0');
@@ -387,7 +387,7 @@ export default defineAddon({
 			const { ast, generateCode } = parseScript(content);
 			js.imports.addNamespace(ast, { from: '$lib/server/auth', as: 'auth' });
 			js.kit.addHooksHandle(ast, {
-				typescript,
+				ext,
 				newHandleName: 'handleAuth',
 				handleContent: getAuthHandleContent()
 			});
@@ -396,7 +396,7 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'lucia', typescript);
+				return addToDemoPage(content, 'lucia', ext);
 			});
 
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
