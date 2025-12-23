@@ -1,5 +1,5 @@
-import { type SvelteAst, ensureScript } from '../../../../tooling/svelte/index.ts';
+import { type SvelteAst, svelte } from '../../../../../core.ts';
 
 export function run(ast: SvelteAst.Root): void {
-	ensureScript(ast, { langTs: true });
+	svelte.ensureScript(ast, { langTs: true });
 }

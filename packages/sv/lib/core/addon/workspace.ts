@@ -13,7 +13,9 @@ export type Workspace = {
 	 * @returns the dependency version with any leading characters such as ^ or ~ removed
 	 */
 	dependencyVersion: (pkg: string) => string | undefined;
+	/** Whether the workspace is using typescript */
 	typescript: boolean;
+	/** The files that are available in the workspace */
 	files: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
@@ -31,7 +33,9 @@ export type Workspace = {
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 	};
+	/** If we are in a kit project, this object will contain the lib and routes directories */
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
+	/** The package manager used to install dependencies */
 	packageManager: PackageManager;
 };
 

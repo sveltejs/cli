@@ -2,8 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { confetti } from '@neoconfetti/svelte';
-	import type { ActionData, PageData } from './$types';
 	import { MediaQuery } from 'svelte/reactivity';
+
+	import type { ActionData, PageData } from './$types';
 
 	interface Props {
 		data: PageData;

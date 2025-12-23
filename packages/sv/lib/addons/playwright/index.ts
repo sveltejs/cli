@@ -1,6 +1,4 @@
-import { dedent, defineAddon, log } from '../../core/index.ts';
-import { common, exports, imports, object } from '../../core/tooling/js/index.ts';
-import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
+import { dedent, defineAddon, js, log, parse } from '../../core.ts';
 
 export default defineAddon({
 	id: 'playwright',
@@ -13,7 +11,7 @@ export default defineAddon({
 		sv.devDependency('@playwright/test', '^1.57.0');
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
 			const scripts: Record<string, string> = data.scripts;
 			const TEST_CMD = 'playwright test';
@@ -44,9 +42,9 @@ export default defineAddon({
 		});
 
 		sv.file(`playwright.config.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
-			const defineConfig = common.parseExpression('defineConfig({})');
-			const { value: defaultExport } = exports.createDefault(ast, { fallback: defineConfig });
+			const { ast, generateCode } = parse.script(content);
+			const defineConfig = js.common.parseExpression('defineConfig({})');
+			const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
 
 			const config = {
 				webServer: {
@@ -61,11 +59,11 @@ export default defineAddon({
 				defaultExport.arguments[0]?.type === 'ObjectExpression'
 			) {
 				// uses the `defineConfig` helper
-				imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
-				object.overrideProperties(defaultExport.arguments[0], config);
+				js.imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
+				js.object.overrideProperties(defaultExport.arguments[0], config);
 			} else if (defaultExport.type === 'ObjectExpression') {
 				// if the config is just an object expression, just add the properties
-				object.overrideProperties(defaultExport, config);
+				js.object.overrideProperties(defaultExport, config);
 			} else {
 				// unexpected config shape
 				log.warn('Unexpected playwright config for playwright add-on. Could not update.');

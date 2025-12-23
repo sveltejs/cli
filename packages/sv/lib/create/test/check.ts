@@ -1,17 +1,18 @@
+import { type PromiseWithChild, exec } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { exec, type PromiseWithChild } from 'node:child_process';
+import { promisify } from 'node:util';
 import { beforeAll, describe, expect, test } from 'vitest';
-import { create, type LanguageType, type TemplateType } from '../index.ts';
-import { installAddon, officialAddons } from '../../../../sv/lib/index.ts';
+
+import { add, officialAddons } from '../../../../sv/lib/index.ts';
+import { type LanguageType, type TemplateType, create } from '../index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 // use a directory outside of packages to ensure it isn't added to the pnpm workspace
-const test_workspace_dir = resolve_path('../../../.test-output/create/');
+const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
 
 // prepare test pnpm workspace
 fs.rmSync(test_workspace_dir, { recursive: true, force: true });
@@ -35,7 +36,7 @@ const script_test_map = new Map<string, Array<[string, () => PromiseWithChild<an
 
 const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[];
 
-for (const template of templates) {
+for (const template of templates.filter((t) => t !== 'addon')) {
 	if (template[0] === '.') continue;
 
 	for (const types of ['checkjs', 'typescript', 'none'] as LanguageType[]) {
@@ -43,7 +44,7 @@ for (const template of templates) {
 		fs.rmSync(cwd, { recursive: true, force: true });
 
 		create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
-		await installAddon({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+		await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
 
@@ -73,7 +74,7 @@ for (const template of templates) {
 }
 
 for (const [script, tests] of script_test_map) {
-	describe.concurrent(script, { timeout: 60000 }, () => {
+	describe.concurrent(script, { timeout: 61_000 }, () => {
 		for (const [name, task] of tests) {
 			test(name, task);
 		}

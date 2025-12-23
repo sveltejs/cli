@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { expect } from '@playwright/test';
 import sveltekitAdapter from '../../sveltekit-adapter/index.ts';
 import { setupTest } from '../_setup/suite.ts';
@@ -25,22 +25,22 @@ const { test, testCases } = setupTest(
 	}
 );
 
-test.concurrent.for(testCases)('adapter $kind.type $variant', async (testCase, { ...ctx }) => {
+test.concurrent.for(testCases)('adapter $kind.type $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
 	if (testCase.kind.type === 'node') {
-		expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
-		expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch(
+		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
+		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch(
 			'adapter-auto only supports some environments'
 		);
 	} else if (testCase.kind.type === 'auto') {
-		expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch('adapter-auto');
-		expect(await readFile(join(cwd, 'svelte.config.js'), 'utf8')).toMatch(
+		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).toMatch('adapter-auto');
+		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).toMatch(
 			'adapter-auto only supports some environments'
 		);
 	} else if (testCase.kind.type === 'cloudflare-workers') {
-		expect(await readFile(join(cwd, 'wrangler.jsonc'), 'utf8')).toMatch('ASSETS');
+		expect(readFileSync(join(cwd, 'wrangler.jsonc'), 'utf8')).toMatch('ASSETS');
 	} else if (testCase.kind.type === 'cloudflare-pages') {
-		expect(await readFile(join(cwd, 'wrangler.jsonc'), 'utf8')).toMatch('pages_build_output_dir');
+		expect(readFileSync(join(cwd, 'wrangler.jsonc'), 'utf8')).toMatch('pages_build_output_dir');
 	}
 });

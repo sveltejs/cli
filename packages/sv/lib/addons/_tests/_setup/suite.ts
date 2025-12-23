@@ -1,55 +1,37 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { promisify } from 'node:util';
-import { exec, execSync } from 'node:child_process';
-import * as vitest from 'vitest';
-import { installAddon, type AddonMap, type OptionMap } from '../../../addons/install.ts';
+import { execSync } from 'node:child_process';
+import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
+import { chromium } from '@playwright/test';
+
+import { add } from 'sv';
 import {
 	createProject,
-	startPreview,
 	addPnpmBuildDependencies,
-	type CreateProject,
-	type ProjectVariant
-} from '../../../testing.ts';
-import { chromium, type Browser, type BrowserContext, type Page } from '@playwright/test';
+	prepareServer,
+	type AddonTestCase,
+	type Fixtures,
+	type SetupTestOptions
+} from 'sv/testing';
+import type { AddonMap } from '../../add.ts';
 
-const cwd = vitest.inject('testDir');
-const templatesDir = vitest.inject('templatesDir');
-const variants = vitest.inject('variants');
-
-export const execAsync = promisify(exec);
-
-type Fixtures = {
-	page: Page;
-	cwd(addonTestCase: AddonTestCase<any>): string;
-};
-
-type AddonTestCase<Addons extends AddonMap> = {
-	variant: ProjectVariant;
-	kind: { type: string; options: OptionMap<Addons> };
-};
+const cwd = inject('testDir');
+const templatesDir = inject('templatesDir');
+const variants = inject('variants');
 
 export function setupTest<Addons extends AddonMap>(
 	addons: Addons,
-	options?: {
-		kinds: Array<AddonTestCase<Addons>['kind']>;
-		filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
-		browser?: boolean;
-		preInstallAddon?: (o: {
-			addonTestCase: AddonTestCase<Addons>;
-			cwd: string;
-		}) => Promise<void> | void;
-	}
+	options?: SetupTestOptions<Addons>
 ) {
-	const test = vitest.test.extend<Fixtures>({} as any);
+	const test = vitestTest.extend<Fixtures>({} as any);
 
 	const withBrowser = options?.browser ?? true;
 
-	let create: CreateProject;
-	let browser: Browser;
+	let create: ReturnType<typeof createProject>;
+	let browser: Awaited<ReturnType<typeof chromium.launch>>;
 
 	if (withBrowser) {
-		vitest.beforeAll(async () => {
+		beforeAll(async () => {
 			browser = await chromium.launch();
 			return async () => {
 				await browser.close();
@@ -67,7 +49,7 @@ export function setupTest<Addons extends AddonMap>(
 		}
 	}
 	let testName: string;
-	vitest.beforeAll(async ({ name }) => {
+	beforeAll(async ({ name }) => {
 		testName = path.dirname(name).split('/').at(-1)!;
 
 		// constructs a builder to create test projects
@@ -97,10 +79,10 @@ export function setupTest<Addons extends AddonMap>(
 			const metaPath = path.resolve(cwd, 'meta.json');
 			fs.writeFileSync(metaPath, JSON.stringify({ variant, kind }, null, '\t'), 'utf8');
 
-			if (options?.preInstallAddon) {
-				await options.preInstallAddon({ addonTestCase, cwd });
+			if (options?.preAdd) {
+				await options.preAdd({ addonTestCase, cwd });
 			}
-			const { pnpmBuildDependencies } = await installAddon({
+			const { pnpmBuildDependencies } = await add({
 				cwd,
 				addons,
 				options: kind.options,
@@ -113,8 +95,8 @@ export function setupTest<Addons extends AddonMap>(
 	});
 
 	// runs before each test case
-	vitest.beforeEach<Fixtures>(async (ctx) => {
-		let browserCtx: BrowserContext;
+	beforeEach<Fixtures>(async (ctx) => {
+		let browserCtx: Awaited<ReturnType<typeof browser.newContext>>;
 		if (withBrowser) {
 			browserCtx = await browser.newContext();
 			ctx.page = await browserCtx.newPage();
@@ -133,38 +115,4 @@ export function setupTest<Addons extends AddonMap>(
 	});
 
 	return { test, testCases, prepareServer };
-}
-
-type PrepareServerOptions = {
-	cwd: string;
-	page: Page;
-	buildCommand?: string;
-	previewCommand?: string;
-};
-// installs dependencies, builds the project, and spins up the preview server
-async function prepareServer({
-	cwd,
-	page,
-	buildCommand = 'pnpm build',
-	previewCommand = 'pnpm preview'
-}: PrepareServerOptions) {
-	// build project
-	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
-
-	// start preview server
-	const { url, close } = await startPreview({ cwd, command: previewCommand });
-
-	// increases timeout as 30s is not always enough when running the full suite
-	page.setDefaultNavigationTimeout(60_000);
-
-	try {
-		// navigate to the page
-		await page.goto(url);
-	} catch (e) {
-		// cleanup in the instance of a timeout
-		await close();
-		throw e;
-	}
-
-	return { url, close };
 }
