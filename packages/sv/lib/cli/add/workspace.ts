@@ -32,9 +32,6 @@ export async function createWorkspace({
 	const viteConfig = fs.existsSync(viteConfigPath)
 		? commonFilePaths.viteConfigTS
 		: commonFilePaths.viteConfig;
-
-	// ecosystem doesn't support `svelte.config.ts` https://github.com/sveltejs/cli/issues/816#issuecomment-3568032867
-	// but the user may have opt in to it
 	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
 	const svelteConfig = fs.existsSync(svelteConfigPath)
 		? commonFilePaths.svelteConfigTS
