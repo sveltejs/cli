@@ -32,6 +32,8 @@ export async function createWorkspace({
 	const viteConfig = fs.existsSync(viteConfigPath)
 		? commonFilePaths.viteConfigTS
 		: commonFilePaths.viteConfig;
+
+	// Users may have changed to `svelte.config.ts`
 	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
 	const svelteConfig = fs.existsSync(svelteConfigPath)
 		? commonFilePaths.svelteConfigTS

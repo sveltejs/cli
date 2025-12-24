@@ -129,6 +129,7 @@ export function fileExists(cwd: string, filePath: string): boolean {
 export const commonFilePaths = {
 	packageJson: 'package.json',
 	svelteConfig: 'svelte.config.js',
+	/** @deprecated `sv` uses `svelte.config.js` by default */
 	svelteConfigTS: 'svelte.config.ts',
 	jsconfig: 'jsconfig.json',
 	tsconfig: 'tsconfig.json',
