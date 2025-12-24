@@ -130,8 +130,8 @@ export const commonFilePaths = {
 	packageJson: 'package.json',
 	svelteConfig: 'svelte.config.js',
 	svelteConfigTS: 'svelte.config.ts',
-	jsConfig: 'jsconfig.json',
-	tsConfig: 'tsconfig.json',
+	jsconfig: 'jsconfig.json',
+	tsconfig: 'tsconfig.json',
 	viteConfig: 'vite.config.js',
 	viteConfigTS: 'vite.config.ts'
 } as const;

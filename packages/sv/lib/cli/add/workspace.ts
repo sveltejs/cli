@@ -24,8 +24,8 @@ export async function createWorkspace({
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
-	const jtsConfigPath = find.any([commonFilePaths.jsConfig, commonFilePaths.tsConfig], { cwd });
-	const typescript = jtsConfigPath?.endsWith(commonFilePaths.tsConfig) ?? false;
+	const jtsConfigPath = find.any([commonFilePaths.jsconfig, commonFilePaths.tsconfig], { cwd });
+	const typescript = jtsConfigPath?.endsWith(commonFilePaths.tsconfig) ?? false;
 
 	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
