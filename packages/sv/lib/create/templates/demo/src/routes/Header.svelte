@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import logo from './svelte-logo.svg';
-	import github from './github.svg';
+	import logo from '$lib/images/svelte-logo.svg';
+	import github from '$lib/images/github.svg';
 </script>
 
 <header>
