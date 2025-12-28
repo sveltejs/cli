@@ -308,6 +308,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
 	const prompt = common.buildArgs(packageManager, 'create', argsFormatted, [directory]);
+	common.updateReadme(directory, prompt);
 	p.log.message(`To rerun this command without prompts, run:\n${pc.dim(prompt)}`);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);

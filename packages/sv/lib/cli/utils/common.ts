@@ -1,4 +1,6 @@
 import pc from 'picocolors';
+import fs from 'node:fs';
+import path from 'node:path';
 import pkg from '../../../package.json' with { type: 'json' };
 import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
@@ -151,6 +153,30 @@ export function buildArgs(
 
 	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
 	return [res.command, ...res.args].join(' ');
+}
+
+export function updateReadme(projectPath: string, command: string) {
+	const readmePath = path.join(projectPath, 'README.md');
+
+	if (!fs.existsSync(readmePath)) return;
+
+	let content = fs.readFileSync(readmePath, 'utf-8');
+
+	// Check if the Creating a project section exists
+	const creatingSectionPattern = /## Creating a project[\s\S]*?(?=## |$)/;
+	const creatingSectionMatch = content.match(creatingSectionPattern);
+
+	if (!creatingSectionMatch) return;
+	// Append to the existing Creating a project section
+	const existingSection = creatingSectionMatch[0];
+	const updatedSection =
+		existingSection.trim() +
+		'\n\nTo recreate this project with the same configuration:\n\n```sh\n# recreate this project\n' +
+		command +
+		'\n```\n';
+
+	content = content.replace(creatingSectionPattern, updatedSection);
+	fs.writeFileSync(readmePath, content);
 }
 
 export function errorAndExit(message: string) {
