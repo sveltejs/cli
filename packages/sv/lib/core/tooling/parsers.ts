@@ -12,7 +12,7 @@ type ParseBase = {
 	 *
 	 * svelte.addFragment(ast, '<p>Hello World</p>');
 	 *
-	 * return generateCode();
+	 * const code = generateCode();
 	 * ```
 	 */
 	generateCode(): string;
