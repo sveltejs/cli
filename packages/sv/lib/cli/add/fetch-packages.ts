@@ -188,7 +188,9 @@ async function fetchPackageJSON(packageName: string) {
 	);
 	const blockedNpmAddons = blocklist.npm_names.includes(fullName);
 	if (blockedNpmAddons)
-		common.errorAndExit(`${color.warning(fullName)} blocked from being installed. If this is not the intended behavior please open an issue here: https://github.com/sveltejs/cli/issues.`);
+		common.errorAndExit(
+			`${color.warning(fullName)} blocked from being installed. If this is not the intended behavior please open an issue here: https://github.com/sveltejs/cli/issues.`
+		);
 
 	return await downloadJson(pkgUrl);
 }
