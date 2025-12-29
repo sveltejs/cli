@@ -119,7 +119,7 @@ export type OptionBuilder<T extends OptionDefinition> = {
 	 *
 	 * ```ts
 	 *   .add('demo', {
-	 *     question: 'demo?',
+	 *     question: 'Do you want to add a demo?',
 	 *     type: 'boolean',  // string, number, select, multiselect
 	 *     default: true,
 	 *     // condition: (o) => o.previousOption === 'ok',
