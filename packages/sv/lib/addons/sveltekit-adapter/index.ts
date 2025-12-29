@@ -202,7 +202,7 @@ export default defineAddon({
 
 					data.compilerOptions ??= {};
 					data.compilerOptions.types ??= [];
-					data.compilerOptions.types.push('worker-configuration.d.ts');
+					data.compilerOptions.types.push('./worker-configuration.d.ts');
 
 					return generateCode();
 				});
