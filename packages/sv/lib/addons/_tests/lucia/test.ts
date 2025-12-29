@@ -25,8 +25,8 @@ test.concurrent.for(testCases)('lucia $variant', async (testCase, { page, ...ctx
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
-	const ext = testCase.variant.includes('ts') ? 'ts' : 'js';
-	const filePath = path.resolve(cwd, `src/routes/demo/lucia/+page.server.${ext}`);
+	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
+	const filePath = path.resolve(cwd, `src/routes/demo/lucia/+page.server.${language}`);
 	const fileContent = fs.readFileSync(filePath, 'utf8');
 	expect(fileContent).toContain(`export const actions`);
 });

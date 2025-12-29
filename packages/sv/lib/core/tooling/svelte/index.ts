@@ -6,7 +6,7 @@ export type { SvelteAst };
 
 export function ensureScript(
 	ast: SvelteAst.Root,
-	options?: { ext?: 'ts' | 'js' }
+	options?: { language?: 'ts' | 'js' }
 ): AstTypes.Program {
 	let scriptAst = ast.instance?.content;
 	if (!scriptAst) {
@@ -18,7 +18,7 @@ export function ensureScript(
 			context: 'default',
 			// @ts-expect-error
 			attributes:
-				options?.ext === 'ts'
+				options?.language === 'ts'
 					? [
 							{
 								type: 'Attribute',
@@ -38,7 +38,7 @@ export function ensureScript(
 
 export function addSlot(
 	ast: SvelteAst.Root,
-	options: { svelteVersion: string; ext?: 'ts' | 'js' }
+	options: { svelteVersion: string; language?: 'ts' | 'js' }
 ): void {
 	const slotSyntax =
 		options.svelteVersion &&
@@ -61,7 +61,7 @@ export function addSlot(
 		return;
 	}
 
-	const scriptAst = ensureScript(ast, { ext: options.ext });
+	const scriptAst = ensureScript(ast, { language: options.language });
 	appendFromString(scriptAst, {
 		code: 'const { children } = $props();'
 	});

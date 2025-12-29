@@ -14,7 +14,7 @@ export type Workspace = {
 	 */
 	dependencyVersion: (pkg: string) => string | undefined;
 	/** to know if the workspace is using typescript or javascript */
-	ext: 'ts' | 'js';
+	language: 'ts' | 'js';
 	files: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';

@@ -12,8 +12,8 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('devtools-json $variant', (testCase, ctx) => {
 	const cwd = ctx.cwd(testCase);
 
-	const ext = testCase.variant.includes('ts') ? 'ts' : 'js';
-	const viteFile = path.resolve(cwd, `vite.config.${ext}`);
+	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
+	const viteFile = path.resolve(cwd, `vite.config.${language}`);
 	const viteContent = fs.readFileSync(viteFile, 'utf8');
 
 	// Check if we have the import part

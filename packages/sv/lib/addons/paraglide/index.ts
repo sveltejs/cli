@@ -62,7 +62,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, ext, kit }) => {
+	run: ({ sv, options, files, language, kit }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
@@ -86,7 +86,7 @@ export default defineAddon({
 		});
 
 		// reroute hook
-		sv.file(`src/hooks.${ext}`, (content) => {
+		sv.file(`src/hooks.${language}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 			imports.addNamed(ast, {
 				from: '$lib/paraglide/runtime',
@@ -112,7 +112,7 @@ export default defineAddon({
 		});
 
 		// handle hook
-		sv.file(`src/hooks.server.${ext}`, (content) => {
+		sv.file(`src/hooks.server.${language}`, (content) => {
 			const { ast, generateCode } = parseScript(content);
 			imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
@@ -126,7 +126,7 @@ export default defineAddon({
 		});
 	});`;
 			kitJs.addHooksHandle(ast, {
-				ext,
+				language,
 				newHandleName: 'handleParaglide',
 				handleContent: hookHandleContent
 			});
@@ -180,9 +180,7 @@ export default defineAddon({
 		});
 
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
-			const { ast, script, generateCode } = parseSvelte(content, {
-				ensureScript: { ext }
-			});
+			const { ast, script, generateCode } = parseSvelte(content, { ensureScript: { language } });
 
 			imports.addNamed(script, {
 				imports: ['locales', 'localizeHref'],
@@ -201,14 +199,12 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'paraglide', ext);
+				return addToDemoPage(content, 'paraglide', language);
 			});
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
-				const { ast, script, generateCode } = parseSvelte(content, {
-					ensureScript: { ext }
-				});
+				const { ast, script, generateCode } = parseSvelte(content, { ensureScript: { language } });
 
 				imports.addNamed(script, { imports: { m: 'm' }, from: '$lib/paraglide/messages.js' });
 				imports.addNamed(script, {

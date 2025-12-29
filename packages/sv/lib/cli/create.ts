@@ -386,7 +386,7 @@ export async function createVirtualWorkspace({
 
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
-		ext: type === 'typescript' ? 'ts' : 'js',
+		language: type === 'typescript' ? 'ts' : 'js',
 		files: {
 			...tentativeWorkspace.files,
 			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
