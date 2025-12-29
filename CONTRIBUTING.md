@@ -80,7 +80,9 @@ Run specific tests by specifying a project flag to the package and running the t
 pnpm test --project cli # core / addons / create / migrate
 ```
 
-Example of how to debug an addon failing test. Once, you ran the test command, you will have a directory in `.test-output` with the test id. A good starting point is to `cd` into the failing tests dir. Proceed to `build` it. Then `preview` it. From here you will have increased information to help in the debug process. Eg:
+### Debugging
+
+Example of how to debug an addon failing test. Once, you ran the test command, you will have a directory in `.test-output` with the test id. A good starting point is to `cd` into the failing tests dir. Proceed to `build` it. Then `preview` it. From here you will have increased information to help in the debug process. E.g.:
 
 ```sh
 pnpm test --project addons tailwind # to debug the tailwind addon failing test
@@ -89,6 +91,16 @@ cd .test-output/addons/[addon-test]/[test-id]
 pnpm build
 pnpm preview
 ```
+
+### Update snapshots
+
+Tests use snapshots to verify expected output against actual results. When you make changes that affect test output, update the snapshots. To update snapshots `vitest`'s interactive UI', run:
+
+```sh
+pnpm vitest --project cli # core / addons / create / migrate
+```
+
+And press `u` when prompted to update snapshots.
 
 ## Style Guide
 
