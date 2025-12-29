@@ -89,7 +89,7 @@ We support two protocols for community add-ons:
 
 - `@[ORG]` - for `sv` add-ons published under an npm organization.
   - Giving only the organization name will look for `@[ORG]/sv` _(preferred)_
-  - This `@[ORG]/my-super-cool-sv-addon` will also work, _but less nice!_
+  - This `@[ORG]/my-super-cool-sv-addon` will also work, _but is more wordy!_
 
 ```sh
 npx sv add @supacool
