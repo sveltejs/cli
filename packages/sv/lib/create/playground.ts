@@ -104,7 +104,8 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 		let ast: js.AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
 			const { ast: svelteAst } = parseSvelte(file.content);
-			ast = svelte.ensureScript(svelteAst);
+			svelte.ensureScript(svelteAst);
+			ast = svelteAst.instance.content;
 		} else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
 			ast = parseScript(file.content).ast;
 		}
@@ -193,8 +194,8 @@ export function setupPlaygroundProject(
 				// getting raw content
 				const { ast, generateCode } = parseSvelte(file.contents);
 				// change title and url placeholders
-				const scriptAst = svelte.ensureScript(ast);
-				walk(scriptAst as js.AstTypes.Node, null, {
+				svelte.ensureScript(ast);
+				walk(ast.instance.content as js.AstTypes.Node, null, {
 					Literal(node) {
 						if (node.value === '$sv-title-$sv') {
 							node.value = playground.name;
@@ -217,9 +218,12 @@ export function setupPlaygroundProject(
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
 	const { ast, generateCode } = parseSvelte(content);
-	const scriptAst = svelte.ensureScript(ast);
-	js.imports.addDefault(scriptAst, { as: 'App', from: `$lib/playground/${mainFile.name}` });
-	js.imports.addDefault(scriptAst, {
+	svelte.ensureScript(ast);
+	js.imports.addDefault(ast.instance.content, {
+		as: 'App',
+		from: `$lib/playground/${mainFile.name}`
+	});
+	js.imports.addDefault(ast.instance.content, {
 		as: 'PlaygroundLayout',
 		from: `$lib/PlaygroundLayout.svelte`
 	});
