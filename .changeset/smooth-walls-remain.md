@@ -2,4 +2,4 @@
 "sv": patch
 ---
 
-fix: set Cloudflare local preview port to 4173 so that it works with the Playwright test command
+fix(cloudflare): local preview is now using port `4173` so that it works with the Playwright test command
