@@ -94,10 +94,7 @@ export const create = new Command('create')
 		}
 
 		common.runCommand(async () => {
-			const { directory, addOnNextSteps, packageManager, prompt } = await createProject(
-				cwd,
-				options
-			);
+			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
 			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
@@ -122,10 +119,7 @@ export const create = new Command('create')
 				...initialSteps,
 				`  ${i++}: ${highlight(pmRunCmd)}`,
 				'',
-				`To close the dev server, hit ${highlight('Ctrl-C')}`,
-				'',
-				`To recreate this project without prompts, run:`,
-				`  ${pc.cyan(prompt)}`
+				`To close the dev server, hit ${highlight('Ctrl-C')}`
 			];
 
 			if (addOnNextSteps.length > 0) {
@@ -315,6 +309,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	const prompt = common.buildArgs(packageManager, 'create', argsFormatted, [directory]);
 	common.updateReadme(directory, prompt);
+	p.log.message(`To rerun this command without prompts, run:\n${pc.dim(prompt)}`);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) {
@@ -322,7 +317,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
 	}
 
-	return { directory: projectPath, addOnNextSteps, packageManager, prompt };
+	return { directory: projectPath, addOnNextSteps, packageManager };
 }
 
 async function createProjectFromPlayground(url: string, cwd: string): Promise<void> {
