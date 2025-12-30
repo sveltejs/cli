@@ -24,9 +24,8 @@ export async function createWorkspace({
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
-	const tjsconfig = find.any([commonFilePaths.jsconfig, commonFilePaths.tsconfig], { cwd });
-	// If the file is not ending with jsconfig.json, then we are using typescript
-	const usesTypescript = !tjsconfig?.endsWith(commonFilePaths.jsconfig);
+	const jtsConfigPath = find.any([commonFilePaths.jsconfig, commonFilePaths.tsconfig], { cwd });
+	const typescript = jtsConfigPath?.endsWith(commonFilePaths.tsconfig) ?? false;
 
 	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
@@ -82,7 +81,7 @@ export async function createWorkspace({
 	return {
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
-		typescript: usesTypescript,
+		typescript,
 		files: {
 			viteConfig,
 			svelteConfig,
@@ -135,7 +134,7 @@ function parseKitOptions(cwd: string) {
 	const { ast } = parseScript(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
-	if (!defaultExport) throw Error('Missing default export in `svelte.config.js`');
+	if (!defaultExport) throw Error(`Missing default export in \`${commonFilePaths.svelteConfig}\``);
 
 	let objectExpression: AstTypes.ObjectExpression | undefined;
 	if (defaultExport.declaration.type === 'Identifier') {
@@ -157,14 +156,17 @@ function parseKitOptions(cwd: string) {
 		}
 
 		if (!objectExpression)
-			throw Error('Unable to find svelte config object expression from `svelte.config.js`');
+			throw Error(
+				`Unable to find svelte config object expression from \`${commonFilePaths.svelteConfig}\``
+			);
 	} else if (defaultExport.declaration.type === 'ObjectExpression') {
 		// e.g. `export default { ... };`
 		objectExpression = defaultExport.declaration;
 	}
 
 	// We'll error out since we can't safely determine the config object
-	if (!objectExpression) throw new Error('Unexpected svelte config shape from `svelte.config.js`');
+	if (!objectExpression)
+		throw new Error(`Unexpected svelte config shape from \`${commonFilePaths.svelteConfig}\``);
 
 	const kit = object.property(objectExpression, { name: 'kit', fallback: object.create({}) });
 	const files = object.property(kit, { name: 'files', fallback: object.create({}) });
