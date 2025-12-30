@@ -181,7 +181,7 @@ export default defineAddon({
 
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
 			const { ast, generateCode } = parseSvelte(content);
-			svelte.ensureScript(ast);
+			svelte.ensureScript(ast, { language });
 			imports.addNamed(ast.instance.content, {
 				imports: ['locales', 'localizeHref'],
 				from: '$lib/paraglide/runtime'

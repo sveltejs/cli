@@ -70,9 +70,8 @@ export function addToDemoPage(
 	path: string,
 	language: 'ts' | 'js'
 ): string {
-	const { ast, script, generateCode } = parseSvelte(existingContent, {
-		ensureScript: { language }
-	});
+	const { ast, generateCode } = parseSvelte(existingContent);
+	svelte.ensureScript(ast, { language });
 
 	for (const node of ast.fragment.nodes) {
 		if (node.type === 'RegularElement') {
@@ -93,7 +92,6 @@ export function addToDemoPage(
 		}
 	}
 
-	svelte.ensureScript(ast, { language });
 	imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 	ast.fragment.nodes.unshift(...toFragment(`<a href={resolve('/demo/${path}')}>${path}</a>`));
