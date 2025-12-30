@@ -660,7 +660,7 @@ export async function runAddonsApply({
 
 	if (fromCommand === 'add') {
 		const prompt = common.buildArgs(packageManager, 'add', argsFormattedAddons);
-		p.log.message(`To rerun this command without prompts, run:\n${pc.dim(prompt)}`);
+		p.log.message(`Non-interactive command:\n${pc.dim(prompt)}`);
 	}
 
 	if (packageManager) {
