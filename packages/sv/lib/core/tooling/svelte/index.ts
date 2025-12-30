@@ -12,29 +12,27 @@ export function ensureScript(
 	ast: SvelteAst.Root,
 	options?: { langTs?: boolean }
 ): asserts ast is RootWithInstance {
-	let scriptAst = ast.instance?.content;
-	if (!scriptAst) {
-		scriptAst = parseScript('').ast;
-		ast.instance = {
-			type: 'Script',
-			start: 0,
-			end: 0,
-			context: 'default',
-			// @ts-expect-error
-			attributes: options?.langTs
-				? [
-						{
-							type: 'Attribute',
-							start: 8,
-							end: 17,
-							name: 'lang',
-							value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
-						}
-					]
-				: [],
-			content: scriptAst
-		};
-	}
+	if (ast.instance?.content) return;
+
+	ast.instance = {
+		type: 'Script',
+		start: 0,
+		end: 0,
+		context: 'default',
+		// @ts-expect-error
+		attributes: options?.langTs
+			? [
+					{
+						type: 'Attribute',
+						start: 8,
+						end: 17,
+						name: 'lang',
+						value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
+					}
+				]
+			: [],
+		content: parseScript('').ast
+	};
 }
 
 export function addSlot(
