@@ -94,10 +94,11 @@ pnpm preview
 
 ### Update snapshots
 
-Tests use snapshots to verify expected output against actual results. When you make changes that affect test output, update the snapshots. To update snapshots `vitest`'s interactive UI', run:
+Tests use snapshots to verify expected output against actual results. When you make changes that affect test output, build and update the snapshots. To update snapshots with `vitest`'s interactive UI', run:
 
 ```sh
-pnpm vitest --project cli # core / addons / create / migrate
+pnpm build
+pnpm test:ui --project cli # core / addons / create / migrate
 ```
 
 And press `u` when prompted to update snapshots.
