@@ -86,7 +86,8 @@ export function addToDemoPage(existingContent: string, path: string, langTs: boo
 		}
 	}
 
-	imports.addNamed(ensureScript(ast, { langTs }), { imports: ['resolve'], from: '$app/paths' });
+	ensureScript(ast, { langTs });
+	imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 	ast.fragment.nodes.unshift(...toFragment(`<a href={resolve('/demo/${path}')}>${path}</a>`));
 	ast.fragment.nodes.unshift();
