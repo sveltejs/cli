@@ -85,10 +85,8 @@ export function addToDemoPage(existingContent: string, path: string, langTs: boo
 		}
 	}
 
-	js.imports.addNamed(svelte.ensureScript(ast, { langTs }), {
-		imports: ['resolve'],
-		from: '$app/paths'
-	});
+	ensureScript(ast, { langTs });
+	js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 	svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
 	ast.fragment.nodes.unshift();

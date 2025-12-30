@@ -85,8 +85,8 @@ export default defineAddon({
 			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
 			sv.file(appSvelte, (content) => {
 				const { ast, generateCode } = parse.svelte(content);
-				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
-				js.imports.addEmpty(scriptAst, { from: stylesheetRelative });
+				svelte.ensureScript(ast, { langTs: typescript });
+				js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 				return generateCode();
 			});
 		} else {
@@ -94,8 +94,8 @@ export default defineAddon({
 			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
 			sv.file(layoutSvelte, (content) => {
 				const { ast, generateCode } = parse.svelte(content);
-				const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
-				js.imports.addEmpty(scriptAst, { from: stylesheetRelative });
+				svelte.ensureScript(ast, { langTs: typescript });
+				js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');

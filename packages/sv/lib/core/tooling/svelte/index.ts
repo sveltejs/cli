@@ -1,36 +1,36 @@
-import { type AstTypes, type SvelteAst, parseScript } from '../index.ts';
-import { appendFromString } from '../js/common.ts';
+import { parseScript, type SvelteAst } from '../index.ts';
 import { parseSvelte } from '../parsers.ts';
+import { appendFromString } from '../js/common.ts';
 
+type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
+
+// because we create instance if it doesn't exist, we can assert its presence
+// for all further processing after calling this function.
 export function ensureScript(
 	ast: SvelteAst.Root,
 	options?: { langTs?: boolean }
-): AstTypes.Program {
-	let scriptAst = ast.instance?.content;
-	if (!scriptAst) {
-		scriptAst = parseScript('').ast;
-		ast.instance = {
-			type: 'Script',
-			start: 0,
-			end: 0,
-			context: 'default',
-			// @ts-expect-error
-			attributes: options?.langTs
-				? [
-						{
-							type: 'Attribute',
-							start: 8,
-							end: 17,
-							name: 'lang',
-							value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
-						}
-					]
-				: [],
-			content: scriptAst
-		};
-	}
+): asserts ast is RootWithInstance {
+	if (ast.instance?.content) return;
 
-	return scriptAst;
+	ast.instance = {
+		type: 'Script',
+		start: 0,
+		end: 0,
+		context: 'default',
+		// @ts-expect-error
+		attributes: options?.langTs
+			? [
+					{
+						type: 'Attribute',
+						start: 8,
+						end: 17,
+						name: 'lang',
+						value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
+					}
+				]
+			: [],
+		content: parseScript('').ast
+	};
 }
 
 export function addSlot(
@@ -58,8 +58,8 @@ export function addSlot(
 		return;
 	}
 
-	const scriptAst = ensureScript(ast, { langTs: options.langTs });
-	appendFromString(scriptAst, {
+	ensureScript(ast, { langTs: options.langTs });
+	appendFromString(ast.instance.content, {
 		code: 'const { children } = $props();'
 	});
 

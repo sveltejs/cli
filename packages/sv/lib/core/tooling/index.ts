@@ -1,5 +1,3 @@
-import { tsPlugin } from '@sveltejs/acorn-typescript';
-import * as acorn from 'acorn';
 import { print as esrapPrint } from 'esrap';
 import ts from 'esrap/languages/ts';
 import type { BaseNode } from 'estree';
@@ -7,6 +5,7 @@ import * as fleece from 'silver-fleece';
 import { type AST as SvelteAst, parse as svelteParse, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
 import * as toml from 'smol-toml';
+import { ensureScript } from './svelte/index.ts';
 
 import { Walker } from '../../core.ts';
 import type { TsEstree } from './js/ts-estree.ts';
@@ -19,45 +18,21 @@ export type {
 	TsEstree as AstTypes
 };
 
-/**
- * Parses as string to an AST. Code below is taken from `esrap` to ensure compatibilty.
- * https://github.com/sveltejs/esrap/blob/920491535d31484ac5fae2327c7826839d851aed/test/common.js#L14
- */
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
 	comments: Comments;
 } {
-	const acornTs = acorn.Parser.extend(tsPlugin());
+	const svelteAst = parseSvelte(`<script lang="ts">${content}</script>`);
+	const ast = ensureScript(svelteAst);
+
 	const comments = new Comments();
 	const internal = transformToInternal(comments);
+	internal.original.push(...svelteAst.comments);
 
-	const ast = acornTs.parse(content, {
-		ecmaVersion: 'latest',
-		sourceType: 'module',
-		locations: true,
-		onComment: (block, value, start, end, startLoc, endLoc) => {
-			if (block && /\n/.test(value)) {
-				let a = start;
-				while (a > 0 && content[a - 1] !== '\n') a -= 1;
-
-				let b = a;
-				while (/[ \t]/.test(content[b])) b += 1;
-
-				const indentation = content.slice(a, b);
-				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
-			}
-
-			internal.original.push({
-				type: block ? 'Block' : 'Line',
-				value,
-				start,
-				end,
-				loc: { start: startLoc as TsEstree.Position, end: endLoc as TsEstree.Position }
-			});
-		}
-	}) as TsEstree.Program;
-
-	return { ast, comments };
+	return {
+		ast,
+		comments
+	};
 }
 
 export function serializeScript(
@@ -65,6 +40,9 @@ export function serializeScript(
 	comments?: Comments,
 	previousContent?: string
 ): string {
+	// we could theoretically use `printSvelte` here, but esrap gives us more control over the output
+	// and `svelte` is using `esrap` under the hood anyway.
+
 	const internal = transformToInternal(comments);
 	const { code } = esrapPrint(
 		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
@@ -242,7 +220,7 @@ export function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): stri
 export type CommentType = { type: 'Line' | 'Block'; value: string };
 
 export class Comments {
-	private original: TsEstree.Comment[];
+	private original: SvelteAst.JSComment[];
 	private leading: WeakMap<BaseNode, CommentType[]>;
 	private trailing: WeakMap<BaseNode, CommentType[]>;
 

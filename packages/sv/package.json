@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.11.0",
+	"version": "0.11.2",
 	"type": "module",
 	"description": "A command line interface (CLI) for creating and maintaining Svelte applications",
 	"license": "MIT",
@@ -35,13 +35,11 @@
 	},
 	"devDependencies": {
 		"@clack/prompts": "1.0.0-alpha.1",
-		"@sveltejs/acorn-typescript": "^1.0.8",
 		"@types/degit": "^2.8.6",
 		"@types/estree": "^1.0.8",
 		"@types/gitignore-parser": "^0.0.3",
 		"@types/ps-tree": "^1.1.6",
 		"@types/tar-fs": "^2.0.4",
-		"acorn": "^8.15.0",
 		"commander": "^14.0.2",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.0",
