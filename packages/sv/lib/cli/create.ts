@@ -309,7 +309,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	const prompt = common.buildArgs(packageManager, 'create', argsFormatted, [directory]);
 	common.updateReadme(directory, prompt);
-	p.log.message(`Non-interactive command:\n${pc.dim(prompt)}`);
+	p.log.info(pc.dim(`Re-run without prompts:\n${prompt}`));
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) {
