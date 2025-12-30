@@ -88,19 +88,18 @@ export default defineAddon({
 			const appSvelte = 'src/App.svelte';
 			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
 			sv.file(appSvelte, (content) => {
-				const { script, generateCode } = parseSvelte(content, {
-					ensureScript: { language }
-				});
-				imports.addEmpty(script, { from: stylesheetRelative });
+				const { ast, generateCode } = parseSvelte(content);
+				svelte.ensureScript(ast, { language });
+				imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 				return generateCode();
 			});
 		} else {
 			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
 			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
 			sv.file(layoutSvelte, (content) => {
-				const { ast, script, generateCode } = parseSvelte(content, { ensureScript: { language } });
-
-				imports.addEmpty(script, { from: stylesheetRelative });
+				const { ast, generateCode } = parseSvelte(content);
+				svelte.ensureScript(ast, { language });
+				imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');

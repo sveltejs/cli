@@ -2,6 +2,7 @@ import { defineAddon, defineAddonOptions } from '../../core/index.ts';
 import { exports, functions, imports, object, type AstTypes } from '../../core/tooling/js/index.ts';
 import { parseJson, parseScript, parseToml } from '../../core/tooling/parsers.ts';
 import { fileExists, readFile } from '../../cli/add/utils.ts';
+import { sanitizeName } from '../../core/sanitize.ts';
 import { resolveCommand } from 'package-manager-detector';
 import * as js from '../../core/tooling/js/index.ts';
 
@@ -59,9 +60,9 @@ export default defineAddon({
 			// in sk 3, we will keep "preview": "vite preview" like any other adapter
 			if (options.adapter === 'cloudflare') {
 				if (options.cfTarget === 'workers') {
-					data.scripts.preview = 'wrangler dev .svelte-kit/cloudflare/_worker.js';
+					data.scripts.preview = 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173';
 				} else if (options.cfTarget === 'pages') {
-					data.scripts.preview = 'wrangler pages dev .svelte-kit/cloudflare';
+					data.scripts.preview = 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
 				}
 			}
 
@@ -139,7 +140,7 @@ export default defineAddon({
 
 				if (!data.name) {
 					const pkg = parseJson(readFile(cwd, files.package));
-					data.name = pkg.data.name;
+					data.name = sanitizeName(pkg.data.name, 'wrangler');
 				}
 
 				data.compatibility_date ??= new Date().toISOString().split('T')[0];
@@ -201,7 +202,7 @@ export default defineAddon({
 
 					data.compilerOptions ??= {};
 					data.compilerOptions.types ??= [];
-					data.compilerOptions.types.push('worker-configuration.d.ts');
+					data.compilerOptions.types.push('./worker-configuration.d.ts');
 
 					return generateCode();
 				});

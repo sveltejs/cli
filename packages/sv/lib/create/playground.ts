@@ -6,6 +6,7 @@ import { parseJson, parseScript, parseSvelte } from '../core/tooling/parsers.ts'
 import { isVersionUnsupportedBelow } from '../core/index.ts';
 import { getSharedFiles } from './utils.ts';
 import { walk } from 'zimmerframe';
+import { commonFilePaths } from '../cli/add/utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -102,8 +103,9 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	for (const file of files) {
 		let ast: js.AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
-			const { script } = parseSvelte(file.content, { ensureScript: {} });
-			ast = script;
+			const { ast: svelteAst } = parseSvelte(file.content);
+			svelte.ensureScript(svelteAst);
+			ast = svelteAst.instance.content;
 		} else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
 			ast = parseScript(file.content).ast;
 		}
@@ -192,8 +194,8 @@ export function setupPlaygroundProject(
 				// getting raw content
 				const { ast, generateCode } = parseSvelte(file.contents);
 				// change title and url placeholders
-				const scriptAst = svelte.ensureScript(ast);
-				walk(scriptAst as js.AstTypes.Node, null, {
+				svelte.ensureScript(ast);
+				walk(ast.instance.content as js.AstTypes.Node, null, {
 					Literal(node) {
 						if (node.value === '$sv-title-$sv') {
 							node.value = playground.name;
@@ -216,9 +218,12 @@ export function setupPlaygroundProject(
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
 	const { ast, generateCode } = parseSvelte(content);
-	const scriptAst = svelte.ensureScript(ast);
-	js.imports.addDefault(scriptAst, { as: 'App', from: `$lib/playground/${mainFile.name}` });
-	js.imports.addDefault(scriptAst, {
+	svelte.ensureScript(ast);
+	js.imports.addDefault(ast.instance.content, {
+		as: 'App',
+		from: `$lib/playground/${mainFile.name}`
+	});
+	js.imports.addDefault(ast.instance.content, {
 		as: 'PlaygroundLayout',
 		from: `$lib/PlaygroundLayout.svelte`
 	});
@@ -231,7 +236,7 @@ export function setupPlaygroundProject(
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested
-	const pkgPath = path.join(cwd, 'package.json');
+	const pkgPath = path.join(cwd, commonFilePaths.packageJson);
 	const pkgSource = fs.readFileSync(pkgPath, 'utf-8');
 	const pkgJson = parseJson(pkgSource);
 	let updatePackageJson = false;
@@ -245,7 +250,7 @@ export function setupPlaygroundProject(
 
 	let experimentalAsyncNeeded = true;
 	const addExperimentalAsync = () => {
-		const svelteConfigPath = path.join(cwd, 'svelte.config.js');
+		const svelteConfigPath = path.join(cwd, commonFilePaths.svelteConfig);
 		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
 		const { ast, generateCode } = parseScript(svelteConfig);
 		const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
@@ -253,7 +258,7 @@ export function setupPlaygroundProject(
 		fs.writeFileSync(svelteConfigPath, generateCode(), 'utf-8');
 	};
 
-	// we want to change the svelte version, even if the user decieded
+	// we want to change the svelte version, even if the user decided
 	// to not install external dependencies
 	if (playground.svelteVersion) {
 		updatePackageJson = true;

@@ -180,13 +180,13 @@ export default defineAddon({
 		});
 
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
-			const { ast, script, generateCode } = parseSvelte(content, { ensureScript: { language } });
-
-			imports.addNamed(script, {
+			const { ast, generateCode } = parseSvelte(content);
+			svelte.ensureScript(ast);
+			imports.addNamed(ast.instance.content, {
 				imports: ['locales', 'localizeHref'],
 				from: '$lib/paraglide/runtime'
 			});
-			imports.addNamed(script, { imports: ['page'], from: '$app/state' });
+			imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
 			ast.fragment.nodes.push(
 				...svelte.toFragment(`<div style="display:none">
 	{#each locales as locale}
@@ -204,10 +204,13 @@ export default defineAddon({
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
-				const { ast, script, generateCode } = parseSvelte(content, { ensureScript: { language } });
-
-				imports.addNamed(script, { imports: { m: 'm' }, from: '$lib/paraglide/messages.js' });
-				imports.addNamed(script, {
+				const { ast, generateCode } = parseSvelte(content);
+				svelte.ensureScript(ast, { language });
+				imports.addNamed(ast.instance.content, {
+					imports: { m: 'm' },
+					from: '$lib/paraglide/messages.js'
+				});
+				imports.addNamed(ast.instance.content, {
 					imports: {
 						setLocale: 'setLocale'
 					},

@@ -1,5 +1,26 @@
 # sv
 
+## 0.11.2
+### Patch Changes
+
+
+- fix(cloudflare): use a relative path for worker-configuration type in the tsconfig.json file ([#866](https://github.com/sveltejs/cli/pull/866))
+
+
+- fix(cloudflare): local preview is now using port `4173` so that it works with the Playwright test command ([#866](https://github.com/sveltejs/cli/pull/866))
+
+## 0.11.1
+### Patch Changes
+
+
+- fix(adapter-cloudflare): sanitize wrangler project name to comply with Cloudflare naming requirements ([#861](https://github.com/sveltejs/cli/pull/861))
+
+## 0.11.0
+### Minor Changes
+
+
+- feat(cloudflare): able to fully setup cloudflare adapter for workers/pages ([#851](https://github.com/sveltejs/cli/pull/851))
+
 ## 0.10.8
 ### Patch Changes
 
