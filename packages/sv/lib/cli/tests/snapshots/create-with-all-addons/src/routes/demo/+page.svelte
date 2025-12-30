@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 	import { resolve } from '$app/paths';
 </script>
 
