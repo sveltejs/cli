@@ -151,8 +151,7 @@ export function buildArgs(
 	if (agent === null || agent === undefined) allArgs.push('--no-install');
 	else allArgs.push('--install', agent);
 
-	const normalizedLastArgs = lastArgs.map((arg) => arg.replace(/\\/g, '/'));
-	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...normalizedLastArgs])!;
+	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
 	return [res.command, ...res.args].join(' ');
 }
 

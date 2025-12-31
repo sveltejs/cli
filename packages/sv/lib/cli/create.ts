@@ -307,7 +307,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
-	const prompt = common.buildArgs(packageManager, 'create', argsFormatted, [directory]);
+	const prompt = common.buildArgs(packageManager, 'create', argsFormatted, [
+		path.posix.normalize(directory)
+	]);
 	common.updateReadme(directory, prompt);
 	p.log.info(pc.dim(`Re-run without prompts:\n${prompt}`));
 
