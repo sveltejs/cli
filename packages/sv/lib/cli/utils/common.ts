@@ -139,7 +139,7 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	return options;
 }
 
-export function buildArgs(
+export function buildAndLogArgs(
 	agent: AgentName | null | undefined,
 	command: 'create' | 'add',
 	args: string[],
@@ -152,7 +152,11 @@ export function buildArgs(
 	else allArgs.push('--install', agent);
 
 	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
-	return [res.command, ...res.args].join(' ');
+	const prompt = [res.command, ...res.args].join(' ');
+
+	p.log.info(pc.dim(`Re-run without prompts:\n${prompt}`));
+
+	return prompt;
 }
 
 export function updateReadme(projectPath: string, command: string) {
