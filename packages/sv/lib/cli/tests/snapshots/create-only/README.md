@@ -17,6 +17,7 @@ To recreate this project with the same configuration:
 # recreate this project
 npx sv create --template minimal --types ts --no-install .test-output/cli/create-only
 ```
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
