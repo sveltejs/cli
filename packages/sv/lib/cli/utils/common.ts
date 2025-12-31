@@ -174,7 +174,7 @@ export function updateReadme(projectPath: string, command: string) {
 		existingSection.trim() +
 		'\n\nTo recreate this project with the same configuration:\n\n```sh\n# recreate this project\n' +
 		command +
-		'\n```\n';
+		'\n```\n\n';
 
 	content = content.replace(creatingSectionPattern, updatedSection);
 	fs.writeFileSync(readmePath, content);
