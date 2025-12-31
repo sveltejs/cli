@@ -25,8 +25,11 @@ export default defineAddon({
 		sv.file('src/DemoComponent.svelte', (content) => {
 			if (!options.demo) return content;
 			const { ast, generateCode } = parseSvelte(content);
-			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
-			js.imports.addDefault(scriptAst, { from: '../addon-template-demo.txt?raw', as: 'demo' });
+			svelte.ensureScript(ast, { langTs: typescript });
+			js.imports.addDefault(ast.instance.content, {
+				from: '../addon-template-demo.txt?raw',
+				as: 'demo'
+			});
 			return generateCode();
 		});
 	}

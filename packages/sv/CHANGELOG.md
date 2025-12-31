@@ -1,5 +1,14 @@
 # sv
 
+## 0.11.2
+### Patch Changes
+
+
+- fix(cloudflare): use a relative path for worker-configuration type in the tsconfig.json file ([#866](https://github.com/sveltejs/cli/pull/866))
+
+
+- fix(cloudflare): local preview is now using port `4173` so that it works with the Playwright test command ([#866](https://github.com/sveltejs/cli/pull/866))
+
 ## 0.11.1
 ### Patch Changes
 

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist, getSharedFiles } from './utils.ts';
+import { commonFilePaths } from '../cli/add/utils.ts';
 import { sanitizeName } from '../core/sanitize.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
@@ -69,7 +70,7 @@ function write_template_files(template: string, types: LanguageType, name: strin
 function write_common_files(cwd: string, options: Options, name: string) {
 	const files = getSharedFiles();
 
-	const pkg_file = path.join(cwd, 'package.json');
+	const pkg_file = path.join(cwd, commonFilePaths.packageJson);
 	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
 
 	sort_files(files).forEach((file) => {
@@ -78,7 +79,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 
 		if (exclude || !include) return;
 
-		if (file.name === 'package.json') {
+		if (file.name === commonFilePaths.packageJson) {
 			const new_pkg = JSON.parse(file.contents);
 			merge(pkg, new_pkg);
 		} else {
