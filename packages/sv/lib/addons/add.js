@@ -8,9 +8,9 @@ import { createWorkspace } from '../cli/add/workspace.ts';
 import { TESTING } from '../cli/utils/env.ts';
 
 /** @typedef {import('../core.ts').Addon<any>} Addon */
-/** @typedef {import('./add.js').AddonMap} AddonMap */
-/** @typedef {import('./add.js').ApplyAddonOptions} ApplyAddonOptions */
-/** @typedef {import('./add.js').RunAddon} RunAddon */
+/** @typedef {import('./types.d.ts').AddonMap} AddonMap */
+/** @typedef {import('./types.d.ts').ApplyAddonOptions} ApplyAddonOptions */
+/** @typedef {import('./types.d.ts').RunAddon} RunAddon */
 /** @typedef {import('../core.ts').Workspace} Workspace */
 /** @typedef {import('../core.ts').AddonSetupResult} AddonSetupResult */
 /** @typedef {import('../core.ts').PackageManager} PackageManager */
@@ -23,7 +23,7 @@ import { TESTING } from '../cli/utils/env.ts';
  * @param {{
  *   cwd: string,
  *   addons: Addons,
- *   options: import('./add.js').OptionMap<Addons>,
+ *   options: import('./types.d.ts').OptionMap<Addons>,
  *   packageManager?: PackageManager
  * }} options
  * @returns {Promise<ReturnType<typeof applyAddons>>}

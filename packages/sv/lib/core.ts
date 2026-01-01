@@ -10,7 +10,7 @@ export { color } from './cli/add/utils.ts';
 export { isVersionUnsupportedBelow } from './core/common.ts';
 export { fileExists } from './cli/add/utils.ts';
 export { resolveCommand } from 'package-manager-detector/commands';
-export { getNodeTypesVersion, addToDemoPage } from './addons/common.ts';
+export { getNodeTypesVersion, addToDemoPage } from './addons/common.js';
 // from internals, in utils
 import { createPrinter } from './core/utils.ts';
 export const utils = {
@@ -21,15 +21,8 @@ export const utils = {
 export * as css from './core/tooling/css/index.ts';
 export * as js from './core/tooling/js/index.ts';
 export * as html from './core/tooling/html/index.ts';
-import { ensureScript, addSlot, addFragment } from './core/tooling/svelte/index.ts';
-/**
- * Helper functions to manipulate Svelte code.
- */
-export const svelte = {
-	ensureScript: ensureScript as typeof ensureScript,
-	addSlot: addSlot as typeof addSlot,
-	addFragment: addFragment as typeof addFragment
-};
+export * as svelte from './core/tooling/svelte/index.ts';
+
 import {
 	parseCss,
 	parseHtml,

@@ -7,9 +7,11 @@
 		"lib/core/tests/**/output.ts",
 		"lib/create/templates/**",
 		"lib/create/shared/vite.config.ts",
+		"lib/create/shared/**",
 		"lib/cli/tests/snapshots/**"
 	],
 	"compilerOptions": {
-		"checkJs": false
+		"checkJs": true,
+		"allowJs": true
 	}
 }

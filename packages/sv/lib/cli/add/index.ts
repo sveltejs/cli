@@ -10,8 +10,8 @@ import * as v from 'valibot';
 import {
 	officialAddons as _officialAddons,
 	getAddonDetails
-} from '../../addons/_config/official.ts';
-import { type AddonMap, applyAddons, setupAddons } from '../../addons/add.ts';
+} from '../../addons/_config/official.js';
+import { type AddonMap, applyAddons, setupAddons } from '../../addons/add.js';
 import type { AddonSetupResult, OptionValues, ResolvedAddon, Workspace } from '../../core.ts';
 import { noDownloadCheckOption, noInstallOption } from '../create.ts';
 import * as common from '../utils/common.ts';
