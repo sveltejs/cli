@@ -1,9 +1,14 @@
-import type { SvelteAst } from '../index.ts';
+/** @typedef {import("../index.ts").SvelteAst.CSS.StyleSheet} StyleSheet */
+/** @typedef {import("../index.ts").SvelteAst.CSS.Rule} Rule */
+/** @typedef {import("../index.ts").SvelteAst.CSS.Declaration} Declaration */
+/** @typedef {import("../index.ts").SvelteAst.CSS.Atrule} Atrule */
 
-export function addRule(
-	node: SvelteAst.CSS.StyleSheet,
-	options: { selector: string }
-): SvelteAst.CSS.Rule {
+/**
+ * @param {StyleSheet} node
+ * @param {{ selector: string }} options
+ * @returns {Rule}
+ */
+export function addRule(node, options) {
 	// we do not check for existing rules here, as the selector AST from svelte is really complex
 	const rules = node.children.filter((x) => x.type === 'Rule');
 	let rule = rules.find((x) => {
@@ -52,10 +57,11 @@ export function addRule(
 	return rule;
 }
 
-export function addDeclaration(
-	node: SvelteAst.CSS.Rule,
-	options: { property: string; value: string }
-): void {
+/**
+ * @param {Rule} node
+ * @param {{ property: string; value: string }} options
+ */
+export function addDeclaration(node, options) {
 	const declarations = node.block.children.filter((x) => x.type === 'Declaration');
 	let declaration = declarations.find((x) => x.property === options.property);
 
@@ -73,7 +79,11 @@ export function addDeclaration(
 	}
 }
 
-export function addImports(node: SvelteAst.CSS.StyleSheet, options: { imports: string[] }): void {
+/**
+ * @param {StyleSheet} node
+ * @param {{ imports: string[] }} options
+ */
+export function addImports(node, options) {
 	let lastImportIndex = -1;
 
 	// Find the last existing @import to insert after it
@@ -91,7 +101,8 @@ export function addImports(node: SvelteAst.CSS.StyleSheet, options: { imports: s
 
 		if (found) continue;
 
-		const atRule: SvelteAst.CSS.Atrule = {
+		/** @type {Atrule} */
+		const atRule = {
 			type: 'Atrule',
 			name: 'import',
 			prelude: param,
@@ -112,10 +123,12 @@ export function addImports(node: SvelteAst.CSS.StyleSheet, options: { imports: s
 	}
 }
 
-export function addAtRule(
-	node: SvelteAst.CSS.StyleSheet,
-	options: { name: string; params: string; append: boolean }
-): SvelteAst.CSS.Atrule {
+/**
+ * @param {StyleSheet} node
+ * @param {{ name: string; params: string; append: boolean }} options
+ * @returns {Atrule}
+ */
+export function addAtRule(node, options) {
 	const atRules = node.children.filter((x) => x.type === 'Atrule');
 	let atRule = atRules.find((x) => x.name === options.name && x.prelude === options.params);
 

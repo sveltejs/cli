@@ -1,15 +1,20 @@
-import { parseScript, type SvelteAst } from '../index.ts';
+import { parseScript } from '../index.ts';
 import { parseSvelte } from '../parsers.ts';
 import { appendFromString } from '../js/common.ts';
 
-type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
+/** @typedef {import("../index.ts").SvelteAst.Root} Root */
+/** @typedef {import("../index.ts").SvelteAst.Script} Script */
 
-// because we create instance if it doesn't exist, we can assert its presence
-// for all further processing after calling this function.
-export function ensureScript(
-	ast: SvelteAst.Root,
-	options?: { langTs?: boolean }
-): asserts ast is RootWithInstance {
+/** @typedef {Root & { instance: Script }} RootWithInstance */
+
+/**
+ * Ensures script instance exists. Because we create instance if it doesn't exist,
+ * we can assert its presence for all further processing after calling this function.
+ * @param {Root} ast
+ * @param {{ langTs?: boolean }} [options]
+ * @returns {asserts ast is RootWithInstance}
+ */
+export function ensureScript(ast, options) {
 	if (ast.instance?.content) return;
 
 	ast.instance = {
@@ -33,10 +38,11 @@ export function ensureScript(
 	};
 }
 
-export function addSlot(
-	ast: SvelteAst.Root,
-	options: { svelteVersion: string; langTs?: boolean }
-): void {
+/**
+ * @param {Root} ast
+ * @param {{ svelteVersion: string; langTs?: boolean }} options
+ */
+export function addSlot(ast, options) {
 	const slotSyntax =
 		options.svelteVersion &&
 		(options.svelteVersion.startsWith('4') || options.svelteVersion.startsWith('3'));
@@ -81,13 +87,12 @@ export function addSlot(
 	});
 }
 
-export function addFragment(
-	ast: SvelteAst.Root,
-	content: string,
-	options?: {
-		mode?: 'append' | 'prepend';
-	}
-): void {
+/**
+ * @param {Root} ast
+ * @param {string} content
+ * @param {{ mode?: 'append' | 'prepend' }} [options]
+ */
+export function addFragment(ast, content, options) {
 	const { ast: fragmentAst } = parseSvelte(content);
 
 	if (options?.mode === 'prepend') {
