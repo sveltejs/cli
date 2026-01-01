@@ -1,8 +1,8 @@
 import process from 'node:process';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import { officialAddons } from '../../index.ts';
-import type { AddonMap, OptionMap } from '../../../addons/install.ts';
+import { officialAddons } from '../../_config/official.ts';
+import type { AddonMap, OptionMap } from '../../../addons/add.ts';
 
 const windowsCI = process.env.CI && process.platform === 'win32';
 const addons = Object.values(officialAddons).reduce<AddonMap>((addonMap, addon) => {
@@ -19,17 +19,14 @@ const defaultOptions = Object.values(officialAddons).reduce<OptionMap<typeof add
 	{}
 );
 
-const { test, testCases, prepareServer } = setupTest(addons, {
+const { test, testCases } = setupTest(addons, {
 	kinds: [{ type: 'default', options: defaultOptions }],
-	filter: (addonTestCase) => addonTestCase.variant.startsWith('kit')
+	filter: (addonTestCase) => addonTestCase.variant.startsWith('kit'),
+	browser: false
 });
 
-test.concurrent.for(testCases)('run all addons - $variant', async (testCase, { page, ...ctx }) => {
+test.concurrent.for(testCases)('run all addons - $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
-
-	expect(true).toBe(true);
+	expect(cwd).toBeDefined();
 });

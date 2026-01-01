@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import * as js from '../core/tooling/js/index.ts';
-import * as svelte from '../core/tooling/svelte/index.ts';
-import { parseJson, parseScript, parseSvelte } from '../core/tooling/parsers.ts';
-import { isVersionUnsupportedBelow } from '../core/index.ts';
-import { getSharedFiles } from './utils.ts';
 import { walk } from 'zimmerframe';
 import { commonFilePaths } from '../cli/add/utils.ts';
+
+import { isVersionUnsupportedBelow, js, parse, svelte } from '../core.ts';
+import { getSharedFiles } from './utils.ts';
+// eslint-disable-next-line no-restricted-imports
+import { downloadJson } from '../core/downloadJson.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -55,8 +55,7 @@ export async function downloadPlaygroundData({
 	if (hash) {
 		data = JSON.parse(await decodeAndDecompressText(hash));
 	} else {
-		const response = await fetch(`https://svelte.dev/playground/api/${playgroundId}.json`);
-		data = await response.json();
+		data = await downloadJson(`https://svelte.dev/playground/api/${playgroundId}.json`);
 	}
 
 	// saved playgrounds and playground hashes have a different structure
@@ -103,11 +102,11 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	for (const file of files) {
 		let ast: js.AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
-			const { ast: svelteAst } = parseSvelte(file.content);
+			const { ast: svelteAst } = parse.svelte(file.content);
 			svelte.ensureScript(svelteAst);
 			ast = svelteAst.instance.content;
 		} else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
-			ast = parseScript(file.content).ast;
+			ast = parse.script(file.content).ast;
 		}
 		if (!ast) continue;
 
@@ -192,7 +191,7 @@ export function setupPlaygroundProject(
 
 			if (file.name === 'src/lib/PlaygroundLayout.svelte') {
 				// getting raw content
-				const { ast, generateCode } = parseSvelte(file.contents);
+				const { ast, generateCode } = parse.svelte(file.contents);
 				// change title and url placeholders
 				svelte.ensureScript(ast);
 				walk(ast.instance.content as js.AstTypes.Node, null, {
@@ -217,7 +216,7 @@ export function setupPlaygroundProject(
 	// add app import to +page.svelte
 	const filePath = path.join(cwd, 'src/routes/+page.svelte');
 	const content = fs.readFileSync(filePath, 'utf-8');
-	const { ast, generateCode } = parseSvelte(content);
+	const { ast, generateCode } = parse.svelte(content);
 	svelte.ensureScript(ast);
 	js.imports.addDefault(ast.instance.content, {
 		as: 'App',
@@ -227,10 +226,11 @@ export function setupPlaygroundProject(
 		as: 'PlaygroundLayout',
 		from: `$lib/PlaygroundLayout.svelte`
 	});
-	ast.fragment.nodes.push(
-		...svelte.toFragment(`<PlaygroundLayout>
-	<App />
-</PlaygroundLayout>`)
+	svelte.addFragment(
+		ast,
+		`<PlaygroundLayout>
+		<App />
+	</PlaygroundLayout>`
 	);
 	const newContent = generateCode();
 	fs.writeFileSync(filePath, newContent, 'utf-8');
@@ -238,7 +238,7 @@ export function setupPlaygroundProject(
 	// add packages as dependencies to package.json if requested
 	const pkgPath = path.join(cwd, commonFilePaths.packageJson);
 	const pkgSource = fs.readFileSync(pkgPath, 'utf-8');
-	const pkgJson = parseJson(pkgSource);
+	const pkgJson = parse.json(pkgSource);
 	let updatePackageJson = false;
 	if (installDependencies && dependencies.size >= 0) {
 		updatePackageJson = true;
@@ -252,7 +252,7 @@ export function setupPlaygroundProject(
 	const addExperimentalAsync = () => {
 		const svelteConfigPath = path.join(cwd, commonFilePaths.svelteConfig);
 		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
-		const { ast, generateCode } = parseScript(svelteConfig);
+		const { ast, generateCode } = parse.script(svelteConfig);
 		const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
 		js.object.overrideProperties(config, { compilerOptions: { experimental: { async: true } } });
 		fs.writeFileSync(svelteConfigPath, generateCode(), 'utf-8');

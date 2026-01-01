@@ -1,18 +1,19 @@
 import MagicString from 'magic-string';
+
 import {
-	colors,
+	type AstTypes,
+	Walker,
+	addToDemoPage,
 	dedent,
 	defineAddon,
 	defineAddonOptions,
+	js,
 	log,
-	utils,
-	Walker
-} from '../../core/index.ts';
-import * as js from '../../core/tooling/js/index.ts';
-import type { AstTypes } from '../../core/tooling/js/index.ts';
-import { parseScript } from '../../core/tooling/parsers.ts';
-import { resolveCommand } from 'package-manager-detector/commands';
-import { addToDemoPage } from '../common.ts';
+	parse,
+	resolveCommand,
+	color,
+	utils
+} from '../../core.ts';
 
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',
@@ -30,7 +31,7 @@ const options = defineAddonOptions()
 	.add('demo', {
 		type: 'boolean',
 		default: true,
-		question: `Do you want to include a demo? ${colors.dim('(includes a login/register page)')}`
+		question: `Do you want to include a demo? ${color.optional('(includes a login/register page)')}`
 	})
 	.build();
 
@@ -57,7 +58,7 @@ export default defineAddon({
 		}
 
 		sv.file(`drizzle.config.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
@@ -90,7 +91,7 @@ export default defineAddon({
 		});
 
 		sv.file(schemaPath, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			const createTable = (name: string) =>
 				js.functions.createCall({
 					name: TABLE_TYPE[drizzleDialect],
@@ -223,7 +224,7 @@ export default defineAddon({
 		});
 
 		sv.file(`${kit?.libDirectory}/server/auth.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamespace(ast, { from: '$lib/server/db/schema', as: 'table' });
 			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
@@ -360,7 +361,7 @@ export default defineAddon({
 
 		if (typescript) {
 			sv.file('src/app.d.ts', (content) => {
-				const { ast, generateCode } = parseScript(content);
+				const { ast, generateCode } = parse.script(content);
 
 				const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
 				if (!locals) {
@@ -384,7 +385,7 @@ export default defineAddon({
 		}
 
 		sv.file(`src/hooks.server.${ext}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			js.imports.addNamespace(ast, { from: '$lib/server/auth', as: 'auth' });
 			js.kit.addHooksHandle(ast, {
 				typescript,
@@ -402,7 +403,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -525,7 +526,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -575,7 +576,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.server.${ext}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -617,7 +618,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.svelte`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -639,13 +640,13 @@ export default defineAddon({
 			});
 		}
 	},
-	nextSteps: ({ highlighter, options, packageManager }) => {
+	nextSteps: ({ options, packageManager }) => {
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		const steps = [
-			`Run ${highlighter.command(`${command} ${args.join(' ')}`)} to update your database schema`
+			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		];
 		if (options.demo) {
-			steps.push(`Visit ${highlighter.route('/demo/lucia')} route to view the demo`);
+			steps.push(`Visit ${color.route('/demo/lucia')} route to view the demo`);
 		}
 
 		return steps;

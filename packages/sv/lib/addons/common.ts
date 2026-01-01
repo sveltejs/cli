@@ -1,10 +1,9 @@
-import { imports, exports, common } from '../core/tooling/js/index.ts';
-import { toFragment, type SvelteAst, ensureScript } from '../core/tooling/svelte/index.ts';
-import { parseScript, parseSvelte } from '../core/tooling/parsers.ts';
 import process from 'node:process';
 
+import { type SvelteAst, js, parse, svelte } from '../core.ts';
+
 export function addEslintConfigPrettier(content: string): string {
-	const { ast, generateCode } = parseScript(content);
+	const { ast, generateCode } = parse.script(content);
 
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -23,22 +22,22 @@ export function addEslintConfigPrettier(content: string): string {
 	}
 
 	svelteImportName ??= 'svelte';
-	imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: svelteImportName });
-	imports.addDefault(ast, { from: 'eslint-config-prettier', as: 'prettier' });
+	js.imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: svelteImportName });
+	js.imports.addDefault(ast, { from: 'eslint-config-prettier', as: 'prettier' });
 
-	const fallbackConfig = common.parseExpression('[]');
-	const defaultExport = exports.createDefault(ast, { fallback: fallbackConfig });
+	const fallbackConfig = js.common.parseExpression('[]');
+	const defaultExport = js.exports.createDefault(ast, { fallback: fallbackConfig });
 	const eslintConfig = defaultExport.value;
 	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression')
 		return content;
 
-	const prettier = common.parseExpression('prettier');
-	const sveltePrettierConfig = common.parseExpression(`${svelteImportName}.configs.prettier`);
-	const configSpread = common.createSpread(sveltePrettierConfig);
+	const prettier = js.common.parseExpression('prettier');
+	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
+	const configSpread = js.common.createSpread(sveltePrettierConfig);
 
 	const nodesToInsert = [];
-	if (!common.contains(eslintConfig, prettier)) nodesToInsert.push(prettier);
-	if (!common.contains(eslintConfig, configSpread)) nodesToInsert.push(configSpread);
+	if (!js.common.contains(eslintConfig, prettier)) nodesToInsert.push(prettier);
+	if (!js.common.contains(eslintConfig, configSpread)) nodesToInsert.push(configSpread);
 
 	const elements =
 		eslintConfig.type === 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
@@ -65,7 +64,7 @@ export function addEslintConfigPrettier(content: string): string {
 }
 
 export function addToDemoPage(existingContent: string, path: string, langTs: boolean): string {
-	const { ast, generateCode } = parseSvelte(existingContent);
+	const { ast, generateCode } = parse.svelte(existingContent);
 
 	for (const node of ast.fragment.nodes) {
 		if (node.type === 'RegularElement') {
@@ -87,9 +86,9 @@ export function addToDemoPage(existingContent: string, path: string, langTs: boo
 	}
 
 	ensureScript(ast, { langTs });
-	imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
+	js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
-	ast.fragment.nodes.unshift(...toFragment(`<a href={resolve('/demo/${path}')}>${path}</a>`));
+	svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
 	ast.fragment.nodes.unshift();
 
 	return generateCode();

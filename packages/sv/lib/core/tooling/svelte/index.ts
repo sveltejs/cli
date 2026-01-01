@@ -2,8 +2,6 @@ import { parseScript, type SvelteAst } from '../index.ts';
 import { parseSvelte } from '../parsers.ts';
 import { appendFromString } from '../js/common.ts';
 
-export type { SvelteAst };
-
 type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
 
 // because we create instance if it doesn't exist, we can assert its presence
@@ -83,7 +81,18 @@ export function addSlot(
 	});
 }
 
-export function toFragment(content: string): SvelteAst.Fragment['nodes'] {
-	const { ast } = parseSvelte(content);
-	return ast.fragment.nodes;
+export function addFragment(
+	ast: SvelteAst.Root,
+	content: string,
+	options?: {
+		mode?: 'append' | 'prepend';
+	}
+): void {
+	const { ast: fragmentAst } = parseSvelte(content);
+
+	if (options?.mode === 'prepend') {
+		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
+	} else {
+		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
+	}
 }

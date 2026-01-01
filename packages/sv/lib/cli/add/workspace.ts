@@ -1,12 +1,11 @@
+import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import * as find from 'empathic/find';
-import { common, object, type AstTypes } from '../../core/tooling/js/index.ts';
-import { parseScript } from '../../core/tooling/parsers.ts';
 import { detect } from 'package-manager-detector';
-import type { PackageManager, Workspace } from '../../core/index.ts';
-import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
+
+import { type AstTypes, type PackageManager, type Workspace, js, parse } from '../../core.ts';
 import { getUserAgent } from '../utils/package-manager.ts';
+import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 
 type CreateWorkspaceOptions = {
 	cwd: string;
@@ -131,7 +130,7 @@ function findWorkspaceRoot(cwd: string): string {
 
 function parseKitOptions(cwd: string) {
 	const configSource = readFile(cwd, commonFilePaths.svelteConfig);
-	const { ast } = parseScript(configSource);
+	const { ast } = parse.script(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
 	if (!defaultExport) throw Error(`Missing default export in \`${commonFilePaths.svelteConfig}\``);
@@ -168,10 +167,13 @@ function parseKitOptions(cwd: string) {
 	if (!objectExpression)
 		throw new Error(`Unexpected svelte config shape from \`${commonFilePaths.svelteConfig}\``);
 
-	const kit = object.property(objectExpression, { name: 'kit', fallback: object.create({}) });
-	const files = object.property(kit, { name: 'files', fallback: object.create({}) });
-	const routes = object.property(files, { name: 'routes', fallback: common.createLiteral('') });
-	const lib = object.property(files, { name: 'lib', fallback: common.createLiteral('') });
+	const kit = js.object.property(objectExpression, { name: 'kit', fallback: js.object.create({}) });
+	const files = js.object.property(kit, { name: 'files', fallback: js.object.create({}) });
+	const routes = js.object.property(files, {
+		name: 'routes',
+		fallback: js.common.createLiteral('')
+	});
+	const lib = js.object.property(files, { name: 'lib', fallback: js.common.createLiteral('') });
 
 	const routesDirectory = (routes.value as string) || 'src/routes';
 	const libDirectory = (lib.value as string) || 'src/lib';

@@ -29,6 +29,7 @@ Which project template to use:
 - `minimal` — barebones scaffolding for your new app
 - `demo` — showcase app with a word guessing game that works without JavaScript
 - `library` — template for a Svelte library, set up with `svelte-package`
+- `addon` — template for a community add-on, ready to be tested & published
 
 ### `--types <option>`
 

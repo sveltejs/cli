@@ -21,16 +21,16 @@
 	"bin": "./dist/bin.mjs",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.mts",
+			"types": "./dist/lib/index.d.mts",
 			"default": "./dist/lib/index.mjs"
 		},
 		"./testing": {
-			"types": "./dist/testing.d.mts",
+			"types": "./dist/lib/testing.d.mts",
 			"default": "./dist/lib/testing.mjs"
 		},
 		"./core": {
-			"types": "./dist/lib/core/index.d.ts",
-			"default": "./dist/lib/core/index.mjs"
+			"types": "./dist/lib/core.d.mts",
+			"default": "./dist/lib/core.mjs"
 		}
 	},
 	"devDependencies": {
@@ -39,6 +39,7 @@
 		"@types/estree": "^1.0.8",
 		"@types/gitignore-parser": "^0.0.3",
 		"@types/ps-tree": "^1.1.6",
+		"@types/tar-fs": "^2.0.4",
 		"commander": "^14.0.2",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.0",
@@ -54,6 +55,7 @@
 		"smol-toml": "^1.5.2",
 		"sucrase": "^3.35.1",
 		"svelte": "^5.45.10",
+		"tar-fs": "^3.1.1",
 		"tiny-glob": "^0.2.9",
 		"tinyexec": "^1.0.2",
 		"valibot": "^1.2.0",

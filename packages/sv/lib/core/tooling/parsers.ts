@@ -3,6 +3,18 @@ import * as utils from './index.ts';
 
 type ParseBase = {
 	source: string;
+	/**
+	 * Generate the code after manipulating the `ast`.
+	 *
+	 * ```ts
+	 * import { svelte } from 'sv/core';
+	 * const { ast, generateCode } = parse.svelte(content);
+	 *
+	 * svelte.addFragment(ast, '<p>Hello World</p>');
+	 *
+	 * const code = generateCode();
+	 * ```
+	 */
 	generateCode(): string;
 };
 

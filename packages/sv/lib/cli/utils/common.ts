@@ -1,11 +1,12 @@
-import pc from 'picocolors';
-import pkg from '../../../package.json' with { type: 'json' };
 import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import { UnsupportedError } from './errors.ts';
 import process from 'node:process';
-import { isVersionUnsupportedBelow } from '../../core/index.ts';
-import { resolveCommand, type AgentName } from 'package-manager-detector';
+import { type AgentName, resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
+
+import pkg from '../../../package.json' with { type: 'json' };
+import { isVersionUnsupportedBelow } from '../../core.ts';
+import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
@@ -155,6 +156,7 @@ export function logArgs(
 
 export function errorAndExit(message: string) {
 	p.log.error(message);
+	p.log.message();
 	p.cancel('Operation failed.');
 	process.exit(1);
 }

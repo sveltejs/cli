@@ -1,10 +1,15 @@
-import { defineAddon, defineAddonOptions } from '../../core/index.ts';
-import { exports, functions, imports, object, type AstTypes } from '../../core/tooling/js/index.ts';
-import { parseJson, parseScript, parseToml } from '../../core/tooling/parsers.ts';
-import { fileExists, readFile } from '../../cli/add/utils.ts';
-import { sanitizeName } from '../../core/sanitize.ts';
-import { resolveCommand } from 'package-manager-detector';
-import * as js from '../../core/tooling/js/index.ts';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import {
+	defineAddon,
+	defineAddonOptions,
+	js,
+	parse,
+	resolveCommand,
+	fileExists,
+	type AstTypes
+} from '../../core.ts';
+import { sanitizeName } from '../../coreInternal.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
@@ -48,7 +53,7 @@ export default defineAddon({
 
 		// removes previously installed adapters
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 			const devDeps = data['devDependencies'];
 
 			for (const pkg of Object.keys(devDeps)) {
@@ -72,7 +77,7 @@ export default defineAddon({
 		sv.devDependency(adapter.package, adapter.version);
 
 		sv.file(files.svelteConfig, (content) => {
-			const { ast, comments, generateCode } = parseScript(content);
+			const { ast, comments, generateCode } = parse.script(content);
 
 			// finds any existing adapter's import declaration
 			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -93,22 +98,22 @@ export default defineAddon({
 				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
 					?.local?.name as string;
 			} else {
-				imports.addDefault(ast, { from: adapter.package, as: adapterName });
+				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
 
-			const { value: config } = exports.createDefault(ast, { fallback: object.create({}) });
+			const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
 
 			// override the adapter property
-			object.overrideProperties(config, {
+			js.object.overrideProperties(config, {
 				kit: {
-					adapter: functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+					adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 				}
 			});
 
 			// reset the comment for non-auto adapters
 			if (adapter.package !== '@sveltejs/adapter-auto') {
-				const fallback = object.create({});
-				const cfgKitValue = object.property(config, { name: 'kit', fallback });
+				const fallback = js.object.create({});
+				const cfgKitValue = js.object.property(config, { name: 'kit', fallback });
 
 				// removes any existing adapter auto comments
 				comments.remove(
@@ -132,14 +137,14 @@ export default defineAddon({
 			// Setup Cloudlfare workers/pages config
 			sv.file(`wrangler.${configFormat}`, (content) => {
 				const { data, generateCode } =
-					configFormat === 'jsonc' ? parseJson(content) : parseToml(content);
+					configFormat === 'jsonc' ? parse.json(content) : parse.toml(content);
 
 				if (configFormat === 'jsonc') {
 					data.$schema ??= './node_modules/wrangler/config-schema.json';
 				}
 
 				if (!data.name) {
-					const pkg = parseJson(readFile(cwd, files.package));
+					const pkg = parse.json(readFileSync(join(cwd, files.package), 'utf-8'));
 					data.name = sanitizeName(pkg.data.name, 'wrangler');
 				}
 
@@ -184,7 +189,7 @@ export default defineAddon({
 
 				// Setup wrangler types command
 				sv.file(files.package, (content) => {
-					const { data, generateCode } = parseJson(content);
+					const { data, generateCode } = parse.json(content);
 
 					data.scripts ??= {};
 					data.scripts.types = 'wrangler types';
@@ -198,7 +203,7 @@ export default defineAddon({
 
 				// Add Cloudflare generated types to tsconfig
 				sv.file(`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`, (content) => {
-					const { data, generateCode } = parseJson(content);
+					const { data, generateCode } = parse.json(content);
 
 					data.compilerOptions ??= {};
 					data.compilerOptions.types ??= [];
@@ -208,7 +213,7 @@ export default defineAddon({
 				});
 
 				sv.file('src/app.d.ts', (content) => {
-					const { ast, generateCode } = parseScript(content);
+					const { ast, generateCode } = parse.script(content);
 
 					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
 					if (!platform) {
