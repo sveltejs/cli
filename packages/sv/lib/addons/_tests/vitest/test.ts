@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import { setupTest } from '../_setup/suite.ts';
-import vitest from '../../vitest-addon/index.ts';
+import vitest from '../../vitest-addon/index.js';
 import path from 'node:path';
 import fs from 'node:fs';
 

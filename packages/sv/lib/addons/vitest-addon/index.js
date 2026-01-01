@@ -43,7 +43,8 @@ export default defineAddon({
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
+			/** @type {Record<string, string>} */
+			const scripts = data.scripts;
 			const TEST_CMD = 'vitest';
 			// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
 			const RUN_TEST = 'npm run test:unit -- --run';
@@ -159,7 +160,8 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ typescript, options }) => {
-		const toReturn: string[] = [];
+		/** @type {string[]} */
+		const toReturn = [];
 
 		if (vitestV3Installed) {
 			const componentTesting = options.usages.includes('component');

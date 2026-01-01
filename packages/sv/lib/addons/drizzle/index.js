@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
-	type OptionValues,
 	dedent,
 	defineAddon,
 	defineAddonOptions,
@@ -13,8 +12,12 @@ import {
 	color
 } from '../../core.ts';
 
-type Database = 'mysql' | 'postgresql' | 'sqlite';
-const PORTS: Record<Database, string> = {
+/**
+ * @typedef {'mysql' | 'postgresql' | 'sqlite'} Database
+ */
+
+/** @type {Record<Database, string>} */
+const PORTS = {
 	mysql: '3306',
 	postgresql: '5432',
 	sqlite: ''
@@ -187,7 +190,8 @@ export default defineAddon({
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
+			/** @type {Record<string, string>} */
+			const scripts = data.scripts;
 			if (options.docker) scripts['db:start'] ??= 'docker compose up';
 			scripts['db:push'] ??= 'drizzle-kit push';
 			scripts['db:generate'] ??= 'drizzle-kit generate';
@@ -433,7 +437,9 @@ export default defineAddon({
 			`You will need to set ${color.env('DATABASE_URL')} in your production environment`
 		];
 		if (options.docker) {
-			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
+			const resolved = resolveCommand(packageManager, 'run', ['db:start']);
+			if (!resolved) throw new Error('Failed to resolve command');
+			const { command, args } = resolved;
 			steps.push(
 				`Run ${color.command(`${command} ${args.join(' ')}`)} to start the docker container`
 			);
@@ -442,7 +448,9 @@ export default defineAddon({
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
-		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
+		const resolvedPush = resolveCommand(packageManager, 'run', ['db:push']);
+		if (!resolvedPush) throw new Error('Failed to resolve command');
+		const { command, args } = resolvedPush;
 		steps.push(
 			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		);
@@ -451,7 +459,12 @@ export default defineAddon({
 	}
 });
 
-function generateEnvFileContent(content: string, opts: OptionValues<typeof options>) {
+/**
+ * @param {string} content
+ * @param {import('../../core.ts').OptionValues<typeof options>} opts
+ * @returns {string}
+ */
+function generateEnvFileContent(content, opts) {
 	const DB_URL_KEY = 'DATABASE_URL';
 	if (opts.docker) {
 		// we'll prefill with the default docker db credentials
@@ -486,14 +499,25 @@ function generateEnvFileContent(content: string, opts: OptionValues<typeof optio
 	return content;
 }
 
-function addEnvVar(content: string, key: string, value: string) {
+/**
+ * @param {string} content
+ * @param {string} key
+ * @param {string} value
+ * @returns {string}
+ */
+function addEnvVar(content, key, value) {
 	if (!content.includes(key + '=')) {
 		content = appendEnvContent(content, `${key}=${value}`);
 	}
 	return content;
 }
 
-function addEnvComment(content: string, comment: string) {
+/**
+ * @param {string} content
+ * @param {string} comment
+ * @returns {string}
+ */
+function addEnvComment(content, comment) {
 	const commented = `# ${comment}`;
 	if (!content.includes(commented)) {
 		content = appendEnvContent(content, commented);
@@ -501,7 +525,12 @@ function addEnvComment(content: string, comment: string) {
 	return content;
 }
 
-function appendEnvContent(existing: string, content: string) {
+/**
+ * @param {string} existing
+ * @param {string} content
+ * @returns {string}
+ */
+function appendEnvContent(existing, content) {
 	const withNewLine = !existing.length || existing.endsWith('\n') ? existing : existing + '\n';
 	return withNewLine + content + '\n';
 }

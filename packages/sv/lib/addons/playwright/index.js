@@ -13,7 +13,8 @@ export default defineAddon({
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
+			/** @type {Record<string, string>} */
+			const scripts = data.scripts;
 			const TEST_CMD = 'playwright test';
 			const RUN_TEST = 'npm run test:e2e';
 			scripts['test:e2e'] ??= TEST_CMD;

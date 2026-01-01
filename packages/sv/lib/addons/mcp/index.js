@@ -34,13 +34,26 @@ export default defineAddon({
 	homepage: 'https://svelte.dev/docs/mcp',
 	options,
 	run: ({ sv, options }) => {
-		const getLocalConfig = (o?: {
-			type?: 'stdio' | 'local';
-			env?: boolean;
-			command?: string | string[];
-			args?: string[] | null;
-		}) => {
-			const config: any = {
+		/**
+		 * @typedef {{
+		 *   type?: 'stdio' | 'local',
+		 *   command: string,
+		 *   env?: {},
+		 *   args?: string[]
+		 * }} LocalConfig
+		 */
+
+		/**
+		 * @param {Object} [o]
+		 * @param {'stdio' | 'local'} [o.type]
+		 * @param {boolean} [o.env]
+		 * @param {string | string[]} [o.command]
+		 * @param {string[] | null} [o.args]
+		 * @returns {LocalConfig}
+		 */
+		const getLocalConfig = (o) => {
+			/** @type {any} */
+			const config = {
 				...(o?.type ? { type: o.type } : {}),
 				command: o?.command ?? 'npx',
 				...(o?.env ? { env: {} } : {}),
@@ -48,28 +61,40 @@ export default defineAddon({
 			};
 			return config;
 		};
-		const getRemoteConfig = (o?: { type?: 'http' | 'remote' }) => {
+		/**
+		 * @typedef {{
+		 *   type?: 'http' | 'remote',
+		 *   url: string
+		 * }} RemoteConfig
+		 */
+
+		/**
+		 * @param {Object} [o]
+		 * @param {'http' | 'remote'} [o.type]
+		 * @returns {RemoteConfig}
+		 */
+		const getRemoteConfig = (o) => {
 			return {
 				...(o?.type ? { type: o.type } : {}),
 				url: 'https://mcp.svelte.dev/mcp'
 			};
 		};
 
-		const configurator: Record<
-			(typeof options.ide)[number],
-			| {
-					schema?: string;
-					mcpServersKey?: string;
-					agentPath: string;
-					mcpPath: string;
-					typeLocal?: 'stdio' | 'local';
-					typeRemote?: 'http' | 'remote';
-					env?: boolean;
-					command?: string | string[];
-					args?: string[] | null;
-			  }
-			| { other: true }
-		> = {
+		/**
+		 * @typedef {{
+		 *   schema?: string,
+		 *   mcpServersKey?: string,
+		 *   agentPath: string,
+		 *   mcpPath: string,
+		 *   typeLocal?: 'stdio' | 'local',
+		 *   typeRemote?: 'http' | 'remote',
+		 *   env?: boolean,
+		 *   command?: string | string[],
+		 *   args?: string[] | null
+		 * } | {other: true}} ConfiguratorValue
+		 * @type {Record<(typeof options.ide)[number], ConfiguratorValue>}
+		 */
+		const configurator = {
 			'claude-code': {
 				agentPath: 'CLAUDE.md',
 				mcpPath: '.mcp.json',
@@ -107,8 +132,10 @@ export default defineAddon({
 			}
 		};
 
-		const filesAdded: string[] = [];
-		const filesExistingAlready: string[] = [];
+		/** @type {string[]} */
+		const filesAdded = [];
+		/** @type {string[]} */
+		const filesExistingAlready = [];
 
 		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('mcp'));
 		const agentFile = sharedFiles.find((file) => file.name === 'AGENTS.md');

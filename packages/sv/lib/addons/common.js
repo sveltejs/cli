@@ -1,8 +1,12 @@
 import process from 'node:process';
 
-import { type SvelteAst, js, parse, svelte } from '../core.ts';
+import { js, parse, svelte } from '../core.ts';
 
-export function addEslintConfigPrettier(content: string): string {
+/**
+ * @param {string} content
+ * @returns {string}
+ */
+export function addEslintConfigPrettier(content) {
 	const { ast, generateCode } = parse.script(content);
 
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
@@ -14,10 +18,12 @@ export function addEslintConfigPrettier(content: string): string {
 			n.specifiers?.some((n) => n.type === 'ImportDefaultSpecifier')
 	);
 
-	let svelteImportName: string;
+	let svelteImportName = 'svelte';
 	for (const specifier of sveltePluginImport?.specifiers ?? []) {
 		if (specifier.type === 'ImportDefaultSpecifier' && specifier.local?.name) {
-			svelteImportName = specifier.local.name as string;
+			/** @type {string} */
+			const name = specifier.local.name;
+			svelteImportName = name;
 		}
 	}
 
@@ -63,14 +69,25 @@ export function addEslintConfigPrettier(content: string): string {
 	return generateCode();
 }
 
-export function addToDemoPage(existingContent: string, path: string, langTs: boolean): string {
+/**
+ * @param {string} existingContent
+ * @param {string} path
+ * @param {boolean} langTs
+ * @returns {string}
+ */
+export function addToDemoPage(existingContent, path, langTs) {
 	const { ast, generateCode } = parse.svelte(existingContent);
 
 	for (const node of ast.fragment.nodes) {
 		if (node.type === 'RegularElement') {
-			const hrefAttribute = node.attributes.find(
-				(x) => x.type === 'Attribute' && x.name === 'href'
-			) as SvelteAst.Attribute;
+			/**
+			 * @param {import('../core/tooling/index.ts').SvelteAst.RegularElement['attributes'][0]} child
+			 * @returns {child is import('../core/tooling/index.ts').SvelteAst.Attribute}
+			 */
+			const isHrefAttribute = (child) => {
+				return child.type === 'Attribute' && child.name === 'href';
+			};
+			const hrefAttribute = node.attributes.find(isHrefAttribute);
 			if (!hrefAttribute || !hrefAttribute.value) continue;
 
 			if (!Array.isArray(hrefAttribute.value)) continue;
@@ -85,7 +102,7 @@ export function addToDemoPage(existingContent: string, path: string, langTs: boo
 		}
 	}
 
-	ensureScript(ast, { langTs });
+	svelte.ensureScript(ast, { langTs });
 	js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 	svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
@@ -99,8 +116,10 @@ export function addToDemoPage(existingContent: string, path: string, langTs: boo
  *
  * If the installed version of Node.js is from a `Current` release, then the major is decremented to
  * the nearest `LTS` release version.
+ *
+ * @returns {string}
  */
-export function getNodeTypesVersion(): string {
+export function getNodeTypesVersion() {
 	const nodeVersion = process.versions.node;
 	const isDenoOrBun = Boolean(process.versions.deno ?? process.versions.bun);
 	const [major] = nodeVersion.split('.');

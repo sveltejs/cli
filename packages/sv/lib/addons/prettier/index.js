@@ -47,7 +47,8 @@ export default defineAddon({
 			}
 
 			data.plugins ??= [];
-			const plugins: string[] = data.plugins;
+			/** @type {string[]} */
+			const plugins = data.plugins;
 			{
 				const PLUGIN_NAME = 'prettier-plugin-svelte';
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
@@ -59,8 +60,8 @@ export default defineAddon({
 			}
 
 			data.overrides ??= [];
-			const overrides: Array<{ files: string | string[]; options?: { parser?: string } }> =
-				data.overrides;
+			/** @type {Array<{ files: string | string[]; options?: { parser?: string } }>} */
+			const overrides = data.overrides;
 			const override = overrides.find((o) => o?.options?.parser === 'svelte');
 			if (!override) {
 				overrides.push({ files: '*.svelte', options: { parser: 'svelte' } });
@@ -75,7 +76,8 @@ export default defineAddon({
 			const { data, generateCode } = parse.json(content);
 
 			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
+			/** @type {Record<string, string>} */
+			const scripts = data.scripts;
 			const CHECK_CMD = 'prettier --check .';
 			scripts['format'] ??= 'prettier --write .';
 
@@ -105,6 +107,10 @@ export default defineAddon({
 
 const SUPPORTED_ESLINT_VERSION = '9';
 
-function hasEslint(version: string | undefined): boolean {
+/**
+ * @param {string | undefined} version
+ * @returns {boolean}
+ */
+function hasEslint(version) {
 	return !!version && version.startsWith(SUPPORTED_ESLINT_VERSION);
 }

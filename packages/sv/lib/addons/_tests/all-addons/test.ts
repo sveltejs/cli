@@ -1,7 +1,7 @@
 import process from 'node:process';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import { officialAddons } from '../../_config/official.ts';
+import { officialAddons } from '../../_config/official.js';
 import type { AddonMap, OptionMap } from '../../../addons/add.ts';
 
 const windowsCI = process.env.CI && process.platform === 'win32';

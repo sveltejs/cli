@@ -1,7 +1,5 @@
 import MagicString from 'magic-string';
-
 import {
-	type AstTypes,
 	Walker,
 	addToDemoPage,
 	dedent,
@@ -22,10 +20,12 @@ const TABLE_TYPE = {
 	turso: 'sqliteTable'
 };
 
-type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
+/** @typedef {'mysql' | 'postgresql' | 'sqlite' | 'turso'} Dialect */
 
-let drizzleDialect: Dialect;
-let schemaPath: string;
+/** @type {Dialect} */
+let drizzleDialect;
+/** @type {string} */
+let schemaPath;
 
 const options = defineAddonOptions()
 	.add('demo', {
@@ -47,6 +47,10 @@ export default defineAddon({
 		runsAfter('tailwindcss');
 	},
 	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
+		if (!kit) {
+			throw new Error('SvelteKit is required for the Lucia addon');
+		}
+
 		const ext = typescript ? 'ts' : 'js';
 
 		sv.devDependency('@oslojs/crypto', '^1.0.1');
@@ -59,17 +63,17 @@ export default defineAddon({
 
 		sv.file(`drizzle.config.${ext}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
-			const isProp = (name: string, node: AstTypes.Property) =>
+			const isProp = (/** @type {string} */ name, /** @type {js.AstTypes.Property} */ node) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
-			Walker.walk(ast as AstTypes.Node, null, {
+			Walker.walk(/** @type {js.AstTypes.Node}*/ (ast), null, {
 				Property(node) {
 					if (
 						isProp('dialect', node) &&
 						node.value.type === 'Literal' &&
 						typeof node.value.value === 'string'
 					) {
-						drizzleDialect = node.value.value as Dialect;
+						drizzleDialect = /** @type {Dialect} */ (node.value.value);
 					}
 					if (
 						isProp('schema', node) &&
@@ -92,7 +96,7 @@ export default defineAddon({
 
 		sv.file(schemaPath, (content) => {
 			const { ast, generateCode } = parse.script(content);
-			const createTable = (name: string) =>
+			const createTable = (/** @type {string} */ name) =>
 				js.functions.createCall({
 					name: TABLE_TYPE[drizzleDialect],
 					args: [name]
@@ -396,13 +400,13 @@ export default defineAddon({
 		});
 
 		if (options.demo) {
-			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
+			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'lucia', typescript);
 			});
 
-			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
+			sv.file(`${kit.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
+					const filePath = `${kit.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -523,9 +527,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.svelte`, (content) => {
+			sv.file(`${kit.routesDirectory}/demo/lucia/login/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`;
+					const filePath = `${kit.routesDirectory}/demo/lucia/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -573,9 +577,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.server.${ext}`, (content) => {
+			sv.file(`${kit.routesDirectory}/demo/lucia/+page.server.${ext}`, (content) => {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
+					const filePath = `${kit.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -615,9 +619,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.svelte`, (content) => {
+			sv.file(`${kit.routesDirectory}/demo/lucia/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.svelte`;
+					const filePath = `${kit.routesDirectory}/demo/lucia/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -641,7 +645,9 @@ export default defineAddon({
 		}
 	},
 	nextSteps: ({ options, packageManager }) => {
-		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
+		const resolved = resolveCommand(packageManager, 'run', ['db:push']);
+		if (!resolved) throw new Error('Failed to resolve command');
+		const { command, args } = resolved;
 		const steps = [
 			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		];
@@ -653,7 +659,11 @@ export default defineAddon({
 	}
 });
 
-function createLuciaType(name: string): AstTypes.TSInterfaceBody['body'][number] {
+/**
+ * @param {string} name
+ * @returns {js.AstTypes.TSInterfaceBody['body'][number]}
+ */
+function createLuciaType(name) {
 	return {
 		type: 'TSPropertySignature',
 		key: {
@@ -709,7 +719,11 @@ function getAuthHandleContent() {
 		};`;
 }
 
-function getCallExpression(ast: AstTypes.Node): AstTypes.CallExpression | undefined {
+/**
+ * @param {js.AstTypes.Node} ast
+ * @returns {js.AstTypes.CallExpression | undefined}
+ */
+function getCallExpression(ast) {
 	let callExpression;
 
 	Walker.walk(ast, null, {

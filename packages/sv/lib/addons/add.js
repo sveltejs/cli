@@ -1,64 +1,55 @@
 import * as p from '@clack/prompts';
 import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
-import { NonZeroExitError, exec } from 'tinyexec';
+import { exec } from 'tinyexec';
 
 import { fileExists, installPackages, readFile, writeFile } from '../cli/add/utils.ts';
 import { createWorkspace } from '../cli/add/workspace.ts';
 import { TESTING } from '../cli/utils/env.ts';
-import type {
-	Addon,
-	AddonSetupResult,
-	OptionValues,
-	PackageManager,
-	Question,
-	SvApi,
-	Workspace
-} from '../core.ts';
 
-export type InstallOptions<Addons extends AddonMap> = {
-	cwd: string;
-	addons: Addons;
-	options: OptionMap<Addons>;
-	packageManager?: PackageManager;
-};
+/** @typedef {import('../core.ts').Addon<any>} Addon */
+/** @typedef {import('./add.js').AddonMap} AddonMap */
+/** @typedef {import('./add.js').ApplyAddonOptions} ApplyAddonOptions */
+/** @typedef {import('./add.js').RunAddon} RunAddon */
+/** @typedef {import('../core.ts').Workspace} Workspace */
+/** @typedef {import('../core.ts').AddonSetupResult} AddonSetupResult */
+/** @typedef {import('../core.ts').PackageManager} PackageManager */
+/** @typedef {import('../core.ts').Question} Question */
+/** @typedef {import('../core.ts').SvApi} SvApi */
+/** @typedef {import('tinyexec').NonZeroExitError} NonZeroExitError */
 
-export type AddonMap = Record<string, Addon<any>>;
-export type OptionMap<Addons extends AddonMap> = {
-	[K in keyof Addons]: Partial<OptionValues<Addons[K]['options']>>;
-};
-
-export async function add<Addons extends AddonMap>({
-	addons,
-	cwd,
-	options,
-	packageManager = 'npm'
-}: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>> {
+/**
+ * @template {AddonMap} Addons
+ * @param {{
+ *   cwd: string,
+ *   addons: Addons,
+ *   options: import('./add.js').OptionMap<Addons>,
+ *   packageManager?: PackageManager
+ * }} options
+ * @returns {Promise<ReturnType<typeof applyAddons>>}
+ */
+export async function installAddon({ addons, cwd, options, packageManager = 'npm' }) {
 	const workspace = await createWorkspace({ cwd, packageManager });
 	const addonSetupResults = setupAddons(Object.values(addons), workspace);
 
 	return await applyAddons({ addons, workspace, options, addonSetupResults });
 }
 
-export type ApplyAddonOptions = {
-	addons: AddonMap;
-	options: OptionMap<AddonMap>;
-	workspace: Workspace;
-	addonSetupResults: Record<string, AddonSetupResult>;
-};
-export async function applyAddons({
-	addons,
-	workspace,
-	addonSetupResults,
-	options
-}: ApplyAddonOptions): Promise<{
-	filesToFormat: string[];
-	pnpmBuildDependencies: string[];
-	status: Record<string, string[] | 'success'>;
-}> {
-	const filesToFormat = new Set<string>();
-	const allPnpmBuildDependencies: string[] = [];
-	const status: Record<string, string[] | 'success'> = {};
+/**
+ * @param {ApplyAddonOptions} options
+ * @returns {Promise<{
+ *   filesToFormat: string[],
+ *   pnpmBuildDependencies: string[],
+ *   status: Record<string, string[] | 'success'>
+ * }>}
+ */
+export async function applyAddons({ addons, workspace, addonSetupResults, options }) {
+	/** @type {Set<string>} */
+	const filesToFormat = new Set();
+	/** @type {string[]} */
+	const allPnpmBuildDependencies = [];
+	/** @type {Record<string, string[] | 'success'>} */
+	const status = {};
 
 	const mapped = Object.entries(addons).map(([, addon]) => addon);
 	const ordered = orderAddons(mapped, addonSetupResults);
@@ -99,14 +90,18 @@ export async function applyAddons({
 	};
 }
 
-export function setupAddons(
-	addons: Array<Addon<any>>,
-	workspace: Workspace
-): Record<string, AddonSetupResult> {
-	const addonSetupResults: Record<string, AddonSetupResult> = {};
+/**
+ * @param {Array<Addon>} addons
+ * @param {Workspace} workspace
+ * @returns {Record<string, AddonSetupResult>}
+ */
+export function setupAddons(addons, workspace) {
+	/** @type {Record<string, AddonSetupResult>} */
+	const addonSetupResults = {};
 
 	for (const addon of addons) {
-		const setupResult: AddonSetupResult = {
+		/** @type {AddonSetupResult} */
+		const setupResult = {
 			unsupported: [],
 			dependsOn: [],
 			runsAfter: []
@@ -126,17 +121,21 @@ export function setupAddons(
 	return addonSetupResults;
 }
 
-type RunAddon = {
-	workspace: Workspace;
-	workspaceOptions: OptionValues<any>;
-	addon: Addon<Record<string, Question>>;
-	multiple: boolean;
-};
-async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAddon) {
-	const files = new Set<string>();
+/**
+ * @param {RunAddon} options
+ * @returns {Promise<{
+ *   files: string[],
+ *   pnpmBuildDependencies: string[],
+ *   cancels: string[]
+ * }>}
+ */
+async function runAddon({ addon, multiple, workspace, workspaceOptions }) {
+	/** @type {Set<string>} */
+	const files = new Set();
 
 	// apply default addon options
-	const options: OptionValues<any> = { ...workspaceOptions };
+	/** @type {import('../core.ts').OptionValues<any>} */
+	const options = { ...workspaceOptions };
 	for (const [id, question] of Object.entries(addon.options)) {
 		// we'll only apply defaults to options that don't explicitly fail their conditions
 		if (question.condition?.(options) !== false) {
@@ -144,9 +143,12 @@ async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAdd
 		}
 	}
 
-	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
-	const pnpmBuildDependencies: string[] = [];
-	const sv: SvApi = {
+	/** @type {Array<{pkg: string, version: string, dev: boolean}>} */
+	const dependencies = [];
+	/** @type {string[]} */
+	const pnpmBuildDependencies = [];
+	/** @type {SvApi} */
+	const sv = {
 		file: (path, content) => {
 			try {
 				const exists = fileExists(workspace.cwd, path);
@@ -166,7 +168,9 @@ async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAdd
 			}
 		},
 		execute: async (commandArgs, stdio) => {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
+			const resolved = resolveCommand(workspace.packageManager, 'execute', commandArgs);
+			if (!resolved) throw new Error('Failed to resolve command');
+			const { command, args } = resolved;
 
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
 			const executedCommand = `${command} ${args.join(' ')}`;
@@ -183,7 +187,7 @@ async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAdd
 					throwOnError: true
 				});
 			} catch (error) {
-				const typedError = error as NonZeroExitError;
+				const typedError = /** @type {NonZeroExitError} */ (error);
 				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
 					cause: typedError.output
 				});
@@ -200,7 +204,8 @@ async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAdd
 		}
 	};
 
-	const cancels: string[] = [];
+	/** @type {string[]} */
+	const cancels = [];
 	await addon.run({
 		cancel: (reason) => {
 			cancels.push(reason);
@@ -222,10 +227,16 @@ async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAdd
 	};
 }
 
-// orders addons by putting addons that don't require any other addon in the front.
-// This is a drastic simplification, as this could still cause some inconvenient circumstances,
-// but works for now in contrary to the previous implementation
-function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
+/**
+ * Orders addons by putting addons that don't require any other addon in the front.
+ * This is a drastic simplification, as this could still cause some inconvenient circumstances,
+ * but works for now in contrary to the previous implementation
+ *
+ * @param {Array<Addon>} addons
+ * @param {Record<string, AddonSetupResult>} setupResults
+ * @returns {Array<Addon>}
+ */
+function orderAddons(addons, setupResults) {
 	return addons.sort((a, b) => {
 		return setupResults[a.id]?.runsAfter?.length - setupResults[b.id]?.runsAfter?.length;
 	});

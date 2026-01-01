@@ -4,7 +4,7 @@ import { expect } from '@playwright/test';
 import { js, svelte, parse } from '../../../core.ts';
 import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
-import mdsvex from '../../mdsvex/index.ts';
+import mdsvex from '../../mdsvex/index.js';
 
 const { test, testCases, prepareServer } = setupTest(
 	{ mdsvex },

@@ -7,8 +7,7 @@ import {
 	log,
 	parse,
 	color,
-	svelte,
-	type SvelteAst
+	svelte
 } from '../../core.ts';
 
 const DEFAULT_INLANG_PROJECT = {
@@ -140,10 +139,15 @@ export default defineAddon({
 		sv.file('src/app.html', (content) => {
 			const { ast, generateCode } = parse.html(content);
 
-			const htmlNode = ast.nodes.find(
-				(child): child is SvelteAst.RegularElement =>
-					child.type === 'RegularElement' && child.name === 'html'
-			);
+			/**
+			 * @param {import('../../core/tooling/index.ts').SvelteAst.Fragment['nodes'][0]} child
+			 * @returns {child is import('../../core/tooling/index.ts').SvelteAst.RegularElement}
+			 */
+			const isRegularElement = (child) => {
+				return child.type === 'RegularElement' && child.name === 'html';
+			};
+
+			const htmlNode = ast.nodes.find(isRegularElement);
 			if (!htmlNode) {
 				log.warn(
 					"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
@@ -170,7 +174,8 @@ export default defineAddon({
 			const { data, generateCode } = parse.json(content);
 
 			for (const key in DEFAULT_INLANG_PROJECT) {
-				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
+				data[key] =
+					DEFAULT_INLANG_PROJECT[/** @type {keyof typeof DEFAULT_INLANG_PROJECT} */ (key)];
 			}
 			const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 			const baseLocale = validLanguageTags[0];
@@ -182,19 +187,20 @@ export default defineAddon({
 		});
 
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
-			const { ast, generateCode } = parseSvelte(content);
+			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast);
 			js.imports.addNamed(ast.instance.content, {
 				imports: ['locales', 'localizeHref'],
 				from: '$lib/paraglide/runtime'
 			});
 			js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
-			ast.fragment.nodes.push(
-				...svelte.toFragment(`<div style="display:none">
+			svelte.addFragment(
+				ast,
+				`<div style="display:none">
 	{#each locales as locale}
 		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
 	{/each}
-</div>`)
+</div>`
 			);
 			return generateCode();
 		});
@@ -261,24 +267,34 @@ export default defineAddon({
 	}
 });
 
-const isValidLanguageTag = (languageTag: string): boolean =>
+/**
+ * @param {string} languageTag
+ * @returns {boolean}
+ */
+const isValidLanguageTag = (languageTag) =>
 	// Regex vendored in from https://github.com/opral/monorepo/blob/94c2298cc1da5378b908e4c160b0fa71a45caadb/inlang/source-code/versioned-interfaces/language-tag/src/interface.ts#L16
 	RegExp(
 		'^((?<grandfathered>(en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang))|((?<language>([A-Za-z]{2,3}(-(?<extlang>[A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?))(-(?<script>[A-Za-z]{4}))?(-(?<region>[A-Za-z]{2}|[0-9]{3}))?(-(?<variant>[A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*))$'
 	).test(languageTag);
 
-function parseLanguageTagInput(input: string): {
-	validLanguageTags: string[];
-	invalidLanguageTags: string[];
-} {
+/**
+ * @param {string} input
+ * @returns {{
+ *   validLanguageTags: string[],
+ *   invalidLanguageTags: string[]
+ * }}
+ */
+function parseLanguageTagInput(input) {
 	const probablyLanguageTags = input
 		.replace(/[,:\s]/g, ' ') // replace common separators with spaces
 		.split(' ')
 		.filter(Boolean) // remove empty segments
 		.map((tag) => tag.toLowerCase());
 
-	const validLanguageTags: string[] = [];
-	const invalidLanguageTags: string[] = [];
+	/** @type {string[]} */
+	const validLanguageTags = [];
+	/** @type {string[]} */
+	const invalidLanguageTags = [];
 
 	for (const tag of probablyLanguageTags) {
 		if (isValidLanguageTag(tag)) validLanguageTags.push(tag);

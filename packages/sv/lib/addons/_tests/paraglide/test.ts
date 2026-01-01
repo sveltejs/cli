@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import paraglide from '../../paraglide/index.ts';
+import paraglide from '../../paraglide/index.js';
 import fs from 'node:fs';
 import path from 'node:path';
 

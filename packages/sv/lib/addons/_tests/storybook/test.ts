@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import storybook from '../../storybook/index.ts';
-import eslint from '../../eslint/index.ts';
+import storybook from '../../storybook/index.js';
+import eslint from '../../eslint/index.js';
 
 // we're including the `eslint` add-on to prevent `storybook` from modifying this repo's `eslint.config.js`
 const { test, testCases, prepareServer } = setupTest(

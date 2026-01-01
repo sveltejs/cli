@@ -1,5 +1,10 @@
-import { type AstTypes, defineAddon, getNodeTypesVersion, js, log, parse } from '../../core.ts';
+import { defineAddon, getNodeTypesVersion, js, log, parse } from '../../core.ts';
 import { addEslintConfigPrettier } from '../../coreInternal.ts';
+
+/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.Expression} Expression */
+/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.ArrayExpression} ArrayExpression */
+/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.CallExpression} CallExpression */
+/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.SpreadElement} SpreadElement */
 
 export default defineAddon({
 	id: 'eslint',
@@ -23,7 +28,8 @@ export default defineAddon({
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
+			/** @type {Record<string, string>} */
+			const scripts = data.scripts;
 			const LINT_CMD = 'eslint .';
 			scripts['lint'] ??= LINT_CMD;
 			if (!scripts['lint'].includes(LINT_CMD)) scripts['lint'] += ` && ${LINT_CMD}`;
@@ -34,7 +40,8 @@ export default defineAddon({
 			if (!content) return content;
 
 			const { data, generateCode } = parse.json(content);
-			const validate: string[] | undefined = data['eslint.validate'];
+			/** @type {string[] | undefined} */
+			const validate = data['eslint.validate'];
 			if (validate && !validate.includes('svelte')) {
 				validate.push('svelte');
 			}
@@ -44,7 +51,8 @@ export default defineAddon({
 		sv.file(files.eslintConfig, (content) => {
 			const { ast, comments, generateCode } = parse.script(content);
 
-			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
+			/** @type {Array<Expression | SpreadElement>} */
+			const eslintConfigs = [];
 			js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
 			const gitIgnorePathStatement = js.common.parseStatement(
 				"\nconst gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));"
@@ -119,7 +127,8 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			}
 
-			let exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression;
+			/** @type {ArrayExpression | CallExpression} */
+			let exportExpression;
 			if (typescript) {
 				const tsConfigCall = js.functions.createCall({ name: 'defineConfig', args: [] });
 				tsConfigCall.arguments.push(...eslintConfigs);

@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig.json",
-	"include": ["bin.ts", "lib/**/*.ts"],
+	"include": ["bin.ts", "lib/**/*.ts", "lib/**/*.js"],
 	"exclude": [
 		"dist/**",
 		"lib/core/tests/**/input.ts",

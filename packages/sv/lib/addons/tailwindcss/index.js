@@ -1,6 +1,6 @@
 import { css, defineAddon, defineAddonOptions, js, parse, svelte } from '../../core.ts';
 
-const plugins = [
+const plugins = /** @type {const} */ ([
 	{
 		id: 'typography',
 		package: '@tailwindcss/typography',
@@ -11,14 +11,15 @@ const plugins = [
 		package: '@tailwindcss/forms',
 		version: '^0.5.10'
 	}
-] as const;
+]);
 
 const options = defineAddonOptions()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
 		options: plugins.map((p) => ({ value: p.id, label: p.id, hint: p.package })),
-		default: [] as Array<(typeof plugins)[number]['id']>,
+		/** @type {Array<(typeof plugins)[number]['id']>} */
+		default: [],
 		required: false
 	})
 	.build();
@@ -123,7 +124,8 @@ export default defineAddon({
 				const { data, generateCode } = parse.json(content);
 
 				data.plugins ??= [];
-				const plugins: string[] = data.plugins;
+				/** @type {string[]} */
+				const plugins = data.plugins;
 				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
 				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
 				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });

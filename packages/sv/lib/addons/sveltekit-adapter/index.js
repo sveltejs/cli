@@ -6,19 +6,18 @@ import {
 	js,
 	parse,
 	resolveCommand,
-	fileExists,
-	type AstTypes
+	fileExists
 } from '../../core.ts';
 import { sanitizeName } from '../../coreInternal.ts';
 
-const adapters = [
+const adapters = /** @type {const} */ ([
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.4.0' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.10' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.2.0' },
 	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.4' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.2.4' }
-] as const;
+]);
 
 const options = defineAddonOptions()
 	.add('adapter', {
@@ -49,7 +48,9 @@ export default defineAddon({
 		if (!kit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, files, cwd, packageManager, typescript }) => {
-		const adapter = adapters.find((a) => a.id === options.adapter)!;
+		/** @type {typeof adapters[number] | undefined} */
+		const adapter = adapters.find((a) => a.id === options.adapter);
+		if (!adapter) throw new Error('Adapter not found');
 
 		// removes previously installed adapters
 		sv.file(files.package, (content) => {
@@ -95,8 +96,11 @@ export default defineAddon({
 				// reset raw value, so that the string is re-generated
 				adapterImportDecl.source.raw = undefined;
 
-				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
-					?.local?.name as string;
+				/** @type {string | undefined} */
+				const importedName = adapterImportDecl.specifiers?.find(
+					(s) => s.type === 'ImportDefaultSpecifier'
+				)?.local?.name;
+				if (importedName) adapterName = importedName;
 			} else {
 				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
@@ -193,7 +197,9 @@ export default defineAddon({
 
 					data.scripts ??= {};
 					data.scripts.types = 'wrangler types';
-					const { command, args } = resolveCommand(packageManager, 'run', ['types'])!;
+					const resolved = resolveCommand(packageManager, 'run', ['types']);
+					if (!resolved) throw new Error('Failed to resolve command');
+					const { command, args } = resolved;
 					data.scripts.prepare = data.scripts.prepare
 						? `${command} ${args.join(' ')} && ${data.scripts.prepare}`
 						: `${command} ${args.join(' ')}`;
@@ -234,11 +240,13 @@ export default defineAddon({
 	}
 });
 
-function createCloudflarePlatformType(
-	name: string,
-	value: string,
-	optional = false
-): AstTypes.TSInterfaceBody['body'][number] {
+/**
+ * @param {string} name
+ * @param {string} value
+ * @param {boolean} [optional=false]
+ * @returns {any}
+ */
+function createCloudflarePlatformType(name, value, optional = false) {
 	return {
 		type: 'TSPropertySignature',
 		key: {

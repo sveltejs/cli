@@ -6,7 +6,7 @@ import { execSync } from 'node:child_process';
 import { beforeAll } from 'vitest';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import drizzle from '../../drizzle/index.ts';
+import drizzle from '../../drizzle/index.js';
 import { pageServer, pageComp } from './fixtures.ts';
 
 // only linux is supported for running docker containers in github runners
