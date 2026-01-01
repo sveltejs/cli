@@ -13,7 +13,8 @@ export type Workspace = {
 	 * @returns the dependency version with any leading characters such as ^ or ~ removed
 	 */
 	dependencyVersion: (pkg: string) => string | undefined;
-	typescript: boolean;
+	/** to know if the workspace is using typescript or javascript */
+	language: 'ts' | 'js';
 	files: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';

@@ -10,7 +10,7 @@ type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
 // for all further processing after calling this function.
 export function ensureScript(
 	ast: SvelteAst.Root,
-	options?: { langTs?: boolean }
+	options?: { language?: 'ts' | 'js' }
 ): asserts ast is RootWithInstance {
 	if (ast.instance?.content) return;
 
@@ -20,24 +20,25 @@ export function ensureScript(
 		end: 0,
 		context: 'default',
 		// @ts-expect-error
-		attributes: options?.langTs
-			? [
-					{
-						type: 'Attribute',
-						start: 8,
-						end: 17,
-						name: 'lang',
-						value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
-					}
-				]
-			: [],
+		attributes:
+			options?.language === 'ts'
+				? [
+						{
+							type: 'Attribute',
+							start: 8,
+							end: 17,
+							name: 'lang',
+							value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
+						}
+					]
+				: [],
 		content: parseScript('').ast
 	};
 }
 
 export function addSlot(
 	ast: SvelteAst.Root,
-	options: { svelteVersion: string; langTs?: boolean }
+	options: { svelteVersion: string; language?: 'ts' | 'js' }
 ): void {
 	const slotSyntax =
 		options.svelteVersion &&
@@ -60,7 +61,7 @@ export function addSlot(
 		return;
 	}
 
-	ensureScript(ast, { langTs: options.langTs });
+	ensureScript(ast, { language: options.language });
 	appendFromString(ast.instance.content, {
 		code: 'const { children } = $props();'
 	});

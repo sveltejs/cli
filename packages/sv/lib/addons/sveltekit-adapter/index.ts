@@ -43,7 +43,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, cwd, packageManager, typescript }) => {
+	run: ({ sv, options, files, cwd, packageManager, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -172,7 +172,7 @@ export default defineAddon({
 			});
 
 			const jsconfig = fileExists(cwd, 'jsconfig.json');
-			const typeChecked = typescript || jsconfig;
+			const typeChecked = language === 'ts' || jsconfig;
 
 			if (typeChecked) {
 				// Ignore generated Cloudflare Types

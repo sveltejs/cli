@@ -14,7 +14,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, typescript }) => {
+	run: ({ sv, options, language }) => {
 		sv.file('addon-template-demo.txt', (content) => {
 			if (options.demo) {
 				return 'This is a text file made by the Community Addon Template demo!';
@@ -25,7 +25,7 @@ export default defineAddon({
 		sv.file('src/DemoComponent.svelte', (content) => {
 			if (!options.demo) return content;
 			const { ast, generateCode } = parseSvelte(content);
-			svelte.ensureScript(ast, { langTs: typescript });
+			svelte.ensureScript(ast, { language });
 			js.imports.addDefault(ast.instance.content, {
 				from: '../addon-template-demo.txt?raw',
 				as: 'demo'

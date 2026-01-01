@@ -11,8 +11,8 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('playwright $variant', (testCase, { expect, ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
-	const ext = testCase.variant.includes('ts') ? 'ts' : 'js';
-	const playwrightConfig = path.resolve(cwd, `playwright.config.${ext}`);
+	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
+	const playwrightConfig = path.resolve(cwd, `playwright.config.${language}`);
 	const configContent = fs.readFileSync(playwrightConfig, 'utf8');
 
 	// Check if we have the imports

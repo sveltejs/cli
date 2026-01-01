@@ -24,8 +24,7 @@ export default defineAddon({
 	homepage: 'https://vitest.dev',
 	options,
 
-	run: ({ sv, files, typescript, kit, options, dependencyVersion }) => {
-		const ext = typescript ? 'ts' : 'js';
+	run: ({ sv, files, language, kit, options, dependencyVersion }) => {
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
@@ -56,7 +55,7 @@ export default defineAddon({
 		});
 
 		if (unitTesting) {
-			sv.file(`src/demo.spec.${ext}`, (content) => {
+			sv.file(`src/demo.spec.${language}`, (content) => {
 				if (content) return content;
 
 				return dedent`
@@ -73,8 +72,8 @@ export default defineAddon({
 
 		if (componentTesting) {
 			const fileName = kit
-				? `${kit.routesDirectory}/page.svelte.spec.${ext}`
-				: `src/App.svelte.test.${ext}`;
+				? `${kit.routesDirectory}/page.svelte.spec.${language}`
+				: `src/App.svelte.test.${language}`;
 
 			sv.file(fileName, (content) => {
 				if (content) return content;
@@ -160,7 +159,7 @@ export default defineAddon({
 		});
 	},
 
-	nextSteps: ({ highlighter, typescript, options }) => {
+	nextSteps: ({ highlighter, language, options }) => {
 		const toReturn: string[] = [];
 
 		if (vitestV3Installed) {
@@ -175,7 +174,7 @@ export default defineAddon({
 				`${highlighter.optional('Optional')} Check ${highlighter.path('./vite.config.ts')} and remove duplicate project definitions`
 			);
 			toReturn.push(
-				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client' + (typescript ? '.ts' : '.js'))} file`
+				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client.' + language)} file`
 			);
 		}
 

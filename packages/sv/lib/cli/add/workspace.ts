@@ -81,7 +81,7 @@ export async function createWorkspace({
 	return {
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
-		typescript,
+		language: typescript ? 'ts' : 'js',
 		files: {
 			viteConfig,
 			svelteConfig,
