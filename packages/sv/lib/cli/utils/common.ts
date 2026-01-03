@@ -188,3 +188,7 @@ export function errorAndExit(message: string) {
 	p.cancel('Operation failed.');
 	process.exit(1);
 }
+
+export const normalizePosix = (dir: string) => {
+	return path.normalize(dir).split(path.sep).join(path.posix.sep);
+};

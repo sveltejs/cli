@@ -308,7 +308,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
 	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [
-		path.posix.normalize(directory)
+		common.normalizePosix(directory)
 	]);
 	common.updateReadme(directory, prompt);
 
