@@ -59,7 +59,6 @@ import {
  * const { ast, generateCode } = parse.toml('name = "John"');
  * const { ast, generateCode } = parse.yaml('name: John');
  * ```
- * @jsdocfocus
  */
 export const parse = {
 	css: parseCss as typeof parseCss,
