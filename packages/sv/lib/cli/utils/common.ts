@@ -190,5 +190,5 @@ export function errorAndExit(message: string) {
 }
 
 export const normalizePosix = (dir: string) => {
-	return path.normalize(dir).split(path.sep).join(path.posix.sep);
+	return path.posix.normalize(dir.replace(/\\/g, '/'));
 };
