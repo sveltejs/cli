@@ -16,7 +16,7 @@ export default defineAddon({
 		if (!kit) unsupported('Requires SvelteKit');
 	},
 
-	run: ({ kit, sv, options, typescript, cancel }) => {
+	run: ({ kit, sv, options, language, cancel }) => {
 		if (!kit) return cancel('SvelteKit is required');
 
 		sv.file(`src/lib/@my-org/sv/content.txt`, () => {
@@ -25,9 +25,9 @@ export default defineAddon({
 
 		sv.file(`src/lib/@my-org/sv/HelloComponent.svelte`, (content) => {
 			const { ast, generateCode } = parse.svelte(content);
-			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
+			svelte.ensureScript(ast, { language });
 
-			js.imports.addDefault(scriptAst, { as: 'content', from: './content.txt?raw' });
+			js.imports.addDefault(ast.instance.content, { as: 'content', from: './content.txt?raw' });
 
 			svelte.addFragment(ast, '<p>{content}</p>');
 			svelte.addFragment(ast, `<h2>Hello ${options.who}!</h2>`);
@@ -37,9 +37,9 @@ export default defineAddon({
 
 		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
 			const { ast, generateCode } = parse.svelte(content);
-			const scriptAst = svelte.ensureScript(ast, { langTs: typescript });
+			svelte.ensureScript(ast, { language });
 
-			js.imports.addDefault(scriptAst, {
+			js.imports.addDefault(ast.instance.content, {
 				as: 'HelloComponent',
 				from: `$lib/@my-org/sv/HelloComponent.svelte`
 			});
