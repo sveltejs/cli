@@ -61,8 +61,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, typescript, kit }) => {
-		const ext = typescript ? 'ts' : 'js';
+	run: ({ sv, options, files, language, kit }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
@@ -86,7 +85,7 @@ export default defineAddon({
 		});
 
 		// reroute hook
-		sv.file(`src/hooks.${ext}`, (content) => {
+		sv.file(`src/hooks.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/runtime',
@@ -114,7 +113,7 @@ export default defineAddon({
 		});
 
 		// handle hook
-		sv.file(`src/hooks.server.${ext}`, (content) => {
+		sv.file(`src/hooks.server.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
@@ -128,7 +127,7 @@ export default defineAddon({
 		});
 	});`;
 			js.kit.addHooksHandle(ast, {
-				typescript,
+				language,
 				newHandleName: 'handleParaglide',
 				handleContent: hookHandleContent
 			});
@@ -182,32 +181,33 @@ export default defineAddon({
 		});
 
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
-			const { ast, generateCode } = parseSvelte(content);
-			svelte.ensureScript(ast);
+			const { ast, generateCode } = parse.svelte(content);
+			svelte.ensureScript(ast, { language });
 			js.imports.addNamed(ast.instance.content, {
 				imports: ['locales', 'localizeHref'],
 				from: '$lib/paraglide/runtime'
 			});
 			js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
-			ast.fragment.nodes.push(
-				...svelte.toFragment(`<div style="display:none">
+			svelte.addFragment(
+				ast,
+				`<div style="display:none">
 	{#each locales as locale}
 		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
 	{/each}
-</div>`)
+</div>`
 			);
 			return generateCode();
 		});
 
 		if (options.demo) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'paraglide', typescript);
+				return addToDemoPage(content, 'paraglide', language);
 			});
 
 			// add usage example
 			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
 				const { ast, generateCode } = parse.svelte(content);
-				svelte.ensureScript(ast, { langTs: typescript });
+				svelte.ensureScript(ast, { language });
 
 				js.imports.addNamed(ast.instance.content, {
 					imports: { m: 'm' },

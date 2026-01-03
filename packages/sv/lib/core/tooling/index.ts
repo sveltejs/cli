@@ -22,15 +22,15 @@ export function parseScript(content: string): {
 	ast: TsEstree.Program;
 	comments: Comments;
 } {
-	const svelteAst = parseSvelte(`<script lang="ts">${content}</script>`);
-	const ast = ensureScript(svelteAst);
+	const ast = parseSvelte(`<script lang="ts">${content}</script>`);
+	ensureScript(ast);
 
 	const comments = new Comments();
 	const internal = transformToInternal(comments);
-	internal.original.push(...svelteAst.comments);
+	internal.original.push(...ast.comments);
 
 	return {
-		ast,
+		ast: ast.instance.content,
 		comments
 	};
 }

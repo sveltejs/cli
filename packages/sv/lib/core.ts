@@ -25,10 +25,14 @@ import { ensureScript, addSlot, addFragment } from './core/tooling/svelte/index.
 /**
  * Helper functions to manipulate Svelte code.
  */
-export const svelte = {
-	ensureScript: ensureScript as typeof ensureScript,
-	addSlot: addSlot as typeof addSlot,
-	addFragment: addFragment as typeof addFragment
+export const svelte: {
+	ensureScript: typeof ensureScript;
+	addSlot: typeof addSlot;
+	addFragment: typeof addFragment;
+} = {
+	ensureScript,
+	addSlot,
+	addFragment
 };
 import {
 	parseCss,

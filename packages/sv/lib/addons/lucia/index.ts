@@ -46,8 +46,8 @@ export default defineAddon({
 
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, typescript, options, kit, dependencyVersion }) => {
-		const ext = typescript ? 'ts' : 'js';
+	run: ({ sv, language, options, kit, dependencyVersion }) => {
+		const typescript = language === 'ts';
 
 		sv.devDependency('@oslojs/crypto', '^1.0.1');
 		sv.devDependency('@oslojs/encoding', '^1.1.0');
@@ -57,7 +57,7 @@ export default defineAddon({
 			sv.dependency('@node-rs/argon2', '^2.0.2');
 		}
 
-		sv.file(`drizzle.config.${ext}`, (content) => {
+		sv.file(`drizzle.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
@@ -223,7 +223,7 @@ export default defineAddon({
 			return code;
 		});
 
-		sv.file(`${kit?.libDirectory}/server/auth.${ext}`, (content) => {
+		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamespace(ast, { from: '$lib/server/db/schema', as: 'table' });
@@ -384,11 +384,11 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(`src/hooks.server.${ext}`, (content) => {
+		sv.file(`src/hooks.server.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 			js.imports.addNamespace(ast, { from: '$lib/server/auth', as: 'auth' });
 			js.kit.addHooksHandle(ast, {
-				typescript,
+				language,
 				newHandleName: 'handleAuth',
 				handleContent: getAuthHandleContent()
 			});
@@ -397,10 +397,10 @@ export default defineAddon({
 
 		if (options.demo) {
 			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'lucia', typescript);
+				return addToDemoPage(content, 'lucia', language);
 			});
 
-			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${ext}`, (content) => {
+			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${language}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
@@ -573,7 +573,7 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.server.${ext}`, (content) => {
+			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.server.${language}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);

@@ -1,5 +1,6 @@
-import { type SvelteAst, svelte } from '../../../../../core.ts';
+import { type SvelteAst } from '../../../../../core.ts';
+import { ensureScript } from '../../../../tooling/svelte/index.ts';
 
 export function run(ast: SvelteAst.Root): void {
-	svelte.ensureScript(ast, { langTs: true });
+	ensureScript(ast, { language: 'ts' });
 }

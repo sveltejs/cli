@@ -22,8 +22,8 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('lucia $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
-	const ext = testCase.variant.includes('ts') ? 'ts' : 'js';
-	const filePath = path.resolve(cwd, `src/routes/demo/lucia/+page.server.${ext}`);
+	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
+	const filePath = path.resolve(cwd, `src/routes/demo/lucia/+page.server.${language}`);
 	const fileContent = fs.readFileSync(filePath, 'utf8');
 	expect(fileContent).toContain(`export const actions`);
 });

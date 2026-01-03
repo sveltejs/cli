@@ -5,9 +5,7 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, typescript, files }) => {
-		const ext = typescript ? 'ts' : 'js';
-
+	run: ({ sv, language, files }) => {
 		sv.devDependency('@playwright/test', '^1.57.0');
 
 		sv.file(files.package, (content) => {
@@ -28,7 +26,7 @@ export default defineAddon({
 			return 'test-results\n' + content.trim();
 		});
 
-		sv.file(`e2e/demo.test.${ext}`, (content) => {
+		sv.file(`e2e/demo.test.${language}`, (content) => {
 			if (content) return content;
 
 			return dedent`
@@ -41,7 +39,7 @@ export default defineAddon({
 				`;
 		});
 
-		sv.file(`playwright.config.${ext}`, (content) => {
+		sv.file(`playwright.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 			const defineConfig = js.common.parseExpression('defineConfig({})');
 			const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });

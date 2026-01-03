@@ -62,6 +62,7 @@ export function parseYaml(
 
 export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & ParseBase {
 	const ast = utils.parseSvelte(source);
+
 	const generateCode = () => utils.serializeSvelte(ast);
 
 	return {

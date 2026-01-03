@@ -6,7 +6,8 @@ export default defineAddon({
 	shortDescription: 'linter',
 	homepage: 'https://eslint.org',
 	options: {},
-	run: ({ sv, typescript, dependencyVersion, files }) => {
+	run: ({ sv, language, dependencyVersion, files }) => {
+		const typescript = language === 'ts';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('eslint', '^9.39.1');
