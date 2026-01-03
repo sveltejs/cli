@@ -307,7 +307,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
-	common.logArgs(packageManager, 'create', argsFormatted, [directory]);
+	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [
+		common.normalizePosix(directory)
+	]);
+	common.updateReadme(directory, prompt);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) {
