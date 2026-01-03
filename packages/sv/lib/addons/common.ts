@@ -1,7 +1,6 @@
 import process from 'node:process';
 
 import { type SvelteAst, js, parse, svelte } from '../core.ts';
-import { ensureScript } from '../core/tooling/svelte/index.ts';
 
 export function addEslintConfigPrettier(content: string): string {
 	const { ast, generateCode } = parse.script(content);
@@ -90,7 +89,7 @@ export function addToDemoPage(
 		}
 	}
 
-	ensureScript(ast, { language });
+	svelte.ensureScript(ast, { language });
 	js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 	svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
