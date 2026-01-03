@@ -1,15 +1,16 @@
+import * as fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
+
+import { create } from '../index.ts';
 import {
+	detectPlaygroundDependencies,
 	downloadPlaygroundData,
 	parsePlaygroundUrl,
 	setupPlaygroundProject,
-	validatePlaygroundUrl,
-	detectPlaygroundDependencies
+	validatePlaygroundUrl
 } from '../playground.ts';
-import { fileURLToPath } from 'node:url';
-import { create } from '../index.ts';
-import path from 'node:path';
-import * as fs from 'node:fs';
 
 const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const testWorkspaceDir = resolvePath('../../../.test-output/create/');

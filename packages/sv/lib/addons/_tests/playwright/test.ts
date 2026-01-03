@@ -15,7 +15,6 @@ test.concurrent.for(testCases)('playwright $variant', (testCase, { expect, ...ct
 	const playwrightConfig = path.resolve(cwd, `playwright.config.${language}`);
 	const configContent = fs.readFileSync(playwrightConfig, 'utf8');
 
-	// Check if we have the imports
 	expect(configContent).toContain(`import { defineConfig } from`);
 	expect(configContent).toContain(`@playwright/test`);
 

@@ -5,7 +5,7 @@ import drizzle from '../../drizzle/index.ts';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const { test, testCases, prepareServer } = setupTest(
+const { test, testCases } = setupTest(
 	{ drizzle, lucia },
 	{
 		kinds: [
@@ -14,16 +14,13 @@ const { test, testCases, prepareServer } = setupTest(
 				options: { drizzle: { database: 'sqlite', sqlite: 'libsql' }, lucia: { demo: true } }
 			}
 		],
-		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
+		filter: (addonTestCase) => addonTestCase.variant.includes('kit'),
+		browser: false
 	}
 );
 
-test.concurrent.for(testCases)('lucia $variant', async (testCase, { page, ...ctx }) => {
+test.concurrent.for(testCases)('lucia $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
-
-	const { close } = await prepareServer({ cwd, page });
-	// kill server process when we're done
-	ctx.onTestFinished(async () => await close());
 
 	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
 	const filePath = path.resolve(cwd, `src/routes/demo/lucia/+page.server.${language}`);

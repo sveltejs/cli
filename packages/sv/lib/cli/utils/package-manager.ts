@@ -1,20 +1,20 @@
+import * as p from '@clack/prompts';
+import { Option } from 'commander';
+import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as find from 'empathic/find';
-import { exec } from 'tinyexec';
-import { Option } from 'commander';
-import * as p from '@clack/prompts';
 import {
 	AGENTS,
+	type AgentName,
 	COMMANDS,
 	constructCommand,
-	detect,
-	type AgentName
+	detect
 } from 'package-manager-detector';
-import { parseJson, parseYaml } from '../../core/tooling/parsers.ts';
-import { isVersionUnsupportedBelow } from '../../core/index.ts';
-import { getHighlighter } from '../../cli/add/utils.ts';
+import { exec } from 'tinyexec';
+
+import { color } from '../../cli/add/utils.ts';
+import { isVersionUnsupportedBelow, parse } from '../../core.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -50,9 +50,8 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
-	const highlighter = getHighlighter();
 	const task = p.taskLog({
-		title: `Installing dependencies with ${highlighter.command(agent)}...`,
+		title: `Installing dependencies with ${color.command(agent)}...`,
 		limit: Math.ceil(process.stdout.rows / 2),
 		spacing: 0,
 		retainLog: true
@@ -71,7 +70,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 			task.message(line, { raw: true });
 		}
 
-		task.success(`Successfully installed dependencies with ${highlighter.command(agent)}`);
+		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
 	} catch {
 		task.error('Failed to install dependencies');
 		p.cancel('Operation failed.');
@@ -110,7 +109,7 @@ export async function addPnpmBuildDependencies(
 
 	if (confIn === 'pnpm-workspace.yaml') {
 		const content = found ? fs.readFileSync(found, 'utf-8') : '';
-		const { data, generateCode } = parseYaml(content);
+		const { data, generateCode } = parse.yaml(content);
 
 		const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
 		const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
@@ -130,7 +129,7 @@ export async function addPnpmBuildDependencies(
 		const rootDir = found ? path.dirname(found) : cwd;
 		const pkgPath = path.join(rootDir, 'package.json');
 		const content = fs.readFileSync(pkgPath, 'utf-8');
-		const { data, generateCode } = parseJson(content);
+		const { data, generateCode } = parse.json(content);
 
 		// add the packages where we install scripts should be executed
 		data.pnpm ??= {};

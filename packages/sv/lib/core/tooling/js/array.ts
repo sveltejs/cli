@@ -1,5 +1,5 @@
-import { areNodesEqual } from './common.ts';
 import type { AstTypes } from '../index.ts';
+import { areNodesEqual } from './common.ts';
 
 export function create(): AstTypes.ArrayExpression {
 	const arrayExpression: AstTypes.ArrayExpression = {

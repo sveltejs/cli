@@ -1,11 +1,12 @@
-import process from 'node:process';
-import { execSync } from 'node:child_process';
-import pc from 'picocolors';
 import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
+import { execSync } from 'node:child_process';
+import process from 'node:process';
 import { resolveCommand } from 'package-manager-detector/commands';
-import { getUserAgent } from './utils/package-manager.ts';
+import pc from 'picocolors';
+
 import { forwardExitCode } from './utils/common.ts';
+import { getUserAgent } from './utils/package-manager.ts';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')

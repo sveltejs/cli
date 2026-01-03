@@ -32,7 +32,9 @@ export type Workspace = {
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 	};
+	/** If we are in a kit project, this object will contain the lib and routes directories */
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
+	/** The package manager used to install dependencies */
 	packageManager: PackageManager;
 };
 

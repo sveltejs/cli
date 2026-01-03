@@ -1,5 +1,5 @@
-import { type SvelteAst, addSlot } from '../../../../tooling/svelte/index.ts';
+import { type SvelteAst, svelte } from '../../../../../core.ts';
 
 export function run(ast: SvelteAst.Root): void {
-	addSlot(ast, { svelteVersion: '5.0.0' });
+	svelte.addSlot(ast, { svelteVersion: '5.0.0' });
 }
