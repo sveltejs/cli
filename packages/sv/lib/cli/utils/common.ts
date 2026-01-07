@@ -152,16 +152,15 @@ export function buildAndLogArgs(
 	else allArgs.push('--install', agent);
 
 	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
-	const prompt = [res.command, ...res.args].join(' ');
+	const message = [res.command, ...res.args].join(' ');
 
-	p.log.info(pc.dim(`Re-run without prompts:\n${prompt}`));
+	p.log.info(pc.dim(`Re-run without prompts:\n${message}`));
 
-	return prompt;
+	return message;
 }
 
 export function updateReadme(projectPath: string, command: string) {
 	const readmePath = path.join(projectPath, 'README.md');
-
 	if (!fs.existsSync(readmePath)) return;
 
 	let content = fs.readFileSync(readmePath, 'utf-8');
@@ -169,15 +168,17 @@ export function updateReadme(projectPath: string, command: string) {
 	// Check if the Creating a project section exists
 	const creatingSectionPattern = /## Creating a project[\s\S]*?(?=## |$)/;
 	const creatingSectionMatch = content.match(creatingSectionPattern);
-
 	if (!creatingSectionMatch) return;
+
 	// Append to the existing Creating a project section
 	const existingSection = creatingSectionMatch[0];
 	const updatedSection =
-		existingSection.trim() +
-		'\n\nTo recreate this project with the same configuration:\n\n```sh\n# recreate this project\n' +
-		command +
-		'\n```\n\n';
+		`${existingSection.trim()}\n\n` +
+		'To recreate this project with the same configuration:\n\n' +
+		'```sh\n' +
+		'# recreate this project\n' +
+		`${command}\n` +
+		'```\n\n';
 
 	content = content.replace(creatingSectionPattern, updatedSection);
 	fs.writeFileSync(readmePath, content);

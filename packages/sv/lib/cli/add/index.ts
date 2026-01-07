@@ -658,9 +658,7 @@ export async function runAddonsApply({
 		}
 	}
 
-	if (fromCommand === 'add') {
-		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
-	}
+	if (fromCommand === 'add') common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
