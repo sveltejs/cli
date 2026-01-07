@@ -94,13 +94,12 @@ pnpm preview
 
 ### Update snapshots
 
-Test snapshots are located in `packages/sv/lib/cli/tests/snapshots`. You can update them manually or by using the interactive UI via `pnpm test:ui`. In either case, run `pnpm build` the repo before testing.
+Some snapshots are testing the output of `sv` directly from the generated binary. They are located in `packages/sv/lib/cli/tests/snapshots`. Make sure to generate a new binary before updating these snapshots.
 
-Via interactive UI:
+In one command:
 
 ```sh
-pnpm build
-pnpm test:ui --project cli # core / addons / create / migrate
+pnpm build && pnpm test:ui --project cli
 # Press `u` when prompted to update snapshots.
 ```
 
