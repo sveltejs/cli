@@ -45,7 +45,10 @@ describe('cli', () => {
 		async (testCase) => {
 			const { projectName, args } = testCase;
 			const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
-			const testOutputPath = path.resolve(monoRepoPath, '.test-output', 'cli', projectName);
+			const testOutputPath = path.relative(
+				monoRepoPath,
+				path.resolve(monoRepoPath, '.test-output', 'cli', projectName)
+			);
 
 			const result = await exec(
 				'node',

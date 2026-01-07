@@ -7,10 +7,7 @@ Everything you need to build a Svelte project, powered by [`sv`](https://github.
 If you're seeing this, you've probably already done this step. Congrats!
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
+# create a new project
 npx sv create my-app
 ```
 

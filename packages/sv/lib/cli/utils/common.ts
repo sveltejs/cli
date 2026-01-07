@@ -1,4 +1,6 @@
 import pc from 'picocolors';
+import fs from 'node:fs';
+import path from 'node:path';
 import pkg from '../../../package.json' with { type: 'json' };
 import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
@@ -137,12 +139,12 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 	return options;
 }
 
-export function logArgs(
+export function buildAndLogArgs(
 	agent: AgentName | null | undefined,
 	command: 'create' | 'add',
 	args: string[],
 	lastArgs: string[] = []
-) {
+): string {
 	const allArgs = ['sv', command, ...args];
 
 	// Handle install option
@@ -150,7 +152,36 @@ export function logArgs(
 	else allArgs.push('--install', agent);
 
 	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
-	p.log.message(pc.dim([res.command, ...res.args].join(' ')));
+	const message = [res.command, ...res.args].join(' ');
+
+	p.log.info(pc.dim(`Re-run without prompts:\n${message}`));
+
+	return message;
+}
+
+export function updateReadme(projectPath: string, command: string) {
+	const readmePath = path.join(projectPath, 'README.md');
+	if (!fs.existsSync(readmePath)) return;
+
+	let content = fs.readFileSync(readmePath, 'utf-8');
+
+	// Check if the Creating a project section exists
+	const creatingSectionPattern = /## Creating a project[\s\S]*?(?=## |$)/;
+	const creatingSectionMatch = content.match(creatingSectionPattern);
+	if (!creatingSectionMatch) return;
+
+	// Append to the existing Creating a project section
+	const existingSection = creatingSectionMatch[0];
+	const updatedSection =
+		`${existingSection.trim()}\n\n` +
+		'To recreate this project with the same configuration:\n\n' +
+		'```sh\n' +
+		'# recreate this project\n' +
+		`${command}\n` +
+		'```\n\n';
+
+	content = content.replace(creatingSectionPattern, updatedSection);
+	fs.writeFileSync(readmePath, content);
 }
 
 export function errorAndExit(message: string) {
@@ -158,3 +189,7 @@ export function errorAndExit(message: string) {
 	p.cancel('Operation failed.');
 	process.exit(1);
 }
+
+export const normalizePosix = (dir: string) => {
+	return path.posix.normalize(dir.replace(/\\/g, '/'));
+};
