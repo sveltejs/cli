@@ -149,7 +149,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			directory: () => {
 				const defaultPath = './';
 				if (cwd) {
-					return Promise.resolve(cwd);
+					return Promise.resolve(common.normalizePosix(cwd));
 				}
 				return p.text({
 					message: 'Where would you like your project to be created?',
@@ -307,9 +307,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
-	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [
-		common.normalizePosix(directory)
-	]);
+	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [directory]);
 	common.updateReadme(directory, prompt);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
