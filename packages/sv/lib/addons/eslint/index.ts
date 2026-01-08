@@ -46,10 +46,13 @@ export default defineAddon({
 			if (!content) return content;
 
 			const { data, generateCode } = parseJson(content);
-			const validate: string[] | undefined = data['eslint.validate'];
-			if (validate && !validate.includes('svelte')) {
+			const validate: string[] = data['eslint.validate'] ?? [];
+
+			if (!validate.includes('svelte')) {
 				validate.push('svelte');
 			}
+
+			data['eslint.validate'] = validate;
 			return generateCode();
 		});
 
