@@ -1,4 +1,4 @@
-import { defineAddon, log, json } from '../../core/index.ts';
+import { defineAddon, log } from '../../core/index.ts';
 import {
 	array,
 	common,
@@ -39,16 +39,6 @@ export default defineAddon({
 			const LINT_CMD = 'eslint .';
 			scripts['lint'] ??= LINT_CMD;
 			if (!scripts['lint'].includes(LINT_CMD)) scripts['lint'] += ` && ${LINT_CMD}`;
-			return generateCode();
-		});
-
-		sv.file(files.vscodeSettings, (content) => {
-			const { data, generateCode } = parseJson(content);
-
-			json.arrayUpsert(data, 'eslint.validate', 'javascript');
-			if (language === 'ts') json.arrayUpsert(data, 'eslint.validate', 'typescript');
-			json.arrayUpsert(data, 'eslint.validate', 'svelte');
-
 			return generateCode();
 		});
 
