@@ -26,6 +26,13 @@ Path to the root of your Svelte(Kit) project.
 
 Even if some files are dirty, no prompt will be shown
 
+### `--no-download-check`
+
+Skip all download confirmation prompts
+
+> [!IMPORTANT]
+> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion
+
 ### `--install <package-manager>`
 
 Installs dependencies with a specified package manager:
