@@ -7,10 +7,9 @@ import { parse } from '../../core.ts';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
 const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
+const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
 
 beforeAll(() => {
-	const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
-
 	if (fs.existsSync(testOutputCliPath)) {
 		fs.rmSync(testOutputCliPath, { force: true, recursive: true });
 	}
@@ -51,10 +50,9 @@ describe('cli', () => {
 		async (testCase) => {
 			const { projectName, args, template = 'minimal' } = testCase;
 
-			const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
 			const testOutputPath = path.relative(
 				monoRepoPath,
-				path.resolve(monoRepoPath, '.test-output', 'cli', projectName)
+				path.resolve(testOutputCliPath, projectName)
 			);
 
 			const allArgs = [
@@ -67,6 +65,9 @@ describe('cli', () => {
 				'--no-install',
 				...args
 			];
+
+			// useful for debugging
+			// console.log(`command`, `node ${allArgs.join(' ')}`);
 			const result = await exec('node', allArgs, { nodeOptions: { stdio: 'pipe' } });
 
 			// cli finished well
