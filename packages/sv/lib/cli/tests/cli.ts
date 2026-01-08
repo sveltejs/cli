@@ -51,13 +51,10 @@ describe('cli', () => {
 		async (testCase) => {
 			const { projectName, args, template = 'minimal' } = testCase;
 
-			const testOutputPath = path.resolve(
+			const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
+			const testOutputPath = path.relative(
 				monoRepoPath,
-				'packages',
-				'sv',
-				'.test-output',
-				'cli',
-				projectName
+				path.resolve(monoRepoPath, '.test-output', 'cli', projectName)
 			);
 
 			const allArgs = [

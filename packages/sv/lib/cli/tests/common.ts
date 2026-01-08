@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import { normalizePosix, parseAddonOptions } from '../utils/common.ts';
 
-import { parseAddonOptions } from '../utils/common.ts';
+describe('normalizePosix', () => {
+	const std = 'this/is/going/forward';
+	it('normalizes windows', () => {
+		const stdWindows = 'this\\is\\going\\forward';
+		expect(normalizePosix(stdWindows)).toEqual(std);
+	});
+	it('normalizes unix', () => {
+		expect(normalizePosix(std)).toEqual(std);
+	});
+});
 
 describe('parseAddonOptions', () => {
 	it('returns undefined on undefined', () => {

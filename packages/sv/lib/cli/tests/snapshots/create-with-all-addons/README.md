@@ -7,11 +7,15 @@ Everything you need to build a Svelte project, powered by [`sv`](https://github.
 If you're seeing this, you've probably already done this step. Congrats!
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
+# create a new project
 npx sv create my-app
+```
+
+To recreate this project with the same configuration:
+
+```sh
+# recreate this project
+npx sv create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" devtools-json drizzle="database:sqlite+sqlite:libsql" lucia="demo:yes" mdsvex paraglide="languageTags:en,es+demo:yes" mcp="ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local" --no-install .test-output/cli/create-with-all-addons
 ```
 
 ## Developing

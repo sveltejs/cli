@@ -728,7 +728,7 @@ export async function runAddonsApply({
 	if (fromCommand === 'add') {
 		if (!options.gitCheck) argsFormattedAddons.push('--no-git-check');
 
-		common.logArgs(packageManager, 'add', argsFormattedAddons);
+		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
 	}
 
 	if (packageManager) {
