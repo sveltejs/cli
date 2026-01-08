@@ -46,7 +46,7 @@ export default defineAddon({
 			if (!content) return content;
 
 			const { data, generateCode } = parseJson(content);
-			const validate: string[] = data['eslint.validate'] ?? [];
+			const validate: string[] = data['eslint.validate'] ?? ['typescript', 'javascript', 'svelte'];
 
 			if (!validate.includes('svelte')) {
 				validate.push('svelte');
