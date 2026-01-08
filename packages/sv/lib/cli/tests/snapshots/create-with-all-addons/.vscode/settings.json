@@ -1,4 +1,9 @@
 {
+	"eslint.validate": [
+		"javascript",
+		"typescript",
+		"svelte"
+	],
 	"files.associations": {
 		"*.css": "tailwindcss"
 	}

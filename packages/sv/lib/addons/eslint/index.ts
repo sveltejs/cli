@@ -1,4 +1,4 @@
-import { defineAddon, log } from '../../core/index.ts';
+import { defineAddon, log, json } from '../../core/index.ts';
 import {
 	array,
 	common,
@@ -43,16 +43,12 @@ export default defineAddon({
 		});
 
 		sv.file(files.vscodeSettings, (content) => {
-			if (!content) return content;
-
 			const { data, generateCode } = parseJson(content);
-			const validate: string[] = data['eslint.validate'] ?? ['typescript', 'javascript', 'svelte'];
 
-			if (!validate.includes('svelte')) {
-				validate.push('svelte');
-			}
+			json.arrayUpsert(data, 'eslint.validate', 'javascript');
+			if (language === 'ts') json.arrayUpsert(data, 'eslint.validate', 'typescript');
+			json.arrayUpsert(data, 'eslint.validate', 'svelte');
 
-			data['eslint.validate'] = validate;
 			return generateCode();
 		});
 
