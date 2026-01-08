@@ -187,8 +187,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				// always use the minimal template for playground projects
 				if (options.fromPlayground) return Promise.resolve<TemplateType>('minimal');
 
-				const availableTemplates =
-					options.add.length > 0 ? templates.filter((t) => t.name !== 'addon') : templates;
+				// TODO JYC:
+				// Don't allow the addon template right now to be displayed in the select list
+				const availableTemplates = templates.filter((t) => t.name !== 'addon');
+				// Later, we will not allow the addon template to be added via the CLI when "--add" is used
+				// const availableTemplates =
+				// 	options.add.length > 0 ? templates.filter((t) => t.name !== 'addon') : templates;
 
 				return p.select<TemplateType>({
 					message: 'Which template would you like?',

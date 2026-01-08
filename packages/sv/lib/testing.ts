@@ -53,7 +53,7 @@ export async function setup({
 			create(templatePath, { name: variant, template: 'minimal', types: 'typescript' });
 		} else if (variant === 'vite-js' || variant === 'vite-ts') {
 			const name = `template-svelte${variant === 'vite-ts' ? '-ts' : ''}`;
-			// TODO: should probably point this to a specific commit hash (ex: `#1234abcd`)
+			// Could probably point this to a specific commit hash (ex: `#1234abcd`)
 			const template = degit(`vitejs/vite/packages/create-vite/${name}`, { force: true });
 			await template.clone(templatePath);
 

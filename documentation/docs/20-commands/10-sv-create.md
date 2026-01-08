@@ -73,17 +73,3 @@ Prevents installing dependencies.
 ### `--no-dir-check`
 
 Skip checking whether the target directory is empty.
-
-<!-- ## Programmatic interface
-
-```js
-// TODO: this gives type checking errors in the docs site when not commented out. Need to release sv, install it in the site, and uncomment this.
-// import { create } from 'sv';
-
-// // todo: check if this is right
-// create(cwd, {
-// 	// add your options here
-// 	// todo: list available option
-// });
-```
--->
