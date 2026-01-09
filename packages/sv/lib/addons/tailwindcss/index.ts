@@ -1,4 +1,4 @@
-import { defineAddon, defineAddonOptions } from '../../core/index.ts';
+import { defineAddon, defineAddonOptions, json } from '../../core/index.ts';
 import { imports, vite } from '../../core/tooling/js/index.ts';
 import * as svelte from '../../core/tooling/svelte/index.ts';
 import * as css from '../../core/tooling/css/index.ts';
@@ -126,10 +126,7 @@ export default defineAddon({
 			sv.file(files.prettierrc, (content) => {
 				const { data, generateCode } = parseJson(content);
 
-				data.plugins ??= [];
-				const plugins: string[] = data.plugins;
-				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
-				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
+				json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
 				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 
 				return generateCode();

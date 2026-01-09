@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { arrayUpsert } from '../tooling/json.ts';
+import { arrayUpsert, packageScriptsUpsert } from '../tooling/json.ts';
 
-describe('json', () => {
+describe('arrayUpsert', () => {
 	it('append', () => {
 		const data = { a: ['b'] };
 		arrayUpsert(data, 'a', 'c');
@@ -24,5 +24,19 @@ describe('json', () => {
 		const data = { a: ['b', 'c'] };
 		arrayUpsert(data, 'a', 'b');
 		expect(data).toEqual({ a: ['b', 'c'] });
+	});
+});
+
+describe('objectUpsert', () => {
+	it('create', () => {
+		const data = {};
+		packageScriptsUpsert(data, 'lint', 'cmd');
+		expect(data).toEqual({ scripts: { lint: 'cmd' } });
+	});
+
+	it('add', () => {
+		const data = { scripts: { lint: 'b' } };
+		packageScriptsUpsert(data, 'lint', 'cmd');
+		expect(data).toEqual({ scripts: { lint: 'b && cmd' } });
 	});
 });

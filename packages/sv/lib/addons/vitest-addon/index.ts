@@ -1,4 +1,4 @@
-import { dedent, defineAddon, defineAddonOptions } from '../../core/index.ts';
+import { dedent, defineAddon, defineAddonOptions, json } from '../../core/index.ts';
 import { array, imports, object, functions, vite } from '../../core/tooling/js/index.ts';
 import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 
@@ -43,14 +43,11 @@ export default defineAddon({
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
-			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
-			const TEST_CMD = 'vitest';
+
+			json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 			// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
-			const RUN_TEST = 'npm run test:unit -- --run';
-			scripts['test:unit'] ??= TEST_CMD;
-			scripts['test'] ??= RUN_TEST;
-			if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
+			json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run');
+
 			return generateCode();
 		});
 

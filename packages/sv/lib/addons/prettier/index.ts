@@ -1,4 +1,4 @@
-import { dedent, defineAddon, log, colors } from '../../core/index.ts';
+import { dedent, defineAddon, log, colors, json } from '../../core/index.ts';
 import { addEslintConfigPrettier } from '../common.ts';
 import { parseJson } from '../../core/tooling/parsers.ts';
 
@@ -47,15 +47,10 @@ export default defineAddon({
 				data.printWidth = 100;
 			}
 
-			data.plugins ??= [];
-			const plugins: string[] = data.plugins;
-			{
-				const PLUGIN_NAME = 'prettier-plugin-svelte';
-				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
-			}
+			json.arrayUpsert(data, 'plugins', 'prettier-plugin-svelte');
+
 			if (tailwindcssInstalled) {
-				const PLUGIN_NAME = 'prettier-plugin-tailwindcss';
-				if (!plugins.includes(PLUGIN_NAME)) plugins.push(PLUGIN_NAME);
+				json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
 				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 			}
 
@@ -75,17 +70,10 @@ export default defineAddon({
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
 
-			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
-			const CHECK_CMD = 'prettier --check .';
-			scripts['format'] ??= 'prettier --write .';
+			const cmd = `prettier --check .${eslintInstalled ? ` && eslint .` : ''}`;
+			json.packageScriptsUpsert(data, 'lint', cmd);
+			json.packageScriptsUpsert(data, 'format', 'prettier --write .');
 
-			if (eslintInstalled) {
-				scripts['lint'] ??= `${CHECK_CMD} && eslint .`;
-				if (!scripts['lint'].includes(CHECK_CMD)) scripts['lint'] += ` && ${CHECK_CMD}`;
-			} else {
-				scripts['lint'] ??= CHECK_CMD;
-			}
 			return generateCode();
 		});
 

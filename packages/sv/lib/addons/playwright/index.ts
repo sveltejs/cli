@@ -1,4 +1,4 @@
-import { dedent, defineAddon, log } from '../../core/index.ts';
+import { dedent, defineAddon, json, log } from '../../core/index.ts';
 import { common, exports, imports, object } from '../../core/tooling/js/index.ts';
 import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 
@@ -12,13 +12,10 @@ export default defineAddon({
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
-			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
-			const TEST_CMD = 'playwright test';
-			const RUN_TEST = 'npm run test:e2e';
-			scripts['test:e2e'] ??= TEST_CMD;
-			scripts['test'] ??= RUN_TEST;
-			if (!scripts['test'].includes(RUN_TEST)) scripts['test'] += ` && ${RUN_TEST}`;
+
+			json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
+			json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
+
 			return generateCode();
 		});
 

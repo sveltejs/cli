@@ -18,3 +18,12 @@ export function arrayUpsert(
 	}
 	data[key] = array;
 }
+
+export function packageScriptsUpsert(data: any, key: string, value: any): void {
+	data.scripts ??= {};
+	const scripts: Record<string, string> = data.scripts;
+	scripts[key] ??= value;
+	if (!scripts[key].includes(value)) {
+		scripts[key] += ` && ${value}`;
+	}
+}
