@@ -9,6 +9,7 @@ import paraglide from '../paraglide/index.ts';
 import mcp from '../mcp/index.ts';
 import playwright from '../playwright/index.ts';
 import prettier from '../prettier/index.ts';
+import quickpickle from '../quickpickle/index.ts';
 import storybook from '../storybook/index.ts';
 import sveltekitAdapter from '../sveltekit-adapter/index.ts';
 import tailwindcss from '../tailwindcss/index.ts';
@@ -28,6 +29,7 @@ type OfficialAddons = {
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
 	mcp: Addon<any>;
+	quickpickle: Addon<any>;
 };
 
 // The order of addons here determines the order they are displayed inside the CLI
@@ -45,7 +47,8 @@ export const officialAddons: OfficialAddons = {
 	mdsvex,
 	paraglide,
 	storybook,
-	mcp
+	mcp,
+	quickpickle
 };
 
 export function getAddonDetails(id: string): AddonWithoutExplicitArgs {
