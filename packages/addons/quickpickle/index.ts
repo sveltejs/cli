@@ -126,8 +126,10 @@ export default defineAddon({
 		// Add VS Code settings for Cucumber autocomplete
 		sv.file(files.vscodeSettings, (content) => {
 			const { data, generateCode } = parseJson(content);
-			data['cucumber.glue'] = ['**/*.steps.{ts,js,mjs}'];
-			data['cucumberautocomplete.steps'] = [
+			// Setting for official Cucumber plugin
+			data['cucumber.glue'] = ['**/*.steps.{ts,js,mjs}']; 
+				// Setting for most widely used Cucumber plugin
+				data['cucumberautocomplete.steps'] = [
 				'**/*.steps.{ts,js,mjs}',
 				'**/node_modules/@quickpickle/playwright/**/*.steps.mjs'
 			];
