@@ -90,21 +90,16 @@ npx sv add eslint @supacool
 npx sv create --add eslint @supacool
 ```
 
-### Protocols
-
-We support two protocols for community add-ons:
-
-- `@[ORG]` - for `sv` add-ons published under an npm organization.
-  - Giving only the organization name will look for `@[ORG]/sv` _(preferred)_
-  - This `@[ORG]/my-super-cool-sv-addon` will also work, _but is more wordy!_
+### Package Protocols
 
 ```sh
+# Scoped package: @org (preferred), we will look for @org/sv
 npx sv add @supacool
-```
 
-- `file:[PATH_TO_ADDON]` - for local add-ons. It could be useful for scafolding related to a specific project for example.
+# Regular npm package (with or without scope)
+npx sv add my-cool-addon
 
-```sh
+# Local add-on
 npx sv add file:../path/to/my-addon
 ```
 

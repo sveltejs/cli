@@ -42,7 +42,7 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 type AddonArgsIn = { id: string; options?: string[] };
 type AddonArgsOut = AddonArgsIn & {
 	options: string[];
-	kind: 'official' | 'file' | 'scoped';
+	kind: 'official' | 'file' | 'npm';
 	resolvedId: string;
 };
 
@@ -474,6 +474,9 @@ export async function promptAddonQuestions({
 
 	// add inter-addon dependencies
 	// We need to iterate until no new dependencies are added (to handle transitive dependencies)
+	// Track dependency chains to detect circular dependencies
+	const dependencyChains = new Map<string, Set<string>>();
+
 	let hasNewDependencies = true;
 	while (hasNewDependencies) {
 		hasNewDependencies = false;
@@ -489,6 +492,22 @@ export async function promptAddonQuestions({
 			);
 
 			for (const depId of missingDependencies) {
+				// Check for circular dependencies
+				const addonChain = dependencyChains.get(addon.id) ?? new Set();
+				if (addonChain.has(depId)) {
+					// Build the cycle path for a helpful error message
+					const cyclePath = [...addonChain, addon.id, depId].join(' → ');
+					common.errorAndExit(
+						`Circular dependency detected: ${cyclePath}\n` +
+							`Add-ons cannot have circular dependencies.`
+					);
+				}
+
+				// Track the dependency chain
+				const depChain = new Set(addonChain);
+				depChain.add(addon.id);
+				dependencyChains.set(depId, depChain);
+
 				hasNewDependencies = true;
 				// Dependencies are always official addons
 				const depAddon = allAddons.get(depId);
@@ -779,17 +798,19 @@ export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
 				kind: 'file',
 				resolvedId
 			});
-		} else if (addon.id.startsWith('@')) {
-			// Scoped package (e.g., @org/name)
-			const resolvedId = addon.id.includes('/') ? addon.id : addon.id + '/sv';
+		} else {
+			// npm package (e.g., @org/name or package-name)
+			const resolvedId = addon.id.startsWith('@')
+				? addon.id.includes('/')
+					? addon.id
+					: addon.id + '/sv'
+				: addon.id;
 			toRet.set(addon.id, {
 				id: addon.id,
 				options: addon.options ?? [],
-				kind: 'scoped',
+				kind: 'npm',
 				resolvedId
 			});
-		} else {
-			invalidAddons.push(addon.id);
 		}
 	}
 	if (invalidAddons.length > 0) {

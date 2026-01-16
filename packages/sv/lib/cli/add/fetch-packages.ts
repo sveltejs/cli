@@ -1,3 +1,4 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
@@ -6,8 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
 
+import pkg from '../../../package.json' with { type: 'json' };
 import { color, type ResolvedAddon } from '../../core.ts';
 import * as common from '../utils/common.ts';
+// eslint-disable-next-line no-restricted-imports
+import { splitVersion } from '../../core/common.ts';
 // eslint-disable-next-line no-restricted-imports
 import { downloadJson } from '../../core/downloadJson.ts';
 
@@ -16,20 +20,35 @@ const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
 const REGISTRY = 'https://registry.npmjs.org';
 export const Directive = { file: 'file:', npm: 'npm:' };
 
-function verifyPackage(pkg: Record<string, any>, specifier: string) {
-	const deps = { ...pkg.dependencies, ...pkg.peerDependencies };
-	// valid addons should always have a dependency on `core`
-	if (!deps['sv']) {
+function verifyPackage(addonPkg: Record<string, any>, specifier: string) {
+	// We should look only for dependencies, not devDependencies or peerDependencies
+	const deps = { ...addonPkg.dependencies };
+
+	// valid addons should always have a dependency on `sv`
+	const addonSvVersion = deps['sv'];
+	if (!addonSvVersion) {
 		throw new Error(
 			`Invalid add-on package specified: '${specifier}' is missing a dependency on 'sv' in its 'package.json'`
 		);
 	}
-	// addons should never have any external dependencies outside of `sv`.
-	// if the addon does have an external dependency, then we'll throw a helpful error guiding them to the solution
+
+	// addons should never have any external dependencies outside of `sv`
 	for (const dep of Object.keys(deps)) {
 		if (dep === 'sv') continue;
 		throw new Error(
 			`Invalid add-on package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides 'sv'. Consider bundling your dependencies if they are necessary`
+		);
+	}
+
+	// Check version compatibility and warn if there's a major version mismatch
+	const cleanedAddonVersion = addonSvVersion.replace(/^[\^~>=<]+/, '');
+	const addon_major = splitVersion(cleanedAddonVersion).major;
+	const sv_major = splitVersion(pkg.version).major;
+
+	if (sv_major !== addon_major) {
+		p.log.warn(
+			`${color.warning(specifier)} was built for ${color.warning(`sv@${addon_major}.x`)} but you're running ${color.warning(`sv@${pkg.version}`)}.\n` +
+				`This may cause compatibility issues.`
 		);
 	}
 }
@@ -102,8 +121,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<Resolve
 			}
 		}
 
-		const { default: details } = await import(pkg.name);
-		return details;
+		return await importAddonCode(pkg.name);
 	}
 
 	const tarballUrl: string = pkg.dist.tarball;
@@ -126,7 +144,17 @@ export async function downloadPackage(options: DownloadOptions): Promise<Resolve
 		})
 	);
 
-	const { default: details } = await import(pkg.name);
+	return await importAddonCode(pkg.name);
+}
+
+async function importAddonCode(pkgName: string): Promise<ResolvedAddon> {
+	try {
+		const { default: details } = await import(`${pkgName}/sv`);
+		return details;
+	} catch {
+		// /sv export doesn't exist, fall through to default
+	}
+	const { default: details } = await import(pkgName);
 	return details;
 }
 
