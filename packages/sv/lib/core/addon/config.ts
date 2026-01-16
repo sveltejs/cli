@@ -57,7 +57,7 @@ export type Addon<Args extends OptionDefinition> = {
 	/** Run the addon. The actual execution of the addon... Add files, edit files, etc. */
 	run: (
 		workspace: Workspace & {
-			/** Add-on sptions */
+			/** Add-on options */
 			options: WorkspaceOptions<Args>;
 			/** Api to interact with the workspace. */
 			sv: SvApi;
