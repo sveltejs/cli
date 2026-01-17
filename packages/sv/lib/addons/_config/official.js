@@ -13,42 +13,26 @@ import sveltekitAdapter from '../sveltekit-adapter/index.js';
 import tailwindcss from '../tailwindcss/index.js';
 import vitest from '../vitest-addon/index.js';
 
-/**
- * @typedef {{
- *   prettier: Addon<any>;
- *   eslint: Addon<any>;
- *   vitest: Addon<any>;
- *   playwright: Addon<any>;
- *   tailwindcss: Addon<any>;
- *   sveltekitAdapter: Addon<any>;
- *   devtoolsJson: Addon<any>;
- *   drizzle: Addon<any>;
- *   lucia: Addon<any>;
- *   mdsvex: Addon<any>;
- *   paraglide: Addon<any>;
- *   storybook: Addon<any>;
- *   mcp: Addon<any>;
- * }} OfficialAddons
- */
-
 // The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity
-/** @type {OfficialAddons} */
-export const officialAddons = {
-	prettier,
-	eslint,
-	vitest,
-	playwright,
-	tailwindcss,
-	sveltekitAdapter,
-	devtoolsJson,
-	drizzle,
-	lucia,
-	mdsvex,
-	paraglide,
-	storybook,
-	mcp
-};
+/** @type {Record<string, ResolvedAddon>} */
+export const officialAddons = /** @type {Record<string, ResolvedAddon>} */ (
+	/** @type {unknown} */ ({
+		prettier,
+		eslint,
+		vitest,
+		playwright,
+		tailwindcss,
+		sveltekitAdapter,
+		devtoolsJson,
+		drizzle,
+		lucia,
+		mdsvex,
+		paraglide,
+		storybook,
+		mcp
+	})
+);
 
 /**
  * @param {string} id
@@ -60,5 +44,5 @@ export function getAddonDetails(id) {
 		throw new Error(`Invalid add-on: ${id}`);
 	}
 
-	return /** @type {ResolvedAddon} */ (details);
+	return details;
 }
