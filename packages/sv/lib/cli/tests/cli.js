@@ -6,7 +6,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { parse } from '../../core.js';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
-const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
+const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'bin.js');
 const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
 
 beforeAll(() => {

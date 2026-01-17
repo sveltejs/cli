@@ -8,10 +8,10 @@
 		"pnpm": "^10.0.0"
 	},
 	"scripts": {
-		"build": "tsdown",
+		"build": "pnpm --filter sv build",
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
-		"dev": "tsdown -w & pnpm --parallel check -w & wait",
+		"dev": "pnpm --parallel check -w",
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"test": "vitest run --silent",
@@ -34,7 +34,6 @@
 		"prettier-plugin-svelte": "^3.4.0",
 		"sv": "workspace:*",
 		"svelte": "^5.45.10",
-		"tsdown": "^0.18.1",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.49.0",
 		"vitest": "4.0.15"

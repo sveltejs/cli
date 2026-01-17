@@ -11,37 +11,42 @@
 	},
 	"homepage": "https://svelte.dev",
 	"scripts": {
+		"build": "node lib/create/scripts/build-templates.js lib/create/dist",
 		"check": "tsgo",
 		"format": "pnpm lint --write",
 		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
 	},
 	"files": [
-		"dist"
+		"bin.js",
+		"lib/**",
+		"!lib/**/*.spec.js",
+		"!lib/**/test/**",
+		"!lib/**/tests/**",
+		"!lib/**/_tests/**",
+		"!lib/**/vitest.config.js",
+		"!lib/create/templates/**",
+		"!lib/create/shared/**",
+		"!lib/create/scripts/**",
+		"!lib/create/node_modules/**"
 	],
-	"bin": "./dist/bin.mjs",
+	"bin": "./bin.js",
 	"exports": {
 		".": {
-			"types": "./dist/lib/index.d.mts",
-			"default": "./dist/lib/index.mjs"
+			"types": "./lib/index.d.ts",
+			"default": "./lib/index.js"
 		},
 		"./testing": {
-			"types": "./dist/lib/testing.d.mts",
-			"default": "./dist/lib/testing.mjs"
+			"types": "./lib/testing.d.ts",
+			"default": "./lib/testing.js"
 		},
 		"./core": {
-			"types": "./dist/lib/core.d.mts",
-			"default": "./dist/lib/core.mjs"
+			"types": "./lib/core.d.ts",
+			"default": "./lib/core.js"
 		}
 	},
-	"devDependencies": {
+	"dependencies": {
 		"@clack/prompts": "1.0.0-alpha.1",
-		"@types/degit": "^2.8.6",
-		"@types/estree": "^1.0.8",
-		"@types/gitignore-parser": "^0.0.3",
-		"@types/ps-tree": "^1.1.6",
-		"@types/tar-fs": "^2.0.4",
 		"commander": "^14.0.2",
-		"decircular": "^1.0.0",
 		"dedent": "^1.7.0",
 		"degit": "^2.8.4",
 		"empathic": "^2.0.0",
@@ -53,7 +58,6 @@
 		"ps-tree": "^1.2.0",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.5.2",
-		"sucrase": "^3.35.1",
 		"svelte": "^5.45.10",
 		"tar-fs": "^3.1.1",
 		"tiny-glob": "^0.2.9",
@@ -61,6 +65,16 @@
 		"valibot": "^1.2.0",
 		"yaml": "^2.8.2",
 		"zimmerframe": "^1.1.4"
+	},
+	"devDependencies": {
+		"@types/degit": "^2.8.6",
+		"@types/estree": "^1.0.8",
+		"@types/gitignore-parser": "^0.0.3",
+		"@types/ps-tree": "^1.1.6",
+		"@types/tar-fs": "^2.0.4",
+		"decircular": "^1.0.0",
+		"prettier": "^3.7.4",
+		"sucrase": "^3.35.1"
 	},
 	"keywords": [
 		"create",

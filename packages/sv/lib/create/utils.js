@@ -65,13 +65,7 @@ export function copy(from, to, rename = identity, kv = {}) {
  * @returns {string}
  */
 export function dist(path) {
-	// we need to make this check, because vitest is making the package root the cwd,
-	// but executing the cli from the command line already makes the dist folder the cwd.
-	const insideDistFolder = import.meta.url.includes('dist');
-
-	return fileURLToPath(
-		new URL(`./${!insideDistFolder ? 'dist/' : ''}${path}`, import.meta.url).href
-	);
+	return fileURLToPath(new URL(`./dist/${path}`, import.meta.url).href);
 }
 
 /**

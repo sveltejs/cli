@@ -341,6 +341,6 @@ export async function buildTemplates(dist) {
 }
 
 const dist = process.argv[2];
-if (dist === 'dist') {
+if (dist) {
 	buildTemplates(dist);
 }
