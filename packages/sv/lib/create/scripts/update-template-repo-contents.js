@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { create } from '../../../dist/lib/index.mjs';
+import { create } from '../index.js';
 
 const repo = /** @type {string} */ (process.argv[2]);
 

@@ -6,8 +6,9 @@ import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
+/** @import { File, LanguageType } from '../index.js' */
 
-/** @import { File, LanguageType } from '../index.ts' */
+const dtStart = performance.now();
 
 const pkgRoot = path.resolve(fileURLToPath(import.meta.url), '..', '..');
 
@@ -344,3 +345,5 @@ const dist = process.argv[2];
 if (dist) {
 	buildTemplates(dist);
 }
+
+console.log(`✅ sv is ready (${(performance.now() - dtStart).toFixed(0)}ms) 🎉`);
