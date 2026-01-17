@@ -1,4 +1,7 @@
-import { type PromiseWithChild, exec } from 'node:child_process';
+/** @import { PromiseWithChild } from 'node:child_process' */
+/** @import { LanguageType, TemplateType } from '../index.js' */
+
+import { exec } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,10 +9,13 @@ import { promisify } from 'node:util';
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { add, officialAddons } from '../../../../sv/lib/index.js';
-import { type LanguageType, type TemplateType, create } from '../index.js';
+import { create } from '../index.js';
 
-// Resolve the given path relative to the current file
-const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+/**
+ * Resolve the given path relative to the current file
+ * @param {string} p
+ */
+const resolve_path = (p) => fileURLToPath(new URL(p, import.meta.url));
 
 // use a directory outside of packages to ensure it isn't added to the pnpm workspace
 const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
@@ -31,15 +37,16 @@ beforeAll(async () => {
 /**
  * Tests in different templates can be run concurrently for a nice speedup locally, but tests within a template must be run sequentially.
  * It'd be better to group tests by template, but vitest doesn't support that yet.
+ * @type {Map<string, Array<[string, () => PromiseWithChild<any>]>>}
  */
-const script_test_map = new Map<string, Array<[string, () => PromiseWithChild<any>]>>();
+const script_test_map = new Map();
 
-const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[];
+const templates = /** @type {TemplateType[]} */ (fs.readdirSync(resolve_path('../templates/')));
 
 for (const template of templates.filter((t) => t !== 'addon')) {
 	if (template[0] === '.') continue;
 
-	for (const types of ['checkjs', 'typescript', 'none'] as LanguageType[]) {
+	for (const types of /** @type {LanguageType[]} */ (['checkjs', 'typescript', 'none'])) {
 		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 

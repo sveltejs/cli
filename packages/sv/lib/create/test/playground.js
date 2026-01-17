@@ -12,7 +12,10 @@ import {
 	validatePlaygroundUrl
 } from '../playground.js';
 
-const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+/**
+ * @param {string} p
+ */
+const resolvePath = (p) => fileURLToPath(new URL(p, import.meta.url));
 const testWorkspaceDir = resolvePath('../../../.test-output/create/');
 
 test.for([

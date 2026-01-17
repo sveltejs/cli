@@ -4,10 +4,10 @@ export default defineConfig({
 	test: {
 		projects: [
 			'packages/migrate',
-			'packages/sv/lib/cli/vitest.config.ts',
-			'packages/sv/lib/addons/vitest.config.ts',
-			'packages/sv/lib/create/vitest.config.ts',
-			'packages/sv/lib/core/vitest.config.ts'
+			'packages/sv/lib/cli/vitest.config.js',
+			'packages/sv/lib/addons/vitest.config.js',
+			'packages/sv/lib/create/vitest.config.js',
+			'packages/sv/lib/core/vitest.config.js'
 		]
 	}
 });
