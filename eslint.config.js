@@ -26,7 +26,7 @@ export default [
 					patterns: [
 						{
 							group: ['**/core/**/*'],
-							message: 'Import from "lib/core.ts" instead of directly from "../core/..."'
+							message: 'Import from "lib/core.js" instead of directly from "../core/..."'
 						}
 					]
 				}
@@ -34,7 +34,7 @@ export default [
 		}
 	},
 	{
-		files: ['packages/sv/lib/core.ts'],
+		files: ['packages/sv/lib/core.js', 'packages/sv/lib/core.d.ts'],
 		rules: {
 			'no-restricted-imports': 'off'
 		}

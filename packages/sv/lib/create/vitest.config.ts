@@ -4,7 +4,7 @@ import { defineProject } from 'vitest/config';
 export default defineProject({
 	test: {
 		name: 'create',
-		include: ['test/*.ts'],
+		include: ['test/*.js'],
 		retry: env.CI ? 3 : 0
 	}
 });

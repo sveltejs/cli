@@ -7,7 +7,7 @@ export default defineProject({
 	test: {
 		name: 'addons',
 		include: ['_tests/**/test.{js,ts}'],
-		globalSetup: ['_tests/_setup/global.ts'],
+		globalSetup: ['_tests/_setup/global.js'],
 		testTimeout: ONE_MINUTE * 3,
 		hookTimeout: ONE_MINUTE * 3,
 		retry: env.CI ? 3 : 0,

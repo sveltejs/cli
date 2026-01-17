@@ -3,14 +3,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
 
-import { create } from '../index.ts';
+import { create } from '../index.js';
 import {
 	detectPlaygroundDependencies,
 	downloadPlaygroundData,
 	parsePlaygroundUrl,
 	setupPlaygroundProject,
 	validatePlaygroundUrl
-} from '../playground.ts';
+} from '../playground.js';
 
 const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const testWorkspaceDir = resolvePath('../../../.test-output/create/');
