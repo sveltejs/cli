@@ -1,7 +1,7 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
-import type { AddonSetupResult, ResolvedAddon, Verification } from '../../core.ts';
+import type { AddonDefinition, SetupResult, Verification } from '../../core.ts';
 import { UnsupportedError } from '../utils/errors.ts';
 
 export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
@@ -39,8 +39,8 @@ export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 }
 
 export function verifyUnsupportedAddons(
-	addons: ResolvedAddon[],
-	addonSetupResult: Record<string, AddonSetupResult>
+	addons: AddonDefinition[],
+	setupResults: Record<string, SetupResult>
 ) {
 	const verifications: Verification[] = [];
 
@@ -48,7 +48,7 @@ export function verifyUnsupportedAddons(
 		name: 'unsupported add-ons',
 		run: () => {
 			const reasons = addons.flatMap((a) =>
-				addonSetupResult[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
+				setupResults[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
 			);
 
 			if (reasons.length === 0) {

@@ -1,54 +1,77 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { AddonSpec, sanitizeAddons } from '../add/index.ts';
+import { classifyAddons } from '../add/index.ts';
+import { type AddonInput } from '../../core.ts';
+import { getErrorHint } from '../../coreInternal.ts';
 
 const testCwd = '/test/project';
 
-describe('sanitizeAddons', () => {
+describe('classifyAddons', () => {
 	it('should find official addon', () => {
-		const result = sanitizeAddons([{ id: 'eslint' }], testCwd);
+		const inputs: AddonInput[] = [{ specifier: 'eslint', options: [] }];
+		const result = classifyAddons(inputs, testCwd);
 		expect(result).toHaveLength(1);
-		expect(result[0]).toBeInstanceOf(AddonSpec);
 		expect(result[0].specifier).toBe('eslint');
-		expect(result[0].id).toBe('eslint');
-		expect(result[0].kind).toBe('official');
+		expect(result[0].source.kind).toBe('official');
+		if (result[0].source.kind === 'official') {
+			expect(result[0].source.id).toBe('eslint');
+		}
 		expect(result[0].options).toEqual([]);
 	});
 	it('should find official addon with alias', () => {
-		const result = sanitizeAddons([{ id: 'tailwind' }], testCwd);
+		const inputs: AddonInput[] = [{ specifier: 'tailwind', options: [] }];
+		const result = classifyAddons(inputs, testCwd);
 		expect(result).toHaveLength(1);
 		expect(result[0].specifier).toBe('tailwind');
-		expect(result[0].id).toBe('tailwindcss');
-		expect(result[0].kind).toBe('official');
+		expect(result[0].source.kind).toBe('official');
+		if (result[0].source.kind === 'official') {
+			expect(result[0].source.id).toBe('tailwindcss');
+		}
 	});
 	it('should have 2', () => {
-		const result = sanitizeAddons([{ id: 'eslint' }, { id: 'tailwindcss' }], testCwd);
+		const inputs: AddonInput[] = [
+			{ specifier: 'eslint', options: [] },
+			{ specifier: 'tailwindcss', options: [] }
+		];
+		const result = classifyAddons(inputs, testCwd);
 		expect(result).toHaveLength(2);
-		expect(result[0].id).toBe('eslint');
-		expect(result[1].id).toBe('tailwindcss');
+		if (result[0].source.kind === 'official') {
+			expect(result[0].source.id).toBe('eslint');
+		}
+		if (result[1].source.kind === 'official') {
+			expect(result[1].source.id).toBe('tailwindcss');
+		}
 	});
 	it('should dedupe even with alias', () => {
-		const result = sanitizeAddons([{ id: 'tailwind' }, { id: 'tailwindcss' }], testCwd);
+		const inputs: AddonInput[] = [
+			{ specifier: 'tailwind', options: [] },
+			{ specifier: 'tailwindcss', options: [] }
+		];
+		const result = classifyAddons(inputs, testCwd);
 		expect(result).toHaveLength(1);
-		expect(result[0].id).toBe('tailwindcss');
+		if (result[0].source.kind === 'official') {
+			expect(result[0].source.id).toBe('tailwindcss');
+		}
 	});
 	it('should find file addons', () => {
-		const result = sanitizeAddons([{ id: 'file:../' }], testCwd);
+		const inputs: AddonInput[] = [{ specifier: 'file:../', options: [] }];
+		const result = classifyAddons(inputs, testCwd);
 		expect(result).toHaveLength(1);
 		expect(result[0].specifier).toBe('file:../');
-		expect(result[0].id).toBe('file:../');
-		expect(result[0].kind).toBe('file');
-		expect(result[0].filePath).toBe(path.resolve(testCwd, '../'));
+		expect(result[0].source.kind).toBe('file');
+		if (result[0].source.kind === 'file') {
+			expect(result[0].source.path).toBe(path.resolve(testCwd, '../'));
+		}
 	});
 	it('should provide error hints based on kind', () => {
-		const [official] = sanitizeAddons([{ id: 'eslint' }], testCwd);
-		expect(official.getErrorHint()).toContain('github.com/sveltejs/cli');
+		const [official] = classifyAddons([{ specifier: 'eslint', options: [] }], testCwd);
+		expect(getErrorHint(official.source)).toContain('github.com/sveltejs/cli');
 
-		const [file] = sanitizeAddons([{ id: 'file:../' }], testCwd);
-		expect(file.getErrorHint()).toContain('local add-on');
+		const [file] = classifyAddons([{ specifier: 'file:../', options: [] }], testCwd);
+		expect(getErrorHint(file.source)).toContain('local add-on');
 
-		const [npm] = sanitizeAddons([{ id: '@supacool' }], testCwd);
-		expect(npm.getErrorHint()).toContain('npmjs.com');
+		const [npm] = classifyAddons([{ specifier: '@supacool', options: [] }], testCwd);
+		expect(getErrorHint(npm.source)).toContain('npmjs.com');
 	});
 });

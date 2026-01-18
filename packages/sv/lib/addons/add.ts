@@ -3,19 +3,21 @@ import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import { NonZeroExitError, exec } from 'tinyexec';
 
-import { AddonSpec } from '../cli/add/index.ts';
+import { createLoadedAddon } from '../cli/add/index.ts';
 import { fileExists, installPackages, readFile, writeFile } from '../cli/add/utils.ts';
 import { createWorkspace } from '../cli/add/workspace.ts';
 import { TESTING } from '../cli/utils/env.ts';
 import type {
 	Addon,
-	AddonSetupResult,
+	AddonDefinition,
+	LoadedAddon,
 	OptionValues,
 	PackageManager,
-	ResolvedAddon,
+	SetupResult,
 	SvApi,
 	Workspace
 } from '../core.ts';
+import { getErrorHint } from '../coreInternal.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
@@ -37,33 +39,26 @@ export async function add<Addons extends AddonMap>({
 }: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>> {
 	const workspace = await createWorkspace({ cwd, packageManager });
 
-	// Create AddonSpec objects for the programmatic API (all are "official" type for error hints)
-	const addonSpecs = Object.values(addons).map(
-		(addon) =>
-			new AddonSpec({
-				specifier: addon.id,
-				id: addon.id,
-				options: [],
-				kind: 'official',
-				addon
-			})
+	// Create LoadedAddon objects for the programmatic API
+	const loadedAddons: LoadedAddon[] = Object.values(addons).map((addon) =>
+		createLoadedAddon(addon as AddonDefinition)
 	);
 
-	const addonSetupResults = setupAddons(addonSpecs, workspace);
+	const setupResults = setupAddons(loadedAddons, workspace);
 
-	return await applyAddons({ addonSpecs, workspace, options, addonSetupResults });
+	return await applyAddons({ loadedAddons, workspace, options, setupResults });
 }
 
 export type ApplyAddonOptions = {
-	addonSpecs: AddonSpec[];
+	loadedAddons: LoadedAddon[];
 	options: OptionMap<AddonMap>;
 	workspace: Workspace;
-	addonSetupResults: Record<string, AddonSetupResult>;
+	setupResults: Record<string, SetupResult>;
 };
 export async function applyAddons({
-	addonSpecs,
+	loadedAddons,
 	workspace,
-	addonSetupResults,
+	setupResults,
 	options
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
@@ -74,13 +69,13 @@ export async function applyAddons({
 	const allPnpmBuildDependencies: string[] = [];
 	const status: Record<string, string[] | 'success'> = {};
 
-	const addons = addonSpecs.map((s) => s.addon!);
-	const ordered = orderAddons(addons, addonSetupResults);
+	const addonDefs = loadedAddons.map((l) => l.addon);
+	const ordered = orderAddons(addonDefs, setupResults);
 
 	let hasFormatter = false;
 
 	for (const addon of ordered) {
-		const spec = addonSpecs.find((s) => s.id === addon.id)!;
+		const loaded = loadedAddons.find((l) => l.addon.id === addon.id)!;
 		const workspaceOptions = options[addon.id] || {};
 
 		// reload workspace for every addon, as previous addons might have changed it
@@ -95,7 +90,7 @@ export async function applyAddons({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
-			spec,
+			loaded,
 			multiple: ordered.length > 1
 		});
 
@@ -115,22 +110,16 @@ export async function applyAddons({
 	};
 }
 
-/** Setup addons - accepts either AddonSpec[] or ResolvedAddon[] */
+/** Setup addons - takes LoadedAddon[] and returns setup results */
 export function setupAddons(
-	input: AddonSpec[] | ResolvedAddon[],
+	loadedAddons: LoadedAddon[],
 	workspace: Workspace
-): Record<string, AddonSetupResult> {
-	// Normalize to AddonSpec[] - if input is ResolvedAddon[], convert to specs
-	const specs: AddonSpec[] =
-		input.length > 0 && input[0] instanceof AddonSpec
-			? (input as AddonSpec[])
-			: (input as ResolvedAddon[]).map((addon) => AddonSpec.fromAddon(addon));
+): Record<string, SetupResult> {
+	const setupResults: Record<string, SetupResult> = {};
 
-	const addonSetupResults: Record<string, AddonSetupResult> = {};
-
-	for (const spec of specs) {
-		const addon = spec.addon!;
-		const setupResult: AddonSetupResult = {
+	for (const loaded of loadedAddons) {
+		const addon = loaded.addon;
+		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
 			runsAfter: []
@@ -147,22 +136,24 @@ export function setupAddons(
 			});
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
-			throw new Error(`Add-on '${addon.id}' failed during setup: ${msg}\n\n${spec.getErrorHint()}`);
+			throw new Error(
+				`Add-on '${addon.id}' failed during setup: ${msg}\n\n${getErrorHint(loaded.reference.source)}`
+			);
 		}
-		addonSetupResults[addon.id] = setupResult;
+		setupResults[addon.id] = setupResult;
 	}
 
-	return addonSetupResults;
+	return setupResults;
 }
 
 type RunAddon = {
 	workspace: Workspace;
 	workspaceOptions: OptionValues<any>;
-	addon: ResolvedAddon;
-	spec: AddonSpec;
+	addon: AddonDefinition;
+	loaded: LoadedAddon;
 	multiple: boolean;
 };
-async function runAddon({ addon, spec, multiple, workspace, workspaceOptions }: RunAddon) {
+async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }: RunAddon) {
 	const files = new Set<string>();
 
 	// apply default addon options
@@ -242,7 +233,9 @@ async function runAddon({ addon, spec, multiple, workspace, workspaceOptions }: 
 		});
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : String(err);
-		throw new Error(`Add-on '${addon.id}' failed during run: ${msg}\n\n${spec.getErrorHint()}`);
+		throw new Error(
+			`Add-on '${addon.id}' failed during run: ${msg}\n\n${getErrorHint(loaded.reference.source)}`
+		);
 	}
 
 	if (cancels.length === 0) {
@@ -260,7 +253,7 @@ async function runAddon({ addon, spec, multiple, workspace, workspaceOptions }: 
 // orders addons by putting addons that don't require any other addon in the front.
 // This is a drastic simplification, as this could still cause some inconvenient circumstances,
 // but works for now in contrary to the previous implementation
-function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, AddonSetupResult>) {
+function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, SetupResult>) {
 	return addons.sort((a, b) => {
 		return setupResults[a.id]?.runsAfter?.length - setupResults[b.id]?.runsAfter?.length;
 	});

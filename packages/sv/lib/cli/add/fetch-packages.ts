@@ -7,7 +7,7 @@ import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
 
 import pkg from '../../../package.json' with { type: 'json' };
-import { color, type ResolvedAddon } from '../../core.ts';
+import { color, type AddonDefinition } from '../../core.ts';
 import * as common from '../utils/common.ts';
 // eslint-disable-next-line no-restricted-imports
 import { splitVersion } from '../../core/common.ts';
@@ -87,7 +87,7 @@ type DownloadOptions = { path?: string; pkg: any };
  * Downloads and installs the package into the `node_modules` of `sv`.
  * @returns the details of the downloaded addon
  */
-export async function downloadPackage(options: DownloadOptions): Promise<ResolvedAddon> {
+export async function downloadPackage(options: DownloadOptions): Promise<AddonDefinition> {
 	const { pkg } = options;
 	if (options.path) {
 		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
@@ -145,7 +145,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<Resolve
 	return await importAddonCode(pkg.name);
 }
 
-async function importAddonCode(pkgName: string): Promise<ResolvedAddon> {
+async function importAddonCode(pkgName: string): Promise<AddonDefinition> {
 	try {
 		const { default: details } = await import(`${pkgName}/sv`);
 		return details;

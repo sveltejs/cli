@@ -79,9 +79,107 @@ export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>):
 	return config;
 }
 
-export type AddonSetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
+// ============================================================================
+// Addon Pipeline Flow
+// ============================================================================
+//
+//   CLI args
+//      │
+//      ▼
+//   AddonInput[]        ──  Stage 1: Raw user input ("eslint", "file:../x")
+//      │
+//      │  classifyAddons()
+//      ▼
+//   AddonReference[]    ──  Stage 2: Classified source (official/file/npm)
+//      │
+//      │  resolveAddons()
+//      ▼
+//   LoadedAddon[]       ──  Stage 3: Code loaded (addon definition present)
+//      │
+//      │  setupAddons()
+//      ▼
+//   PreparedAddon[]     ──  Stage 4: Setup done (dependencies resolved)
+//      │
+//      │  promptAddonQuestions()
+//      ▼
+//   ConfiguredAddon[]   ──  Stage 5: User configured (answers collected)
+//      │
+//      │  applyAddons()
+//      ▼
+//   AddonResult[]       ──  Stage 6: Execution complete
+//
+// ============================================================================
 
-export type ResolvedAddon = Addon<Record<string, Question<any>>>;
+/**
+ * Stage 1: Raw CLI input - what the user typed
+ */
+export type AddonInput = {
+	readonly specifier: string; // "eslint", "file:../x", "@org/pkg"
+	readonly options: string[]; // ["demo:yes"]
+};
+
+/**
+ * Stage 2: Classified source - knows where addon comes from
+ */
+export type AddonSource =
+	| { readonly kind: 'official'; readonly id: string }
+	| { readonly kind: 'file'; readonly path: string }
+	| { readonly kind: 'npm'; readonly packageName: string; readonly npmUrl: string };
+
+export type AddonReference = {
+	readonly specifier: string;
+	readonly options: string[];
+	readonly source: AddonSource;
+};
+
+/**
+ * Stage 3: Code loaded - addon definition is always present
+ */
+export type LoadedAddon = {
+	readonly reference: AddonReference;
+	readonly addon: AddonDefinition; // always present, never undefined
+};
+
+/**
+ * Stage 4: Setup done - has dependency info
+ */
+export type PreparedAddon = LoadedAddon & {
+	readonly setupResult: SetupResult;
+};
+
+/**
+ * Stage 5: User configured - has answers to questions
+ */
+export type ConfiguredAddon = PreparedAddon & {
+	readonly answers: OptionValues<any>;
+};
+
+/**
+ * Stage 6: Execution result
+ */
+export type AddonResult = {
+	readonly id: string;
+	readonly status: 'success' | { canceled: string[] };
+	readonly files: string[];
+};
+
+/**
+ * Generates an inline error hint based on the addon source
+ */
+export function getErrorHint(source: AddonSource): string {
+	switch (source.kind) {
+		case 'official':
+			return `Please report this issue: https://github.com/sveltejs/cli/issues`;
+		case 'file':
+			return `This is a local add-on at '${source.path}', please check your code.`;
+		case 'npm':
+			return `If this is an issue with the community add-on, please report it: ${source.npmUrl}`;
+	}
+}
+
+export type SetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
+
+export type AddonDefinition = Addon<Record<string, Question<any>>>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;

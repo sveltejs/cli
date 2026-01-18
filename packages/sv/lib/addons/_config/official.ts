@@ -1,4 +1,4 @@
-import type { Addon, ResolvedAddon } from '../../core.ts';
+import type { Addon, AddonDefinition } from '../../core.ts';
 import devtoolsJson from '../devtools-json/index.ts';
 import drizzle from '../drizzle/index.ts';
 import eslint from '../eslint/index.ts';
@@ -47,11 +47,11 @@ export const officialAddons: OfficialAddons = {
 	mcp
 };
 
-export function getAddonDetails(id: string): ResolvedAddon {
+export function getAddonDetails(id: string): AddonDefinition {
 	const details = Object.values(officialAddons).find((a) => a.id === id);
 	if (!details) {
 		throw new Error(`Invalid add-on: ${id}`);
 	}
 
-	return details as ResolvedAddon;
+	return details as AddonDefinition;
 }

@@ -3,3 +3,5 @@ export { addEslintConfigPrettier } from './addons/common.ts';
 export { getSharedFiles } from './create/utils.ts';
 // eslint-disable-next-line no-restricted-imports
 export { sanitizeName } from './core/sanitize.ts';
+// eslint-disable-next-line no-restricted-imports
+export { getErrorHint } from './core/addon/config.ts';

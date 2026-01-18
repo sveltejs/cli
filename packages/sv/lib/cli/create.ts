@@ -7,7 +7,7 @@ import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import * as v from 'valibot';
 
-import type { OptionValues, Workspace } from '../core.ts';
+import type { LoadedAddon, OptionValues, Workspace } from '../core.ts';
 import {
 	type LanguageType,
 	type TemplateType,
@@ -23,12 +23,11 @@ import {
 } from '../create/playground.ts';
 import { dist } from '../create/utils.ts';
 import {
-	type AddonSpec,
 	addonArgsHandler,
+	classifyAddons,
 	promptAddonQuestions,
 	resolveAddons,
-	runAddonsApply,
-	sanitizeAddons
+	runAddonsApply
 } from './add/index.ts';
 import { commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
@@ -232,9 +231,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const parentDirName = path.basename(path.dirname(projectPath));
 	const projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
-	let addonSpecs: AddonSpec[] = [];
+	let loadedAddons: LoadedAddon[] = [];
 	let answers: Record<string, OptionValues<any>> = {};
-	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
+	let addonsOptionsMap: Record<string, string[] | undefined> = {};
 
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
@@ -243,16 +242,16 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	});
 
 	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
-		const addons = options.add.reduce(addonArgsHandler, []);
-		addonSpecs = sanitizeAddons(addons, projectPath);
+		const addonInputs = options.add.reduce(addonArgsHandler, []);
+		const addonRefs = classifyAddons(addonInputs, projectPath);
 
-		// Resolve all addons (official and community) - fills addon field
-		await resolveAddons(addonSpecs, options.downloadCheck);
+		// Resolve all addons (official and community) - returns LoadedAddon[]
+		loadedAddons = await resolveAddons(addonRefs, options.downloadCheck, projectPath);
 
-		// Map options from specs to resolved IDs
-		sanitizedAddonsMap = {};
-		for (const spec of addonSpecs) {
-			sanitizedAddonsMap[spec.id] = spec.options;
+		// Map options from loaded addons to resolved IDs
+		addonsOptionsMap = {};
+		for (const loaded of loadedAddons) {
+			addonsOptionsMap[loaded.addon.id] = loaded.reference.options;
 		}
 
 		const result = await promptAddonQuestions({
@@ -261,13 +260,13 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				install: false,
 				gitCheck: false,
 				downloadCheck: options.downloadCheck,
-				addons: sanitizedAddonsMap
+				addons: addonsOptionsMap
 			},
-			addonSpecs,
+			loadedAddons,
 			workspace
 		});
 
-		addonSpecs = result.addonSpecs;
+		loadedAddons = result.loadedAddons;
 		answers = result.answers;
 	}
 
@@ -299,10 +298,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				install: false,
 				gitCheck: false,
 				downloadCheck: options.downloadCheck,
-				addons: sanitizedAddonsMap
+				addons: addonsOptionsMap
 			},
-			addonSpecs,
-			addonSetupResults: undefined,
+			loadedAddons,
+			setupResults: undefined,
 			workspace,
 			fromCommand: 'create'
 		});
