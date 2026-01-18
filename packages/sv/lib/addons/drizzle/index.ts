@@ -10,7 +10,8 @@ import {
 	js,
 	parse,
 	resolveCommand,
-	color
+	color,
+	json
 } from '../../core.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';
@@ -186,13 +187,13 @@ export default defineAddon({
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
-			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
-			if (options.docker) scripts['db:start'] ??= 'docker compose up';
-			scripts['db:push'] ??= 'drizzle-kit push';
-			scripts['db:generate'] ??= 'drizzle-kit generate';
-			scripts['db:migrate'] ??= 'drizzle-kit migrate';
-			scripts['db:studio'] ??= 'drizzle-kit studio';
+
+			if (options.docker) json.packageScriptsUpsert(data, 'db:start', 'docker compose up');
+			json.packageScriptsUpsert(data, 'db:push', 'drizzle-kit push');
+			json.packageScriptsUpsert(data, 'db:generate', 'drizzle-kit generate');
+			json.packageScriptsUpsert(data, 'db:migrate', 'drizzle-kit migrate');
+			json.packageScriptsUpsert(data, 'db:studio', 'drizzle-kit studio');
+
 			return generateCode();
 		});
 

@@ -16,6 +16,7 @@ export { createPrinter } from './core/utils.ts';
 export * as css from './core/tooling/css/index.ts';
 export * as js from './core/tooling/js/index.ts';
 export * as html from './core/tooling/html/index.ts';
+export * as json from './core/tooling/json.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
 import {
 	parseCss,

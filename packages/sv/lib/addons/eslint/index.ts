@@ -1,4 +1,12 @@
-import { type AstTypes, defineAddon, getNodeTypesVersion, js, log, parse } from '../../core.ts';
+import {
+	type AstTypes,
+	defineAddon,
+	getNodeTypesVersion,
+	js,
+	log,
+	parse,
+	json
+} from '../../core.ts';
 import { addEslintConfigPrettier } from '../../coreInternal.ts';
 
 export default defineAddon({
@@ -23,22 +31,9 @@ export default defineAddon({
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
-			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
-			const LINT_CMD = 'eslint .';
-			scripts['lint'] ??= LINT_CMD;
-			if (!scripts['lint'].includes(LINT_CMD)) scripts['lint'] += ` && ${LINT_CMD}`;
-			return generateCode();
-		});
 
-		sv.file(files.vscodeSettings, (content) => {
-			if (!content) return content;
+			json.packageScriptsUpsert(data, 'lint', 'eslint .');
 
-			const { data, generateCode } = parse.json(content);
-			const validate: string[] | undefined = data['eslint.validate'];
-			if (validate && !validate.includes('svelte')) {
-				validate.push('svelte');
-			}
 			return generateCode();
 		});
 
