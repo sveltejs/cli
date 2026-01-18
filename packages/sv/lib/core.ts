@@ -21,19 +21,7 @@ export const utils = {
 export * as css from './core/tooling/css/index.ts';
 export * as js from './core/tooling/js/index.ts';
 export * as html from './core/tooling/html/index.ts';
-import { ensureScript, addSlot, addFragment } from './core/tooling/svelte/index.ts';
-/**
- * Helper functions to manipulate Svelte code.
- */
-export const svelte: {
-	ensureScript: typeof ensureScript;
-	addSlot: typeof addSlot;
-	addFragment: typeof addFragment;
-} = {
-	ensureScript,
-	addSlot,
-	addFragment
-};
+export * as svelte from './core/tooling/svelte/index.ts';
 import {
 	parseCss,
 	parseHtml,
