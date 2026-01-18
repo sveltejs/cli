@@ -9,6 +9,14 @@ export type * from './addon/processors.ts';
 export type * from './addon/options.ts';
 export type * from './addon/config.ts';
 export type * from './addon/workspace.ts';
+import { arrayUpsert, packageScriptsUpsert } from './tooling/json.ts';
+export const json: {
+	arrayUpsert: typeof arrayUpsert;
+	packageScriptsUpsert: typeof packageScriptsUpsert;
+} = {
+	arrayUpsert,
+	packageScriptsUpsert
+};
 
 export { Walker } from './tooling/index.ts';
 export * as js from './tooling/js/index.ts';

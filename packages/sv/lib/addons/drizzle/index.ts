@@ -8,7 +8,13 @@ import {
 	object,
 	variables
 } from '../../core/tooling/js/index.ts';
-import { defineAddon, defineAddonOptions, dedent, type OptionValues } from '../../core/index.ts';
+import {
+	defineAddon,
+	defineAddonOptions,
+	dedent,
+	type OptionValues,
+	json
+} from '../../core/index.ts';
 import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
 import { resolveCommand } from 'package-manager-detector/commands';
 import { getNodeTypesVersion } from '../common.ts';
@@ -186,13 +192,13 @@ export default defineAddon({
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parseJson(content);
-			data.scripts ??= {};
-			const scripts: Record<string, string> = data.scripts;
-			if (options.docker) scripts['db:start'] ??= 'docker compose up';
-			scripts['db:push'] ??= 'drizzle-kit push';
-			scripts['db:generate'] ??= 'drizzle-kit generate';
-			scripts['db:migrate'] ??= 'drizzle-kit migrate';
-			scripts['db:studio'] ??= 'drizzle-kit studio';
+
+			if (options.docker) json.packageScriptsUpsert(data, 'db:start', 'docker compose up');
+			json.packageScriptsUpsert(data, 'db:push', 'drizzle-kit push');
+			json.packageScriptsUpsert(data, 'db:generate', 'drizzle-kit generate');
+			json.packageScriptsUpsert(data, 'db:migrate', 'drizzle-kit migrate');
+			json.packageScriptsUpsert(data, 'db:studio', 'drizzle-kit studio');
+
 			return generateCode();
 		});
 
