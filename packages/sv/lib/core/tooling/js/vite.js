@@ -1,9 +1,22 @@
-import { type AstTypes, array, common, exports, functions, imports, object } from './index.ts';
+import { array, common, exports, functions, imports, object } from './index.js';
 
-function isConfigWrapper(
-	callExpression: AstTypes.CallExpression,
-	knownWrappers: string[]
-): boolean {
+/** @typedef {import("../index.ts").AstTypes} AstTypes */
+/** @typedef {import("../index.ts").AstTypes.CallExpression} CallExpression */
+/** @typedef {import("../index.ts").AstTypes.ObjectExpression} ObjectExpression */
+/** @typedef {import("../index.ts").AstTypes.Program} Program */
+/** @typedef {import("../index.ts").AstTypes.Expression} Expression */
+/** @typedef {import("../index.ts").AstTypes.TSSatisfiesExpression} TSSatisfiesExpression */
+/** @typedef {import("../index.ts").AstTypes.ArrowFunctionExpression} ArrowFunctionExpression */
+/** @typedef {import("../index.ts").AstTypes.ReturnStatement} ReturnStatement */
+/** @typedef {import("../index.ts").AstTypes.Statement} Statement */
+/** @typedef {import("../index.ts").AstTypes.Identifier} Identifier */
+
+/**
+ * @param {CallExpression} callExpression
+ * @param {string[]} knownWrappers
+ * @returns {boolean}
+ */
+function isConfigWrapper(callExpression, knownWrappers) {
 	// Check if this is a call to defineConfig or any function that looks like a config wrapper
 	if (callExpression.callee.type !== 'Identifier') return false;
 
@@ -21,17 +34,17 @@ function isConfigWrapper(
 	return knownWrappers.includes(calleeName) || isObjectCall;
 }
 
-function exportDefaultConfig(
-	ast: AstTypes.Program,
-	options: {
-		fallback?: { code: string; additional?: (ast: AstTypes.Program) => void };
-		ignoreWrapper: string[];
-	}
-): AstTypes.ObjectExpression {
+/**
+ * @param {Program} ast
+ * @param {{ fallback?: { code: string; additional?: (ast: Program) => void }; ignoreWrapper: string[] }} options
+ * @returns {ObjectExpression}
+ */
+function exportDefaultConfig(ast, options) {
 	const { fallback, ignoreWrapper } = options;
 
 	// Get or create the default export
-	let fallbackExpression: AstTypes.Expression;
+	/** @type {Expression} */
+	let fallbackExpression;
 	if (fallback) {
 		fallbackExpression =
 			typeof fallback.code === 'string' ? common.parseExpression(fallback.code) : fallback.code;
@@ -48,42 +61,44 @@ function exportDefaultConfig(
 	const rootObject = value.type === 'TSSatisfiesExpression' ? value.expression : value;
 
 	// Handle wrapper functions (e.g., defineConfig({})) if ignoreWrapper is specified
-	let configObject: AstTypes.ObjectExpression;
+	/** @type {ObjectExpression} */
+	let configObject;
 
 	// Early bail-out: if not a call expression
 	if (!('arguments' in rootObject) || !Array.isArray(rootObject.arguments)) {
-		configObject = rootObject as unknown as AstTypes.ObjectExpression;
+		configObject = /** @type {ObjectExpression} */ (rootObject);
 		return configObject;
 	}
 
 	// Early bail-out: if not a call expression
 	if (rootObject.type !== 'CallExpression' || rootObject.callee.type !== 'Identifier') {
-		configObject = rootObject as unknown as AstTypes.ObjectExpression;
+		configObject = /** @type {ObjectExpression} */ (/** @type {unknown} */ (rootObject));
 		return configObject;
 	}
 
 	// Check if this is a config wrapper function call
-	if (!isConfigWrapper(rootObject as AstTypes.CallExpression, ignoreWrapper)) {
-		configObject = rootObject as unknown as AstTypes.ObjectExpression;
+	if (!isConfigWrapper(/** @type {CallExpression} */ (rootObject), ignoreWrapper)) {
+		configObject = /** @type {ObjectExpression} */ (/** @type {unknown} */ (rootObject));
 		return configObject;
 	}
 
 	// Main logic: handle the wrapper function call
 	// For wrapper function calls like defineConfig({}) or defineConfig(() => { return {}; })
-	const firstArg = functions.getArgument<AstTypes.Expression>(rootObject as any, {
-		index: 0,
-		fallback: object.create({})
-	});
+	const firstArg = /** @type {Expression} */ (
+		functions.getArgument(/** @type {CallExpression} */ (rootObject), {
+			index: 0,
+			fallback: object.create({})
+		})
+	);
 
 	// Check if the first argument is an arrow function that returns an object
 	if (firstArg.type === 'ArrowFunctionExpression') {
-		const arrowFunction = firstArg as AstTypes.ArrowFunctionExpression;
+		const arrowFunction = /** @type {ArrowFunctionExpression} */ (firstArg);
 		// Handle arrow function case: defineConfig(() => { return { ... }; })
 		if (arrowFunction.body.type === 'BlockStatement') {
 			// Look for a return statement in the block
 			const returnStatement = arrowFunction.body.body.find(
-				(stmt: AstTypes.Statement): stmt is AstTypes.ReturnStatement =>
-					stmt.type === 'ReturnStatement'
+				(stmt) => stmt.type === 'ReturnStatement'
 			);
 
 			if (returnStatement && returnStatement.argument?.type === 'ObjectExpression') {
@@ -91,7 +106,8 @@ function exportDefaultConfig(
 			} else {
 				// If no return statement with object found, create fallback object and add return statement
 				configObject = object.create({});
-				const newReturnStatement: AstTypes.ReturnStatement = {
+				/** @type {ReturnStatement} */
+				const newReturnStatement = {
 					type: 'ReturnStatement',
 					argument: configObject
 				};
@@ -114,15 +130,14 @@ function exportDefaultConfig(
 		configObject = object.create({});
 	}
 
-	return configObject as AstTypes.ObjectExpression;
+	return configObject;
 }
 
-function addInArrayOfObject(
-	ast: AstTypes.ObjectExpression,
-	options: {
-		arrayProperty: string;
-	} & Parameters<typeof addPlugin>[1]
-): void {
+/**
+ * @param {ObjectExpression} ast
+ * @param {{ arrayProperty: string; code: string; mode?: 'append' | 'prepend' }} options
+ */
+function addInArrayOfObject(ast, options) {
 	const { code, arrayProperty, mode = 'append' } = options;
 
 	// Get or create the array property
@@ -142,14 +157,11 @@ function addInArrayOfObject(
 	}
 }
 
-export const addPlugin = (
-	ast: AstTypes.Program,
-	options: {
-		code: string;
-		/** default: `append` */
-		mode?: 'append' | 'prepend';
-	}
-): void => {
+/**
+ * @param {Program} ast
+ * @param {{ code: string; mode?: 'append' | 'prepend' }} options
+ */
+export const addPlugin = (ast, options) => {
 	// Step 1: Get the config object, or fallback.
 	const configObject = getConfig(ast);
 
@@ -160,7 +172,11 @@ export const addPlugin = (
 	});
 };
 
-export const getConfig = (ast: AstTypes.Program): AstTypes.ObjectExpression => {
+/**
+ * @param {Program} ast
+ * @returns {ObjectExpression}
+ */
+export const getConfig = (ast) => {
 	return exportDefaultConfig(ast, {
 		fallback: {
 			code: 'defineConfig()',

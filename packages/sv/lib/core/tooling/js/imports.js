@@ -1,8 +1,19 @@
-import { type AstTypes, Walker } from '../../../core.ts';
-import { areNodesEqual } from './common.ts';
+import { Walker } from '../../../core.ts';
+import { areNodesEqual } from './common.js';
 
-export function addEmpty(node: AstTypes.Program, options: { from: string }): void {
-	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
+/** @typedef {import("../index.ts").AstTypes} AstTypes */
+/** @typedef {import("../index.ts").AstTypes.Program} Program */
+/** @typedef {import("../index.ts").AstTypes.ImportDeclaration} ImportDeclaration */
+/** @typedef {import("../index.ts").AstTypes.ImportSpecifier} ImportSpecifier */
+/** @typedef {import("../index.ts").AstTypes.Node} Node */
+
+/**
+ * @param {Program} node
+ * @param {{ from: string }} options
+ */
+export function addEmpty(node, options) {
+	/** @type {ImportDeclaration} */
+	const expectedImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: {
 			type: 'Literal',
@@ -16,8 +27,13 @@ export function addEmpty(node: AstTypes.Program, options: { from: string }): voi
 	addImportIfNecessary(node, expectedImportDeclaration);
 }
 
-export function addNamespace(node: AstTypes.Program, options: { from: string; as: string }): void {
-	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
+/**
+ * @param {Program} node
+ * @param {{ from: string; as: string }} options
+ */
+export function addNamespace(node, options) {
+	/** @type {ImportDeclaration} */
+	const expectedImportDeclaration = {
 		type: 'ImportDeclaration',
 		importKind: 'value',
 		source: { type: 'Literal', value: options.from },
@@ -33,8 +49,13 @@ export function addNamespace(node: AstTypes.Program, options: { from: string; as
 	addImportIfNecessary(node, expectedImportDeclaration);
 }
 
-export function addDefault(node: AstTypes.Program, options: { from: string; as: string }): void {
-	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
+/**
+ * @param {Program} node
+ * @param {{ from: string; as: string }} options
+ */
+export function addDefault(node, options) {
+	/** @type {ImportDeclaration} */
+	const expectedImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: {
 			type: 'Literal',
@@ -56,25 +77,22 @@ export function addDefault(node: AstTypes.Program, options: { from: string; as: 
 	addImportIfNecessary(node, expectedImportDeclaration);
 }
 
-export function addNamed(
-	node: AstTypes.Program,
-	options: {
-		/**
-		 * ```ts
-		 * imports: { 'name': 'alias' } | ['name']
-		 * ```
-		 */
-		imports: Record<string, string> | string[];
-		from: string;
-		isType?: boolean;
-	}
-): void {
+/**
+ * @param {Program} node
+ * @param {{
+ *   imports: Record<string, string> | string[];
+ *   from: string;
+ *   isType?: boolean;
+ * }} options
+ */
+export function addNamed(node, options) {
 	const o_imports = Array.isArray(options.imports)
 		? Object.fromEntries(options.imports.map((n) => [n, n]))
 		: options.imports;
 
 	const specifiers = Object.entries(o_imports).map(([key, value]) => {
-		const specifier: AstTypes.ImportSpecifier = {
+		/** @type {ImportSpecifier} */
+		const specifier = {
 			type: 'ImportSpecifier',
 			imported: {
 				type: 'Identifier',
@@ -88,9 +106,10 @@ export function addNamed(
 		return specifier;
 	});
 
-	let importDecl: AstTypes.ImportDeclaration | undefined;
+	/** @type {ImportDeclaration | undefined} */
+	let importDecl = undefined;
 
-	Walker.walk(node as AstTypes.Node, null, {
+	Walker.walk(/** @type {Node} */ (node), null, {
 		ImportDeclaration(declaration) {
 			if (declaration.source.value === options.from && declaration.specifiers) {
 				importDecl = declaration;
@@ -116,7 +135,8 @@ export function addNamed(
 		return;
 	}
 
-	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
+	/** @type {ImportDeclaration} */
+	const expectedImportDeclaration = {
 		type: 'ImportDeclaration',
 		source: {
 			type: 'Literal',
@@ -130,10 +150,11 @@ export function addNamed(
 	node.body.unshift(expectedImportDeclaration);
 }
 
-function addImportIfNecessary(
-	node: AstTypes.Program,
-	expectedImportDeclaration: AstTypes.ImportDeclaration
-) {
+/**
+ * @param {Program} node
+ * @param {ImportDeclaration} expectedImportDeclaration
+ */
+function addImportIfNecessary(node, expectedImportDeclaration) {
 	const importDeclarations = node.body.filter((item) => item.type === 'ImportDeclaration');
 	const importDeclaration = importDeclarations.find((item) =>
 		areNodesEqual(item, expectedImportDeclaration)
@@ -144,16 +165,17 @@ function addImportIfNecessary(
 	}
 }
 
-export function find(
-	ast: AstTypes.Program,
-	options: { name: string; from: string }
-):
-	| { statement: AstTypes.ImportDeclaration; alias: string }
-	| { statement: undefined; alias: undefined } {
+/**
+ * @param {Program} ast
+ * @param {{ name: string; from: string }} options
+ * @returns {{ statement: ImportDeclaration; alias: string } | { statement: undefined; alias: undefined }}
+ */
+export function find(ast, options) {
 	let alias = options.name;
-	let statement: AstTypes.ImportDeclaration;
+	/** @type {ImportDeclaration | undefined} */
+	let statement = undefined;
 
-	Walker.walk(ast as AstTypes.Node, null, {
+	Walker.walk(/** @type {Node} */ (ast), null, {
 		ImportDeclaration(node) {
 			if (node.specifiers && node.source.value === options.from) {
 				const specifier = node.specifiers.find(
@@ -161,31 +183,28 @@ export function find(
 						sp.type === 'ImportSpecifier' &&
 						sp.imported.type === 'Identifier' &&
 						sp.imported.name === options.name
-				) as AstTypes.ImportSpecifier | undefined;
+				);
 				if (specifier) {
 					statement = node;
-					alias = (specifier.local?.name ?? alias) as string;
+					alias = specifier.local?.name ?? alias;
 					return;
 				}
 			}
 		}
 	});
 
-	if (statement!) {
+	if (statement) {
 		return { statement, alias };
 	}
 
 	return { statement: undefined, alias: undefined };
 }
 
-export function remove(
-	ast: AstTypes.Program,
-	options: {
-		name: string;
-		from: string;
-		statement?: AstTypes.ImportDeclaration; // Just in case you want to pass the statement directly
-	}
-): void {
+/**
+ * @param {Program} ast
+ * @param {{ name: string; from: string; statement?: ImportDeclaration }} options
+ */
+export function remove(ast, options) {
 	const statement =
 		options.statement ?? find(ast, { name: options.name, from: options.from }).statement;
 

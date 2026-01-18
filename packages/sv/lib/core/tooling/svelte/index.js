@@ -1,6 +1,6 @@
 import { parseScript } from '../index.ts';
 import { parseSvelte } from '../parsers.ts';
-import { appendFromString } from '../js/common.ts';
+import { appendFromString } from '../js/common.js';
 
 /** @typedef {import("../index.ts").SvelteAst.Root} Root */
 /** @typedef {import("../index.ts").SvelteAst.Script} Script */
