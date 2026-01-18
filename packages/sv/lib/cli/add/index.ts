@@ -930,6 +930,13 @@ export async function resolveNonOfficialAddons(
 		);
 		stop('Resolved community add-on packages');
 
+		// Display version compatibility warnings
+		for (const { warning } of pkgs) {
+			if (warning) {
+				p.log.warn(warning);
+			}
+		}
+
 		p.log.warn(
 			'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
 		);

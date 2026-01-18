@@ -1,4 +1,3 @@
-import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
@@ -20,7 +19,10 @@ const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
 const REGISTRY = 'https://registry.npmjs.org';
 export const Directive = { file: 'file:', npm: 'npm:' };
 
-function verifyPackage(addonPkg: Record<string, any>, specifier: string) {
+function verifyPackage(
+	addonPkg: Record<string, any>,
+	specifier: string
+): string | undefined {
 	// We should look only for dependencies, not devDependencies or peerDependencies
 	const deps = { ...addonPkg.dependencies };
 
@@ -46,9 +48,9 @@ function verifyPackage(addonPkg: Record<string, any>, specifier: string) {
 	const sv_major = splitVersion(pkg.version).major;
 
 	if (sv_major !== addon_major) {
-		p.log.warn(
-			`${color.warning(specifier)} was built for ${color.warning(`sv@${addon_major}.x`)} but you're running ${color.warning(`sv@${pkg.version}`)}.\n` +
-				`This may cause compatibility issues.`
+		return (
+			`${color.warning(specifier)} was built for ${color.warning(`sv@${cleanedAddonVersion}`)} but you're running ${color.warning(`sv@${pkg.version}`)}.\n` +
+			`This may cause compatibility issues.`
 		);
 	}
 }
@@ -168,6 +170,7 @@ export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions
 	pkg: PackageJSON;
 	repo: string;
 	path?: string;
+	warning?: string;
 }> {
 	let npm = packageName;
 	if (packageName.startsWith(Directive.file)) {
@@ -175,21 +178,22 @@ export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions
 		const pkgJSONPath = path.resolve(pkgPath, 'package.json');
 		const json = fs.readFileSync(pkgJSONPath, 'utf8');
 		const pkg = JSON.parse(json);
-		verifyPackage(pkg, packageName);
+		const warning = verifyPackage(pkg, packageName);
 
-		return { path: pkgPath, pkg, repo: pkgPath };
+		return { path: pkgPath, pkg, repo: pkgPath, warning };
 	}
 	if (packageName.startsWith(Directive.npm)) {
 		npm = packageName.slice(Directive.npm.length);
 	}
 
 	const pkg = await fetchPackageJSON(npm);
-	verifyPackage(pkg, packageName);
+	const warning = verifyPackage(pkg, packageName);
 
 	return {
 		pkg,
 		// fallback to providing the npm package URL
-		repo: pkg.repository?.url ?? `https://www.npmjs.com/package/${npm}`
+		repo: pkg.repository?.url ?? `https://www.npmjs.com/package/${npm}`,
+		warning
 	};
 }
 
