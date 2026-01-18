@@ -2,7 +2,7 @@
 title: add-on
 ---
 
-> [!WARNING]
+> [!NOTE]
 > Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
 
 This guide covers how to create, test, and publish community add-ons for `sv`.
@@ -122,6 +122,7 @@ Your add-on must have `sv` as a dependency in `package.json`:
 Your package can export the add-on in two ways:
 
 1. **Default export** (recommended for dedicated add-on packages):
+
    ```json
    {
    	"exports": {
