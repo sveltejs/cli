@@ -11,7 +11,8 @@ import {
 	officialAddons as _officialAddons,
 	getAddonDetails
 } from '../../addons/_config/official.js';
-import { type AddonMap, applyAddons, setupAddons } from '../../addons/add.js';
+import { applyAddons, setupAddons } from '../../addons/add.js';
+import type { AddonMap } from '../../addons/types.d.ts';
 import type { AddonSetupResult, OptionValues, ResolvedAddon, Workspace } from '../../core.ts';
 import { noDownloadCheckOption, noInstallOption } from '../create.ts';
 import * as common from '../utils/common.ts';

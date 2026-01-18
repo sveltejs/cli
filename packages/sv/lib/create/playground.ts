@@ -3,7 +3,7 @@ import path from 'node:path';
 import { walk } from 'zimmerframe';
 import { commonFilePaths } from '../cli/add/utils.ts';
 
-import { isVersionUnsupportedBelow, js, parse, svelte } from '../core.ts';
+import { isVersionUnsupportedBelow, js, parse, svelte, type AstTypes } from '../core.ts';
 import { getSharedFiles } from './utils.ts';
 // eslint-disable-next-line no-restricted-imports
 import { downloadJson } from '../core/downloadJson.ts';
@@ -100,7 +100,7 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	];
 
 	for (const file of files) {
-		let ast: js.AstTypes.Program | undefined;
+		let ast: AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
 			const { ast: svelteAst } = parse.svelte(file.content);
 			svelte.ensureScript(svelteAst);
@@ -111,7 +111,7 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 		if (!ast) continue;
 
 		const imports = ast.body
-			.filter((node): node is js.AstTypes.ImportDeclaration => node.type === 'ImportDeclaration')
+			.filter((node): node is AstTypes.ImportDeclaration => node.type === 'ImportDeclaration')
 			.map((node) => node.source.value as string)
 			.filter((importPath) => !importPath.startsWith('./') && !importPath.startsWith('/'))
 			.filter((importPath) => !excludedPrefixes.some((prefix) => importPath.startsWith(prefix)))
@@ -194,7 +194,7 @@ export function setupPlaygroundProject(
 				const { ast, generateCode } = parse.svelte(file.contents);
 				// change title and url placeholders
 				svelte.ensureScript(ast);
-				walk(ast.instance.content as js.AstTypes.Node, null, {
+				walk(ast.instance.content as AstTypes.Node, null, {
 					Literal(node) {
 						if (node.value === '$sv-title-$sv') {
 							node.value = playground.name;

@@ -1,4 +1,4 @@
-import { common, variables, object, exports, type AstTypes } from '../../../../tooling/js/index.ts';
+import { common, variables, object, exports, type AstTypes } from '../../../../tooling/js/index.js';
 
 export function run(ast: AstTypes.Program): void {
 	const variableFallback = variables.declaration(ast, {

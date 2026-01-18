@@ -28,7 +28,7 @@ import { TESTING } from '../cli/utils/env.ts';
  * }} options
  * @returns {Promise<ReturnType<typeof applyAddons>>}
  */
-export async function installAddon({ addons, cwd, options, packageManager = 'npm' }) {
+export async function add({ addons, cwd, options, packageManager = 'npm' }) {
 	const workspace = await createWorkspace({ cwd, packageManager });
 	const addonSetupResults = setupAddons(Object.values(addons), workspace);
 

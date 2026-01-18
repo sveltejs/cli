@@ -13,6 +13,11 @@ import {
 	utils
 } from '../../core.ts';
 
+/** @typedef {import('../../core.ts').AstTypes.Property} Property */
+/** @typedef {import('../../core.ts').AstTypes.Node} Node */
+/** @typedef {import('../../core.ts').AstTypes.TSInterfaceBody} TSInterfaceBody */
+/** @typedef {import('../../core.ts').AstTypes.CallExpression} CallExpression */
+
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',
 	postgresql: 'pgTable',
@@ -63,10 +68,10 @@ export default defineAddon({
 
 		sv.file(`drizzle.config.${ext}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
-			const isProp = (/** @type {string} */ name, /** @type {js.AstTypes.Property} */ node) =>
+			const isProp = (/** @type {string} */ name, /** @type {Property} */ node) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
-			Walker.walk(/** @type {js.AstTypes.Node}*/ (ast), null, {
+			Walker.walk(/** @type {Node}*/ (ast), null, {
 				Property(node) {
 					if (
 						isProp('dialect', node) &&
@@ -661,7 +666,7 @@ export default defineAddon({
 
 /**
  * @param {string} name
- * @returns {js.AstTypes.TSInterfaceBody['body'][number]}
+ * @returns {TSInterfaceBody['body'][number]}
  */
 function createLuciaType(name) {
 	return {
@@ -720,8 +725,8 @@ function getAuthHandleContent() {
 }
 
 /**
- * @param {js.AstTypes.Node} ast
- * @returns {js.AstTypes.CallExpression | undefined}
+ * @param {Node} ast
+ * @returns {CallExpression | undefined}
  */
 function getCallExpression(ast) {
 	let callExpression;

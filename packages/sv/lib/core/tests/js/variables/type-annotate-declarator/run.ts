@@ -1,4 +1,4 @@
-import { variables, type AstTypes } from '../../../../tooling/js/index.ts';
+import { variables, type AstTypes } from '../../../../tooling/js/index.js';
 
 export function run(ast: AstTypes.Program): void {
 	const decl = ast.body[0] as any;

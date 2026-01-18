@@ -5,10 +5,10 @@ import * as fleece from 'silver-fleece';
 import { type AST as SvelteAst, parse as svelteParse, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
 import * as toml from 'smol-toml';
-import { ensureScript } from './svelte/index.ts';
+import { ensureScript } from './svelte/index.js';
 
 import { Walker } from '../../core.ts';
-import type { TsEstree } from './js/ts-estree.ts';
+import type { TsEstree } from './js/ts-estree.d.ts';
 
 export type {
 	// html

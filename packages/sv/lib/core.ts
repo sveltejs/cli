@@ -18,10 +18,10 @@ export const utils = {
 };
 
 // parsing & languages
-export * as css from './core/tooling/css/index.ts';
-export * as js from './core/tooling/js/index.ts';
-export * as html from './core/tooling/html/index.ts';
-export * as svelte from './core/tooling/svelte/index.ts';
+export * as css from './core/tooling/css/index.js';
+export * as js from './core/tooling/js/index.js';
+export * as html from './core/tooling/html/index.js';
+export * as svelte from './core/tooling/svelte/index.js';
 
 import {
 	parseCss,

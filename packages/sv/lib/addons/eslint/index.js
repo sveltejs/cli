@@ -1,10 +1,10 @@
 import { defineAddon, getNodeTypesVersion, js, log, parse } from '../../core.ts';
 import { addEslintConfigPrettier } from '../../coreInternal.ts';
 
-/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.Expression} Expression */
-/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.ArrayExpression} ArrayExpression */
-/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.CallExpression} CallExpression */
-/** @typedef {import('../../core/tooling/js/index.ts').AstTypes.SpreadElement} SpreadElement */
+/** @typedef {import('../../core.ts').AstTypes.Expression} Expression */
+/** @typedef {import('../../core.ts').AstTypes.ArrayExpression} ArrayExpression */
+/** @typedef {import('../../core.ts').AstTypes.CallExpression} CallExpression */
+/** @typedef {import('../../core.ts').AstTypes.SpreadElement} SpreadElement */
 
 export default defineAddon({
 	id: 'eslint',
