@@ -976,16 +976,37 @@ export async function resolveNonOfficialAddons(
 		}
 
 		start('Downloading community add-on packages');
-		const details = await Promise.all(pkgs.map(async (opts) => downloadPackage(opts)));
-		for (const addon of details) {
-			selectedAddons.push(addon);
+		const downloadResults = await Promise.allSettled(
+			pkgs.map(async (opts) => downloadPackage(opts))
+		);
+
+		// Separate successes and failures
+		const failures: Array<{ ref: AddonReference; error: string }> = [];
+		for (let i = 0; i < downloadResults.length; i++) {
+			const result = downloadResults[i];
+			if (result.status === 'fulfilled') {
+				selectedAddons.push(result.value);
+			} else {
+				failures.push({
+					ref: refs[i],
+					error: result.reason instanceof Error ? result.reason.message : 'Unknown error'
+				});
+			}
+		}
+
+		if (failures.length > 0) {
+			const failedList = failures.map((f) => color.addon(f.ref.specifier)).join(', ');
+			const hints = failures
+				.map((f) => `${f.ref.specifier}: ${getErrorHint(f.ref.source)}`)
+				.join('\n');
+			const errorMsg = `Failed to resolve ${failedList}\n${color.optional(failures.map((f) => f.error).join('\n'))}\n\n${hints}`;
+			throw new Error(errorMsg);
 		}
 		stop('Downloaded community add-on packages');
 	} catch (err) {
+		stop('Failed to download community add-on packages', 1);
 		const msg = err instanceof Error ? err.message : 'Unknown error';
-		const addonList = refs.map((r) => color.addon(r.specifier)).join(', ');
-		const hints = refs.map((ref) => `${ref.specifier}: ${getErrorHint(ref.source)}`).join('\n');
-		common.errorAndExit(`Failed to resolve ${addonList}\n${color.optional(msg)}\n\n${hints}`);
+		common.errorAndExit(msg);
 	}
 	return selectedAddons;
 }

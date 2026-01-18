@@ -45,8 +45,8 @@ function verifyPackage(addonPkg: Record<string, any>, specifier: string): string
 
 	if (sv_major !== addon_major) {
 		return (
-			`${color.warning(specifier)} was built for ${color.warning(`sv@${cleanedAddonVersion}`)} but you're running ${color.warning(`sv@${pkg.version}`)}.\n` +
-			`This may cause compatibility issues.`
+			`${color.addon(specifier)} was built for ${color.warning(`sv@${cleanedAddonVersion}`)} but you're running ${color.addon(`sv@${pkg.version}`)}.\n` +
+			`This may cause compatibility issues. ${color.optional('Run it with the same sv version to avoid issues.')}`
 		);
 	}
 }
