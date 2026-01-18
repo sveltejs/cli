@@ -3,6 +3,7 @@ import { resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import { NonZeroExitError, exec } from 'tinyexec';
 
+import { AddonSpec } from '../cli/add/index.ts';
 import { fileExists, installPackages, readFile, writeFile } from '../cli/add/utils.ts';
 import { createWorkspace } from '../cli/add/workspace.ts';
 import { TESTING } from '../cli/utils/env.ts';
@@ -11,7 +12,7 @@ import type {
 	AddonSetupResult,
 	OptionValues,
 	PackageManager,
-	Question,
+	ResolvedAddon,
 	SvApi,
 	Workspace
 } from '../core.ts';
@@ -35,19 +36,32 @@ export async function add<Addons extends AddonMap>({
 	packageManager = 'npm'
 }: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>> {
 	const workspace = await createWorkspace({ cwd, packageManager });
-	const addonSetupResults = setupAddons(Object.values(addons), workspace);
 
-	return await applyAddons({ addons, workspace, options, addonSetupResults });
+	// Create AddonSpec objects for the programmatic API (all are "official" type for error hints)
+	const addonSpecs = Object.values(addons).map(
+		(addon) =>
+			new AddonSpec({
+				specifier: addon.id,
+				id: addon.id,
+				options: [],
+				kind: 'official',
+				addon
+			})
+	);
+
+	const addonSetupResults = setupAddons(addonSpecs, workspace);
+
+	return await applyAddons({ addonSpecs, workspace, options, addonSetupResults });
 }
 
 export type ApplyAddonOptions = {
-	addons: AddonMap;
+	addonSpecs: AddonSpec[];
 	options: OptionMap<AddonMap>;
 	workspace: Workspace;
 	addonSetupResults: Record<string, AddonSetupResult>;
 };
 export async function applyAddons({
-	addons,
+	addonSpecs,
 	workspace,
 	addonSetupResults,
 	options
@@ -60,12 +74,13 @@ export async function applyAddons({
 	const allPnpmBuildDependencies: string[] = [];
 	const status: Record<string, string[] | 'success'> = {};
 
-	const mapped = Object.entries(addons).map(([, addon]) => addon);
-	const ordered = orderAddons(mapped, addonSetupResults);
+	const addons = addonSpecs.map((s) => s.addon!);
+	const ordered = orderAddons(addons, addonSetupResults);
 
 	let hasFormatter = false;
 
 	for (const addon of ordered) {
+		const spec = addonSpecs.find((s) => s.id === addon.id)!;
 		const workspaceOptions = options[addon.id] || {};
 
 		// reload workspace for every addon, as previous addons might have changed it
@@ -80,6 +95,7 @@ export async function applyAddons({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
+			spec,
 			multiple: ordered.length > 1
 		});
 
@@ -99,27 +115,40 @@ export async function applyAddons({
 	};
 }
 
+/** Setup addons - accepts either AddonSpec[] or ResolvedAddon[] */
 export function setupAddons(
-	addons: Array<Addon<any>>,
+	input: AddonSpec[] | ResolvedAddon[],
 	workspace: Workspace
 ): Record<string, AddonSetupResult> {
+	// Normalize to AddonSpec[] - if input is ResolvedAddon[], convert to specs
+	const specs: AddonSpec[] =
+		input.length > 0 && input[0] instanceof AddonSpec
+			? (input as AddonSpec[])
+			: (input as ResolvedAddon[]).map((addon) => AddonSpec.fromAddon(addon));
+
 	const addonSetupResults: Record<string, AddonSetupResult> = {};
 
-	for (const addon of addons) {
+	for (const spec of specs) {
+		const addon = spec.addon!;
 		const setupResult: AddonSetupResult = {
 			unsupported: [],
 			dependsOn: [],
 			runsAfter: []
 		};
-		addon.setup?.({
-			...workspace,
-			dependsOn: (name) => {
-				setupResult.dependsOn.push(name);
-				setupResult.runsAfter.push(name);
-			},
-			unsupported: (reason) => setupResult.unsupported.push(reason),
-			runsAfter: (name) => setupResult.runsAfter.push(name)
-		});
+		try {
+			addon.setup?.({
+				...workspace,
+				dependsOn: (name) => {
+					setupResult.dependsOn.push(name);
+					setupResult.runsAfter.push(name);
+				},
+				unsupported: (reason) => setupResult.unsupported.push(reason),
+				runsAfter: (name) => setupResult.runsAfter.push(name)
+			});
+		} catch (err) {
+			const msg = err instanceof Error ? err.message : String(err);
+			throw new Error(`Add-on '${addon.id}' failed during setup: ${msg}\n\n${spec.getErrorHint()}`);
+		}
 		addonSetupResults[addon.id] = setupResult;
 	}
 
@@ -129,10 +158,11 @@ export function setupAddons(
 type RunAddon = {
 	workspace: Workspace;
 	workspaceOptions: OptionValues<any>;
-	addon: Addon<Record<string, Question>>;
+	addon: ResolvedAddon;
+	spec: AddonSpec;
 	multiple: boolean;
 };
-async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAddon) {
+async function runAddon({ addon, spec, multiple, workspace, workspaceOptions }: RunAddon) {
 	const files = new Set<string>();
 
 	// apply default addon options
@@ -201,14 +231,19 @@ async function runAddon({ addon, multiple, workspace, workspaceOptions }: RunAdd
 	};
 
 	const cancels: string[] = [];
-	await addon.run({
-		cancel: (reason) => {
-			cancels.push(reason);
-		},
-		...workspace,
-		options,
-		sv
-	});
+	try {
+		await addon.run({
+			cancel: (reason) => {
+				cancels.push(reason);
+			},
+			...workspace,
+			options,
+			sv
+		});
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(`Add-on '${addon.id}' failed during run: ${msg}\n\n${spec.getErrorHint()}`);
+	}
 
 	if (cancels.length === 0) {
 		const pkgPath = installPackages(dependencies, workspace);

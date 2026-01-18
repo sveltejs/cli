@@ -11,7 +11,7 @@ import {
 	officialAddons as _officialAddons,
 	getAddonDetails
 } from '../../addons/_config/official.ts';
-import { type AddonMap, applyAddons, setupAddons } from '../../addons/add.ts';
+import { applyAddons, setupAddons } from '../../addons/add.ts';
 import type { AddonSetupResult, OptionValues, ResolvedAddon, Workspace } from '../../core.ts';
 import { noDownloadCheckOption, noInstallOption } from '../create.ts';
 import * as common from '../utils/common.ts';
@@ -40,18 +40,69 @@ const OptionsSchema = v.strictObject({
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 type AddonArgsIn = { id: string; options?: string[] };
-type AddonArgsOut = AddonArgsIn & {
-	options: string[];
+
+export class AddonSpec {
+	// Original user input
+	specifier: string; // e.g., "@supacool", "file:../path", "eslint"
+	options: string[]; // CLI options like ["demo:yes"]
+
+	// Resolved info (computed in sanitizeAddons)
 	kind: 'official' | 'file' | 'npm';
-	resolvedId: string;
-};
+	id: string; // resolved addon ID (updated after download for npm)
+	npmUrl?: string; // for npm addons, the package URL
+	filePath?: string; // for file: addons, the resolved path
+
+	// Filled after resolve
+	addon?: ResolvedAddon; // the actual addon code
+
+	constructor(init: {
+		specifier: string;
+		options: string[];
+		kind: 'official' | 'file' | 'npm';
+		id: string;
+		npmUrl?: string;
+		filePath?: string;
+		addon?: ResolvedAddon;
+	}) {
+		this.specifier = init.specifier;
+		this.options = init.options;
+		this.kind = init.kind;
+		this.id = init.id;
+		this.npmUrl = init.npmUrl;
+		this.filePath = init.filePath;
+		this.addon = init.addon;
+	}
+
+	/** Generates an inline error hint based on the addon kind */
+	getErrorHint(): string {
+		switch (this.kind) {
+			case 'official':
+				return `Please report this issue: https://github.com/sveltejs/cli/issues`;
+			case 'file':
+				return `This is a local add-on at '${this.filePath}', please check your code.`;
+			case 'npm':
+				return `If this is an issue with the community add-on, please report it: ${this.npmUrl}`;
+		}
+	}
+
+	/** Creates an AddonSpec from a ResolvedAddon (for official addons without CLI input) */
+	static fromAddon(addon: ResolvedAddon): AddonSpec {
+		return new AddonSpec({
+			specifier: addon.id,
+			id: addon.id,
+			options: [],
+			kind: 'official',
+			addon
+		});
+	}
+}
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
 const defaultPkgPath = pkg.up();
 const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
-	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonArgsOut[] = []) =>
+	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonArgsIn[] = []) =>
 		addonArgsHandler(previous, value)
 	)
 	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
@@ -159,40 +210,29 @@ export const add = new Command('add')
 		}
 
 		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
-		const selectedAddonArgs = sanitizeAddons(addonArgs);
+		const addonSpecs = sanitizeAddons(addonArgs, options.cwd);
 
 		const workspace = await createWorkspace({ cwd: options.cwd });
 
 		common.runCommand(async () => {
-			// Resolve all addons (official and community) into a unified structure
-			const { resolvedAddons, specifierToId } = await resolveAddons(
-				selectedAddonArgs,
-				options.cwd,
-				options.downloadCheck
-			);
+			// Resolve all addons (official and community) - fills addon field
+			await resolveAddons(addonSpecs, options.downloadCheck);
 
-			// Map options from original specifiers to resolved IDs
-			for (const addonArg of selectedAddonArgs) {
-				const resolvedId = specifierToId.get(addonArg.id) ?? addonArg.id;
-				options.addons[resolvedId] = addonArg.options;
+			// Map options from specs
+			for (const spec of addonSpecs) {
+				options.addons[spec.id] = spec.options;
 			}
 
-			// Map selectedAddonIds to use resolved IDs
-			const selectedAddonIds = selectedAddonArgs.map(({ id }) => {
-				return specifierToId.get(id) ?? id;
-			});
-
-			const { answers, selectedAddons } = await promptAddonQuestions({
+			const { answers, addonSpecs: finalSpecs } = await promptAddonQuestions({
 				options,
-				selectedAddonIds,
-				allAddons: resolvedAddons,
+				addonSpecs,
 				workspace
 			});
 
 			const { nextSteps } = await runAddonsApply({
 				answers,
 				options,
-				selectedAddons,
+				addonSpecs: finalSpecs,
 				workspace,
 				fromCommand: 'add'
 			});
@@ -204,80 +244,58 @@ export const add = new Command('add')
 	});
 
 /**
- * Resolves all addons (official and community) into a unified structure.
- * Returns a map of resolved addons keyed by their resolved ID.
+ * Resolves all addons (official and community).
+ * Mutates AddonSpec to fill `addon` field and update `id` to match actual addon.id.
  */
 export async function resolveAddons(
-	addonArgs: AddonArgsOut[],
-	cwd: string,
+	addonSpecs: AddonSpec[],
 	downloadCheck: boolean
-): Promise<{
-	resolvedAddons: Map<string, ResolvedAddon>;
-	specifierToId: Map<string, string>;
-}> {
-	const resolvedAddons = new Map<string, ResolvedAddon>();
-	const specifierToId = new Map<string, string>();
-
+): Promise<void> {
 	// Separate official and community addons for resolution
-	const officialAddonArgs = addonArgs.filter((addon) => addon.kind === 'official');
-	const communityAddonArgs = addonArgs.filter((addon) => addon.kind !== 'official');
+	const officialSpecs = addonSpecs.filter((spec) => spec.kind === 'official');
+	const communitySpecs = addonSpecs.filter((spec) => spec.kind !== 'official');
 
 	// Resolve official addons
-	for (const addonArg of officialAddonArgs) {
-		const addon = getAddonDetails(addonArg.id);
-		// Official addons don't need originalSpecifier since they're referenced by ID
-		resolvedAddons.set(addon.id, addon);
-		specifierToId.set(addonArg.id, addon.id);
+	for (const spec of officialSpecs) {
+		const addon = getAddonDetails(spec.id);
+		spec.addon = addon;
+		spec.id = addon.id; // ensure ID matches addon.id
 	}
 
-	// Resolve community addons (file: and scoped packages)
-	if (communityAddonArgs.length > 0) {
-		const communitySpecifiers = communityAddonArgs.map((addon) => addon.id);
-		const communityAddons = await resolveNonOfficialAddons(cwd, communityAddonArgs, downloadCheck);
+	// Resolve community addons (file: and npm packages)
+	if (communitySpecs.length > 0) {
+		const communityAddons = await resolveNonOfficialAddons(communitySpecs, downloadCheck);
 
-		// Map community addons by position (they're resolved in the same order)
-		communitySpecifiers.forEach((specifier, index) => {
+		// Fill addon field and update id for each spec
+		communitySpecs.forEach((spec, index) => {
 			const resolvedAddon = communityAddons[index];
 			if (resolvedAddon) {
-				// Store the original specifier directly on the addon
-				resolvedAddon.originalSpecifier = specifier;
-				resolvedAddons.set(resolvedAddon.id, resolvedAddon);
-				specifierToId.set(specifier, resolvedAddon.id);
+				spec.addon = resolvedAddon;
+				spec.id = resolvedAddon.id; // update to actual addon id
 			}
 		});
 	}
-
-	return { resolvedAddons, specifierToId };
 }
 
 export async function promptAddonQuestions({
 	options,
-	selectedAddonIds,
-	allAddons,
+	addonSpecs,
 	workspace
 }: {
 	options: Options;
-	selectedAddonIds: string[];
-	allAddons: Map<string, ResolvedAddon>;
+	addonSpecs: AddonSpec[];
 	workspace: Workspace;
 }) {
-	const selectedAddons: ResolvedAddon[] = [];
-
-	// Find addons by ID using unified lookup
-	for (const id of selectedAddonIds) {
-		const addon = allAddons.get(id);
-		if (addon) {
-			selectedAddons.push(addon);
-		}
-	}
+	// Work with a mutable copy of specs
+	const specs = [...addonSpecs];
 
 	const emptyAnswersReducer = (acc: Record<string, OptionValues<any>>, id: string) => {
 		acc[id] = {};
 		return acc;
 	};
 
-	const answers: Record<string, OptionValues<any>> = selectedAddons
-		.map(({ id }) => id)
+	const answers: Record<string, OptionValues<any>> = specs
+		.map((s) => s.id)
 		.reduce(emptyAnswersReducer, {});
 
 	// apply specified options from CLI, inquire about the rest
@@ -285,14 +303,11 @@ export async function promptAddonQuestions({
 		const specifiedOptions = options.addons[addonId];
 		if (!specifiedOptions) continue;
 
-		// Get addon details using unified lookup
-		const details = allAddons.get(addonId);
+		// Get addon details from spec
+		const spec = specs.find((s) => s.id === addonId);
+		const details = spec?.addon;
 
 		if (!details) continue;
-
-		if (!selectedAddons.find((d) => d.id === details.id)) {
-			selectedAddons.push(details);
-		}
 
 		answers[addonId] ??= {};
 
@@ -414,9 +429,8 @@ export async function promptAddonQuestions({
 
 	// Process all selected addons (including those without CLI options) to ensure they're initialized
 	// Note: We don't apply defaults here - defaults will be used as initial values when asking questions
-	for (const addon of selectedAddons) {
-		const addonId = addon.id;
-		answers[addonId] ??= {};
+	for (const spec of specs) {
+		answers[spec.id] ??= {};
 	}
 
 	// run setup if we have access to workspace
@@ -424,13 +438,13 @@ export async function promptAddonQuestions({
 	let addonSetupResults: Record<string, AddonSetupResult> = {};
 
 	// If we have selected addons, run setup on them (regardless of official status)
-	if (selectedAddons.length > 0) {
-		addonSetupResults = setupAddons(selectedAddons, workspace);
+	if (specs.length > 0) {
+		addonSetupResults = setupAddons(specs, workspace);
 	}
 
 	// prompt which addons to apply (only when no addons were specified)
 	// Only show selection prompt if no addons were specified at all
-	if (selectedAddonIds.length === 0) {
+	if (specs.length === 0) {
 		// For the prompt, we only show official addons
 		const results = setupAddons(officialAddons, workspace);
 		const addonOptions = officialAddons
@@ -453,20 +467,19 @@ export async function promptAddonQuestions({
 		}
 
 		for (const id of selected) {
-			const addon = allAddons.get(id);
-			if (addon) {
-				selectedAddons.push(addon);
-				answers[id] = {};
-			}
+			// Create spec for newly selected official addon
+			const addon = getAddonDetails(id);
+			specs.push(AddonSpec.fromAddon(addon));
+			answers[id] = {};
 		}
 
 		// Re-run setup for all selected addons (including any that were added via CLI options)
-		addonSetupResults = setupAddons(selectedAddons, workspace);
+		addonSetupResults = setupAddons(specs, workspace);
 	}
 
 	// Ensure all selected addons have setup results
 	// This should always be the case, but we add a safeguard
-	const missingSetupResults = selectedAddons.filter((addon) => !addonSetupResults[addon.id]);
+	const missingSetupResults = specs.filter((s) => !addonSetupResults[s.id]);
 	if (missingSetupResults.length > 0) {
 		const additionalSetupResults = setupAddons(missingSetupResults, workspace);
 		Object.assign(addonSetupResults, additionalSetupResults);
@@ -480,23 +493,23 @@ export async function promptAddonQuestions({
 	let hasNewDependencies = true;
 	while (hasNewDependencies) {
 		hasNewDependencies = false;
-		const addonsToProcess = [...selectedAddons]; // Work with a snapshot to avoid infinite loops
+		const specsToProcess = [...specs]; // Work with a snapshot to avoid infinite loops
 
-		for (const addon of addonsToProcess) {
-			const setupResult = addonSetupResults[addon.id];
+		for (const spec of specsToProcess) {
+			const setupResult = addonSetupResults[spec.id];
 			if (!setupResult) {
-				common.errorAndExit(`Setup result missing for addon: ${addon.id}`);
+				common.errorAndExit(`Setup result missing for addon: ${spec.id}`);
 			}
 			const missingDependencies = setupResult.dependsOn.filter(
-				(depId) => !selectedAddons.some((a) => a.id === depId)
+				(depId) => !specs.some((s) => s.id === depId)
 			);
 
 			for (const depId of missingDependencies) {
 				// Check for circular dependencies
-				const addonChain = dependencyChains.get(addon.id) ?? new Set();
+				const addonChain = dependencyChains.get(spec.id) ?? new Set();
 				if (addonChain.has(depId)) {
 					// Build the cycle path for a helpful error message
-					const cyclePath = [...addonChain, addon.id, depId].join(' → ');
+					const cyclePath = [...addonChain, spec.id, depId].join(' → ');
 					common.errorAndExit(
 						`Circular dependency detected: ${cyclePath}\n` +
 							`Add-ons cannot have circular dependencies.`
@@ -505,49 +518,48 @@ export async function promptAddonQuestions({
 
 				// Track the dependency chain
 				const depChain = new Set(addonChain);
-				depChain.add(addon.id);
+				depChain.add(spec.id);
 				dependencyChains.set(depId, depChain);
 
 				hasNewDependencies = true;
-				// Dependencies are always official addons
-				const depAddon = allAddons.get(depId);
-				if (!depAddon) {
-					// If not in resolved addons, try to get it (dependencies are always official)
+				// Dependencies are always official addons - check if already in specs
+				const existingSpec = specs.find((s) => s.id === depId);
+				if (!existingSpec) {
+					// Not in specs, get from official addons
 					const officialDep = officialAddons.find((a) => a.id === depId);
 					if (!officialDep) {
-						throw new Error(`'${addon.id}' depends on an invalid add-on: '${depId}'`);
+						throw new Error(`'${spec.id}' depends on an invalid add-on: '${depId}'`);
 					}
-					// Add official dependency to the map and use it
+					// Add official dependency as new spec
 					const officialAddonDetails = getAddonDetails(depId);
-					allAddons.set(depId, officialAddonDetails);
-					selectedAddons.push(officialAddonDetails);
+					specs.push(AddonSpec.fromAddon(officialAddonDetails));
 					answers[depId] = {};
 					continue;
 				}
 
 				// prompt to install the dependent
 				const install = await p.confirm({
-					message: `The ${pc.bold(pc.cyan(addon.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
+					message: `The ${pc.bold(pc.cyan(spec.id))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
 				});
 				if (install !== true) {
 					p.cancel('Operation cancelled.');
 					process.exit(1);
 				}
-				selectedAddons.push(depAddon);
+				// Already exists in specs, just add to answers
 				answers[depId] = {};
 			}
 		}
 
 		// Run setup for any newly added dependencies
-		const newlyAddedAddons = selectedAddons.filter((addon) => !addonSetupResults[addon.id]);
-		if (newlyAddedAddons.length > 0) {
-			const newSetupResults = setupAddons(newlyAddedAddons, workspace);
+		const newlyAddedSpecs = specs.filter((s) => !addonSetupResults[s.id]);
+		if (newlyAddedSpecs.length > 0) {
+			const newSetupResults = setupAddons(newlyAddedSpecs, workspace);
 			Object.assign(addonSetupResults, newSetupResults);
 		}
 	}
 
 	// run all setups after inter-addon deps have been added
-	const addons = selectedAddons;
+	const addons = specs.map((s) => s.addon!);
 	const verifications = [
 		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
 		...verifyUnsupportedAddons(addons, addonSetupResults)
@@ -577,9 +589,10 @@ export async function promptAddonQuestions({
 	}
 
 	// ask remaining questions
-	for (const addon of selectedAddons) {
-		const addonId = addon.id;
-		const questionPrefix = selectedAddons.length > 1 ? `${addon.id}: ` : '';
+	for (const spec of specs) {
+		const addon = spec.addon!;
+		const addonId = spec.id;
+		const questionPrefix = specs.length > 1 ? `${spec.id}: ` : '';
 
 		answers[addonId] ??= {};
 		const values = answers[addonId];
@@ -628,52 +641,51 @@ export async function promptAddonQuestions({
 		}
 	}
 
-	return { selectedAddons, answers };
+	return { addonSpecs: specs, answers };
 }
 
 export async function runAddonsApply({
 	answers,
 	options,
-	selectedAddons,
+	addonSpecs,
 	addonSetupResults,
 	workspace,
 	fromCommand
 }: {
 	answers: Record<string, OptionValues<any>>;
 	options: Options;
-	selectedAddons: ResolvedAddon[];
+	addonSpecs: AddonSpec[];
 	addonSetupResults?: Record<string, AddonSetupResult>;
 	workspace: Workspace;
 	fromCommand: 'create' | 'add';
 }): Promise<{ nextSteps: string[]; argsFormattedAddons: string[]; filesToFormat: string[] }> {
 	if (!addonSetupResults) {
 		// When no addons are selected, use official addons for setup
-		const officialAddonsList = officialAddons;
-		const setups = selectedAddons.length ? selectedAddons : officialAddonsList;
+		const setups = addonSpecs.length ? addonSpecs : officialAddons;
 		addonSetupResults = setupAddons(setups, workspace);
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
-	if (selectedAddons.length === 0)
-		return { nextSteps: [], argsFormattedAddons: [], filesToFormat: [] };
+	if (addonSpecs.length === 0) return { nextSteps: [], argsFormattedAddons: [], filesToFormat: [] };
 
-	// apply addons
-	const addonMap: AddonMap = Object.assign({}, ...selectedAddons.map((a) => ({ [a.id]: a })));
 	const { filesToFormat, pnpmBuildDependencies, status } = await applyAddons({
+		addonSpecs,
 		workspace,
 		addonSetupResults,
-		addons: addonMap,
 		options: answers
 	});
 
 	const addonSuccess: string[] = [];
+	const canceledAddonIds: string[] = [];
 	for (const [addonId, info] of Object.entries(status)) {
 		if (info === 'success') addonSuccess.push(addonId);
 		else {
 			p.log.warn(`Canceled ${addonId}: ${info.join(', ')}`);
-			selectedAddons = selectedAddons.filter((a) => a.id !== addonId);
+			canceledAddonIds.push(addonId);
 		}
 	}
+	// Filter out canceled addons from specs
+	const successfulSpecs = addonSpecs.filter((s) => !canceledAddonIds.includes(s.id));
 
 	if (addonSuccess.length === 0) {
 		p.cancel('All selected add-ons were canceled.');
@@ -697,13 +709,13 @@ export async function runAddonsApply({
 	]);
 
 	const argsFormattedAddons: string[] = [];
-	for (const addon of selectedAddons) {
-		const addonId = addon.id;
+	for (const spec of successfulSpecs) {
+		const addonId = spec.id;
+		const addon = spec.addon!;
 		const addonAnswers = answers[addonId];
 		if (!addonAnswers) continue;
 
-		// Use original specifier if available, otherwise fall back to resolved ID
-		const addonSpecifier = addon.originalSpecifier ?? addonId;
+		const addonSpecifier = spec.specifier;
 
 		const optionParts: string[] = [];
 
@@ -757,8 +769,9 @@ export async function runAddonsApply({
 	}
 
 	// print next steps
-	const nextSteps = selectedAddons
-		.map((addon) => {
+	const nextSteps = successfulSpecs
+		.map((spec) => {
+			const addon = spec.addon!;
 			if (!addon.nextSteps) return;
 			const addonOptions = answers[addon.id];
 			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions });
@@ -768,49 +781,66 @@ export async function runAddonsApply({
 			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
 			return addonMessage;
 		})
-		.filter((msg) => msg !== undefined);
+		.filter((msg): msg is string => msg !== undefined);
 
 	return { nextSteps, argsFormattedAddons, filesToFormat };
 }
 
-export function sanitizeAddons(addonArgs: AddonArgsIn[]): AddonArgsOut[] {
-	const toRet = new Map<string, AddonArgsOut>();
+export function sanitizeAddons(addonArgs: AddonArgsIn[], cwd: string): AddonSpec[] {
+	const toRet = new Map<string, AddonSpec>();
 
 	const invalidAddons: string[] = [];
 	for (const addon of addonArgs) {
 		const official = officialAddons.find((a) => a.id === addon.id || a.alias === addon.id);
 		if (official) {
-			toRet.set(official.id, {
-				id: official.id,
-				options: addon.options ?? [],
-				kind: 'official',
-				resolvedId: official.id
-			});
+			toRet.set(
+				official.id,
+				new AddonSpec({
+					specifier: addon.id,
+					id: official.id,
+					options: addon.options ?? [],
+					kind: 'official'
+				})
+			);
 		} else if (addon.id.startsWith('file:')) {
-			const resolvedId = addon.id.replace('file:', '').trim();
-			if (!resolvedId) {
+			const relativePath = addon.id.slice(5).trim(); // 'file:'.length = 5
+			if (!relativePath) {
 				invalidAddons.push('file:');
 				continue;
 			}
-			toRet.set(addon.id, {
-				id: addon.id,
-				options: addon.options ?? [],
-				kind: 'file',
-				resolvedId
-			});
+			const filePath = path.resolve(cwd, relativePath);
+			toRet.set(
+				addon.id,
+				new AddonSpec({
+					specifier: addon.id,
+					id: addon.id, // will be updated after resolve
+					options: addon.options ?? [],
+					kind: 'file',
+					filePath
+				})
+			);
 		} else {
 			// npm package (e.g., @org/name or package-name)
-			const resolvedId = addon.id.startsWith('@')
+			const pkgName = addon.id.startsWith('@')
 				? addon.id.includes('/')
 					? addon.id
 					: addon.id + '/sv'
 				: addon.id;
-			toRet.set(addon.id, {
-				id: addon.id,
-				options: addon.options ?? [],
-				kind: 'npm',
-				resolvedId
-			});
+			// Extract package name without version for npm URL
+			const nameWithoutVersion = pkgName.split('@').filter(Boolean)[0];
+			const npmUrl = addon.id.startsWith('@')
+				? `https://www.npmjs.com/package/${nameWithoutVersion}`
+				: `https://www.npmjs.com/package/${nameWithoutVersion}`;
+			toRet.set(
+				addon.id,
+				new AddonSpec({
+					specifier: addon.id,
+					id: addon.id, // will be updated after resolve
+					options: addon.options ?? [],
+					kind: 'npm',
+					npmUrl
+				})
+			);
 		}
 	}
 	if (invalidAddons.length > 0) {
@@ -912,20 +942,18 @@ function getOptionChoices(details: ResolvedAddon) {
 	return { choices, defaults, groups };
 }
 
-export async function resolveNonOfficialAddons(
-	cwd: string,
-	addons: AddonArgsOut[],
-	downloadCheck: boolean
-) {
+export async function resolveNonOfficialAddons(specs: AddonSpec[], downloadCheck: boolean) {
 	const selectedAddons: ResolvedAddon[] = [];
 	const { start, stop } = p.spinner();
 
 	try {
-		start(`Resolving ${addons.map((a) => color.addon(a.id)).join(', ')} packages`);
+		start(`Resolving ${specs.map((s) => color.addon(s.specifier)).join(', ')} packages`);
 
 		const pkgs = await Promise.all(
-			addons.map(async (a) => {
-				return await getPackageJSON({ cwd, packageName: a.id });
+			specs.map(async (spec) => {
+				// For file: addons, use parent of filePath as cwd
+				const cwd = spec.filePath ? path.dirname(spec.filePath) : process.cwd();
+				return await getPackageJSON({ cwd, packageName: spec.specifier });
 			})
 		);
 		stop('Resolved community add-on packages');
@@ -968,9 +996,9 @@ export async function resolveNonOfficialAddons(
 		stop('Downloaded community add-on packages');
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : 'Unknown error';
-		common.errorAndExit(
-			`Failed to resolve ${addons.map((a) => color.addon(a.id)).join(', ')}\n${color.optional(msg)}`
-		);
+		const addonList = specs.map((s) => color.addon(s.specifier)).join(', ');
+		const hints = specs.map((spec) => `${spec.specifier}: ${spec.getErrorHint()}`).join('\n');
+		common.errorAndExit(`Failed to resolve ${addonList}\n${color.optional(msg)}\n\n${hints}`);
 	}
 	return selectedAddons;
 }

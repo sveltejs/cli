@@ -7,7 +7,7 @@ import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import * as v from 'valibot';
 
-import type { OptionValues, ResolvedAddon, Workspace } from '../core.ts';
+import type { OptionValues, Workspace } from '../core.ts';
 import {
 	type LanguageType,
 	type TemplateType,
@@ -23,6 +23,7 @@ import {
 } from '../create/playground.ts';
 import { dist } from '../create/utils.ts';
 import {
+	type AddonSpec,
 	addonArgsHandler,
 	promptAddonQuestions,
 	resolveAddons,
@@ -231,7 +232,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const parentDirName = path.basename(path.dirname(projectPath));
 	const projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
-	let selectedAddons: ResolvedAddon[] = [];
+	let addonSpecs: AddonSpec[] = [];
 	let answers: Record<string, OptionValues<any>> = {};
 	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
 
@@ -243,20 +244,15 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const addons = options.add.reduce(addonArgsHandler, []);
-		const sanitizedAddons = sanitizeAddons(addons);
+		addonSpecs = sanitizeAddons(addons, projectPath);
 
-		// Resolve all addons (official and community) into a unified structure
-		const { resolvedAddons, specifierToId } = await resolveAddons(
-			sanitizedAddons,
-			projectPath,
-			options.downloadCheck
-		);
+		// Resolve all addons (official and community) - fills addon field
+		await resolveAddons(addonSpecs, options.downloadCheck);
 
-		// Map options from original specifiers to resolved IDs
+		// Map options from specs to resolved IDs
 		sanitizedAddonsMap = {};
-		for (const addonArg of sanitizedAddons) {
-			const resolvedId = specifierToId.get(addonArg.id) ?? addonArg.id;
-			sanitizedAddonsMap[resolvedId] = addonArg.options;
+		for (const spec of addonSpecs) {
+			sanitizedAddonsMap[spec.id] = spec.options;
 		}
 
 		const result = await promptAddonQuestions({
@@ -267,12 +263,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				downloadCheck: options.downloadCheck,
 				addons: sanitizedAddonsMap
 			},
-			selectedAddonIds: Object.keys(sanitizedAddonsMap),
-			allAddons: resolvedAddons,
+			addonSpecs,
 			workspace
 		});
 
-		selectedAddons = result.selectedAddons;
+		addonSpecs = result.addonSpecs;
 		answers = result.answers;
 	}
 
@@ -306,7 +301,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				downloadCheck: options.downloadCheck,
 				addons: sanitizedAddonsMap
 			},
-			selectedAddons,
+			addonSpecs,
 			addonSetupResults: undefined,
 			workspace,
 			fromCommand: 'create'

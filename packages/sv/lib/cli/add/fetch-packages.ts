@@ -17,12 +17,8 @@ import { downloadJson } from '../../core/downloadJson.ts';
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
 const REGISTRY = 'https://registry.npmjs.org';
-export const Directive = { file: 'file:', npm: 'npm:' };
 
-function verifyPackage(
-	addonPkg: Record<string, any>,
-	specifier: string
-): string | undefined {
+function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	// We should look only for dependencies, not devDependencies or peerDependencies
 	const deps = { ...addonPkg.dependencies };
 
@@ -173,8 +169,8 @@ export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions
 	warning?: string;
 }> {
 	let npm = packageName;
-	if (packageName.startsWith(Directive.file)) {
-		const pkgPath = path.resolve(cwd, packageName.slice(Directive.file.length));
+	if (packageName.startsWith('file:')) {
+		const pkgPath = path.resolve(cwd, packageName.slice(5)); // 'file:'.length = 5
 		const pkgJSONPath = path.resolve(pkgPath, 'package.json');
 		const json = fs.readFileSync(pkgJSONPath, 'utf8');
 		const pkg = JSON.parse(json);
@@ -182,8 +178,8 @@ export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions
 
 		return { path: pkgPath, pkg, repo: pkgPath, warning };
 	}
-	if (packageName.startsWith(Directive.npm)) {
-		npm = packageName.slice(Directive.npm.length);
+	if (packageName.startsWith('npm:')) {
+		npm = packageName.slice(4); // 'npm:'.length = 4
 	}
 
 	const pkg = await fetchPackageJSON(npm);
@@ -206,8 +202,16 @@ async function fetchPackageJSON(packageName: string) {
 			scope = `${org}/`;
 			pkgName = name;
 		} else {
-			scope = `${packageName}/`;
-			pkgName = 'sv';
+			// Handle @scope or @scope@version shorthand (without /sv)
+			// e.g. @supacool or @supacool@0.0.1
+			const match = packageName.match(/^(@[^@]+)(?:@(.+))?$/);
+			if (match) {
+				scope = `${match[1]}/`;
+				pkgName = match[2] ? `sv@${match[2]}` : 'sv';
+			} else {
+				scope = `${packageName}/`;
+				pkgName = 'sv';
+			}
 		}
 	}
 

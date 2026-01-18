@@ -81,10 +81,7 @@ export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>):
 
 export type AddonSetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
 
-export type ResolvedAddon = Addon<Record<string, Question<any>>> & {
-	/** Original specifier used to reference this addon (e.g., "file:../path" or "@scope/name") */
-	originalSpecifier?: string;
-};
+export type ResolvedAddon = Addon<Record<string, Question<any>>>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
