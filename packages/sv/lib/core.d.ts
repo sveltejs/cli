@@ -34,6 +34,7 @@ export declare const svelte: {
 	addFragment: typeof addFragment;
 };
 
+/** hello! */
 export declare const parse: {
 	css: typeof parseCss;
 	html: typeof parseHtml;
