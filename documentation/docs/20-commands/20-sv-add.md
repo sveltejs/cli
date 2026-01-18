@@ -65,6 +65,9 @@ Prevents installing dependencies
 
 ## Community add-ons
 
+> [!WARNING]
+> Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
+
 > [!NOTE]
 > Svelte maintainers have not reviewed community add-ons for malicious code!
 
