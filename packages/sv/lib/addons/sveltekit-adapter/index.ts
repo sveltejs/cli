@@ -1,7 +1,7 @@
-import { defineAddon, defineAddonOptions } from '../../core/index.ts';
+import { defineAddon, defineAddonOptions, json } from '../../core/index.ts';
 import { exports, functions, imports, object, type AstTypes } from '../../core/tooling/js/index.ts';
 import { parseJson, parseScript, parseToml } from '../../core/tooling/parsers.ts';
-import { fileExists, readFile } from '../../cli/add/utils.ts';
+import { fileExists, getHighlighter, readFile } from '../../cli/add/utils.ts';
 import { sanitizeName } from '../../core/sanitize.ts';
 import { resolveCommand } from 'package-manager-detector';
 import * as js from '../../core/tooling/js/index.ts';
@@ -43,7 +43,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, cwd, packageManager, language }) => {
+	run: ({ sv, options, files, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -59,11 +59,11 @@ export default defineAddon({
 
 			// in sk 3, we will keep "preview": "vite preview" like any other adapter
 			if (options.adapter === 'cloudflare') {
-				if (options.cfTarget === 'workers') {
-					data.scripts.preview = 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173';
-				} else if (options.cfTarget === 'pages') {
-					data.scripts.preview = 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
-				}
+				const preview =
+					options.cfTarget === 'workers'
+						? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+						: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
+				data.scripts.preview = preview;
 			}
 
 			return generateCode();
@@ -186,12 +186,7 @@ export default defineAddon({
 				sv.file(files.package, (content) => {
 					const { data, generateCode } = parseJson(content);
 
-					data.scripts ??= {};
-					data.scripts.types = 'wrangler types';
-					const { command, args } = resolveCommand(packageManager, 'run', ['types'])!;
-					data.scripts.prepare = data.scripts.prepare
-						? `${command} ${args.join(' ')} && ${data.scripts.prepare}`
-						: `${command} ${args.join(' ')}`;
+					json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 
 					return generateCode();
 				});
@@ -226,6 +221,20 @@ export default defineAddon({
 				});
 			}
 		}
+	},
+	nextSteps({ options, packageManager }) {
+		const toReturn: string[] = [];
+		if (options.adapter === 'cloudflare') {
+			const color = getHighlighter();
+			const { command, args } = resolveCommand(packageManager, 'run', ['gen'])!;
+			toReturn.push(
+				`${color.command(`${command} ${args.join(' ')}`)} ` +
+					`${color.optional(`# updates `)}` +
+					`${color.route(`cloudflare`)}` +
+					`${color.optional(` types`)}`
+			);
+		}
+		return toReturn;
 	}
 });
 
