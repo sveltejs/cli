@@ -22,7 +22,7 @@
 	"devDependencies": {
 		"@playwright/test": "^1.56.1",
 		"@types/node": "^24",
-		"vitest": "4.0.7"
+		"vitest": "^4.0.7"
 	},
 	"keywords": ["sv-add"],
 	"publishConfig": {

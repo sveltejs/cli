@@ -24,7 +24,7 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.56.1",
-		"vitest": "4.0.7"
+		"vitest": "^4.0.7"
 	},
 	"keywords": [
 		"sv-add"
