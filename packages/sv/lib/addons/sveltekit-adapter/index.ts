@@ -1,13 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+	type AstTypes,
 	defineAddon,
 	defineAddonOptions,
 	js,
 	parse,
 	resolveCommand,
 	fileExists,
-	type AstTypes
+	json,
+	color
 } from '../../core.ts';
 import { sanitizeName } from '../../coreInternal.ts';
 
@@ -48,7 +50,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, cwd, packageManager, language }) => {
+	run: ({ sv, options, files, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -64,11 +66,11 @@ export default defineAddon({
 
 			// in sk 3, we will keep "preview": "vite preview" like any other adapter
 			if (options.adapter === 'cloudflare') {
-				if (options.cfTarget === 'workers') {
-					data.scripts.preview = 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173';
-				} else if (options.cfTarget === 'pages') {
-					data.scripts.preview = 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
-				}
+				const preview =
+					options.cfTarget === 'workers'
+						? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+						: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
+				data.scripts.preview = preview;
 			}
 
 			return generateCode();
@@ -191,12 +193,7 @@ export default defineAddon({
 				sv.file(files.package, (content) => {
 					const { data, generateCode } = parse.json(content);
 
-					data.scripts ??= {};
-					data.scripts.types = 'wrangler types';
-					const { command, args } = resolveCommand(packageManager, 'run', ['types'])!;
-					data.scripts.prepare = data.scripts.prepare
-						? `${command} ${args.join(' ')} && ${data.scripts.prepare}`
-						: `${command} ${args.join(' ')}`;
+					json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 
 					return generateCode();
 				});
@@ -231,6 +228,19 @@ export default defineAddon({
 				});
 			}
 		}
+	},
+	nextSteps({ options, packageManager }) {
+		const toReturn: string[] = [];
+		if (options.adapter === 'cloudflare') {
+			const { command, args } = resolveCommand(packageManager, 'run', ['gen'])!;
+			toReturn.push(
+				`${color.command(`${command} ${args.join(' ')}`)} ` +
+					`${color.optional(`# updates `)}` +
+					`${color.route(`cloudflare`)}` +
+					`${color.optional(` types`)}`
+			);
+		}
+		return toReturn;
 	}
 });
 
