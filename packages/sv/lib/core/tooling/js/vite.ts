@@ -1,4 +1,4 @@
-import { array, functions, imports, object, exports, type AstTypes, common } from './index.ts';
+import { type AstTypes, array, common, exports, functions, imports, object } from './index.ts';
 
 function isConfigWrapper(
 	callExpression: AstTypes.CallExpression,

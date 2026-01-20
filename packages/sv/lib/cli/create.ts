@@ -1,13 +1,18 @@
+import * as p from '@clack/prompts';
+import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as p from '@clack/prompts';
-import type { OptionValues, Workspace } from '../core/index.ts';
+import { detect, resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
+import * as v from 'valibot';
+
+import type { LoadedAddon, OptionValues, Workspace } from '../core.ts';
 import {
-	create as createKit,
-	templates,
 	type LanguageType,
-	type TemplateType
+	type TemplateType,
+	create as createKit,
+	templates
 } from '../create/index.ts';
 import {
 	detectPlaygroundDependencies,
@@ -16,30 +21,25 @@ import {
 	setupPlaygroundProject,
 	validatePlaygroundUrl
 } from '../create/playground.ts';
-import { Command, Option } from 'commander';
-import { detect, resolveCommand } from 'package-manager-detector';
-import pc from 'picocolors';
-import * as v from 'valibot';
-
+import { dist } from '../create/utils.ts';
+import {
+	addonArgsHandler,
+	classifyAddons,
+	promptAddonQuestions,
+	resolveAddons,
+	runAddonsApply
+} from './add/index.ts';
+import { color, commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
+import { createWorkspace } from './add/workspace.ts';
 import * as common from './utils/common.ts';
 import {
-	addPnpmBuildDependencies,
 	AGENT_NAMES,
+	addPnpmBuildDependencies,
 	getUserAgent,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
 } from './utils/package-manager.ts';
-import {
-	addonArgsHandler,
-	promptAddonQuestions,
-	runAddonsApply,
-	sanitizeAddons,
-	type SelectedAddon
-} from './add/index.ts';
-import { commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
-import { createWorkspace } from './add/workspace.ts';
-import { dist } from '../create/utils.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {
@@ -54,6 +54,11 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 );
 const noAddonsOption = new Option('--no-add-ons', 'do not prompt to add add-ons').conflicts('add');
 const addOption = new Option('--add <addon...>', 'add-on to include').default([]);
+export const noDownloadCheckOption = new Option(
+	'--no-download-check',
+	'skip all download confirmation prompts'
+);
+export const noInstallOption = new Option('--no-install', 'skip installing dependencies');
 
 const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
@@ -66,7 +71,8 @@ const OptionsSchema = v.strictObject({
 	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
-	dirCheck: v.boolean()
+	dirCheck: v.boolean(),
+	downloadCheck: v.boolean()
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -79,9 +85,10 @@ export const create = new Command('create')
 	.option('--no-types')
 	.addOption(noAddonsOption)
 	.addOption(addOption)
-	.option('--no-install', 'skip installing dependencies')
+	.addOption(noInstallOption)
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
+	.addOption(noDownloadCheckOption)
 	.addOption(installOption)
 	.configureHelp(common.helpConfig)
 	.action((projectPath, opts) => {
@@ -140,7 +147,7 @@ export const create = new Command('create')
 async function createProject(cwd: ProjectPath, options: Options) {
 	if (options.fromPlayground) {
 		p.log.warn(
-			'The Svelte maintainers have not reviewed playgrounds for malicious code. Use at your discretion.'
+			'Svelte maintainers have not reviewed playgrounds for malicious code. Use at your discretion.'
 		);
 	}
 
@@ -180,14 +187,26 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				// always use the minimal template for playground projects
 				if (options.fromPlayground) return Promise.resolve<TemplateType>('minimal');
 
+				// TODO JYC:
+				// Don't allow the addon template right now to be displayed in the select list
+				const availableTemplates = templates.filter((t) => t.name !== 'addon');
+				// Later, we will not allow the addon template to be added via the CLI when "--add" is used
+				// const availableTemplates =
+				// 	options.add.length > 0 ? templates.filter((t) => t.name !== 'addon') : templates;
+
 				return p.select<TemplateType>({
 					message: 'Which template would you like?',
 					initialValue: 'minimal',
-					options: templates.map((t) => ({ label: t.title, value: t.name, hint: t.description }))
+					options: availableTemplates.map((t) => ({
+						label: t.title,
+						value: t.name,
+						hint: t.description
+					}))
 				});
 			},
-			language: () => {
+			language: (o) => {
 				if (options.types) return Promise.resolve(options.types);
+				if (o.results.template === 'addon') return Promise.resolve('none');
 				return p.select<LanguageType>({
 					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
@@ -208,50 +227,59 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	);
 
 	const projectPath = path.resolve(directory);
-	const projectName = path.basename(projectPath);
+	const basename = path.basename(projectPath);
+	const parentDirName = path.basename(path.dirname(projectPath));
+	const projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
-	let selectedAddons: SelectedAddon[] = [];
-	let answersOfficial: Record<string, OptionValues<any>> = {};
-	let answersCommunity: Record<string, OptionValues<any>> = {};
-	let sanitizedAddonsMap: Record<string, string[] | undefined> = {};
+	if (template === 'addon' && options.add.length > 0) {
+		common.errorAndExit(
+			`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
+		);
+	}
+
+	let loadedAddons: LoadedAddon[] = [];
+	let answers: Record<string, OptionValues<any>> = {};
+	let addonsOptionsMap: Record<string, string[] | undefined> = {};
 
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
 		template,
-		type: language
+		type: language as LanguageType
 	});
 
-	if (options.addOns || options.add.length > 0) {
-		const addons = options.add.reduce(addonArgsHandler, []);
-		sanitizedAddonsMap = sanitizeAddons(addons).reduce<Record<string, string[] | undefined>>(
-			(acc, curr) => {
-				acc[curr.id] = curr.options;
-				return acc;
-			},
-			{}
-		);
+	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
+		const addonInputs = options.add.reduce(addonArgsHandler, []);
+		const addonRefs = classifyAddons(addonInputs, projectPath);
+
+		// Resolve all addons (official and community) - returns LoadedAddon[]
+		loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
+
+		// Map options from loaded addons to resolved IDs
+		addonsOptionsMap = {};
+		for (const loaded of loadedAddons) {
+			addonsOptionsMap[loaded.addon.id] = loaded.reference.options;
+		}
 
 		const result = await promptAddonQuestions({
 			options: {
 				cwd: projectPath,
 				install: false,
 				gitCheck: false,
-				community: [],
-				addons: sanitizedAddonsMap
+				downloadCheck: options.downloadCheck,
+				addons: addonsOptionsMap
 			},
-			selectedAddonIds: Object.keys(sanitizedAddonsMap),
+			loadedAddons,
 			workspace
 		});
 
-		selectedAddons = result.selectedAddons;
-		answersOfficial = result.answersOfficial;
-		answersCommunity = result.answersCommunity;
+		loadedAddons = result.loadedAddons;
+		answers = result.answers;
 	}
 
 	createKit(projectPath, {
 		name: projectName,
 		template,
-		types: language
+		types: language as LanguageType
 	});
 
 	if (options.fromPlayground) {
@@ -263,24 +291,23 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnNextSteps: string[] = [];
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
-	if (options.addOns || options.add.length > 0) {
+	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
 			nextSteps,
 			argsFormattedAddons: argsFormatted,
 			filesToFormat
 		} = await runAddonsApply({
-			answersOfficial,
-			answersCommunity,
+			answers,
 			options: {
 				cwd: projectPath,
 				// in the create command, we don't want to install dependencies, we want to do it after the project is created
 				install: false,
 				gitCheck: false,
-				community: [],
-				addons: sanitizedAddonsMap
+				downloadCheck: options.downloadCheck,
+				addons: addonsOptionsMap
 			},
-			selectedAddons,
-			addonSetupResults: undefined,
+			loadedAddons,
+			setupResults: undefined,
 			workspace,
 			fromCommand: 'create'
 		});

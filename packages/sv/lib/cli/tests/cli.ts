@@ -1,15 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { exec } from 'tinyexec';
-import path from 'node:path';
-import fs from 'node:fs';
-import { parseJson } from '../../core/tooling/index.ts';
+import { parse } from '../../core.ts';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
+const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
+const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
 
 beforeAll(() => {
-	const testOutputCliPath = path.resolve(monoRepoPath, '.test-output', 'cli');
-
 	if (fs.existsSync(testOutputCliPath)) {
 		fs.rmSync(testOutputCliPath, { force: true, recursive: true });
 	}
@@ -36,45 +36,48 @@ describe('cli', () => {
 				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
 				// 'storybook' // No storybook addon during tests!
 			]
+		},
+		{
+			projectName: '@my-org/sv',
+			template: 'addon',
+			args: []
 		}
 	];
 
 	it.for(testCases)(
 		'should create a new project with name $projectName',
-		{ timeout: 10_000 },
+		{ timeout: 51_000 },
 		async (testCase) => {
-			const { projectName, args } = testCase;
-			const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
+			const { projectName, args, template = 'minimal' } = testCase;
+
 			const testOutputPath = path.relative(
 				monoRepoPath,
-				path.resolve(monoRepoPath, '.test-output', 'cli', projectName)
+				path.resolve(testOutputCliPath, projectName)
 			);
 
-			const result = await exec(
-				'node',
-				[
-					svBinPath,
-					'create',
-					testOutputPath,
-					'--template',
-					'minimal',
-					'--types',
-					'ts',
-					'--no-install',
-					...args
-				],
-				{ nodeOptions: { stdio: 'pipe' } }
-			);
+			const allArgs = [
+				svBinPath,
+				'create',
+				testOutputPath,
+				'--template',
+				template,
+				...(template === 'addon' ? [] : ['--types', 'ts']),
+				'--no-install',
+				...args
+			];
+
+			// useful for debugging
+			// console.log(`command`, `node ${allArgs.join(' ')}`);
+			const result = await exec('node', allArgs, { nodeOptions: { stdio: 'pipe' } });
 
 			// cli finished well
-			expect(result.exitCode).toBe(0);
-
+			expect(result.exitCode, `Error with cli: '${result.stderr}'`).toBe(0);
 			// test output path exists
 			expect(fs.existsSync(testOutputPath)).toBe(true);
 
 			// package.json has a name
 			const packageJsonPath = path.resolve(testOutputPath, 'package.json');
-			const packageJson = parseJson(fs.readFileSync(packageJsonPath, 'utf-8'));
+			const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 			expect(packageJson.name).toBe(projectName);
 
 			const snapPath = path.resolve(
@@ -94,7 +97,7 @@ describe('cli', () => {
 
 				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
-					const generatedPackageJson = parseJson(generated);
+					const { data: generatedPackageJson } = parse.json(generated);
 					// remove @types/node from generated package.json as we test on different node versions
 					delete generatedPackageJson.devDependencies['@types/node'];
 					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
@@ -107,6 +110,34 @@ describe('cli', () => {
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
 				);
+			}
+
+			if (template === 'addon') {
+				// replace sv version in package.json for tests
+				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
+				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
+				packageJson.dependencies['sv'] = 'file:../../../..';
+				fs.writeFileSync(
+					packageJsonPath,
+					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
+				);
+
+				const cmds = [
+					// list of cmds to test
+					['i'],
+					['run', 'demo-create'],
+					['run', 'demo-add:ci'],
+					['run', 'test']
+				];
+				for (const cmd of cmds) {
+					const res = await exec('npm', cmd, {
+						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+					});
+					expect(
+						res.exitCode,
+						`Error addon test: '${cmd}' -> ${JSON.stringify(res, null, 2)}`
+					).toBe(0);
+				}
 			}
 		}
 	);

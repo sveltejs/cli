@@ -1,18 +1,19 @@
 import MagicString from 'magic-string';
+
 import {
-	colors,
+	type AstTypes,
+	Walker,
+	addToDemoPage,
 	dedent,
 	defineAddon,
 	defineAddonOptions,
+	js,
 	log,
-	utils,
-	Walker
-} from '../../core/index.ts';
-import * as js from '../../core/tooling/js/index.ts';
-import type { AstTypes } from '../../core/tooling/js/index.ts';
-import { parseScript } from '../../core/tooling/parsers.ts';
-import { resolveCommand } from 'package-manager-detector/commands';
-import { addToDemoPage } from '../common.ts';
+	parse,
+	resolveCommand,
+	color,
+	createPrinter
+} from '../../core.ts';
 
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',
@@ -30,7 +31,7 @@ const options = defineAddonOptions()
 	.add('demo', {
 		type: 'boolean',
 		default: true,
-		question: `Do you want to include a demo? ${colors.dim('(includes a login/register page)')}`
+		question: `Do you want to include a demo? ${color.optional('(includes a login/register page)')}`
 	})
 	.build();
 
@@ -57,7 +58,7 @@ export default defineAddon({
 		}
 
 		sv.file(`drizzle.config.${language}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
@@ -90,7 +91,7 @@ export default defineAddon({
 		});
 
 		sv.file(schemaPath, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			const createTable = (name: string) =>
 				js.functions.createCall({
 					name: TABLE_TYPE[drizzleDialect],
@@ -223,7 +224,7 @@ export default defineAddon({
 		});
 
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamespace(ast, { from: '$lib/server/db/schema', as: 'table' });
 			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
@@ -242,7 +243,7 @@ export default defineAddon({
 			}
 
 			const ms = new MagicString(generateCode().trim());
-			const [ts] = utils.createPrinter(typescript);
+			const [ts] = createPrinter(typescript);
 
 			if (!ms.original.includes('const DAY_IN_MS')) {
 				ms.append('\n\nconst DAY_IN_MS = 1000 * 60 * 60 * 24;');
@@ -360,7 +361,7 @@ export default defineAddon({
 
 		if (typescript) {
 			sv.file('src/app.d.ts', (content) => {
-				const { ast, generateCode } = parseScript(content);
+				const { ast, generateCode } = parse.script(content);
 
 				const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
 				if (!locals) {
@@ -384,7 +385,7 @@ export default defineAddon({
 		}
 
 		sv.file(`src/hooks.server.${language}`, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 			js.imports.addNamespace(ast, { from: '$lib/server/auth', as: 'auth' });
 			js.kit.addHooksHandle(ast, {
 				language,
@@ -402,11 +403,11 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.server.${language}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.server.${typescript ? 'ts' : 'js'}`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
-				const [ts] = utils.createPrinter(typescript);
+				const [ts] = createPrinter(typescript);
 				return dedent`
 					import { hash, verify } from '@node-rs/argon2';
 					import { encodeBase32LowerCase } from '@oslojs/encoding';
@@ -525,7 +526,7 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/login/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/login/+page.svelte`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
@@ -536,7 +537,7 @@ export default defineAddon({
 					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = utils.createPrinter(typescript, svelte5);
+				const [ts, s5] = createPrinter(typescript, svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
@@ -575,11 +576,11 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.server.${language}`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.server.${typescript ? 'ts' : 'js'}`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
-				const [ts] = utils.createPrinter(typescript);
+				const [ts] = createPrinter(typescript);
 				return dedent`
 					import * as auth from '$lib/server/auth';
 					import { fail, redirect } from '@sveltejs/kit';
@@ -617,12 +618,12 @@ export default defineAddon({
 			sv.file(`${kit!.routesDirectory}/demo/lucia/+page.svelte`, (content) => {
 				if (content) {
 					const filePath = `${kit!.routesDirectory}/demo/lucia/+page.svelte`;
-					log.warn(`Existing ${colors.yellow(filePath)} file. Could not update.`);
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
 
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = utils.createPrinter(typescript, svelte5);
+				const [ts, s5] = createPrinter(typescript, svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
@@ -639,13 +640,13 @@ export default defineAddon({
 			});
 		}
 	},
-	nextSteps: ({ highlighter, options, packageManager }) => {
+	nextSteps: ({ options, packageManager }) => {
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		const steps = [
-			`Run ${highlighter.command(`${command} ${args.join(' ')}`)} to update your database schema`
+			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
 		];
 		if (options.demo) {
-			steps.push(`Visit ${highlighter.route('/demo/lucia')} route to view the demo`);
+			steps.push(`Visit ${color.route('/demo/lucia')} route to view the demo`);
 		}
 
 		return steps;

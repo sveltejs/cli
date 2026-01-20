@@ -1,8 +1,4 @@
-import { defineAddon, defineAddonOptions, json } from '../../core/index.ts';
-import { imports, vite } from '../../core/tooling/js/index.ts';
-import * as svelte from '../../core/tooling/svelte/index.ts';
-import * as css from '../../core/tooling/css/index.ts';
-import { parseCss, parseJson, parseScript, parseSvelte } from '../../core/tooling/parsers.ts';
+import { css, defineAddon, defineAddonOptions, js, parse, svelte, json } from '../../core.ts';
 
 const plugins = [
 	{
@@ -50,17 +46,17 @@ export default defineAddon({
 
 		// add the vite plugin
 		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
 			const vitePluginName = 'tailwindcss';
-			imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
-			vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
+			js.imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
+			js.vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
 
 			return generateCode();
 		});
 
 		sv.file(files.stylesheet, (content) => {
-			const { ast, generateCode } = parseCss(content);
+			const { ast, generateCode } = parse.css(content);
 
 			// since we are prepending all the `AtRule` let's add them in reverse order,
 			// so they appear in the expected order in the final file
@@ -88,18 +84,18 @@ export default defineAddon({
 			const appSvelte = 'src/App.svelte';
 			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
 			sv.file(appSvelte, (content) => {
-				const { ast, generateCode } = parseSvelte(content);
+				const { ast, generateCode } = parse.svelte(content);
 				svelte.ensureScript(ast, { language });
-				imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
+				js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 				return generateCode();
 			});
 		} else {
 			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
 			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
 			sv.file(layoutSvelte, (content) => {
-				const { ast, generateCode } = parseSvelte(content);
+				const { ast, generateCode } = parse.svelte(content);
 				svelte.ensureScript(ast, { language });
-				imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
+				js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 
 				if (content.length === 0) {
 					const svelteVersion = dependencyVersion('svelte');
@@ -114,7 +110,7 @@ export default defineAddon({
 		}
 
 		sv.file(files.vscodeSettings, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 
 			data['files.associations'] ??= {};
 			data['files.associations']['*.css'] = 'tailwindcss';
@@ -124,7 +120,7 @@ export default defineAddon({
 
 		if (prettierInstalled) {
 			sv.file(files.prettierrc, (content) => {
-				const { data, generateCode } = parseJson(content);
+				const { data, generateCode } = parse.json(content);
 
 				json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
 				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });

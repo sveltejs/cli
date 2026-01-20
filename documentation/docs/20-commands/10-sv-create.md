@@ -29,6 +29,8 @@ Which project template to use:
 - `minimal` — barebones scaffolding for your new app
 - `demo` — showcase app with a word guessing game that works without JavaScript
 - `library` — template for a Svelte library, set up with `svelte-package`
+  <!-- TODO: JYC: Uncomment this when the addon template is ready -->
+  <!-- - `addon` — template for a community add-on, ready to be tested & published -->
 
 ### `--types <option>`
 
@@ -72,17 +74,3 @@ Prevents installing dependencies.
 ### `--no-dir-check`
 
 Skip checking whether the target directory is empty.
-
-<!-- ## Programmatic interface
-
-```js
-// TODO: this gives type checking errors in the docs site when not commented out. Need to release sv, install it in the site, and uncomment this.
-// import { create } from 'sv';
-
-// // todo: check if this is right
-// create(cwd, {
-// 	// add your options here
-// 	// todo: list available option
-// });
-```
--->

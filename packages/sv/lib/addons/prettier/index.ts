@@ -1,6 +1,5 @@
-import { dedent, defineAddon, log, colors, json } from '../../core/index.ts';
-import { addEslintConfigPrettier } from '../common.ts';
-import { parseJson } from '../../core/tooling/parsers.ts';
+import { dedent, defineAddon, log, parse, color, json } from '../../core.ts';
+import { addEslintConfigPrettier } from '../../coreInternal.ts';
 
 export default defineAddon({
 	id: 'prettier',
@@ -32,10 +31,10 @@ export default defineAddon({
 		sv.file(files.prettierrc, (content) => {
 			let data, generateCode;
 			try {
-				({ data, generateCode } = parseJson(content));
+				({ data, generateCode } = parse.json(content));
 			} catch {
 				log.warn(
-					`A ${colors.yellow('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
+					`A ${color.warning('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
 				);
 				return content;
 			}
@@ -68,7 +67,7 @@ export default defineAddon({
 		const eslintInstalled = hasEslint(eslintVersion);
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 
 			const cmd = `prettier --check .${eslintInstalled ? ` && eslint .` : ''}`;
 			json.packageScriptsUpsert(data, 'lint', cmd);
@@ -79,9 +78,9 @@ export default defineAddon({
 
 		if (eslintVersion?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
 			log.warn(
-				`An older major version of ${colors.yellow(
+				`An older major version of ${color.warning(
 					'eslint'
-				)} was detected. Skipping ${colors.yellow('eslint-config-prettier')} installation.`
+				)} was detected. Skipping ${color.warning('eslint-config-prettier')} installation.`
 			);
 		}
 

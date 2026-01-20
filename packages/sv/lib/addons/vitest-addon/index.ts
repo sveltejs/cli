@@ -1,6 +1,4 @@
-import { dedent, defineAddon, defineAddonOptions, json } from '../../core/index.ts';
-import { array, imports, object, functions, vite } from '../../core/tooling/js/index.ts';
-import { parseJson, parseScript } from '../../core/tooling/parsers.ts';
+import { dedent, defineAddon, defineAddonOptions, js, parse, color, json } from '../../core.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {
@@ -42,7 +40,7 @@ export default defineAddon({
 		}
 
 		sv.file(files.package, (content) => {
-			const { data, generateCode } = parseJson(content);
+			const { data, generateCode } = parse.json(content);
 
 			json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 			// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
@@ -94,15 +92,15 @@ export default defineAddon({
 		}
 
 		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parseScript(content);
+			const { ast, generateCode } = parse.script(content);
 
-			const clientObjectExpression = object.create({
+			const clientObjectExpression = js.object.create({
 				extends: `./${files.viteConfig}`,
 				test: {
 					name: 'client',
 					browser: {
 						enabled: true,
-						provider: functions.createCall({ name: 'playwright', args: [] }),
+						provider: js.functions.createCall({ name: 'playwright', args: [] }),
 						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
@@ -110,7 +108,7 @@ export default defineAddon({
 				}
 			});
 
-			const serverObjectExpression = object.create({
+			const serverObjectExpression = js.object.create({
 				extends: `./${files.viteConfig}`,
 				test: {
 					name: 'server',
@@ -120,58 +118,58 @@ export default defineAddon({
 				}
 			});
 
-			const viteConfig = vite.getConfig(ast);
+			const viteConfig = js.vite.getConfig(ast);
 
-			const testObject = object.property(viteConfig, {
+			const testObject = js.object.property(viteConfig, {
 				name: 'test',
-				fallback: object.create({
+				fallback: js.object.create({
 					expect: {
 						requireAssertions: true
 					}
 				})
 			});
 
-			const workspaceArray = object.property(testObject, {
+			const workspaceArray = js.object.property(testObject, {
 				name: 'projects',
-				fallback: array.create()
+				fallback: js.array.create()
 			});
 
-			if (componentTesting) array.append(workspaceArray, clientObjectExpression);
-			if (unitTesting) array.append(workspaceArray, serverObjectExpression);
+			if (componentTesting) js.array.append(workspaceArray, clientObjectExpression);
+			if (unitTesting) js.array.append(workspaceArray, serverObjectExpression);
 
 			// Manage imports
 			if (componentTesting)
-				imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
+				js.imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
 			const importName = 'defineConfig';
-			const { statement, alias } = imports.find(ast, { name: importName, from: 'vite' });
+			const { statement, alias } = js.imports.find(ast, { name: importName, from: 'vite' });
 			if (statement) {
 				// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
-				imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
+				js.imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
 
 				// Remove the old import
-				imports.remove(ast, { name: importName, from: 'vite', statement });
+				js.imports.remove(ast, { name: importName, from: 'vite', statement });
 			}
 
 			return generateCode();
 		});
 	},
 
-	nextSteps: ({ highlighter, language, options }) => {
+	nextSteps: ({ language, options }) => {
 		const toReturn: string[] = [];
 
 		if (vitestV3Installed) {
 			const componentTesting = options.usages.includes('component');
 			if (componentTesting) {
-				toReturn.push(`Uninstall ${highlighter.command('@vitest/browser')} package`);
+				toReturn.push(`Uninstall ${color.command('@vitest/browser')} package`);
 				toReturn.push(
-					`Update usage from ${highlighter.command("'@vitest/browser...'")} to ${highlighter.command("'vitest/browser'")}`
+					`Update usage from ${color.command("'@vitest/browser...'")} to ${color.command("'vitest/browser'")}`
 				);
 			}
 			toReturn.push(
-				`${highlighter.optional('Optional')} Check ${highlighter.path('./vite.config.ts')} and remove duplicate project definitions`
+				`${color.optional('Optional')} Check ${color.path('./vite.config.ts')} and remove duplicate project definitions`
 			);
 			toReturn.push(
-				`${highlighter.optional('Optional')} Remove ${highlighter.path('./vitest-setup-client.' + language)} file`
+				`${color.optional('Optional')} Remove ${color.path(`./vitest-setup-client.${language}`)} file`
 			);
 		}
 

@@ -1,13 +1,8 @@
-import {
-	type AstTypes,
-	type Comments,
-	Walker,
-	parseScript,
-	serializeScript,
-	stripAst
-} from '../index.ts';
 import decircular from 'decircular';
 import dedent from 'dedent';
+
+import { type AstTypes, type Comments, parseScript, serializeScript, stripAst } from '../index.ts';
+import { Walker } from '../../../core.ts';
 
 export function addJsDocTypeComment(
 	node: AstTypes.Node,

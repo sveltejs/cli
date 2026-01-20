@@ -1,11 +1,11 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
+import { type AgentName, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import { exec } from 'tinyexec';
-import { parseJson } from '../../core/tooling/parsers.ts';
-import { resolveCommand, type AgentName } from 'package-manager-detector';
-import type { Highlighter, Workspace } from '../../core/index.ts';
-import * as p from '@clack/prompts';
+
+import { type Workspace, parse } from '../../core.ts';
 
 export type Package = {
 	name: string;
@@ -29,7 +29,7 @@ export function getPackageJson(cwd: string): {
 		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
-	const { data, generateCode } = parseJson(packageText);
+	const { data, generateCode } = parse.json(packageText);
 	return { source: packageText, data: data as Package, generateCode };
 }
 
@@ -136,14 +136,13 @@ export const commonFilePaths = {
 	viteConfigTS: 'vite.config.ts'
 } as const;
 
-export function getHighlighter(): Highlighter {
-	return {
-		addon: (str) => pc.green(str),
-		command: (str) => pc.bold(pc.cyanBright(str)),
-		env: (str) => pc.yellow(str),
-		path: (str) => pc.green(str),
-		route: (str) => pc.bold(str),
-		website: (str) => pc.whiteBright(str),
-		optional: (str) => pc.gray(str)
-	};
-}
+export const color = {
+	addon: (str: string): string => pc.green(str),
+	command: (str: string): string => pc.bold(pc.cyanBright(str)),
+	env: (str: string): string => pc.yellow(str),
+	path: (str: string): string => pc.green(str),
+	route: (str: string): string => pc.bold(str),
+	website: (str: string): string => pc.cyan(str),
+	optional: (str: string): string => pc.gray(str),
+	warning: (str: string): string => pc.yellow(str)
+};

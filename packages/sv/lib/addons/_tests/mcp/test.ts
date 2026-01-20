@@ -24,7 +24,7 @@ const { test, testCases } = setupTest(
 		browser: false,
 		// test only one as it's not depending on project variants
 		filter: (addonTestCase) => addonTestCase.variant === 'kit-ts',
-		preInstallAddon: ({ cwd }) => {
+		preAdd: ({ cwd }) => {
 			// prepare an existing file
 			fs.mkdirSync(path.resolve(cwd, `.cursor`));
 			fs.writeFileSync(

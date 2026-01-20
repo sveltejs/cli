@@ -1,11 +1,11 @@
 // @ts-check
+import parser from 'gitignore-parser';
 import fs from 'node:fs';
 import path from 'node:path';
-import parser from 'gitignore-parser';
+import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
-import { fileURLToPath } from 'node:url';
 
 /** @import { File, LanguageType } from '../index.ts' */
 
@@ -96,8 +96,8 @@ async function generate_templates(dist, shared) {
 			// package.json in newly created projects (based on package.template.json)
 			if (name === 'package.template.json') {
 				let contents = fs.readFileSync(path.join(cwd, name), 'utf8');
-				// TODO package-specific versions
-				contents = contents.replace(/workspace:\*/g, 'next');
+				contents = contents.replace(/workspace:\*/g, 'latest');
+
 				fs.writeFileSync(path.join(dir, 'package.json'), contents);
 				continue;
 			}
@@ -224,7 +224,7 @@ async function generate_templates(dist, shared) {
 /**
  * @param {string} string
  * @param {RegExp} regexp
- * @param {{ (m: any, attrs: string, typescript: string): Promise<string>; (arg0: any): any; }} replacer
+ * @param {(m: any, attrs: string, typescript: string) => Promise<string>} replacer
  */
 async function replace_async(string, regexp, replacer) {
 	const replacements = await Promise.all(
