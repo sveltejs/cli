@@ -86,18 +86,18 @@ You can:
 - use the `--add` option in the `create` command
 
 ```sh
-npx sv add eslint @supacool
+npx sv add eslint "@supacool"
 ```
 
 ```sh
-npx sv create --add eslint @supacool
+npx sv create --add eslint "@supacool"
 ```
 
 ### Package Protocols
 
 ```sh
 # Scoped package: @org (preferred), we will look for @org/sv
-npx sv add @supacool
+npx sv add "@supacool"
 
 # Regular npm package (with or without scope)
 npx sv add my-cool-addon
