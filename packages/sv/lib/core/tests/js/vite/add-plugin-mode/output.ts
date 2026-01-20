@@ -7,10 +7,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [
 		firstPlugin(),
-
 		// a default plugin
 		sveltekit(),
-
 		middlePlugin(),
 		lastPlugin()
 	]

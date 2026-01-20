@@ -201,7 +201,6 @@ test('integration - removes comments', () => {
 		"let foo = {
 			/** @type {string} */
 			bar: 'baz',
-
 			baz: 1
 		};"
 	`);

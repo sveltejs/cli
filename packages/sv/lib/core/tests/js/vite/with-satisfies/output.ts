@@ -18,24 +18,19 @@ const config = defineConfig({
 	plugins: [
 		// all plugins
 		examples,
-
 		tailwindcss(),
 		sveltekit(),
 		kitRoutes(),
 		myPlugin()
 	],
-
 	resolve: { alias: { $lib, $routes, $scripts, $actions } },
 	build: { sourcemap: true, target: 'esnext', cssMinify: 'lightningcss' },
-
 	css: {
 		transformer: 'lightningcss',
-
 		lightningcss: {
 			targets: browserslistToTargets(browserslist('defaults, not ie 11'))
 		}
 	},
-
 	experimental: { enableNativePlugin: true }
 }) satisfies UserConfig;
 
