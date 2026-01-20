@@ -45,7 +45,7 @@
 		"dedent": "^1.7.0",
 		"degit": "^2.8.4",
 		"empathic": "^2.0.0",
-		"esrap": "^2.2.1",
+		"esrap": "^2.2.2",
 		"gitignore-parser": "^0.0.2",
 		"magic-string": "^0.30.21",
 		"package-manager-detector": "^1.6.0",
