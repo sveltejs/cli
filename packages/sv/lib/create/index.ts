@@ -7,7 +7,8 @@ import { sanitizeName } from '../coreInternal.ts';
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
 
-const templateTypes = ['minimal', 'demo', 'library', 'addon'] as const;
+const publicTemplateTypes = ['minimal', 'demo', 'library', 'addon'] as const;
+const templateTypes = ['minimal', 'demo', 'library', 'addon', 'svelte'] as const;
 const languageTypes = ['typescript', 'checkjs', 'none'] as const;
 
 export type Options = {
@@ -46,7 +47,7 @@ export function create(cwd: string, options: Options): void {
 }
 
 export type TemplateMetadata = { name: TemplateType; title: string; description: string };
-export const templates: TemplateMetadata[] = templateTypes.map((dir) => {
+export const templates: TemplateMetadata[] = publicTemplateTypes.map((dir) => {
 	const meta_file = dist(`templates/${dir}/meta.json`);
 	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
 

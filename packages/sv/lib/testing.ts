@@ -1,4 +1,3 @@
-import degit from 'degit';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -30,11 +29,7 @@ type SetupOptions = {
 	/** @default false */
 	clean?: boolean;
 };
-export async function setup({
-	cwd,
-	clean = false,
-	variants
-}: SetupOptions): Promise<{ templatesDir: string }> {
+export function setup({ cwd, clean = false, variants }: SetupOptions): { templatesDir: string } {
 	const workingDir = path.resolve(cwd);
 	if (clean && fs.existsSync(workingDir)) {
 		fs.rmSync(workingDir, { force: true, recursive: true });
@@ -51,18 +46,10 @@ export async function setup({
 			create(templatePath, { name: variant, template: 'minimal', types: 'checkjs' });
 		} else if (variant === 'kit-ts') {
 			create(templatePath, { name: variant, template: 'minimal', types: 'typescript' });
-		} else if (variant === 'vite-js' || variant === 'vite-ts') {
-			const name = `template-svelte${variant === 'vite-ts' ? '-ts' : ''}`;
-			// Could probably point this to a specific commit hash (ex: `#1234abcd`)
-			const template = degit(`vitejs/vite/packages/create-vite/${name}`, { force: true });
-			await template.clone(templatePath);
-
-			// vite templates have their gitignore file named as `_gitignore`
-			const gitignorePath = path.resolve(templatePath, '_gitignore');
-			if (fs.existsSync(gitignorePath)) {
-				const fixedPath = path.resolve(templatePath, '.gitignore');
-				fs.renameSync(gitignorePath, fixedPath);
-			}
+		} else if (variant === 'vite-js') {
+			create(templatePath, { name: variant, template: 'svelte', types: 'none' });
+		} else if (variant === 'vite-ts') {
+			create(templatePath, { name: variant, template: 'svelte', types: 'typescript' });
 		} else {
 			throw new Error(`Unknown project variant: ${variant}`);
 		}
@@ -183,7 +170,7 @@ export function setupGlobal({
 		await pre?.();
 
 		// downloads different project configurations (sveltekit, js/ts, vite-only, etc)
-		const { templatesDir } = await setup({ cwd: TEST_DIR, variants });
+		const { templatesDir } = setup({ cwd: TEST_DIR, variants });
 
 		provide('testDir', TEST_DIR);
 		provide('templatesDir', templatesDir);

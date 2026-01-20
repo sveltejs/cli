@@ -35,7 +35,6 @@
 	},
 	"devDependencies": {
 		"@clack/prompts": "1.0.0-alpha.1",
-		"@types/degit": "^2.8.6",
 		"@types/estree": "^1.0.8",
 		"@types/gitignore-parser": "^0.0.3",
 		"@types/ps-tree": "^1.1.6",
@@ -43,7 +42,7 @@
 		"commander": "^14.0.2",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.0",
-		"degit": "^2.8.4",
+		"create-vite": "^8.2.0",
 		"empathic": "^2.0.0",
 		"esrap": "^2.2.2",
 		"gitignore-parser": "^0.0.2",
