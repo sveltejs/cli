@@ -364,14 +364,6 @@ function generate_vite_template(dist) {
 			const srcPath = path.join(srcDir, name);
 			const contents = fs.readFileSync(srcPath, 'utf8');
 
-			// Binary/asset files go to assets folder (only process once for 'none' variant)
-			if (lang === 'none' && !/\.(js|ts|svelte|json|html|css|md)$/i.test(name)) {
-				const dest = path.join(assets, name.replace(/^\./, 'DOT-'));
-				mkdirp(path.dirname(dest));
-				fs.copyFileSync(srcPath, dest);
-				continue;
-			}
-
 			// Handle _gitignore -> .gitignore rename (asset file)
 			if (name === '_gitignore' && lang === 'none') {
 				const dest = path.join(assets, 'DOT-gitignore');
@@ -379,6 +371,14 @@ function generate_vite_template(dist) {
 				continue;
 			}
 			if (name === '_gitignore') continue;
+
+			// Binary/asset files go to assets folder (only process once for 'none' variant)
+			if (lang === 'none' && !/\.(js|ts|svelte|json|html|css|md)$/i.test(name)) {
+				const dest = path.join(assets, name.replace(/^\./, 'DOT-'));
+				mkdirp(path.dirname(dest));
+				fs.copyFileSync(srcPath, dest);
+				continue;
+			}
 
 			// Text files go to files.types=*.json
 			if (/\.(js|ts|svelte|json|html|css)$/i.test(name)) {
