@@ -29,7 +29,7 @@ import {
 	resolveAddons,
 	runAddonsApply
 } from './add/index.ts';
-import { commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
+import { color, commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
 import * as common from './utils/common.ts';
 import {
@@ -230,6 +230,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const basename = path.basename(projectPath);
 	const parentDirName = path.basename(path.dirname(projectPath));
 	const projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
+
+	if (template === 'addon' && options.add.length > 0) {
+		common.errorAndExit(
+			`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
+		);
+	}
 
 	let loadedAddons: LoadedAddon[] = [];
 	let answers: Record<string, OptionValues<any>> = {};
