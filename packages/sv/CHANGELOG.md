@@ -1,5 +1,20 @@
 # sv
 
+## 0.11.3
+### Patch Changes
+
+
+- fix(cloudflare): don't generate types on install, use the dedicated script ([#877](https://github.com/sveltejs/cli/pull/877))
+
+
+- feat(eslint): with `dbaeumer.vscode-eslint@3.0.20` ESLint extension, we don't need to set `eslint.validate` anymore ([#871](https://github.com/sveltejs/cli/pull/871))
+
+
+- chore(cli): remove `vitePreprocess` in all default templates ([#876](https://github.com/sveltejs/cli/pull/876))
+
+
+- feat(cli): Add promptless command to `README.md` on `sv create` ([#864](https://github.com/sveltejs/cli/pull/864))
+
 ## 0.11.2
 ### Patch Changes
 
