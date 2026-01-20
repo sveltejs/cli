@@ -1,4 +1,4 @@
-import { defineAddon, js, parse } from '../../core.ts';
+import { defineAddon, js, parse } from '../core.ts';
 
 export default defineAddon({
 	id: 'mdsvex',

@@ -1,4 +1,4 @@
-import { dedent, defineAddon, js, log, parse, json } from '../../core.ts';
+import { dedent, defineAddon, js, log, parse, json } from '../core.ts';
 
 export default defineAddon({
 	id: 'playwright',

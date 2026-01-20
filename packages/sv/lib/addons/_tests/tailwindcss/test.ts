@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
 import { addFixture } from './fixtures.ts';
-import tailwindcss from '../../tailwindcss/index.ts';
+import tailwindcss from '../../tailwindcss.ts';
 
 const { test, prepareServer, testCases } = setupTest(
 	{ tailwindcss },
