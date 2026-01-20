@@ -10,8 +10,8 @@ import * as v from 'valibot';
 import {
 	officialAddons as _officialAddons,
 	getAddonDetails
-} from '../../addons/_config/official.ts';
-import { applyAddons, setupAddons } from '../../addons/add.ts';
+} from '../../addons/_engine/official.ts';
+import { applyAddons, setupAddons } from '../../addons/_engine/add.ts';
 import type {
 	AddonDefinition,
 	AddonInput,
