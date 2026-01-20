@@ -1,4 +1,3 @@
-import pc from 'picocolors';
 import fs from 'node:fs';
 import path from 'node:path';
 import pkg from '../../../package.json' with { type: 'json' };
@@ -7,7 +6,7 @@ import type { Argument, HelpConfiguration, Option } from 'commander';
 import process from 'node:process';
 import { type AgentName, resolveCommand } from 'package-manager-detector';
 
-import { isVersionUnsupportedBelow } from '../../core.ts';
+import { color, isVersionUnsupportedBelow } from '../../core.ts';
 import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';
@@ -56,21 +55,21 @@ export const helpConfig: HelpConfiguration = {
 
 		return option.flags;
 	},
-	styleTitle: (str) => pc.underline(str),
-	styleCommandText: (str) => pc.red(str),
-	styleDescriptionText: (str) => pc.gray(str),
-	styleOptionText: (str) => pc.white(str),
-	styleArgumentText: (str) => pc.white(str),
-	styleSubcommandText: (str) => pc.red(str)
+	// styleTitle: (str) => color.underline(str),
+	styleCommandText: (str) => color.error(str),
+	styleDescriptionText: (str) => color.dim(str),
+	styleOptionText: (str) => color.optional(str),
+	// styleArgumentText: (str) => color.white(str),
+	styleSubcommandText: (str) => color.error(str)
 };
 
 function formatDescription(arg: Option | Argument): string {
 	let output = arg.description;
 	if (arg.defaultValue !== undefined && String(arg.defaultValue)) {
-		output += pc.dim(` (default: ${JSON.stringify(arg.defaultValue)})`);
+		output += color.dim(` (default: ${JSON.stringify(arg.defaultValue)})`);
 	}
 	if (arg.argChoices !== undefined && String(arg.argChoices)) {
-		output += pc.dim(` (choices: ${arg.argChoices.join(', ')})`);
+		output += color.dim(` (choices: ${arg.argChoices.join(', ')})`);
 	}
 	return output;
 }
@@ -79,13 +78,13 @@ type MaybePromise = () => Promise<void> | void;
 
 export async function runCommand(action: MaybePromise): Promise<void> {
 	try {
-		p.intro(`Welcome to the Svelte CLI! ${pc.gray(`(v${pkg.version})`)}`);
+		p.intro(`Welcome to the Svelte CLI! ${color.optional(`(v${pkg.version})`)}`);
 
 		const minimumVersion = '18.3.0';
 		const unsupported = isVersionUnsupportedBelow(process.versions.node, minimumVersion);
 		if (unsupported) {
 			p.log.warn(
-				`You are using Node.js ${pc.red(process.versions.node)}, please upgrade to Node.js ${pc.green(minimumVersion)} or higher.`
+				`You are using Node.js ${color.error(process.versions.node)}, please upgrade to Node.js ${color.success(minimumVersion)} or higher.`
 			);
 		}
 
@@ -95,7 +94,7 @@ export async function runCommand(action: MaybePromise): Promise<void> {
 		if (e instanceof UnsupportedError) {
 			const padding = getPadding(e.reasons.map((r) => r.id));
 			const message = e.reasons
-				.map((r) => `  ${r.id.padEnd(padding)}  ${pc.red(r.reason)}`)
+				.map((r) => `  ${r.id.padEnd(padding)}  ${color.error(r.reason)}`)
 				.join('\n');
 			p.log.error(`${e.name}\n\n${message}`);
 			p.log.message();
@@ -155,7 +154,7 @@ export function buildAndLogArgs(
 	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
 	const message = [res.command, ...res.args].join(' ');
 
-	p.log.info(pc.dim(`Re-run without prompts:\n${message}`));
+	p.log.info(color.dim(`Re-run without prompts:\n${message}`));
 
 	return message;
 }

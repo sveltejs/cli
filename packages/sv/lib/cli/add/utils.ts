@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { type AgentName, resolveCommand } from 'package-manager-detector';
-import pc from 'picocolors';
+import { styleText } from 'node:util';
 import { exec } from 'tinyexec';
 
 import { type Workspace, parse } from '../../core.ts';
@@ -137,12 +137,18 @@ export const commonFilePaths = {
 } as const;
 
 export const color = {
-	addon: (str: string): string => pc.green(str),
-	command: (str: string): string => pc.bold(pc.cyanBright(str)),
-	env: (str: string): string => pc.yellow(str),
-	path: (str: string): string => pc.green(str),
-	route: (str: string): string => pc.bold(str),
-	website: (str: string): string => pc.cyan(str),
-	optional: (str: string): string => pc.gray(str),
-	warning: (str: string): string => pc.yellow(str)
+	// Semantic colors
+	addon: (str: string): string => styleText('greenBright', str),
+	command: (str: string): string => styleText(['bold', 'cyanBright'], str),
+	env: (str: string): string => styleText('yellow', str),
+	path: (str: string): string => styleText('blueBright', str),
+	route: (str: string): string => styleText(['bold', 'underline'], str),
+	website: (str: string): string => styleText('cyan', str),
+	optional: (str: string): string => styleText('gray', str),
+	dim: (str: string): string => styleText('dim', str),
+
+	// Status colors
+	success: (str: string): string => styleText('green', str),
+	warning: (str: string): string => styleText('yellow', str),
+	error: (str: string): string => styleText('red', str)
 };

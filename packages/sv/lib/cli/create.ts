@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { detect, resolveCommand } from 'package-manager-detector';
-import pc from 'picocolors';
 import * as v from 'valibot';
 
 import type { LoadedAddon, OptionValues, Workspace } from '../core.ts';
@@ -96,13 +95,12 @@ export const create = new Command('create')
 		const options = v.parse(OptionsSchema, opts);
 
 		if (options.fromPlayground && !validatePlaygroundUrl(options.fromPlayground)) {
-			console.error(pc.red(`Error: Invalid playground URL: ${options.fromPlayground}`));
+			console.error(color.error(`Error: Invalid playground URL: ${options.fromPlayground}`));
 			process.exit(1);
 		}
 
 		common.runCommand(async () => {
 			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
-			const highlight = (str: string) => pc.bold(pc.cyan(str));
 
 			let i = 1;
 			const initialSteps: string[] = ['📁 Project steps', ''];
@@ -112,21 +110,21 @@ export const create = new Command('create')
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
-					`  ${i++}: ${highlight(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
+					`  ${i++}: ${color.command(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
 				);
 			}
 			if (!packageManager) {
 				const { args, command } = resolveCommand(pm, 'install', [])!;
-				initialSteps.push(`  ${i++}: ${highlight(`${command} ${args.join(' ')}`)}`);
+				initialSteps.push(`  ${i++}: ${color.command(`${command} ${args.join(' ')}`)}`);
 			}
 
 			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
 			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
-				`  ${i++}: ${highlight(pmRunCmd)}`,
+				`  ${i++}: ${color.command(pmRunCmd)}`,
 				'',
-				`To close the dev server, hit ${highlight('Ctrl-C')}`
+				`To close the dev server, hit ${color.command('Ctrl-C')}`
 			];
 
 			if (addOnNextSteps.length > 0) {
@@ -137,7 +135,7 @@ export const create = new Command('create')
 				}
 			}
 
-			steps.push('', `Stuck? Visit us at ${pc.cyan('https://svelte.dev/chat')}`);
+			steps.push('', `Stuck? Visit us at ${color.website('https://svelte.dev/chat')}`);
 
 			p.note(steps.join('\n'), "What's next?", { format: (line) => line });
 		});
@@ -360,7 +358,7 @@ async function createProjectFromPlayground(url: string, cwd: string): Promise<vo
 async function confirmExternalDependencies(dependencies: string[]): Promise<boolean> {
 	if (dependencies.length === 0) return false;
 
-	const dependencyList = dependencies.map(pc.yellowBright).join(', ');
+	const dependencyList = dependencies.map(color.warning).join(', ');
 	p.log.warn(
 		`The following external dependencies were found in the playground:\n\n${dependencyList}`
 	);

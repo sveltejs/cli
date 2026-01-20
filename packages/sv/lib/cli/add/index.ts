@@ -4,7 +4,6 @@ import * as pkg from 'empathic/package';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import pc from 'picocolors';
 import * as v from 'valibot';
 
 import {
@@ -512,7 +511,7 @@ export async function promptAddonQuestions({
 			}));
 
 		const selected = await p.multiselect({
-			message: `What would you like to add to your project? ${pc.dim('(use arrow keys / space bar)')}`,
+			message: `What would you like to add to your project? ${color.dim('(use arrow keys / space bar)')}`,
 			options: addonOptions,
 			required: false
 		});
@@ -595,7 +594,7 @@ export async function promptAddonQuestions({
 
 				// prompt to install the dependent
 				const install = await p.confirm({
-					message: `The ${pc.bold(pc.cyan(addonId))} add-on requires ${pc.bold(pc.cyan(depId))} to also be setup. ${pc.green('Include it?')}`
+					message: `The ${color.addon(addonId)} add-on requires ${color.addon(depId)} to also be setup. ${color.success('Include it?')}`
 				});
 				if (install !== true) {
 					p.cancel('Operation cancelled.');
@@ -629,7 +628,7 @@ export async function promptAddonQuestions({
 
 	if (fails.length > 0) {
 		const message = fails
-			.map(({ name, message }) => pc.yellow(`${name} (${message})`))
+			.map(({ name, message }) => color.warning(`${name} (${message})`))
 			.join('\n- ');
 
 		p.note(`- ${message}`, 'Verifications not met', { format: (line) => line });
@@ -836,7 +835,7 @@ export async function runAddonsApply({
 			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions });
 			if (addonNextSteps.length === 0) return;
 
-			let addonMessage = `${pc.green(addon.id)}:\n`;
+			let addonMessage = `${color.addon(addon.id)}:\n`;
 			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
 			return addonMessage;
 		})
@@ -882,7 +881,7 @@ function getAddonOptionFlags() {
 
 		const { defaults, groups } = getOptionChoices(details);
 		const choices = Object.entries(groups)
-			.map(([group, choices]) => `${pc.dim(`${group}:`)} ${choices.join(', ')}`)
+			.map(([group, choices]) => `${color.dim(`${group}:`)} ${choices.join(', ')}`)
 			.join('\n');
 		const preset = defaults.join(', ') || 'none';
 		options.push({ id, choices, preset });
@@ -971,9 +970,9 @@ export async function resolveNonOfficialAddons(
 		const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
 
 		const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
-			const name = pc.yellowBright(pkg.name.padEnd(paddingName));
-			const version = pc.dim(`(v${pkg.version})`.padEnd(paddingVersion));
-			const repo = pc.dim(`(${_repo})`);
+			const name = color.warning(pkg.name.padEnd(paddingName));
+			const version = color.dim(`(v${pkg.version})`.padEnd(paddingVersion));
+			const repo = color.dim(`(${_repo})`);
 			return `${name} ${version} ${repo}`;
 		});
 		p.log.message(packageInfos.join('\n'));

@@ -3,10 +3,10 @@ import * as resolve from 'empathic/resolve';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
 import { resolveCommand } from 'package-manager-detector/commands';
-import pc from 'picocolors';
 
 import { forwardExitCode } from './utils/common.ts';
 import { getUserAgent } from './utils/package-manager.ts';
+import { color } from '../core.ts';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
@@ -36,7 +36,7 @@ function runCheck(cwd: string, args: string[]) {
 	if (!resolved) {
 		const cmd = resolveCommand(pm, 'add', ['-D', 'svelte-check'])!;
 		console.error(
-			`'svelte-check' is not installed locally. Install it with: ${pc.bold(`${cmd.command} ${cmd.args.join(' ')}`)}`
+			`'svelte-check' is not installed locally. Install it with: ${color.command(`${cmd.command} ${cmd.args.join(' ')}`)}`
 		);
 		process.exit(1);
 	}
