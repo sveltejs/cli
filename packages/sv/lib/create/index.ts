@@ -37,9 +37,13 @@ export function create(cwd: string, options: Options): void {
 	mkdirp(cwd);
 
 	write_template_files(options.template, options.types, options.name, cwd);
-	write_common_files(cwd, options, options.name);
 
-	// Files that are not relevant for addon projects
+	// No need to write common files for 'svelte' template
+	if (options.template !== 'svelte') {
+		write_common_files(cwd, options, options.name);
+	}
+
+	// Files that are not relevant for 'addon' template
 	if (options.template === 'addon') {
 		fs.rmSync(path.join(cwd, 'svelte.config.js'));
 		fs.rmSync(path.join(cwd, 'vite.config.js'));
