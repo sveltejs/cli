@@ -82,15 +82,33 @@ export function classifyAddons(inputs: AddonInput[], cwd: string): AddonReferenc
 				source
 			});
 		} else {
-			// npm package
-			const pkgName = input.specifier.startsWith('@')
+			// npm package - normalize and extract name/tag
+			const normalized = input.specifier.startsWith('@')
 				? input.specifier.includes('/')
 					? input.specifier
 					: input.specifier + '/sv'
 				: input.specifier;
-			const nameWithoutVersion = pkgName.split('@').filter(Boolean)[0];
-			const npmUrl = `https://www.npmjs.com/package/${nameWithoutVersion}`;
-			const source: AddonSource = { kind: 'npm', packageName: pkgName, npmUrl };
+
+			// Split name and tag: @scope/name@version or name@version
+			let packageName: string;
+			let tag: string;
+			if (normalized.startsWith('@')) {
+				// Scoped: @scope/name or @scope/name@version
+				const slashIndex = normalized.indexOf('/');
+				const afterSlash = normalized.slice(slashIndex + 1);
+				const [name, version = 'latest'] = afterSlash.split('@');
+				packageName = normalized.slice(0, slashIndex + 1) + name;
+				tag = version;
+			} else {
+				// Unscoped: name or name@version
+				const [name, version = 'latest'] = normalized.split('@');
+				packageName = name;
+				tag = version;
+			}
+
+			const npmUrl = `https://www.npmjs.com/package/${packageName}`;
+			const registryUrl = `https://registry.npmjs.org/${packageName}/${tag}`;
+			const source: AddonSource = { kind: 'npm', packageName, tag, npmUrl, registryUrl };
 			seen.set(input.specifier, {
 				specifier: input.specifier,
 				options: input.options,
@@ -242,7 +260,7 @@ export const add = new Command('add')
 
 		common.runCommand(async () => {
 			// Resolve all addons (official and community) - returns LoadedAddon[]
-			const loadedAddons = await resolveAddons(addonRefs, options.downloadCheck, options.cwd);
+			const loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
 
 			// Map options from refs to resolved IDs
 			for (const loaded of loadedAddons) {
@@ -273,12 +291,10 @@ export const add = new Command('add')
 /**
  * Resolves all addons (official and community).
  * Returns LoadedAddon[] with addon code loaded.
- * @param cwd - The original working directory for resolving file: paths
  */
 export async function resolveAddons(
 	refs: AddonReference[],
-	downloadCheck: boolean,
-	cwd?: string
+	downloadCheck: boolean
 ): Promise<LoadedAddon[]> {
 	const loaded: LoadedAddon[] = [];
 
@@ -298,11 +314,7 @@ export async function resolveAddons(
 
 	// Resolve community addons (file: and npm packages)
 	if (communityRefs.length > 0) {
-		const communityAddons = await resolveNonOfficialAddons(
-			communityRefs,
-			downloadCheck,
-			cwd ?? process.cwd()
-		);
+		const communityAddons = await resolveNonOfficialAddons(communityRefs, downloadCheck);
 
 		// Create LoadedAddon for each resolved community addon
 		communityRefs.forEach((ref, index) => {
@@ -926,8 +938,7 @@ function getOptionChoices(details: AddonDefinition) {
 
 export async function resolveNonOfficialAddons(
 	refs: AddonReference[],
-	downloadCheck: boolean,
-	originalCwd: string
+	downloadCheck: boolean
 ): Promise<AddonDefinition[]> {
 	const selectedAddons: AddonDefinition[] = [];
 	const { start, stop } = p.spinner();
@@ -937,10 +948,10 @@ export async function resolveNonOfficialAddons(
 
 		const pkgs = await Promise.all(
 			refs.map(async (ref) => {
-				// For file: addons, use the original cwd so getPackageJSON can resolve the relative path
-				// For npm addons, use process.cwd()
-				const cwd = ref.source.kind === 'file' ? originalCwd : process.cwd();
-				return await getPackageJSON({ cwd, packageName: ref.specifier });
+				if (ref.source.kind === 'official') {
+					throw new Error(`Unexpected official addon in non-official resolver: ${ref.specifier}`);
+				}
+				return await getPackageJSON(ref);
 			})
 		);
 		stop('Resolved community add-on packages');

@@ -246,7 +246,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		const addonRefs = classifyAddons(addonInputs, projectPath);
 
 		// Resolve all addons (official and community) - returns LoadedAddon[]
-		loadedAddons = await resolveAddons(addonRefs, options.downloadCheck, projectPath);
+		loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
 
 		// Map options from loaded addons to resolved IDs
 		addonsOptionsMap = {};

@@ -7,7 +7,7 @@ import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
 
 import pkg from '../../../package.json' with { type: 'json' };
-import { color, type AddonDefinition } from '../../core.ts';
+import { color, type AddonDefinition, type AddonReference } from '../../core.ts';
 import * as common from '../utils/common.ts';
 // eslint-disable-next-line no-restricted-imports
 import { splitVersion } from '../../core/common.ts';
@@ -16,7 +16,6 @@ import { downloadJson } from '../../core/downloadJson.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
-const REGISTRY = 'https://registry.npmjs.org';
 
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	// We should look only for dependencies, not devDependencies or peerDependencies
@@ -161,72 +160,43 @@ type PackageJSON = {
 	version: string;
 	[key: string]: string | number | boolean;
 };
-type GetPackageJSONOptions = { packageName: string; cwd: string };
-export async function getPackageJSON({ cwd, packageName }: GetPackageJSONOptions): Promise<{
+export async function getPackageJSON(ref: AddonReference): Promise<{
 	pkg: PackageJSON;
 	repo: string;
 	path?: string;
 	warning?: string;
 }> {
-	let npm = packageName;
-	if (packageName.startsWith('file:')) {
-		const pkgPath = path.resolve(cwd, packageName.slice(5)); // 'file:'.length = 5
-		const pkgJSONPath = path.resolve(pkgPath, 'package.json');
+	const { specifier, source } = ref;
+
+	if (source.kind === 'official') {
+		throw new Error(`Unexpected official addon in non-official getPackageJSON(): ${specifier}`);
+	}
+
+	if (source.kind === 'file') {
+		const pkgJSONPath = path.resolve(source.path, 'package.json');
 		const json = fs.readFileSync(pkgJSONPath, 'utf8');
 		const pkg = JSON.parse(json);
-		const warning = verifyPackage(pkg, packageName);
+		const warning = verifyPackage(pkg, specifier);
 
-		return { path: pkgPath, pkg, repo: pkgPath, warning };
-	}
-	if (packageName.startsWith('npm:')) {
-		npm = packageName.slice(4); // 'npm:'.length = 4
+		return { path: source.path, pkg, repo: source.path, warning };
 	}
 
-	const pkg = await fetchPackageJSON(npm);
-	const warning = verifyPackage(pkg, packageName);
-
-	return {
-		pkg,
-		// fallback to providing the npm package URL
-		repo: pkg.repository?.url ?? `https://www.npmjs.com/package/${npm}`,
-		warning
-	};
-}
-
-async function fetchPackageJSON(packageName: string) {
-	let pkgName = packageName;
-	let scope = '';
-	if (packageName.startsWith('@')) {
-		if (packageName.includes('/')) {
-			const [org, name] = pkgName.split('/', 2);
-			scope = `${org}/`;
-			pkgName = name;
-		} else {
-			// Handle @scope or @scope@version shorthand (without /sv)
-			// e.g. @supacool or @supacool@0.0.1
-			const match = packageName.match(/^(@[^@]+)(?:@(.+))?$/);
-			if (match) {
-				scope = `${match[1]}/`;
-				pkgName = match[2] ? `sv@${match[2]}` : 'sv';
-			} else {
-				scope = `${packageName}/`;
-				pkgName = 'sv';
-			}
-		}
-	}
-
-	const [name, tag = 'latest'] = pkgName.split('@');
-	const fullName = `${scope + name}`;
-	const pkgUrl = `${REGISTRY}/${fullName}/${tag}`;
-
+	// Check blocklist
 	const blocklist = await downloadJson(
 		'https://raw.githubusercontent.com/sveltejs/cli/refs/heads/main/packages/sv/blocklist.json'
 	);
-	const blockedNpmAddons = blocklist.npm_names.includes(fullName);
-	if (blockedNpmAddons)
+	if (blocklist.npm_names.includes(source.packageName)) {
 		common.errorAndExit(
-			`${color.warning(fullName)} blocked from being installed. If this is not the intended behavior please open an issue here: https://github.com/sveltejs/cli/issues.`
+			`${color.warning(source.packageName)} blocked from being installed. If this is not the intended behavior please open an issue here: https://github.com/sveltejs/cli/issues.`
 		);
+	}
 
-	return await downloadJson(pkgUrl);
+	const pkg = await downloadJson(source.registryUrl);
+	const warning = verifyPackage(pkg, specifier);
+
+	return {
+		pkg,
+		repo: pkg.repository?.url ?? source.npmUrl,
+		warning
+	};
 }
