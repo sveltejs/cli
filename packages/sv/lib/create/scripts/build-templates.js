@@ -394,7 +394,11 @@ function generate_vite_template(dist) {
 	// Write meta.json (internal template, minimal metadata)
 	fs.writeFileSync(
 		path.join(dir, 'meta.json'),
-		JSON.stringify({ title: 'Svelte', description: 'Vite + Svelte template (internal)' }, null, '\t')
+		JSON.stringify(
+			{ title: 'Svelte', description: 'Vite + Svelte template (internal)' },
+			null,
+			'\t'
+		)
 	);
 
 	// Write files for each language type
@@ -406,10 +410,7 @@ function generate_vite_template(dist) {
 		path.join(dir, 'files.types=checkjs.json'),
 		JSON.stringify([], null, '\t') // empty, not supported for vite template
 	);
-	fs.writeFileSync(
-		path.join(dir, 'files.types=none.json'),
-		JSON.stringify(types.none, null, '\t')
-	);
+	fs.writeFileSync(path.join(dir, 'files.types=none.json'), JSON.stringify(types.none, null, '\t'));
 }
 
 /**
