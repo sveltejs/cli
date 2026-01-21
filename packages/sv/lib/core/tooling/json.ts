@@ -22,7 +22,7 @@ export function arrayUpsert(
 export function packageScriptsUpsert(
 	data: any,
 	key: string,
-	value: any,
+	value: string,
 	options?: {
 		mode?: 'append' | 'prepend';
 	}
