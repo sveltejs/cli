@@ -10,8 +10,8 @@ import * as v from 'valibot';
 import {
 	officialAddons as _officialAddons,
 	getAddonDetails
-} from '../../addons/_config/official.ts';
-import { applyAddons, setupAddons } from '../../addons/add.ts';
+} from '../../addons/_engine/official.ts';
+import { applyAddons, setupAddons } from '../../addons/_engine/add.ts';
 import type {
 	AddonDefinition,
 	AddonInput,
@@ -1015,7 +1015,7 @@ export async function resolveNonOfficialAddons(
 		}
 		stop('Downloaded community add-on packages');
 	} catch (err) {
-		stop('Failed to download community add-on packages', 1);
+		stop('Failed to download community add-on packages');
 		const msg = err instanceof Error ? err.message : 'Unknown error';
 		common.errorAndExit(msg);
 	}

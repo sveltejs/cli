@@ -10,8 +10,8 @@ import {
 	fileExists,
 	json,
 	color
-} from '../../core.ts';
-import { sanitizeName } from '../../coreInternal.ts';
+} from '../core.ts';
+import { sanitizeName } from '../coreInternal.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },

@@ -1,17 +1,17 @@
 import type { Addon, AddonDefinition } from '../../core.ts';
-import devtoolsJson from '../devtools-json/index.ts';
-import drizzle from '../drizzle/index.ts';
-import eslint from '../eslint/index.ts';
-import lucia from '../lucia/index.ts';
-import mcp from '../mcp/index.ts';
-import mdsvex from '../mdsvex/index.ts';
-import paraglide from '../paraglide/index.ts';
-import playwright from '../playwright/index.ts';
-import prettier from '../prettier/index.ts';
-import storybook from '../storybook/index.ts';
-import sveltekitAdapter from '../sveltekit-adapter/index.ts';
-import tailwindcss from '../tailwindcss/index.ts';
-import vitest from '../vitest-addon/index.ts';
+import devtoolsJson from '../devtools-json.ts';
+import drizzle from '../drizzle.ts';
+import eslint from '../eslint.ts';
+import lucia from '../lucia.ts';
+import mcp from '../mcp.ts';
+import mdsvex from '../mdsvex.ts';
+import paraglide from '../paraglide.ts';
+import playwright from '../playwright.ts';
+import prettier from '../prettier.ts';
+import storybook from '../storybook.ts';
+import sveltekitAdapter from '../sveltekit-adapter.ts';
+import tailwindcss from '../tailwindcss.ts';
+import vitest from '../vitest-addon.ts';
 
 type OfficialAddons = {
 	prettier: Addon<any>;

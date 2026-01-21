@@ -9,7 +9,7 @@ export { color } from './cli/add/utils.ts';
 export { isVersionUnsupportedBelow } from './core/common.ts';
 export { fileExists } from './cli/add/utils.ts';
 export { resolveCommand } from 'package-manager-detector/commands';
-export { getNodeTypesVersion, addToDemoPage } from './addons/common.ts';
+export { getNodeTypesVersion, addToDemoPage } from './addons/_engine/common.ts';
 export { createPrinter } from './core/utils.ts';
 
 // parsing & languages

@@ -1,5 +1,5 @@
-import { defineAddon, defineAddonOptions, log, parse, color } from '../../core.ts';
-import { getSharedFiles } from '../../coreInternal.ts';
+import { defineAddon, defineAddonOptions, log, parse, color } from '../core.ts';
+import { getSharedFiles } from '../coreInternal.ts';
 
 const options = defineAddonOptions()
 	.add('ide', {

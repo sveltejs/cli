@@ -67,7 +67,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 
 		for await (const line of proc) {
 			// line will be from stderr/stdout in the order you'd see it in a term
-			task.message(line, { raw: true });
+			task.message(line);
 		}
 
 		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
