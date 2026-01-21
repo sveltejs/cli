@@ -1015,7 +1015,7 @@ export async function resolveNonOfficialAddons(
 		}
 		stop('Downloaded community add-on packages');
 	} catch (err) {
-		stop('Failed to download community add-on packages', 1);
+		stop('Failed to download community add-on packages');
 		const msg = err instanceof Error ? err.message : 'Unknown error';
 		common.errorAndExit(msg);
 	}
