@@ -881,7 +881,7 @@ function getAddonOptionFlags() {
 
 		const { defaults, groups } = getOptionChoices(details);
 		const choices = Object.entries(groups)
-			.map(([group, choices]) => `${color.dim(`${group}:`)} ${choices.join(', ')}`)
+			.map(([group, choices]) => `${color.optional(`${group}: ${color.dim(choices.join(', '))}`)} `)
 			.join('\n');
 		const preset = defaults.join(', ') || 'none';
 		options.push({ id, choices, preset });

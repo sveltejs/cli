@@ -55,12 +55,8 @@ export const helpConfig: HelpConfiguration = {
 
 		return option.flags;
 	},
-	// styleTitle: (str) => color.underline(str),
-	styleCommandText: (str) => color.error(str),
-	styleDescriptionText: (str) => color.dim(str),
-	styleOptionText: (str) => color.optional(str),
-	// styleArgumentText: (str) => color.white(str),
-	styleSubcommandText: (str) => color.error(str)
+	styleCommandText: (str) => color.success(str),
+	styleDescriptionText: (str) => color.optional(str)
 };
 
 function formatDescription(arg: Option | Argument): string {
