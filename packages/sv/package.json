@@ -34,7 +34,7 @@
 		}
 	},
 	"devDependencies": {
-		"@clack/prompts": "1.0.0-alpha.1",
+		"@clack/prompts": "1.0.0-alpha.9",
 		"@types/degit": "^2.8.6",
 		"@types/estree": "^1.0.8",
 		"@types/gitignore-parser": "^0.0.3",
