@@ -44,7 +44,7 @@ export default defineAddon({
 
 			json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 			// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
-			json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run');
+			json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
 
 			return generateCode();
 		});
