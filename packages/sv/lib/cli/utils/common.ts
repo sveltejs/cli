@@ -150,7 +150,8 @@ export function buildAndLogArgs(
 	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
 	const message = [res.command, ...res.args].join(' ');
 
-	p.log.info(color.dim(`Re-run without prompts:\n${message}`));
+	p.log.message(color.optional(color.dim(`To skip prompts next time, run:`)));
+	p.log.info(color.optional(message), { spacing: -1 });
 
 	return message;
 }
