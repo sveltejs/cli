@@ -39,4 +39,17 @@ describe('objectUpsert', () => {
 		packageScriptsUpsert(data, 'lint', 'cmd');
 		expect(data).toEqual({ scripts: { lint: 'b && cmd' } });
 	});
+
+	it('add many', () => {
+		const data = { scripts: { lint: 'eslint .' } };
+		packageScriptsUpsert(data, 'lint', 'prettier .');
+		packageScriptsUpsert(data, 'lint', 'eslint .'); // should not add duplicate
+		expect(data).toEqual({ scripts: { lint: 'eslint . && prettier .' } });
+	});
+
+	it('prepend', () => {
+		const data = { scripts: { lint: 'eslint .' } };
+		packageScriptsUpsert(data, 'lint', 'prettier .', { mode: 'prepend' });
+		expect(data).toEqual({ scripts: { lint: 'prettier . && eslint .' } });
+	});
 });

@@ -69,8 +69,7 @@ export default defineAddon({
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
-			const cmd = `prettier --check .${eslintInstalled ? ` && eslint .` : ''}`;
-			json.packageScriptsUpsert(data, 'lint', cmd);
+			json.packageScriptsUpsert(data, 'lint', 'prettier --check .', { mode: 'prepend' });
 			json.packageScriptsUpsert(data, 'format', 'prettier --write .');
 
 			return generateCode();
