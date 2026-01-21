@@ -9,7 +9,7 @@ import {
 	color,
 	svelte,
 	type SvelteAst
-} from '../../core.ts';
+} from '../core.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',

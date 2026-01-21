@@ -12,7 +12,7 @@ import {
 	resolveCommand,
 	color,
 	json
-} from '../../core.ts';
+} from '../core.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';
 const PORTS: Record<Database, string> = {

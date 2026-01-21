@@ -13,7 +13,7 @@ import {
 	resolveCommand,
 	color,
 	createPrinter
-} from '../../core.ts';
+} from '../core.ts';
 
 const TABLE_TYPE = {
 	mysql: 'mysqlTable',
