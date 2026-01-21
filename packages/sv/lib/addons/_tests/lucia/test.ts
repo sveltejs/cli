@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import lucia from '../../lucia/index.ts';
-import drizzle from '../../drizzle/index.ts';
+import lucia from '../../lucia.ts';
+import drizzle from '../../drizzle.ts';
 import path from 'node:path';
 import fs from 'node:fs';
 
