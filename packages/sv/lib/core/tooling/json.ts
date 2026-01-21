@@ -19,11 +19,23 @@ export function arrayUpsert(
 	data[key] = array;
 }
 
-export function packageScriptsUpsert(data: any, key: string, value: any): void {
+export function packageScriptsUpsert(
+	data: any,
+	key: string,
+	value: string,
+	options?: {
+		mode?: 'append' | 'prepend';
+	}
+): void {
+	const { mode = 'append' } = options ?? {};
 	data.scripts ??= {};
 	const scripts: Record<string, string> = data.scripts;
 	scripts[key] ??= value;
 	if (!scripts[key].includes(value)) {
-		scripts[key] += ` && ${value}`;
+		if (mode === 'prepend') {
+			scripts[key] = `${value} && ${scripts[key]}`;
+		} else {
+			scripts[key] += ` && ${value}`;
+		}
 	}
 }
