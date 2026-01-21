@@ -71,6 +71,34 @@ test('Updates $app/store #3', () => {
 	);
 });
 
+test('Updates $app/store #4', () => {
+	const result = transform_svelte_code(
+		`<script>
+	import { page, navigating } from '$app/stores';
+	import Comp from '$lib/page/Comp.svelte'
+</script>
+
+<div>{$page.url}</div>
+<button onclick={() => {
+	console.log($page.state);
+}}></button>
+`
+	);
+	assert.equal(
+		result,
+		`<script>
+	import { page, navigating } from '$app/state';
+	import Comp from '$lib/page/Comp.svelte'
+</script>
+
+<div>{page.url}</div>
+<button onclick={() => {
+	console.log(page.state);
+}}></button>
+`
+	);
+});
+
 test('Does not update $app/store #1', () => {
 	const input = `<script>
 	import { page } from '$app/stores';
