@@ -99,6 +99,26 @@ test('Updates $app/store #4', () => {
 	);
 });
 
+test('Updates $app/store #5', () => {
+	const result = transform_svelte_code(
+		`<script>
+	import { page, navigating } from '$app/stores';
+	const str = 'before page after';
+	// this is a page
+</script>
+<div>{$page.url}</div>`
+	);
+	assert.equal(
+		result,
+		`<script>
+	import { page, navigating } from '$app/state';
+	const str = 'before page after';
+	// this is a page
+</script>
+<div>{page.url}</div>`
+	);
+});
+
 test('Does not update $app/store #1', () => {
 	const input = `<script>
 	import { page } from '$app/stores';

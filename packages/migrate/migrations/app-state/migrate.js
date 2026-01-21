@@ -53,6 +53,20 @@ export function transform_svelte_code(code) {
 			const before = modified.slice(0, match.index);
 			const after = modified.slice(match.index + alias.length);
 
+			// Skip if inside a comment (check if // appears on the same line before the match)
+			const line_start = before.lastIndexOf('\n') + 1;
+			const line_before_match = before.slice(line_start);
+			if (line_before_match.includes('//')) {
+				continue;
+			}
+
+			// Skip if inside a string (odd number of quotes before match on same line)
+			const single_quotes = (line_before_match.match(/'/g) || []).length;
+			const double_quotes = (line_before_match.match(/"/g) || []).length;
+			if (single_quotes % 2 === 1 || double_quotes % 2 === 1) {
+				continue;
+			}
+
 			if (before.slice(-1) !== '$') {
 				if (/[_'"/]/.test(before.slice(-1))) continue; // false positive (part of identifier, string, or path)
 
