@@ -106,6 +106,7 @@ test('Updates $app/store #5', () => {
 	const str = 'before page after';
 	// this is a page
 </script>
+Nice page!
 <div>{$page.url}</div>`
 	);
 	assert.equal(
@@ -115,6 +116,7 @@ test('Updates $app/store #5', () => {
 	const str = 'before page after';
 	// this is a page
 </script>
+Nice page!
 <div>{page.url}</div>`
 	);
 });

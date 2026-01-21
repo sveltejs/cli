@@ -78,7 +78,16 @@ export function transform_svelte_code(code) {
 					continue; // this is the import statement
 				}
 
-				return code;
+				// Check if we're inside a script tag - only bail if inside script (store usage like page.subscribe)
+				// Outside script, plain text like "Nice page!" should be ignored
+				const script_open = before.lastIndexOf('<script');
+				const script_close = before.lastIndexOf('</script>');
+				const inside_script = script_open > script_close;
+
+				if (inside_script) {
+					return code;
+				}
+				continue;
 			}
 
 			if (store === 'navigating' && after[0] !== '.') {
