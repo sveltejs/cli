@@ -1,4 +1,4 @@
-import { dedent, defineAddon, defineAddonOptions, js, parse, color, json } from '../../core.ts';
+import { dedent, defineAddon, defineAddonOptions, js, parse, color, json } from '../core.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {

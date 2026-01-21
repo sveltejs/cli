@@ -1,13 +1,5 @@
-import {
-	type AstTypes,
-	defineAddon,
-	getNodeTypesVersion,
-	js,
-	log,
-	parse,
-	json
-} from '../../core.ts';
-import { addEslintConfigPrettier } from '../../coreInternal.ts';
+import { type AstTypes, defineAddon, getNodeTypesVersion, js, log, parse, json } from '../core.ts';
+import { addEslintConfigPrettier } from '../coreInternal.ts';
 
 export default defineAddon({
 	id: 'eslint',
