@@ -14,7 +14,8 @@
 		"check": "tsgo",
 		"format": "pnpm lint --write",
 		"lint": "prettier --check .",
-		"test": "vitest run"
+		"test": "vitest run",
+		"test:ui": "vitest"
 	},
 	"files": [
 		"bin.js",

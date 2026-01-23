@@ -29,7 +29,7 @@ export function transform_svelte_code(code) {
 	}
 
 	const import_match = code.match(/import\s*{([^}]+)}\s*from\s*("|')\$app\/stores\2/);
-	if (!import_match) return code; // nothing to do
+	if (!import_match || import_match.index === undefined) return code; // nothing to do
 
 	const stores = import_match[1].split(',').map((i) => {
 		const str = i.trim();
@@ -39,6 +39,8 @@ export function transform_svelte_code(code) {
 	let modified = code.replace('$app/stores', '$app/state');
 
 	let needs_navigating_migration_task = false;
+	const import_start = import_match.index;
+	const from_pos_in_original = code.indexOf('from', import_start);
 
 	for (const [store, alias] of stores) {
 		// if someone uses that they're deep into stores and we better not touch this file
@@ -46,28 +48,53 @@ export function transform_svelte_code(code) {
 
 		const regex = new RegExp(`\\b${alias}\\b`, 'g');
 		let match;
-		let count_removed = 0;
 
 		while ((match = regex.exec(modified)) !== null) {
 			const before = modified.slice(0, match.index);
 			const after = modified.slice(match.index + alias.length);
 
+			// Skip if inside a single-line comment
+			const line_start = before.lastIndexOf('\n') + 1;
+			const line_before_match = before.slice(line_start);
+			if (line_before_match.includes('//')) {
+				continue;
+			}
+
+			// Skip if inside a multi-line comment
+			const last_comment_open = before.lastIndexOf('/*');
+			const last_comment_close = before.lastIndexOf('*/');
+			if (last_comment_open > last_comment_close) {
+				continue;
+			}
+
+			// Skip if inside a string (odd number of quotes before match on same line)
+			const single_quotes = (line_before_match.match(/'/g) || []).length;
+			const double_quotes = (line_before_match.match(/"/g) || []).length;
+			if (single_quotes % 2 === 1 || double_quotes % 2 === 1) {
+				continue;
+			}
+
 			if (before.slice(-1) !== '$') {
-				if (/[_'"]/.test(before.slice(-1))) continue; // false positive
+				if (/[_'"/]/.test(before.slice(-1))) continue; // false positive (part of identifier, string, or path)
 
 				if (store === 'updated' && after.startsWith('.check()')) {
 					continue; // this stays as is
 				}
 
-				if (
-					match.index - count_removed > /** @type {number} */ (import_match.index) &&
-					match.index - count_removed <
-						/** @type {number} */ (import_match.index) + import_match[0].length
-				) {
+				if (match.index >= import_start && match.index < from_pos_in_original) {
 					continue; // this is the import statement
 				}
 
-				return code;
+				// Check if we're inside a script tag - only bail if inside script (store usage like page.subscribe)
+				// Outside script, plain text like "Nice page!" should be ignored
+				const script_open = before.lastIndexOf('<script');
+				const script_close = before.lastIndexOf('</script>');
+				const inside_script = script_open > script_close;
+
+				if (inside_script) {
+					return code;
+				}
+				continue;
 			}
 
 			if (store === 'navigating' && after[0] !== '.') {
@@ -75,7 +102,6 @@ export function transform_svelte_code(code) {
 			}
 
 			modified = before.slice(0, -1) + alias + (store === 'updated' ? '.current' : '') + after;
-			count_removed++;
 		}
 	}
 
