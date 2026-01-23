@@ -8,12 +8,10 @@ export default defineConfig({
 	entry: ['lib/index.ts', 'lib/testing.ts', 'lib/core.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
 	dts: { oxc: true },
+	// https://github.com/sxzz/rolldown-plugin-dts/issues/170
 	external: ['svelte/compiler', '@types/estree', 'estree'],
 	inlineOnly: [
-		'THIS_IS_UNUSED_BUT_I_CAN_ADD_IT...',
-		'playwright-core',
-		'playwright',
-		'@playwright/test',
+		'THIS_IS_UNUSED_BUT_I_CAN_ADD_IT...!',
 		'degit',
 		'through',
 		'from',
