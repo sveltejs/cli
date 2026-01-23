@@ -12,11 +12,9 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('vitest $variant', (testCase, { expect, ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
-	expect(() => execSync('pnpm install', { cwd, stdio: 'pipe' })).not.toThrow();
+	expect(() => execSync('pnpm exec playwright install chromium', { cwd, stdio: 'pipe' })).not.toThrow();
 
-	expect(() => execSync('pnpm exec playwright install chromium', { cwd })).not.toThrow();
-
-	expect(() => execSync('pnpm test', { cwd, stdio: 'pipe' })).not.toThrow();
+	expect(() => execSync('pnpm test', { cwd, stdio: 'pipe', timeout: 120_000 })).not.toThrow();
 
 	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
 	const viteFile = path.resolve(cwd, `vite.config.${language}`);
