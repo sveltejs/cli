@@ -7,9 +7,14 @@ export default defineConfig({
 	cwd: path.resolve('packages/sv'),
 	entry: ['lib/index.ts', 'lib/testing.ts', 'lib/core.ts', 'bin.ts'],
 	sourcemap: !process.env.CI,
-	dts: {
-		oxc: true
-	},
+	dts: { oxc: true },
+	external: [
+		// Not sure... Or more I'm sure NOT! :D but let's commit for now to save it...
+		'svelte/compiler',
+		'@types/estree',
+		'estree',
+		'postcss'
+	],
 	plugins: [],
 	inputOptions: {
 		experimental: {
