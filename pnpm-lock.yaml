@@ -113,6 +113,13 @@ importers:
         version: 5.45.10
 
   packages/sv:
+    dependencies:
+      '@types/estree':
+        specifier: ^1.0.8
+        version: 1.0.8
+      svelte:
+        specifier: ^5.47.1
+        version: 5.47.1
     devDependencies:
       '@clack/prompts':
         specifier: 1.0.0-alpha.9
@@ -120,9 +127,6 @@ importers:
       '@types/degit':
         specifier: ^2.8.6
         version: 2.8.6
-      '@types/estree':
-        specifier: ^1.0.8
-        version: 1.0.8
       '@types/gitignore-parser':
         specifier: ^0.0.3
         version: 0.0.3
@@ -174,9 +178,6 @@ importers:
       sucrase:
         specifier: ^3.35.1
         version: 3.35.1
-      svelte:
-        specifier: ^5.47.1
-        version: 5.47.1
       tar-fs:
         specifier: ^3.1.1
         version: 3.1.1
