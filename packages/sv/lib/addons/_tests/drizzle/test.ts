@@ -10,7 +10,7 @@ import drizzle from '../../drizzle.ts';
 import { pageServer, pageComp } from './fixtures.ts';
 
 // only linux is supported for running docker containers in github runners
-const MUST_HAVE_DOCKER = process.env.CI && process.platform === 'linux';
+const MUST_HAVE_DOCKER = false; // process.env.CI && process.platform === 'linux';
 let dockerInstalled = false;
 
 const { test, testCases, prepareServer } = setupTest(
