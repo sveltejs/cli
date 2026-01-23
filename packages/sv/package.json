@@ -49,7 +49,6 @@
 		"gitignore-parser": "^0.0.2",
 		"magic-string": "^0.30.21",
 		"package-manager-detector": "^1.6.0",
-		"picocolors": "^1.1.1",
 		"ps-tree": "^1.2.0",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.5.2",

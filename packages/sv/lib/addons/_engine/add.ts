@@ -1,10 +1,9 @@
 import * as p from '@clack/prompts';
 import { resolveCommand } from 'package-manager-detector';
-import pc from 'picocolors';
 import { NonZeroExitError, exec } from 'tinyexec';
 
 import { createLoadedAddon } from '../../cli/add/index.ts';
-import { fileExists, installPackages, readFile, writeFile } from '../../cli/add/utils.ts';
+import { color, fileExists, installPackages, readFile, writeFile } from '../../cli/add/utils.ts';
 import { createWorkspace } from '../../cli/add/workspace.ts';
 import { TESTING } from '../../cli/utils/env.ts';
 import type {
@@ -192,7 +191,9 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
 			const executedCommand = `${command} ${args.join(' ')}`;
 			if (!TESTING) {
-				p.log.step(`${addonPrefix}Running external command ${pc.gray(`(${executedCommand})`)}`);
+				p.log.step(
+					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
+				);
 			}
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
