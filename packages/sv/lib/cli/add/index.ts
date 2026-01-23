@@ -191,7 +191,6 @@ export const add = new Command('add')
 
 			// Addon Options
 			const addonList = addonOptions.map((option) => {
-				// const description = `${pc.dim(`(preset: ${option.preset})`)}\n${option.choices}`;
 				const description = option.choices;
 				return callFormatItem(
 					helper.styleArgumentTerm(option.id),
@@ -881,7 +880,7 @@ function getAddonOptionFlags() {
 
 		const { defaults, groups } = getOptionChoices(details);
 		const choices = Object.entries(groups)
-			.map(([group, choices]) => `${color.optional(`${group}: ${color.dim(choices.join(', '))}`)} `)
+			.map(([group, choices]) => `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}`)
 			.join('\n');
 		const preset = defaults.join(', ') || 'none';
 		options.push({ id, choices, preset });

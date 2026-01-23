@@ -145,7 +145,7 @@ export const color = {
 	route: (str: string): string => styleText(['bold', 'underline'], str),
 	website: (str: string): string => styleText('cyan', str),
 	optional: (str: string): string => styleText('gray', str),
-	dim: (str: string): string => styleText('dim', str),
+	dim: (str: string): string => styleText(['gray', 'dim'], str), // needed for terminal that don't support `dim` well
 
 	// Status colors
 	success: (str: string): string => styleText('green', str),
