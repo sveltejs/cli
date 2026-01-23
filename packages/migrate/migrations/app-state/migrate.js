@@ -53,10 +53,17 @@ export function transform_svelte_code(code) {
 			const before = modified.slice(0, match.index);
 			const after = modified.slice(match.index + alias.length);
 
-			// Skip if inside a comment (check if // appears on the same line before the match)
+			// Skip if inside a single-line comment
 			const line_start = before.lastIndexOf('\n') + 1;
 			const line_before_match = before.slice(line_start);
 			if (line_before_match.includes('//')) {
+				continue;
+			}
+
+			// Skip if inside a multi-line comment
+			const last_comment_open = before.lastIndexOf('/*');
+			const last_comment_close = before.lastIndexOf('*/');
+			if (last_comment_open > last_comment_close) {
 				continue;
 			}
 
