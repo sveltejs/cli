@@ -15,6 +15,7 @@
 		"format": "pnpm --parallel format",
 		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
 		"test": "vitest run --silent",
+		"test:ecosystem-ci": "vitest run --exclude='**/storybook/test.ts'",
 		"test:ui": "vitest --ui",
 		"update-deps": "node ./scripts/update-dependencies.js && pnpm format"
 	},
