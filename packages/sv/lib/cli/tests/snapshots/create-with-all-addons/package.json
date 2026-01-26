@@ -40,7 +40,7 @@
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.13.1",
-		"globals": "^16.5.0",
+		"globals": "^17.1.0",
 		"mdsvex": "^0.12.6",
 		"playwright": "^1.57.0",
 		"prettier": "^3.7.4",
