@@ -117,9 +117,6 @@ importers:
       '@clack/prompts':
         specifier: 1.0.0-alpha.9
         version: 1.0.0-alpha.9
-      '@types/degit':
-        specifier: ^2.8.6
-        version: 2.8.6
       '@types/estree':
         specifier: ^1.0.8
         version: 1.0.8
@@ -135,15 +132,15 @@ importers:
       commander:
         specifier: ^14.0.2
         version: 14.0.2
+      create-vite:
+        specifier: ^8.2.0
+        version: 8.2.0
       decircular:
         specifier: ^1.0.0
         version: 1.0.0
       dedent:
         specifier: ^1.7.0
         version: 1.7.0
-      degit:
-        specifier: ^2.8.4
-        version: 2.8.4
       empathic:
         specifier: ^2.0.0
         version: 2.0.0
@@ -804,9 +801,6 @@ packages:
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
-  '@types/degit@2.8.6':
-    resolution: {integrity: sha512-y0M7sqzsnHB6cvAeTCBPrCQNQiZe8U4qdzf8uBVmOWYap5MMTN/gB2iEqrIqFiYcsyvP74GnGD5tgsHttielFw==}
-
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -1141,6 +1135,11 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
+  create-vite@8.2.0:
+    resolution: {integrity: sha512-77BlmjbmiaEaBc1xmBFZ5Izq7nSdFkrs037Jxegk93jv/3AkzNNLxypIbKBVMY7/lAMWynug4ERssvruqxxd1g==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    hasBin: true
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -1179,11 +1178,6 @@ packages:
 
   defu@6.1.4:
     resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
-
-  degit@2.8.4:
-    resolution: {integrity: sha512-vqYuzmSA5I50J882jd+AbAhQtgK6bdKUJIex1JNfEUPENCgYsxugzKVZlFyMwV4i06MmnV47/Iqi5Io86zf3Ng==}
-    engines: {node: '>=8.0.0'}
-    hasBin: true
 
   detect-indent@6.1.0:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}
@@ -2858,8 +2852,6 @@ snapshots:
 
   '@types/deep-eql@4.0.2': {}
 
-  '@types/degit@2.8.6': {}
-
   '@types/estree@1.0.8': {}
 
   '@types/gitignore-parser@0.0.3': {}
@@ -3197,6 +3189,8 @@ snapshots:
 
   concat-map@0.0.1: {}
 
+  create-vite@8.2.0: {}
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -3218,8 +3212,6 @@ snapshots:
   deep-is@0.1.4: {}
 
   defu@6.1.4: {}
-
-  degit@2.8.4: {}
 
   detect-indent@6.1.0: {}
 
