@@ -1,5 +1,11 @@
 # svelte-migrate
 
+## 1.10.2
+### Patch Changes
+
+
+- fix: `app-state` migration finds more files ([#890](https://github.com/sveltejs/cli/pull/890))
+
 ## 1.10.1
 ### Patch Changes
 
