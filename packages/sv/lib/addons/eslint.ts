@@ -13,7 +13,7 @@ export default defineAddon({
 		sv.devDependency('eslint', '^9.39.1');
 		sv.devDependency('@eslint/compat', '^1.4.0');
 		sv.devDependency('eslint-plugin-svelte', '^3.13.1');
-		sv.devDependency('globals', '^16.5.0');
+		sv.devDependency('globals', '^17.1.0');
 		sv.devDependency('@eslint/js', '^9.39.1');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
