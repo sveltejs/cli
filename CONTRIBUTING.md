@@ -59,25 +59,28 @@ pnpm dev
 
 For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
 
-Run all tests:
+Tests are split into projects: `cli`, `core`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
 
 ```sh
-# from root of project
+pnpm test --project migrate            # Migrate tests
+pnpm test --project core               # Core utility tests
+pnpm test --project create             # Project creation tests
+pnpm test --project addons             # Add-on tests
+
+pnpm test --project addons eslint      # Just eslint add-on tests
+pnpm build && pnpm test --project cli  # CLI tests
+```
+
+Run with vitest ui for interactive debugging:
+
+```sh
+pnpm test:ui --project cli
+```
+
+Run all tests (slow, typically for CI):
+
+```sh
 pnpm test
-```
-
-Run tests with vitest ui:
-
-```sh
-# from root of project
-pnpm test:ui
-```
-
-We split tests into packages & sub projects.
-Run specific tests by specifying a project flag to the package and running the test command. Eg:
-
-```sh
-pnpm test --project cli # core / addons / create / migrate
 ```
 
 ### Debugging
