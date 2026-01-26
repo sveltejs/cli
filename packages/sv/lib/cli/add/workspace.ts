@@ -121,7 +121,10 @@ function findWorkspaceRoot(cwd: string): string {
 				return directory;
 			}
 		}
-		directory = path.dirname(directory);
+		const parent = path.dirname(directory);
+		// For test isolation: don't walk up past .test-output directories
+		if (directory.includes('.test-output') && !parent.includes('.test-output')) break;
+		directory = parent;
 	}
 	// We didn't find a workspace root, so we return the original directory
 	// it's a standalone project

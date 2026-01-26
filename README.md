@@ -13,7 +13,9 @@ Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details
 
 ## Contributing
 
-Please file an issue for discussion before sending a PR for a new add-on. Most new add-ons will likely be recommended to be implemented as community add-ons. This repository will only hold a very limited number of add-ons at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
+Please see the [contributing guide](CONTRIBUTING.md) for more information.
+
+File an issue for discussion before sending a PR for a new add-on. Most new add-ons will likely be recommended to be implemented as community add-ons. This repository will only hold a very limited number of add-ons at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
 
 ## Supporting Svelte
 
