@@ -15,10 +15,10 @@ import { sanitizeName } from '../coreInternal.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.4.0' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.5.2' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.10' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.2.0' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.4' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.3.1' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.6' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.2.4' }
 ] as const;
 
@@ -131,7 +131,7 @@ export default defineAddon({
 		});
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
-			sv.devDependency('wrangler', '^4.56.0');
+			sv.devDependency('wrangler', '^4.60.0');
 
 			// default to jsonc
 			const configFormat = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';

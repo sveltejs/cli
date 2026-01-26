@@ -20,9 +20,9 @@
 		"sv": "workspace:*"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.56.1",
-		"@types/node": "^24",
-		"vitest": "^4.0.7"
+		"@playwright/test": "^1.58.0",
+		"@types/node": "^25.0.10",
+		"vitest": "^4.0.18"
 	},
 	"keywords": ["sv-add"],
 	"publishConfig": {
