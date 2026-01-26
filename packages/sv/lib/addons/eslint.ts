@@ -11,7 +11,7 @@ export default defineAddon({
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('eslint', '^9.39.1');
-		sv.devDependency('@eslint/compat', '^1.4.0');
+		sv.devDependency('@eslint/compat', '^2.0.1');
 		sv.devDependency('eslint-plugin-svelte', '^3.13.1');
 		sv.devDependency('globals', '^17.1.0');
 		sv.devDependency('@eslint/js', '^9.39.1');
@@ -35,7 +35,7 @@ export default defineAddon({
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 			js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
 			const gitIgnorePathStatement = js.common.parseStatement(
-				"\nconst gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));"
+				"\nconst gitignorePath = path.resolve(import.meta.dirname, '.gitignore');"
 			);
 			js.common.appendStatement(ast, { statement: gitIgnorePathStatement });
 
@@ -142,7 +142,7 @@ export default defineAddon({
 				from: '@eslint/compat',
 				imports: ['includeIgnoreFile']
 			});
-			js.imports.addNamed(ast, { from: 'node:url', imports: ['fileURLToPath'] });
+			js.imports.addDefault(ast, { from: 'node:path', as: 'path' });
 
 			return generateCode();
 		});

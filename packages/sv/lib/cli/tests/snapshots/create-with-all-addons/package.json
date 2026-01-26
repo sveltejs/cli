@@ -21,7 +21,7 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"devDependencies": {
-		"@eslint/compat": "^1.4.0",
+		"@eslint/compat": "^2.0.1",
 		"@eslint/js": "^9.39.1",
 		"@inlang/paraglide-js": "^2.6.0",
 		"@libsql/client": "^0.15.15",
