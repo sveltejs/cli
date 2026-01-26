@@ -9,7 +9,7 @@ const plugins = [
 	{
 		id: 'forms',
 		package: '@tailwindcss/forms',
-		version: '^0.5.10'
+		version: '^0.5.11'
 	}
 ] as const;
 
@@ -32,8 +32,8 @@ export default defineAddon({
 	run: ({ sv, options, files, kit, dependencyVersion, language }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^4.1.17');
-		sv.devDependency('@tailwindcss/vite', '^4.1.17');
+		sv.devDependency('tailwindcss', '^4.1.18');
+		sv.devDependency('@tailwindcss/vite', '^4.1.18');
 		sv.pnpmBuildDependency('@tailwindcss/oxide');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
