@@ -30,7 +30,7 @@ describe('cli', () => {
 				'sveltekit-adapter=adapter:node',
 				'devtools-json',
 				'drizzle=database:sqlite+sqlite:libsql',
-				'lucia=demo:yes',
+				'better-auth=demo:yes',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
 				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
