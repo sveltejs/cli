@@ -43,7 +43,7 @@ export default defineAddon({
 		sv.devDependency('better-auth', '^1.4.17');
 
 		sv.file(`drizzle.config.${language}`, (content) => {
-			const { ast, generateCode, comments } = parse.script(content);
+			const { ast, generateCode } = parse.script(content);
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
