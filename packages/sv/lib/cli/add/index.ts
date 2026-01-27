@@ -712,7 +712,12 @@ export async function runAddonsApply({
 	setupResults?: Record<string, SetupResult>;
 	workspace: Workspace;
 	fromCommand: 'create' | 'add';
-}): Promise<{ nextSteps: string[]; argsFormattedAddons: string[]; filesToFormat: string[]; successfulAddons: LoadedAddon[] }> {
+}): Promise<{
+	nextSteps: string[];
+	argsFormattedAddons: string[];
+	filesToFormat: string[];
+	successfulAddons: LoadedAddon[];
+}> {
 	if (!setupResults) {
 		// When no addons are selected, use official addons for setup
 		const setups = loadedAddons.length
