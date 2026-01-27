@@ -16,7 +16,7 @@ const { test, testCases, prepareServer } = setupTest(
 				options: { drizzle: { database: 'sqlite', sqlite: 'libsql' }, betterAuth: { demo: true } }
 			}
 		],
-		filter: (addonTestCase) => addonTestCase.variant.includes('kit-ts')
+		filter: (addonTestCase) => addonTestCase.variant.includes('kit-js')
 	}
 );
 
@@ -27,11 +27,6 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	// Verify that we have a demo login
 	const loginPage = path.resolve(cwd, `src/routes/demo/better-auth/login/+page.svelte`);
 	expect(fs.existsSync(loginPage)).toBe(true);
-
-	// Fix drizzle config for db:push
-	// const drizzleConfig = path.resolve(cwd, `drizzle.config.${language}`);
-	// const drizzleContent = fs.readFileSync(drizzleConfig, 'utf8');
-	// fs.writeFileSync(drizzleConfig, drizzleContent.replace(/strict: true[,\s]/, ''), 'utf8');
 
 	// Create .env for auth:schema CLI
 	const envPath = path.resolve(cwd, '.env');
@@ -52,9 +47,7 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	// Push schema to DB
 	execSync('npm run db:push -- --force', { cwd, stdio: 'pipe' });
 
-	/**
-	 * BROWSER SECTION
-	 */
+	/** ----- BROWSER SECTION ----- */
 	const { url, close } = await prepareServer({ cwd, page });
 	ctx.onTestFinished(async () => await close());
 

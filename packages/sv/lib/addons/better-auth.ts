@@ -37,6 +37,7 @@ export default defineAddon({
 	},
 	run: ({ sv, language, options, kit, dependencyVersion, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
+
 		let drizzleDialect: Dialect;
 
 		sv.devDependency('better-auth', '^1.4.17');
@@ -106,7 +107,6 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		// Add auth:schema script to package.json - users must run this to generate schema
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
 		const schemaPath = `${kit?.libDirectory}/server/db/schema.${language}`;
 		sv.file(files.package, (content) => {

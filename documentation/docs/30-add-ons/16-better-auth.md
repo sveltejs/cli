@@ -14,7 +14,6 @@ npx sv add better-auth
 
 - a complete auth setup for SvelteKit with Drizzle as the database adapter
 - email/password authentication enabled by default
-- auth client for client-side auth operations
 - optional demo registration and login pages
 
 ## Options

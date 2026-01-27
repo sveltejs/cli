@@ -2,6 +2,9 @@
 title: lucia
 ---
 
+> [!NOTE]
+> This addon is not maintained anymore. Please use the [better-auth](./better-auth.md) addon instead.
+
 An auth setup following [the Lucia auth guide](https://lucia-auth.com/).
 
 ## Usage
