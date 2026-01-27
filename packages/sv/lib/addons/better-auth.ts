@@ -228,13 +228,66 @@ export default defineAddon({
 
 					const [ts] = createPrinter(language === 'ts');
 					return dedent`
-					import { redirect } from '@sveltejs/kit';
-					${ts("import type { PageServerLoad } from './$types';\n")}
+					import { fail, redirect } from '@sveltejs/kit';
+					${ts("import type { Actions } from './$types';")}
+					${ts("import type { PageServerLoad } from './$types';")}
+					import { auth } from '$lib/server/auth';
+					import { APIError } from 'better-auth';
+
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/better-auth');
 						}
 						return {};
+					};
+
+					export const actions${ts(': Actions')} = {
+						login: async (event) => {
+							const formData = await event.request.formData();
+							const email = formData.get('email')?.toString() ?? '';
+							const password = formData.get('password')?.toString() ?? '';
+
+							try {
+								await auth.api.signInEmail({
+									body: {
+										email,
+										password,
+										callbackURL: '/auth/verification-success'
+									}
+								});
+							} catch (error) {
+								if (error instanceof APIError) {
+									return fail(400, { message: error.message || 'Signin failed' });
+								}
+								return fail(500, { message: 'Unexpected error' });
+							}
+
+							return redirect(302, '/demo/better-auth');
+						},
+						register: async (event) => {
+							const formData = await event.request.formData();
+							const email = formData.get('email')?.toString() ?? '';
+							const password = formData.get('password')?.toString() ?? '';
+							const name = formData.get('name')?.toString() ?? '';
+
+							try {
+								await auth.api.signUpEmail({
+									body: {
+										email,
+										password,
+										name,
+										callbackURL: '/auth/verification-success'
+									}
+								});
+							} catch (error) {
+								if (error instanceof APIError) {
+									return fail(400, { message: error.message || 'Registration failed' });
+								}
+								return fail(500, { message: 'Unexpected error' });
+							}
+
+							return redirect(302, '/demo/better-auth');
+						}
 					};
 				`;
 				}
@@ -248,85 +301,40 @@ export default defineAddon({
 				}
 
 				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
-				const twInputClasses =
-					'class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"';
-				const twBtnClasses =
-					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
+				const input = tailwind
+					? ' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"'
+					: '';
+				const btn = tailwind
+					? ' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"'
+					: '';
 
 				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 				const [ts, s5] = createPrinter(language === 'ts', svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
-						import { authClient } from '$lib/auth-client';
-						import { goto } from '$app/navigation';
-
-						${s5("let email = $state('');", "let email = '';")}
-						${s5("let password = $state('');", "let password = '';")}
-						${s5("let name = $state('');", "let name = '';")}
-						${s5("let error = $state('');", "let error = '';")}
-						${s5('let loading = $state(false);', 'let loading = false;')}
-
-						async function login() {
-							loading = true;
-							error = '';
-							const result = await authClient.signIn.email({
-								email,
-								password
-							});
-							loading = false;
-							if (result.error) {
-								error = result.error.message ?? 'Login failed';
-							} else {
-								goto('/demo/better-auth');
-							}
-						}
-
-						async function register() {
-							loading = true;
-							error = '';
-							const result = await authClient.signUp.email({
-								email,
-								password,
-								name
-							});
-							loading = false;
-							if (result.error) {
-								error = result.error.message ?? 'Registration failed';
-							} else {
-								goto('/demo/better-auth');
-							}
-						}
+						import { enhance } from '$app/forms';
+						${ts("import type { ActionData } from './$types';\n")}
+						${s5(`let { form }${ts(': { form: ActionData }')} = $props();`, `export let form${ts(': ActionData')};`)}
 					</script>
 
 					<h1>Login/Register</h1>
-					<form ${s5('onsubmit={(e) => { e.preventDefault(); login(); }}', 'on:submit|preventDefault={login}')}>
+					<form method="post" action="?/login" use:enhance>
 						<label>
 							Email
-							<input
-								type="email"
-								bind:value={email}
-								${tailwind ? twInputClasses : ''}
-							/>
+							<input type="email" name="email"${input} />
 						</label>
 						<label>
 							Password
-							<input
-								type="password"
-								bind:value={password}
-								${tailwind ? twInputClasses : ''}
-							/>
+							<input type="password" name="password"${input} />
 						</label>
 						<label>
 							Name (for registration)
-							<input
-								bind:value={name}
-								${tailwind ? twInputClasses : ''}
-							/>
+							<input name="name"${input} />
 						</label>
-						<button type="submit" disabled={loading} ${tailwind ? twBtnClasses : ''}>Login</button>
-						<button type="button" disabled={loading} ${s5('onclick={register}', 'on:click={register}')} ${tailwind ? twBtnClasses : ''}>Register</button>
+						<button${btn}>Login</button>
+						<button formaction="?/register"${btn}>Register</button>
 					</form>
-					<p style='color: red'>{error}</p>
+					${tailwind ? `<p class="text-red-500">{form?.message ?? ''}</p>` : `<p style="color: red">{form?.message ?? ''}</p>`}
 				`;
 			});
 
