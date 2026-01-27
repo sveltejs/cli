@@ -39,6 +39,7 @@ export default defineAddon({
 	id: 'lucia',
 	shortDescription: 'auth guide',
 	homepage: 'https://lucia-auth.com',
+	hidden: true,
 	options,
 	setup: ({ kit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
 		if (!kit) unsupported('Requires SvelteKit');

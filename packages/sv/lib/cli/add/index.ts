@@ -502,7 +502,7 @@ export async function promptAddonQuestions({
 		const results = setupAddons(officialLoaded, workspace);
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
-			.filter(({ id }) => results[id].unsupported.length === 0)
+			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
