@@ -52,7 +52,7 @@ Prevents installing dependencies
 - [`devtools-json`](devtools-json)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
-- [`lucia`](lucia)
+- [`better-auth`](better-auth)
 - [`mcp`](mcp)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
