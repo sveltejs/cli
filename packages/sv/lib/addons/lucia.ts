@@ -386,12 +386,13 @@ export default defineAddon({
 		}
 
 		sv.file(`src/hooks.server.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, generateCode, comments } = parse.script(content);
 			js.imports.addNamespace(ast, { from: '$lib/server/auth', as: 'auth' });
 			js.kit.addHooksHandle(ast, {
 				language,
 				newHandleName: 'handleAuth',
-				handleContent: getAuthHandleContent()
+				handleContent: getAuthHandleContent(),
+				comments
 			});
 			return generateCode();
 		});

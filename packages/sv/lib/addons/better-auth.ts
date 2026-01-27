@@ -43,7 +43,7 @@ export default defineAddon({
 		sv.devDependency('better-auth', '^1.4.17');
 
 		sv.file(`drizzle.config.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, generateCode, comments } = parse.script(content);
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
@@ -109,6 +109,16 @@ export default defineAddon({
 
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
 		const schemaPath = `${kit?.libDirectory}/server/db/schema.${language}`;
+		// Workaround: better-auth CLI only checks tsconfig.json for path aliases,
+		// so JS projects (which use jsconfig.json) need a tsconfig.json copy.
+		// See: https://github.com/better-auth/better-auth/issues/7649
+		if (language === 'js') {
+			sv.file('tsconfig.json', (content) => {
+				if (content) return content;
+				// Create a tsconfig.json mirroring jsconfig.json so the CLI can resolve aliases
+				return JSON.stringify({ extends: './.svelte-kit/tsconfig.json' }, null, '\t') + '\n';
+			});
+		}
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			json.packageScriptsUpsert(
@@ -185,7 +195,7 @@ export default defineAddon({
 		});
 
 		sv.file(`src/hooks.server.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, generateCode, comments } = parse.script(content);
 
 			js.imports.addNamed(ast, { imports: ['svelteKitHandler'], from: 'better-auth/svelte-kit' });
 			js.imports.addNamed(ast, { imports: ['auth'], from: '$lib/server/auth' });
@@ -207,7 +217,12 @@ export default defineAddon({
 
 				export const handle = sequence(handleBetterAuth, handleSession);
 			`;
-			js.kit.addHooksHandle(ast, { language, newHandleName: 'handleBetterAuth', handleContent });
+			js.kit.addHooksHandle(ast, {
+				language,
+				newHandleName: 'handleBetterAuth',
+				handleContent,
+				comments
+			});
 
 			return generateCode();
 		});

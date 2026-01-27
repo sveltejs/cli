@@ -16,7 +16,7 @@ const { test, testCases, prepareServer } = setupTest(
 				options: { drizzle: { database: 'sqlite', sqlite: 'libsql' }, betterAuth: { demo: true } }
 			}
 		],
-		filter: (addonTestCase) => addonTestCase.variant.includes('kit-js')
+		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
 	}
 );
 

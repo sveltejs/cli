@@ -114,7 +114,7 @@ export default defineAddon({
 
 		// handle hook
 		sv.file(`src/hooks.server.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, generateCode, comments } = parse.script(content);
 			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
 				imports: ['paraglideMiddleware']
@@ -129,7 +129,8 @@ export default defineAddon({
 			js.kit.addHooksHandle(ast, {
 				language,
 				newHandleName: 'handleParaglide',
-				handleContent: hookHandleContent
+				handleContent: hookHandleContent,
+				comments
 			});
 
 			return generateCode();
