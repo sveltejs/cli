@@ -72,13 +72,15 @@ export default defineAddon({
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
-			js.imports.addNamed(ast, { from: 'better-auth', imports: ['betterAuth'] });
+			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
+			js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
+			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
+			js.imports.addNamed(ast, { from: 'better-auth/svelte-kit', imports: ['sveltekitCookies'] });
 			js.imports.addNamed(ast, {
 				from: 'better-auth/adapters/drizzle',
 				imports: ['drizzleAdapter']
 			});
-			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
-			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
+			js.imports.addNamed(ast, { from: 'better-auth', imports: ['betterAuth'] });
 
 			const dialectMap: Record<Dialect, string> = {
 				mysql: 'mysql',
@@ -96,7 +98,8 @@ export default defineAddon({
 					}),
 					emailAndPassword: {
 						enabled: true
-					}
+					},
+					plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
 				});`;
 			js.common.appendFromString(ast, { code: authConfig });
 
