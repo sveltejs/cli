@@ -78,5 +78,4 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 
 	// Verify user name is displayed
 	await expect(page.locator('h1')).toContainText(userName);
-	console.log(`userName`, userName);
 });
