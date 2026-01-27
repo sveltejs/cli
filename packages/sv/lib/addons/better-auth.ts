@@ -415,6 +415,7 @@ export default defineAddon({
 		const steps = [
 			`Run ${color.command(`${authCmd} ${authArgs.join(' ')}`)} to generate the auth schema`,
 			`Run ${color.command(`${dbCmd} ${dbArgs.join(' ')}`)} to update your database`,
+			`Check ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`,
 			`Set ${color.env('BETTER_AUTH_SECRET')} in your production environment`
 		];
 		if (options.demo) {
