@@ -3,7 +3,6 @@ import betterAuth from '../better-auth.ts';
 import devtoolsJson from '../devtools-json.ts';
 import drizzle from '../drizzle.ts';
 import eslint from '../eslint.ts';
-import lucia from '../lucia.ts';
 import mcp from '../mcp.ts';
 import mdsvex from '../mdsvex.ts';
 import paraglide from '../paraglide.ts';
@@ -24,7 +23,6 @@ type OfficialAddons = {
 	devtoolsJson: Addon<any>;
 	drizzle: Addon<any>;
 	betterAuth: Addon<any>;
-	lucia: Addon<any>;
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
@@ -43,7 +41,6 @@ export const officialAddons: OfficialAddons = {
 	devtoolsJson,
 	drizzle,
 	betterAuth,
-	lucia,
 	mdsvex,
 	paraglide,
 	storybook,

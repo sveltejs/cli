@@ -6,7 +6,7 @@ import type { AddonMap, OptionMap } from '../../_engine/add.ts';
 
 const windowsCI = process.env.CI && process.platform === 'win32';
 const addons = Object.values(officialAddons).reduce<AddonMap>((addonMap, addon) => {
-	if ((addon.id === 'storybook' || addon.id === 'lucia') && windowsCI) return addonMap;
+	if (addon.id === 'storybook' && windowsCI) return addonMap;
 	addonMap[addon.id] = addon;
 	return addonMap;
 }, {});
