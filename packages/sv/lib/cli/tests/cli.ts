@@ -30,7 +30,7 @@ describe('cli', () => {
 				'sveltekit-adapter=adapter:node',
 				'devtools-json',
 				'drizzle=database:sqlite+sqlite:libsql',
-				'better-auth=demo:password+demo:github',
+				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
 				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
@@ -71,7 +71,10 @@ describe('cli', () => {
 			const result = await exec('node', allArgs, { nodeOptions: { stdio: 'pipe' } });
 
 			// cli finished well
-			expect(result.exitCode, `Error with cli: '${result.stderr}'`).toBe(0);
+			expect(
+				result.exitCode,
+				`Error with cli:\n  cmd: node ${allArgs.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
+			).toBe(0);
 			// test output path exists
 			expect(fs.existsSync(testOutputPath)).toBe(true);
 

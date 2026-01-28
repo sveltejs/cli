@@ -57,5 +57,22 @@ export const actions: Actions = {
 		}
 
 		return redirect(302, '/demo/better-auth');
-	}
+	},
+	signInSocial: async (event) => {
+		const formData = await event.request.formData();
+		const provider = formData.get('provider')?.toString() ?? 'github';
+		const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+
+		const result = await auth.api.signInSocial({
+			body: {
+				provider: provider as "github",
+				callbackURL
+			}
+		});
+
+		if (result.url) {
+			return redirect(302, result.url);
+		}
+		return fail(400, { message: 'Social sign-in failed' });
+	},
 };

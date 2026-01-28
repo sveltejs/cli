@@ -1,4 +1,5 @@
-// This file will be overwritten when running the auth:schema script
+// If you see this file, you have not run the auth:schema script yet, but you should!
 export const user = {};
 export const session = {};
 export const account = {};
+export const verification = {};

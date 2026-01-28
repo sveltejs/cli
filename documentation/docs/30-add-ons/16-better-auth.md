@@ -20,8 +20,15 @@ npx sv add better-auth
 
 ### demo
 
-Whether to include demo registration and login pages.
+Which demo pages to include. Available values: `password` (Email & Password), `github` (GitHub OAuth).
 
 ```sh
-npx sv add better-auth="demo:yes"
+# Email & Password only (default)
+npx sv add better-auth="demo:password"
+
+# GitHub OAuth only
+npx sv add better-auth="demo:github"
+
+# Both Email & Password and GitHub OAuth
+npx sv add better-auth="demo:password,github"
 ```

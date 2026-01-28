@@ -163,11 +163,11 @@ export default defineAddon({
 
 		sv.file(`${kit?.libDirectory}/server/db/auth.schema.${language}`, (content) => {
 			if (content) return content;
+			const tables = ['user', 'session', 'account'];
+			if (demoGithub) tables.push('verification');
 			return dedent`
-				// This file will be overwritten when running the auth:schema script
-				export const user = {};
-				export const session = {};
-				export const account = {};
+				// If you see this file, you have not run the auth:schema script yet, but you should!
+				${tables.map((table) => `export const ${table} = {};`).join('\n')}
 			`;
 		});
 
