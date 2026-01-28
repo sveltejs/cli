@@ -177,8 +177,10 @@ export default defineAddon({
 			const { ast, generateCode } = parse.script(content);
 
 			// Import and re-export auth schema tables
-			js.imports.addNamed(ast, { imports: ['user', 'session', 'account'], from: './auth.schema' });
-			js.common.appendFromString(ast, { code: 'export { user, session, account };' });
+			const tables = ['user', 'session', 'account'];
+			if (demoGithub) tables.push('verification');
+			js.imports.addNamed(ast, { imports: tables, from: './auth.schema' });
+			js.common.appendFromString(ast, { code: `export { ${tables.join(', ')} };` });
 
 			return generateCode();
 		});
@@ -513,12 +515,11 @@ export default defineAddon({
 		const steps = [
 			`Run ${color.command(`${authCmd} ${authArgs.join(' ')}`)} to generate the auth schema`,
 			`Run ${color.command(`${dbCmd} ${dbArgs.join(' ')}`)} to update your database`,
-			`Check ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`,
-			`Set ${color.env('BETTER_AUTH_SECRET')} in your production environment`
+			`Check ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
 		if (options.demo.includes('github')) {
 			steps.push(
-				`Set ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')} for GitHub OAuth`
+				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
 			);
 		}
 		if (options.demo.length > 0) {

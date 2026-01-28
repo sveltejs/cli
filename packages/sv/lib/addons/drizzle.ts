@@ -433,7 +433,6 @@ export default defineAddon({
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
-		steps.push(`Set ${color.env('DATABASE_URL')} in your production environment`);
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		steps.push(
 			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
