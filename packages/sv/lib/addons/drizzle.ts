@@ -330,16 +330,11 @@ export default defineAddon({
 				});
 
 				if (options.sqlite === 'turso') {
-					js.imports.addNamed(ast, {
-						from: '$app/environment',
-						imports: ['dev']
-					});
-					// auth token check in prod
-					const authTokenCheck = js.common.parseStatement(
-						"if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
+					ast.body.push(
+						js.common.parseStatement(
+							"if (!env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
+						)
 					);
-					ast.body.push(authTokenCheck);
-
 					clientExpression = js.common.parseExpression(
 						'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
 					);

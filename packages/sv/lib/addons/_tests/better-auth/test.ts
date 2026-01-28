@@ -12,7 +12,7 @@ const { test, testCases, prepareServer } = setupTest(
 		kinds: [
 			{
 				type: 'default',
-				options: { drizzle: { database: 'sqlite', sqlite: 'libsql' }, betterAuth: { demo: true } }
+				options: { drizzle: { database: 'sqlite', sqlite: 'turso' }, betterAuth: { demo: true } }
 			}
 		],
 		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
@@ -26,6 +26,12 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	// Verify that we have a demo login
 	const loginPage = path.resolve(cwd, `src/routes/demo/better-auth/login/+page.svelte`);
 	expect(fs.existsSync(loginPage)).toBe(true);
+
+	// For Turso, update .env to use local SQLite file instead of remote URL
+	const envPath = path.resolve(cwd, '.env');
+	let envContent = fs.readFileSync(envPath, 'utf8');
+	envContent = envContent.replace(/DATABASE_URL=".*"/, 'DATABASE_URL="file:local.db"');
+	fs.writeFileSync(envPath, envContent, 'utf8');
 
 	// Generate auth schema using better-auth CLI
 	execSync('npm run auth:schema', { cwd, stdio: 'pipe' });
