@@ -1,8 +1,8 @@
 import type { Addon, AddonDefinition } from '../../core.ts';
+import betterAuth from '../better-auth.ts';
 import devtoolsJson from '../devtools-json.ts';
 import drizzle from '../drizzle.ts';
 import eslint from '../eslint.ts';
-import lucia from '../lucia.ts';
 import mcp from '../mcp.ts';
 import mdsvex from '../mdsvex.ts';
 import paraglide from '../paraglide.ts';
@@ -22,7 +22,7 @@ type OfficialAddons = {
 	sveltekitAdapter: Addon<any>;
 	devtoolsJson: Addon<any>;
 	drizzle: Addon<any>;
-	lucia: Addon<any>;
+	betterAuth: Addon<any>;
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
@@ -40,7 +40,7 @@ export const officialAddons: OfficialAddons = {
 	sveltekitAdapter,
 	devtoolsJson,
 	drizzle,
-	lucia,
+	betterAuth,
 	mdsvex,
 	paraglide,
 	storybook,

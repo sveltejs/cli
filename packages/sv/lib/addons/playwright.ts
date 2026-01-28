@@ -1,4 +1,4 @@
-import { dedent, defineAddon, js, log, parse, json } from '../core.ts';
+import { dedent, defineAddon, js, log, parse, json, flat } from '../core.ts';
 
 export default defineAddon({
 	id: 'playwright',
@@ -19,8 +19,7 @@ export default defineAddon({
 
 		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
-			if (content.includes('test-results')) return content;
-			return 'test-results\n' + content.trim();
+			return flat.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
 		sv.file(`e2e/demo.test.${language}`, (content) => {

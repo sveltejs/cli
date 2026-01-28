@@ -114,11 +114,24 @@ export function createExpressionStatement(options: {
 
 export function appendFromString(
 	node: AstTypes.BlockStatement | AstTypes.Program,
-	options: { code: string }
+	options: { code: string; comments?: Comments }
 ): void {
-	const { ast } = parseScript(dedent(options.code));
+	const parsed = parseScript(dedent(options.code));
 
-	for (const childNode of ast.body) {
+	// Merge comments if provided
+	if (options.comments) {
+		const parsedInternal = parsed.comments as unknown as {
+			original: AstTypes.Comment[];
+			leading: WeakMap<AstTypes.Node, AstTypes.Comment[]>;
+			trailing: WeakMap<AstTypes.Node, AstTypes.Comment[]>;
+		};
+		const targetInternal = options.comments as unknown as {
+			original: AstTypes.Comment[];
+		};
+		targetInternal.original.push(...parsedInternal.original);
+	}
+
+	for (const childNode of parsed.ast.body) {
 		// @ts-expect-error
 		node.body.push(childNode);
 	}

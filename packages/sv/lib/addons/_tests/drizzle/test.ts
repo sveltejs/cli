@@ -99,7 +99,7 @@ test.concurrent.for(testCases)(
 			// kill server process when we're done
 			ctx.onTestFinished(async () => await close());
 
-			expect(page.locator('[data-testid]')).toBeTruthy();
+			expect(page.locator('[data-testid="task"]')).toBeTruthy();
 		}
 	}
 );

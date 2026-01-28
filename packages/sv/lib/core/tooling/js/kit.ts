@@ -1,4 +1,4 @@
-import { type AstTypes, Walker } from '../../../core.ts';
+import { type AstTypes, type Comments, Walker } from '../../../core.ts';
 import * as common from './common.ts';
 import * as exports from './exports.ts';
 import * as functions from './function.ts';
@@ -64,6 +64,7 @@ export function addHooksHandle(
 		language: 'ts' | 'js';
 		newHandleName: string;
 		handleContent: string;
+		comments: Comments;
 	}
 ): void {
 	if (options.language === 'ts') {
@@ -136,6 +137,10 @@ export function addHooksHandle(
 		if (options.language === 'ts') {
 			const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
+		} else if (options.comments) {
+			common.addJsDocTypeComment(newHandleDecl, options.comments, {
+				type: "import('@sveltejs/kit').Handle"
+			});
 		}
 		node.body.push(newHandleDecl);
 
@@ -148,6 +153,10 @@ export function addHooksHandle(
 		if (options.language === 'ts') {
 			const declarator = handleDecl.declarations[0] as AstTypes.VariableDeclarator;
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
+		} else if (options.comments) {
+			common.addJsDocTypeComment(handleDecl, options.comments, {
+				type: "import('@sveltejs/kit').Handle"
+			});
 		}
 
 		exports.createNamed(node, {
@@ -166,6 +175,10 @@ export function addHooksHandle(
 	if (options.language === 'ts') {
 		const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
 		variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
+	} else if (options.comments) {
+		common.addJsDocTypeComment(newHandleDecl, options.comments, {
+			type: "import('@sveltejs/kit').Handle"
+		});
 	}
 
 	// check if `handle` is using a sequence
@@ -272,6 +285,10 @@ export function addHooksHandle(
 		if (options.language === 'ts') {
 			const declarator = finalHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
+		} else if (options.comments) {
+			common.addJsDocTypeComment(finalHandleDecl, options.comments, {
+				type: "import('@sveltejs/kit').Handle"
+			});
 		}
 		node.body.push(newHandleDecl);
 		exports.createNamed(node, {

@@ -36,6 +36,8 @@ export type Addon<Args extends OptionDefinition> = {
 	alias?: string;
 	shortDescription?: string;
 	homepage?: string;
+	/** If true, this addon won't appear in the interactive prompt but can still be used via CLI */
+	hidden?: boolean;
 	options: Args;
 	/** Setup the addon. Will be called before the addon is run. */
 	setup?: (

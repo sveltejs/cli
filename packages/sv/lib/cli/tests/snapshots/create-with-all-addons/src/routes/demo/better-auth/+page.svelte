@@ -5,8 +5,8 @@
 	let { data }: { data: PageServerData } = $props();
 </script>
 
-<h1>Hi, {data.user.username}!</h1>
+<h1>Hi, {data.user.name}!</h1>
 <p>Your user ID is {data.user.id}.</p>
-<form method='post' action='?/logout' use:enhance>
-	<button>Sign out</button>
+<form method="post" action="?/signOut" use:enhance>
+	<button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">Sign out</button>
 </form>

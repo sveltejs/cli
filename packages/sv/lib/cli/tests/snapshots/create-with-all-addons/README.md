@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-npx sv create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" devtools-json drizzle="database:sqlite+sqlite:libsql" lucia="demo:yes" mdsvex paraglide="languageTags:en,es+demo:yes" mcp="ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local" --no-install packages/sv/.test-output/cli/create-with-all-addons
+npx sv create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" devtools-json drizzle="database:sqlite+sqlite:libsql" better-auth="demo:password,github" mdsvex paraglide="languageTags:en,es+demo:yes" mcp="ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local" --no-install packages/sv/.test-output/cli/create-with-all-addons
 ```
 
 ## Developing
