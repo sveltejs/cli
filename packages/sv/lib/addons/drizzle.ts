@@ -244,50 +244,53 @@ export default defineAddon({
 		sv.file(paths['database schema'], (content) => {
 			const { ast, generateCode } = parse.script(content);
 
-			let userSchemaExpression;
+			let taskSchemaExpression;
 			if (options.database === 'sqlite') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
 					imports: ['integer', 'sqliteTable', 'text']
 				});
 
-				userSchemaExpression = js.common.parseExpression(`sqliteTable('user', {
-					id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-					age: integer('age')
-				})`);
+				taskSchemaExpression = js.common.parseExpression(`sqliteTable('task', {
+				id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+				title: text('title').notNull(),
+				priority: integer('priority').notNull().default(1)
+			})`);
 			}
 			if (options.database === 'mysql') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/mysql-core',
-					imports: ['mysqlTable', 'serial', 'int']
+					imports: ['mysqlTable', 'serial', 'int', 'text']
 				});
 
-				userSchemaExpression = js.common.parseExpression(`mysqlTable('user', {
-					id: serial('id').primaryKey(),
-					age: int('age'),
-				})`);
+				taskSchemaExpression = js.common.parseExpression(`mysqlTable('task', {
+				id: serial('id').primaryKey(),
+				title: text('title').notNull(),
+				priority: int('priority').notNull().default(1)
+			})`);
 			}
 			if (options.database === 'postgresql') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/pg-core',
-					imports: ['pgTable', 'serial', 'integer']
+					imports: ['pgTable', 'serial', 'integer', 'text']
 				});
 
-				userSchemaExpression = js.common.parseExpression(`pgTable('user', {
-					id: serial('id').primaryKey(),
-					age: integer('age'),
-				})`);
+				taskSchemaExpression = js.common.parseExpression(`pgTable('task', {
+				id: serial('id').primaryKey(),
+				title: text('title').notNull(),
+				priority: integer('priority').notNull().default(1)
+			})`);
 			}
 
-			if (!userSchemaExpression) throw new Error('unreachable state...');
-			const userIdentifier = js.variables.declaration(ast, {
+			if (!taskSchemaExpression) throw new Error('unreachable state...');
+			const taskIdentifier = js.variables.declaration(ast, {
 				kind: 'const',
-				name: 'user',
-				value: userSchemaExpression
+				name: 'task',
+				value: taskSchemaExpression
 			});
 			js.exports.createNamed(ast, {
-				name: 'user',
-				fallback: userIdentifier
+				name: 'task',
+				fallback: taskIdentifier
 			});
 
 			return generateCode();

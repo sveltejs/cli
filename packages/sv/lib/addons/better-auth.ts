@@ -112,7 +112,7 @@ export default defineAddon({
 		});
 
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
-		const schemaPath = `${kit?.libDirectory}/server/db/schema.${language}`;
+		const authSchemaPath = `${kit?.libDirectory}/server/db/auth.schema.${language}`;
 		// Workaround: better-auth CLI only checks tsconfig.json for path aliases,
 		// so JS projects (which use jsconfig.json) need a tsconfig.json copy.
 		// See: https://github.com/better-auth/better-auth/issues/7649
@@ -128,8 +128,30 @@ export default defineAddon({
 			json.packageScriptsUpsert(
 				data,
 				'auth:schema',
-				`npx @better-auth/cli generate --config ${authConfigPath} --output ${schemaPath} --yes`
+				`npx @better-auth/cli generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
 			);
+			return generateCode();
+		});
+
+		sv.file(`${kit?.libDirectory}/server/db/auth.schema.${language}`, (content) => {
+			if (content) return content;
+			return dedent`
+				// This file will be overwritten when running the auth:schema script
+				export const user = {};
+				export const session = {};
+				export const account = {};
+			`;
+		});
+
+		// Re-export auth schema from the main schema file
+		// Remove the default user export from drizzle (if it exists) since better-auth provides its own
+		sv.file(`${kit?.libDirectory}/server/db/schema.${language}`, (content) => {
+			const { ast, generateCode } = parse.script(content);
+
+			// Import and re-export auth schema tables
+			js.imports.addNamed(ast, { imports: ['user', 'session', 'account'], from: './auth.schema' });
+			js.common.appendFromString(ast, { code: 'export { user, session, account };' });
+
 			return generateCode();
 		});
 
