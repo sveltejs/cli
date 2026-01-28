@@ -129,15 +129,6 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${kit?.libDirectory}/auth-client.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
-
-			js.imports.addNamed(ast, { from: 'better-auth/svelte', imports: ['createAuthClient'] });
-			js.common.appendFromString(ast, { code: 'export const authClient = createAuthClient();' });
-
-			return generateCode();
-		});
-
 		sv.file('src/app.d.ts', (content) => {
 			const { ast, generateCode } = parse.script(content);
 
@@ -257,7 +248,7 @@ export default defineAddon({
 					};
 
 					export const actions${ts(': Actions')} = {
-						login: async (event) => {
+						signInEmail: async (event) => {
 							const formData = await event.request.formData();
 							const email = formData.get('email')?.toString() ?? '';
 							const password = formData.get('password')?.toString() ?? '';
@@ -279,7 +270,7 @@ export default defineAddon({
 
 							return redirect(302, '/demo/better-auth');
 						},
-						register: async (event) => {
+						signUpEmail: async (event) => {
 							const formData = await event.request.formData();
 							const email = formData.get('email')?.toString() ?? '';
 							const password = formData.get('password')?.toString() ?? '';
@@ -333,7 +324,7 @@ export default defineAddon({
 					</script>
 
 					<h1>Login/Register</h1>
-					<form method="post" action="?/login" use:enhance>
+					<form method="post" action="?/signInEmail" use:enhance>
 						<label>
 							Email
 							<input type="email" name="email"${input} />
@@ -347,7 +338,7 @@ export default defineAddon({
 							<input name="name"${input} />
 						</label>
 						<button${btn}>Login</button>
-						<button formaction="?/register"${btn}>Register</button>
+						<button formaction="?/signUpEmail"${btn}>Register</button>
 					</form>
 					${tailwind ? `<p class="text-red-500">{form?.message ?? ''}</p>` : `<p style="color: red">{form?.message ?? ''}</p>`}
 				`;
@@ -363,12 +354,24 @@ export default defineAddon({
 				const [ts] = createPrinter(language === 'ts');
 				return dedent`
 					import { redirect } from '@sveltejs/kit';
-					${ts("import type { PageServerLoad } from './$types';\n")}
+					${ts("import type { Actions } from './$types';")}
+					${ts("import type { PageServerLoad } from './$types';")}
+					import { auth } from '$lib/server/auth';
+
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/better-auth/login');
 						}
 						return { user: event.locals.user };
+					};
+
+					export const actions${ts(': Actions')} = {
+						signOut: async (event) => {
+							await auth.api.signOut({
+								headers: event.request.headers
+							});
+							return redirect(302, '/demo/better-auth/login');
+						}
 					};
 				`;
 			});
@@ -388,20 +391,16 @@ export default defineAddon({
 				const [ts, s5] = createPrinter(language === 'ts', svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
-						import { authClient } from '$lib/auth-client';
-						import { goto } from '$app/navigation';
+						import { enhance } from '$app/forms';
 						${ts("import type { PageServerData } from './$types';\n")}
 						${s5(`let { data }${ts(': { data: PageServerData }')} = $props();`, `export let data${ts(': PageServerData')};`)}
-
-						async function logout() {
-							await authClient.signOut();
-							goto('/demo/better-auth/login');
-						}
 					</script>
 
 					<h1>Hi, {data.user.name}!</h1>
 					<p>Your user ID is {data.user.id}.</p>
-					<button ${s5('onclick={logout}', 'on:click={logout}')} ${tailwind ? twBtnClasses : ''}>Sign out</button>
+					<form method="post" action="?/signOut" use:enhance>
+						<button ${tailwind ? twBtnClasses : ''}>Sign out</button>
+					</form>
 				`;
 			});
 		}

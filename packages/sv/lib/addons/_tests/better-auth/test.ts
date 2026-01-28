@@ -71,4 +71,15 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 
 	// Verify user name is displayed
 	await expect(page.locator('h1')).toContainText(userName);
+
+	// Reload page and verify still connected
+	await page.reload();
+	await expect(page.locator('h1')).toContainText(userName);
+
+	// Sign out
+	await page.click('button:has-text("Sign out")');
+	await page.waitForURL(`${url}demo/better-auth/login`, { timeout: 3000 });
+
+	// Verify we're logged out (email input visible again)
+	await expect(emailInput).toBeVisible();
 });
