@@ -71,11 +71,18 @@ export default defineAddon({
 			return flat.upsert(content, 'BETTER_AUTH_SECRET', { value: `"${crypto.randomUUID()}"` });
 		});
 		sv.file('.env.example', (content) => {
-			return flat.upsert(content, 'BETTER_AUTH_SECRET', { value: `""` });
+			content = flat.upsert(content, 'BETTER_AUTH_SECRET', { value: `""` });
+
+			content = flat.upsert(content, '# GITHUB_CLIENT_ID', {
+				value: `""`,
+				comment: 'Auth social provider GitHub'
+			});
+			content = flat.upsert(content, '# GITHUB_CLIENT_SECRET', { value: `""` });
+			return content;
 		});
 
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, generateCode, comments } = parse.script(content);
 
 			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
 			js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
@@ -104,9 +111,17 @@ export default defineAddon({
 					emailAndPassword: {
 						enabled: true
 					},
+					// Example of social provider (uncomment to enable GitHub OAuth)
+					// Don't forget to set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in your .env file
+					// socialProviders: {
+					// 	github: {
+					// 		clientId: env.GITHUB_CLIENT_ID,
+					// 		clientSecret: env.GITHUB_CLIENT_SECRET,
+					// 	},
+					// },
 					plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
 				});`;
-			js.common.appendFromString(ast, { code: authConfig });
+			js.common.appendFromString(ast, { code: authConfig, comments });
 
 			return generateCode();
 		});
