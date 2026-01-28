@@ -12,7 +12,10 @@ const { test, testCases, prepareServer } = setupTest(
 		kinds: [
 			{
 				type: 'default',
-				options: { drizzle: { database: 'sqlite', sqlite: 'turso' }, betterAuth: { demo: true } }
+				options: {
+					drizzle: { database: 'sqlite', sqlite: 'turso' },
+					betterAuth: { demo: ['password', 'github'] }
+				}
 			}
 		],
 		filter: (addonTestCase) => addonTestCase.variant.includes('kit')
