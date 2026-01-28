@@ -78,6 +78,11 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 	}
 }
 
+export async function detectPackageManager(cwd: string): Promise<AgentName> {
+	const detected = await detect({ cwd });
+	return detected?.name ?? getUserAgent() ?? 'npm';
+}
+
 export function getUserAgent(): AgentName | undefined {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;

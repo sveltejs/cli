@@ -4,18 +4,18 @@ import process from 'node:process';
 import { resolveCommand } from 'package-manager-detector';
 
 import { forwardExitCode } from './utils/common.ts';
-import { getUserAgent } from './utils/package-manager.ts';
+import { detectPackageManager } from './utils/package-manager.ts';
 
 export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')
 	.argument('[migration]', 'migration to run')
 	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
-	.action((migration, options) => {
-		runMigrate(options.cwd, [migration]);
+	.action(async (migration, options) => {
+		await runMigrate(options.cwd, [migration]);
 	});
 
-function runMigrate(cwd: string, args: string[]) {
-	const pm = getUserAgent() ?? 'npm';
+async function runMigrate(cwd: string, args: string[]) {
+	const pm = await detectPackageManager(cwd);
 
 	// avoids printing the stack trace for `sv` when `svelte-migrate` exits with an error code
 	try {

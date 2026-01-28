@@ -1,10 +1,8 @@
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import { detect } from 'package-manager-detector';
-
 import { type AstTypes, type PackageManager, type Workspace, js, parse } from '../../core.ts';
-import { getUserAgent } from '../utils/package-manager.ts';
+import { detectPackageManager } from '../utils/package-manager.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 
 type CreateWorkspaceOptions = {
@@ -79,7 +77,7 @@ export async function createWorkspace({
 
 	return {
 		cwd: resolvedCwd,
-		packageManager: packageManager ?? (await detect({ cwd }))?.name ?? getUserAgent() ?? 'npm',
+		packageManager: packageManager ?? (await detectPackageManager(cwd)),
 		language: typescript ? 'ts' : 'js',
 		files: {
 			viteConfig,
