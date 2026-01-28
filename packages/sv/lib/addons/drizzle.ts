@@ -202,22 +202,14 @@ export default defineAddon({
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
 			sv.file(files.prettierignore, (content) => {
-				if (!content.includes(`/drizzle/`)) {
-					return content.trimEnd() + '\n/drizzle/';
-				}
-				return content;
+				return flat.upsert(content, '/drizzle/');
 			});
 		}
 
 		if (options.database === 'sqlite') {
 			sv.file(files.gitignore, (content) => {
-				// Adds the db file to the gitignore if an ignore is present
 				if (content.length === 0) return content;
-
-				if (!content.includes('\n*.db')) {
-					content = content.trimEnd() + '\n\n# SQLite\n*.db';
-				}
-				return content;
+				return flat.upsert(content, '*.db', { comment: 'SQLite' });
 			});
 		}
 
