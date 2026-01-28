@@ -5,6 +5,7 @@ import {
 	dedent,
 	defineAddon,
 	defineAddonOptions,
+	flat,
 	js,
 	json,
 	log,
@@ -67,9 +68,10 @@ export default defineAddon({
 		});
 
 		sv.file('.env', (content) => {
-			if (content.includes('BETTER_AUTH_SECRET')) return content;
-			const secret = crypto.randomUUID();
-			return content + `\nBETTER_AUTH_SECRET="${secret}"`;
+			return flat.upsert(content, 'BETTER_AUTH_SECRET', { value: `"${crypto.randomUUID()}"` });
+		});
+		sv.file('.env.example', (content) => {
+			return flat.upsert(content, 'BETTER_AUTH_SECRET', { value: `""` });
 		});
 
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {

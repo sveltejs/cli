@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 import {
 	type OptionValues,
 	dedent,
 	defineAddon,
 	defineAddonOptions,
+	flat,
 	getNodeTypesVersion,
 	js,
 	parse,
@@ -124,8 +126,8 @@ export default defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.0');
 
-		sv.file('.env', (content) => generateEnvFileContent(content, options));
-		sv.file('.env.example', (content) => generateEnvFileContent(content, options));
+		sv.file('.env', (content) => generateEnvFileContent(content, options, false));
+		sv.file('.env.example', (content) => generateEnvFileContent(content, options, true));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
 			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
@@ -451,57 +453,45 @@ export default defineAddon({
 	}
 });
 
-function generateEnvFileContent(content: string, opts: OptionValues<typeof options>) {
+function generateEnvFileContent(
+	content: string,
+	opts: OptionValues<typeof options>,
+	isExample: boolean
+) {
 	const DB_URL_KEY = 'DATABASE_URL';
 	if (opts.docker) {
-		// we'll prefill with the default docker db credentials
 		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
 		const port = PORTS[opts.database];
-		content = addEnvVar(
-			content,
-			DB_URL_KEY,
-			`"${protocol}://root:mysecretpassword@localhost:${port}/local"`
-		);
-		return content;
+		return flat.upsert(content, DB_URL_KEY, {
+			value: `"${protocol}://root:mysecretpassword@localhost:${port}/local"`
+		});
 	}
 	if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
 		const dbFile = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
-		content = addEnvVar(content, DB_URL_KEY, dbFile);
-		return content;
+		return flat.upsert(content, DB_URL_KEY, { value: dbFile });
 	}
 
-	content = addEnvComment(content, 'Replace with your DB credentials!');
 	if (opts.sqlite === 'turso') {
-		content = addEnvVar(content, DB_URL_KEY, '"libsql://db-name-user.turso.io"');
-		content = addEnvVar(content, 'DATABASE_AUTH_TOKEN', '""');
-		content = addEnvComment(content, 'A local DB can also be used in dev as well');
-		content = addEnvComment(content, `${DB_URL_KEY}="file:local.db"`);
+		content = flat.upsert(content, DB_URL_KEY, {
+			value: '"libsql://db-name-user.turso.io"',
+			comment: 'Replace with your DB credentials!',
+			commentAfter: `A local DB can also be used in dev as well\n# ${DB_URL_KEY}="file:local.db"`
+		});
+		content = flat.upsert(content, 'DATABASE_AUTH_TOKEN', {
+			value: isExample ? `""` : `"${crypto.randomUUID()}"`
+		});
 	}
 	if (opts.database === 'mysql') {
-		content = addEnvVar(content, DB_URL_KEY, '"mysql://user:password@host:port/db-name"');
+		content = flat.upsert(content, DB_URL_KEY, {
+			value: '"mysql://user:password@host:port/db-name"',
+			comment: 'Replace with your DB credentials!'
+		});
 	}
 	if (opts.database === 'postgresql') {
-		content = addEnvVar(content, DB_URL_KEY, '"postgres://user:password@host:port/db-name"');
+		content = flat.upsert(content, DB_URL_KEY, {
+			value: '"postgres://user:password@host:port/db-name"',
+			comment: 'Replace with your DB credentials!'
+		});
 	}
 	return content;
-}
-
-function addEnvVar(content: string, key: string, value: string) {
-	if (!content.includes(key + '=')) {
-		content = appendEnvContent(content, `${key}=${value}`);
-	}
-	return content;
-}
-
-function addEnvComment(content: string, comment: string) {
-	const commented = `# ${comment}`;
-	if (!content.includes(commented)) {
-		content = appendEnvContent(content, commented);
-	}
-	return content;
-}
-
-function appendEnvContent(existing: string, content: string) {
-	const withNewLine = !existing.length || existing.endsWith('\n') ? existing : existing + '\n';
-	return withNewLine + content + '\n';
 }
