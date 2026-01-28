@@ -1,6 +1,10 @@
+import { user, session, account } from './auth.schema';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-export const user = sqliteTable('user', {
+export const task = sqliteTable('task', {
 	id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-	age: integer('age')
+	title: text('title').notNull(),
+	priority: integer('priority').notNull().default(1)
 });
+
+export { user, session, account };
