@@ -5,7 +5,7 @@ import process from 'node:process';
 import { resolveCommand } from 'package-manager-detector/commands';
 
 import { forwardExitCode } from './utils/common.ts';
-import { getUserAgent } from './utils/package-manager.ts';
+import { detectPackageManager } from './utils/package-manager.ts';
 import { color } from '../core.ts';
 
 export const check = new Command('check')
@@ -21,15 +21,15 @@ export const check = new Command('check')
 			return '';
 		}
 	})
-	.action((options, check: Command) => {
+	.action(async (options, check: Command) => {
 		const cwd: string = options.cwd;
 		const args: string[] = check.args;
 
-		runCheck(cwd, args);
+		await runCheck(cwd, args);
 	});
 
-function runCheck(cwd: string, args: string[]) {
-	const pm = getUserAgent() ?? 'npm';
+async function runCheck(cwd: string, args: string[]) {
+	const pm = await detectPackageManager(cwd);
 
 	// validates that `svelte-check` is locally installed
 	const resolved = resolve.from(cwd, 'svelte-check', true);
