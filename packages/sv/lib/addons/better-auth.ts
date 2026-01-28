@@ -13,6 +13,7 @@ import {
 	color,
 	createPrinter
 } from '../core.ts';
+import crypto from 'node:crypto';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
@@ -65,9 +66,10 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('.env.example', (content) => {
+		sv.file('.env', (content) => {
 			if (content.includes('BETTER_AUTH_SECRET')) return content;
-			return content + '\nBETTER_AUTH_SECRET="your-secret-key"';
+			const secret = crypto.randomUUID();
+			return content + `\nBETTER_AUTH_SECRET="${secret}"`;
 		});
 
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {

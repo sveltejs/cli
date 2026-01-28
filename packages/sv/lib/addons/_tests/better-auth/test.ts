@@ -4,7 +4,6 @@ import betterAuth from '../../better-auth.ts';
 import drizzle from '../../drizzle.ts';
 import path from 'node:path';
 import fs from 'node:fs';
-import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 
 const { test, testCases, prepareServer } = setupTest(
@@ -27,14 +26,6 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	// Verify that we have a demo login
 	const loginPage = path.resolve(cwd, `src/routes/demo/better-auth/login/+page.svelte`);
 	expect(fs.existsSync(loginPage)).toBe(true);
-
-	// Create .env for auth:schema CLI
-	const envPath = path.resolve(cwd, '.env');
-	fs.writeFileSync(
-		envPath,
-		`DATABASE_URL=file:local.db\nBETTER_AUTH_SECRET="${crypto.randomUUID()}"`,
-		'utf8'
-	);
 
 	// Generate auth schema using better-auth CLI
 	execSync('npm run auth:schema', { cwd, stdio: 'pipe' });
