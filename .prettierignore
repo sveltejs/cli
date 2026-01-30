@@ -1,1 +1,3 @@
 packages/sv/lib/cli/tests/snapshots/*
+packages/sv/lib/**/tests/**/output.ts
+packages/sv/lib/**/tests/**/input.ts
