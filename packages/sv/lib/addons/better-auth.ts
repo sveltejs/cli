@@ -76,35 +76,8 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file('.env', (content) => {
-			content = flat.upsert(content, 'BETTER_AUTH_SECRET', {
-				value: `"${crypto.randomUUID()}"`,
-				comment:
-					'Better Auth Secret, for production use 32 characters and generated with high entropy'
-			});
-
-			if (demoGithub) {
-				content = flat.upsert(content, 'GITHUB_CLIENT_ID', {
-					value: `""`,
-					comment: 'GitHub OAuth'
-				});
-				content = flat.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
-			}
-
-			return content;
-		});
-		sv.file('.env.example', (content) => {
-			content = flat.upsert(content, 'BETTER_AUTH_SECRET', { value: `""` });
-
-			if (demoGithub) {
-				content = flat.upsert(content, 'GITHUB_CLIENT_ID', {
-					value: `""`,
-					comment: 'GitHub OAuth - https://www.better-auth.com/docs/authentication/github'
-				});
-				content = flat.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
-			}
-			return content;
-		});
+		sv.file('.env', (content) => generateEnvFileContent(content, demoGithub, false));
+		sv.file('.env.example', (content) => generateEnvFileContent(content, demoGithub, true));
 
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
 			const { ast, generateCode, comments } = parse.script(content);
@@ -543,3 +516,20 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+function generateEnvFileContent(content: string, demoGithub: boolean, isExample: boolean) {
+	content = flat.upsert(content, 'BETTER_AUTH_SECRET', {
+		value: isExample ? `""` : `"${crypto.randomUUID()}"`,
+		comment: 'Better Auth Secret, for production use 32 characters and generated with high entropy'
+	});
+
+	if (demoGithub) {
+		content = flat.upsert(content, 'GITHUB_CLIENT_ID', {
+			value: `""`,
+			comment: 'GitHub OAuth - https://www.better-auth.com/docs/authentication/github'
+		});
+		content = flat.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
+	}
+
+	return content;
+}
