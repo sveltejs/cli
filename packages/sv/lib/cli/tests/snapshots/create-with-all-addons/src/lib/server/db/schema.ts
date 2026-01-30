@@ -1,4 +1,3 @@
-import { user, session, account, verification } from './auth.schema';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const task = sqliteTable('task', {
@@ -7,4 +6,4 @@ export const task = sqliteTable('task', {
 	priority: integer('priority').notNull().default(1)
 });
 
-export { user, session, account, verification };
+export *  from './auth.schema';

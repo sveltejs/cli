@@ -42,7 +42,8 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	// Verify schema has auth tables
 	const schemaPath = path.resolve(cwd, `src/lib/server/db/schema.${language}`);
 	const schemaContent = fs.readFileSync(schemaPath, 'utf8');
-	['user', 'session', 'account'].forEach((table) => expect(schemaContent).toContain(table));
+	expect(schemaContent).toContain('export *');
+	expect(schemaContent).toContain('./auth.schema');
 
 	// Push schema to DB
 	execSync('npm run db:push -- --force', { cwd, stdio: 'pipe' });

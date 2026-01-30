@@ -1,4 +1,5 @@
 import type { AstTypes } from '../index.ts';
+import { areNodesEqual } from './common.ts';
 
 export type ExportDefaultResult<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;
@@ -76,4 +77,25 @@ export function createNamed(
 	};
 	node.body.push(namedExport);
 	return namedExport;
+}
+
+export function addNamespace(node: AstTypes.Program, options: { from: string; as?: string }): void {
+	const expectedExportAllDeclaration: AstTypes.ExportAllDeclaration = {
+		type: 'ExportAllDeclaration',
+		source: {
+			type: 'Literal',
+			value: options.from
+		},
+		exported: options.as ? { type: 'Identifier', name: options.as } : null,
+		attributes: []
+	};
+
+	const exportAllDeclarations = node.body.filter((item) => item.type === 'ExportAllDeclaration');
+	const existingExport = exportAllDeclarations.find((item) =>
+		areNodesEqual(item, expectedExportAllDeclaration)
+	);
+
+	if (!existingExport) {
+		node.body.push(expectedExportAllDeclaration);
+	}
 }

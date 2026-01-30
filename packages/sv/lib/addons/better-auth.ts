@@ -150,11 +150,8 @@ export default defineAddon({
 
 		sv.file(`${kit?.libDirectory}/server/db/auth.schema.${language}`, (content) => {
 			if (content) return content;
-			const tables = ['user', 'session', 'account'];
-			if (demoGithub) tables.push('verification');
 			return dedent`
 				// If you see this file, you have not run the auth:schema script yet, but you should!
-				${tables.map((table) => `export const ${table} = {};`).join('\n')}
 			`;
 		});
 
@@ -163,11 +160,7 @@ export default defineAddon({
 		sv.file(`${kit?.libDirectory}/server/db/schema.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
-			// Import and re-export auth schema tables
-			const tables = ['user', 'session', 'account'];
-			if (demoGithub) tables.push('verification');
-			js.imports.addNamed(ast, { imports: tables, from: './auth.schema' });
-			js.common.appendFromString(ast, { code: `export { ${tables.join(', ')} };` });
+			js.exports.addNamespace(ast, { from: './auth.schema' });
 
 			return generateCode();
 		});
