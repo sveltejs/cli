@@ -14,7 +14,7 @@ const { test, testCases, prepareServer } = setupTest(
 				type: 'default',
 				options: {
 					drizzle: { database: 'sqlite', sqlite: 'turso' },
-					betterAuth: { demo: ['password', 'github'] }
+					'better-auth': { demo: ['password', 'github'] }
 				}
 			}
 		],

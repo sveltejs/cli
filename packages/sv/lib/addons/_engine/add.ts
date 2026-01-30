@@ -25,9 +25,15 @@ export type InstallOptions<Addons extends AddonMap> = {
 	packageManager?: PackageManager;
 };
 
-export type AddonMap = Record<string, Addon<any>>;
+export type AddonMap = Record<string, Addon<any, any>>;
+
+type AddonById<Addons extends AddonMap, Id extends string> = Extract<
+	Addons[keyof Addons],
+	{ id: Id }
+>;
+
 export type OptionMap<Addons extends AddonMap> = {
-	[K in keyof Addons]: Partial<OptionValues<Addons[K]['options']>>;
+	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
 };
 
 export async function add<Addons extends AddonMap>({

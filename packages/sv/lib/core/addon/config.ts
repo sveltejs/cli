@@ -31,8 +31,8 @@ export type SvApi = {
 	file: (path: string, edit: (content: string) => string) => void;
 };
 
-export type Addon<Args extends OptionDefinition> = {
-	id: string;
+export type Addon<Args extends OptionDefinition, Id extends string = string> = {
+	id: Id;
 	alias?: string;
 	shortDescription?: string;
 	homepage?: string;
@@ -77,7 +77,9 @@ export type Addon<Args extends OptionDefinition> = {
 /**
  * The entry point for your addon, It will hold every thing! (options, setup, run, nextSteps, ...)
  */
-export function defineAddon<Args extends OptionDefinition>(config: Addon<Args>): Addon<Args> {
+export function defineAddon<const Id extends string, Args extends OptionDefinition>(
+	config: Addon<Args, Id>
+): Addon<Args, Id> {
 	return config;
 }
 
@@ -187,7 +189,7 @@ export function getErrorHint(source: AddonSource): string {
 
 export type SetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
 
-export type AddonDefinition = Addon<Record<string, Question<any>>>;
+export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
