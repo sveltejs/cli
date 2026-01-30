@@ -112,6 +112,7 @@ export default defineAddon({
 
 			const authConfig = dedent`
 				export const auth = betterAuth({
+					baseURL: env.ORIGIN,
 					secret: env.BETTER_AUTH_SECRET,
 					database: drizzleAdapter(db, {
 						provider: '${provider}'
@@ -495,7 +496,7 @@ export default defineAddon({
 		const steps = [
 			`Run ${color.command(`${authCmd} ${authArgs.join(' ')}`)} to generate the auth schema`,
 			`Run ${color.command(`${dbCmd} ${dbArgs.join(' ')}`)} to update your database`,
-			`Check ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
+			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
 		if (options.demo.includes('github')) {
 			steps.push(
@@ -511,15 +512,24 @@ export default defineAddon({
 });
 
 function generateEnvFileContent(content: string, demoGithub: boolean, isExample: boolean) {
+	content = flat.upsert(content, 'ORIGIN', {
+		value: isExample ? `""` : `"http://localhost:5173"`,
+		separator: true
+	});
 	content = flat.upsert(content, 'BETTER_AUTH_SECRET', {
 		value: isExample ? `""` : `"${crypto.randomUUID()}"`,
-		comment: 'Better Auth Secret, for production use 32 characters and generated with high entropy'
+		comment: [
+			'Better Auth',
+			'For production use 32 characters and generated with high entropy',
+			'https://www.better-auth.com/docs/installation'
+		],
+		separator: true
 	});
 
 	if (demoGithub) {
 		content = flat.upsert(content, 'GITHUB_CLIENT_ID', {
 			value: `""`,
-			comment: 'GitHub OAuth - https://www.better-auth.com/docs/authentication/github'
+			comment: 'GitHub OAuth\n# https://www.better-auth.com/docs/authentication/github'
 		});
 		content = flat.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
 	}

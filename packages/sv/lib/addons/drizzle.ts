@@ -448,39 +448,43 @@ function generateEnvFileContent(
 	isExample: boolean
 ) {
 	const DB_URL_KEY = 'DATABASE_URL';
+
+	// Calculate value and comment based on database options
+	let value: string;
+	const comment: NonNullable<Parameters<typeof flat.upsert>[2]>['comment'] = ['Drizzle'];
+
 	if (opts.docker) {
 		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
 		const port = PORTS[opts.database];
-		return flat.upsert(content, DB_URL_KEY, {
-			value: `"${protocol}://root:mysecretpassword@localhost:${port}/local"`
-		});
-	}
-	if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
-		const dbFile = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
-		return flat.upsert(content, DB_URL_KEY, { value: dbFile });
+		value = `"${protocol}://root:mysecretpassword@localhost:${port}/local"`;
+	} else if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
+		value = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
+	} else if (opts.sqlite === 'turso') {
+		value = '"libsql://db-name-user.turso.io"';
+		comment.push(
+			'Replace with your DB credentials!',
+			{ text: 'A local DB can also be used in dev as well', mode: 'append' },
+			{ text: `${DB_URL_KEY}="file:local.db"`, mode: 'append' }
+		);
+	} else if (opts.database === 'mysql') {
+		value = '"mysql://user:password@host:port/db-name"';
+		comment.push('Replace with your DB credentials!');
+	} else if (opts.database === 'postgresql') {
+		// postgresql
+		value = '"postgres://user:password@host:port/db-name"';
+		comment.push('Replace with your DB credentials!');
+	} else {
+		value = '';
 	}
 
+	content = flat.upsert(content, DB_URL_KEY, { value, comment, separator: true });
+
+	// Turso requires an auth token
 	if (opts.sqlite === 'turso') {
-		content = flat.upsert(content, DB_URL_KEY, {
-			value: '"libsql://db-name-user.turso.io"',
-			comment: 'Replace with your DB credentials!',
-			commentAfter: `A local DB can also be used in dev as well\n# ${DB_URL_KEY}="file:local.db"`
-		});
 		content = flat.upsert(content, 'DATABASE_AUTH_TOKEN', {
 			value: isExample ? `""` : `"${crypto.randomUUID()}"`
 		});
 	}
-	if (opts.database === 'mysql') {
-		content = flat.upsert(content, DB_URL_KEY, {
-			value: '"mysql://user:password@host:port/db-name"',
-			comment: 'Replace with your DB credentials!'
-		});
-	}
-	if (opts.database === 'postgresql') {
-		content = flat.upsert(content, DB_URL_KEY, {
-			value: '"postgres://user:password@host:port/db-name"',
-			comment: 'Replace with your DB credentials!'
-		});
-	}
+
 	return content;
 }
