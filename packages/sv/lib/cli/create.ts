@@ -3,7 +3,7 @@ import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { detect, resolveCommand } from 'package-manager-detector';
+import { resolveCommand } from 'package-manager-detector';
 import * as v from 'valibot';
 
 import type { LoadedAddon, OptionValues, Workspace } from '../core.ts';
@@ -34,7 +34,7 @@ import * as common from './utils/common.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
-	getUserAgent,
+	detectPackageManager,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
@@ -105,8 +105,7 @@ export const create = new Command('create')
 			let i = 1;
 			const initialSteps: string[] = ['📁 Project steps', ''];
 			const relative = path.relative(process.cwd(), directory);
-			const pm =
-				packageManager ?? (await detect({ cwd: directory }))?.name ?? getUserAgent() ?? 'npm';
+			const pm = packageManager ?? (await detectPackageManager(directory));
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
 				initialSteps.push(
