@@ -25,6 +25,8 @@ export function replace(contents: string, kv: Record<string, string>): string {
 	return contents;
 }
 
+const binaryExtensions = ['.png', '.svg', '.webp'];
+
 export function copy(
 	from: string,
 	to: string,
@@ -40,7 +42,11 @@ export function copy(
 		});
 	} else {
 		mkdirp(path.dirname(to));
-		fs.writeFileSync(to, replace(fs.readFileSync(from, 'utf-8'), kv));
+		if (binaryExtensions.some((ext) => from.endsWith(ext))) {
+			fs.copyFileSync(from, to);
+		} else {
+			fs.writeFileSync(to, replace(fs.readFileSync(from, 'utf-8'), kv));
+		}
 	}
 }
 
