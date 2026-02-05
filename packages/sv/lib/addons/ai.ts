@@ -29,7 +29,8 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'mcp',
+	id: 'ai',
+	alias: 'mcp',
 	shortDescription: 'Svelte MCP',
 	homepage: 'https://svelte.dev/docs/mcp',
 	options,
