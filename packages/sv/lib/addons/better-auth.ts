@@ -27,7 +27,7 @@ const options = defineAddonOptions()
 			{ value: 'password', label: 'Email & Password' },
 			{ value: 'github', label: 'GitHub OAuth' }
 		],
-		required: true
+		required: false
 	})
 	.build();
 
