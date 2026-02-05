@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { upsert } from '../tooling/flat.ts';
+import { upsert } from '../tooling/text.ts';
 
-describe('flat.upsert', () => {
+describe('text.upsert', () => {
 	it('key+value on empty content', () => {
 		expect(upsert('', 'DATABASE_URL', { value: 'file:local.db' })).toBe(
 			'DATABASE_URL=file:local.db\n'

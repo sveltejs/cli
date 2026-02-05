@@ -9,7 +9,7 @@ import {
 	color,
 	svelte,
 	type SvelteAst,
-	flat
+	text
 } from '../core.ts';
 
 const DEFAULT_INLANG_PROJECT = {
@@ -159,8 +159,8 @@ export default defineAddon({
 		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
 
-			content = flat.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
-			content = flat.upsert(content, 'project.inlang/cache/');
+			content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
+			content = text.upsert(content, 'project.inlang/cache/');
 
 			return content;
 		});

@@ -7,7 +7,7 @@ import {
 	dedent,
 	defineAddon,
 	defineAddonOptions,
-	flat,
+	text,
 	getNodeTypesVersion,
 	js,
 	parse,
@@ -202,14 +202,14 @@ export default defineAddon({
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
 			sv.file(files.prettierignore, (content) => {
-				return flat.upsert(content, '/drizzle/');
+				return text.upsert(content, '/drizzle/');
 			});
 		}
 
 		if (options.database === 'sqlite') {
 			sv.file(files.gitignore, (content) => {
 				if (content.length === 0) return content;
-				return flat.upsert(content, '*.db', { comment: 'SQLite' });
+				return text.upsert(content, '*.db', { comment: 'SQLite' });
 			});
 		}
 
@@ -451,7 +451,7 @@ function generateEnvFileContent(
 
 	// Calculate value and comment based on database options
 	let value: string;
-	const comment: NonNullable<Parameters<typeof flat.upsert>[2]>['comment'] = ['Drizzle'];
+	const comment: NonNullable<Parameters<typeof text.upsert>[2]>['comment'] = ['Drizzle'];
 
 	if (opts.docker) {
 		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
@@ -477,11 +477,11 @@ function generateEnvFileContent(
 		value = '';
 	}
 
-	content = flat.upsert(content, DB_URL_KEY, { value, comment, separator: true });
+	content = text.upsert(content, DB_URL_KEY, { value, comment, separator: true });
 
 	// Turso requires an auth token
 	if (opts.sqlite === 'turso') {
-		content = flat.upsert(content, 'DATABASE_AUTH_TOKEN', {
+		content = text.upsert(content, 'DATABASE_AUTH_TOKEN', {
 			value: isExample ? `""` : `"${crypto.randomUUID()}"`
 		});
 	}

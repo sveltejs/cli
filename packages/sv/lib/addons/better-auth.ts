@@ -5,7 +5,7 @@ import {
 	dedent,
 	defineAddon,
 	defineAddonOptions,
-	flat,
+	text,
 	js,
 	json,
 	log,
@@ -501,11 +501,11 @@ export default defineAddon({
 });
 
 function generateEnvFileContent(content: string, demoGithub: boolean, isExample: boolean) {
-	content = flat.upsert(content, 'ORIGIN', {
+	content = text.upsert(content, 'ORIGIN', {
 		value: isExample ? `""` : `"http://localhost:5173"`,
 		separator: true
 	});
-	content = flat.upsert(content, 'BETTER_AUTH_SECRET', {
+	content = text.upsert(content, 'BETTER_AUTH_SECRET', {
 		value: isExample ? `""` : `"${crypto.randomUUID()}"`,
 		comment: [
 			'Better Auth',
@@ -516,11 +516,11 @@ function generateEnvFileContent(content: string, demoGithub: boolean, isExample:
 	});
 
 	if (demoGithub) {
-		content = flat.upsert(content, 'GITHUB_CLIENT_ID', {
+		content = text.upsert(content, 'GITHUB_CLIENT_ID', {
 			value: `""`,
 			comment: 'GitHub OAuth\n# https://www.better-auth.com/docs/authentication/github'
 		});
-		content = flat.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
+		content = text.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
 	}
 
 	return content;

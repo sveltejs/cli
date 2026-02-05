@@ -10,7 +10,7 @@ import {
 	fileExists,
 	json,
 	color,
-	flat
+	text
 } from '../core.ts';
 import { sanitizeName } from '../coreInternal.ts';
 
@@ -185,7 +185,7 @@ export default defineAddon({
 			if (typeChecked) {
 				sv.file(files.gitignore, (content) => {
 					if (content.length === 0) return content;
-					return flat.upsert(content, '/worker-configuration.d.ts', {
+					return text.upsert(content, '/worker-configuration.d.ts', {
 						comment: 'Cloudflare Types'
 					});
 				});
