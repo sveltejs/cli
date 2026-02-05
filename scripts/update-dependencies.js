@@ -4,17 +4,16 @@ import { styleText } from 'node:util';
 
 async function updateAddonDependencies() {
 	const addonsBasePath = path.resolve('packages', 'sv', 'lib', 'addons');
-	const addonFolders = fs
+	const addonsFiles = fs
 		.readdirSync(addonsBasePath, { withFileTypes: true })
-		.filter((item) => item.isDirectory())
 		.map((item) => item.name)
 		.filter((x) => x !== 'node_modules' && !x.startsWith('_'));
 
-	for (const addonFolder of addonFolders) {
-		const filePath = `${addonsBasePath}/${addonFolder}/index.ts`;
+	for (const addonFile of addonsFiles) {
+		const filePath = `${addonsBasePath}/${addonFile}`;
 		if (!fs.existsSync(filePath)) continue;
 
-		console.log(`Checking deps for ${styleText(['cyanBright', 'bold'], addonFolder)} add-on`);
+		console.log(`Checking deps for ${styleText(['cyanBright', 'bold'], addonFile)} add-on`);
 
 		let content = fs.readFileSync(filePath, { encoding: 'utf8' });
 

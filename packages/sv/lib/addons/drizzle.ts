@@ -102,27 +102,27 @@ export default defineAddon({
 				return cancel(`Preexisting ${fileType} file at '${filePath}'`);
 			}
 		}
-		sv.devDependency('drizzle-orm', '^0.45.0');
+		sv.devDependency('drizzle-orm', '^0.45.1');
 		sv.devDependency('drizzle-kit', '^0.31.8');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.15.3');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.16.1');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
 		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^1.0.2');
-		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.7');
+		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.8');
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
-			sv.dependency('better-sqlite3', '^12.5.0');
+			sv.dependency('better-sqlite3', '^12.6.2');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			sv.pnpmBuildDependency('better-sqlite3');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
-			sv.devDependency('@libsql/client', '^0.15.15');
+			sv.devDependency('@libsql/client', '^0.17.0');
 
 		sv.file('.env', (content) => generateEnvFileContent(content, options));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, options));

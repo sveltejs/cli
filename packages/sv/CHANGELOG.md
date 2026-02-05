@@ -1,5 +1,29 @@
 # sv
 
+## 0.11.4
+### Patch Changes
+
+
+- chore(eslint): bump `@eslint/compat` to `^2.0.1` ([#895](https://github.com/sveltejs/cli/pull/895))
+
+
+- fix(prettier): in `lint` step, prettier will always be first ([#889](https://github.com/sveltejs/cli/pull/889))
+
+
+- chore(cli): remove `picocolors` for `styleText` of `node:util` ([#882](https://github.com/sveltejs/cli/pull/882))
+
+
+- chore(cli): bump defaults versions ([#896](https://github.com/sveltejs/cli/pull/896))
+
+
+- chore: bump `esrap` for better formatted output ([#879](https://github.com/sveltejs/cli/pull/879))
+
+
+- chore: bump `globals` as major version increment does not impact us ([#894](https://github.com/sveltejs/cli/pull/894))
+
+
+- fix(cli): better management of logs during install ([#888](https://github.com/sveltejs/cli/pull/888))
+
 ## 0.11.3
 ### Patch Changes
 
