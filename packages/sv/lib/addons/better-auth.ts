@@ -156,8 +156,6 @@ export default defineAddon({
 			`;
 		});
 
-		// Re-export auth schema from the main schema file
-		// Remove the default user export from drizzle (if it exists) since better-auth provides its own
 		sv.file(`${kit?.libDirectory}/server/db/schema.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
