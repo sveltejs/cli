@@ -111,7 +111,7 @@ export default defineAddon({
 		const filesAdded: string[] = [];
 		const filesExistingAlready: string[] = [];
 
-		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('mcp'));
+		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('ai'));
 		const agentFile = sharedFiles.find((file) => file.name === 'AGENTS.md');
 
 		for (const ide of options.ide) {
