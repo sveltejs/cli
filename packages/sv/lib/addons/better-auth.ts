@@ -129,16 +129,7 @@ export default defineAddon({
 
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
 		const authSchemaPath = `${kit?.libDirectory}/server/db/auth.schema.${language}`;
-		// Workaround: better-auth CLI only checks tsconfig.json for path aliases,
-		// so JS projects (which use jsconfig.json) need a tsconfig.json copy.
-		// See: https://github.com/better-auth/better-auth/issues/7649
-		if (language === 'js') {
-			sv.file('tsconfig.json', (content) => {
-				if (content) return content;
-				// Create a tsconfig.json mirroring jsconfig.json so the CLI can resolve aliases
-				return JSON.stringify({ extends: './.svelte-kit/tsconfig.json' }, null, '\t') + '\n';
-			});
-		}
+
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			json.packageScriptsUpsert(
