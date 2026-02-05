@@ -25,7 +25,16 @@ export function replace(contents: string, kv: Record<string, string>): string {
 	return contents;
 }
 
-const binaryExtensions = ['.png', '.svg', '.webp'];
+export function kv(name: string): Record<string, string> {
+	const protocolName = name.startsWith('@') ? name.split('/')[0] : name;
+	return {
+		'~SV-PROTOCOL-NAME-TODO~': protocolName,
+		'~SV-NAME-TODO~': name
+	};
+}
+
+// files that have kv's in the contents that we replace
+const withReplaceExtensions = ['.md', '.js', '.ts', '.json'];
 
 export function copy(
 	from: string,
@@ -42,10 +51,10 @@ export function copy(
 		});
 	} else {
 		mkdirp(path.dirname(to));
-		if (binaryExtensions.some((ext) => from.endsWith(ext))) {
-			fs.copyFileSync(from, to);
-		} else {
+		if (withReplaceExtensions.some((ext) => from.endsWith(ext))) {
 			fs.writeFileSync(to, replace(fs.readFileSync(from, 'utf-8'), kv));
+		} else {
+			fs.copyFileSync(from, to);
 		}
 	}
 }
