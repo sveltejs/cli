@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { mkdirp, copy, dist, getSharedFiles, replace } from './utils.ts';
+import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
 import { commonFilePaths } from '../cli/add/utils.ts';
 import { sanitizeName } from '../coreInternal.ts';
 
@@ -61,14 +61,6 @@ export const templates: TemplateMetadata[] = publicTemplateTypes.map((dir) => {
 		description
 	};
 });
-
-const kv = (name: string) => {
-	const protocolName = name.startsWith('@') ? name.split('/')[0] : name;
-	return {
-		'~SV-PROTOCOL-NAME-TODO~': protocolName,
-		'~SV-NAME-TODO~': name
-	};
-};
 
 function write_template_files(template: string, types: LanguageType, name: string, cwd: string) {
 	const dir = dist(`templates/${template}`);

@@ -25,6 +25,17 @@ export function replace(contents: string, kv: Record<string, string>): string {
 	return contents;
 }
 
+export function kv(name: string): Record<string, string> {
+	const protocolName = name.startsWith('@') ? name.split('/')[0] : name;
+	return {
+		'~SV-PROTOCOL-NAME-TODO~': protocolName,
+		'~SV-NAME-TODO~': name
+	};
+}
+
+// files that have kv's in the contents that we replace
+const withReplaceExtensions = ['.md', '.js', '.ts', '.json'];
+
 export function copy(
 	from: string,
 	to: string,
@@ -40,7 +51,11 @@ export function copy(
 		});
 	} else {
 		mkdirp(path.dirname(to));
-		fs.writeFileSync(to, replace(fs.readFileSync(from, 'utf-8'), kv));
+		if (withReplaceExtensions.some((ext) => from.endsWith(ext))) {
+			fs.writeFileSync(to, replace(fs.readFileSync(from, 'utf-8'), kv));
+		} else {
+			fs.copyFileSync(from, to);
+		}
 	}
 }
 
