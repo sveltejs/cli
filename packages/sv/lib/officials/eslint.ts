@@ -1,7 +1,7 @@
 import { log } from '@clack/prompts';
 import { type AstTypes, js, parse, json } from '@sveltejs/sv-utils';
 import { defineAddon } from '../addon/config.ts';
-import { addEslintConfigPrettier, getNodeTypesVersion } from './_engine/common.ts';
+import { addEslintConfigPrettier, getNodeTypesVersion } from './common.ts';
 
 export default defineAddon({
 	id: 'eslint',

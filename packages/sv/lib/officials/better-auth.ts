@@ -2,7 +2,7 @@ import { log } from '@clack/prompts';
 import { type AstTypes, Walker, dedent, text, js, json, parse, resolveCommand, createPrinter } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../addon/config.ts';
 import { color } from '../cli/add/utils.ts';
-import { addToDemoPage } from './_engine/common.ts';
+import { addToDemoPage } from './common.ts';
 import crypto from 'node:crypto';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';

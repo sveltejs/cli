@@ -2,7 +2,7 @@ import { log } from '@clack/prompts';
 import { dedent, parse, json } from '@sveltejs/sv-utils';
 import { defineAddon } from '../addon/config.ts';
 import { color } from '../cli/add/utils.ts';
-import { addEslintConfigPrettier } from './_engine/common.ts';
+import { addEslintConfigPrettier } from './common.ts';
 
 export default defineAddon({
 	id: 'prettier',

@@ -2,10 +2,10 @@ import * as p from '@clack/prompts';
 import { resolveCommand } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 
-import { createLoadedAddon } from '../../cli/add/index.ts';
-import { color, fileExists, installPackages, readFile, writeFile } from '../../cli/add/utils.ts';
-import { createWorkspace } from '../../cli/add/workspace.ts';
-import { TESTING } from '../../cli/utils/env.ts';
+import { createLoadedAddon } from './index.ts';
+import { color, fileExists, installPackages, readFile, writeFile } from './utils.ts';
+import { createWorkspace } from './workspace.ts';
+import { TESTING } from '../utils/env.ts';
 import type { Addon, AddonDefinition, LoadedAddon, OptionValues, SetupResult, SvApi } from '../../addon/config.ts';
 import { getErrorHint } from '../../addon/config.ts';
 import type { PackageManager, Workspace } from '../../addon/workspace.ts';

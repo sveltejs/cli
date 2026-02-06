@@ -6,7 +6,7 @@ import { dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-util
 import { defineAddon, defineAddonOptions } from '../addon/config.ts';
 import type { OptionValues } from '../addon/options.ts';
 import { color } from '../cli/add/utils.ts';
-import { getNodeTypesVersion } from './_engine/common.ts';
+import { getNodeTypesVersion } from './common.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';
 const PORTS: Record<Database, string> = {

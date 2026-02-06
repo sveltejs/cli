@@ -1,8 +1,8 @@
 import process from 'node:process';
 import { expect } from '@playwright/test';
 import { setupTest } from '../_setup/suite.ts';
-import { officialAddons } from '../../_engine/official.ts';
-import type { AddonMap, OptionMap } from '../../_engine/add.ts';
+import { officialAddons } from '../../index.ts';
+import type { AddonMap, OptionMap } from '../../../cli/add/engine.ts';
 
 const windowsCI = process.env.CI && process.platform === 'win32';
 const addons = Object.values(officialAddons).reduce<AddonMap>((addonMap, addon) => {

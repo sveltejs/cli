@@ -1,7 +1,7 @@
 import type { OptionDefinition, Question } from './options.ts';
 export type { OptionValues } from './options.ts';
 import type { Workspace, WorkspaceOptions } from './workspace.ts';
-import type { officialAddons } from '../addons/_engine/official.ts';
+import type { officialAddons } from '../officials/index.ts';
 
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 

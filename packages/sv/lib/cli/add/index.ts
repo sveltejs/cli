@@ -9,8 +9,8 @@ import * as v from 'valibot';
 import {
 	officialAddons as _officialAddons,
 	getAddonDetails
-} from '../../addons/_engine/official.ts';
-import { applyAddons, setupAddons } from '../../addons/_engine/add.ts';
+} from '../../officials/index.ts';
+import { applyAddons, setupAddons } from './engine.ts';
 import type { AddonDefinition, AddonInput, AddonReference, AddonSource, LoadedAddon, OptionValues, SetupResult } from '../../addon/config.ts';
 import { getErrorHint } from '../../addon/config.ts';
 import type { Workspace } from '../../addon/workspace.ts';
