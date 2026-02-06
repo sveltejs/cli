@@ -7,7 +7,7 @@ import * as yaml from 'yaml';
 import * as toml from 'smol-toml';
 import { ensureScript } from './svelte/index.ts';
 
-import { Walker } from '../../core.ts';
+import * as Walker from 'zimmerframe';
 import type { TsEstree } from './js/ts-estree.ts';
 
 export type {

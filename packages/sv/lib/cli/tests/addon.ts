@@ -2,8 +2,8 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { classifyAddons } from '../add/index.ts';
-import { type AddonInput } from '../../core.ts';
-import { getErrorHint } from '../../coreInternal.ts';
+import type { AddonInput } from '../../addon/config.ts';
+import { getErrorHint } from '../../addon/config.ts';
 
 const testCwd = '/test/project';
 

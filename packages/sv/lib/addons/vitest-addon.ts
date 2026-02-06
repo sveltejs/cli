@@ -1,4 +1,6 @@
-import { dedent, defineAddon, defineAddonOptions, js, parse, color, json } from '../core.ts';
+import { dedent, js, parse, json } from '@sveltejs/sv-utils';
+import { defineAddon, defineAddonOptions } from '../addon/config.ts';
+import { color } from '../cli/add/utils.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {

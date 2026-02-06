@@ -6,7 +6,8 @@ import type { Argument, HelpConfiguration, Option } from 'commander';
 import process from 'node:process';
 import { type AgentName, resolveCommand } from 'package-manager-detector';
 
-import { color, isVersionUnsupportedBelow } from '../../core.ts';
+import { isVersionUnsupportedBelow } from '@sveltejs/sv-utils';
+import { color } from '../../cli/add/utils.ts';
 import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';

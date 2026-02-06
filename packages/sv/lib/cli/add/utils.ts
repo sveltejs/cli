@@ -5,7 +5,8 @@ import { type AgentName, resolveCommand } from 'package-manager-detector';
 import { styleText } from 'node:util';
 import { exec } from 'tinyexec';
 
-import { type Workspace, parse } from '../../core.ts';
+import { parse } from '@sveltejs/sv-utils';
+import type { Workspace } from '../../addon/workspace.ts';
 
 export type Package = {
 	name: string;

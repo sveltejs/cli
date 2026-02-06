@@ -14,7 +14,7 @@ import {
 import { exec } from 'tinyexec';
 
 import { color } from '../../cli/add/utils.ts';
-import { isVersionUnsupportedBelow, parse } from '../../core.ts';
+import { isVersionUnsupportedBelow, parse } from '@sveltejs/sv-utils';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')

@@ -1,24 +1,17 @@
-// from externals
+// External re-exports
 export { log } from '@clack/prompts';
 export { default as dedent } from 'dedent';
 export * as Walker from 'zimmerframe';
-
-// from internals
-export { defineAddon, defineAddonOptions } from './core/addon/config.ts';
-export { color } from './cli/add/utils.ts';
-export { isVersionUnsupportedBelow } from './core/common.ts';
-export { fileExists } from './cli/add/utils.ts';
 export { resolveCommand } from 'package-manager-detector/commands';
-export { getNodeTypesVersion, addToDemoPage } from './addons/_engine/common.ts';
-export { createPrinter } from './core/utils.ts';
 
-// parsing & languages
-export * as css from './core/tooling/css/index.ts';
-export * as js from './core/tooling/js/index.ts';
-export * as html from './core/tooling/html/index.ts';
-export * as text from './core/tooling/text.ts';
-export * as json from './core/tooling/json.ts';
-export * as svelte from './core/tooling/svelte/index.ts';
+// Parsing & language namespaces
+export * as css from './tooling/css/index.ts';
+export * as js from './tooling/js/index.ts';
+export * as html from './tooling/html/index.ts';
+export * as text from './tooling/text.ts';
+export * as json from './tooling/json.ts';
+export * as svelte from './tooling/svelte/index.ts';
+
 import {
 	parseCss,
 	parseHtml,
@@ -27,14 +20,14 @@ import {
 	parseSvelte,
 	parseToml,
 	parseYaml
-} from './core/tooling/parsers.ts';
+} from './tooling/parsers.ts';
 /**
  * Will help you `parse` code into an `ast` from all supported languages.
  * Then manipulate the `ast` as you want,
  * and finally `generateCode()` to write it back to the file.
  *
  * ```ts
- * import { parse } from 'sv/core';
+ * import { parse } from '@sveltejs/sv-utils';
  *
  * const { ast, generateCode } = parse.css('body { color: red; }');
  * const { ast, generateCode } = parse.html('<div>Hello, world!</div>');
@@ -55,9 +48,11 @@ export const parse = {
 	yaml: parseYaml as typeof parseYaml
 };
 
+// Utilities
+export { splitVersion, isVersionUnsupportedBelow } from './common.ts';
+export { createPrinter } from './utils.ts';
+export { sanitizeName } from './sanitize.ts';
+export { downloadJson } from './downloadJson.ts';
+
 // Types
-export type * from './core/addon/processors.ts';
-export type * from './core/addon/options.ts';
-export type * from './core/addon/config.ts';
-export type * from './core/addon/workspace.ts';
-export type { Comments, AstTypes, SvelteAst } from './core/tooling/index.ts';
+export type { Comments, AstTypes, SvelteAst } from './tooling/index.ts';

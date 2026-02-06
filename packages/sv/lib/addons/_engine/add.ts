@@ -6,17 +6,9 @@ import { createLoadedAddon } from '../../cli/add/index.ts';
 import { color, fileExists, installPackages, readFile, writeFile } from '../../cli/add/utils.ts';
 import { createWorkspace } from '../../cli/add/workspace.ts';
 import { TESTING } from '../../cli/utils/env.ts';
-import type {
-	Addon,
-	AddonDefinition,
-	LoadedAddon,
-	OptionValues,
-	PackageManager,
-	SetupResult,
-	SvApi,
-	Workspace
-} from '../../core.ts';
-import { getErrorHint } from '../../coreInternal.ts';
+import type { Addon, AddonDefinition, LoadedAddon, OptionValues, SetupResult, SvApi } from '../../addon/config.ts';
+import { getErrorHint } from '../../addon/config.ts';
+import type { PackageManager, Workspace } from '../../addon/workspace.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;

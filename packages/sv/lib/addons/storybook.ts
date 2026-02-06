@@ -1,6 +1,7 @@
 import process from 'node:process';
 
-import { defineAddon, getNodeTypesVersion } from '../core.ts';
+import { defineAddon } from '../addon/config.ts';
+import { getNodeTypesVersion } from './_engine/common.ts';
 
 export default defineAddon({
 	id: 'storybook',

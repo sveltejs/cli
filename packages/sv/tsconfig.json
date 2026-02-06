@@ -3,8 +3,6 @@
 	"include": ["bin.ts", "lib/**/*.ts"],
 	"exclude": [
 		"dist/**",
-		"lib/core/tests/**/input.ts",
-		"lib/core/tests/**/output.ts",
 		"lib/create/templates/**",
 		"lib/create/shared/vite.config.ts",
 		"lib/cli/tests/snapshots/**"

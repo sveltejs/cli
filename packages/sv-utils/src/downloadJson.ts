@@ -1,6 +1,6 @@
 const inMemoryCache = new Map<string, any>();
 
-export const downloadJson = async (url: string) => {
+export const downloadJson = async (url: string): Promise<any> => {
 	if (inMemoryCache.has(url)) {
 		return inMemoryCache.get(url);
 	}

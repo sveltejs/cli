@@ -1,4 +1,5 @@
-import { dedent, defineAddon, js, log, parse, json, text } from '../core.ts';
+import { dedent, js, log, parse, json, text } from '@sveltejs/sv-utils';
+import { defineAddon } from '../addon/config.ts';
 
 export default defineAddon({
 	id: 'playwright',

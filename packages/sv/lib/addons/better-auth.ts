@@ -1,19 +1,7 @@
-import {
-	type AstTypes,
-	Walker,
-	addToDemoPage,
-	dedent,
-	defineAddon,
-	defineAddonOptions,
-	text,
-	js,
-	json,
-	log,
-	parse,
-	resolveCommand,
-	color,
-	createPrinter
-} from '../core.ts';
+import { type AstTypes, Walker, dedent, text, js, json, log, parse, resolveCommand, createPrinter } from '@sveltejs/sv-utils';
+import { defineAddon, defineAddonOptions } from '../addon/config.ts';
+import { color } from '../cli/add/utils.ts';
+import { addToDemoPage } from './_engine/common.ts';
 import crypto from 'node:crypto';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';

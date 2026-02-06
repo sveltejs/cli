@@ -1,16 +1,7 @@
-import {
-	addToDemoPage,
-	defineAddon,
-	defineAddonOptions,
-	html,
-	js,
-	log,
-	parse,
-	color,
-	svelte,
-	type SvelteAst,
-	text
-} from '../core.ts';
+import { html, js, log, parse, svelte, type SvelteAst, text } from '@sveltejs/sv-utils';
+import { defineAddon, defineAddonOptions } from '../addon/config.ts';
+import { color } from '../cli/add/utils.ts';
+import { addToDemoPage } from './_engine/common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',

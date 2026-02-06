@@ -1,6 +1,6 @@
 import process from 'node:process';
 
-import { type SvelteAst, js, parse, svelte } from '../../core.ts';
+import { type SvelteAst, js, parse, svelte } from '@sveltejs/sv-utils';
 
 export function addEslintConfigPrettier(content: string): string {
 	const { ast, generateCode } = parse.script(content);

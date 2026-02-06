@@ -11,17 +11,9 @@ import {
 	getAddonDetails
 } from '../../addons/_engine/official.ts';
 import { applyAddons, setupAddons } from '../../addons/_engine/add.ts';
-import type {
-	AddonDefinition,
-	AddonInput,
-	AddonReference,
-	AddonSource,
-	LoadedAddon,
-	OptionValues,
-	SetupResult,
-	Workspace
-} from '../../core.ts';
-import { getErrorHint } from '../../coreInternal.ts';
+import type { AddonDefinition, AddonInput, AddonReference, AddonSource, LoadedAddon, OptionValues, SetupResult } from '../../addon/config.ts';
+import { getErrorHint } from '../../addon/config.ts';
+import type { Workspace } from '../../addon/workspace.ts';
 import { noDownloadCheckOption, noInstallOption } from '../create.ts';
 import * as common from '../utils/common.ts';
 import {

@@ -1,5 +1,7 @@
-import { defineAddon, defineAddonOptions, log, parse, color } from '../core.ts';
-import { getSharedFiles } from '../coreInternal.ts';
+import { log, parse } from '@sveltejs/sv-utils';
+import { defineAddon, defineAddonOptions } from '../addon/config.ts';
+import { color } from '../cli/add/utils.ts';
+import { getSharedFiles } from '../create/utils.ts';
 
 const options = defineAddonOptions()
 	.add('ide', {

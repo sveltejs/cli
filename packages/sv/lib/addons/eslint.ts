@@ -1,5 +1,6 @@
-import { type AstTypes, defineAddon, getNodeTypesVersion, js, log, parse, json } from '../core.ts';
-import { addEslintConfigPrettier } from '../coreInternal.ts';
+import { type AstTypes, js, log, parse, json } from '@sveltejs/sv-utils';
+import { defineAddon } from '../addon/config.ts';
+import { addEslintConfigPrettier, getNodeTypesVersion } from './_engine/common.ts';
 
 export default defineAddon({
 	id: 'eslint',

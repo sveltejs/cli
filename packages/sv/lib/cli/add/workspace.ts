@@ -1,7 +1,8 @@
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import { type AstTypes, type PackageManager, type Workspace, js, parse } from '../../core.ts';
+import { type AstTypes, js, parse } from '@sveltejs/sv-utils';
+import type { PackageManager, Workspace } from '../../addon/workspace.ts';
 import { detectPackageManager } from '../utils/package-manager.ts';
 import { commonFilePaths, getPackageJson, readFile } from './utils.ts';
 

@@ -1,4 +1,5 @@
-import { css, defineAddon, defineAddonOptions, js, parse, svelte, json } from '../core.ts';
+import { css, js, parse, svelte, json } from '@sveltejs/sv-utils';
+import { defineAddon, defineAddonOptions } from '../addon/config.ts';
 
 const plugins = [
 	{

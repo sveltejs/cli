@@ -6,7 +6,7 @@ import { resolveCommand } from 'package-manager-detector/commands';
 
 import { forwardExitCode } from './utils/common.ts';
 import { detectPackageManager } from './utils/package-manager.ts';
-import { color } from '../core.ts';
+import { color } from './add/utils.ts';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
