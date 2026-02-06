@@ -6,13 +6,18 @@ import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 
-import {
-	officialAddons as _officialAddons,
-	getAddonDetails
-} from '../officials/index.ts';
+import { officialAddons as _officialAddons, getAddonDetails } from '../officials/index.ts';
 import { applyAddons, setupAddons } from './utils/engine.ts';
-import type { AddonDefinition, AddonInput, AddonReference, AddonSource, LoadedAddon, OptionValues, SetupResult } from '../addon/config.ts';
-import { getErrorHint } from '../addon/config.ts';
+import {
+	type AddonDefinition,
+	type AddonInput,
+	type AddonReference,
+	type AddonSource,
+	type LoadedAddon,
+	type OptionValues,
+	type SetupResult,
+	getErrorHint
+} from '../addon/config.ts';
 import type { Workspace } from '../addon/workspace.ts';
 import { noDownloadCheckOption, noInstallOption } from './create.ts';
 import * as common from './utils/common.ts';

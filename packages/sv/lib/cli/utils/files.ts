@@ -133,4 +133,3 @@ export const commonFilePaths = {
 	viteConfig: 'vite.config.js',
 	viteConfigTS: 'vite.config.ts'
 } as const;
-

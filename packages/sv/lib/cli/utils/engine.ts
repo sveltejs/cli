@@ -6,8 +6,15 @@ import { createLoadedAddon } from '../add.ts';
 import { fileExists, installPackages, readFile, writeFile } from './files.ts';
 import { createWorkspace } from './workspace.ts';
 import { TESTING } from './env.ts';
-import type { Addon, AddonDefinition, LoadedAddon, OptionValues, SetupResult, SvApi } from '../../addon/config.ts';
-import { getErrorHint } from '../../addon/config.ts';
+import {
+	getErrorHint,
+	type Addon,
+	type AddonDefinition,
+	type LoadedAddon,
+	type OptionValues,
+	type SetupResult,
+	type SvApi
+} from '../../addon/config.ts';
 import type { PackageManager, Workspace } from '../../addon/workspace.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {

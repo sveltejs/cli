@@ -1,5 +1,16 @@
 import { log } from '@clack/prompts';
-import { type AstTypes, Walker, color, dedent, text, js, json, parse, resolveCommand, createPrinter } from '@sveltejs/sv-utils';
+import {
+	type AstTypes,
+	Walker,
+	color,
+	dedent,
+	text,
+	js,
+	json,
+	parse,
+	resolveCommand,
+	createPrinter
+} from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../addon/config.ts';
 import { addToDemoPage } from './common.ts';
 import crypto from 'node:crypto';
