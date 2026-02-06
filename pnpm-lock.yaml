@@ -113,13 +113,14 @@ importers:
         version: 5.45.10
 
   packages/sv:
+    dependencies:
+      '@sveltejs/sv-utils':
+        specifier: workspace:*
+        version: link:../sv-utils
     devDependencies:
       '@clack/prompts':
         specifier: 1.0.0
         version: 1.0.0
-      '@sveltejs/sv-utils':
-        specifier: workspace:*
-        version: link:../sv-utils
       '@types/estree':
         specifier: ^1.0.8
         version: 1.0.8
@@ -160,8 +161,8 @@ importers:
         specifier: ^3.35.1
         version: 3.35.1
       svelte:
-        specifier: ^5.47.1
-        version: 5.47.1
+        specifier: ^5.49.2
+        version: 5.49.2
       tar-fs:
         specifier: ^3.1.1
         version: 3.1.1
@@ -211,8 +212,8 @@ importers:
         specifier: ^3.35.1
         version: 3.35.1
       svelte:
-        specifier: ^5.47.1
-        version: 5.49.1
+        specifier: ^5.49.2
+        version: 5.49.2
       yaml:
         specifier: ^2.8.2
         version: 2.8.2
@@ -2139,12 +2140,12 @@ packages:
     resolution: {integrity: sha512-GiWXq6akkEN3zVDMQ1BVlRolmks5JkEdzD/67mvXOz6drRfuddT5JwsGZjMGSnsTRv/PjAXX8fqBcOr2g2qc/Q==}
     engines: {node: '>=18'}
 
-  svelte@5.47.1:
-    resolution: {integrity: sha512-MhSWfWEpG5T57z0Oyfk9D1GhAz/KTZKZZlWtGEsy9zNk2fafpuU7sJQlXNSA8HtvwKxVC9XlDyl5YovXUXjjHA==}
-    engines: {node: '>=18'}
-
   svelte@5.49.1:
     resolution: {integrity: sha512-jj95WnbKbXsXXngYj28a4zx8jeZx50CN/J4r0CEeax2pbfdsETv/J1K8V9Hbu3DCXnpHz5qAikICuxEooi7eNQ==}
+    engines: {node: '>=18'}
+
+  svelte@5.49.2:
+    resolution: {integrity: sha512-PYLwnngYzyhKzqDlGVlCH4z+NVI8mC0/bTv15vw25CcdOhxENsOHIbQ36oj5DIf3oBazM+STbCAvaskpxtBmWA==}
     engines: {node: '>=18'}
 
   synckit@0.11.11:
@@ -4263,7 +4264,7 @@ snapshots:
       magic-string: 0.30.21
       zimmerframe: 1.1.4
 
-  svelte@5.47.1:
+  svelte@5.49.1:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -4281,7 +4282,7 @@ snapshots:
       magic-string: 0.30.21
       zimmerframe: 1.1.4
 
-  svelte@5.49.1:
+  svelte@5.49.2:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5

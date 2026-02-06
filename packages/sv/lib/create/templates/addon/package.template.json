@@ -17,6 +17,7 @@
 		}
 	},
 	"dependencies": {
+		"@sveltejs/sv-utils": "workspace:*",
 		"sv": "workspace:*"
 	},
 	"devDependencies": {

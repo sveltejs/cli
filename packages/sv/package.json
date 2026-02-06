@@ -29,9 +29,11 @@
 			"default": "./dist/lib/testing.mjs"
 		}
 	},
+	"dependencies": {
+		"@sveltejs/sv-utils": "workspace:*"
+	},
 	"devDependencies": {
 		"@clack/prompts": "1.0.0",
-		"@sveltejs/sv-utils": "workspace:*",
 		"@types/estree": "^1.0.8",
 		"@types/gitignore-parser": "^0.0.3",
 		"@types/ps-tree": "^1.1.6",
@@ -45,7 +47,7 @@
 		"package-manager-detector": "^1.6.0",
 		"ps-tree": "^1.2.0",
 		"sucrase": "^3.35.1",
-		"svelte": "^5.47.1",
+		"svelte": "^5.49.2",
 		"tar-fs": "^3.1.1",
 		"tiny-glob": "^0.2.9",
 		"tinyexec": "^1.0.2",

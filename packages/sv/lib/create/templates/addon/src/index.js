@@ -1,4 +1,5 @@
-import { defineAddon, defineAddonOptions, js, parse, svelte } from 'sv/core';
+import { defineAddon, defineAddonOptions } from 'sv';
+import { js, parse, svelte } from '@sveltejs/sv-utils';
 
 const options = defineAddonOptions()
 	.add('who', {

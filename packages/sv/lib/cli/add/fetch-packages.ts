@@ -27,9 +27,9 @@ function verifyPackage(addonPkg: Record<string, any>, specifier: string): string
 		);
 	}
 
-	// addons should never have any external dependencies outside of `sv`
+	// addons should never have any external dependencies outside of `sv` and `@sveltejs/sv-utils`
 	for (const dep of Object.keys(deps)) {
-		if (dep === 'sv') continue;
+		if (dep === 'sv' || dep === '@sveltejs/sv-utils') continue;
 		throw new Error(
 			`Invalid add-on package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides 'sv'. Consider bundling your dependencies if they are necessary`
 		);

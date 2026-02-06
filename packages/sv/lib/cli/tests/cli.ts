@@ -116,10 +116,11 @@ describe('cli', () => {
 			}
 
 			if (template === 'addon') {
-				// replace sv version in package.json for tests
+				// replace sv and sv-utils versions in package.json for tests
 				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 				packageJson.dependencies['sv'] = 'file:../../../..';
+				packageJson.dependencies['@sveltejs/sv-utils'] = 'file:../../../../sv-utils';
 				fs.writeFileSync(
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')

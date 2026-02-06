@@ -12,10 +12,6 @@ export default defineConfig([
 			oxc: true
 		},
 		plugins: [],
-		noExternal: ['@sveltejs/sv-utils'],
-		alias: {
-			'@sveltejs/sv-utils': path.resolve('packages/sv-utils/src/index.ts')
-		},
 		inputOptions: {
 			experimental: {
 				resolveNewUrlToAsset: false
