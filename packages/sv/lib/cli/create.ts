@@ -3,7 +3,7 @@ import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { resolveCommand } from '@sveltejs/sv-utils';
+import { color, resolveCommand } from '@sveltejs/sv-utils';
 import * as v from 'valibot';
 
 import type { LoadedAddon, OptionValues } from '../addon/config.ts';
@@ -29,9 +29,9 @@ import {
 	resolveAddons,
 	runAddonsApply,
 	getNextSteps
-} from './add/index.ts';
-import { color, commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
-import { createWorkspace } from './add/workspace.ts';
+} from './add.ts';
+import { commonFilePaths, formatFiles, getPackageJson } from './utils/files.ts';
+import { createWorkspace } from './utils/workspace.ts';
 import * as common from './utils/common.ts';
 import {
 	AGENT_NAMES,

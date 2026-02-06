@@ -60,5 +60,8 @@ export { createPrinter } from './utils.ts';
 export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
 
+// Terminal styling
+export { color } from './color.ts';
+
 // Types
 export type { Comments, AstTypes, SvelteAst } from './tooling/index.ts';

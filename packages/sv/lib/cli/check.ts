@@ -2,11 +2,10 @@ import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
-import { resolveCommand } from '@sveltejs/sv-utils';
+import { color, resolveCommand } from '@sveltejs/sv-utils';
 
 import { forwardExitCode } from './utils/common.ts';
 import { detectPackageManager } from './utils/package-manager.ts';
-import { color } from './add/utils.ts';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')

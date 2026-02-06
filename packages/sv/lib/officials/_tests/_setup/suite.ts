@@ -13,7 +13,7 @@ import {
 	type Fixtures,
 	type SetupTestOptions
 } from 'sv/testing';
-import type { AddonMap } from '../../../cli/add/engine.ts';
+import type { AddonMap } from '../../../cli/utils/engine.ts';
 
 const cwd = inject('testDir');
 const templatesDir = inject('templatesDir');

@@ -2,7 +2,7 @@
 
 import { program } from 'commander';
 
-import { add } from './lib/cli/add/index.ts';
+import { add } from './lib/cli/add.ts';
 import { check } from './lib/cli/check.ts';
 import { create } from './lib/cli/create.ts';
 import { migrate } from './lib/cli/migrate.ts';

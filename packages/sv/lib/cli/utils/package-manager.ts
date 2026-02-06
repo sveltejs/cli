@@ -6,8 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { exec } from 'tinyexec';
 
-import { color } from '../../cli/add/utils.ts';
-import { AGENTS, type AgentName, COMMANDS, constructCommand, detect, isVersionUnsupportedBelow, parse } from '@sveltejs/sv-utils';
+import { AGENTS, type AgentName, COMMANDS, color, constructCommand, detect, isVersionUnsupportedBelow, parse } from '@sveltejs/sv-utils';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')

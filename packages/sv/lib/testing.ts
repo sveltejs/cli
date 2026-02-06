@@ -7,7 +7,7 @@ import { exec, x } from 'tinyexec';
 
 import { create } from './create/index.ts';
 import type { TestProject } from 'vitest/node';
-import type { AddonMap, OptionMap } from './cli/add/engine.ts';
+import type { AddonMap, OptionMap } from './cli/utils/engine.ts';
 import type { Page } from '@playwright/test';
 
 export { addPnpmBuildDependencies } from './cli/utils/package-manager.ts';

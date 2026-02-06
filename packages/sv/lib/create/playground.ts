@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { commonFilePaths } from '../cli/add/utils.ts';
+import { commonFilePaths } from '../cli/utils/files.ts';
 
 import { isVersionUnsupportedBelow, js, parse, svelte, downloadJson, Walker } from '@sveltejs/sv-utils';
 import { getSharedFiles } from './utils.ts';

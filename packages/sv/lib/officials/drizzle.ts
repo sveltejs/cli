@@ -2,10 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-import { dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-utils';
+import { color, dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../addon/config.ts';
 import type { OptionValues } from '../addon/options.ts';
-import { color } from '../cli/add/utils.ts';
 import { getNodeTypesVersion } from './common.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';

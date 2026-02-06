@@ -1,7 +1,6 @@
 import { log } from '@clack/prompts';
-import { parse } from '@sveltejs/sv-utils';
+import { color, parse } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../addon/config.ts';
-import { color } from '../cli/add/utils.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
 const options = defineAddonOptions()

@@ -4,8 +4,7 @@ import pkg from '../../../package.json' with { type: 'json' };
 import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
 import process from 'node:process';
-import { type AgentName, resolveCommand, isVersionUnsupportedBelow } from '@sveltejs/sv-utils';
-import { color } from '../../cli/add/utils.ts';
+import { type AgentName, color, resolveCommand, isVersionUnsupportedBelow } from '@sveltejs/sv-utils';
 import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';
