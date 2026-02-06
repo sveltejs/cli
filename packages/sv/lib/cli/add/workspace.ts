@@ -156,9 +156,7 @@ function parseKitOptions(cwd: string, svelteConfigPath: string) {
 		}
 
 		if (!objectExpression)
-			throw Error(
-				`Unable to find svelte config object expression from \`${svelteConfigPath}\``
-			);
+			throw Error(`Unable to find svelte config object expression from \`${svelteConfigPath}\``);
 	} else if (defaultExport.declaration.type === 'ObjectExpression') {
 		// e.g. `export default { ... };`
 		objectExpression = defaultExport.declaration;
