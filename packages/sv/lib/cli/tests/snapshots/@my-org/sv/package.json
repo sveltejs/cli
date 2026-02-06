@@ -23,7 +23,7 @@
 		"sv": "latest"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.58.0",
+		"@playwright/test": "^1.58.1",
 		"vitest": "^4.0.18"
 	},
 	"keywords": [

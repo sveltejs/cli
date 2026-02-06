@@ -11,13 +11,13 @@ export default defineAddon({
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('eslint', '^9.39.2');
-		sv.devDependency('@eslint/compat', '^2.0.1');
+		sv.devDependency('@eslint/compat', '^2.0.2');
 		sv.devDependency('eslint-plugin-svelte', '^3.14.0');
-		sv.devDependency('globals', '^17.1.0');
+		sv.devDependency('globals', '^17.3.0');
 		sv.devDependency('@eslint/js', '^9.39.2');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
-		if (typescript) sv.devDependency('typescript-eslint', '^8.53.1');
+		if (typescript) sv.devDependency('typescript-eslint', '^8.54.0');
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 

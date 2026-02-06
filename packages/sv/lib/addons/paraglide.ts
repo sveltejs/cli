@@ -67,7 +67,7 @@ export default defineAddon({
 
 		const paraglideOutDir = 'src/lib/paraglide';
 
-		sv.devDependency('@inlang/paraglide-js', '^2.9.1');
+		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
 
 		// add the vite plugin
 		sv.file(files.viteConfig, (content) => {

@@ -109,7 +109,7 @@ export default defineAddon({
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.16.1');
+		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.16.3');
 		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
