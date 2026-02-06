@@ -1,9 +1,9 @@
 import type { Addon, AddonDefinition } from '../../core.ts';
+import ai from '../ai.ts';
 import devtoolsJson from '../devtools-json.ts';
 import drizzle from '../drizzle.ts';
 import eslint from '../eslint.ts';
 import lucia from '../lucia.ts';
-import mcp from '../mcp.ts';
 import mdsvex from '../mdsvex.ts';
 import paraglide from '../paraglide.ts';
 import playwright from '../playwright.ts';
@@ -26,7 +26,7 @@ type OfficialAddons = {
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
-	mcp: Addon<any>;
+	ai: Addon<any>;
 };
 
 // The order of addons here determines the order they are displayed inside the CLI
@@ -44,7 +44,7 @@ export const officialAddons: OfficialAddons = {
 	mdsvex,
 	paraglide,
 	storybook,
-	mcp
+	ai
 };
 
 export function getAddonDetails(id: string): AddonDefinition {

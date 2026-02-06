@@ -49,11 +49,11 @@ Prevents installing dependencies
 
 ## Official add-ons
 
+- [`ai`](ai)
 - [`devtools-json`](devtools-json)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
 - [`lucia`](lucia)
-- [`mcp`](mcp)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
 - [`playwright`](playwright)

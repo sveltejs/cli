@@ -1,23 +1,23 @@
 import { expect } from 'vitest';
 import { setupTest } from '../_setup/suite.ts';
-import mcp from '../../mcp.ts';
+import ai from '../../ai.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const { test, testCases } = setupTest(
-	{ mcp },
+	{ ai },
 	{
 		kinds: [
 			{
 				type: 'default-local',
 				options: {
-					mcp: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'local' }
+					ai: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'local' }
 				}
 			},
 			{
 				type: 'default-remote',
 				options: {
-					mcp: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'remote' }
+					ai: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'remote' }
 				}
 			}
 		],
@@ -45,7 +45,7 @@ const { test, testCases } = setupTest(
 	}
 );
 
-test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
+test.concurrent.for(testCases)('ai $kind.type $variant', (testCase, ctx) => {
 	const cwd = ctx.cwd(testCase);
 
 	const getContent = (filePath: string) => {

@@ -29,7 +29,8 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'mcp',
+	id: 'ai',
+	alias: 'mcp',
 	shortDescription: 'Svelte MCP',
 	homepage: 'https://svelte.dev/docs/mcp',
 	options,
@@ -110,7 +111,7 @@ export default defineAddon({
 		const filesAdded: string[] = [];
 		const filesExistingAlready: string[] = [];
 
-		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('mcp'));
+		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('ai'));
 		const agentFile = sharedFiles.find((file) => file.name === 'AGENTS.md');
 
 		for (const ide of options.ide) {

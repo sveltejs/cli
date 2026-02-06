@@ -146,3 +146,12 @@ await updatePackageFiles('packages/sv/lib/create/templates', 'package.template.j
 
 // Update shared package.json files
 await updatePackageFiles('packages/sv/lib/create/shared', 'package.json', 'shared');
+
+// Fetch the latest AGENTS.md from the MCP repo
+const agents_response = await fetch(
+	'https://raw.githubusercontent.com/sveltejs/mcp/544ef3d2dbd08c2fafb4312a16c8fad28155793c/instructions/AGENTS.md'
+);
+fs.writeFileSync(
+	path.resolve('packages', 'sv', 'lib', 'create', 'shared', '+ai', 'AGENTS.md'),
+	await agents_response.text()
+);
