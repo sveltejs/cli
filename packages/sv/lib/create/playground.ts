@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { walk } from 'zimmerframe';
 import { commonFilePaths } from '../cli/add/utils.ts';
 
-import { isVersionUnsupportedBelow, js, parse, svelte, downloadJson } from '@sveltejs/sv-utils';
+import { isVersionUnsupportedBelow, js, parse, svelte, downloadJson, Walker } from '@sveltejs/sv-utils';
 import { getSharedFiles } from './utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
@@ -192,7 +191,7 @@ export function setupPlaygroundProject(
 				const { ast, generateCode } = parse.svelte(file.contents);
 				// change title and url placeholders
 				svelte.ensureScript(ast);
-				walk(ast.instance.content as js.AstTypes.Node, null, {
+				Walker.walk(ast.instance.content as js.AstTypes.Node, null, {
 					Literal(node) {
 						if (node.value === '$sv-title-$sv') {
 							node.value = playground.name;
