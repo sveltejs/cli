@@ -142,9 +142,6 @@ importers:
       gitignore-parser:
         specifier: ^0.0.2
         version: 0.0.2
-      package-manager-detector:
-        specifier: ^1.6.0
-        version: 1.6.0
       ps-tree:
         specifier: ^1.2.0
         version: 1.2.0
@@ -166,9 +163,6 @@ importers:
 
   packages/sv-utils:
     devDependencies:
-      '@clack/prompts':
-        specifier: 1.0.0
-        version: 1.0.0
       '@types/estree':
         specifier: ^1.0.8
         version: 1.0.8
@@ -181,9 +175,6 @@ importers:
       esrap:
         specifier: ^2.2.2
         version: 2.2.2
-      magic-string:
-        specifier: ^0.30.21
-        version: 0.30.21
       package-manager-detector:
         specifier: ^1.6.0
         version: 1.6.0

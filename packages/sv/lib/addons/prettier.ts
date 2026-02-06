@@ -1,4 +1,5 @@
-import { dedent, log, parse, json } from '@sveltejs/sv-utils';
+import { log } from '@clack/prompts';
+import { dedent, parse, json } from '@sveltejs/sv-utils';
 import { defineAddon } from '../addon/config.ts';
 import { color } from '../cli/add/utils.ts';
 import { addEslintConfigPrettier } from './_engine/common.ts';

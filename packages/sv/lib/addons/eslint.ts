@@ -1,4 +1,5 @@
-import { type AstTypes, js, log, parse, json } from '@sveltejs/sv-utils';
+import { log } from '@clack/prompts';
+import { type AstTypes, js, parse, json } from '@sveltejs/sv-utils';
 import { defineAddon } from '../addon/config.ts';
 import { addEslintConfigPrettier, getNodeTypesVersion } from './_engine/common.ts';
 

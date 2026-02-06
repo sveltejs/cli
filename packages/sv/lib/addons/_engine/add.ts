@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { resolveCommand } from 'package-manager-detector';
+import { resolveCommand } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 
 import { createLoadedAddon } from '../../cli/add/index.ts';

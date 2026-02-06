@@ -1,8 +1,14 @@
 // External re-exports
-export { log } from '@clack/prompts';
 export { default as dedent } from 'dedent';
 export * as Walker from 'zimmerframe';
-export { resolveCommand } from 'package-manager-detector/commands';
+export {
+	AGENTS,
+	type AgentName,
+	COMMANDS,
+	constructCommand,
+	detect,
+	resolveCommand
+} from 'package-manager-detector';
 
 // Parsing & language namespaces
 export * as css from './tooling/css/index.ts';

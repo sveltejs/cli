@@ -3,7 +3,7 @@ import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { resolveCommand } from 'package-manager-detector';
+import { resolveCommand } from '@sveltejs/sv-utils';
 import * as v from 'valibot';
 
 import type { LoadedAddon, OptionValues } from '../addon/config.ts';

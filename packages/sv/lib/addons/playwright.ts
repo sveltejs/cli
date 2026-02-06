@@ -1,4 +1,5 @@
-import { dedent, js, log, parse, json, text } from '@sveltejs/sv-utils';
+import { log } from '@clack/prompts';
+import { dedent, js, parse, json, text } from '@sveltejs/sv-utils';
 import { defineAddon } from '../addon/config.ts';
 
 export default defineAddon({

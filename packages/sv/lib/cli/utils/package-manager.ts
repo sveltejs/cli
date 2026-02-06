@@ -4,17 +4,10 @@ import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import {
-	AGENTS,
-	type AgentName,
-	COMMANDS,
-	constructCommand,
-	detect
-} from 'package-manager-detector';
 import { exec } from 'tinyexec';
 
 import { color } from '../../cli/add/utils.ts';
-import { isVersionUnsupportedBelow, parse } from '@sveltejs/sv-utils';
+import { AGENTS, type AgentName, COMMANDS, constructCommand, detect, isVersionUnsupportedBelow, parse } from '@sveltejs/sv-utils';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
