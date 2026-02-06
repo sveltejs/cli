@@ -2,6 +2,11 @@
 	"name": "@sveltejs/sv-utils",
 	"version": "0.0.1",
 	"type": "module",
+	"scripts": {
+		"check": "tsgo",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path ../../.prettierignore"
+	},
 	"files": [
 		"dist"
 	],
