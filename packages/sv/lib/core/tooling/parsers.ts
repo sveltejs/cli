@@ -28,7 +28,9 @@ export function parseScript(source: string): {
 	return { ast, comments, source, generateCode };
 }
 
-export function parseCss(source: string): { ast:  Omit<utils.SvelteAst.CSS.StyleSheet, 'attributes' | 'content'>  } & ParseBase {
+export function parseCss(
+	source: string
+): { ast: Omit<utils.SvelteAst.CSS.StyleSheet, 'attributes' | 'content'> } & ParseBase {
 	const ast = utils.parseCss(source);
 	const generateCode = () => utils.serializeCss(ast);
 

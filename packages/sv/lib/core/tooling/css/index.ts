@@ -73,7 +73,10 @@ export function addDeclaration(
 	}
 }
 
-export function addImports(node: Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'>, options: { imports: string[] }): void {
+export function addImports(
+	node: Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'>,
+	options: { imports: string[] }
+): void {
 	let lastImportIndex = -1;
 
 	// Find the last existing @import to insert after it

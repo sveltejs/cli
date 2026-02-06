@@ -6,7 +6,7 @@ import {
 	type AST as SvelteAst,
 	parse as svelteParse,
 	print as sveltePrint,
-	parseCss as svelteParseCss,
+	parseCss as svelteParseCss
 } from 'svelte/compiler';
 import * as yaml from 'yaml';
 import * as toml from 'smol-toml';
@@ -67,11 +67,15 @@ export function serializeScript(
 	return code;
 }
 
-export function parseCss(content: string): Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'> {
+export function parseCss(
+	content: string
+): Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'> {
 	return svelteParseCss(content);
 }
 
-export function serializeCss(ast: Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'>): string {
+export function serializeCss(
+	ast: Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'>
+): string {
 	// `svelte` can print the stylesheet directly. But this adds the style tags (<style>) that we do not want here.
 	// `svelte` is unable to print an array of rules (ast.children) directly, therefore we concatenate the printed rules manually.
 
