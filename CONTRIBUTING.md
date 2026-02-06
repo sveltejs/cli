@@ -59,11 +59,11 @@ pnpm dev
 
 For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
 
-Tests are split into projects: `cli`, `core`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
+Tests are split into projects: `cli`, `sv-utils`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
 
 ```sh
 pnpm test --project migrate            # Migrate tests
-pnpm test --project core               # Core utility tests
+pnpm test --project sv-utils           # Core utility tests
 pnpm test --project create             # Project creation tests
 pnpm test --project addons             # Add-on tests
 

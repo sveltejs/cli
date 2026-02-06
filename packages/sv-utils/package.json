@@ -2,6 +2,14 @@
 	"name": "@sveltejs/sv-utils",
 	"version": "0.0.1",
 	"type": "module",
+	"description": "Utility functions for sv",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sveltejs/cli.git",
+		"directory": "packages/sv-utils"
+	},
+	"homepage": "https://svelte.dev",
 	"scripts": {
 		"check": "tsgo",
 		"format": "pnpm lint --write",
@@ -27,5 +35,11 @@
 		"svelte": "^5.49.2",
 		"yaml": "^2.8.2",
 		"zimmerframe": "^1.1.4"
-	}
+	},
+	"keywords": [
+		"sv",
+		"sv-add",
+		"svelte",
+		"sveltekit"
+	]
 }
