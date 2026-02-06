@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { commonFilePaths } from '../cli/utils/files.ts';
+import { commonFilePaths } from '../utils/files.ts';
 
 import {
 	isVersionUnsupportedBelow,

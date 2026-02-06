@@ -1,5 +1,5 @@
 import { js, parse } from '@sveltejs/sv-utils';
-import { defineAddon } from '../addon/config.ts';
+import { defineAddon } from '../utils/config.ts';
 
 export default defineAddon({
 	id: 'devtools-json',

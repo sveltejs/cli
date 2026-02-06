@@ -1,5 +1,5 @@
 import { css, js, parse, svelte, json } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../addon/config.ts';
+import { defineAddon, defineAddonOptions } from '../utils/config.ts';
 
 const plugins = [
 	{

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
-import { commonFilePaths } from '../cli/utils/files.ts';
+import { commonFilePaths } from '../utils/files.ts';
 import { sanitizeName } from '@sveltejs/sv-utils';
 
 export type TemplateType = (typeof templateTypes)[number];

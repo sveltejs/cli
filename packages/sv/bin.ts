@@ -6,7 +6,7 @@ import { add } from './lib/cli/add.ts';
 import { check } from './lib/cli/check.ts';
 import { create } from './lib/cli/create.ts';
 import { migrate } from './lib/cli/migrate.ts';
-import { helpConfig } from './lib/cli/utils/common.ts';
+import { helpConfig } from './lib/utils/common.ts';
 import pkg from './package.json' with { type: 'json' };
 
 // adds a gap of spacing between the executing command and the output

@@ -10,8 +10,8 @@ import {
 	sanitizeName,
 	text
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../addon/config.ts';
-import { fileExists } from '../cli/utils/files.ts';
+import { defineAddon, defineAddonOptions } from '../utils/config.ts';
+import { fileExists } from '../utils/files.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },

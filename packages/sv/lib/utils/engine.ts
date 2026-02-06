@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import { color, resolveCommand } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 
-import { createLoadedAddon } from '../add.ts';
+import { createLoadedAddon } from '../cli/add.ts';
 import { fileExists, installPackages, readFile, writeFile } from './files.ts';
 import { createWorkspace } from './workspace.ts';
 import { TESTING } from './env.ts';
@@ -14,8 +14,8 @@ import {
 	type OptionValues,
 	type SetupResult,
 	type SvApi
-} from '../../addon/config.ts';
-import type { PackageManager, Workspace } from '../../addon/workspace.ts';
+} from './config.ts';
+import type { PackageManager, Workspace } from './workspace.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;

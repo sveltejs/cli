@@ -1,6 +1,6 @@
 import { log } from '@clack/prompts';
 import { color, html, js, parse, svelte, type SvelteAst, text } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../addon/config.ts';
+import { defineAddon, defineAddonOptions } from '../utils/config.ts';
 import { addToDemoPage } from './common.ts';
 
 const DEFAULT_INLANG_PROJECT = {

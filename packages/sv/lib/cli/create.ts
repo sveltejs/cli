@@ -6,8 +6,8 @@ import process from 'node:process';
 import { color, resolveCommand } from '@sveltejs/sv-utils';
 import * as v from 'valibot';
 
-import type { LoadedAddon, OptionValues } from '../addon/config.ts';
-import type { Workspace } from '../addon/workspace.ts';
+import type { LoadedAddon, OptionValues } from '../utils/config.ts';
+import type { Workspace } from '../utils/workspace.ts';
 import {
 	type LanguageType,
 	type TemplateType,
@@ -30,9 +30,9 @@ import {
 	runAddonsApply,
 	getNextSteps
 } from './add.ts';
-import { commonFilePaths, formatFiles, getPackageJson } from './utils/files.ts';
-import { createWorkspace } from './utils/workspace.ts';
-import * as common from './utils/common.ts';
+import { commonFilePaths, formatFiles, getPackageJson } from '../utils/files.ts';
+import { createWorkspace } from '../utils/workspace.ts';
+import * as common from '../utils/common.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
@@ -40,7 +40,7 @@ import {
 	installDependencies,
 	installOption,
 	packageManagerPrompt
-} from './utils/package-manager.ts';
+} from '../utils/package-manager.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {

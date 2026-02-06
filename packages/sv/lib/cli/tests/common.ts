@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizePosix, parseAddonOptions } from '../utils/common.ts';
+import { normalizePosix, parseAddonOptions } from '../../utils/common.ts';
 
 describe('normalizePosix', () => {
 	const std = 'this/is/going/forward';

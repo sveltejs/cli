@@ -6,13 +6,13 @@ import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
 
-import pkg from '../../../package.json' with { type: 'json' };
+import pkg from '../../package.json' with { type: 'json' };
 import { color, downloadJson, splitVersion } from '@sveltejs/sv-utils';
-import type { AddonDefinition, AddonReference } from '../../addon/config.ts';
+import type { AddonDefinition, AddonReference } from './config.ts';
 import * as common from './common.ts';
 
 // path to the `node_modules` directory of `sv`
-const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));
+const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));
 
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	// We should look only for dependencies, not devDependencies or peerDependencies

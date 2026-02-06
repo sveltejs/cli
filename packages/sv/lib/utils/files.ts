@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { type AgentName, resolveCommand, parse } from '@sveltejs/sv-utils';
 import { exec } from 'tinyexec';
-import type { Workspace } from '../../addon/workspace.ts';
+import type { Workspace } from './workspace.ts';
 
 export type Package = {
 	name: string;

@@ -7,10 +7,10 @@ import { exec, x } from 'tinyexec';
 
 import { create } from './create/index.ts';
 import type { TestProject } from 'vitest/node';
-import type { AddonMap, OptionMap } from './cli/utils/engine.ts';
+import type { AddonMap, OptionMap } from './utils/engine.ts';
 import type { Page } from '@playwright/test';
 
-export { addPnpmBuildDependencies } from './cli/utils/package-manager.ts';
+export { addPnpmBuildDependencies } from './utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 export const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 

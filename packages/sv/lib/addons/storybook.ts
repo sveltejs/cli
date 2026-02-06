@@ -1,6 +1,6 @@
 import process from 'node:process';
 
-import { defineAddon } from '../addon/config.ts';
+import { defineAddon } from '../utils/config.ts';
 import { getNodeTypesVersion } from './common.ts';
 
 export default defineAddon({

@@ -1,4 +1,4 @@
-import type { Addon, AddonDefinition } from '../addon/config.ts';
+import type { Addon, AddonDefinition } from '../utils/config.ts';
 import betterAuth from './better-auth.ts';
 import devtoolsJson from './devtools-json.ts';
 import drizzle from './drizzle.ts';
