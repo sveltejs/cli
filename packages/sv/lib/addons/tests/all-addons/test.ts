@@ -1,5 +1,5 @@
-import process from 'node:process';
 import { expect } from '@playwright/test';
+import process from 'node:process';
 import type { AddonMap, OptionMap } from '../../../core/engine.ts';
 import { officialAddons } from '../../index.ts';
 import { setupTest } from '../_setup/suite.ts';

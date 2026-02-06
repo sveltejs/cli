@@ -1,6 +1,6 @@
+import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { expect } from '@playwright/test';
 import sveltekitAdapter from '../../sveltekit-adapter.ts';
 import { setupTest } from '../_setup/suite.ts';
 

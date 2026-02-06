@@ -1,6 +1,6 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import process from 'node:process';
-import * as p from '@clack/prompts';
 import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import semver from 'semver';

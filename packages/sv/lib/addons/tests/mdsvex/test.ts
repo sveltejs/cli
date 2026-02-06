@@ -1,6 +1,6 @@
+import { expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect } from '@playwright/test';
 import { js, svelte, parse } from '@sveltejs/sv-utils';
 import mdsvex from '../../mdsvex.ts';
 import { setupTest } from '../_setup/suite.ts';

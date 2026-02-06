@@ -1,8 +1,8 @@
 #!/usr/bin/env node
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import * as p from '@clack/prompts';
 import pc from 'picocolors';
 
 const migration = process.argv[2];

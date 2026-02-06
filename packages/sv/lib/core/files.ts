@@ -1,6 +1,6 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
-import * as p from '@clack/prompts';
 import { exec } from 'tinyexec';
 import { type AgentName, resolveCommand, parse } from '@sveltejs/sv-utils';
 import type { Workspace } from './workspace.ts';

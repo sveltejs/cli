@@ -1,8 +1,8 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
-import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import glob from 'tiny-glob/sync.js';
 import { bail, relative, move_file, check_git, migration_succeeded } from '../../utils.js';

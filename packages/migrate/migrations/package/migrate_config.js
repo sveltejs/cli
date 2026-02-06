@@ -1,6 +1,6 @@
-import fs from 'node:fs';
 import * as p from '@clack/prompts';
 import MagicString from 'magic-string';
+import fs from 'node:fs';
 import pc from 'picocolors';
 import ts from 'typescript';
 

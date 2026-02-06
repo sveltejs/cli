@@ -1,7 +1,7 @@
+import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
-import { Command } from 'commander';
 import { color, resolveCommand } from '@sveltejs/sv-utils';
 import { forwardExitCode } from '../core/common.ts';
 import { detectPackageManager } from '../core/package-manager.ts';

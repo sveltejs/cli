@@ -1,8 +1,8 @@
+import * as p from '@clack/prompts';
+import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as p from '@clack/prompts';
-import { Command, Option } from 'commander';
 import * as v from 'valibot';
 import { color, resolveCommand } from '@sveltejs/sv-utils';
 import * as common from '../core/common.ts';

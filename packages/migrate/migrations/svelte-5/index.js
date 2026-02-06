@@ -1,10 +1,10 @@
+import * as p from '@clack/prompts';
+import { resolve } from 'import-meta-resolve';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import { dirname } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import * as p from '@clack/prompts';
-import { resolve } from 'import-meta-resolve';
 import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import semver from 'semver';

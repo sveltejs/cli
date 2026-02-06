@@ -1,10 +1,10 @@
 import myPlugin from 'my-plugin';
-import path from 'node:path';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import browserslist from 'browserslist';
 import { browserslistToTargets } from 'lightningcss';
 import examples from 'mdsvexamples/vite';
+import path from 'node:path';
 import { defineConfig, type UserConfig } from 'vite';
 import { kitRoutes } from 'vite-plugin-kit-routes';
 

@@ -1,9 +1,9 @@
+import { expect } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { expect } from '@playwright/test';
 import { beforeAll } from 'vitest';
 import drizzle from '../../drizzle.ts';
 import { setupTest } from '../_setup/suite.ts';

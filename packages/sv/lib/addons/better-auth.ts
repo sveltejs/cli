@@ -1,5 +1,5 @@
-import crypto from 'node:crypto';
 import { log } from '@clack/prompts';
+import crypto from 'node:crypto';
 import {
 	type AstTypes,
 	Walker,

@@ -1,8 +1,8 @@
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
-import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { bail, check_git, migration_succeeded } from '../../utils.js';
 import { migrate_config } from './migrate_config.js';

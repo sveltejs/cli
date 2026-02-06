@@ -1,9 +1,9 @@
+import * as p from '@clack/prompts';
+import { Option } from 'commander';
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import * as p from '@clack/prompts';
-import { Option } from 'commander';
 import { exec } from 'tinyexec';
 import {
 	AGENTS,

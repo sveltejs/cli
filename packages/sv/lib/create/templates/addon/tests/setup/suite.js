@@ -1,7 +1,7 @@
+import { chromium } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from '@playwright/test';
 import { add } from 'sv';
 import { createProject, addPnpmBuildDependencies, prepareServer } from 'sv/testing';
 import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
