@@ -1,5 +1,26 @@
 # sv
 
+## 0.12.0
+### Minor Changes
+
+
+- remove: `lucia` from official addons in favor of `better-auth` ([#898](https://github.com/sveltejs/cli/pull/898))
+
+
+### Patch Changes
+
+
+- feat(add): `better-auth` is now an official addon ([#898](https://github.com/sveltejs/cli/pull/898))
+
+
+- fix(cli): unified package manager detection ([#900](https://github.com/sveltejs/cli/pull/900))
+
+
+- fix(cli): raw copy of binary files ([#905](https://github.com/sveltejs/cli/pull/905))
+
+
+- chore(cli): bump defaults versions ([#907](https://github.com/sveltejs/cli/pull/907))
+
 ## 0.11.4
 ### Patch Changes
 
