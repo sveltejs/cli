@@ -1,11 +1,11 @@
-import { sveltekit } from '@sveltejs/kit/vite';
-import examples from 'mdsvexamples/vite';
 import path from 'node:path';
-import { kitRoutes } from 'vite-plugin-kit-routes';
+import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
-import { browserslistToTargets } from 'lightningcss';
 import browserslist from 'browserslist';
+import { browserslistToTargets } from 'lightningcss';
+import examples from 'mdsvexamples/vite';
 import { defineConfig, type UserConfig } from 'vite';
+import { kitRoutes } from 'vite-plugin-kit-routes';
 
 const $root = path.resolve(__dirname, './src');
 const $lib = path.resolve($root, './lib');

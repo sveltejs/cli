@@ -1,7 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { commonFilePaths } from '../core/files.ts';
-
 import {
 	isVersionUnsupportedBelow,
 	js,
@@ -10,6 +8,7 @@ import {
 	downloadJson,
 	Walker
 } from '@sveltejs/sv-utils';
+import { commonFilePaths } from '../core/files.ts';
 import { getSharedFiles } from './utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {

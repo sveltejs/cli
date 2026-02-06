@@ -1,7 +1,6 @@
-import { expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-
+import { expect } from '@playwright/test';
 import addon from '../src/index.js';
 import { setupTest } from './setup/suite.js';
 

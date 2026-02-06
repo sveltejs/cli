@@ -1,7 +1,7 @@
-import * as p from '@clack/prompts';
 import fs from 'node:fs';
-import pc from 'picocolors';
+import * as p from '@clack/prompts';
 import MagicString from 'magic-string';
+import pc from 'picocolors';
 import ts from 'typescript';
 
 export function migrate_config() {

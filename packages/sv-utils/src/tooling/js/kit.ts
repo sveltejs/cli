@@ -1,5 +1,5 @@
-import type { AstTypes, Comments } from '../index.ts';
 import * as Walker from 'zimmerframe';
+import type { AstTypes, Comments } from '../index.ts';
 import * as common from './common.ts';
 import * as exports from './exports.ts';
 import * as functions from './function.ts';

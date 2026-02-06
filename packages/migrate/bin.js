@@ -2,8 +2,8 @@
 import fs from 'node:fs';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import pc from 'picocolors';
 import * as p from '@clack/prompts';
+import pc from 'picocolors';
 
 const migration = process.argv[2];
 const dir = fileURLToPath(new URL('.', import.meta.url));

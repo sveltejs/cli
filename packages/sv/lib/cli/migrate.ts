@@ -1,8 +1,7 @@
-import { Command } from 'commander';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
+import { Command } from 'commander';
 import { resolveCommand } from '@sveltejs/sv-utils';
-
 import { forwardExitCode } from '../core/common.ts';
 import { detectPackageManager } from '../core/package-manager.ts';
 

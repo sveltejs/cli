@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
-
 import { parse } from '@sveltejs/sv-utils';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');

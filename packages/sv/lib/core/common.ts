@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import pkg from '../../package.json' with { type: 'json' };
+import process from 'node:process';
 import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
-import process from 'node:process';
 import {
 	type AgentName,
 	color,
 	resolveCommand,
 	isVersionUnsupportedBelow
 } from '@sveltejs/sv-utils';
+import pkg from '../../package.json' with { type: 'json' };
 import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';

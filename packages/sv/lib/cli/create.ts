@@ -1,12 +1,22 @@
-import * as p from '@clack/prompts';
-import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { color, resolveCommand } from '@sveltejs/sv-utils';
+import * as p from '@clack/prompts';
+import { Command, Option } from 'commander';
 import * as v from 'valibot';
-
+import { color, resolveCommand } from '@sveltejs/sv-utils';
+import * as common from '../core/common.ts';
 import type { LoadedAddon, OptionValues } from '../core/config.ts';
+import { commonFilePaths, formatFiles, getPackageJson } from '../core/files.ts';
+import {
+	AGENT_NAMES,
+	addPnpmBuildDependencies,
+	detectPackageManager,
+	installDependencies,
+	installOption,
+	packageManagerPrompt
+} from '../core/package-manager.ts';
+import { createWorkspace, type Workspace } from '../core/workspace.ts';
 import {
 	type LanguageType,
 	type TemplateType,
@@ -29,17 +39,6 @@ import {
 	runAddonsApply,
 	getNextSteps
 } from './add.ts';
-import { commonFilePaths, formatFiles, getPackageJson } from '../core/files.ts';
-import { createWorkspace, type Workspace } from '../core/workspace.ts';
-import * as common from '../core/common.ts';
-import {
-	AGENT_NAMES,
-	addPnpmBuildDependencies,
-	detectPackageManager,
-	installDependencies,
-	installOption,
-	packageManagerPrompt
-} from '../core/package-manager.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType | undefined> = {

@@ -1,11 +1,12 @@
-import { resolve } from 'import-meta-resolve';
-import pc from 'picocolors';
 import { execSync } from 'node:child_process';
-import process from 'node:process';
 import fs from 'node:fs';
 import { dirname } from 'node:path';
+import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as p from '@clack/prompts';
+import { resolve } from 'import-meta-resolve';
+import { detect, resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
 import {
@@ -15,11 +16,10 @@ import {
 	update_js_file,
 	update_svelte_file
 } from '../../utils.js';
+import { transform_svelte_code as transform_app_state_code } from '../app-state/migrate.js';
 import { migrate as migrate_svelte_4 } from '../svelte-4/index.js';
 import { migrate as migrate_sveltekit_2 } from '../sveltekit-2/index.js';
-import { transform_svelte_code as transform_app_state_code } from '../app-state/migrate.js';
 import { transform_module_code, transform_svelte_code, update_pkg_json } from './migrate.js';
-import { detect, resolveCommand } from 'package-manager-detector';
 
 export async function migrate() {
 	if (!fs.existsSync('package.json')) {

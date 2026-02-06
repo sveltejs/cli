@@ -5,11 +5,10 @@ import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
-
-import pkg from '../../package.json' with { type: 'json' };
 import { color, downloadJson, splitVersion } from '@sveltejs/sv-utils';
-import type { AddonDefinition, AddonReference } from './config.ts';
+import pkg from '../../package.json' with { type: 'json' };
 import * as common from './common.ts';
+import type { AddonDefinition, AddonReference } from './config.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));

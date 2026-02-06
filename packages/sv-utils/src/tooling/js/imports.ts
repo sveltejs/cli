@@ -1,5 +1,5 @@
-import type { AstTypes } from '../index.ts';
 import * as Walker from 'zimmerframe';
+import type { AstTypes } from '../index.ts';
 import { areNodesEqual } from './common.ts';
 
 export function addEmpty(node: AstTypes.Program, options: { from: string }): void {

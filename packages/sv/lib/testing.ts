@@ -1,14 +1,13 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { execSync } from 'node:child_process';
+import type { Page } from '@playwright/test';
 import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
-
-import { create } from './create/index.ts';
 import type { TestProject } from 'vitest/node';
 import type { AddonMap, OptionMap } from './core/engine.ts';
-import type { Page } from '@playwright/test';
+import { create } from './create/index.ts';
 
 export { addPnpmBuildDependencies } from './core/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';

@@ -1,6 +1,5 @@
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-
 import type { AddonDefinition, SetupResult, Verification } from './config.ts';
 import { UnsupportedError } from './errors.ts';
 

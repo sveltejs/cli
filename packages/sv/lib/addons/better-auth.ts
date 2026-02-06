@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { log } from '@clack/prompts';
 import {
 	type AstTypes,
@@ -13,7 +14,6 @@ import {
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
-import crypto from 'node:crypto';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 

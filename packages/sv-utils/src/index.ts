@@ -1,3 +1,13 @@
+import {
+	parseCss,
+	parseHtml,
+	parseJson,
+	parseScript,
+	parseSvelte,
+	parseToml,
+	parseYaml
+} from './tooling/parsers.ts';
+
 // External re-exports
 export { default as dedent } from 'dedent';
 export * as Walker from 'zimmerframe';
@@ -18,15 +28,6 @@ export * as text from './tooling/text.ts';
 export * as json from './tooling/json.ts';
 export * as svelte from './tooling/svelte/index.ts';
 
-import {
-	parseCss,
-	parseHtml,
-	parseJson,
-	parseScript,
-	parseSvelte,
-	parseToml,
-	parseYaml
-} from './tooling/parsers.ts';
 /**
  * Will help you `parse` code into an `ast` from all supported languages.
  * Then manipulate the `ast` as you want,

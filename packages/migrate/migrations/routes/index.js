@@ -1,16 +1,16 @@
 import fs from 'node:fs';
-import pc from 'picocolors';
 import path from 'node:path';
 import process from 'node:process';
-import * as p from '@clack/prompts';
-import glob from 'tiny-glob/sync.js';
 import { pathToFileURL } from 'node:url';
-import { migrate_scripts } from './migrate_scripts/index.js';
+import * as p from '@clack/prompts';
+import pc from 'picocolors';
+import glob from 'tiny-glob/sync.js';
+import { bail, relative, move_file, check_git, migration_succeeded } from '../../utils.js';
 import { migrate_page } from './migrate_page_js/index.js';
 import { migrate_page_server } from './migrate_page_server/index.js';
+import { migrate_scripts } from './migrate_scripts/index.js';
 import { migrate_server } from './migrate_server/index.js';
 import { adjust_imports, task } from './utils.js';
-import { bail, relative, move_file, check_git, migration_succeeded } from '../../utils.js';
 
 export async function migrate() {
 	if (!fs.existsSync('svelte.config.js')) {

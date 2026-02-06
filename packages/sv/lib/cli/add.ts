@@ -1,13 +1,13 @@
-import * as p from '@clack/prompts';
-import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import * as p from '@clack/prompts';
+import { Command } from 'commander';
 import * as v from 'valibot';
-
+import { color } from '@sveltejs/sv-utils';
 import { officialAddons as _officialAddons, getAddonDetails } from '../addons/index.ts';
-import { applyAddons, setupAddons } from '../core/engine.ts';
+import * as common from '../core/common.ts';
 import {
 	type AddonDefinition,
 	type AddonInput,
@@ -18,9 +18,9 @@ import {
 	type SetupResult,
 	getErrorHint
 } from '../core/config.ts';
-import { createWorkspace, type Workspace } from '../core/workspace.ts';
-import { noDownloadCheckOption, noInstallOption } from './create.ts';
-import * as common from '../core/common.ts';
+import { applyAddons, setupAddons } from '../core/engine.ts';
+import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
+import { formatFiles } from '../core/files.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
@@ -28,10 +28,9 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../core/package-manager.ts';
-import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
-import { color } from '@sveltejs/sv-utils';
-import { formatFiles } from '../core/files.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../core/verifiers.ts';
+import { createWorkspace, type Workspace } from '../core/workspace.ts';
+import { noDownloadCheckOption, noInstallOption } from './create.ts';
 
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();
