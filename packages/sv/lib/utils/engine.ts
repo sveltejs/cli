@@ -1,10 +1,10 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand } from '@sveltejs/sv-utils';
+import { color, resolveCommand, type AgentName } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 
 import { createLoadedAddon } from '../cli/add.ts';
 import { fileExists, installPackages, readFile, writeFile } from './files.ts';
-import { createWorkspace } from './workspace.ts';
+import { createWorkspace, type Workspace } from './workspace.ts';
 import { TESTING } from './env.ts';
 import {
 	getErrorHint,
@@ -15,13 +15,12 @@ import {
 	type SetupResult,
 	type SvApi
 } from './config.ts';
-import type { PackageManager, Workspace } from './workspace.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
 	addons: Addons;
 	options: OptionMap<Addons>;
-	packageManager?: PackageManager;
+	packageManager?: AgentName;
 };
 
 export type AddonMap = Record<string, Addon<any, any>>;

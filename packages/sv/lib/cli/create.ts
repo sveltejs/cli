@@ -7,7 +7,6 @@ import { color, resolveCommand } from '@sveltejs/sv-utils';
 import * as v from 'valibot';
 
 import type { LoadedAddon, OptionValues } from '../utils/config.ts';
-import type { Workspace } from '../utils/workspace.ts';
 import {
 	type LanguageType,
 	type TemplateType,
@@ -31,7 +30,7 @@ import {
 	getNextSteps
 } from './add.ts';
 import { commonFilePaths, formatFiles, getPackageJson } from '../utils/files.ts';
-import { createWorkspace } from '../utils/workspace.ts';
+import { createWorkspace, type Workspace } from '../utils/workspace.ts';
 import * as common from '../utils/common.ts';
 import {
 	AGENT_NAMES,

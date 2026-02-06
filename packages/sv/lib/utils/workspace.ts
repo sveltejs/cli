@@ -1,7 +1,7 @@
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import { type AstTypes, js, parse } from '@sveltejs/sv-utils';
+import { type AgentName, type AstTypes, js, parse } from '@sveltejs/sv-utils';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
 import { commonFilePaths, getPackageJson, readFile } from './files.ts';
@@ -41,14 +41,12 @@ export type Workspace = {
 	/** If we are in a kit project, this object will contain the lib and routes directories */
 	kit: { libDirectory: string; routesDirectory: string } | undefined;
 	/** The package manager used to install dependencies */
-	packageManager: PackageManager;
+	packageManager: AgentName;
 };
-
-export type PackageManager = 'npm' | 'yarn' | 'pnpm' | 'bun' | 'deno';
 
 type CreateWorkspaceOptions = {
 	cwd: string;
-	packageManager?: PackageManager;
+	packageManager?: AgentName;
 	override?: {
 		kit?: Workspace['kit'];
 		dependencies: Record<string, string>;

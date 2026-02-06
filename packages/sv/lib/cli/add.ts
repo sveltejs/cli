@@ -18,7 +18,7 @@ import {
 	type SetupResult,
 	getErrorHint
 } from '../utils/config.ts';
-import type { Workspace } from '../utils/workspace.ts';
+import { createWorkspace, type Workspace } from '../utils/workspace.ts';
 import { noDownloadCheckOption, noInstallOption } from './create.ts';
 import * as common from '../utils/common.ts';
 import {
@@ -32,7 +32,6 @@ import { downloadPackage, getPackageJSON } from '../utils/fetch-packages.ts';
 import { color } from '@sveltejs/sv-utils';
 import { formatFiles } from '../utils/files.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../utils/verifiers.ts';
-import { createWorkspace } from '../utils/workspace.ts';
 
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();
