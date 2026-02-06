@@ -26,7 +26,8 @@ import {
 	classifyAddons,
 	promptAddonQuestions,
 	resolveAddons,
-	runAddonsApply
+	runAddonsApply,
+	getNextSteps
 } from './add/index.ts';
 import { color, commonFilePaths, formatFiles, getPackageJson } from './add/utils.ts';
 import { createWorkspace } from './add/workspace.ts';
@@ -285,14 +286,14 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	p.log.success('Project created');
 
-	let addOnNextSteps: string[] = [];
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
+	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
-			nextSteps,
 			argsFormattedAddons: argsFormatted,
-			filesToFormat
+			filesToFormat,
+			successfulAddons
 		} = await runAddonsApply({
 			answers,
 			options: {
@@ -310,7 +311,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		});
 		argsFormattedAddons = argsFormatted;
 		addOnFilesToFormat = filesToFormat;
-		addOnNextSteps = nextSteps;
+		addOnSuccessfulAddons = successfulAddons;
 	}
 
 	const packageManager =
@@ -333,6 +334,11 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [directory]);
 	common.updateReadme(directory, prompt);
+
+	if (packageManager) {
+		workspace.packageManager = packageManager;
+	}
+	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) {

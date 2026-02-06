@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const { test, testCases } = setupTest(
 	{ devtoolsJson },
-	{ kinds: [{ type: 'default', options: { devtoolsJson: {} } }], browser: false }
+	{ kinds: [{ type: 'default', options: { [devtoolsJson.id]: {} } }], browser: false }
 );
 
 test.concurrent.for(testCases)('devtools-json $variant', (testCase, ctx) => {

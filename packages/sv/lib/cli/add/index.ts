@@ -502,7 +502,7 @@ export async function promptAddonQuestions({
 		const results = setupAddons(officialLoaded, workspace);
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
-			.filter(({ id }) => results[id].unsupported.length === 0)
+			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
@@ -712,7 +712,12 @@ export async function runAddonsApply({
 	setupResults?: Record<string, SetupResult>;
 	workspace: Workspace;
 	fromCommand: 'create' | 'add';
-}): Promise<{ nextSteps: string[]; argsFormattedAddons: string[]; filesToFormat: string[] }> {
+}): Promise<{
+	nextSteps: string[];
+	argsFormattedAddons: string[];
+	filesToFormat: string[];
+	successfulAddons: LoadedAddon[];
+}> {
 	if (!setupResults) {
 		// When no addons are selected, use official addons for setup
 		const setups = loadedAddons.length
@@ -723,7 +728,7 @@ export async function runAddonsApply({
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
 	if (loadedAddons.length === 0)
-		return { nextSteps: [], argsFormattedAddons: [], filesToFormat: [] };
+		return { nextSteps: [], argsFormattedAddons: [], filesToFormat: [], successfulAddons: [] };
 
 	const { filesToFormat, pnpmBuildDependencies, status } = await applyAddons({
 		loadedAddons,
@@ -825,8 +830,17 @@ export async function runAddonsApply({
 		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
 	}
 
-	// print next steps
-	const nextSteps = successfulAddons
+	const nextSteps = getNextSteps(successfulAddons, workspace, answers);
+
+	return { nextSteps, argsFormattedAddons, filesToFormat, successfulAddons };
+}
+
+export function getNextSteps(
+	loadedAddons: LoadedAddon[],
+	workspace: Workspace,
+	answers: Record<string, OptionValues<any>>
+): string[] {
+	return loadedAddons
 		.map((loaded) => {
 			const addon = loaded.addon;
 			if (!addon.nextSteps) return;
@@ -839,8 +853,6 @@ export async function runAddonsApply({
 			return addonMessage;
 		})
 		.filter((msg): msg is string => msg !== undefined);
-
-	return { nextSteps, argsFormattedAddons, filesToFormat };
 }
 
 /**

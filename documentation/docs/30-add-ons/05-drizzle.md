@@ -14,7 +14,7 @@ npx sv add drizzle
 
 - a setup that keeps your database access in SvelteKit's server files
 - an `.env` file to store your credentials
-- compatibility with the Lucia auth add-on
+- compatibility with the Better Auth add-on
 - an optional Docker configuration to help with running a local database
 
 ## Options

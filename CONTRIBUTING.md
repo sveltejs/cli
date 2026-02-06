@@ -85,15 +85,24 @@ pnpm test
 
 ### Debugging
 
-Example of how to debug an addon failing test. Once, you ran the test command, you will have a directory in `.test-output` with the test id. A good starting point is to `cd` into the failing tests dir. Proceed to `build` it. Then `preview` it. From here you will have increased information to help in the debug process. E.g.:
+Example of how to debug an addon failing test. Once you run the test command, you will have a directory in `.test-output` with the test id. A good starting point is to `cd` into the failing tests dir and run the app directly. E.g.:
 
 ```sh
-pnpm test --project addons tailwind # to debug the tailwind addon failing test
-# Each test is a standalone app
-cd .test-output/addons/[addon-test]/[test-id]
+pnpm test --project addons better-auth   # Run the failing test first
+
+# Each test generates a standalone app in .test-output
+cd packages/sv/.test-output/addons/better-auth/default-kit-ts
+
+# Option 1: Run dev server for interactive debugging
+pnpm dev
+# Open http://localhost:5173 and use browser DevTools to inspect
+
+# Option 2: Build and preview (matches production behavior)
 pnpm build
 pnpm preview
 ```
+
+Using dev mode with browser DevTools is often the fastest way to debug UI issues - you can inspect network requests, console errors, and the DOM directly. Once you identify the issue, fix it in the addon source (`packages/sv/lib/addons/[addon].ts`) and re-run the test.
 
 ### Update snapshots
 

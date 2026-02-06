@@ -8,7 +8,8 @@ import {
 	parse,
 	color,
 	svelte,
-	type SvelteAst
+	type SvelteAst,
+	text
 } from '../core.ts';
 
 const DEFAULT_INLANG_PROJECT = {
@@ -114,7 +115,7 @@ export default defineAddon({
 
 		// handle hook
 		sv.file(`src/hooks.server.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, generateCode, comments } = parse.script(content);
 			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
 				imports: ['paraglideMiddleware']
@@ -129,7 +130,8 @@ export default defineAddon({
 			js.kit.addHooksHandle(ast, {
 				language,
 				newHandleName: 'handleParaglide',
-				handleContent: hookHandleContent
+				handleContent: hookHandleContent,
+				comments
 			});
 
 			return generateCode();
@@ -157,9 +159,9 @@ export default defineAddon({
 		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
 
-			if (!content.includes(`\n${paraglideOutDir}`)) {
-				content = content.trimEnd() + `\n\n# Paraglide\n${paraglideOutDir}\nproject.inlang/cache/`;
-			}
+			content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
+			content = text.upsert(content, 'project.inlang/cache/');
+
 			return content;
 		});
 

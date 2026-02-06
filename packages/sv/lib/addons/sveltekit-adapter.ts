@@ -9,7 +9,8 @@ import {
 	resolveCommand,
 	fileExists,
 	json,
-	color
+	color,
+	text
 } from '../core.ts';
 import { sanitizeName } from '../coreInternal.ts';
 
@@ -182,11 +183,11 @@ export default defineAddon({
 			const typeChecked = language === 'ts' || jsconfig;
 
 			if (typeChecked) {
-				// Ignore generated Cloudflare Types
 				sv.file(files.gitignore, (content) => {
-					return content.includes('.wrangler') && content.includes('worker-configuration.d.ts')
-						? content
-						: `${content.trimEnd()}\n\n# Cloudflare Types\n/worker-configuration.d.ts`;
+					if (content.length === 0) return content;
+					return text.upsert(content, '/worker-configuration.d.ts', {
+						comment: 'Cloudflare Types'
+					});
 				});
 
 				// Setup wrangler types command

@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 import {
 	type OptionValues,
 	dedent,
 	defineAddon,
 	defineAddonOptions,
+	text,
 	getNodeTypesVersion,
 	js,
 	parse,
@@ -124,8 +126,8 @@ export default defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.0');
 
-		sv.file('.env', (content) => generateEnvFileContent(content, options));
-		sv.file('.env.example', (content) => generateEnvFileContent(content, options));
+		sv.file('.env', (content) => generateEnvFileContent(content, options, false));
+		sv.file('.env.example', (content) => generateEnvFileContent(content, options, true));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
 			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
@@ -200,22 +202,14 @@ export default defineAddon({
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
 			sv.file(files.prettierignore, (content) => {
-				if (!content.includes(`/drizzle/`)) {
-					return content.trimEnd() + '\n/drizzle/';
-				}
-				return content;
+				return text.upsert(content, '/drizzle/');
 			});
 		}
 
 		if (options.database === 'sqlite') {
 			sv.file(files.gitignore, (content) => {
-				// Adds the db file to the gitignore if an ignore is present
 				if (content.length === 0) return content;
-
-				if (!content.includes('\n*.db')) {
-					content = content.trimEnd() + '\n\n# SQLite\n*.db';
-				}
-				return content;
+				return text.upsert(content, '*.db', { comment: 'SQLite' });
 			});
 		}
 
@@ -250,50 +244,53 @@ export default defineAddon({
 		sv.file(paths['database schema'], (content) => {
 			const { ast, generateCode } = parse.script(content);
 
-			let userSchemaExpression;
+			let taskSchemaExpression;
 			if (options.database === 'sqlite') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
 					imports: ['integer', 'sqliteTable', 'text']
 				});
 
-				userSchemaExpression = js.common.parseExpression(`sqliteTable('user', {
-					id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-					age: integer('age')
-				})`);
+				taskSchemaExpression = js.common.parseExpression(`sqliteTable('task', {
+				id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+				title: text('title').notNull(),
+				priority: integer('priority').notNull().default(1)
+			})`);
 			}
 			if (options.database === 'mysql') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/mysql-core',
-					imports: ['mysqlTable', 'serial', 'int']
+					imports: ['mysqlTable', 'serial', 'int', 'text']
 				});
 
-				userSchemaExpression = js.common.parseExpression(`mysqlTable('user', {
-					id: serial('id').primaryKey(),
-					age: int('age'),
-				})`);
+				taskSchemaExpression = js.common.parseExpression(`mysqlTable('task', {
+				id: serial('id').primaryKey(),
+				title: text('title').notNull(),
+				priority: int('priority').notNull().default(1)
+			})`);
 			}
 			if (options.database === 'postgresql') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/pg-core',
-					imports: ['pgTable', 'serial', 'integer']
+					imports: ['pgTable', 'serial', 'integer', 'text']
 				});
 
-				userSchemaExpression = js.common.parseExpression(`pgTable('user', {
-					id: serial('id').primaryKey(),
-					age: integer('age'),
-				})`);
+				taskSchemaExpression = js.common.parseExpression(`pgTable('task', {
+				id: serial('id').primaryKey(),
+				title: text('title').notNull(),
+				priority: integer('priority').notNull().default(1)
+			})`);
 			}
 
-			if (!userSchemaExpression) throw new Error('unreachable state...');
-			const userIdentifier = js.variables.declaration(ast, {
+			if (!taskSchemaExpression) throw new Error('unreachable state...');
+			const taskIdentifier = js.variables.declaration(ast, {
 				kind: 'const',
-				name: 'user',
-				value: userSchemaExpression
+				name: 'task',
+				value: taskSchemaExpression
 			});
 			js.exports.createNamed(ast, {
-				name: 'user',
-				fallback: userIdentifier
+				name: 'task',
+				fallback: taskIdentifier
 			});
 
 			return generateCode();
@@ -336,16 +333,11 @@ export default defineAddon({
 				});
 
 				if (options.sqlite === 'turso') {
-					js.imports.addNamed(ast, {
-						from: '$app/environment',
-						imports: ['dev']
-					});
-					// auth token check in prod
-					const authTokenCheck = js.common.parseStatement(
-						"if (!dev && !env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
+					ast.body.push(
+						js.common.parseStatement(
+							"if (!env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
+						)
 					);
-					ast.body.push(authTokenCheck);
-
 					clientExpression = js.common.parseExpression(
 						'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
 					);
@@ -430,9 +422,7 @@ export default defineAddon({
 		});
 	},
 	nextSteps: ({ options, packageManager }) => {
-		const steps = [
-			`You will need to set ${color.env('DATABASE_URL')} in your production environment`
-		];
+		const steps: string[] = [];
 		if (options.docker) {
 			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
@@ -452,57 +442,49 @@ export default defineAddon({
 	}
 });
 
-function generateEnvFileContent(content: string, opts: OptionValues<typeof options>) {
+function generateEnvFileContent(
+	content: string,
+	opts: OptionValues<typeof options>,
+	isExample: boolean
+) {
 	const DB_URL_KEY = 'DATABASE_URL';
+
+	// Calculate value and comment based on database options
+	let value: string;
+	const comment: NonNullable<Parameters<typeof text.upsert>[2]>['comment'] = ['Drizzle'];
+
 	if (opts.docker) {
-		// we'll prefill with the default docker db credentials
 		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
 		const port = PORTS[opts.database];
-		content = addEnvVar(
-			content,
-			DB_URL_KEY,
-			`"${protocol}://root:mysecretpassword@localhost:${port}/local"`
+		value = `"${protocol}://root:mysecretpassword@localhost:${port}/local"`;
+	} else if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
+		value = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
+	} else if (opts.sqlite === 'turso') {
+		value = '"libsql://db-name-user.turso.io"';
+		comment.push(
+			'Replace with your DB credentials!',
+			{ text: 'A local DB can also be used in dev as well', mode: 'append' },
+			{ text: `${DB_URL_KEY}="file:local.db"`, mode: 'append' }
 		);
-		return content;
-	}
-	if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
-		const dbFile = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
-		content = addEnvVar(content, DB_URL_KEY, dbFile);
-		return content;
+	} else if (opts.database === 'mysql') {
+		value = '"mysql://user:password@host:port/db-name"';
+		comment.push('Replace with your DB credentials!');
+	} else if (opts.database === 'postgresql') {
+		// postgresql
+		value = '"postgres://user:password@host:port/db-name"';
+		comment.push('Replace with your DB credentials!');
+	} else {
+		value = '';
 	}
 
-	content = addEnvComment(content, 'Replace with your DB credentials!');
+	content = text.upsert(content, DB_URL_KEY, { value, comment, separator: true });
+
+	// Turso requires an auth token
 	if (opts.sqlite === 'turso') {
-		content = addEnvVar(content, DB_URL_KEY, '"libsql://db-name-user.turso.io"');
-		content = addEnvVar(content, 'DATABASE_AUTH_TOKEN', '""');
-		content = addEnvComment(content, 'A local DB can also be used in dev as well');
-		content = addEnvComment(content, `${DB_URL_KEY}="file:local.db"`);
+		content = text.upsert(content, 'DATABASE_AUTH_TOKEN', {
+			value: isExample ? `""` : `"${crypto.randomUUID()}"`
+		});
 	}
-	if (opts.database === 'mysql') {
-		content = addEnvVar(content, DB_URL_KEY, '"mysql://user:password@host:port/db-name"');
-	}
-	if (opts.database === 'postgresql') {
-		content = addEnvVar(content, DB_URL_KEY, '"postgres://user:password@host:port/db-name"');
-	}
-	return content;
-}
 
-function addEnvVar(content: string, key: string, value: string) {
-	if (!content.includes(key + '=')) {
-		content = appendEnvContent(content, `${key}=${value}`);
-	}
 	return content;
-}
-
-function addEnvComment(content: string, comment: string) {
-	const commented = `# ${comment}`;
-	if (!content.includes(commented)) {
-		content = appendEnvContent(content, commented);
-	}
-	return content;
-}
-
-function appendEnvContent(existing: string, content: string) {
-	const withNewLine = !existing.length || existing.endsWith('\n') ? existing : existing + '\n';
-	return withNewLine + content + '\n';
 }
