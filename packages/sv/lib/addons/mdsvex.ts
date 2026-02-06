@@ -1,5 +1,5 @@
 import { js, parse } from '@sveltejs/sv-utils';
-import { defineAddon } from '../utils/config.ts';
+import { defineAddon } from '../core/config.ts';
 
 export default defineAddon({
 	id: 'mdsvex',

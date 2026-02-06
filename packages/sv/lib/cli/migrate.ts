@@ -3,8 +3,8 @@ import { execSync } from 'node:child_process';
 import process from 'node:process';
 import { resolveCommand } from '@sveltejs/sv-utils';
 
-import { forwardExitCode } from '../utils/common.ts';
-import { detectPackageManager } from '../utils/package-manager.ts';
+import { forwardExitCode } from '../core/common.ts';
+import { detectPackageManager } from '../core/package-manager.ts';
 
 export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')

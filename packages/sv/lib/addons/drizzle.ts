@@ -3,8 +3,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 
 import { color, dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../utils/config.ts';
-import type { OptionValues } from '../utils/options.ts';
+import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite';

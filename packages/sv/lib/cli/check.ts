@@ -4,8 +4,8 @@ import { execSync } from 'node:child_process';
 import process from 'node:process';
 import { color, resolveCommand } from '@sveltejs/sv-utils';
 
-import { forwardExitCode } from '../utils/common.ts';
-import { detectPackageManager } from '../utils/package-manager.ts';
+import { forwardExitCode } from '../core/common.ts';
+import { detectPackageManager } from '../core/package-manager.ts';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')

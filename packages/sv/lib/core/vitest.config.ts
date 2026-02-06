@@ -2,7 +2,7 @@ import { defineProject } from 'vitest/config';
 
 export default defineProject({
 	test: {
-		name: 'utils',
+		name: 'core',
 		include: ['./tests/*.ts'],
 		expect: {
 			requireAssertions: true

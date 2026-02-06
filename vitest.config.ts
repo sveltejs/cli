@@ -5,7 +5,7 @@ export default defineConfig({
 		projects: [
 			'packages/migrate',
 			'packages/sv/lib/cli/vitest.config.ts',
-			'packages/sv/lib/utils/vitest.config.ts',
+			'packages/sv/lib/core/vitest.config.ts',
 			'packages/sv/lib/addons/vitest.config.ts',
 			'packages/sv/lib/create/vitest.config.ts',
 			'packages/sv-utils/src/vitest.config.ts'

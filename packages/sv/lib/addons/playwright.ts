@@ -1,6 +1,6 @@
 import { log } from '@clack/prompts';
 import { dedent, js, parse, json, text } from '@sveltejs/sv-utils';
-import { defineAddon } from '../utils/config.ts';
+import { defineAddon } from '../core/config.ts';
 
 export default defineAddon({
 	id: 'playwright',

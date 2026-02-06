@@ -11,7 +11,7 @@ import {
 	resolveCommand,
 	createPrinter
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../utils/config.ts';
+import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 import crypto from 'node:crypto';
 
