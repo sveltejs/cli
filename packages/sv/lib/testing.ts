@@ -6,9 +6,11 @@ import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 
 import { create } from './create/index.ts';
-import type { TestProject } from 'vitest/node';
 import type { AddonMap, OptionMap } from './addons/_engine/add.ts';
-import type { Page } from '@playwright/test';
+
+// With tsdown@0.20, this cause the pull of postcss to be included in the bundle.
+// import type { TestProject } from 'vitest/node';
+type TestProject = { provide: (key: string, value: any) => void };
 
 export { addPnpmBuildDependencies } from './cli/utils/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
@@ -182,8 +184,9 @@ export function setupGlobal({
 	};
 }
 
+type PageLike = any;
 export type Fixtures = {
-	page: Page;
+	page: PageLike;
 	cwd(addonTestCase: AddonTestCase<any>): string;
 };
 
@@ -201,7 +204,7 @@ export type SetupTestOptions<Addons extends AddonMap> = {
 
 export type PrepareServerOptions = {
 	cwd: string;
-	page: Page;
+	page: PageLike;
 	buildCommand?: string;
 	previewCommand?: string;
 };

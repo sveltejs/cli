@@ -181,8 +181,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 				fileContent = content(fileContent);
 				if (!fileContent) return fileContent;
 
-				// FIXME: https://github.com/rolldown/tsdown/issues/575 to remove the `replaceAll`
-				writeFile(workspace, path, fileContent.replaceAll('<\\/script>', '</script>'));
+				writeFile(workspace, path, fileContent);
 				files.add(path);
 			} catch (e) {
 				if (e instanceof Error) {
