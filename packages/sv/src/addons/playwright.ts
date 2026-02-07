@@ -8,7 +8,7 @@ export default defineAddon({
 	homepage: 'https://playwright.dev',
 	options: {},
 	run: ({ sv, language, files }) => {
-		sv.devDependency('@playwright/test', '^1.58.1');
+		sv.devDependency('@playwright/test', '^1.58.2');
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);

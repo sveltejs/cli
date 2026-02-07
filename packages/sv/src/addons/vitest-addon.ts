@@ -37,7 +37,7 @@ export default defineAddon({
 		if (componentTesting) {
 			sv.devDependency('@vitest/browser-playwright', '^4.0.18');
 			sv.devDependency('vitest-browser-svelte', '^2.0.2');
-			sv.devDependency('playwright', '^1.58.1');
+			sv.devDependency('playwright', '^1.58.2');
 		}
 
 		sv.file(files.package, (content) => {

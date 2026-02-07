@@ -3,9 +3,10 @@ import path from 'node:path';
 import { styleText } from 'node:util';
 
 async function updateAddonDependencies() {
-	const addonsBasePath = path.resolve('packages', 'sv', 'lib', 'addons');
+	const addonsBasePath = path.resolve('packages', 'sv', 'src', 'addons');
 	const addonsFiles = fs
 		.readdirSync(addonsBasePath, { withFileTypes: true })
+		.filter((item) => item.isFile())
 		.map((item) => item.name)
 		.filter((x) => x !== 'node_modules' && !x.startsWith('_'));
 
