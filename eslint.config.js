@@ -19,24 +19,7 @@ export default [
 			eqeqeq: 'error',
 			'@typescript-eslint/await-thenable': 'error',
 			'@typescript-eslint/no-unused-expressions': 'off',
-			'@typescript-eslint/require-await': 'error',
-			'no-restricted-imports': [
-				'error',
-				{
-					patterns: [
-						{
-							group: ['**/core/**/*'],
-							message: 'Import from "lib/core.ts" instead of directly from "../core/..."'
-						}
-					]
-				}
-			]
-		}
-	},
-	{
-		files: ['packages/sv/lib/core.ts'],
-		rules: {
-			'no-restricted-imports': 'off'
+			'@typescript-eslint/require-await': 'error'
 		}
 	},
 	{
@@ -44,11 +27,12 @@ export default [
 			'**/temp/*',
 			'**/.test-output/*',
 			'**/dist/*',
-			'packages/sv/lib/create/shared/**/*',
-			'packages/sv/lib/create/scripts/**/*',
-			'packages/sv/lib/create/templates/**/*',
-			'packages/sv/lib/cli/tests/snapshots/*',
-			'packages/sv/lib/**/tests/**/{output,input}.ts'
+			'packages/sv/src/create/shared/**/*',
+			'packages/sv/src/create/scripts/**/*',
+			'packages/sv/src/create/templates/**/*',
+			'packages/sv/src/cli/tests/snapshots/*',
+			'packages/sv/src/**/tests/**/{output,input}.ts',
+			'packages/sv-utils/src/**/tests/**/{output,input}.ts'
 		]
 	}
 ];

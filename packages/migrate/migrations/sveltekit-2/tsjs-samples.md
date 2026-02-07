@@ -142,15 +142,15 @@ resolveRoute('x', y);
 ## Replaces resolvePath taking care of imports
 
 ```js before
-import { resolvePath, x } from '@sveltejs/kit';
 import { y } from '$app/paths';
+import { resolvePath, x } from '@sveltejs/kit';
 
 resolvePath('x');
 ```
 
 ```js after
-import { x } from '@sveltejs/kit';
 import { y, resolveRoute } from '$app/paths';
+import { x } from '@sveltejs/kit';
 
 resolveRoute('x');
 ```
