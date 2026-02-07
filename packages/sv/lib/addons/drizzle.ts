@@ -450,12 +450,21 @@ function generateEnvFileContent(
 	} else if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
 		value = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
 	} else if (opts.sqlite === 'turso') {
-		value = '"libsql://db-name-user.turso.io"';
-		comment.push(
-			'Replace with your DB credentials!',
-			{ text: 'A local DB can also be used in dev as well', mode: 'append' },
-			{ text: `${DB_URL_KEY}="file:local.db"`, mode: 'append' }
-		);
+		if (isExample) {
+			value = '"libsql://db-name-user.turso.io"';
+			comment.push(
+				'Replace with your DB credentials!',
+				{ text: 'A local DB can also be used in dev as well', mode: 'append' },
+				{ text: `${DB_URL_KEY}="file:local.db"`, mode: 'append' }
+			);
+		} else {
+			value = '"file:local.db"';
+			comment.push(
+				'Replace with your DB credentials!',
+				`${DB_URL_KEY}="libsql://db-name-user.turso.io"`,
+				'A local DB can also be used in dev as well'
+			);
+		}
 	} else if (opts.database === 'mysql') {
 		value = '"mysql://user:password@host:port/db-name"';
 		comment.push('Replace with your DB credentials!');

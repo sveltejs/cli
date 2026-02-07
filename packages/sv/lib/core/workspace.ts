@@ -107,7 +107,7 @@ export async function createWorkspace({
 	const kit = override?.kit
 		? override.kit
 		: dependencies['@sveltejs/kit']
-			? parseKitOptions(resolvedCwd)
+			? parseKitOptions(resolvedCwd, svelteConfig)
 			: undefined;
 
 	const stylesheet: `${string}/layout.css` | 'src/app.css' = kit
@@ -168,12 +168,12 @@ function findWorkspaceRoot(cwd: string): string {
 	return cwd;
 }
 
-function parseKitOptions(cwd: string) {
-	const configSource = readFile(cwd, commonFilePaths.svelteConfig);
+function parseKitOptions(cwd: string, svelteConfigPath: string) {
+	const configSource = readFile(cwd, svelteConfigPath);
 	const { ast } = parse.script(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
-	if (!defaultExport) throw Error(`Missing default export in \`${commonFilePaths.svelteConfig}\``);
+	if (!defaultExport) throw Error(`Missing default export in \`${svelteConfigPath}\``);
 
 	let objectExpression: AstTypes.ObjectExpression | undefined;
 	if (defaultExport.declaration.type === 'Identifier') {
@@ -195,9 +195,7 @@ function parseKitOptions(cwd: string) {
 		}
 
 		if (!objectExpression)
-			throw Error(
-				`Unable to find svelte config object expression from \`${commonFilePaths.svelteConfig}\``
-			);
+			throw Error(`Unable to find svelte config object expression from \`${svelteConfigPath}\``);
 	} else if (defaultExport.declaration.type === 'ObjectExpression') {
 		// e.g. `export default { ... };`
 		objectExpression = defaultExport.declaration;
@@ -205,7 +203,7 @@ function parseKitOptions(cwd: string) {
 
 	// We'll error out since we can't safely determine the config object
 	if (!objectExpression)
-		throw new Error(`Unexpected svelte config shape from \`${commonFilePaths.svelteConfig}\``);
+		throw new Error(`Unexpected svelte config shape from \`${svelteConfigPath}\``);
 
 	const kit = js.object.property(objectExpression, { name: 'kit', fallback: js.object.create({}) });
 	const files = js.object.property(kit, { name: 'files', fallback: js.object.create({}) });

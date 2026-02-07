@@ -1,5 +1,14 @@
 # sv
 
+## 0.12.1
+### Patch Changes
+
+
+- fix(drizzle): default .env with turso is now using `file:local.db` ([#908](https://github.com/sveltejs/cli/pull/908))
+
+
+- fix(cli): work also with `svelte.config.ts` ([#912](https://github.com/sveltejs/cli/pull/912))
+
 ## 0.12.0
 ### Minor Changes
 
