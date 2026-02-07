@@ -52,7 +52,7 @@
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.5.2",
 		"sucrase": "^3.35.1",
-		"svelte": "^5.47.1",
+		"svelte": "^5.48.0",
 		"tar-fs": "^3.1.1",
 		"tiny-glob": "^0.2.9",
 		"tinyexec": "^1.0.2",
