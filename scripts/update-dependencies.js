@@ -142,7 +142,7 @@ async function getLatestVersion(name) {
 await updateAddonDependencies();
 
 // Update template package.template.json files
-await updatePackageFiles('packages/sv/lib/create/templates', 'package.template.json', 'template');
+await updatePackageFiles('packages/sv/src/create/templates', 'package.template.json', 'template');
 
 // Update shared package.json files
-await updatePackageFiles('packages/sv/lib/create/shared', 'package.json', 'shared');
+await updatePackageFiles('packages/sv/src/create/shared', 'package.json', 'shared');

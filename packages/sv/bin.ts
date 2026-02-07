@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import { add } from './lib/cli/add.ts';
-import { check } from './lib/cli/check.ts';
-import { create } from './lib/cli/create.ts';
-import { migrate } from './lib/cli/migrate.ts';
-import { helpConfig } from './lib/core/common.ts';
+import { add } from './src/cli/add.ts';
+import { check } from './src/cli/check.ts';
+import { create } from './src/cli/create.ts';
+import { migrate } from './src/cli/migrate.ts';
+import { helpConfig } from './src/core/common.ts';
 import pkg from './package.json' with { type: 'json' };
 
 // adds a gap of spacing between the executing command and the output

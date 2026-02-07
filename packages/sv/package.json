@@ -21,12 +21,12 @@
 	"bin": "./dist/bin.mjs",
 	"exports": {
 		".": {
-			"types": "./dist/lib/index.d.mts",
-			"default": "./dist/lib/index.mjs"
+			"types": "./dist/src/index.d.mts",
+			"default": "./dist/src/index.mjs"
 		},
 		"./testing": {
-			"types": "./dist/lib/testing.d.mts",
-			"default": "./dist/lib/testing.mjs"
+			"types": "./dist/src/testing.d.mts",
+			"default": "./dist/src/testing.mjs"
 		}
 	},
 	"dependencies": {
