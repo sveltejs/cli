@@ -86,7 +86,7 @@ describe('cli', () => {
 				monoRepoPath,
 				'packages',
 				'sv',
-				'lib',
+				'src',
 				'cli',
 				'tests',
 				'snapshots',
