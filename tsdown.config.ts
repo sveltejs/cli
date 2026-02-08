@@ -27,7 +27,6 @@ export async function buildCliTemplates() {
 	const start = performance.now();
 	await buildTemplates(path.resolve('packages/sv/dist'));
 	await buildTemplates(path.resolve('packages/sv/lib/create/dist'));
-	const green = '\x1b[32m';
-	const reset = '\x1b[0m';
+	const [green, reset] = ['\x1b[32m', '\x1b[0m'];
 	console.log(`${green}✔${reset} Templates built in ${Math.round(performance.now() - start)}ms`);
 }
