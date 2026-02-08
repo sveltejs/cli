@@ -24,6 +24,7 @@
 		"@playwright/test": "^1.58.1",
 		"@sveltejs/eslint-config": "^8.3.4",
 		"@svitejs/changesets-changelog-github-compact": "^1.2.0",
+		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
 		"@types/node": "^20.19.30",
 		"@typescript/native-preview": "7.0.0-dev.20251212.1",
 		"@vitest/ui": "4.0.15",
