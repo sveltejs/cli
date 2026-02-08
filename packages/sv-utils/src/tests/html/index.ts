@@ -11,6 +11,8 @@ const categoryDirectories = getDirectoryNames(baseDir);
 const prettierConfig = await prettier.resolveConfig(import.meta.url);
 if (!prettierConfig) throw new Error('Failed to resolve prettier config');
 prettierConfig.filepath = 'output.html';
+// warm up prettier's lazy plugin loading to avoid timeout on first test (slow on Windows)
+await prettier.format('', prettierConfig);
 
 for (const categoryDirectory of categoryDirectories) {
 	describe(categoryDirectory, () => {
