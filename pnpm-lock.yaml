@@ -102,6 +102,9 @@ importers:
         specifier: ^1.1.4
         version: 1.1.4
     devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.45.10))(prettier@3.8.1)(svelte@5.45.10)
       '@types/node':
         specifier: ^20.14.8
         version: 20.19.26
@@ -116,13 +119,17 @@ importers:
         version: 5.45.10
 
   packages/sv:
+    dependencies:
+      '@sveltejs/sv-utils':
+        specifier: workspace:*
+        version: link:../sv-utils
     devDependencies:
       '@clack/prompts':
         specifier: 1.0.0
         version: 1.0.0
-      '@types/estree':
-        specifier: ^1.0.8
-        version: 1.0.8
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0))(prettier@3.8.1)(svelte@5.50.0)
       '@types/gitignore-parser':
         specifier: ^0.0.3
         version: 0.0.3
@@ -138,42 +145,18 @@ importers:
       create-vite:
         specifier: ^8.2.0
         version: 8.2.0
-      decircular:
-        specifier: ^1.0.0
-        version: 1.0.0
-      dedent:
-        specifier: ^1.7.0
-        version: 1.7.0
       empathic:
         specifier: ^2.0.0
         version: 2.0.0
-      esrap:
-        specifier: ^2.2.2
-        version: 2.2.2
       gitignore-parser:
         specifier: ^0.0.2
         version: 0.0.2
-      magic-string:
-        specifier: ^0.30.21
-        version: 0.30.21
-      package-manager-detector:
-        specifier: ^1.6.0
-        version: 1.6.0
       ps-tree:
         specifier: ^1.2.0
         version: 1.2.0
-      silver-fleece:
-        specifier: ^1.2.1
-        version: 1.2.1
-      smol-toml:
-        specifier: ^1.5.2
-        version: 1.5.2
       sucrase:
         specifier: ^3.35.1
         version: 3.35.1
-      svelte:
-        specifier: ^5.47.1
-        version: 5.47.1
       tar-fs:
         specifier: ^3.1.1
         version: 3.1.1
@@ -186,6 +169,36 @@ importers:
       valibot:
         specifier: ^1.2.0
         version: 1.2.0(typescript@5.9.3)
+
+  packages/sv-utils:
+    devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0))(prettier@3.8.1)(svelte@5.50.0)
+      '@types/estree':
+        specifier: ^1.0.8
+        version: 1.0.8
+      decircular:
+        specifier: ^1.0.0
+        version: 1.0.0
+      dedent:
+        specifier: ^1.7.0
+        version: 1.7.0
+      esrap:
+        specifier: ^2.2.2
+        version: 2.2.2
+      package-manager-detector:
+        specifier: ^1.6.0
+        version: 1.6.0
+      silver-fleece:
+        specifier: ^1.2.1
+        version: 1.2.1
+      smol-toml:
+        specifier: ^1.5.2
+        version: 1.5.2
+      svelte:
+        specifier: ^5.49.2
+        version: 5.50.0
       yaml:
         specifier: ^2.8.2
         version: 2.8.2
@@ -2175,12 +2188,12 @@ packages:
     resolution: {integrity: sha512-GiWXq6akkEN3zVDMQ1BVlRolmks5JkEdzD/67mvXOz6drRfuddT5JwsGZjMGSnsTRv/PjAXX8fqBcOr2g2qc/Q==}
     engines: {node: '>=18'}
 
-  svelte@5.47.1:
-    resolution: {integrity: sha512-MhSWfWEpG5T57z0Oyfk9D1GhAz/KTZKZZlWtGEsy9zNk2fafpuU7sJQlXNSA8HtvwKxVC9XlDyl5YovXUXjjHA==}
-    engines: {node: '>=18'}
-
   svelte@5.49.1:
     resolution: {integrity: sha512-jj95WnbKbXsXXngYj28a4zx8jeZx50CN/J4r0CEeax2pbfdsETv/J1K8V9Hbu3DCXnpHz5qAikICuxEooi7eNQ==}
+    engines: {node: '>=18'}
+
+  svelte@5.50.0:
+    resolution: {integrity: sha512-FR9kTLmX5i0oyeQ5j/+w8DuagIkQ7MWMuPpPVioW2zx9Dw77q+1ufLzF1IqNtcTXPRnIIio4PlasliVn43OnbQ==}
     engines: {node: '>=18'}
 
   synckit@0.11.11:
@@ -3114,6 +3127,23 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.45.10))(prettier@3.8.1)(svelte@5.45.10)':
+    dependencies:
+      '@babel/generator': 7.28.6
+      '@babel/parser': 7.28.6
+      '@babel/traverse': 7.29.0
+      '@babel/types': 7.28.6
+      javascript-natural-sort: 0.7.1
+      lodash-es: 4.17.23
+      minimatch: 9.0.5
+      parse-imports-exports: 0.2.4
+      prettier: 3.8.1
+    optionalDependencies:
+      prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.45.10)
+      svelte: 5.45.10
+    transitivePeerDependencies:
+      - supports-color
+
   '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.49.1))(prettier@3.8.1)(svelte@5.49.1)':
     dependencies:
       '@babel/generator': 7.28.6
@@ -3128,6 +3158,23 @@ snapshots:
     optionalDependencies:
       prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.49.1)
       svelte: 5.49.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0))(prettier@3.8.1)(svelte@5.50.0)':
+    dependencies:
+      '@babel/generator': 7.28.6
+      '@babel/parser': 7.28.6
+      '@babel/traverse': 7.29.0
+      '@babel/types': 7.28.6
+      javascript-natural-sort: 0.7.1
+      lodash-es: 4.17.23
+      minimatch: 9.0.5
+      parse-imports-exports: 0.2.4
+      prettier: 3.8.1
+    optionalDependencies:
+      prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.50.0)
+      svelte: 5.50.0
     transitivePeerDependencies:
       - supports-color
 
@@ -4119,10 +4166,22 @@ snapshots:
     optionalDependencies:
       prettier: 3.8.1
 
+  prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.45.10):
+    dependencies:
+      prettier: 3.8.1
+      svelte: 5.45.10
+    optional: true
+
   prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.49.1):
     dependencies:
       prettier: 3.8.1
       svelte: 5.49.1
+
+  prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0):
+    dependencies:
+      prettier: 3.8.1
+      svelte: 5.50.0
+    optional: true
 
   prettier@2.8.8: {}
 
@@ -4371,7 +4430,7 @@ snapshots:
       magic-string: 0.30.21
       zimmerframe: 1.1.4
 
-  svelte@5.47.1:
+  svelte@5.49.1:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -4389,7 +4448,7 @@ snapshots:
       magic-string: 0.30.21
       zimmerframe: 1.1.4
 
-  svelte@5.49.1:
+  svelte@5.50.0:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5
