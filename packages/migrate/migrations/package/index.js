@@ -4,7 +4,6 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import pc from 'picocolors';
-
 import { bail, check_git, migration_succeeded } from '../../utils.js';
 import { migrate_config } from './migrate_config.js';
 import { migrate_pkg } from './migrate_pkg.js';

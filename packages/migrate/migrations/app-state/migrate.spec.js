@@ -1,5 +1,4 @@
 import { assert, test } from 'vitest';
-
 import { transform_svelte_code } from './migrate.js';
 
 test('Updates $app/store #1', () => {

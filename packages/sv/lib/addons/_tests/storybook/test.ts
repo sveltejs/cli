@@ -1,5 +1,4 @@
 import { expect } from '@playwright/test';
-
 import eslint from '../../eslint.ts';
 import storybook from '../../storybook.ts';
 import { setupTest } from '../_setup/suite.ts';

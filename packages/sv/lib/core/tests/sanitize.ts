@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-
 import { sanitizeName } from '../sanitize.ts';
 
 const testCases: Array<{ input: string; expected: string; expectedPackage?: string }> = [

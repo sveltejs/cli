@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-
 import { arrayUpsert, packageScriptsUpsert } from '../tooling/json.ts';
 
 describe('arrayUpsert', () => {

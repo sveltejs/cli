@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import process from 'node:process';
 import pc from 'picocolors';
 import glob from 'tiny-glob/sync.js';
-
 import {
 	bail,
 	check_git,

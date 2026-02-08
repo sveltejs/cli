@@ -1,6 +1,5 @@
 import MagicString from 'magic-string';
 import ts from 'typescript';
-
 import { comment, indent_at_line } from '../../utils.js';
 
 /**

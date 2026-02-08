@@ -9,7 +9,6 @@ import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
-
 import {
 	bail,
 	check_git,

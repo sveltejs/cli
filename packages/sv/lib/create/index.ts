@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-
 import { commonFilePaths } from '../cli/add/utils.ts';
 import { sanitizeName } from '../coreInternal.ts';
 import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';

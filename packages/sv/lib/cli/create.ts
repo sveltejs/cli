@@ -5,7 +5,6 @@ import path from 'node:path';
 import process from 'node:process';
 import { resolveCommand } from 'package-manager-detector';
 import * as v from 'valibot';
-
 import type { LoadedAddon, OptionValues, Workspace } from '../core.ts';
 import {
 	type LanguageType,

@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-
 import playwright from '../../playwright.ts';
 import { setupTest } from '../_setup/suite.ts';
 

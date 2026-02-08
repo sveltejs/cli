@@ -1,6 +1,5 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-
 import { type AddonInput } from '../../core.ts';
 import { getErrorHint } from '../../coreInternal.ts';
 import { classifyAddons } from '../add/index.ts';

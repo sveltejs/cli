@@ -1,5 +1,4 @@
 import type { TomlTable } from 'smol-toml';
-
 import * as utils from './index.ts';
 
 type ParseBase = {

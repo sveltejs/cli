@@ -1,6 +1,5 @@
 import dedent from 'dedent';
 import { describe, expect, test } from 'vitest';
-
 import {
 	parseScript,
 	serializeScript,

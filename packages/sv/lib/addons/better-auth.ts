@@ -1,5 +1,4 @@
 import crypto from 'node:crypto';
-
 import {
 	type AstTypes,
 	Walker,

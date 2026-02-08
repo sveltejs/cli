@@ -1,6 +1,5 @@
 import decircular from 'decircular';
 import dedent from 'dedent';
-
 import { Walker } from '../../../core.ts';
 import { type AstTypes, type Comments, parseScript, serializeScript, stripAst } from '../index.ts';
 

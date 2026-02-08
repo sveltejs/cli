@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Project, Node, SyntaxKind } from 'ts-morph';
-
 import {
 	add_named_import,
 	log_migration,

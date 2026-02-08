@@ -5,7 +5,6 @@ import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
-
 import pkg from '../../../package.json' with { type: 'json' };
 import { color, type AddonDefinition, type AddonReference } from '../../core.ts';
 // eslint-disable-next-line no-restricted-imports

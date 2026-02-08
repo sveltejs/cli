@@ -5,7 +5,6 @@ import * as fleece from 'silver-fleece';
 import * as toml from 'smol-toml';
 import { type AST as SvelteAst, parse as svelteParse, print as sveltePrint } from 'svelte/compiler';
 import * as yaml from 'yaml';
-
 import { Walker } from '../../core.ts';
 import type { TsEstree } from './js/ts-estree.ts';
 import { ensureScript } from './svelte/index.ts';

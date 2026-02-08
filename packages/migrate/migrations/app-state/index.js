@@ -5,7 +5,6 @@ import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
-
 import { bail, check_git, migration_succeeded, update_svelte_file } from '../../utils.js';
 import { transform_svelte_code, update_pkg_json } from './migrate.js';
 

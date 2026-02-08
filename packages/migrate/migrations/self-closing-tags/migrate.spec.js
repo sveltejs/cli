@@ -1,6 +1,5 @@
 import * as compiler from 'svelte/compiler';
 import { assert, test } from 'vitest';
-
 import { remove_self_closing_tags } from './migrate.js';
 
 /** @type {Record<string, string>} */

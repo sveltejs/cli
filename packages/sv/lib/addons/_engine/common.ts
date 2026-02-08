@@ -1,5 +1,4 @@
 import process from 'node:process';
-
 import { type SvelteAst, js, parse, svelte } from '../../core.ts';
 
 export function addEslintConfigPrettier(content: string): string {

@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { walk } from 'zimmerframe';
-
 import { commonFilePaths } from '../cli/add/utils.ts';
 import { isVersionUnsupportedBelow, js, parse, svelte } from '../core.ts';
 // eslint-disable-next-line no-restricted-imports

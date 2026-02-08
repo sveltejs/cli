@@ -1,5 +1,4 @@
 import { assert, test } from 'vitest';
-
 import { transform_code, transform_svelte_code, update_pkg_json_content } from './migrate.js';
 
 test('Updates SvelteComponentTyped #1', () => {

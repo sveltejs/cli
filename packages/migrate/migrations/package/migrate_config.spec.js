@@ -1,5 +1,4 @@
 import { assert, test } from 'vitest';
-
 import { remove_package_from_config } from './migrate_config.js';
 
 test('Removes package config #1', () => {

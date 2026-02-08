@@ -5,7 +5,6 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import pc from 'picocolors';
 import glob from 'tiny-glob/sync.js';
-
 import { migration_succeeded } from '../../utils.js';
 import { remove_self_closing_tags } from './migrate.js';
 

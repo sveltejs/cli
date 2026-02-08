@@ -6,7 +6,6 @@ import process from 'node:process';
 import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
-
 import type { AddonMap, OptionMap } from './addons/_engine/add.ts';
 import { create } from './create/index.ts';
 

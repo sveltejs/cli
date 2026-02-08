@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from 'vitest';
-
 import mcp from '../../mcp.ts';
 import { setupTest } from '../_setup/suite.ts';
 

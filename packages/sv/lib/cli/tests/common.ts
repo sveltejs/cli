@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-
 import { normalizePosix, parseAddonOptions } from '../utils/common.ts';
 
 describe('normalizePosix', () => {

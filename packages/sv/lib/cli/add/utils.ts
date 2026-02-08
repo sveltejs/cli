@@ -4,7 +4,6 @@ import path from 'node:path';
 import { styleText } from 'node:util';
 import { type AgentName, resolveCommand } from 'package-manager-detector';
 import { exec } from 'tinyexec';
-
 import { type Workspace, parse } from '../../core.ts';
 
 export type Package = {

@@ -12,7 +12,6 @@ import {
 	type SetupTestOptions
 } from 'sv/testing';
 import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
-
 import type { AddonMap } from '../../_engine/add.ts';
 
 const cwd = inject('testDir');
