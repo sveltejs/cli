@@ -25,6 +25,7 @@ For example:
 ```sh
 npx sv docs svelte/snippet
 npx sv docs kit/routing
+npx sv docs routing
 ```
 
 ## Options
