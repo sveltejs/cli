@@ -91,9 +91,19 @@ export function addFragment(
 ): void {
 	const { ast: fragmentAst } = parseSvelte(content);
 
+	const newlineText = { type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 } as const;
+
 	if (options?.mode === 'prepend') {
-		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
+		if (ast.fragment.nodes.length > 0) {
+			ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes, newlineText);
+		} else {
+			ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
+		}
 	} else {
-		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
+		if (ast.fragment.nodes.length > 0) {
+			ast.fragment.nodes.push(newlineText, ...fragmentAst.fragment.nodes);
+		} else {
+			ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
+		}
 	}
 }
