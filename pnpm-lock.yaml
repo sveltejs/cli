@@ -169,8 +169,8 @@ importers:
         specifier: ^3.35.1
         version: 3.35.1
       svelte:
-        specifier: ^5.48.0
-        version: 5.49.1
+        specifier: https://pkg.pr.new/svelte@17654
+        version: https://pkg.pr.new/svelte@17654
       tar-fs:
         specifier: ^3.1.1
         version: 3.1.1
@@ -2101,6 +2101,11 @@ packages:
 
   svelte@5.49.1:
     resolution: {integrity: sha512-jj95WnbKbXsXXngYj28a4zx8jeZx50CN/J4r0CEeax2pbfdsETv/J1K8V9Hbu3DCXnpHz5qAikICuxEooi7eNQ==}
+    engines: {node: '>=18'}
+
+  svelte@https://pkg.pr.new/svelte@17654:
+    resolution: {tarball: https://pkg.pr.new/svelte@17654}
+    version: 5.50.0
     engines: {node: '>=18'}
 
   synckit@0.11.11:
@@ -4196,6 +4201,24 @@ snapshots:
       svelte: 5.49.1
 
   svelte@5.49.1:
+    dependencies:
+      '@jridgewell/remapping': 2.3.5
+      '@jridgewell/sourcemap-codec': 1.5.5
+      '@sveltejs/acorn-typescript': 1.0.8(acorn@8.15.0)
+      '@types/estree': 1.0.8
+      acorn: 8.15.0
+      aria-query: 5.3.2
+      axobject-query: 4.1.0
+      clsx: 2.1.1
+      devalue: 5.6.2
+      esm-env: 1.2.2
+      esrap: 2.2.2
+      is-reference: 3.0.3
+      locate-character: 3.0.0
+      magic-string: 0.30.21
+      zimmerframe: 1.1.4
+
+  svelte@https://pkg.pr.new/svelte@17654:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@jridgewell/sourcemap-codec': 1.5.5

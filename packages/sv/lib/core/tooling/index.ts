@@ -67,15 +67,11 @@ export function serializeScript(
 	return code;
 }
 
-export function parseCss(
-	content: string
-): Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'> {
+export function parseCss(content: string): SvelteAst.CSS.StyleSheetRules {
 	return svelteParseCss(content);
 }
 
-export function serializeCss(
-	ast: Omit<SvelteAst.CSS.StyleSheet, 'attributes' | 'content'>
-): string {
+export function serializeCss(ast: SvelteAst.CSS.StyleSheetRules): string {
 	// `svelte` can print the stylesheet directly. But this adds the style tags (<style>) that we do not want here.
 	// `svelte` is unable to print an array of rules (ast.children) directly, therefore we concatenate the printed rules manually.
 
