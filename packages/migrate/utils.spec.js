@@ -1,4 +1,5 @@
 import { assert, test } from 'vitest';
+
 import { update_pkg } from './utils.js';
 
 test('Inserts package at correct position (1)', () => {

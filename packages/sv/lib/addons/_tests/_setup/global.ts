@@ -1,6 +1,6 @@
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { setupGlobal } from 'sv/testing';
-import process from 'node:process';
 import { exec } from 'tinyexec';
 
 const TEST_DIR = fileURLToPath(new URL('../../../../.test-output/addons/', import.meta.url));

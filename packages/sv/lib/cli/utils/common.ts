@@ -1,11 +1,11 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import pkg from '../../../package.json' with { type: 'json' };
 import * as p from '@clack/prompts';
 import type { Argument, HelpConfiguration, Option } from 'commander';
+import fs from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 import { type AgentName, resolveCommand } from 'package-manager-detector';
 
+import pkg from '../../../package.json' with { type: 'json' };
 import { color, isVersionUnsupportedBelow } from '../../core.ts';
 import { UnsupportedError } from './errors.ts';
 

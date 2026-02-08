@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+
 import { update_pkg_json } from './migrate_pkg.js';
 
 test('Updates package.json', () => {

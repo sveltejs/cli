@@ -1,4 +1,7 @@
 import ts from 'typescript';
+
+import { dedent } from '../../../utils.js';
+import * as TASKS from '../tasks.js';
 import {
 	automigration,
 	error,
@@ -13,8 +16,6 @@ import {
 	rewrite_type,
 	unwrap
 } from '../utils.js';
-import * as TASKS from '../tasks.js';
-import { dedent } from '../../../utils.js';
 
 const give_up = `${error('Update load function', TASKS.PAGE_LOAD)}\n\n`;
 

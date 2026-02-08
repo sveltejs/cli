@@ -1,8 +1,8 @@
 // @ts-check
 import parser from 'gitignore-parser';
 import fs from 'node:fs';
-import path from 'node:path';
 import { createRequire } from 'node:module';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { transform } from 'sucrase';

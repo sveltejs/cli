@@ -1,10 +1,11 @@
 import { assert, test } from 'vitest';
+
+import { read_samples } from '../../utils.js';
 import {
 	transform_code,
 	update_svelte_config_content,
 	update_tsconfig_content
 } from './migrate.js';
-import { read_samples } from '../../utils.js';
 
 for (const sample of read_samples(new URL('./svelte-config-samples.md', import.meta.url))) {
 	test('svelte.config.js: ' + sample.description, () => {

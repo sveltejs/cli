@@ -1,12 +1,13 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { Project, Node, SyntaxKind } from 'ts-morph';
+
 import {
 	add_named_import,
 	log_migration,
 	log_on_ts_modification,
 	update_pkg
 } from '../../utils.js';
-import path from 'node:path';
 
 export function update_pkg_json() {
 	fs.writeFileSync(

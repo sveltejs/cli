@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { upsert } from '../tooling/text.ts';
 
 describe('text.upsert', () => {

@@ -1,4 +1,5 @@
 import { expect, describe, it } from 'vitest';
+
 import { splitVersion, isVersionUnsupportedBelow } from '../common.ts';
 
 describe('versionSplit', () => {

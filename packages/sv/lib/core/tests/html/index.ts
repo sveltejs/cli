@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prettier from 'prettier';
 import { describe, expect, test } from 'vitest';
+
 import { parseHtml, serializeHtml } from '../../tooling/index.ts';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');

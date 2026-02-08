@@ -1,10 +1,11 @@
 import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/suite.ts';
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+
 import betterAuth from '../../better-auth.ts';
 import drizzle from '../../drizzle.ts';
-import path from 'node:path';
-import fs from 'node:fs';
-import { execSync } from 'node:child_process';
+import { setupTest } from '../_setup/suite.ts';
 
 const { test, testCases, prepareServer } = setupTest(
 	{ drizzle, betterAuth },

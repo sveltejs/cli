@@ -1,8 +1,9 @@
 import { execSync } from 'node:child_process';
-import { setupTest } from '../_setup/suite.ts';
-import vitest from '../../vitest-addon.ts';
-import path from 'node:path';
 import fs from 'node:fs';
+import path from 'node:path';
+
+import vitest from '../../vitest-addon.ts';
+import { setupTest } from '../_setup/suite.ts';
 
 const { test, testCases } = setupTest(
 	{ vitest },

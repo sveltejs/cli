@@ -1,8 +1,9 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
-import { setupTest } from '../_setup/suite.ts';
+
 import prettier from '../../prettier.ts';
+import { setupTest } from '../_setup/suite.ts';
 
 const { test, testCases } = setupTest(
 	{ prettier },

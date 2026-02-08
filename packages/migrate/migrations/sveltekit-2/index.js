@@ -1,9 +1,11 @@
-import pc from 'picocolors';
+import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import process from 'node:process';
-import * as p from '@clack/prompts';
+import { detect, resolveCommand } from 'package-manager-detector';
+import pc from 'picocolors';
 import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
+
 import {
 	bail,
 	check_git,
@@ -19,7 +21,6 @@ import {
 	update_svelte_config,
 	update_tsconfig_content
 } from './migrate.js';
-import { detect, resolveCommand } from 'package-manager-detector';
 
 export async function migrate() {
 	if (!fs.existsSync('package.json')) {

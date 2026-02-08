@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+
 import { update_pkg } from '../../utils.js';
 
 export function update_pkg_json() {

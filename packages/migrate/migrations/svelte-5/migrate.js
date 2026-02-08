@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { Project, ts, Node } from 'ts-morph';
+
 import { add_named_import, update_pkg } from '../../utils.js';
 
 export function update_pkg_json() {
