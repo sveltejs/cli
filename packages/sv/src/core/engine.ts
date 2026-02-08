@@ -1,6 +1,6 @@
 import * as p from '@clack/prompts';
-import { NonZeroExitError, exec } from 'tinyexec';
 import { color, resolveCommand, type AgentName } from '@sveltejs/sv-utils';
+import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import {
 	getErrorHint,

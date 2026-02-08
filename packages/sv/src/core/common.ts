@@ -1,14 +1,14 @@
 import * as p from '@clack/prompts';
-import type { Argument, HelpConfiguration, Option } from 'commander';
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
 import {
 	type AgentName,
 	color,
 	resolveCommand,
 	isVersionUnsupportedBelow
 } from '@sveltejs/sv-utils';
+import type { Argument, HelpConfiguration, Option } from 'commander';
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 import pkg from '../../package.json' with { type: 'json' };
 import { UnsupportedError } from './errors.ts';
 

@@ -1,10 +1,4 @@
 import * as p from '@clack/prompts';
-import { Option } from 'commander';
-import * as find from 'empathic/find';
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
-import { exec } from 'tinyexec';
 import {
 	AGENTS,
 	type AgentName,
@@ -15,6 +9,12 @@ import {
 	isVersionUnsupportedBelow,
 	parse
 } from '@sveltejs/sv-utils';
+import { Option } from 'commander';
+import * as find from 'empathic/find';
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import { exec } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')

@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import {
 	type AstTypes,
 	color,
@@ -10,6 +8,8 @@ import {
 	sanitizeName,
 	text
 } from '@sveltejs/sv-utils';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { fileExists } from '../core/files.ts';
 

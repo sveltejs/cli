@@ -1,11 +1,11 @@
 import * as p from '@clack/prompts';
+import { color } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
-import { color } from '@sveltejs/sv-utils';
 import { officialAddons as _officialAddons, getAddonDetails } from '../addons/index.ts';
 import * as common from '../core/common.ts';
 import {

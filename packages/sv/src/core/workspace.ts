@@ -1,7 +1,7 @@
+import { type AgentName, type AstTypes, js, parse } from '@sveltejs/sv-utils';
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import { type AgentName, type AstTypes, js, parse } from '@sveltejs/sv-utils';
 import { commonFilePaths, getPackageJson, readFile } from './files.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';

@@ -1,6 +1,6 @@
+import { sanitizeName } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
-import { sanitizeName } from '@sveltejs/sv-utils';
 import { commonFilePaths } from '../core/files.ts';
 import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
 

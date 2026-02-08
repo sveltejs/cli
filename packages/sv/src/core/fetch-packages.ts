@@ -1,3 +1,4 @@
+import { color, downloadJson, splitVersion } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
@@ -5,7 +6,6 @@ import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
-import { color, downloadJson, splitVersion } from '@sveltejs/sv-utils';
 import pkg from '../../package.json' with { type: 'json' };
 import * as common from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
