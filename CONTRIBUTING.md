@@ -63,9 +63,10 @@ Tests are split into projects: `cli`, `core`, `sv-utils`, `addons`, `create`, `m
 
 ```sh
 pnpm test --project migrate            # Migrate tests
-pnpm test --project sv-utils           # Core utility tests
+pnpm test --project core               # Core tests
 pnpm test --project create             # Project creation tests
 pnpm test --project addons             # Add-on tests
+pnpm test --project sv-utils           # sv-utils tests
 
 pnpm test --project addons eslint      # Just eslint add-on tests
 pnpm build && pnpm test --project cli  # CLI tests
