@@ -40,7 +40,6 @@
 		"zimmerframe": "^1.1.4"
 	},
 	"devDependencies": {
-		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
 		"@types/node": "^20.14.8",
 		"@types/prompts": "^2.4.9",
 		"@types/semver": "^7.7.1",

@@ -34,7 +34,6 @@
 	},
 	"devDependencies": {
 		"@clack/prompts": "1.0.0",
-		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
 		"@types/gitignore-parser": "^0.0.3",
 		"@types/ps-tree": "^1.1.6",
 		"@types/tar-fs": "^2.0.4",

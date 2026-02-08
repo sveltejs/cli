@@ -102,9 +102,6 @@ importers:
         specifier: ^1.1.4
         version: 1.1.4
     devDependencies:
-      '@trivago/prettier-plugin-sort-imports':
-        specifier: ^6.0.2
-        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.45.10))(prettier@3.8.1)(svelte@5.45.10)
       '@types/node':
         specifier: ^20.14.8
         version: 20.19.26
@@ -127,9 +124,6 @@ importers:
       '@clack/prompts':
         specifier: 1.0.0
         version: 1.0.0
-      '@trivago/prettier-plugin-sort-imports':
-        specifier: ^6.0.2
-        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0))(prettier@3.8.1)(svelte@5.50.0)
       '@types/gitignore-parser':
         specifier: ^0.0.3
         version: 0.0.3
@@ -172,9 +166,6 @@ importers:
 
   packages/sv-utils:
     devDependencies:
-      '@trivago/prettier-plugin-sort-imports':
-        specifier: ^6.0.2
-        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0))(prettier@3.8.1)(svelte@5.50.0)
       '@types/estree':
         specifier: ^1.0.8
         version: 1.0.8
@@ -3127,23 +3118,6 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.45.10))(prettier@3.8.1)(svelte@5.45.10)':
-    dependencies:
-      '@babel/generator': 7.28.6
-      '@babel/parser': 7.28.6
-      '@babel/traverse': 7.29.0
-      '@babel/types': 7.28.6
-      javascript-natural-sort: 0.7.1
-      lodash-es: 4.17.23
-      minimatch: 9.0.5
-      parse-imports-exports: 0.2.4
-      prettier: 3.8.1
-    optionalDependencies:
-      prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.45.10)
-      svelte: 5.45.10
-    transitivePeerDependencies:
-      - supports-color
-
   '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.49.1))(prettier@3.8.1)(svelte@5.49.1)':
     dependencies:
       '@babel/generator': 7.28.6
@@ -3158,23 +3132,6 @@ snapshots:
     optionalDependencies:
       prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.49.1)
       svelte: 5.49.1
-    transitivePeerDependencies:
-      - supports-color
-
-  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0))(prettier@3.8.1)(svelte@5.50.0)':
-    dependencies:
-      '@babel/generator': 7.28.6
-      '@babel/parser': 7.28.6
-      '@babel/traverse': 7.29.0
-      '@babel/types': 7.28.6
-      javascript-natural-sort: 0.7.1
-      lodash-es: 4.17.23
-      minimatch: 9.0.5
-      parse-imports-exports: 0.2.4
-      prettier: 3.8.1
-    optionalDependencies:
-      prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.50.0)
-      svelte: 5.50.0
     transitivePeerDependencies:
       - supports-color
 
@@ -4166,22 +4123,10 @@ snapshots:
     optionalDependencies:
       prettier: 3.8.1
 
-  prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.45.10):
-    dependencies:
-      prettier: 3.8.1
-      svelte: 5.45.10
-    optional: true
-
   prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.49.1):
     dependencies:
       prettier: 3.8.1
       svelte: 5.49.1
-
-  prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.50.0):
-    dependencies:
-      prettier: 3.8.1
-      svelte: 5.50.0
-    optional: true
 
   prettier@2.8.8: {}
 
