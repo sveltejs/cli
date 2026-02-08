@@ -56,7 +56,7 @@ export default {
 		'@trivago/prettier-plugin-sort-imports',
 		'prettier-plugin-svelte'
 	],
-	importOrder: ['<THIRD_PARTY_MODULES>', '^[./]'],
+	importOrder: ['<THIRD_PARTY_MODULES>', '@sveltejs/sv-utils', '^[./]'],
 	overrides: [
 		{
 			files: ['*.svelte'],
