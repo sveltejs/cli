@@ -4,6 +4,7 @@ import { program } from 'commander';
 import { add } from './lib/cli/add/index.ts';
 import { check } from './lib/cli/check.ts';
 import { create } from './lib/cli/create.ts';
+import { docs } from './lib/cli/docs.ts';
 import { migrate } from './lib/cli/migrate.ts';
 import { helpConfig } from './lib/cli/utils/common.ts';
 import pkg from './package.json' with { type: 'json' };
@@ -12,5 +13,5 @@ import pkg from './package.json' with { type: 'json' };
 console.log();
 
 program.name(pkg.name).version(pkg.version, '-v, --version').configureHelp(helpConfig);
-program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);
+program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check).addCommand(docs);
 program.parse();
