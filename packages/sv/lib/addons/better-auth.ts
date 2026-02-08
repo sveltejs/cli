@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import {
 	type AstTypes,
 	Walker,
@@ -14,7 +15,6 @@ import {
 	color,
 	createPrinter
 } from '../core.ts';
-import crypto from 'node:crypto';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 

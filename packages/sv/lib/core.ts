@@ -1,3 +1,13 @@
+import {
+	parseCss,
+	parseHtml,
+	parseJson,
+	parseScript,
+	parseSvelte,
+	parseToml,
+	parseYaml
+} from './core/tooling/parsers.ts';
+
 // from externals
 export { log } from '@clack/prompts';
 export { default as dedent } from 'dedent';
@@ -19,15 +29,7 @@ export * as html from './core/tooling/html/index.ts';
 export * as text from './core/tooling/text.ts';
 export * as json from './core/tooling/json.ts';
 export * as svelte from './core/tooling/svelte/index.ts';
-import {
-	parseCss,
-	parseHtml,
-	parseJson,
-	parseScript,
-	parseSvelte,
-	parseToml,
-	parseYaml
-} from './core/tooling/parsers.ts';
+
 /**
  * Will help you `parse` code into an `ast` from all supported languages.
  * Then manipulate the `ast` as you want,

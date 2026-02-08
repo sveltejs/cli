@@ -4,7 +4,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { beforeAll, describe, expect, test } from 'vitest';
-
 import { add, officialAddons } from '../../../../sv/lib/index.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 

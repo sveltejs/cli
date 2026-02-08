@@ -1,6 +1,6 @@
 import { parseScript, type SvelteAst } from '../index.ts';
-import { parseSvelte } from '../parsers.ts';
 import { appendFromString } from '../js/common.ts';
+import { parseSvelte } from '../parsers.ts';
 
 type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
 

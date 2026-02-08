@@ -51,7 +51,12 @@ export default {
 	trailingComma: 'none',
 	printWidth: 100,
 	endOfLine: 'lf',
-	plugins: ['prettier-plugin-packagejson', 'prettier-plugin-svelte'],
+	plugins: [
+		'prettier-plugin-packagejson',
+		'@trivago/prettier-plugin-sort-imports',
+		'prettier-plugin-svelte'
+	],
+	importOrder: ['<THIRD_PARTY_MODULES>', '^[./]'],
 	overrides: [
 		{
 			files: ['*.svelte'],
