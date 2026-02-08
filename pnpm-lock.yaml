@@ -188,7 +188,7 @@ importers:
         specifier: ^1.5.2
         version: 1.5.2
       svelte:
-        specifier: ^5.49.2
+        specifier: ^5.49.1
         version: 5.50.0
       yaml:
         specifier: ^2.8.2

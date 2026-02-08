@@ -32,7 +32,7 @@
 		"package-manager-detector": "^1.6.0",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.5.2",
-		"svelte": "^5.49.2",
+		"svelte": "^5.49.1",
 		"yaml": "^2.8.2",
 		"zimmerframe": "^1.1.4"
 	},
