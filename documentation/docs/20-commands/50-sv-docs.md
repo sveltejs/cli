@@ -32,7 +32,3 @@ npx sv docs kit/routing
 ### `--list`
 
 Lists all available documentation sections.
-
-### `-C, --cwd`
-
-Path to working directory.

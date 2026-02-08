@@ -11,7 +11,6 @@ export const docs = new Command('docs')
 		'[section]',
 		'documentation section to fetch (e.g. "$state", "routing", "load functions")'
 	)
-	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
 	.option('--list', 'list all available documentation sections')
 	.addHelpText(
 		'after',
@@ -23,16 +22,17 @@ Examples:
 	)
 	.action(async (section, options) => {
 		if (options.list) {
-			await runDocs(options.cwd, ['list-sections']);
+			await runDocs(['list-sections']);
 		} else if (section) {
-			await runDocs(options.cwd, ['get-documentation', section]);
+			await runDocs(['get-documentation', section]);
 		} else {
 			// no section and no --list: show help
 			docs.help();
 		}
 	});
 
-async function runDocs(cwd: string, args: string[]) {
+async function runDocs(args: string[]) {
+	const cwd = process.cwd();
 	const pm = await detectPackageManager(cwd);
 
 	try {
@@ -42,7 +42,7 @@ async function runDocs(cwd: string, args: string[]) {
 		if (pm === 'npm') cmdArgs.unshift('--yes');
 
 		const cmd = resolveCommand(pm, 'execute', cmdArgs)!;
-		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
+		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit' });
 	} catch (error) {
 		forwardExitCode(error);
 	}
