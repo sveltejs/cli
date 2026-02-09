@@ -22,7 +22,7 @@ export default defineAddon({
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
-		sv.file(`e2e/demo.test.${language}`, (content) => {
+		sv.file(`tests/demo.test.${language}`, (content) => {
 			if (content) return content;
 
 			return dedent`
@@ -45,7 +45,7 @@ export default defineAddon({
 					command: 'npm run build && npm run preview',
 					port: 4173
 				},
-				testDir: 'e2e'
+				testDir: 'tests'
 			};
 
 			if (
