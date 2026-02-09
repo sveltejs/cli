@@ -22,7 +22,7 @@ export default defineAddon({
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
-		sv.file(`tests/demo.test.${language}`, (content) => {
+		sv.file(`e2e/demo.test.${language}`, (content) => {
 			if (content) return content;
 
 			return dedent`
@@ -35,6 +35,38 @@ export default defineAddon({
 				`;
 		});
 
+		sv.file(files.svelteConfig, (content) => {
+			const { ast, comments, generateCode } = parse.script(content);
+
+			const { value: svelteConfig } = js.exports.createDefault(ast, {
+				fallback: js.object.create({})
+			});
+
+			const kitObj = js.object.property(svelteConfig, {
+				name: 'kit',
+				fallback: js.object.create({})
+			});
+
+			js.object.property(kitObj, {
+				name: 'typescript',
+				fallback: js.object.create({
+					config: js.common.parseExpression(
+						`(tsconfig) => { tsconfig.include = [...tsconfig.include, '../e2e/**/*.ts', '../e2e/**/*.js'] }`
+					)
+				})
+			});
+
+			comments.remove(() => true);
+			const configDecl = ast.body.find((n) => n.type === 'VariableDeclaration');
+			if (configDecl) {
+				js.common.addJsDocTypeComment(configDecl, comments, {
+					type: "import('@sveltejs/kit').Config"
+				});
+			}
+
+			return generateCode();
+		});
+
 		sv.file(`playwright.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 			const defineConfig = js.common.parseExpression('defineConfig({})');
@@ -45,7 +77,7 @@ export default defineAddon({
 					command: 'npm run build && npm run preview',
 					port: 4173
 				},
-				testDir: 'tests'
+				testDir: 'e2e'
 			};
 
 			if (
