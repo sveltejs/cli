@@ -190,3 +190,15 @@ export function errorAndExit(message: string) {
 export const normalizePosix = (dir: string) => {
 	return path.posix.normalize(dir.replace(/\\/g, '/'));
 };
+
+export function createDenoJson(projectPath: string) {
+	const filePath = path.join(projectPath, 'deno.json');
+	const content = `{
+	"imports": {
+		"$lib/": "./src/lib/"
+	}
+}
+`;
+
+	fs.writeFileSync(filePath, content);
+}

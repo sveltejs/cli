@@ -341,6 +341,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) {
+		if (packageManager === 'deno') {
+			common.createDenoJson(directory);
+		}
 		await installDependencies(packageManager, projectPath);
 		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
 	}
