@@ -192,3 +192,29 @@ export function hasTypeProperty(
 		node.key.name === options.name
 	);
 }
+
+export function createTypeProperty(
+	name: string,
+	value: string,
+	optional = false
+): AstTypes.TSInterfaceBody['body'][number] {
+	return {
+		type: 'TSPropertySignature',
+		key: {
+			type: 'Identifier',
+			name
+		},
+		computed: false,
+		optional,
+		typeAnnotation: {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSTypeReference',
+				typeName: {
+					type: 'Identifier',
+					name: value
+				}
+			}
+		}
+	};
+}
