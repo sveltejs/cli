@@ -211,9 +211,9 @@ export default defineAddon({
 				});
 
 				sv.file('src/app.d.ts', (content) => {
-					const { ast, generateCode } = parse.script(content);
+					const { ast, comments, generateCode } = parse.script(content);
 
-					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
+					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform', comments });
 					if (!platform) {
 						throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
 					}

@@ -156,7 +156,7 @@ export default defineAddon({
 		});
 
 		sv.file('src/app.d.ts', (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, comments, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, {
 				imports: ['User', 'Session'],
@@ -164,7 +164,7 @@ export default defineAddon({
 				isType: true
 			});
 
-			const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
+			const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals', comments });
 			if (!locals) {
 				throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 			}

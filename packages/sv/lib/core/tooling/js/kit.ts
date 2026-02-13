@@ -7,7 +7,7 @@ import * as variables from './variables.ts';
 
 export function addGlobalAppInterface(
 	node: AstTypes.TSProgram,
-	options: { name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform' }
+	options: { name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform'; comments?: Comments }
 ): AstTypes.TSInterfaceDeclaration {
 	let globalDecl = node.body
 		.filter((n) => n.type === 'TSModuleDeclaration')
@@ -54,6 +54,9 @@ export function addGlobalAppInterface(
 		);
 		app.body.body.push(interfaceNode);
 	}
+
+	// remove the commented out placeholder (e.g. `// interface Platform {}`)
+	options.comments?.remove((c) => c.type === 'Line' && c.value.trim() === `interface ${options.name} {}`);
 
 	return interfaceNode;
 }
