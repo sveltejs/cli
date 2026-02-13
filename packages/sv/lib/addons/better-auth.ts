@@ -90,7 +90,7 @@ export default defineAddon({
 				from: 'better-auth/adapters/drizzle',
 				imports: ['drizzleAdapter']
 			});
-			js.imports.addNamed(ast, { from: 'better-auth', imports: ['betterAuth'] });
+			js.imports.addNamed(ast, { from: 'better-auth/minimal', imports: ['betterAuth'] });
 
 			const dialectMap: Record<Dialect, string> = {
 				mysql: 'mysql',
@@ -160,7 +160,7 @@ export default defineAddon({
 
 			js.imports.addNamed(ast, {
 				imports: ['User', 'Session'],
-				from: 'better-auth',
+				from: 'better-auth/minimal',
 				isType: true
 			});
 
@@ -338,7 +338,7 @@ export default defineAddon({
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
 					import { auth } from '$lib/server/auth';
-					${needsAPIError ? "import { APIError } from 'better-auth';" : ''}
+					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
