@@ -218,9 +218,7 @@ export default defineAddon({
 					}
 
 					// remove the commented out placeholder since we're adding the real one
-					comments.remove(
-						(c) => c.type === 'Line' && c.value.trim() === 'interface Platform {}'
-					);
+					comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Platform {}');
 
 					platform.body.body.push(
 						js.common.createTypeProperty('env', 'Env'),
@@ -248,4 +246,3 @@ export default defineAddon({
 		return toReturn;
 	}
 });
-

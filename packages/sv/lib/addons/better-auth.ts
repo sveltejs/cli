@@ -170,9 +170,7 @@ export default defineAddon({
 			}
 
 			// remove the commented out placeholder since we're adding the real one
-			comments.remove(
-				(c) => c.type === 'Line' && c.value.trim() === 'interface Locals {}'
-			);
+			comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Locals {}');
 
 			const user = locals.body.body.find((prop) =>
 				js.common.hasTypeProperty(prop, { name: 'user' })
