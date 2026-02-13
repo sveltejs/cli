@@ -164,10 +164,15 @@ export default defineAddon({
 				isType: true
 			});
 
-			const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals', comments });
+			const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
 			if (!locals) {
 				throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 			}
+
+			// remove the commented out placeholder since we're adding the real one
+			comments.remove(
+				(c) => c.type === 'Line' && c.value.trim() === 'interface Locals {}'
+			);
 
 			const user = locals.body.body.find((prop) =>
 				js.common.hasTypeProperty(prop, { name: 'user' })
@@ -176,37 +181,11 @@ export default defineAddon({
 				js.common.hasTypeProperty(prop, { name: 'session' })
 			);
 
-			function addProps(
-				name: string,
-				value: string,
-				optional = false
-			): AstTypes.TSInterfaceBody['body'][number] {
-				return {
-					type: 'TSPropertySignature',
-					key: {
-						type: 'Identifier',
-						name
-					},
-					computed: false,
-					optional,
-					typeAnnotation: {
-						type: 'TSTypeAnnotation',
-						typeAnnotation: {
-							type: 'TSTypeReference',
-							typeName: {
-								type: 'Identifier',
-								name: value
-							}
-						}
-					}
-				};
-			}
-
 			if (!user) {
-				locals.body.body.push(addProps('user', 'User', true));
+				locals.body.body.push(js.common.createTypeProperty('user', 'User', true));
 			}
 			if (!session) {
-				locals.body.body.push(addProps('session', 'Session', true));
+				locals.body.body.push(js.common.createTypeProperty('session', 'Session', true));
 			}
 			return generateCode();
 		});
