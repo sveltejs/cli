@@ -338,7 +338,7 @@ export default defineAddon({
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
 					import { auth } from '$lib/server/auth';
-					${needsAPIError ? "import { APIError } from 'better-auth/minimal';" : ''}
+					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (event.locals.user) {
