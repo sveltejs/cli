@@ -56,7 +56,9 @@ export function addGlobalAppInterface(
 	}
 
 	// remove the commented out placeholder (e.g. `// interface Platform {}`)
-	options.comments?.remove((c) => c.type === 'Line' && c.value.trim() === `interface ${options.name} {}`);
+	options.comments?.remove(
+		(c) => c.type === 'Line' && c.value.trim() === `interface ${options.name} {}`
+	);
 
 	return interfaceNode;
 }
