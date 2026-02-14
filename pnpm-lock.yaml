@@ -22,7 +22,7 @@ importers:
         version: 1.2.0
       '@trivago/prettier-plugin-sort-imports':
         specifier: ^6.0.2
-        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.49.1))(prettier@3.8.1)(svelte@5.49.1)
+        version: 6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.51.0))(prettier@3.8.1)(svelte@5.51.0)
       '@types/node':
         specifier: ^20.19.30
         version: 20.19.30
@@ -3113,7 +3113,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.49.1))(prettier@3.8.1)(svelte@5.49.1)':
+  '@trivago/prettier-plugin-sort-imports@6.0.2(prettier-plugin-svelte@3.4.1(prettier@3.8.1)(svelte@5.51.0))(prettier@3.8.1)(svelte@5.51.0)':
     dependencies:
       '@babel/generator': 7.28.6
       '@babel/parser': 7.28.6
@@ -3125,8 +3125,8 @@ snapshots:
       parse-imports-exports: 0.2.4
       prettier: 3.8.1
     optionalDependencies:
-      prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.49.1)
-      svelte: 5.49.1
+      prettier-plugin-svelte: 3.4.1(prettier@3.8.1)(svelte@5.51.0)
+      svelte: 5.51.0
     transitivePeerDependencies:
       - supports-color
 
