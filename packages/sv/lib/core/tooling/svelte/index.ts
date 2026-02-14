@@ -1,6 +1,6 @@
 import { parseScript, type SvelteAst } from '../index.ts';
-import { parseSvelte } from '../parsers.ts';
 import { appendFromString } from '../js/common.ts';
+import { parseSvelte } from '../parsers.ts';
 
 type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
 
@@ -91,19 +91,9 @@ export function addFragment(
 ): void {
 	const { ast: fragmentAst } = parseSvelte(content);
 
-	const newlineText = { type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 } as const;
-
 	if (options?.mode === 'prepend') {
-		if (ast.fragment.nodes.length > 0) {
-			ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes, newlineText);
-		} else {
-			ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
-		}
+		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
 	} else {
-		if (ast.fragment.nodes.length > 0) {
-			ast.fragment.nodes.push(newlineText, ...fragmentAst.fragment.nodes);
-		} else {
-			ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
-		}
+		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
 	}
 }
