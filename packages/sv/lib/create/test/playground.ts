@@ -2,7 +2,6 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
-
 import { create } from '../index.ts';
 import {
 	detectPlaygroundDependencies,

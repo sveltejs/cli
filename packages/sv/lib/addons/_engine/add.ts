@@ -1,7 +1,6 @@
 import * as p from '@clack/prompts';
 import { resolveCommand } from 'package-manager-detector';
 import { NonZeroExitError, exec } from 'tinyexec';
-
 import { createLoadedAddon } from '../../cli/add/index.ts';
 import { color, fileExists, installPackages, readFile, writeFile } from '../../cli/add/utils.ts';
 import { createWorkspace } from '../../cli/add/workspace.ts';

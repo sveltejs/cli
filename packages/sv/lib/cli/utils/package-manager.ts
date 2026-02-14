@@ -12,7 +12,6 @@ import {
 	detect
 } from 'package-manager-detector';
 import { exec } from 'tinyexec';
-
 import { color } from '../../cli/add/utils.ts';
 import { isVersionUnsupportedBelow, parse } from '../../core.ts';
 

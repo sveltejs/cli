@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
 import { resolveCommand } from 'package-manager-detector';
-
 import { forwardExitCode } from './utils/common.ts';
 import { detectPackageManager } from './utils/package-manager.ts';
 
