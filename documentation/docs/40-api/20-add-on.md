@@ -23,7 +23,8 @@ Typically, an add-on looks like this:
 _hover keywords in the code to have some more context_
 
 ```js
-import { defineAddon, defineAddonOptions, parse, svelte } from 'sv/core';
+import { parse, svelte } from '@sveltejs/sv-utils';
+import { defineAddon, defineAddonOptions } from 'sv';
 
 // Define options that will be prompted to the user (or passed as arguments)
 const options = defineAddonOptions()
@@ -48,7 +49,7 @@ export default defineAddon({
 	run: ({ kit, cancel, sv, options }) => {
 		if (!kit) return cancel('SvelteKit is required');
 
-		// Add "Hello [who]!"" to the root page
+		// Add "Hello [who]!" to the root page
 		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 
