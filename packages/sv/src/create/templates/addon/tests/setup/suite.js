@@ -49,7 +49,7 @@ export function setupTest(addons, options) {
 	}
 	/** @type {string} */
 	let testName;
-	beforeAll(async ({ name }) => {
+	test.beforeAll(async ({ name }) => {
 		testName = path.dirname(name).split('/').at(-1) ?? '';
 
 		// constructs a builder to create test projects

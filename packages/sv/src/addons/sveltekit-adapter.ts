@@ -1,13 +1,4 @@
-import {
-	type AstTypes,
-	color,
-	js,
-	parse,
-	resolveCommand,
-	json,
-	sanitizeName,
-	text
-} from '@sveltejs/sv-utils';
+import { color, js, resolveCommand, json, sanitizeName, text, parse } from '@sveltejs/sv-utils';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -210,18 +201,21 @@ export default defineAddon({
 				});
 
 				sv.file('src/app.d.ts', (content) => {
-					const { ast, generateCode } = parse.script(content);
+					const { ast, comments, generateCode } = parse.script(content);
 
 					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
 					if (!platform) {
 						throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
 					}
 
+					// remove the commented out placeholder since we're adding the real one
+					comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Platform {}');
+
 					platform.body.body.push(
-						createCloudflarePlatformType('env', 'Env'),
-						createCloudflarePlatformType('ctx', 'ExecutionContext'),
-						createCloudflarePlatformType('caches', 'CacheStorage'),
-						createCloudflarePlatformType('cf', 'IncomingRequestCfProperties', true)
+						js.common.createTypeProperty('env', 'Env'),
+						js.common.createTypeProperty('ctx', 'ExecutionContext'),
+						js.common.createTypeProperty('caches', 'CacheStorage'),
+						js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
 					);
 
 					return generateCode();
@@ -243,29 +237,3 @@ export default defineAddon({
 		return toReturn;
 	}
 });
-
-function createCloudflarePlatformType(
-	name: string,
-	value: string,
-	optional = false
-): AstTypes.TSInterfaceBody['body'][number] {
-	return {
-		type: 'TSPropertySignature',
-		key: {
-			type: 'Identifier',
-			name
-		},
-		computed: false,
-		optional,
-		typeAnnotation: {
-			type: 'TSTypeAnnotation',
-			typeAnnotation: {
-				type: 'TSTypeReference',
-				typeName: {
-					type: 'Identifier',
-					name: value
-				}
-			}
-		}
-	};
-}

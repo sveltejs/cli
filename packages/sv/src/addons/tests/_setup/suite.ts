@@ -48,7 +48,7 @@ export function setupTest<Addons extends AddonMap>(
 		}
 	}
 	let testName: string;
-	beforeAll(async ({ name }) => {
+	test.beforeAll(async ({ name }) => {
 		testName = path.dirname(name).split('/').at(-1)!;
 
 		// constructs a builder to create test projects
