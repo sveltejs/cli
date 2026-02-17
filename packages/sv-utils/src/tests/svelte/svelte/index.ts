@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { parseSvelte, serializeSvelte } from '../../../../../sv-utils/src/tooling/index.ts';
+import { parseSvelte, serializeSvelte } from '../../../../src/tooling/index.ts';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
 const categoryDirectories = getDirectoryNames(baseDir);
