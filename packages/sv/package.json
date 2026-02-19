@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.12.0",
+	"version": "0.12.1",
 	"type": "module",
 	"description": "A command line interface (CLI) for creating and maintaining Svelte applications",
 	"license": "MIT",
@@ -52,7 +52,7 @@
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.5.2",
 		"sucrase": "^3.35.1",
-		"svelte": "https://pkg.pr.new/svelte@17654",
+		"svelte": "^5.51.0",
 		"tar-fs": "^3.1.1",
 		"tiny-glob": "^0.2.9",
 		"tinyexec": "^1.0.2",

@@ -1,8 +1,8 @@
 import { expect } from '@playwright/test';
-import { setupTest } from '../_setup/suite.ts';
-import paraglide from '../../paraglide.ts';
 import fs from 'node:fs';
 import path from 'node:path';
+import paraglide from '../../paraglide.ts';
+import { setupTest } from '../_setup/suite.ts';
 
 const langs = ['en', 'fr', 'hu'];
 

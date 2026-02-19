@@ -1,10 +1,9 @@
 import * as p from '@clack/prompts';
 import fs from 'node:fs';
 import path from 'node:path';
-import { type AgentName, resolveCommand } from 'package-manager-detector';
 import { styleText } from 'node:util';
+import { type AgentName, resolveCommand } from 'package-manager-detector';
 import { exec } from 'tinyexec';
-
 import { type Workspace, parse } from '../../core.ts';
 
 export type Package = {

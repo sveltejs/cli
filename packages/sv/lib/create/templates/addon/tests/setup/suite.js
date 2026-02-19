@@ -1,11 +1,10 @@
+import { chromium } from '@playwright/test';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
-import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
-import { chromium } from '@playwright/test';
-
 import { add } from 'sv';
 import { createProject, addPnpmBuildDependencies, prepareServer } from 'sv/testing';
+import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
 
 const cwd = inject('testDir');
 const templatesDir = inject('templatesDir');
@@ -50,7 +49,7 @@ export function setupTest(addons, options) {
 	}
 	/** @type {string} */
 	let testName;
-	beforeAll(async ({ name }) => {
+	test.beforeAll(async ({ name }) => {
 		testName = path.dirname(name).split('/').at(-1) ?? '';
 
 		// constructs a builder to create test projects

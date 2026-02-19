@@ -1,8 +1,7 @@
 import decircular from 'decircular';
 import dedent from 'dedent';
-
-import { type AstTypes, type Comments, parseScript, serializeScript, stripAst } from '../index.ts';
 import { Walker } from '../../../core.ts';
+import { type AstTypes, type Comments, parseScript, serializeScript, stripAst } from '../index.ts';
 
 export function addJsDocTypeComment(
 	node: AstTypes.Node,
@@ -192,4 +191,30 @@ export function hasTypeProperty(
 		node.key.type === 'Identifier' &&
 		node.key.name === options.name
 	);
+}
+
+export function createTypeProperty(
+	name: string,
+	value: string,
+	optional = false
+): AstTypes.TSInterfaceBody['body'][number] {
+	return {
+		type: 'TSPropertySignature',
+		key: {
+			type: 'Identifier',
+			name
+		},
+		computed: false,
+		optional,
+		typeAnnotation: {
+			type: 'TSTypeAnnotation',
+			typeAnnotation: {
+				type: 'TSTypeReference',
+				typeName: {
+					type: 'Identifier',
+					name: value
+				}
+			}
+		}
+	};
 }

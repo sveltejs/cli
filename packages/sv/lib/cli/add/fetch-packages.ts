@@ -5,14 +5,13 @@ import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { extract } from 'tar-fs';
-
 import pkg from '../../../package.json' with { type: 'json' };
 import { color, type AddonDefinition, type AddonReference } from '../../core.ts';
-import * as common from '../utils/common.ts';
 // eslint-disable-next-line no-restricted-imports
 import { splitVersion } from '../../core/common.ts';
 // eslint-disable-next-line no-restricted-imports
 import { downloadJson } from '../../core/downloadJson.ts';
+import * as common from '../utils/common.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../node_modules', import.meta.url));

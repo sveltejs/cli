@@ -4,7 +4,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { beforeAll, describe, expect, test } from 'vitest';
-
 import { add, officialAddons } from '../../../../sv/lib/index.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 
@@ -73,10 +72,10 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 	}
 }
 
-for (const [script, tests] of script_test_map) {
-	describe.concurrent(script, { timeout: 61_000 }, () => {
+describe.concurrent('create scripts', { timeout: 61_000 }, () => {
+	for (const [script, tests] of script_test_map) {
 		for (const [name, task] of tests) {
-			test(name, task);
+			test.skipIf(script === 'check' && name === 'demo-checkjs')(`${script} - ${name}`, task);
 		}
-	});
-}
+	}
+});

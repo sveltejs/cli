@@ -1,9 +1,7 @@
+import { chromium } from '@playwright/test';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
-import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
-import { chromium } from '@playwright/test';
-
 import { add } from 'sv';
 import {
 	createProject,
@@ -13,6 +11,7 @@ import {
 	type Fixtures,
 	type SetupTestOptions
 } from 'sv/testing';
+import { inject, test as vitestTest, beforeAll, beforeEach } from 'vitest';
 import type { AddonMap } from '../../_engine/add.ts';
 
 const cwd = inject('testDir');
@@ -49,8 +48,8 @@ export function setupTest<Addons extends AddonMap>(
 		}
 	}
 	let testName: string;
-	beforeAll(async ({ name }) => {
-		testName = path.dirname(name).split('/').at(-1)!;
+	test.beforeAll(async (_ctx, suite) => {
+		testName = path.dirname(suite.file.filepath).split('/').at(-1)!;
 
 		// constructs a builder to create test projects
 		create = createProject({ cwd, templatesDir, testName });

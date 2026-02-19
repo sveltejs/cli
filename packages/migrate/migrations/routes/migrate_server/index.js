@@ -1,4 +1,6 @@
 import ts from 'typescript';
+import { dedent, guess_indent, indent_at_line } from '../../../utils.js';
+import * as TASKS from '../tasks.js';
 import {
 	automigration,
 	uppercase_migration,
@@ -12,8 +14,6 @@ import {
 	rewrite_returns,
 	unwrap
 } from '../utils.js';
-import * as TASKS from '../tasks.js';
-import { dedent, guess_indent, indent_at_line } from '../../../utils.js';
 
 const give_up = `${error('Update +server.js', TASKS.STANDALONE_ENDPOINT)}\n\n`;
 

@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
 import type { Common } from './index.ts';
 
 export function mkdirp(dir: string): void {
