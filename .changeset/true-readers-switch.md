@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix(cli): handle specifier-style exports in createNamed
+fix(cli): improve `addHooksHandle` robustness
