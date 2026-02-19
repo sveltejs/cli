@@ -30,7 +30,7 @@ export function parseScript(source: string): {
 
 export function parseCss(
 	source: string
-): { ast: Omit<utils.SvelteAst.CSS.StyleSheet, 'attributes' | 'content'> } & ParseBase {
+): { ast: Omit<utils.SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'> } & ParseBase {
 	const ast = utils.parseCss(source);
 	const generateCode = () => utils.serializeCss(ast);
 
