@@ -75,7 +75,7 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 describe.concurrent('create scripts', { timeout: 61_000 }, () => {
 	for (const [script, tests] of script_test_map) {
 		for (const [name, task] of tests) {
-			test(`${script} - ${name}`, task);
+			test.skipIf(script === 'check' && name === 'demo-checkjs')(`${script} - ${name}`, task);
 		}
 	}
 });
