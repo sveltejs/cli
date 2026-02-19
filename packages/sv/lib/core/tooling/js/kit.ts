@@ -107,6 +107,11 @@ export function addHooksHandle(
 				maybeHandleDecl = handleFunc ?? handleVar;
 			}
 
+			if (!maybeHandleDecl) {
+				// re-export: `export { handle } from '...'` or `import { handle } from '...'; export { handle }`
+				exportDecl = declaration;
+			}
+
 			maybeHandleDecl ??= declaration.declaration ?? undefined;
 
 			// `export const handle`
@@ -125,6 +130,58 @@ export function addHooksHandle(
 
 	const newHandle = common.parseExpression(options.handleContent);
 	if (common.contains(node, newHandle)) return;
+
+	// Normalize re-export cases into `export const handle = handleExisting`
+	// so the existing logic below can handle them.
+	// Case 1: `export { handle } from '$lib/auth.server'`
+	// Case 2: `import { handle } from '$lib/auth.server'; export { handle }`
+	if (isSpecifier && exportDecl && !originalHandleDecl) {
+		const ALIAS = 'handleExisting';
+
+		if (exportDecl.source) {
+			const source = (exportDecl.source as AstTypes.Literal).value as string;
+			imports.addNamed(node, { from: source, imports: { [handleName]: ALIAS } });
+		} else {
+			for (const item of node.body) {
+				if (item.type !== 'ImportDeclaration') continue;
+				for (const spec of item.specifiers ?? []) {
+					if (
+						spec.type === 'ImportSpecifier' &&
+						spec.local.type === 'Identifier' &&
+						spec.local.name === handleName
+					) {
+						spec.local.name = ALIAS;
+					}
+				}
+			}
+		}
+
+		// Remove old export specifier
+		if (exportDecl.specifiers) {
+			exportDecl.specifiers = exportDecl.specifiers.filter(
+				(s) => !(s.exported.type === 'Identifier' && s.exported.name === 'handle')
+			);
+		}
+		if (!exportDecl.specifiers?.length) {
+			node.body = node.body.filter((item) => item !== exportDecl);
+		}
+
+		// Create normalized form: `export const handle = handleExisting`
+		originalHandleDecl = variables.declaration(node, {
+			kind: 'const',
+			name: handleName,
+			value: variables.createIdentifier(ALIAS)
+		});
+		exportDecl = {
+			type: 'ExportNamedDeclaration',
+			declaration: originalHandleDecl,
+			specifiers: [],
+			attributes: []
+		};
+		node.body.push(exportDecl);
+		isSpecifier = false;
+	}
+
 	// This is the straightforward case. If there's no existing `handle`, we'll just add one
 	// with the new handle's definition and exit
 	if (!originalHandleDecl || !exportDecl) {
