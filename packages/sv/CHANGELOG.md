@@ -1,5 +1,20 @@
 # sv
 
+## 0.12.2
+### Patch Changes
+
+
+- chore(cli): bump svelte to `5.51` to fix formating issues ([#915](https://github.com/sveltejs/cli/pull/915))
+
+
+- fix(cloudflare): remove commented out `Platform` placeholder when adding Cloudflare types ([#925](https://github.com/sveltejs/cli/pull/925))
+
+
+- fix(better-auth): Update imports to use `better-auth/minimal` ([#920](https://github.com/sveltejs/cli/pull/920))
+
+
+- fix(cli): improve `addHooksHandle` robustness ([#929](https://github.com/sveltejs/cli/pull/929))
+
 ## 0.12.1
 ### Patch Changes
 
