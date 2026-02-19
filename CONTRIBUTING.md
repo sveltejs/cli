@@ -59,13 +59,14 @@ pnpm dev
 
 For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
 
-Tests are split into projects: `cli`, `core`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
+Tests are split into projects: `cli`, `core`, `sv-utils`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
 
 ```sh
 pnpm test --project migrate            # Migrate tests
-pnpm test --project core               # Core utility tests
+pnpm test --project core               # Core tests
 pnpm test --project create             # Project creation tests
 pnpm test --project addons             # Add-on tests
+pnpm test --project sv-utils           # sv-utils tests
 
 pnpm test --project addons eslint      # Just eslint add-on tests
 pnpm build && pnpm test --project cli  # CLI tests
@@ -102,11 +103,11 @@ pnpm build
 pnpm preview
 ```
 
-Using dev mode with browser DevTools is often the fastest way to debug UI issues - you can inspect network requests, console errors, and the DOM directly. Once you identify the issue, fix it in the addon source (`packages/sv/lib/addons/[addon].ts`) and re-run the test.
+Using dev mode with browser DevTools is often the fastest way to debug UI issues - you can inspect network requests, console errors, and the DOM directly. Once you identify the issue, fix it in the addon source (`packages/sv/src/addons/[addon].ts`) and re-run the test.
 
 ### Update snapshots
 
-Some snapshots are testing the output of `sv` directly from the generated binary. They are located in `packages/sv/lib/cli/tests/snapshots`. Make sure to generate a new binary before updating these snapshots.
+Some snapshots are testing the output of `sv` directly from the generated binary. They are located in `packages/sv/src/cli/tests/snapshots`. Make sure to generate a new binary before updating these snapshots.
 
 In one command:
 

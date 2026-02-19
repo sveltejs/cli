@@ -1,13 +1,11 @@
 {
 	"extends": "../../tsconfig.json",
-	"include": ["bin.ts", "lib/**/*.ts"],
+	"include": ["bin.ts", "src/**/*.ts"],
 	"exclude": [
 		"dist/**",
-		"lib/core/tests/**/input.ts",
-		"lib/core/tests/**/output.ts",
-		"lib/create/templates/**",
-		"lib/create/shared/vite.config.ts",
-		"lib/cli/tests/snapshots/**"
+		"src/create/templates/**",
+		"src/create/shared/vite.config.ts",
+		"src/cli/tests/snapshots/**"
 	],
 	"compilerOptions": {
 		"checkJs": false
