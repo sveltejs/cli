@@ -116,13 +116,14 @@ importers:
         version: 5.51.0
 
   packages/sv:
+    dependencies:
+      '@sveltejs/sv-utils':
+        specifier: workspace:*
+        version: link:../sv-utils
     devDependencies:
       '@clack/prompts':
         specifier: 1.0.0
         version: 1.0.0
-      '@types/estree':
-        specifier: ^1.0.8
-        version: 1.0.8
       '@types/gitignore-parser':
         specifier: ^0.0.3
         version: 0.0.3
@@ -138,36 +139,15 @@ importers:
       create-vite:
         specifier: ^8.2.0
         version: 8.2.0
-      decircular:
-        specifier: ^1.0.0
-        version: 1.0.0
-      dedent:
-        specifier: ^1.7.0
-        version: 1.7.0
       empathic:
         specifier: ^2.0.0
         version: 2.0.0
-      esrap:
-        specifier: ^2.2.2
-        version: 2.2.2
       gitignore-parser:
         specifier: ^0.0.2
         version: 0.0.2
-      magic-string:
-        specifier: ^0.30.21
-        version: 0.30.21
-      package-manager-detector:
-        specifier: ^1.6.0
-        version: 1.6.0
       ps-tree:
         specifier: ^1.2.0
         version: 1.2.0
-      silver-fleece:
-        specifier: ^1.2.1
-        version: 1.2.1
-      smol-toml:
-        specifier: ^1.5.2
-        version: 1.5.2
       sucrase:
         specifier: ^3.35.1
         version: 3.35.1
@@ -186,6 +166,33 @@ importers:
       valibot:
         specifier: ^1.2.0
         version: 1.2.0(typescript@5.9.3)
+
+  packages/sv-utils:
+    devDependencies:
+      '@types/estree':
+        specifier: ^1.0.8
+        version: 1.0.8
+      decircular:
+        specifier: ^1.0.0
+        version: 1.0.0
+      dedent:
+        specifier: ^1.7.0
+        version: 1.7.0
+      esrap:
+        specifier: ^2.2.2
+        version: 2.2.2
+      package-manager-detector:
+        specifier: ^1.6.0
+        version: 1.6.0
+      silver-fleece:
+        specifier: ^1.2.1
+        version: 1.2.1
+      smol-toml:
+        specifier: ^1.5.2
+        version: 1.5.2
+      svelte:
+        specifier: ^5.51.0
+        version: 5.51.0
       yaml:
         specifier: ^2.8.2
         version: 2.8.2

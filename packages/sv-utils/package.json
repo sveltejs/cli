@@ -1,0 +1,45 @@
+{
+	"name": "@sveltejs/sv-utils",
+	"version": "0.0.1",
+	"type": "module",
+	"description": "Utility functions for sv",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sveltejs/cli.git",
+		"directory": "packages/sv-utils"
+	},
+	"homepage": "https://svelte.dev",
+	"scripts": {
+		"check": "tsgo",
+		"format": "pnpm lint --write",
+		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path ../../.prettierignore"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"default": "./dist/index.mjs"
+		}
+	},
+	"devDependencies": {
+		"@types/estree": "^1.0.8",
+		"decircular": "^1.0.0",
+		"dedent": "^1.7.0",
+		"esrap": "^2.2.2",
+		"package-manager-detector": "^1.6.0",
+		"silver-fleece": "^1.2.1",
+		"smol-toml": "^1.5.2",
+		"svelte": "^5.51.0",
+		"yaml": "^2.8.2",
+		"zimmerframe": "^1.1.4"
+	},
+	"keywords": [
+		"sv",
+		"sv-add",
+		"svelte",
+		"sveltekit"
+	]
+}
