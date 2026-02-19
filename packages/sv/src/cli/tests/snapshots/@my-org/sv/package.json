@@ -1,0 +1,37 @@
+{
+	"name": "@my-org/sv",
+	"description": "sv add-on for @my-org/sv",
+	"version": "0.0.1",
+	"type": "module",
+	"license": "MIT",
+	"scripts": {
+		"demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
+		"demo-add": "sv add file:../ --cwd demo --no-git-check --no-install",
+		"demo-add:ci": "sv add file:../=who:you --cwd demo --no-git-check --no-download-check --no-install",
+		"test": "vitest run"
+	},
+	"files": [
+		"src",
+		"!src/**/*.test.*"
+	],
+	"exports": {
+		".": {
+			"default": "./src/index.js"
+		}
+	},
+	"dependencies": {
+		"@sveltejs/sv-utils": "latest",
+		"sv": "latest"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.58.2",
+		"vitest": "^4.0.18"
+	},
+	"keywords": [
+		"sv-add"
+	],
+	"publishConfig": {
+		"directory": "dist",
+		"access": "public"
+	}
+}

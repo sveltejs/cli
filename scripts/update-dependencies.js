@@ -3,9 +3,10 @@ import path from 'node:path';
 import { styleText } from 'node:util';
 
 async function updateAddonDependencies() {
-	const addonsBasePath = path.resolve('packages', 'sv', 'lib', 'addons');
+	const addonsBasePath = path.resolve('packages', 'sv', 'src', 'addons');
 	const addonsFiles = fs
 		.readdirSync(addonsBasePath, { withFileTypes: true })
+		.filter((item) => item.isFile())
 		.map((item) => item.name)
 		.filter((x) => x !== 'node_modules' && !x.startsWith('_'));
 
@@ -142,7 +143,7 @@ async function getLatestVersion(name) {
 await updateAddonDependencies();
 
 // Update template package.template.json files
-await updatePackageFiles('packages/sv/lib/create/templates', 'package.template.json', 'template');
+await updatePackageFiles('packages/sv/src/create/templates', 'package.template.json', 'template');
 
 // Update shared package.json files
-await updatePackageFiles('packages/sv/lib/create/shared', 'package.json', 'shared');
+await updatePackageFiles('packages/sv/src/create/shared', 'package.json', 'shared');

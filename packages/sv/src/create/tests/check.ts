@@ -1,0 +1,81 @@
+import { type PromiseWithChild, exec } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+import { beforeAll, describe, expect, test } from 'vitest';
+import { add, officialAddons } from '../../../../sv/src/index.ts';
+import { type LanguageType, type TemplateType, create } from '../index.ts';
+
+// Resolve the given path relative to the current file
+const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+
+// use a directory outside of packages to ensure it isn't added to the pnpm workspace
+const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
+
+// prepare test pnpm workspace
+fs.rmSync(test_workspace_dir, { recursive: true, force: true });
+fs.mkdirSync(test_workspace_dir, { recursive: true });
+
+fs.writeFileSync(path.join(test_workspace_dir, 'pnpm-workspace.yaml'), 'packages:\n  - ./*\n');
+
+const exec_async = promisify(exec);
+
+beforeAll(async () => {
+	await exec_async('pnpm install --no-frozen-lockfile', {
+		cwd: test_workspace_dir
+	});
+}, 60000);
+
+/**
+ * Tests in different templates can be run concurrently for a nice speedup locally, but tests within a template must be run sequentially.
+ * It'd be better to group tests by template, but vitest doesn't support that yet.
+ */
+const script_test_map = new Map<string, Array<[string, () => PromiseWithChild<any>]>>();
+
+const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[];
+
+for (const template of templates.filter((t) => t !== 'addon')) {
+	if (template[0] === '.') continue;
+
+	for (const types of ['checkjs', 'typescript', 'none'] as LanguageType[]) {
+		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
+		fs.rmSync(cwd, { recursive: true, force: true });
+
+		create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
+		await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+
+		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
+
+		// run provided scripts that are non-blocking. All of them should exit with 0
+		// package script requires lib dir
+		const scripts_to_test = ['lint', 'format', 'check', 'build', 'package'].filter(
+			(s) => s in pkg.scripts
+		);
+
+		for (const script of scripts_to_test) {
+			const tests = script_test_map.get(script) ?? [];
+			tests.push([`${template}-${types}`, () => exec_async(`pnpm ${script}`, { cwd })]);
+			script_test_map.set(script, tests);
+		}
+
+		if (template === 'demo') {
+			describe(`local import with extentions`, () => {
+				test(`${template}-${types}`, () => {
+					const ending = types === 'typescript' ? 'ts' : 'js';
+					const gameFile = path.join(cwd, `src/routes/sverdle/game.${ending}`);
+					const gameFileContent = fs.readFileSync(gameFile, 'utf-8');
+					expect(gameFileContent).toContain(`./words.server.${ending}`);
+				});
+			});
+		}
+	}
+}
+
+describe.concurrent('create scripts', { timeout: 61_000 }, () => {
+	for (const [script, tests] of script_test_map) {
+		for (const [name, task] of tests) {
+			test.skipIf(script === 'check' && name === 'demo-checkjs')(`${script} - ${name}`, task);
+		}
+	}
+});
