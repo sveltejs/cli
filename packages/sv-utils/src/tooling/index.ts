@@ -3,7 +3,12 @@ import ts from 'esrap/languages/ts';
 import type { BaseNode } from 'estree';
 import * as fleece from 'silver-fleece';
 import * as toml from 'smol-toml';
-import { type AST as SvelteAst, parse as svelteParse, print as sveltePrint } from 'svelte/compiler';
+import {
+	type AST as SvelteAst,
+	parse as svelteParse,
+	print as sveltePrint,
+	parseCss as svelteParseCss
+} from 'svelte/compiler';
 import * as yaml from 'yaml';
 import * as Walker from 'zimmerframe';
 import type { TsEstree } from './js/ts-estree.ts';
@@ -61,12 +66,11 @@ export function serializeScript(
 	return code;
 }
 
-export function parseCss(content: string): SvelteAst.CSS.StyleSheet {
-	const ast = parseSvelte(`<style>${content}</style>`);
-	return ast.css!;
+export function parseCss(content: string): SvelteAst.CSS.StyleSheetBase {
+	return svelteParseCss(content);
 }
 
-export function serializeCss(ast: SvelteAst.CSS.StyleSheet): string {
+export function serializeCss(ast: SvelteAst.CSS.StyleSheetBase): string {
 	// `svelte` can print the stylesheet directly. But this adds the style tags (<style>) that we do not want here.
 	// `svelte` is unable to print an array of rules (ast.children) directly, therefore we concatenate the printed rules manually.
 

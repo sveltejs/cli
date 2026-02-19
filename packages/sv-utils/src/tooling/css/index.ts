@@ -1,7 +1,7 @@
 import type { SvelteAst } from '../index.ts';
 
 export function addRule(
-	node: SvelteAst.CSS.StyleSheet,
+	node: SvelteAst.CSS.StyleSheetBase,
 	options: { selector: string }
 ): SvelteAst.CSS.Rule {
 	// we do not check for existing rules here, as the selector AST from svelte is really complex
@@ -73,7 +73,10 @@ export function addDeclaration(
 	}
 }
 
-export function addImports(node: SvelteAst.CSS.StyleSheet, options: { imports: string[] }): void {
+export function addImports(
+	node: SvelteAst.CSS.StyleSheetBase,
+	options: { imports: string[] }
+): void {
 	let lastImportIndex = -1;
 
 	// Find the last existing @import to insert after it
@@ -113,7 +116,7 @@ export function addImports(node: SvelteAst.CSS.StyleSheet, options: { imports: s
 }
 
 export function addAtRule(
-	node: SvelteAst.CSS.StyleSheet,
+	node: SvelteAst.CSS.StyleSheetBase,
 	options: { name: string; params: string; append: boolean }
 ): SvelteAst.CSS.Atrule {
 	const atRules = node.children.filter((x) => x.type === 'Atrule');
