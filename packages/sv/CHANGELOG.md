@@ -1,5 +1,11 @@
 # sv
 
+## 0.12.3
+### Patch Changes
+
+- Updated dependencies [[`cf12320`](https://github.com/sveltejs/cli/commit/cf1232017d8f5f89fa1c6fe9f05707b6b932c85b)]:
+  - @sveltejs/sv-utils@0.0.2
+
 ## 0.12.2
 ### Patch Changes
 
