@@ -5,6 +5,7 @@ import pkg from './package.json' with { type: 'json' };
 import { add } from './src/cli/add.ts';
 import { check } from './src/cli/check.ts';
 import { create } from './src/cli/create.ts';
+import { docs } from './src/cli/docs.ts';
 import { migrate } from './src/cli/migrate.ts';
 import { helpConfig } from './src/core/common.ts';
 
@@ -12,5 +13,5 @@ import { helpConfig } from './src/core/common.ts';
 console.log();
 
 program.name(pkg.name).version(pkg.version, '-v, --version').configureHelp(helpConfig);
-program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);
+program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check).addCommand(docs);
 program.parse();
