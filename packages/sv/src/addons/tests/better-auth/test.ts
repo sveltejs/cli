@@ -2,7 +2,6 @@ import { expect } from '@playwright/test';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import process from 'node:process';
 import betterAuth from '../../better-auth.ts';
 import drizzle from '../../drizzle.ts';
 import { setupTest } from '../_setup/suite.ts';
@@ -23,10 +22,7 @@ const { test, testCases, prepareServer } = setupTest(
 	}
 );
 
-const ONE_MINUTE = 1000 * 60;
-const timeout = process.platform === 'win32' ? ONE_MINUTE * 5 : ONE_MINUTE * 3;
-
-test.concurrent.for(testCases)('better-auth $variant', { timeout }, async (testCase, { page, ...ctx }) => {
+test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
 
