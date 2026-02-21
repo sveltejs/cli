@@ -7,7 +7,7 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, language, files }) => {
+	run: ({ sv, language, files, kit }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
 		sv.file(files.package, (content) => {
@@ -24,7 +24,11 @@ export default defineAddon({
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
-		sv.file(`e2e/demo.test.${language}`, (content) => {
+		const testFile = kit
+			? `${kit.routesDirectory}/page.svelte.e2e.${language}`
+			: `src/app.svelte.e2e.${language}`;
+
+		sv.file(testFile, (content) => {
 			if (content) return content;
 
 			return dedent`
@@ -47,7 +51,7 @@ export default defineAddon({
 					command: 'npm run build && npm run preview',
 					port: 4173
 				},
-				testDir: 'e2e'
+				testMatch: '**/*.e2e.{ts,js}'
 			};
 
 			if (
