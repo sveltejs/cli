@@ -126,26 +126,10 @@ function addInArrayOfObject(
 ): void {
 	const { code, arrayProperty, mode = 'append' } = options;
 
-	// Get or create the array property
-	let targetArray = object.property(ast, {
+	const targetArray = configProperty(programAst, ast, {
 		name: arrayProperty,
 		fallback: array.create()
 	});
-
-	// If the property value is an identifier reference (e.g. shorthand `{ plugins }`),
-	// resolve it to the actual variable's value
-	const astNode = targetArray as AstTypes.Node;
-	if (astNode.type === 'Identifier') {
-		const varDecl = variables.declaration(programAst, {
-			kind: 'const',
-			name: astNode.name,
-			value: array.create()
-		});
-		const declarator = varDecl.declarations[0] as AstTypes.VariableDeclarator;
-		if (declarator.init) {
-			targetArray = declarator.init as AstTypes.ArrayExpression;
-		}
-	}
 
 	// Parse the expression
 	const expression = common.parseExpression(code);
@@ -175,6 +159,30 @@ export const addPlugin = (
 		...options
 	});
 };
+
+/**
+ * Like `object.property`, but resolves shorthand identifier references
+ * (e.g. `{ plugins }`) by looking up the variable in the program AST.
+ */
+export function configProperty<T extends AstTypes.Expression | AstTypes.Identifier>(
+	ast: AstTypes.Program,
+	config: AstTypes.ObjectExpression,
+	options: { name: string; fallback: T }
+): T {
+	const value = object.property(config, options);
+	const node = value as AstTypes.Node;
+	if (node.type === 'Identifier') {
+		const varDecl = variables.declaration(ast, {
+			kind: 'const',
+			name: node.name,
+			value: options.fallback
+		});
+		if (ast.body.includes(varDecl)) {
+			return (varDecl.declarations[0] as AstTypes.VariableDeclarator).init as T;
+		}
+	}
+	return value;
+}
 
 export const getConfig = (ast: AstTypes.Program): AstTypes.ObjectExpression => {
 	return exportDefaultConfig(ast, {
