@@ -1,4 +1,4 @@
-import { type AstTypes, array, common, exports, functions, imports, object } from './index.ts';
+import { type AstTypes, array, common, exports, functions, imports, object, variables } from './index.ts';
 
 function isConfigWrapper(
 	callExpression: AstTypes.CallExpression,
@@ -118,6 +118,7 @@ function exportDefaultConfig(
 }
 
 function addInArrayOfObject(
+	programAst: AstTypes.Program,
 	ast: AstTypes.ObjectExpression,
 	options: {
 		arrayProperty: string;
@@ -126,10 +127,25 @@ function addInArrayOfObject(
 	const { code, arrayProperty, mode = 'append' } = options;
 
 	// Get or create the array property
-	const targetArray = object.property(ast, {
+	let targetArray = object.property(ast, {
 		name: arrayProperty,
 		fallback: array.create()
 	});
+
+	// If the property value is an identifier reference (e.g. shorthand `{ plugins }`),
+	// resolve it to the actual variable's value
+	const astNode = targetArray as AstTypes.Node;
+	if (astNode.type === 'Identifier') {
+		const varDecl = variables.declaration(programAst, {
+			kind: 'const',
+			name: astNode.name,
+			value: array.create()
+		});
+		const declarator = varDecl.declarations[0] as AstTypes.VariableDeclarator;
+		if (declarator.init) {
+			targetArray = declarator.init as AstTypes.ArrayExpression;
+		}
+	}
 
 	// Parse the expression
 	const expression = common.parseExpression(code);
@@ -154,7 +170,7 @@ export const addPlugin = (
 	const configObject = getConfig(ast);
 
 	// Step 2: Add the plugin to the plugins array
-	addInArrayOfObject(configObject, {
+	addInArrayOfObject(ast, configObject, {
 		arrayProperty: 'plugins',
 		...options
 	});
