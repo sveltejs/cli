@@ -37,7 +37,8 @@ describe('cli', () => {
 			],
 			cmds: [
 				['i'],
-				['run', 'auth:schema'], //['run', 'build'],
+				['run', 'auth:schema'],
+				['run', 'build'],
 				['exec', 'eslint', '--', '.']
 			]
 		},
