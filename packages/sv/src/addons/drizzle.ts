@@ -410,6 +410,16 @@ export default defineAddon({
 
 			return generateCode();
 		});
+
+		if (typescript) {
+			sv.file('tsconfig.json', (content) => {
+				const { data, generateCode } = parse.json(content);
+				const file = `drizzle.config.${language}`;
+				if (!data.files) data.files = [];
+				if (!data.files.includes(file)) data.files.push(file);
+				return generateCode();
+			});
+		}
 	},
 	nextSteps: ({ options, packageManager }) => {
 		const steps: string[] = [];

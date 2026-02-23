@@ -37,6 +37,17 @@ export default defineAddon({
 				`;
 		});
 
+		if (language === 'ts') {
+			sv.file('tsconfig.json', (content) => {
+				const { data, generateCode } = parse.json(content);
+				if (!data.files) data.files = [];
+				for (const file of [`playwright.config.ts`, `e2e/demo.test.ts`]) {
+					if (!data.files.includes(file)) data.files.push(file);
+				}
+				return generateCode();
+			});
+		}
+
 		sv.file(`playwright.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
 			const defineConfig = js.common.parseExpression('defineConfig({})');

@@ -85,7 +85,9 @@ export default defineAddon({
 			});
 
 			const expression = js.common.parseExpression(
-				'(request) => deLocalizeUrl(request.url).pathname'
+				language === 'ts'
+					? '(request: { url: URL }) => deLocalizeUrl(request.url).pathname'
+					: '(request) => deLocalizeUrl(request.url).pathname'
 			);
 			const rerouteIdentifier = js.variables.declaration(ast, {
 				kind: 'const',
@@ -184,7 +186,8 @@ export default defineAddon({
 			svelte.addFragment(
 				ast,
 				`<div style="display:none">
-	{#each locales as locale}
+	{#each locales as locale (locale)}
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
 	{/each}
 </div>`
