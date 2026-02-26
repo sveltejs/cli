@@ -119,9 +119,7 @@ export default defineAddon({
 			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
 		event.request = request;
 		return resolve(event, {
-			transformPageChunk: ({ html }) => html
-				.replace('%paraglide.lang%', locale)
-				.replace('%paraglide.dir%', getTextDirection(locale))
+			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale).replace('%paraglide.dir%', getTextDirection(locale))
 		});
 	});`;
 			js.kit.addHooksHandle(ast, {
