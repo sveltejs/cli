@@ -35,12 +35,7 @@ describe('cli', () => {
 				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
 				// 'storybook' // No storybook addon during tests!
 			],
-			cmds: [
-				['i'],
-				['run', 'auth:schema'],
-				['run', 'build'],
-				['exec', 'eslint', '--', '.']
-			]
+			cmds: [['i'], ['run', 'auth:schema'], ['run', 'build'], ['exec', 'eslint', '--', '.']]
 		},
 		{
 			projectName: '@my-org/sv',

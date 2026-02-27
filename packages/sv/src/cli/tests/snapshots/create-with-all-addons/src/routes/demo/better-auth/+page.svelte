@@ -5,7 +5,6 @@
 	let { data }: { data: PageServerData } = $props();
 </script>
 
-<!-- eslint-disable @typescript-eslint/no-unsafe-member-access -->
 <h1>Hi, {data.user.name}!</h1>
 <p>Your user ID is {data.user.id}.</p>
 <form method="post" action="?/signOut" use:enhance>

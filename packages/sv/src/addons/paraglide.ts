@@ -183,12 +183,12 @@ export default defineAddon({
 				from: '$lib/paraglide/runtime'
 			});
 			js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
+			js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 			svelte.addFragment(
 				ast,
 				`<div style="display:none">
 	{#each locales as locale (locale)}
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
+		<a href={resolve(localizeHref(page.url.pathname, { locale }))}>{locale}</a>
 	{/each}
 </div>`
 			);
