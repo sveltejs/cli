@@ -3,6 +3,21 @@ import { color, parse } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
+const deepMerge = (target: any, source: any): any => {
+	if (source && typeof source === 'object' && !Array.isArray(source)) {
+		for (const key in source) {
+			if (Object.hasOwn(source, key)) {
+				if (target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+					deepMerge(target[key], source[key]);
+				} else {
+					target[key] = source[key];
+				}
+			}
+		}
+	}
+	return target;
+};
+
 const options = defineAddonOptions()
 	.add('ide', {
 		question: 'Which client would you like to use?',
@@ -26,7 +41,8 @@ const options = defineAddonOptions()
 			{ value: 'local', label: 'Local', hint: 'will use stdio' },
 			{ value: 'remote', label: 'Remote', hint: 'will use a remote endpoint' }
 		],
-		required: true
+		required: true,
+		condition: ({ ide }) => !(ide.length === 1 && ide.includes('opencode'))
 	})
 	.build();
 
@@ -69,6 +85,7 @@ export default defineAddon({
 					env?: boolean;
 					command?: string | string[];
 					args?: string[] | null;
+					customData?: Record<string, any>;
 			  }
 			| { other: true }
 		> = {
@@ -92,12 +109,8 @@ export default defineAddon({
 			opencode: {
 				agentPath: 'AGENTS.md',
 				schema: 'https://opencode.ai/config.json',
-				mcpServersKey: 'mcp',
 				mcpPath: 'opencode.json',
-				typeLocal: 'local',
-				typeRemote: 'remote',
-				command: ['npx', '-y', '@sveltejs/mcp'],
-				args: null
+				customData: { plugin: ['@sveltejs/opencode'] }
 			},
 			vscode: {
 				agentPath: 'AGENTS.md',
@@ -130,7 +143,8 @@ export default defineAddon({
 				env,
 				schema,
 				command,
-				args
+				args,
+				customData
 			} = value;
 
 			// We only add the agent file if it's not already added
@@ -149,6 +163,9 @@ export default defineAddon({
 				const { data, generateCode } = parse.json(content);
 				if (schema) {
 					data['$schema'] = schema;
+				}
+				if (customData) {
+					deepMerge(data, customData);
 				}
 				const key = mcpServersKey ?? 'mcpServers';
 				data[key] ??= {};
