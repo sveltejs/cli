@@ -41,7 +41,7 @@ export default defineAddon({
 
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, files }) => {
+	run: ({ sv, language, options, kit, dependencyVersion, files, packageManager }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const demoPassword = options.demo.includes('password');
@@ -131,11 +131,18 @@ export default defineAddon({
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
-			json.packageScriptsUpsert(
-				data,
-				'auth:schema',
-				`npx @better-auth/cli generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
-			);
+
+			const cmd = resolveCommand(packageManager, 'execute', [
+				'@better-auth/cli',
+				'generate',
+				'--config',
+				authConfigPath,
+				'--output',
+				authSchemaPath,
+				'--yes'
+			])!;
+
+			json.packageScriptsUpsert(data, 'auth:schema', `${cmd.command} ${cmd.args.join(' ')}`);
 			return generateCode();
 		});
 
