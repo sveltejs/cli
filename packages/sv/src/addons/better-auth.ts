@@ -135,7 +135,7 @@ export default defineAddon({
 			json.packageScriptsUpsert(
 				data,
 				'auth:schema',
-				`better-auth/cli generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
+				`better-auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
 			);
 			return generateCode();
 		});
