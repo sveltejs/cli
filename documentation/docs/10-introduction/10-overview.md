@@ -6,7 +6,7 @@ The command line interface (CLI), `sv`, is a toolkit for creating and maintainin
 
 ## Usage
 
-The easiest way to run `sv` is with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) (or the equivalent command if you're using a different package manager — for example, `pnpx` if you're using [pnpm](https://pnpm.io/)):
+The easiest way to run `sv` is with [`npx`](https://docs.npmjs.com/cli/v8/commands/npx) (or the equivalent command if you're using a different package manager — for example, `pnpm dlx` if you're using [pnpm](https://pnpm.io/)):
 
 ```sh
 npx sv <command> <args>
