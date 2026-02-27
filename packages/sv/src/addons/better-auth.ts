@@ -41,7 +41,7 @@ export default defineAddon({
 
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, files, packageManager }) => {
+	run: ({ sv, language, options, kit, dependencyVersion, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const demoPassword = options.demo.includes('password');
@@ -51,6 +51,7 @@ export default defineAddon({
 		let drizzleDialect: Dialect;
 
 		sv.devDependency('better-auth', '^1.4.18');
+		sv.devDependency('@better-auth/cli', '^1.4.18');
 
 		sv.file(`drizzle.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
@@ -131,18 +132,11 @@ export default defineAddon({
 
 		sv.file(files.package, (content) => {
 			const { data, generateCode } = parse.json(content);
-
-			const cmd = resolveCommand(packageManager, 'execute', [
-				'@better-auth/cli',
-				'generate',
-				'--config',
-				authConfigPath,
-				'--output',
-				authSchemaPath,
-				'--yes'
-			])!;
-
-			json.packageScriptsUpsert(data, 'auth:schema', `${cmd.command} ${cmd.args.join(' ')}`);
+			json.packageScriptsUpsert(
+				data,
+				'auth:schema',
+				`better-auth/cli generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
+			);
 			return generateCode();
 		});
 
