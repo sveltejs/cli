@@ -3,21 +3,6 @@ import { color, parse } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
-const deepMerge = (target: any, source: any): any => {
-	if (source && typeof source === 'object' && !Array.isArray(source)) {
-		for (const key in source) {
-			if (Object.hasOwn(source, key)) {
-				if (target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
-					deepMerge(target[key], source[key]);
-				} else {
-					target[key] = source[key];
-				}
-			}
-		}
-	}
-	return target;
-};
-
 const options = defineAddonOptions()
 	.add('ide', {
 		question: 'Which client would you like to use?',
@@ -164,7 +149,9 @@ export default defineAddon({
 				}
 
 				if (customData) {
-					deepMerge(data, customData);
+					for (const [key, value] of Object.entries(customData)) {
+						data[key] = value;
+					}
 				}
 
 				if (mcpOptions) {
