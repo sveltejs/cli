@@ -144,7 +144,7 @@ export function buildAndLogArgs(
 	args: string[],
 	lastArgs: string[] = []
 ): string {
-	const allArgs = ['sv', command, ...args];
+	const allArgs = [`sv@${pkg.version}`, command, ...args];
 
 	// Handle install option
 	if (agent === null || agent === undefined) allArgs.push('--no-install');
