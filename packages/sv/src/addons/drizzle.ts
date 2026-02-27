@@ -104,7 +104,7 @@ export default defineAddon({
 
 		// PostgreSQL
 		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^1.0.2');
-		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.8');
+		if (options.postgresql === 'postgres.js') sv.devDependency('postgres', '^3.4.8');
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
