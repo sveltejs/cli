@@ -121,10 +121,7 @@ export default defineAddon({
 
 		sv.file(files.vscodeExtensions, (content) => {
 			const { data, generateCode } = parse.json(content);
-
-			data['recommendations'] ??= [];
-			data['recommendations'].push('bradlc.vscode-tailwindcss');
-
+			json.arrayUpsert(data, 'recommendations', 'bradlc.vscode-tailwindcss');
 			return generateCode();
 		});
 

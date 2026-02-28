@@ -79,10 +79,7 @@ export default defineAddon({
 
 		sv.file(files.vscodeExtensions, (content) => {
 			const { data, generateCode } = parse.json(content);
-
-			data['recommendations'] ??= [];
-			data['recommendations'].push('esbenp.prettier-vscode');
-
+			json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
 			return generateCode();
 		});
 

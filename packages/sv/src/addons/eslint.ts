@@ -151,10 +151,7 @@ export default defineAddon({
 
 		sv.file(files.vscodeExtensions, (content) => {
 			const { data, generateCode } = parse.json(content);
-
-			data['recommendations'] ??= [];
-			data['recommendations'].push('dbaeumer.vscode-eslint');
-
+			json.arrayUpsert(data, 'recommendations', 'dbaeumer.vscode-eslint');
 			return generateCode();
 		});
 
