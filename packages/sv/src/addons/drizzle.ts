@@ -108,6 +108,7 @@ export default defineAddon({
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
+			// not a devDependency due to bundling issues
 			sv.dependency('better-sqlite3', '^12.6.2');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			sv.pnpmBuildDependency('better-sqlite3');
