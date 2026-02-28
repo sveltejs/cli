@@ -18,8 +18,7 @@ Please keep your pull requests focused to feature or issue. Focused smaller chan
 This is a monorepo, meaning the repo holds multiple packages. It requires the use of [pnpm](https://pnpm.io/). You can [install pnpm](https://pnpm.io/installation) with:
 
 ```sh
-npm i -g corepack@latest
-corepack enable pnpm
+npm i -g pnpm
 ```
 
 _(Optional)_ For running certain packages and tests locally you will need to install [docker](https://docs.docker.com/get-started/get-docker).
