@@ -28,6 +28,11 @@ function insertElement(
 	element: string | AstTypes.Expression | AstTypes.SpreadElement,
 	options: { insertEnd: boolean }
 ): void {
+	const astNode = node as AstTypes.Node;
+	if (astNode.type !== 'ArrayExpression') {
+		const detail = astNode.type === 'Identifier' ? ` "${astNode.name}"` : '';
+		throw new Error(`Expected an ArrayExpression but got ${astNode.type}${detail}`);
+	}
 	if (typeof element === 'string') {
 		const existingLiterals = node.elements.filter(
 			(item) => item !== null && item.type === 'Literal'
