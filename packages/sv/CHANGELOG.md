@@ -1,5 +1,11 @@
 # sv
 
+## 0.12.4
+### Patch Changes
+
+
+- revert(paraglide): remove `disableAsyncLocalStorage` for serverless environments ([#958](https://github.com/sveltejs/cli/pull/958))
+
 ## 0.12.3
 ### Patch Changes
 
