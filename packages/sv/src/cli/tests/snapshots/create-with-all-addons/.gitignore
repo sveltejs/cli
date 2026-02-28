@@ -23,8 +23,8 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Playwright
 test-results
+# SQLite
+*.db
 # Paraglide
 src/lib/paraglide
 project.inlang/cache/
-# SQLite
-*.db
