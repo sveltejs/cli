@@ -1,5 +1,11 @@
 {
-	"exclude": ["**/dist/**", "**/temp/**"],
+	"exclude": [
+		"**/dist/**",
+		"**/temp/**",
+		"packages/sv/src/cli/tests/snapshots/**",
+		"packages/sv/src/create/templates/**",
+		"packages/sv/src/create/shared/**"
+	],
 	"compilerOptions": {
 		"checkJs": true,
 		"moduleResolution": "NodeNext",
