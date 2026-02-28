@@ -11,10 +11,12 @@
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "bundler"
-	}
-	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
-	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
-	//
-	// To make changes to top-level options such as include and exclude, we recommend extending
-	// the generated config; see https://svelte.dev/docs/kit/configuration#typescript
+	},
+	"files": [
+		"svelte.config.js",
+		"eslint.config.js",
+		"playwright.config.ts",
+		"e2e/demo.test.ts",
+		"drizzle.config.ts"
+	]
 }

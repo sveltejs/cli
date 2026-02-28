@@ -85,7 +85,9 @@ export default defineAddon({
 			});
 
 			const expression = js.common.parseExpression(
-				'(request) => deLocalizeUrl(request.url).pathname'
+				language === 'ts'
+					? '(request: { url: URL }) => deLocalizeUrl(request.url).pathname'
+					: '(request) => deLocalizeUrl(request.url).pathname'
 			);
 			const rerouteIdentifier = js.variables.declaration(ast, {
 				kind: 'const',
@@ -181,11 +183,12 @@ export default defineAddon({
 				from: '$lib/paraglide/runtime'
 			});
 			js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
+			js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 			svelte.addFragment(
 				ast,
 				`<div style="display:none">
-	{#each locales as locale}
-		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
+	{#each locales as locale (locale)}
+		<a href={resolve(localizeHref(page.url.pathname, { locale }))}>{locale}</a>
 	{/each}
 </div>`
 			);

@@ -48,7 +48,7 @@ export default defineAddon({
 			eslintConfigs.push(jsConfig);
 
 			if (typescript) {
-				const tsConfig = js.common.parseExpression('ts.configs.recommended');
+				const tsConfig = js.common.parseExpression('ts.configs.recommendedTypeChecked');
 				eslintConfigs.push(js.common.createSpread(tsConfig));
 			}
 
@@ -77,6 +77,7 @@ export default defineAddon({
 
 			const globalsConfig = js.object.create({
 				languageOptions: {
+					parserOptions: typescript ? { projectService: true } : undefined,
 					globals: globalsObjLiteral
 				},
 				rules: typescript ? rules : undefined
@@ -157,6 +158,17 @@ export default defineAddon({
 
 		if (prettierInstalled) {
 			sv.file(files.eslintConfig, addEslintConfigPrettier);
+		}
+
+		if (typescript) {
+			sv.file('tsconfig.json', (content) => {
+				const { data, generateCode } = parse.json(content);
+				if (!data.files) data.files = [];
+				for (const file of ['svelte.config.js', files.eslintConfig]) {
+					if (!data.files.includes(file)) data.files.push(file);
+				}
+				return generateCode();
+			});
 		}
 	}
 });

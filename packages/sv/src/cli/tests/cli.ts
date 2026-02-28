@@ -16,7 +16,7 @@ beforeAll(() => {
 
 describe('cli', () => {
 	const testCases = [
-		{ projectName: 'create-only', args: ['--no-add-ons'] },
+		{ projectName: 'create-only', args: ['--no-add-ons'], cmds: [] },
 		{
 			projectName: 'create-with-all-addons',
 			args: [
@@ -34,20 +34,22 @@ describe('cli', () => {
 				'paraglide=languageTags:en,es+demo:yes',
 				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
 				// 'storybook' // No storybook addon during tests!
-			]
+			],
+			cmds: [['i'], ['run', 'auth:schema'], ['run', 'build'], ['exec', 'eslint', '--', '.']]
 		},
 		{
 			projectName: '@my-org/sv',
 			template: 'addon',
-			args: []
+			args: [],
+			cmds: [['i'], ['run', 'demo-create'], ['run', 'demo-add:ci'], ['run', 'test']]
 		}
 	];
 
 	it.for(testCases)(
 		'should create a new project with name $projectName',
-		{ timeout: 51_000 },
+		{ timeout: 101_000 },
 		async (testCase) => {
-			const { projectName, args, template = 'minimal' } = testCase;
+			const { projectName, args, template = 'minimal', cmds } = testCase;
 
 			const testOutputPath = path.relative(
 				monoRepoPath,
@@ -124,23 +126,15 @@ describe('cli', () => {
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
 				);
+			}
 
-				const cmds = [
-					// list of cmds to test
-					['i'],
-					['run', 'demo-create'],
-					['run', 'demo-add:ci'],
-					['run', 'test']
-				];
-				for (const cmd of cmds) {
-					const res = await exec('npm', cmd, {
-						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-					});
-					expect(
-						res.exitCode,
-						`Error addon test: '${cmd}' -> ${JSON.stringify(res, null, 2)}`
-					).toBe(0);
-				}
+			for (const cmd of cmds) {
+				const res = await exec('npm', cmd, {
+					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+				});
+				expect(res.exitCode, `Error addon test: '${cmd}' -> ${JSON.stringify(res, null, 2)}`).toBe(
+					0
+				);
 			}
 		}
 	);

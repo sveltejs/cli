@@ -240,8 +240,8 @@ export default defineAddon({
 						? `
 						signInEmail: async (event) => {
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
+							const email = (formData.get('email') ?? '') as string;
+							const password = (formData.get('password') ?? '') as string;
 
 							try {
 								await auth.api.signInEmail({
@@ -262,9 +262,9 @@ export default defineAddon({
 						},
 						signUpEmail: async (event) => {
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
-							const name = formData.get('name')?.toString() ?? '';
+							const email = (formData.get('email') ?? '') as string;
+							const password = (formData.get('password') ?? '') as string;
+							const name = (formData.get('name') ?? '') as string;
 
 							try {
 								await auth.api.signUpEmail({
@@ -290,8 +290,8 @@ export default defineAddon({
 						? `
 						signInSocial: async (event) => {
 							const formData = await event.request.formData();
-							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+							const provider = (formData.get('provider') ?? 'github') as string;
+							const callbackURL = (formData.get('callbackURL') ?? '/demo/better-auth') as string;
 
 							const result = await auth.api.signInSocial({
 								body: {
@@ -316,7 +316,7 @@ export default defineAddon({
 					import { auth } from '$lib/server/auth';
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/better-auth');
 						}
@@ -405,7 +405,7 @@ export default defineAddon({
 					${ts("import type { PageServerLoad } from './$types';")}
 					import { auth } from '$lib/server/auth';
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/better-auth/login');
 						}
