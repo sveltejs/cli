@@ -1,5 +1,23 @@
 # sv
 
+## 0.12.3
+### Patch Changes
+
+
+- fix(paraglide): add text-direction support ([#948](https://github.com/sveltejs/cli/pull/948))
+
+
+- feat: add vscode extension recommendations ([#953](https://github.com/sveltejs/cli/pull/953))
+
+
+- feat(paraglide): disable `AsyncLocalStorage` in serverless environments ([#957](https://github.com/sveltejs/cli/pull/957))
+
+
+- fix: install `@better-auth/cli` as a dev dependency ([#950](https://github.com/sveltejs/cli/pull/950))
+
+- Updated dependencies [[`142c719`](https://github.com/sveltejs/cli/commit/142c719dd072196d99753f5fa060a26300cff276), [`cf12320`](https://github.com/sveltejs/cli/commit/cf1232017d8f5f89fa1c6fe9f05707b6b932c85b)]:
+  - @sveltejs/sv-utils@0.0.2
+
 ## 0.12.2
 ### Patch Changes
 

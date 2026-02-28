@@ -1,6 +1,6 @@
 {
 	"name": "@sveltejs/sv-utils",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"type": "module",
 	"description": "Utility functions for sv",
 	"license": "MIT",
