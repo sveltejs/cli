@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import pkg from '../../package.json' with { type: 'json' };
+import type { LoadedAddon } from './config.ts';
 import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';
@@ -194,3 +195,46 @@ export function errorAndExit(message: string) {
 export const normalizePosix = (dir: string) => {
 	return path.posix.normalize(dir.replace(/\\/g, '/'));
 };
+
+export function updateAgent(
+	projectPath: string,
+	language: 'typescript' | 'checkjs' | 'none',
+	packageManager: string,
+	loadedAddons: LoadedAddon[]
+): void {
+	const agentFiles = ['AGENTS.md', 'GEMINI.md', 'CLAUDE.md'];
+
+	const languageLabel =
+		language === 'typescript'
+			? 'TypeScript'
+			: language === 'checkjs'
+				? 'JavaScript (JSDoc)'
+				: 'None';
+
+	const packageManagerLabel = packageManager ?? 'npm';
+
+	const addonNames = loadedAddons.map((addon) => addon.addon.id);
+	const addonsLabel = addonNames.length > 0 ? addonNames.join(', ') : 'none';
+
+	const configSection = `## Project Configuration
+
+- **Language**: ${languageLabel}
+- **Package Manager**: ${packageManagerLabel}
+- **Add-ons**: ${addonsLabel}
+
+---
+
+`;
+
+	const existingSectionPattern = /^## Project Configuration[\s\S]*?---\n\n/;
+
+	for (const fileName of agentFiles) {
+		const agentPath = path.join(projectPath, fileName);
+		if (!fs.existsSync(agentPath)) continue;
+
+		let content = fs.readFileSync(agentPath, 'utf-8');
+		content = content.replace(existingSectionPattern, '');
+		content = configSection + content;
+		fs.writeFileSync(agentPath, content);
+	}
+}
