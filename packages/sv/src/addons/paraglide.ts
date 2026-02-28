@@ -50,13 +50,20 @@ export default defineAddon({
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ kit, unsupported }) => {
+	setup: ({ kit, unsupported, runsAfter }) => {
 		if (!kit) unsupported('Requires SvelteKit');
+
+		runsAfter('sveltekitAdapter');
 	},
-	run: ({ sv, options, files, language, kit }) => {
+	run: ({ sv, options, files, language, kit, dependencyVersion }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
+		const isServerless = [
+			dependencyVersion('@sveltejs/adapter-vercel'),
+			dependencyVersion('@sveltejs/adapter-cloudflare'),
+			dependencyVersion('@sveltejs/adapter-netlify')
+		].some((value) => value !== undefined);
 
 		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
 
@@ -67,10 +74,11 @@ export default defineAddon({
 			const vitePluginName = 'paraglideVitePlugin';
 			js.imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
 			js.vite.addPlugin(ast, {
-				code: `${vitePluginName}({ 
-					project: './project.inlang', 
-					outdir: './${paraglideOutDir}' 
-				})`
+				code: `${vitePluginName}({
+          project: './project.inlang',
+          outdir: './${paraglideOutDir}',
+          ${isServerless ? 'disableAsyncLocalStorage: true' : ''}
+        })`
 			});
 
 			return generateCode();
