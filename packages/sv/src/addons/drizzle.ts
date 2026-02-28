@@ -99,15 +99,16 @@ export default defineAddon({
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.dependency('mysql2', '^3.16.3');
-		if (options.mysql === 'planetscale') sv.dependency('@planetscale/database', '^1.19.0');
+		if (options.mysql === 'mysql2') sv.devDependency('mysql2', '^3.16.3');
+		if (options.mysql === 'planetscale') sv.devDependency('@planetscale/database', '^1.19.0');
 
 		// PostgreSQL
-		if (options.postgresql === 'neon') sv.dependency('@neondatabase/serverless', '^1.0.2');
-		if (options.postgresql === 'postgres.js') sv.dependency('postgres', '^3.4.8');
+		if (options.postgresql === 'neon') sv.devDependency('@neondatabase/serverless', '^1.0.2');
+		if (options.postgresql === 'postgres.js') sv.devDependency('postgres', '^3.4.8');
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
+			// not a devDependency due to bundling issues
 			sv.dependency('better-sqlite3', '^12.6.2');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			sv.pnpmBuildDependency('better-sqlite3');

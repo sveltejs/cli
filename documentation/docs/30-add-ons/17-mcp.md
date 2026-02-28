@@ -2,7 +2,7 @@
 title: mcp
 ---
 
-[Svelte MCP](/docs/mcp/overview) can help your LLM write better Svelte code.
+[Svelte MCP](/docs/ai/overview) can help your LLM write better Svelte code.
 
 ## Usage
 
@@ -12,7 +12,7 @@ npx sv add mcp
 
 ## What you get
 
-- An MCP configuration for [local](https://svelte.dev/docs/mcp/local-setup) or [remote](https://svelte.dev/docs/mcp/remote-setup) setup
+- An MCP configuration for [local](https://svelte.dev/docs/ai/local-setup) or [remote](https://svelte.dev/docs/ai/remote-setup) setup
 - A [README for agents](https://agents.md/) to help you use the MCP server effectively
 
 ## Options

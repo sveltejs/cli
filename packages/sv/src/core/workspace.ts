@@ -34,6 +34,7 @@ export type Workspace = {
 		eslintConfig: 'eslint.config.js';
 
 		vscodeSettings: '.vscode/settings.json';
+		vscodeExtensions: '.vscode/extensions.json';
 
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
@@ -128,6 +129,7 @@ export async function createWorkspace({
 			prettierrc: '.prettierrc',
 			eslintConfig: 'eslint.config.js',
 			vscodeSettings: '.vscode/settings.json',
+			vscodeExtensions: '.vscode/extensions.json',
 			getRelative({ from, to }) {
 				from = from ?? '';
 				let relativePath = path.posix.relative(path.posix.dirname(from), to);
