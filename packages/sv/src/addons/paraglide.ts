@@ -75,10 +75,10 @@ export default defineAddon({
 			js.imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
 			js.vite.addPlugin(ast, {
 				code: `${vitePluginName}({
-          project: './project.inlang',
-          outdir: './${paraglideOutDir}',
-          ${isServerless ? 'disableAsyncLocalStorage: true' : ''}
-        })`
+					project: './project.inlang',
+					outdir: './${paraglideOutDir}',
+					${isServerless ? 'disableAsyncLocalStorage: true' : ''}
+				})`
 			});
 
 			return generateCode();
