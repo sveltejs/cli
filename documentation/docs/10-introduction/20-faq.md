@@ -7,7 +7,7 @@ title: Frequently asked questions
 Running `sv` looks slightly different for each package manager. Here is a list of the most common commands:
 
 - **npm** : `npx sv create`
-- **pnpm** : `pnpx sv create` or `pnpm dlx sv create`
+- **pnpm** : `pnpm dlx sv create`
 - **Bun** : `bunx sv create`
 - **Deno** : `deno run npm:sv create`
 - **Yarn** : `yarn dlx sv create`
