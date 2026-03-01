@@ -50,8 +50,8 @@ export default defineAddon({
 
 		let drizzleDialect: Dialect;
 
-		sv.devDependency('better-auth', '^1.4.18');
-		sv.devDependency('@better-auth/cli', '^1.4.18');
+		sv.devDependency('better-auth', '~1.4.18');
+		sv.devDependency('@better-auth/cli', '~1.4.18');
 
 		sv.file(`drizzle.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
@@ -169,6 +169,13 @@ export default defineAddon({
 				throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
 			}
 
+			// Add UserInfo interface with explicit properties
+			// as better-auth/minimal does not export User type
+			js.common.appendFromString(ast, {
+				code: 'interface UserInfo extends User { id: string; name: string; }',
+				comments
+			});
+
 			// remove the commented out placeholder since we're adding the real one
 			comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Locals {}');
 
@@ -180,7 +187,7 @@ export default defineAddon({
 			);
 
 			if (!user) {
-				locals.body.body.push(js.common.createTypeProperty('user', 'User', true));
+				locals.body.body.push(js.common.createTypeProperty('user', 'UserInfo', true));
 			}
 			if (!session) {
 				locals.body.body.push(js.common.createTypeProperty('session', 'Session', true));
@@ -241,8 +248,8 @@ export default defineAddon({
 						? `
 						signInEmail: async (event) => {
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
+							const email = (formData.get('email') ?? '') as string;
+							const password = (formData.get('password') ?? '') as string;
 
 							try {
 								await auth.api.signInEmail({
@@ -263,9 +270,9 @@ export default defineAddon({
 						},
 						signUpEmail: async (event) => {
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
-							const name = formData.get('name')?.toString() ?? '';
+							const email = (formData.get('email') ?? '') as string;
+							const password = (formData.get('password') ?? '') as string;
+							const name = (formData.get('name') ?? '') as string;
 
 							try {
 								await auth.api.signUpEmail({
@@ -291,8 +298,8 @@ export default defineAddon({
 						? `
 						signInSocial: async (event) => {
 							const formData = await event.request.formData();
-							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+							const provider = (formData.get('provider') ?? 'github') as string;
+							const callbackURL = (formData.get('callbackURL') ?? '/demo/better-auth') as string;
 
 							const result = await auth.api.signInSocial({
 								body: {
@@ -317,7 +324,7 @@ export default defineAddon({
 					import { auth } from '$lib/server/auth';
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/better-auth');
 						}
@@ -406,7 +413,7 @@ export default defineAddon({
 					${ts("import type { PageServerLoad } from './$types';")}
 					import { auth } from '$lib/server/auth';
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/better-auth/login');
 						}
