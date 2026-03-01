@@ -164,6 +164,20 @@ export default defineAddon({
 				isType: true
 			});
 
+			// Add UserInfo interface that extends User with explicit properties
+			// so that type-checked eslint can resolve member access (due to better-auth/minimal not exporting User)
+			const userInfoInterface = js.common.parseStatement(
+				'interface UserInfo extends User { id: string; name: string; }'
+			);
+			const declareGlobalIndex = ast.body.findIndex(
+				(node: AstTypes.Node) => node.type === 'TSModuleDeclaration'
+			);
+			if (declareGlobalIndex !== -1) {
+				ast.body.splice(declareGlobalIndex, 0, userInfoInterface);
+			} else {
+				ast.body.push(userInfoInterface);
+			}
+
 			const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
 			if (!locals) {
 				throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
@@ -180,7 +194,7 @@ export default defineAddon({
 			);
 
 			if (!user) {
-				locals.body.body.push(js.common.createTypeProperty('user', 'User', true));
+				locals.body.body.push(js.common.createTypeProperty('user', 'UserInfo', true));
 			}
 			if (!session) {
 				locals.body.body.push(js.common.createTypeProperty('session', 'Session', true));
