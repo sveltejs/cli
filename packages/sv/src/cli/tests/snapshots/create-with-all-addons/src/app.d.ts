@@ -1,7 +1,6 @@
 import type { User, Session } from 'better-auth/minimal';
 
-interface // See https://svelte.dev/docs/kit/types#app.d.ts UserInfo extends User { id: string; name: string }
-
+// See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
 	namespace App {
@@ -15,3 +14,5 @@ declare global {
 }
 
 export {};
+
+interface UserInfo extends User { id: string; name: string }

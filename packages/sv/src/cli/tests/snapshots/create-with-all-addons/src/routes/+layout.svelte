@@ -3,9 +3,10 @@
 	import { page } from '$app/state';
 	import { locales, localizeHref } from '$lib/paraglide/runtime';
 	import './layout.css';
+	import type { Snippet } from 'svelte';
 	import favicon from '$lib/assets/favicon.svg';
 
-	let { children } = $props();
+	let { children }: { children: Snippet } = $props();
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
