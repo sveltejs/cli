@@ -19,9 +19,10 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"auth:schema": "npx @better-auth/cli generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
+		"auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"devDependencies": {
+		"@better-auth/cli": "^1.4.18",
 		"@eslint/compat": "^2.0.2",
 		"@eslint/js": "^9.39.2",
 		"@inlang/paraglide-js": "^2.10.0",

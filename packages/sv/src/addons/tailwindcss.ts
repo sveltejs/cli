@@ -119,6 +119,12 @@ export default defineAddon({
 			return generateCode();
 		});
 
+		sv.file(files.vscodeExtensions, (content) => {
+			const { data, generateCode } = parse.json(content);
+			json.arrayUpsert(data, 'recommendations', 'bradlc.vscode-tailwindcss');
+			return generateCode();
+		});
+
 		if (prettierInstalled) {
 			sv.file(files.prettierrc, (content) => {
 				const { data, generateCode } = parse.json(content);

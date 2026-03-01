@@ -128,16 +128,9 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			  "opencode": {
 			    "content": {
 			      "$schema": "https://opencode.ai/config.json",
-			      "mcp": {
-			        "svelte": {
-			          "command": [
-			            "npx",
-			            "-y",
-			            "@sveltejs/mcp",
-			          ],
-			          "type": "local",
-			        },
-			      },
+			      "plugin": [
+			        "@sveltejs/opencode",
+			      ],
 			    },
 			    "filePath": "opencode.json",
 			  },
@@ -196,12 +189,9 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			  "opencode": {
 			    "content": {
 			      "$schema": "https://opencode.ai/config.json",
-			      "mcp": {
-			        "svelte": {
-			          "type": "remote",
-			          "url": "https://mcp.svelte.dev/mcp",
-			        },
-			      },
+			      "plugin": [
+			        "@sveltejs/opencode",
+			      ],
 			    },
 			    "filePath": "opencode.json",
 			  },

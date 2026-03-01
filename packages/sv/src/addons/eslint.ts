@@ -150,6 +150,12 @@ export default defineAddon({
 			return generateCode();
 		});
 
+		sv.file(files.vscodeExtensions, (content) => {
+			const { data, generateCode } = parse.json(content);
+			json.arrayUpsert(data, 'recommendations', 'dbaeumer.vscode-eslint');
+			return generateCode();
+		});
+
 		if (prettierInstalled) {
 			sv.file(files.eslintConfig, addEslintConfigPrettier);
 		}
