@@ -141,10 +141,7 @@ export const create = new Command('create')
 			const addonSection = formatAddonHelpSection({
 				styleTitle: helper.styleTitle,
 				formatItem: (term, desc) =>
-					callFormatItem(
-						helper.styleArgumentTerm(term),
-						helper.styleArgumentDescription(desc)
-					)
+					callFormatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
 			});
 			output = output.concat(addonSection);
 
