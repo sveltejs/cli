@@ -34,6 +34,7 @@ import { dist } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	classifyAddons,
+	formatAddonHelpSection,
 	promptAddonQuestions,
 	resolveAddons,
 	runAddonsApply,
@@ -89,7 +90,74 @@ export const create = new Command('create')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
 	.addOption(noDownloadCheckOption)
 	.addOption(installOption)
-	.configureHelp(common.helpConfig)
+	.configureHelp({
+		...common.helpConfig,
+		formatHelp(cmd, helper) {
+			const termWidth = helper.padWidth(cmd, helper);
+			const helpWidth = helper.helpWidth ?? 80;
+
+			function callFormatItem(term: string, description: string) {
+				return helper.formatItem(term, termWidth, description, helper);
+			}
+
+			// Usage
+			let output = [
+				`${helper.styleTitle('Usage:')} ${helper.styleUsage(helper.commandUsage(cmd))}`,
+				''
+			];
+
+			// Description
+			const commandDescription = helper.commandDescription(cmd);
+			if (commandDescription.length > 0) {
+				output = output.concat([
+					helper.boxWrap(helper.styleCommandDescription(commandDescription), helpWidth),
+					''
+				]);
+			}
+
+			// Arguments
+			const argumentList = helper.visibleArguments(cmd).map((argument) => {
+				return callFormatItem(
+					helper.styleArgumentTerm(helper.argumentTerm(argument)),
+					helper.styleArgumentDescription(helper.argumentDescription(argument))
+				);
+			});
+			if (argumentList.length > 0) {
+				output = output.concat([helper.styleTitle('Arguments:'), ...argumentList, '']);
+			}
+
+			// Options
+			const optionList = helper.visibleOptions(cmd).map((option) => {
+				return callFormatItem(
+					helper.styleOptionTerm(helper.optionTerm(option)),
+					helper.styleOptionDescription(helper.optionDescription(option))
+				);
+			});
+			if (optionList.length > 0) {
+				output = output.concat([helper.styleTitle('Options:'), ...optionList, '']);
+			}
+
+			// Addon help section (reuse from add.ts)
+			const addonSection = formatAddonHelpSection({
+				styleTitle: helper.styleTitle,
+				formatItem: (term, desc) =>
+					callFormatItem(
+						helper.styleArgumentTerm(term),
+						helper.styleArgumentDescription(desc)
+					)
+			});
+			output = output.concat(addonSection);
+
+			// Example
+			output = output.concat([
+				helper.styleTitle('Example:'),
+				'  sv create my-app --template minimal --types ts --add prettier eslint vitest --install npm',
+				''
+			]);
+
+			return output.join('\n');
+		}
+	})
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);

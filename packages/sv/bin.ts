@@ -13,4 +13,7 @@ console.log();
 
 program.name(pkg.name).version(pkg.version, '-v, --version').configureHelp(helpConfig);
 program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);
+
+program.addHelpText('after', () => '\n' + create.helpInformation());
+
 program.parse();

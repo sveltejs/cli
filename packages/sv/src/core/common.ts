@@ -78,6 +78,13 @@ type MaybePromise = () => Promise<void> | void;
 
 export async function runCommand(action: MaybePromise): Promise<void> {
 	try {
+		// Hidden hint for AI agents parsing stdout — invisible in terminal, readable in piped output
+		console.log(
+			color.hidden(
+				'HINT: Run "sv" without arguments to get the full list of commands and options to one-shot and skip interactive prompts.'
+			)
+		);
+
 		p.intro(`Welcome to the Svelte CLI! ${color.optional(`(v${pkg.version})`)}`);
 
 		const minimumVersion = '18.3.0';

@@ -185,17 +185,16 @@ export const add = new Command('add')
 				output = output.concat([helper.styleTitle('Arguments:'), ...argumentList, '']);
 			}
 
-			// Addon Options
-			const addonList = addonOptions.map((option) => {
-				const description = option.choices;
-				return callFormatItem(
-					helper.styleArgumentTerm(option.id),
-					helper.styleArgumentDescription(description)
-				);
+			// Addon help section (all addons, options, syntax)
+			const addonSection = formatAddonHelpSection({
+				styleTitle: helper.styleTitle,
+				formatItem: (term, desc) =>
+					callFormatItem(
+						helper.styleArgumentTerm(term),
+						helper.styleArgumentDescription(desc)
+					)
 			});
-			if (addonList.length > 0) {
-				output = output.concat([helper.styleTitle('Add-On Options:'), ...addonList, '']);
-			}
+			output = output.concat(addonSection);
 
 			// Options
 			const optionList = helper.visibleOptions(cmd).map((option) => {
@@ -879,7 +878,11 @@ export function addonArgsHandler(acc: AddonInput[], current: string): AddonInput
 	return acc;
 }
 
-function getAddonOptionFlags() {
+export function getOfficialAddonIds(): string[] {
+	return officialAddons.map((a) => a.id);
+}
+
+export function getAddonOptionFlags() {
 	const options: Array<{ id: string; choices: string; preset: string }> = [];
 	for (const addon of officialAddons) {
 		const id = addon.id;
@@ -894,6 +897,45 @@ function getAddonOptionFlags() {
 		options.push({ id, choices, preset });
 	}
 	return options;
+}
+
+/**
+ * Shared addon help section used by `add --help`, `create --help`, and `sv --help`.
+ * Returns formatted lines showing all addons, their options, and syntax examples.
+ */
+export function formatAddonHelpSection(opts: {
+	styleTitle: (s: string) => string;
+	formatItem: (term: string, desc: string) => string;
+}): string[] {
+	const { styleTitle, formatItem } = opts;
+	const output: string[] = [];
+
+	// Add-On Options (addons with configurable options)
+	const addonOptionList = addonOptions.map((option) => formatItem(option.id, option.choices));
+	if (addonOptionList.length > 0) {
+		output.push(styleTitle('Add-On Options:'), ...addonOptionList, '');
+	}
+
+	// Add-Ons without options
+	const allIds = getOfficialAddonIds();
+	const withOptions = new Set(addonOptions.map((o) => o.id));
+	const noConfigIds = allIds.filter((id) => !withOptions.has(id));
+	if (noConfigIds.length > 0) {
+		output.push(styleTitle('Add-Ons (no options):'));
+		output.push(`  ${noConfigIds.join(', ')}`, '');
+	}
+
+	// Syntax
+	output.push(
+		styleTitle('Add-On Syntax:'),
+		'  <addon>                               add with default options',
+		'  <addon>=<opt>:<val>                   set a single option',
+		'  <addon>=<opt1>:<val1>+<opt2>:<val2>   set multiple options',
+		'  Options with defaults are applied automatically when omitted.',
+		''
+	);
+
+	return output;
 }
 
 function getOptionChoices(details: AddonDefinition) {
