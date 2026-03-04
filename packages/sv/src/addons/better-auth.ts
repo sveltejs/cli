@@ -50,8 +50,8 @@ export default defineAddon({
 
 		let drizzleDialect: Dialect;
 
-		sv.devDependency('better-auth', '^1.4.18');
-		sv.devDependency('@better-auth/cli', '^1.4.18');
+		sv.devDependency('better-auth', '~1.4.21');
+		sv.devDependency('@better-auth/cli', '~1.4.21');
 
 		sv.file(`drizzle.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
