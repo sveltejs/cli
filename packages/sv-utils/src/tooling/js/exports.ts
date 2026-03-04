@@ -1,5 +1,6 @@
 import type { AstTypes } from '../index.ts';
 import { areNodesEqual } from './common.ts';
+import * as variables from './variables.ts';
 
 export type ExportDefaultResult<T> = {
 	astNode: AstTypes.ExportDefaultDeclaration;
@@ -27,25 +28,16 @@ export function createDefault<T extends AstTypes.Expression>(
 	if (exportDefaultDeclaration.declaration.type === 'Identifier') {
 		// in this case the export default declaration is only referencing a variable, get that variable
 		const identifier = exportDefaultDeclaration.declaration;
+		const variableDeclaration = variables.declaration(node, {
+			kind: 'const',
+			name: identifier.name,
+			value: { type: 'Literal', value: null }
+		});
 
-		let variableDeclaration: AstTypes.VariableDeclaration | undefined;
-		let variableDeclarator: AstTypes.VariableDeclarator | undefined;
-		for (const declaration of node.body) {
-			if (declaration.type !== 'VariableDeclaration') continue;
-
-			const declarator = declaration.declarations.find(
-				(declarator): declarator is AstTypes.VariableDeclarator =>
-					declarator.type === 'VariableDeclarator' &&
-					declarator.id.type === 'Identifier' &&
-					declarator.id.name === identifier.name
-			);
-
-			variableDeclarator = declarator;
-			variableDeclaration = declaration;
-		}
-		if (!variableDeclaration || !variableDeclarator)
+		if (!node.body.includes(variableDeclaration))
 			throw new Error(`Unable to find exported variable '${identifier.name}'`);
 
+		const variableDeclarator = variableDeclaration.declarations[0] as AstTypes.VariableDeclarator;
 		const value = variableDeclarator.init as T;
 
 		return { astNode: exportDefaultDeclaration, value, isFallback: false };

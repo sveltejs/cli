@@ -26,7 +26,8 @@ const options = defineAddonOptions()
 			{ value: 'local', label: 'Local', hint: 'will use stdio' },
 			{ value: 'remote', label: 'Remote', hint: 'will use a remote endpoint' }
 		],
-		required: true
+		required: true,
+		condition: ({ ide }) => !(ide.length === 1 && ide.includes('opencode'))
 	})
 	.build();
 
@@ -37,22 +38,22 @@ export default defineAddon({
 	options,
 	run: ({ sv, options }) => {
 		const getLocalConfig = (o?: {
-			type?: 'stdio' | 'local';
+			typeLocal?: 'stdio' | 'local';
 			env?: boolean;
 			command?: string | string[];
 			args?: string[] | null;
 		}) => {
 			const config: any = {
-				...(o?.type ? { type: o.type } : {}),
+				...(o?.typeLocal ? { type: o.typeLocal } : {}),
 				command: o?.command ?? 'npx',
 				...(o?.env ? { env: {} } : {}),
 				...(o?.args === null ? {} : { args: o?.args ?? ['-y', '@sveltejs/mcp'] })
 			};
 			return config;
 		};
-		const getRemoteConfig = (o?: { type?: 'http' | 'remote' }) => {
+		const getRemoteConfig = (o?: { typeRemote?: 'http' | 'remote' }) => {
 			return {
-				...(o?.type ? { type: o.type } : {}),
+				...(o?.typeRemote ? { type: o.typeRemote } : {}),
 				url: 'https://mcp.svelte.dev/mcp'
 			};
 		};
@@ -61,48 +62,53 @@ export default defineAddon({
 			(typeof options.ide)[number],
 			| {
 					schema?: string;
-					mcpServersKey?: string;
+					mcpOptions?: {
+						serversKey?: string;
+						typeLocal?: 'stdio' | 'local';
+						typeRemote?: 'http' | 'remote';
+						env?: boolean;
+						command?: string | string[];
+						args?: string[];
+					};
 					agentPath: string;
-					mcpPath: string;
-					typeLocal?: 'stdio' | 'local';
-					typeRemote?: 'http' | 'remote';
-					env?: boolean;
-					command?: string | string[];
-					args?: string[] | null;
+					configPath: string;
+					customData?: Record<string, any>;
 			  }
 			| { other: true }
 		> = {
 			'claude-code': {
 				agentPath: 'CLAUDE.md',
-				mcpPath: '.mcp.json',
-				typeLocal: 'stdio',
-				typeRemote: 'http',
-				env: true
+				configPath: '.mcp.json',
+				mcpOptions: {
+					typeLocal: 'stdio',
+					typeRemote: 'http',
+					env: true
+				}
 			},
 			cursor: {
 				agentPath: 'AGENTS.md',
-				mcpPath: '.cursor/mcp.json'
+				configPath: '.cursor/mcp.json',
+				mcpOptions: {}
 			},
 			gemini: {
 				agentPath: 'GEMINI.md',
+				configPath: '.gemini/settings.json',
 				schema:
 					'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
-				mcpPath: '.gemini/settings.json'
+				mcpOptions: {}
 			},
 			opencode: {
 				agentPath: 'AGENTS.md',
+				configPath: 'opencode.json',
 				schema: 'https://opencode.ai/config.json',
-				mcpServersKey: 'mcp',
-				mcpPath: 'opencode.json',
-				typeLocal: 'local',
-				typeRemote: 'remote',
-				command: ['npx', '-y', '@sveltejs/mcp'],
-				args: null
+				customData: { plugin: ['@sveltejs/opencode'] }
 			},
 			vscode: {
 				agentPath: 'AGENTS.md',
-				mcpServersKey: 'servers',
-				mcpPath: '.vscode/mcp.json'
+				configPath: '.vscode/mcp.json',
+				mcpOptions: {
+					serversKey: 'servers'
+				}
 			},
 			other: {
 				other: true
@@ -121,17 +127,7 @@ export default defineAddon({
 			if (value === undefined) continue;
 			if ('other' in value) continue;
 
-			const {
-				mcpServersKey,
-				agentPath,
-				mcpPath,
-				typeLocal,
-				typeRemote,
-				env,
-				schema,
-				command,
-				args
-			} = value;
+			const { mcpOptions, agentPath, configPath, schema, customData } = value;
 
 			// We only add the agent file if it's not already added
 			if (!filesAdded.includes(agentPath)) {
@@ -145,17 +141,25 @@ export default defineAddon({
 				});
 			}
 
-			sv.file(mcpPath, (content) => {
+			sv.file(configPath, (content) => {
 				const { data, generateCode } = parse.json(content);
+
 				if (schema) {
 					data['$schema'] = schema;
 				}
-				const key = mcpServersKey ?? 'mcpServers';
-				data[key] ??= {};
-				data[key].svelte =
-					options.setup === 'local'
-						? getLocalConfig({ type: typeLocal, env, command, args })
-						: getRemoteConfig({ type: typeRemote });
+
+				if (customData) {
+					for (const [key, value] of Object.entries(customData)) {
+						data[key] = value;
+					}
+				}
+
+				if (mcpOptions) {
+					const key = mcpOptions.serversKey ?? 'mcpServers';
+					data[key] ??= {};
+					data[key].svelte =
+						options.setup === 'local' ? getLocalConfig(mcpOptions) : getRemoteConfig(mcpOptions);
+				}
 				return generateCode();
 			});
 		}
@@ -167,6 +171,7 @@ export default defineAddon({
 			);
 		}
 	},
+
 	nextSteps({ options }) {
 		const steps = [];
 

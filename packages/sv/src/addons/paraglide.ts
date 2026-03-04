@@ -111,11 +111,15 @@ export default defineAddon({
 				from: '$lib/paraglide/server',
 				imports: ['paraglideMiddleware']
 			});
+			js.imports.addNamed(ast, {
+				from: '$lib/paraglide/runtime',
+				imports: ['getTextDirection']
+			});
 
 			const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
 		event.request = request;
 		return resolve(event, {
-			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
+			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale).replace('%paraglide.dir%', getTextDirection(locale))
 		});
 	});`;
 			js.kit.addHooksHandle(ast, {
@@ -128,7 +132,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		// add the lang attribute placeholder to app.html
+		// add the lang and dir attributes placeholder to app.html
 		sv.file('src/app.html', (content) => {
 			const { ast, generateCode } = parse.html(content);
 
@@ -143,6 +147,7 @@ export default defineAddon({
 				return generateCode();
 			}
 			html.addAttribute(htmlNode, 'lang', '%paraglide.lang%');
+			html.addAttribute(htmlNode, 'dir', '%paraglide.dir%');
 
 			return generateCode();
 		});

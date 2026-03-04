@@ -41,7 +41,7 @@ import {
 } from './add.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
-const langMap: Record<string, LanguageType | undefined> = {
+const langMap: Record<string, LanguageType> = {
 	ts: 'typescript',
 	jsdoc: 'checkjs',
 	false: 'none'
@@ -148,7 +148,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		);
 	}
 
-	const { directory, template, language } = await p.group(
+	const promptGroupResult = await p.group(
 		{
 			directory: () => {
 				const defaultPath = './';
@@ -203,7 +203,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			language: (o) => {
 				if (options.types) return Promise.resolve(options.types);
-				if (o.results.template === 'addon') return Promise.resolve('none');
+				if (o.results.template === 'addon') return Promise.resolve<LanguageType>('none');
 				return p.select<LanguageType>({
 					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
@@ -222,6 +222,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 			}
 		}
 	);
+	const { directory, template } = promptGroupResult;
+	// this is needed, otherwise, language is unknown
+	const language = promptGroupResult.language as LanguageType;
 
 	const projectPath = path.resolve(directory);
 	const basename = path.basename(projectPath);
@@ -241,7 +244,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
 		template,
-		type: language as LanguageType
+		type: language
 	});
 
 	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
@@ -276,7 +279,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	createKit(projectPath, {
 		name: projectName,
 		template,
-		types: language as LanguageType
+		types: language
 	});
 
 	if (options.fromPlayground) {
@@ -333,6 +336,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [directory]);
 	common.updateReadme(directory, prompt);
+
+	common.updateAgent(directory, language, packageManager ?? 'npm', loadedAddons);
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;

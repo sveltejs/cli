@@ -77,6 +77,12 @@ export default defineAddon({
 			return generateCode();
 		});
 
+		sv.file(files.vscodeExtensions, (content) => {
+			const { data, generateCode } = parse.json(content);
+			json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
+			return generateCode();
+		});
+
 		if (eslintVersion?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
 			log.warn(
 				`An older major version of ${color.warning(

@@ -29,7 +29,7 @@ Linux users, you will have to ensure 'sudo' is not required. See [docker post in
 ```sh
 git clone https://github.com/sveltejs/cli.git
 cd cli
-pnpm install
+pnpm i
 ```
 
 ## Build and run

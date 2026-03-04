@@ -51,6 +51,7 @@ export default defineAddon({
 		let drizzleDialect: Dialect;
 
 		sv.devDependency('better-auth', '^1.4.18');
+		sv.devDependency('@better-auth/cli', '^1.4.18');
 
 		sv.file(`drizzle.config.${language}`, (content) => {
 			const { ast, generateCode } = parse.script(content);
@@ -134,7 +135,7 @@ export default defineAddon({
 			json.packageScriptsUpsert(
 				data,
 				'auth:schema',
-				`npx @better-auth/cli generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
+				`better-auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
 			);
 			return generateCode();
 		});

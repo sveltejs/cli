@@ -183,7 +183,8 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 				files.add(path);
 			} catch (e) {
 				if (e instanceof Error) {
-					throw new Error(`Unable to process '${path}'. Reason: ${e.message}`);
+					e.message = `Unable to process '${path}'. Reason: ${e.message}`;
+					throw e;
 				}
 				throw e;
 			}

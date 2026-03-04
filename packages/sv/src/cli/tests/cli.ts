@@ -108,6 +108,11 @@ describe('cli', () => {
 				generated = generated.replaceAll('\r\n', '\n'); // make it work on Windows too
 				if (!generated.endsWith('\n')) generated += '\n'; // ensure trailing newline
 
+				// Normalize sv version in README.md to avoid snapshot drift
+				if (relativeFile === 'README.md') {
+					generated = generated.replace(/sv@\d+\.\d+\.\d+/g, 'sv@0.0.0');
+				}
+
 				await expect(generated).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
