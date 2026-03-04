@@ -17,7 +17,7 @@ function insertTask(value) {
 
 export const pageComp = `
 <script>
-	export let data;
+	let { data } = $props();
 </script>
 
 {#each data.tasks as task}
