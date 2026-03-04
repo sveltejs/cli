@@ -1,5 +1,11 @@
 # sv
 
+## 0.12.5
+### Patch Changes
+
+
+- fix(better-auth): resolve `auth:schema` failure on fresh installs ([#968](https://github.com/sveltejs/cli/pull/968))
+
 ## 0.12.4
 ### Patch Changes
 
