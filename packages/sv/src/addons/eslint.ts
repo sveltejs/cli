@@ -49,11 +49,11 @@ export default defineAddon({
 
 			if (typescript) {
 				const tsConfig = js.common.parseExpression('ts.configs.recommended');
-				eslintConfigs.push(js.common.createSpread(tsConfig));
+				eslintConfigs.push(tsConfig);
 			}
 
 			const svelteConfig = js.common.parseExpression('svelte.configs.recommended');
-			eslintConfigs.push(js.common.createSpread(svelteConfig));
+			eslintConfigs.push(svelteConfig);
 
 			const globalsBrowser = js.common.createSpread(js.common.parseExpression('globals.browser'));
 			const globalsNode = js.common.createSpread(js.common.parseExpression('globals.node'));
