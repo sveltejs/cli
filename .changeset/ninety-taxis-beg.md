@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat(playwright): looking now at `**/*.e2e.{ts,js}` files by default
+feat(playwright): use `**/*.e2e.{ts,js}` files by default
