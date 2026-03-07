@@ -55,7 +55,7 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 const noAddonsOption = new Option('--no-add-ons', 'do not prompt to add add-ons').conflicts('add');
 const addOption = new Option(
 	'--add <addon...>',
-	'add-on to include, using the same format as sv add'
+	'add-on to include, list of add-ons below'
 ).default([]);
 export const noDownloadCheckOption = new Option(
 	'--no-download-check',
@@ -111,14 +111,12 @@ export const create = new Command('create')
 				...s.options,
 				...addonSection,
 				s.styleTitle('Non-interactive usage:'),
-				'  To skip all prompts, provide: --template (e.g. minimal), --types (e.g. ts),',
-				'  --add (add-ons list), and --install (package manager) or --no-install.',
-				'  Without --template and --types, interactive prompts will appear.',
+				'  Provide all options above to skip prompts entirely.',
+				'  Note: --add and --no-add-ons cannot be used together.',
 				'',
 				s.styleTitle('Examples:'),
-				'  sv create my-app --template minimal --types ts --add prettier eslint --install pnpm',
-				'  sv create my-app --template minimal --types ts --add vitest="usages:unit" tailwindcss="plugins:none" --install pnpm',
-				'  sv create my-app --template demo --add drizzle="database:postgresql+client:postgres.js" --no-install',
+				'  sv create my-app --template minimal --types ts --add prettier vitest="usages:unit" tailwindcss="plugins:none" --install pnpm',
+				'  sv create my-app --template minimal --types ts --add drizzle="database:postgresql+client:postgres.js" --no-install',
 				''
 			].join('\n');
 		}

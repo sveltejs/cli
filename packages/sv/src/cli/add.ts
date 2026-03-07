@@ -826,18 +826,22 @@ export function getOfficialAddonIds(): string[] {
 }
 
 export function getAddonOptionFlags() {
-	const options: Array<{ id: string; choices: string; preset: string }> = [];
+	const options: Array<{ id: string; choices: string }> = [];
 	for (const addon of officialAddons) {
 		const id = addon.id;
 		const details = getAddonDetails(id);
 		if (Object.values(details.options).length === 0) continue;
 
-		const { defaults, groups } = getOptionChoices(details);
+		const { groups, groupDefaults } = getOptionChoices(details);
 		const choices = Object.entries(groups)
-			.map(([group, choices]) => `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}`)
+			.map(([group, choices]) => {
+				const defaults = groupDefaults[group] ?? [];
+				const defaultStr =
+					defaults.length > 0 ? ` (default: ${defaults.join(', ')})` : '';
+				return `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}${defaultStr}`;
+			})
 			.join('\n');
-		const preset = defaults.join(', ') || 'none';
-		options.push({ id, choices, preset });
+		options.push({ id, choices });
 	}
 	return options;
 }
@@ -859,7 +863,7 @@ export function formatAddonHelpSection(opts: {
 	const addonList = allIds.map((id) => {
 		const option = withOptionsMap.get(id);
 		if (!option) return formatItem(id, '(no options)');
-		return formatItem(id, `${option.choices} (default: ${option.preset})`);
+		return formatItem(id, option.choices);
 	});
 	if (addonList.length > 0) {
 		output.push(styleTitle('Add-Ons:'), ...addonList, '');
@@ -881,48 +885,49 @@ export function formatAddonHelpSection(opts: {
 
 function getOptionChoices(details: AddonDefinition) {
 	const choices: string[] = [];
-	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
+	const groupDefaults: Record<string, string[]> = {};
 	const options: OptionValues<any> = {};
 	for (const [id, question] of Object.entries(details.options)) {
 		let values: string[] = [];
 		const applyDefault = question.condition?.(options) !== false;
+		const groupId = question.group ?? id;
+		groupDefaults[groupId] ??= [];
+
 		if (question.type === 'boolean') {
 			values = ['yes', `no`];
 			if (applyDefault) {
 				options[id] = question.default;
-				defaults.push((question.default ? values[0] : values[1])!);
+				groupDefaults[groupId].push((question.default ? values[0] : values[1])!);
 			}
 		}
 		if (question.type === 'select') {
 			values = question.options.map((o) => o.value);
 			if (applyDefault) {
 				options[id] = question.default;
-				defaults.push(question.default);
+				groupDefaults[groupId].push(question.default);
 			}
 		}
 		if (question.type === 'multiselect') {
 			values = question.options.map((o) => o.value);
 			if (applyDefault) {
 				options[id] = question.default;
-				defaults.push(...question.default);
+				groupDefaults[groupId].push(...question.default);
 			}
 		}
 		if (question.type === 'string' || question.type === 'number') {
 			values = ['<user-input>'];
 			if (applyDefault && question.default !== undefined) {
 				options[id] = question.default;
-				defaults.push(question.default.toString());
+				groupDefaults[groupId].push(question.default.toString());
 			}
 		}
 
 		choices.push(...values);
-		// we'll fallback to the question's id
-		const groupId = question.group ?? id;
 		groups[groupId] ??= [];
 		groups[groupId].push(...values);
 	}
-	return { choices, defaults, groups };
+	return { choices, groups, groupDefaults };
 }
 
 export async function resolveNonOfficialAddons(
