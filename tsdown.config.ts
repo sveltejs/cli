@@ -1,7 +1,7 @@
-import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
+import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
 
 export default defineConfig([
 	{
@@ -10,6 +10,43 @@ export default defineConfig([
 		sourcemap: !process.env.CI,
 		dts: {
 			oxc: true
+		},
+		failOnWarn: true,
+		deps: {
+			// These are root-level devDependencies used only by testing.ts.
+			// Without this, the DTS plugin inlines their entire type trees
+			// (vitest pulls in postcss, vite, chai, etc.) bloating testing.d.mts.
+			neverBundle: [/^vitest/, /^@vitest\//, /^@playwright\//, /^vite$/, /^postcss$/],
+			onlyAllowBundle: [
+				'@clack/core',
+				'@clack/prompts',
+				'commander',
+				'empathic',
+				'event-stream',
+				'events-universal',
+				'from',
+				'duplexer',
+				'map-stream',
+				'pause-stream',
+				'split',
+				'stream-combiner',
+				'through',
+				'b4a',
+				'fast-fifo',
+				'text-decoder',
+				'streamx',
+				'tar-stream',
+				'tar-fs',
+				'once',
+				'wrappy',
+				'end-of-stream',
+				'pump',
+				'picocolors',
+				'sisteransi',
+				'ps-tree',
+				'tinyexec',
+				'valibot'
+			]
 		},
 		plugins: [],
 		inputOptions: {
@@ -23,12 +60,57 @@ export default defineConfig([
 			}
 		}
 	},
+	// sv-utils: runtime build (bundles everything including svelte)
 	{
 		cwd: path.resolve('packages/sv-utils'),
 		entry: ['src/index.ts'],
 		sourcemap: !process.env.CI,
+		dts: false,
+		failOnWarn: true,
+		deps: {
+			onlyAllowBundle: [
+				'@jridgewell/gen-mapping',
+				'@jridgewell/remapping',
+				'@jridgewell/sourcemap-codec',
+				'@jridgewell/trace-mapping',
+				'@sveltejs/acorn-typescript',
+				'acorn',
+				'aria-query',
+				'axobject-query',
+				'decircular',
+				'dedent',
+				'esrap',
+				'locate-character',
+				'package-manager-detector',
+				'silver-fleece',
+				'smol-toml',
+				'svelte',
+				'yaml',
+				'zimmerframe'
+			]
+		}
+	},
+	// sv-utils: DTS-only build (svelte externalized)
+	// Svelte uses `declare module 'svelte/compiler'` which rolldown-plugin-dts
+	// v0.21+ cannot inline. This is a known issue: https://github.com/sveltejs/svelte/issues/17520
+	// Once svelte ships separate .d.ts files per entry point, this split can be removed.
+	{
+		cwd: path.resolve('packages/sv-utils'),
+		entry: ['src/index.ts'],
 		dts: {
-			oxc: true
+			oxc: true,
+			emitDtsOnly: true
+		},
+		failOnWarn: true,
+		deps: {
+			neverBundle: [/^svelte/, '@types/estree', 'estree'],
+			onlyAllowBundle: [
+				'dedent',
+				'package-manager-detector',
+				'smol-toml',
+				'yaml',
+				'zimmerframe'
+			]
 		}
 	}
 ]);

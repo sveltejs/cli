@@ -1,6 +1,5 @@
 import { print as esrapPrint } from 'esrap';
 import ts from 'esrap/languages/ts';
-import type { BaseNode } from 'estree';
 import * as fleece from 'silver-fleece';
 import * as toml from 'smol-toml';
 import {
@@ -11,7 +10,7 @@ import {
 } from 'svelte/compiler';
 import * as yaml from 'yaml';
 import * as Walker from 'zimmerframe';
-import type { TsEstree } from './js/ts-estree.ts';
+import type { BaseNode, TsEstree } from './js/ts-estree.ts';
 import { ensureScript } from './svelte/index.ts';
 
 export type {

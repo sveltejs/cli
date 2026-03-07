@@ -1,4 +1,5 @@
-import { object, common, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { object, common } from '../../../../tooling/js/index.ts';
 import { getTestObjectExpression } from '../objectTestHelper.ts';
 
 export function run(ast: AstTypes.Program): void {

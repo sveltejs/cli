@@ -1,4 +1,5 @@
-import { common, kit, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { common, kit } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const platform = kit.addGlobalAppInterface(ast as AstTypes.TSProgram, { name: 'Platform' });

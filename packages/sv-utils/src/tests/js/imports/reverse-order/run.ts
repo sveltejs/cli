@@ -1,4 +1,5 @@
-import { imports, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { imports } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	// imports should be added HERE in the reverse order

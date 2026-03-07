@@ -58,8 +58,9 @@ export default defineAddon({
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
+			// tsgo can't infer visitor node types from zimmerframe's distributive conditional
 			Walker.walk(ast as AstTypes.Node, null, {
-				Property(node) {
+				Property(node: AstTypes.Property) {
 					if (
 						isProp('dialect', node) &&
 						node.value.type === 'Literal' &&

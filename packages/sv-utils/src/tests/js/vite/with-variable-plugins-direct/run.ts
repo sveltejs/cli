@@ -1,4 +1,5 @@
-import { array, common, vite, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { array, common, vite } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	// This mimics the vitest addon pattern: getConfig + configProperty + array.append

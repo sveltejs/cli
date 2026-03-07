@@ -1,4 +1,5 @@
-import { object, variables, exports, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { object, variables, exports } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const object1 = object.create({
