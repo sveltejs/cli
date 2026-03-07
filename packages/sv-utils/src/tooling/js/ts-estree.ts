@@ -101,3 +101,4 @@ declare module 'estree' {
 }
 
 export type { estree as TsEstree };
+export type { BaseNode } from 'estree';
