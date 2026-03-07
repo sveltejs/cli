@@ -1,5 +1,17 @@
 # sv
 
+## 0.12.6
+### Patch Changes
+
+
+- feat(vitest): better real world vitest examples ([#960](https://github.com/sveltejs/cli/pull/960))
+
+
+- feat(playwright): use `**/*.e2e.{ts,js}` files by default ([#919](https://github.com/sveltejs/cli/pull/919))
+
+
+- fix: default to rune mode ([#952](https://github.com/sveltejs/cli/pull/952))
+
 ## 0.12.5
 ### Patch Changes
 
