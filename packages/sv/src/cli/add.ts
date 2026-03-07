@@ -227,6 +227,15 @@ export const add = new Command('add')
 				output = output.concat([helper.styleTitle('Commands:'), ...commandList, '']);
 			}
 
+			// Examples
+			output = output.concat([
+				helper.styleTitle('Examples:'),
+				'  sv add prettier eslint',
+				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
+				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
+				''
+			]);
+
 			return output.join('\n');
 		}
 	})
@@ -888,9 +897,9 @@ export function getAddonOptionFlags() {
 
 		const { defaults, groups } = getOptionChoices(details);
 		const choices = Object.entries(groups)
-			.map(([group, choices]) => `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}`)
-			.join('\n');
-		const preset = defaults.join(', ') || 'none';
+			.map(([group, values]) => `${group}:${values.join(',')}`)
+			.join(' + ');
+		const preset = defaults.join(',') || 'none';
 		options.push({ id, choices, preset });
 	}
 	return options;
@@ -907,28 +916,26 @@ export function formatAddonHelpSection(opts: {
 	const { styleTitle, formatItem } = opts;
 	const output: string[] = [];
 
-	// Add-On Options (addons with configurable options)
-	const addonOptionList = addonOptions.map((option) => formatItem(option.id, option.choices));
-	if (addonOptionList.length > 0) {
-		output.push(styleTitle('Add-On Options:'), ...addonOptionList, '');
-	}
-
-	// Add-Ons without options
+	// All add-ons: those with options show their choices and defaults
 	const allIds = getOfficialAddonIds();
-	const withOptions = new Set(addonOptions.map((o) => o.id));
-	const noConfigIds = allIds.filter((id) => !withOptions.has(id));
-	if (noConfigIds.length > 0) {
-		output.push(styleTitle('Add-Ons (no options):'));
-		output.push(`  ${noConfigIds.join(', ')}`, '');
+	const withOptionsMap = new Map(addonOptions.map((o) => [o.id, o]));
+	const addonList = allIds.map((id) => {
+		const option = withOptionsMap.get(id);
+		if (!option) return formatItem(id, '(no options)');
+		return formatItem(id, `${option.choices} (default: ${option.preset})`);
+	});
+	if (addonList.length > 0) {
+		output.push(styleTitle('Add-Ons:'), ...addonList, '');
 	}
 
 	// Syntax
 	output.push(
 		styleTitle('Add-On Syntax:'),
-		'  <addon>                               add with default options',
+		'  <addon>                               add with defaults (may still prompt)',
 		'  <addon>=<opt>:<val>                   set a single option',
 		'  <addon>=<opt1>:<val1>+<opt2>:<val2>   set multiple options',
-		'  Options with defaults are applied automatically when omitted.',
+		'  <addon>=<opt>:none                    explicitly set no value (for multiselect)',
+		'  To skip prompts, explicitly set ALL options (use defaults shown above).',
 		''
 	);
 

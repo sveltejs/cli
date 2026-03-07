@@ -81,7 +81,7 @@ export async function runCommand(action: MaybePromise): Promise<void> {
 		// Hidden hint for AI agents parsing stdout — invisible in terminal, readable in piped output
 		console.log(
 			color.hidden(
-				'HINT: Run "sv" without arguments to get the full list of commands and options to one-shot and skip interactive prompts.'
+				'HINT: Run "sv --help" to get the full list of commands, add-ons, and examples to one-shot and skip interactive prompts.'
 			)
 		);
 

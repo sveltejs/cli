@@ -14,6 +14,11 @@ console.log();
 program.name(pkg.name).version(pkg.version, '-v, --version').configureHelp(helpConfig);
 program.addCommand(create).addCommand(add).addCommand(migrate).addCommand(check);
 
-program.addHelpText('after', () => '\n' + create.helpInformation());
+// sv --help: show sv + create (which includes the addon reference)
+// sv (bare): just the command list
+const hasHelpFlag = process.argv.includes('--help') || process.argv.includes('-h');
+if (hasHelpFlag) {
+	program.addHelpText('after', () => '\n' + create.helpInformation());
+}
 
 program.parse();

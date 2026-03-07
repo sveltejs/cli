@@ -53,7 +53,10 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 	templateChoices
 );
 const noAddonsOption = new Option('--no-add-ons', 'do not prompt to add add-ons').conflicts('add');
-const addOption = new Option('--add <addon...>', 'add-on to include').default([]);
+const addOption = new Option(
+	'--add <addon...>',
+	'add-on to include, using the same format as sv add'
+).default([]);
 export const noDownloadCheckOption = new Option(
 	'--no-download-check',
 	'skip all download confirmation prompts'
@@ -78,7 +81,7 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
 
 export const create = new Command('create')
-	.description('scaffolds a new SvelteKit project')
+	.description('Scaffold a new project (--add to include add-ons)')
 	.argument('[path]', 'where the project will be created')
 	.addOption(templateOption)
 	.addOption(langOption)
@@ -137,7 +140,7 @@ export const create = new Command('create')
 				output = output.concat([helper.styleTitle('Options:'), ...optionList, '']);
 			}
 
-			// Addon help section (reuse from add.ts)
+			// Addon reference (for --add option)
 			const addonSection = formatAddonHelpSection({
 				styleTitle: helper.styleTitle,
 				formatItem: (term, desc) =>
@@ -145,10 +148,17 @@ export const create = new Command('create')
 			});
 			output = output.concat(addonSection);
 
-			// Example
+			// Non-interactive hint + Examples
 			output = output.concat([
-				helper.styleTitle('Example:'),
-				'  sv create my-app --template minimal --types ts --add prettier eslint vitest --install npm',
+				helper.styleTitle('Non-interactive usage:'),
+				'  To skip all prompts, provide: --template (e.g. minimal), --types (e.g. ts),',
+				'  --add (add-ons list), and --install (package manager) or --no-install.',
+				'  Without --template and --types, interactive prompts will appear.',
+				'',
+				helper.styleTitle('Examples:'),
+				'  sv create my-app --template minimal --types ts --add prettier eslint --install pnpm',
+				'  sv create my-app --template minimal --types ts --add vitest="usages:unit" tailwindcss="plugins:none" --install pnpm',
+				'  sv create my-app --template demo --add drizzle="database:postgresql+client:postgres.js" --no-install',
 				''
 			]);
 
