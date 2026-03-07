@@ -24,17 +24,15 @@
 			"default": "./dist/index.mjs"
 		}
 	},
-	"dependencies": {
-		"@types/estree": "^1.0.8",
-		"svelte": "^5.53.0"
-	},
 	"devDependencies": {
+		"@types/estree": "^1.0.8",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.0",
 		"esrap": "^2.2.2",
 		"package-manager-detector": "^1.6.0",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.5.2",
+		"svelte": "^5.53.0",
 		"yaml": "^2.8.2",
 		"zimmerframe": "^1.1.4"
 	},

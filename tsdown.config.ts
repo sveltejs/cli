@@ -30,16 +30,27 @@ export default defineConfig([
 			}
 		}
 	},
+	// sv-utils: runtime build (bundles everything including svelte)
 	{
 		cwd: path.resolve('packages/sv-utils'),
 		entry: ['src/index.ts'],
 		sourcemap: !process.env.CI,
+		dts: false
+	},
+	// sv-utils: DTS-only build (svelte externalized)
+	// Svelte uses `declare module 'svelte/compiler'` which rolldown-plugin-dts
+	// v0.21+ cannot inline. This is a known issue: https://github.com/sveltejs/svelte/issues/17520
+	// Once svelte ships separate .d.ts files per entry point, this split can be removed.
+	{
+		cwd: path.resolve('packages/sv-utils'),
+		entry: ['src/index.ts'],
 		dts: {
-			oxc: true
+			oxc: true,
+			emitDtsOnly: true
 		},
-		// postcss's own .d.ts files have MISSING_EXPORT warnings that rolldown
-		// flags (upstream issue). Cannot use failOnWarn: true here until fixed.
-		failOnWarn: false
+		deps: {
+			neverBundle: [/^svelte/]
+		}
 	}
 ]);
 

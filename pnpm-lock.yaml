@@ -168,14 +168,10 @@ importers:
         version: 1.2.0(typescript@5.9.3)
 
   packages/sv-utils:
-    dependencies:
+    devDependencies:
       '@types/estree':
         specifier: ^1.0.8
         version: 1.0.8
-      svelte:
-        specifier: ^5.53.0
-        version: 5.53.0
-    devDependencies:
       decircular:
         specifier: ^1.0.0
         version: 1.0.0
@@ -194,6 +190,9 @@ importers:
       smol-toml:
         specifier: ^1.5.2
         version: 1.5.2
+      svelte:
+        specifier: ^5.53.0
+        version: 5.53.0
       yaml:
         specifier: ^2.8.2
         version: 2.8.2
