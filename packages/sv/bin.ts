@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
+import process from 'node:process';
 import pkg from './package.json' with { type: 'json' };
 import { add } from './src/cli/add.ts';
 import { check } from './src/cli/check.ts';
