@@ -11,12 +11,42 @@ export default defineConfig([
 		dts: {
 			oxc: true
 		},
-		failOnWarn: 'ci-only',
+		failOnWarn: true,
 		deps: {
 			// These are root-level devDependencies used only by testing.ts.
 			// Without this, the DTS plugin inlines their entire type trees
 			// (vitest pulls in postcss, vite, chai, etc.) bloating testing.d.mts.
-			neverBundle: [/^vitest/, /^@vitest\//, /^@playwright\//, /^vite$/, /^postcss$/]
+			neverBundle: [/^vitest/, /^@vitest\//, /^@playwright\//, /^vite$/, /^postcss$/],
+			onlyAllowBundle: [
+				'@clack/core',
+				'@clack/prompts',
+				'commander',
+				'empathic',
+				'event-stream',
+				'events-universal',
+				'from',
+				'duplexer',
+				'map-stream',
+				'pause-stream',
+				'split',
+				'stream-combiner',
+				'through',
+				'b4a',
+				'fast-fifo',
+				'text-decoder',
+				'streamx',
+				'tar-stream',
+				'tar-fs',
+				'once',
+				'wrappy',
+				'end-of-stream',
+				'pump',
+				'picocolors',
+				'sisteransi',
+				'ps-tree',
+				'tinyexec',
+				'valibot'
+			]
 		},
 		plugins: [],
 		inputOptions: {
@@ -35,7 +65,30 @@ export default defineConfig([
 		cwd: path.resolve('packages/sv-utils'),
 		entry: ['src/index.ts'],
 		sourcemap: !process.env.CI,
-		dts: false
+		dts: false,
+		failOnWarn: true,
+		deps: {
+			onlyAllowBundle: [
+				'@jridgewell/gen-mapping',
+				'@jridgewell/remapping',
+				'@jridgewell/sourcemap-codec',
+				'@jridgewell/trace-mapping',
+				'@sveltejs/acorn-typescript',
+				'acorn',
+				'aria-query',
+				'axobject-query',
+				'decircular',
+				'dedent',
+				'esrap',
+				'locate-character',
+				'package-manager-detector',
+				'silver-fleece',
+				'smol-toml',
+				'svelte',
+				'yaml',
+				'zimmerframe'
+			]
+		}
 	},
 	// sv-utils: DTS-only build (svelte externalized)
 	// Svelte uses `declare module 'svelte/compiler'` which rolldown-plugin-dts
@@ -48,8 +101,16 @@ export default defineConfig([
 			oxc: true,
 			emitDtsOnly: true
 		},
+		failOnWarn: true,
 		deps: {
-			neverBundle: [/^svelte/]
+			neverBundle: [/^svelte/, '@types/estree', 'estree'],
+			onlyAllowBundle: [
+				'dedent',
+				'package-manager-detector',
+				'smol-toml',
+				'yaml',
+				'zimmerframe'
+			]
 		}
 	}
 ]);
