@@ -835,8 +835,9 @@ export function getAddonOptionFlags() {
 		const { groups, groupDefaults } = getOptionChoices(details);
 		const choices = Object.entries(groups)
 			.map(([group, choices]) => {
-				const defaults = groupDefaults[group] ?? [];
-				const defaultStr = defaults.length > 0 ? ` (default: ${defaults.join(', ')})` : '';
+				const defaults = groupDefaults[group];
+				const defaultStr =
+					defaults === undefined ? '' : defaults.length > 0 ? ` (default: ${defaults.join(', ')})` : ' (default: none)';
 				return `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}${defaultStr}`;
 			})
 			.join('\n');
