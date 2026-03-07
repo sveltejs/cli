@@ -96,73 +96,31 @@ export const create = new Command('create')
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
-			const termWidth = helper.padWidth(cmd, helper);
-			const helpWidth = helper.helpWidth ?? 80;
+			const s = common.getHelpSections(cmd, helper);
 
-			function callFormatItem(term: string, description: string) {
-				return helper.formatItem(term, termWidth, description, helper);
-			}
-
-			// Usage
-			let output = [
-				`${helper.styleTitle('Usage:')} ${helper.styleUsage(helper.commandUsage(cmd))}`,
-				''
-			];
-
-			// Description
-			const commandDescription = helper.commandDescription(cmd);
-			if (commandDescription.length > 0) {
-				output = output.concat([
-					helper.boxWrap(helper.styleCommandDescription(commandDescription), helpWidth),
-					''
-				]);
-			}
-
-			// Arguments
-			const argumentList = helper.visibleArguments(cmd).map((argument) => {
-				return callFormatItem(
-					helper.styleArgumentTerm(helper.argumentTerm(argument)),
-					helper.styleArgumentDescription(helper.argumentDescription(argument))
-				);
-			});
-			if (argumentList.length > 0) {
-				output = output.concat([helper.styleTitle('Arguments:'), ...argumentList, '']);
-			}
-
-			// Options
-			const optionList = helper.visibleOptions(cmd).map((option) => {
-				return callFormatItem(
-					helper.styleOptionTerm(helper.optionTerm(option)),
-					helper.styleOptionDescription(helper.optionDescription(option))
-				);
-			});
-			if (optionList.length > 0) {
-				output = output.concat([helper.styleTitle('Options:'), ...optionList, '']);
-			}
-
-			// Addon reference (for --add option)
 			const addonSection = formatAddonHelpSection({
-				styleTitle: helper.styleTitle,
+				styleTitle: s.styleTitle,
 				formatItem: (term, desc) =>
-					callFormatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
+					s.formatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
 			});
-			output = output.concat(addonSection);
 
-			// Non-interactive hint + Examples
-			output = output.concat([
-				helper.styleTitle('Non-interactive usage:'),
+			return [
+				...s.usage,
+				...s.description,
+				...s.arguments,
+				...s.options,
+				...addonSection,
+				s.styleTitle('Non-interactive usage:'),
 				'  To skip all prompts, provide: --template (e.g. minimal), --types (e.g. ts),',
 				'  --add (add-ons list), and --install (package manager) or --no-install.',
 				'  Without --template and --types, interactive prompts will appear.',
 				'',
-				helper.styleTitle('Examples:'),
+				s.styleTitle('Examples:'),
 				'  sv create my-app --template minimal --types ts --add prettier eslint --install pnpm',
 				'  sv create my-app --template minimal --types ts --add vitest="usages:unit" tailwindcss="plugins:none" --install pnpm',
 				'  sv create my-app --template demo --add drizzle="database:postgresql+client:postgres.js" --no-install',
 				''
-			]);
-
-			return output.join('\n');
+			].join('\n');
 		}
 	})
 	.action((projectPath, opts) => {

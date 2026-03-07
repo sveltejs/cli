@@ -152,91 +152,28 @@ export const add = new Command('add')
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
-			const termWidth = helper.padWidth(cmd, helper);
-			const helpWidth = helper.helpWidth ?? 80; // in case prepareContext() was not called
+			const s = common.getHelpSections(cmd, helper);
 
-			function callFormatItem(term: string, description: string) {
-				return helper.formatItem(term, termWidth, description, helper);
-			}
-
-			// Usage
-			let output = [
-				`${helper.styleTitle('Usage:')} ${helper.styleUsage(helper.commandUsage(cmd))}`,
-				''
-			];
-
-			// Description
-			const commandDescription = helper.commandDescription(cmd);
-			if (commandDescription.length > 0) {
-				output = output.concat([
-					helper.boxWrap(helper.styleCommandDescription(commandDescription), helpWidth),
-					''
-				]);
-			}
-
-			// Arguments
-			const argumentList = helper.visibleArguments(cmd).map((argument) => {
-				return callFormatItem(
-					helper.styleArgumentTerm(helper.argumentTerm(argument)),
-					helper.styleArgumentDescription(helper.argumentDescription(argument))
-				);
-			});
-			if (argumentList.length > 0) {
-				output = output.concat([helper.styleTitle('Arguments:'), ...argumentList, '']);
-			}
-
-			// Addon help section (all addons, options, syntax)
 			const addonSection = formatAddonHelpSection({
-				styleTitle: helper.styleTitle,
+				styleTitle: s.styleTitle,
 				formatItem: (term, desc) =>
-					callFormatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
+					s.formatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
 			});
-			output = output.concat(addonSection);
 
-			// Options
-			const optionList = helper.visibleOptions(cmd).map((option) => {
-				return callFormatItem(
-					helper.styleOptionTerm(helper.optionTerm(option)),
-					helper.styleOptionDescription(helper.optionDescription(option))
-				);
-			});
-			if (optionList.length > 0) {
-				output = output.concat([helper.styleTitle('Options:'), ...optionList, '']);
-			}
-
-			if (helper.showGlobalOptions) {
-				const globalOptionList = helper.visibleGlobalOptions(cmd).map((option) => {
-					return callFormatItem(
-						helper.styleOptionTerm(helper.optionTerm(option)),
-						helper.styleOptionDescription(helper.optionDescription(option))
-					);
-				});
-				if (globalOptionList.length > 0) {
-					output = output.concat([helper.styleTitle('Global Options:'), ...globalOptionList, '']);
-				}
-			}
-
-			// Commands
-			const commandList = helper.visibleCommands(cmd).map((cmd) => {
-				return callFormatItem(
-					helper.styleSubcommandTerm(helper.subcommandTerm(cmd)),
-					helper.styleSubcommandDescription(helper.subcommandDescription(cmd))
-				);
-			});
-			if (commandList.length > 0) {
-				output = output.concat([helper.styleTitle('Commands:'), ...commandList, '']);
-			}
-
-			// Examples
-			output = output.concat([
-				helper.styleTitle('Examples:'),
+			return [
+				...s.usage,
+				...s.description,
+				...s.arguments,
+				...addonSection,
+				...s.options,
+				...s.globalOptions,
+				...s.commands,
+				s.styleTitle('Examples:'),
 				'  sv add prettier eslint',
 				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
 				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
 				''
-			]);
-
-			return output.join('\n');
+			].join('\n');
 		}
 	})
 	.action(async (addonInputs: AddonInput[], opts) => {
@@ -897,9 +834,9 @@ export function getAddonOptionFlags() {
 
 		const { defaults, groups } = getOptionChoices(details);
 		const choices = Object.entries(groups)
-			.map(([group, values]) => `${group}:${values.join(',')}`)
-			.join(' + ');
-		const preset = defaults.join(',') || 'none';
+			.map(([group, choices]) => `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}`)
+			.join('\n');
+		const preset = defaults.join(', ') || 'none';
 		options.push({ id, choices, preset });
 	}
 	return options;
