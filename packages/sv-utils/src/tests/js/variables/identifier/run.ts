@@ -1,4 +1,5 @@
-import { variables, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { variables } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const barVariable = variables.declaration(ast, {

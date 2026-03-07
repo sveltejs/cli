@@ -1,4 +1,5 @@
-import { array, variables, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { array, variables } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const array1 = array.create();

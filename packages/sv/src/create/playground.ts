@@ -199,7 +199,6 @@ export function setupPlaygroundProject(
 				// change title and url placeholders
 				svelte.ensureScript(ast);
 				// tsgo can't infer visitor node types from zimmerframe's distributive conditional
-				// tsgo can't infer visitor node types from zimmerframe's distributive conditional
 				Walker.walk(ast.instance.content as AstTypes.Node, null, {
 					Literal(node: AstTypes.Literal) {
 						if (node.value === '$sv-title-$sv') {

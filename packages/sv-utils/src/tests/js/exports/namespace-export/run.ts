@@ -1,4 +1,5 @@
-import { exports, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { exports } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	// With 'as' option
