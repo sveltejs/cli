@@ -150,7 +150,7 @@ await updatePackageFiles('packages/sv/src/create/shared', 'package.json', 'share
 
 // Fetch the latest AGENTS.md from the MCP repo
 const agents_response = await fetch(
-	'https://raw.githubusercontent.com/sveltejs/mcp/refs/heads/main/instructions/AGENTS.md'
+	'https://raw.githubusercontent.com/sveltejs/ai-tools/refs/heads/main/tools/instructions/AGENTS.md'
 );
 fs.writeFileSync(
 	path.resolve('packages', 'sv', 'src', 'create', 'shared', '+mcp', 'AGENTS.md'),
