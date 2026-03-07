@@ -1,7 +1,7 @@
-import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
+import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
 
 export default defineConfig([
 	{
@@ -10,6 +10,13 @@ export default defineConfig([
 		sourcemap: !process.env.CI,
 		dts: {
 			oxc: true
+		},
+		failOnWarn: 'ci-only',
+		deps: {
+			// These are root-level devDependencies used only by testing.ts.
+			// Without this, the DTS plugin inlines their entire type trees
+			// (vitest pulls in postcss, vite, chai, etc.) bloating testing.d.mts.
+			neverBundle: [/^vitest/, /^@vitest\//, /^@playwright\//, /^vite$/, /^postcss$/]
 		},
 		plugins: [],
 		inputOptions: {
@@ -29,7 +36,10 @@ export default defineConfig([
 		sourcemap: !process.env.CI,
 		dts: {
 			oxc: true
-		}
+		},
+		// postcss's own .d.ts files have MISSING_EXPORT warnings that rolldown
+		// flags (upstream issue). Cannot use failOnWarn: true here until fixed.
+		failOnWarn: false
 	}
 ]);
 
