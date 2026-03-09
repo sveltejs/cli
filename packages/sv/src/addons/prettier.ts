@@ -8,7 +8,7 @@ export default defineAddon({
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
-	run: ({ sv, language, dependencyVersion, files }) => {
+	run: ({ sv, dependencyVersion, files }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
 
@@ -93,7 +93,7 @@ export default defineAddon({
 
 		if (eslintInstalled) {
 			sv.devDependency('eslint-config-prettier', '^10.1.8');
-			sv.file(files.eslintConfig, (content) => addEslintConfigPrettier(content, language));
+			sv.file(files.eslintConfig, addEslintConfigPrettier);
 		}
 	}
 });

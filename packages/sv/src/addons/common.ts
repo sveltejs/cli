@@ -1,7 +1,7 @@
 import { type SvelteAst, js, parse, svelte } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
-export function addEslintConfigPrettier(content: string, language: 'ts' | 'js'): string {
+export function addEslintConfigPrettier(content: string): string {
 	const { ast, generateCode } = parse.script(content);
 
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
@@ -32,31 +32,23 @@ export function addEslintConfigPrettier(content: string, language: 'ts' | 'js'):
 
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
-	const maybeSpreadConfig =
-		language === 'ts' ? sveltePrettierConfig : js.common.createSpread(sveltePrettierConfig);
 
 	const nodesToInsert = [];
 	if (!js.common.contains(eslintConfig, prettier)) nodesToInsert.push(prettier);
-	if (!js.common.contains(eslintConfig, maybeSpreadConfig)) nodesToInsert.push(maybeSpreadConfig);
+	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
+		nodesToInsert.push(sveltePrettierConfig);
 
 	const elements =
 		eslintConfig.type === 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
 	// finds index of `svelte.configs["..."]`
-	const idx = elements.findIndex((el) =>
-		language === 'ts'
-			? el?.type === 'MemberExpression' &&
-				el.object.type === 'MemberExpression' &&
-				el.object.property.type === 'Identifier' &&
-				el.object.property.name === 'configs' &&
-				el.object.object.type === 'Identifier' &&
-				el.object.object.name === svelteImportName
-			: el?.type === 'SpreadElement' &&
-				el.argument.type === 'MemberExpression' &&
-				el.argument.object.type === 'MemberExpression' &&
-				el.argument.object.property.type === 'Identifier' &&
-				el.argument.object.property.name === 'configs' &&
-				el.argument.object.object.type === 'Identifier' &&
-				el.argument.object.object.name === svelteImportName
+	const idx = elements.findIndex(
+		(el) =>
+			el?.type === 'MemberExpression' &&
+			el.object.type === 'MemberExpression' &&
+			el.object.property.type === 'Identifier' &&
+			el.object.property.name === 'configs' &&
+			el.object.object.type === 'Identifier' &&
+			el.object.object.name === svelteImportName
 	);
 
 	if (idx !== -1) {
