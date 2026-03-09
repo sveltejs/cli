@@ -53,7 +53,7 @@ export default defineAddon({
 			}
 
 			const svelteConfig = js.common.parseExpression('svelte.configs.recommended');
-			eslintConfigs.push(svelteConfig);
+			eslintConfigs.push(typescript ? svelteConfig : js.common.createSpread(svelteConfig));
 
 			const globalsBrowser = js.common.createSpread(js.common.parseExpression('globals.browser'));
 			const globalsNode = js.common.createSpread(js.common.parseExpression('globals.node'));
@@ -156,7 +156,7 @@ export default defineAddon({
 		});
 
 		if (prettierInstalled) {
-			sv.file(files.eslintConfig, addEslintConfigPrettier);
+			sv.file(files.eslintConfig, (content) => addEslintConfigPrettier(content, language));
 		}
 	}
 });
