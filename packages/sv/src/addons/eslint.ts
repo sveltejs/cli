@@ -119,7 +119,7 @@ export default defineAddon({
 			}
 			const exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression = configCall;
 
-			const { value: defaultExport, astNode } = js.exports.createDefault(ast, {
+			const { value: defaultExport } = js.exports.createDefault(ast, {
 				fallback: exportExpression
 			});
 			// if it's not the config we created, then we'll leave it alone and exit out
@@ -128,16 +128,9 @@ export default defineAddon({
 				return content;
 			}
 
-			// type annotate config
-			if (!typescript)
-				js.common.addJsDocTypeComment(astNode, comments, {
-					type: "import('eslint').Linter.Config[]"
-				});
-
 			if (typescript) js.imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
 			js.imports.addDefault(ast, { from: 'globals', as: 'globals' });
-			if (typescript)
-				js.imports.addNamed(ast, { from: 'eslint/config', imports: ['defineConfig'] });
+			js.imports.addNamed(ast, { from: 'eslint/config', imports: ['defineConfig'] });
 			js.imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: 'svelte' });
 			js.imports.addDefault(ast, { from: '@eslint/js', as: 'js' });
 			js.imports.addNamed(ast, {
