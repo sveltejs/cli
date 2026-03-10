@@ -6,11 +6,12 @@ import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
 
-type Database = 'mysql' | 'postgresql' | 'sqlite';
+type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 const PORTS: Record<Database, string> = {
 	mysql: '3306',
 	postgresql: '5432',
-	sqlite: ''
+	sqlite: '',
+	d1: ''
 };
 
 const options = defineAddonOptions()
@@ -21,7 +22,8 @@ const options = defineAddonOptions()
 		options: [
 			{ value: 'postgresql', label: 'PostgreSQL' },
 			{ value: 'mysql', label: 'MySQL' },
-			{ value: 'sqlite', label: 'SQLite' }
+			{ value: 'sqlite', label: 'SQLite' },
+			{ value: 'd1', label: 'Cloudflare D1' }
 		]
 	})
 	.add('postgresql', {
