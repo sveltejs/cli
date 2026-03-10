@@ -211,24 +211,44 @@ export default defineAddon({
 
 			js.imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
-			ast.body.push(
-				js.common.parseStatement(
-					"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
-				)
-			);
+			if (options.database !== 'd1') {
+				ast.body.push(
+					js.common.parseStatement(
+						"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+					)
+				);
+			}
+
+			const d1 = options.database === 'd1';
+			const turso = options.sqlite === 'turso';
+			const getDialect = (): string => {
+				if (d1) return 'sqlite';
+				if (turso) return 'turso';
+				return options.database;
+			};
 
 			js.exports.createDefault(ast, {
 				fallback: js.common.parseExpression(`
 					defineConfig({
 						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
-						dialect: "${options.sqlite === 'turso' ? 'turso' : options.database}",
+						dialect: "${getDialect()}",
+						${d1 ? "driver: 'd1-http'," : ''}
 						dbCredentials: {
-							${options.sqlite === 'turso' ? 'authToken: process.env.DATABASE_AUTH_TOKEN,' : ''}
-							url: process.env.DATABASE_URL
+							${
+								d1
+									? `
+							accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+							databaseId: process.env.CLOUDFLARE_DATABASE_ID,
+							token: process.env.CLOUDFLARE_D1_TOKEN,`
+									: ''
+							}
+							${turso ? 'authToken: process.env.DATABASE_AUTH_TOKEN,' : ''}
+							${!d1 ? 'url: process.env.DATABASE_URL' : ''},
 						},
 						verbose: true,
 						strict: true
-					})`)
+					})
+				`)
 			});
 
 			return generateCode();
@@ -292,11 +312,27 @@ export default defineAddon({
 		sv.file(paths['database'], (content) => {
 			const { ast, generateCode } = parse.script(content);
 
+			js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
+
+			if (options.database === 'd1') {
+				js.imports.addNamed(ast, {
+					from: 'drizzle-orm/d1',
+					imports: ['drizzle', 'type DrizzleD1Database']
+				});
+
+				const getDbFn = js.common.parseStatement(
+					'export const getDb = (db: DrizzleD1Database) => drizzle(db, { schema });'
+				);
+
+				ast.body.push(getDbFn);
+
+				return generateCode();
+			}
+
 			js.imports.addNamed(ast, {
 				from: '$env/dynamic/private',
 				imports: ['env']
 			});
-			js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
 			// env var checks
 			const dbURLCheck = js.common.parseStatement(
@@ -416,6 +452,14 @@ export default defineAddon({
 	},
 	nextSteps: ({ options, packageManager }) => {
 		const steps: string[] = [];
+		if (options.database === 'd1') {
+			steps.push(
+				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
+			);
+			steps.push(
+				`Add a D1 database binding to your ${color.path('wrangler.jsonc')} (e.g., { binding: "DB", database_name: "my-db", database_id: "..." })`
+			);
+		}
 		if (options.docker) {
 			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
@@ -441,6 +485,14 @@ function generateEnvFileContent(
 	isExample: boolean
 ) {
 	const DB_URL_KEY = 'DATABASE_URL';
+
+	if (opts.database === 'd1') {
+		content = text.upsert(content, '', { value: '', comment: ['Cloudflare D1'], separator: true });
+		content = text.upsert(content, 'CLOUDFLARE_ACCOUNT_ID', { value: '""' });
+		content = text.upsert(content, 'CLOUDFLARE_DATABASE_ID', { value: '""' });
+		content = text.upsert(content, 'CLOUDFLARE_D1_TOKEN', { value: '""' });
+		return content;
+	}
 
 	// Calculate value and comment based on database options
 	let value: string;
