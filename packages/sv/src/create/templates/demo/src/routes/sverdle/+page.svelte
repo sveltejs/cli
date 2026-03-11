@@ -124,12 +124,7 @@
 >
 	<a class="how-to-play" href={resolve('/sverdle/how-to-play')}>How to play</a>
 
-	<div
-		class="grid"
-		class:playing={!won}
-		class:shake
-		onanimationend={() => (shake = false)}
-	>
+	<div class="grid" class:playing={!won} class:shake onanimationend={() => (shake = false)}>
 		{#each Array.from(Array(6).keys()) as row (row)}
 			{@const current = row === i}
 			<h2 class="visually-hidden">Row {row + 1}</h2>
