@@ -106,7 +106,10 @@ export default defineAddon({
 				extraFiles: [
 					{
 						path: '.opencode/svelte.json',
-						data: { $schema: 'https://raw.githubusercontent.com/sveltejs/ai-tools/refs/heads/main/packages/opencode/schema.json' }
+						data: {
+							$schema:
+								'https://raw.githubusercontent.com/sveltejs/ai-tools/refs/heads/main/packages/opencode/schema.json'
+						}
 					}
 				]
 			},
