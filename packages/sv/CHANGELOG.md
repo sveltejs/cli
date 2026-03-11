@@ -1,5 +1,26 @@
 # sv
 
+## 0.12.6
+### Patch Changes
+
+
+- feat(vitest): better real world vitest examples ([#960](https://github.com/sveltejs/cli/pull/960))
+
+
+- feat(playwright): use dedicated demo page for e2e tests ([#978](https://github.com/sveltejs/cli/pull/978))
+
+
+- feat(mcp): move opencode config to `.opencode/` folder and generate `svelte.json` plugin config ([#977](https://github.com/sveltejs/cli/pull/977))
+
+
+- feat(playwright): use `**/*.e2e.{ts,js}` files by default ([#919](https://github.com/sveltejs/cli/pull/919))
+
+
+- fix(sv): remove spread operator from ESLint config generation ([#971](https://github.com/sveltejs/cli/pull/971))
+
+
+- fix: default to rune mode ([#952](https://github.com/sveltejs/cli/pull/952))
+
 ## 0.12.5
 ### Patch Changes
 
