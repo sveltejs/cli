@@ -73,6 +73,7 @@ export default defineAddon({
 					agentPath: string;
 					configPath: string;
 					customData?: Record<string, any>;
+					extraFiles?: Array<{ path: string; data: Record<string, any> }>;
 			  }
 			| { other: true }
 		> = {
@@ -99,9 +100,17 @@ export default defineAddon({
 			},
 			opencode: {
 				agentPath: 'AGENTS.md',
-				configPath: 'opencode.json',
+				configPath: '.opencode/opencode.json',
 				schema: 'https://opencode.ai/config.json',
-				customData: { plugin: ['@sveltejs/opencode'] }
+				customData: { plugin: ['@sveltejs/opencode'] },
+				extraFiles: [
+					{
+						path: '.opencode/svelte.json',
+						data: {
+							$schema: 'https://svelte.dev/opencode/schema.json'
+						}
+					}
+				]
 			},
 			vscode: {
 				agentPath: 'AGENTS.md',
@@ -127,7 +136,7 @@ export default defineAddon({
 			if (value === undefined) continue;
 			if ('other' in value) continue;
 
-			const { mcpOptions, agentPath, configPath, schema, customData } = value;
+			const { mcpOptions, agentPath, configPath, schema, customData, extraFiles } = value;
 
 			// We only add the agent file if it's not already added
 			if (!filesAdded.includes(agentPath)) {
@@ -162,6 +171,18 @@ export default defineAddon({
 				}
 				return generateCode();
 			});
+
+			if (extraFiles) {
+				for (const extra of extraFiles) {
+					sv.file(extra.path, (content) => {
+						const { data, generateCode } = parse.json(content);
+						for (const [key, value] of Object.entries(extra.data)) {
+							data[key] = value;
+						}
+						return generateCode();
+					});
+				}
+			}
 		}
 
 		if (filesExistingAlready.length > 0) {
