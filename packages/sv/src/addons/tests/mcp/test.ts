@@ -63,8 +63,7 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 	// should create .opencode/svelte.json with schema
 	const sveltePluginConfig = JSON.parse(getContent('.opencode/svelte.json'));
 	expect(sveltePluginConfig).toEqual({
-		$schema:
-			'https://svelte.dev/opencode/schema.json'
+		$schema: 'https://svelte.dev/opencode/schema.json'
 	});
 
 	const fullConf: Record<string, any> = {};

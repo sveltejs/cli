@@ -107,8 +107,7 @@ export default defineAddon({
 					{
 						path: '.opencode/svelte.json',
 						data: {
-							$schema:
-			'https://svelte.dev/opencode/schema.json'
+							$schema: 'https://svelte.dev/opencode/schema.json'
 						}
 					}
 				]
