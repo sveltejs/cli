@@ -60,12 +60,19 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 	// should remove old svelte config
 	expect(cursorMcpContent).not.toContain(`thing`);
 
+	// should create .opencode/svelte.json with schema
+	const sveltePluginConfig = JSON.parse(getContent('.opencode/svelte.json'));
+	expect(sveltePluginConfig).toEqual({
+		$schema:
+			'https://raw.githubusercontent.com/sveltejs/ai-tools/refs/heads/main/packages/opencode/schema.json'
+	});
+
 	const fullConf: Record<string, any> = {};
 	const ides = {
 		'claude-code': '.mcp.json',
 		cursor: '.cursor/mcp.json',
 		gemini: '.gemini/settings.json',
-		opencode: 'opencode.json',
+		opencode: '.opencode/opencode.json',
 		vscode: '.vscode/mcp.json'
 	} as const;
 
@@ -132,7 +139,7 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			        "@sveltejs/opencode",
 			      ],
 			    },
-			    "filePath": "opencode.json",
+			    "filePath": ".opencode/opencode.json",
 			  },
 			  "vscode": {
 			    "content": {
@@ -193,7 +200,7 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			        "@sveltejs/opencode",
 			      ],
 			    },
-			    "filePath": "opencode.json",
+			    "filePath": ".opencode/opencode.json",
 			  },
 			  "vscode": {
 			    "content": {
