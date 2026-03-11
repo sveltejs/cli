@@ -109,16 +109,14 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			}
 
-			const configCall = js.functions.createCall({ name: 'defineConfig', args: [] });
+			const exportExpression = js.functions.createCall({ name: 'defineConfig', args: [] });
 			if (typescript) {
-				configCall.arguments.push(...eslintConfigs);
+				exportExpression.arguments.push(...eslintConfigs);
 			} else {
 				const eslintArray = js.array.create();
 				eslintConfigs.map((x) => js.array.append(eslintArray, x));
-				configCall.arguments.push(eslintArray);
+				exportExpression.arguments.push(eslintArray);
 			}
-			const exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression = configCall;
-
 			const { value: defaultExport } = js.exports.createDefault(ast, {
 				fallback: exportExpression
 			});
