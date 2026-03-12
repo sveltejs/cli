@@ -49,6 +49,7 @@ export default defineAddon({
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
+		let isD1 = false;
 
 		sv.devDependency('better-auth', '~1.4.21');
 		sv.devDependency('@better-auth/cli', '~1.4.21');
@@ -67,6 +68,13 @@ export default defineAddon({
 					) {
 						drizzleDialect = node.value.value as Dialect;
 					}
+					if (
+						isProp('driver', node) &&
+						node.value.type === 'Literal' &&
+						node.value.value === 'd1-http'
+					) {
+						isD1 = true;
+					}
 				}
 			});
 
@@ -82,7 +90,11 @@ export default defineAddon({
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
 			const { ast, generateCode, comments } = parse.script(content);
 
-			js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
+			if (isD1) {
+				js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['getDb'] });
+			} else {
+				js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
+			}
 			js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
 			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
 			js.imports.addNamed(ast, { from: 'better-auth/svelte-kit', imports: ['sveltekitCookies'] });
@@ -110,19 +122,35 @@ export default defineAddon({
 				},`
 				: '';
 
-			const authConfig = dedent`
-				export const auth = betterAuth({
-					baseURL: env.ORIGIN,
-					secret: env.BETTER_AUTH_SECRET,
-					database: drizzleAdapter(db, {
-						provider: '${provider}'
-					}),
-					emailAndPassword: {
-						enabled: true
-					},${githubProvider}
-					plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
-				});`;
-			js.common.appendFromString(ast, { code: authConfig, comments });
+			if (isD1) {
+				const authConfig = dedent`
+					export const createAuth = (d1${language === 'ts' ? ': D1Database' : ''}) => betterAuth({
+						baseURL: env.ORIGIN,
+						secret: env.BETTER_AUTH_SECRET,
+						database: drizzleAdapter(getDb(d1), {
+							provider: '${provider}'
+						}),
+						emailAndPassword: {
+							enabled: true
+						},${githubProvider}
+						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
+					});`;
+				js.common.appendFromString(ast, { code: authConfig, comments });
+			} else {
+				const authConfig = dedent`
+					export const auth = betterAuth({
+						baseURL: env.ORIGIN,
+						secret: env.BETTER_AUTH_SECRET,
+						database: drizzleAdapter(db, {
+							provider: '${provider}'
+						}),
+						emailAndPassword: {
+							enabled: true
+						},${githubProvider}
+						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
+					});`;
+				js.common.appendFromString(ast, { code: authConfig, comments });
+			}
 
 			return generateCode();
 		});
@@ -192,10 +220,32 @@ export default defineAddon({
 			const { ast, generateCode, comments } = parse.script(content);
 
 			js.imports.addNamed(ast, { imports: ['svelteKitHandler'], from: 'better-auth/svelte-kit' });
-			js.imports.addNamed(ast, { imports: ['auth'], from: '$lib/server/auth' });
+			if (isD1) {
+				js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
+			} else {
+				js.imports.addNamed(ast, { imports: ['auth'], from: '$lib/server/auth' });
+			}
 			js.imports.addNamed(ast, { imports: ['building'], from: '$app/environment' });
 
-			const handleContent = dedent`
+			const handleContent = isD1
+				? dedent`
+				async ({ event, resolve }) => {
+					const auth = createAuth(event.platform.env.DB);
+					// Fetch current session from Better Auth
+					const session = await auth.api.getSession({
+						headers: event.request.headers
+					});
+					// Make session and user available on server
+					if (session) {
+						event.locals.session = session.session;
+						event.locals.user = session.user;
+					}
+					return svelteKitHandler({ event, resolve, auth, building });
+				};
+
+				export const handle = sequence(handleBetterAuth, handleSession);
+			`
+				: dedent`
 				async ({ event, resolve }) => {
 					// Fetch current session from Better Auth
 					const session = await auth.api.getSession({
@@ -237,9 +287,13 @@ export default defineAddon({
 
 					const [ts] = createPrinter(language === 'ts');
 
+					const d1AuthLine = isD1
+						? '\n\t\t\t\t\t\t\tconst auth = createAuth(event.platform.env.DB);'
+						: '';
+
 					const signInEmailAction = demoPassword
 						? `
-						signInEmail: async (event) => {
+						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const email = formData.get('email')?.toString() ?? '';
 							const password = formData.get('password')?.toString() ?? '';
@@ -261,7 +315,7 @@ export default defineAddon({
 
 							return redirect(302, '/demo/better-auth');
 						},
-						signUpEmail: async (event) => {
+						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const email = formData.get('email')?.toString() ?? '';
 							const password = formData.get('password')?.toString() ?? '';
@@ -289,7 +343,7 @@ export default defineAddon({
 
 					const signInSocialAction = demoGithub
 						? `
-						signInSocial: async (event) => {
+						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = formData.get('provider')?.toString() ?? 'github';
 							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
@@ -310,11 +364,15 @@ export default defineAddon({
 
 					const needsAPIError = demoPassword;
 
+					const authImport = isD1
+						? "import { createAuth } from '$lib/server/auth';"
+						: "import { auth } from '$lib/server/auth';";
+
 					return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					import { auth } from '$lib/server/auth';
+					${authImport}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
@@ -400,11 +458,17 @@ export default defineAddon({
 				}
 
 				const [ts] = createPrinter(language === 'ts');
+				const authImport = isD1
+					? "import { createAuth } from '$lib/server/auth';"
+					: "import { auth } from '$lib/server/auth';";
+				const d1AuthLine = isD1
+					? '\n\t\t\t\t\t\t\tconst auth = createAuth(event.platform.env.DB);'
+					: '';
 				return dedent`
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					import { auth } from '$lib/server/auth';
+					${authImport}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {
@@ -414,7 +478,7 @@ export default defineAddon({
 					};
 
 					export const actions${ts(': Actions')} = {
-						signOut: async (event) => {
+						signOut: async (event) => {${d1AuthLine}
 							await auth.api.signOut({
 								headers: event.request.headers
 							});

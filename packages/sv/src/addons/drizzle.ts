@@ -243,7 +243,7 @@ export default defineAddon({
 									: ''
 							}
 							${turso ? 'authToken: process.env.DATABASE_AUTH_TOKEN,' : ''}
-							${!d1 ? 'url: process.env.DATABASE_URL' : ''},
+							${!d1 ? 'url: process.env.DATABASE_URL,' : ''}
 						},
 						verbose: true,
 						strict: true
@@ -258,7 +258,7 @@ export default defineAddon({
 			const { ast, generateCode } = parse.script(content);
 
 			let taskSchemaExpression;
-			if (options.database === 'sqlite') {
+			if (options.database === 'sqlite' || options.database === 'd1') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
 					imports: ['integer', 'sqliteTable', 'text']
@@ -312,16 +312,16 @@ export default defineAddon({
 		sv.file(paths['database'], (content) => {
 			const { ast, generateCode } = parse.script(content);
 
-			js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
-
 			if (options.database === 'd1') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/d1',
-					imports: ['drizzle', 'type DrizzleD1Database']
+					imports: ['drizzle']
 				});
 
 				const getDbFn = js.common.parseStatement(
-					'export const getDb = (db: DrizzleD1Database) => drizzle(db, { schema });'
+					typescript
+						? 'export const getDb = (d1: D1Database) => drizzle(d1, { schema });'
+						: 'export const getDb = (d1) => drizzle(d1, { schema });'
 				);
 
 				ast.body.push(getDbFn);
@@ -333,6 +333,7 @@ export default defineAddon({
 				from: '$env/dynamic/private',
 				imports: ['env']
 			});
+			js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
 			// env var checks
 			const dbURLCheck = js.common.parseStatement(
@@ -465,7 +466,7 @@ export default defineAddon({
 			steps.push(
 				`Run ${color.command(`${command} ${args.join(' ')}`)} to start the docker container`
 			);
-		} else {
+		} else if (options.database !== 'd1') {
 			steps.push(
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
