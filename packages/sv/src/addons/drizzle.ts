@@ -214,7 +214,19 @@ export default defineAddon({
 
 			js.imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
-			if (!d1) {
+			if (d1) {
+				ast.body.push(
+					js.common.parseStatement(
+						"if (!process.env.CLOUDFLARE_ACCOUNT_ID) throw new Error('CLOUDFLARE_ACCOUNT_ID is not set');"
+					),
+					js.common.parseStatement(
+						"if (!process.env.CLOUDFLARE_DATABASE_ID) throw new Error('CLOUDFLARE_DATABASE_ID is not set');"
+					),
+					js.common.parseStatement(
+						"if (!process.env.CLOUDFLARE_D1_TOKEN) throw new Error('CLOUDFLARE_D1_TOKEN is not set');"
+					)
+				);
+			} else {
 				ast.body.push(
 					js.common.parseStatement(
 						"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
