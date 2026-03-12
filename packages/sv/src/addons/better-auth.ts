@@ -225,7 +225,7 @@ export default defineAddon({
 			if (!session) {
 				locals.body.body.push(js.common.createTypeProperty('session', 'Session', true));
 			}
-			if (!auth) {
+			if (d1 && !auth) {
 				locals.body.body.push(
 					js.common.createTypeProperty('auth', 'ReturnType<typeof getAuth>', false)
 				);

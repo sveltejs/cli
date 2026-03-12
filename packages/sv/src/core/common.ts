@@ -179,7 +179,7 @@ export function updateReadme(projectPath: string, command: string) {
 		'```sh',
 		'# recreate this project',
 		command,
-		'```\n'
+		'```\n\n'
 	].join('\n');
 
 	content = content.replace(creatingSectionPattern, updatedSection);
