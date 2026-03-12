@@ -173,13 +173,14 @@ export function updateReadme(projectPath: string, command: string) {
 
 	// Append to the existing Creating a project section
 	const existingSection = creatingSectionMatch[0];
-	const updatedSection =
-		`${existingSection.trim()}\n\n` +
-		'To recreate this project with the same configuration:\n\n' +
-		'```sh\n' +
-		'# recreate this project\n' +
-		`${command}\n` +
-		'```\n\n';
+	const updatedSection = [
+		`${existingSection.trim()}\n`,
+		'To recreate this project with the same configuration:\n',
+		'```sh',
+		'# recreate this project',
+		command,
+		'```\n'
+	].join('\n');
 
 	content = content.replace(creatingSectionPattern, updatedSection);
 	fs.writeFileSync(readmePath, content);

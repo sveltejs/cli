@@ -9,10 +9,14 @@ import {
 	json,
 	parse,
 	resolveCommand,
-	createPrinter
+	createPrinter,
+	sanitizeName
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { fileExists } from '../core/files.ts';
 import { addToDemoPage } from './common.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
@@ -39,9 +43,11 @@ export default defineAddon({
 		if (!kit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
 
+		// some sort of wrangler / d1 / sveltekit adapter check
+		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, files }) => {
+	run: ({ sv, language, options, kit, dependencyVersion, files, cwd }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const demoPassword = options.demo.includes('password');
@@ -49,7 +55,7 @@ export default defineAddon({
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
-		let isD1 = false;
+		let d1 = false;
 
 		sv.devDependency('better-auth', '~1.4.21');
 		sv.devDependency('@better-auth/cli', '~1.4.21');
@@ -73,7 +79,7 @@ export default defineAddon({
 						node.value.type === 'Literal' &&
 						node.value.value === 'd1-http'
 					) {
-						isD1 = true;
+						d1 = true;
 					}
 				}
 			});
@@ -90,11 +96,13 @@ export default defineAddon({
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
 			const { ast, generateCode, comments } = parse.script(content);
 
-			if (isD1) {
-				js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['getDb'] });
-			} else {
-				js.imports.addNamed(ast, { from: '$lib/server/db', imports: ['db'] });
-			}
+			if (d1)
+				js.imports.addNamed(ast, {
+					from: 'drizzle-orm/d1',
+					imports: ['DrizzleD1Database'],
+					isType: true
+				});
+			js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
 			js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
 			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
 			js.imports.addNamed(ast, { from: 'better-auth/svelte-kit', imports: ['sveltekitCookies'] });
@@ -122,9 +130,10 @@ export default defineAddon({
 				},`
 				: '';
 
-			if (isD1) {
-				const authConfig = dedent`
-					export const createAuth = (d1${language === 'ts' ? ': D1Database' : ''}) => betterAuth({
+			let authConfig = '';
+			if (d1) {
+				authConfig = dedent`
+					export const createAuth = (d1${language === 'ts' ? ': DrizzleD1Database' : ''}) => betterAuth({
 						baseURL: env.ORIGIN,
 						secret: env.BETTER_AUTH_SECRET,
 						database: drizzleAdapter(getDb(d1), {
@@ -135,9 +144,8 @@ export default defineAddon({
 						},${githubProvider}
 						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
 					});`;
-				js.common.appendFromString(ast, { code: authConfig, comments });
 			} else {
-				const authConfig = dedent`
+				authConfig = dedent`
 					export const auth = betterAuth({
 						baseURL: env.ORIGIN,
 						secret: env.BETTER_AUTH_SECRET,
@@ -149,8 +157,8 @@ export default defineAddon({
 						},${githubProvider}
 						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
 					});`;
-				js.common.appendFromString(ast, { code: authConfig, comments });
 			}
+			js.common.appendFromString(ast, { code: authConfig, comments });
 
 			return generateCode();
 		});
@@ -186,6 +194,7 @@ export default defineAddon({
 		sv.file('src/app.d.ts', (content) => {
 			const { ast, comments, generateCode } = parse.script(content);
 
+			if (d1) js.imports.addNamed(ast, { imports: ['getAuth'], from: '$lib/server/auth' });
 			js.imports.addNamed(ast, {
 				imports: ['User', 'Session'],
 				from: 'better-auth/minimal',
@@ -206,12 +215,20 @@ export default defineAddon({
 			const session = locals.body.body.find((prop) =>
 				js.common.hasTypeProperty(prop, { name: 'session' })
 			);
+			const auth = locals.body.body.find((prop) =>
+				js.common.hasTypeProperty(prop, { name: 'auth' })
+			);
 
 			if (!user) {
 				locals.body.body.push(js.common.createTypeProperty('user', 'User', true));
 			}
 			if (!session) {
 				locals.body.body.push(js.common.createTypeProperty('session', 'Session', true));
+			}
+			if (!auth) {
+				locals.body.body.push(
+					js.common.createTypeProperty('auth', 'ReturnType<typeof getAuth>', false)
+				);
 			}
 			return generateCode();
 		});
@@ -220,33 +237,17 @@ export default defineAddon({
 			const { ast, generateCode, comments } = parse.script(content);
 
 			js.imports.addNamed(ast, { imports: ['svelteKitHandler'], from: 'better-auth/svelte-kit' });
-			if (isD1) {
-				js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
-			} else {
-				js.imports.addNamed(ast, { imports: ['auth'], from: '$lib/server/auth' });
-			}
+			js.imports.addNamed(ast, { imports: [d1 ? 'createAuth' : 'auth'], from: '$lib/server/auth' });
 			js.imports.addNamed(ast, { imports: ['building'], from: '$app/environment' });
 
-			const handleContent = isD1
-				? dedent`
+			const handleContent = dedent`
 				async ({ event, resolve }) => {
-					const auth = createAuth(event.platform.env.DB);
-					// Fetch current session from Better Auth
-					const session = await auth.api.getSession({
-						headers: event.request.headers
-					});
-					// Make session and user available on server
-					if (session) {
-						event.locals.session = session.session;
-						event.locals.user = session.user;
+          ${
+						d1
+							? `event.locals.auth = createAuth(event.platform.env.DB);
+								const { auth } = event.locals`
+							: '' /* same thing, creates new line */
 					}
-					return svelteKitHandler({ event, resolve, auth, building });
-				};
-
-				export const handle = sequence(handleBetterAuth, handleSession);
-			`
-				: dedent`
-				async ({ event, resolve }) => {
 					// Fetch current session from Better Auth
 					const session = await auth.api.getSession({
 						headers: event.request.headers
@@ -271,6 +272,29 @@ export default defineAddon({
 			return generateCode();
 		});
 
+		if (d1) {
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+			const pkg = parse.json(readFileSync(join(cwd, 'package.json'), 'utf-8'));
+			const dbName = sanitizeName(pkg.data.name, 'package') + '-db';
+
+			sv.file(`wrangler.${ext}`, (content) => {
+				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
+
+				data.d1_databases ??= [
+					{
+						binding: 'DB',
+						database_name: dbName,
+						// is optional with auto-provisoning
+						database_id: '<YOUR_DATABASE_ID>',
+						// i cannot find a reference to remote
+						remote: true
+					}
+				];
+
+				return generateCode();
+			});
+		}
+
 		if (hasDemo) {
 			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'better-auth', language);
@@ -287,9 +311,7 @@ export default defineAddon({
 
 					const [ts] = createPrinter(language === 'ts');
 
-					const d1AuthLine = isD1
-						? '\n\t\t\t\t\t\t\tconst auth = createAuth(event.platform.env.DB);'
-						: '';
+					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
 					const signInEmailAction = demoPassword
 						? `
@@ -364,15 +386,11 @@ export default defineAddon({
 
 					const needsAPIError = demoPassword;
 
-					const authImport = isD1
-						? "import { createAuth } from '$lib/server/auth';"
-						: "import { auth } from '$lib/server/auth';";
-
 					return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${authImport}
+					${!d1 ? "import { auth } from '$lib/server/auth';" : '' /* this creates a new line */}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
@@ -458,17 +476,12 @@ export default defineAddon({
 				}
 
 				const [ts] = createPrinter(language === 'ts');
-				const authImport = isD1
-					? "import { createAuth } from '$lib/server/auth';"
-					: "import { auth } from '$lib/server/auth';";
-				const d1AuthLine = isD1
-					? '\n\t\t\t\t\t\t\tconst auth = createAuth(event.platform.env.DB);'
-					: '';
+				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 				return dedent`
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${authImport}
+					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
 						if (!event.locals.user) {

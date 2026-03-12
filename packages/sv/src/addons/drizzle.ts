@@ -207,11 +207,14 @@ export default defineAddon({
 		}
 
 		sv.file(paths['drizzle config'], (content) => {
+			const d1 = options.database === 'd1';
+			const turso = options.sqlite === 'turso';
+
 			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
-			if (options.database !== 'd1') {
+			if (!d1) {
 				ast.body.push(
 					js.common.parseStatement(
 						"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
@@ -219,8 +222,6 @@ export default defineAddon({
 				);
 			}
 
-			const d1 = options.database === 'd1';
-			const turso = options.sqlite === 'turso';
 			const getDialect = (): string => {
 				if (d1) return 'sqlite';
 				if (turso) return 'turso';
@@ -309,19 +310,18 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(paths['database'], (content) => {
+		sv.file(paths.database, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
 			if (options.database === 'd1') {
+				js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/d1',
-					imports: ['drizzle']
+					imports: ['drizzle', 'type DrizzleD1Database']
 				});
 
 				const getDbFn = js.common.parseStatement(
-					typescript
-						? 'export const getDb = (d1: D1Database) => drizzle(d1, { schema });'
-						: 'export const getDb = (d1) => drizzle(d1, { schema });'
+					`export const getDb = (d1${typescript ? ': DrizzleD1Database' : ''}) => drizzle(d1, { schema });`
 				);
 
 				ast.body.push(getDbFn);
@@ -329,10 +329,7 @@ export default defineAddon({
 				return generateCode();
 			}
 
-			js.imports.addNamed(ast, {
-				from: '$env/dynamic/private',
-				imports: ['env']
-			});
+			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
 			js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
 			// env var checks
