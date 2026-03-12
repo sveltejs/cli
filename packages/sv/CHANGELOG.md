@@ -1,5 +1,17 @@
 # sv
 
+## 0.12.7
+### Patch Changes
+
+
+- fix(sv): don't dictate rune mode for `node_modules` ([#984](https://github.com/sveltejs/cli/pull/984))
+
+
+- fix(sv): fix Sverdle demo shake animation not replaying on consecutive bad guesses ([#979](https://github.com/sveltejs/cli/pull/979))
+
+
+- chore(cli): bump `vitest` to `^4.1` ([#985](https://github.com/sveltejs/cli/pull/985))
+
 ## 0.12.6
 ### Patch Changes
 
