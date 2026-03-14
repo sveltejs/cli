@@ -1,8 +1,18 @@
-import { color, dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-utils';
+import {
+	color,
+	dedent,
+	text,
+	js,
+	parse,
+	resolveCommand,
+	json,
+	sanitizeName
+} from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { fileExists } from '../core/files.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
 
@@ -329,11 +339,11 @@ export default defineAddon({
 				js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/d1',
-					imports: ['drizzle', 'type DrizzleD1Database']
+					imports: ['drizzle']
 				});
 
 				const getDbFn = js.common.parseStatement(
-					`export const getDb = (d1${typescript ? ': DrizzleD1Database' : ''}) => drizzle(d1, { schema });`
+					`export const getDb = (d1${typescript ? ': D1Database' : ''}) => drizzle(d1, { schema });`
 				);
 
 				ast.body.push(getDbFn);
@@ -459,6 +469,26 @@ export default defineAddon({
 
 			return generateCode();
 		});
+
+		if (options.database === 'd1') {
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+			const pkg = parse.json(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
+			const dbName = sanitizeName(pkg.data.name, 'package') + '-db';
+
+			sv.file(`wrangler.${ext}`, (content) => {
+				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
+
+				data.d1_databases ??= [
+					{
+						binding: 'DB',
+						database_name: dbName,
+						database_id: '<YOUR_DATABASE_ID>'
+					}
+				];
+
+				return generateCode();
+			});
+		}
 	},
 	nextSteps: ({ options, packageManager }) => {
 		const steps: string[] = [];
@@ -467,7 +497,7 @@ export default defineAddon({
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
 			steps.push(
-				`Add a D1 database binding to your ${color.path('wrangler.jsonc')} (e.g., { binding: "DB", database_name: "my-db", database_id: "..." })`
+				`Update ${color.env('database_id')} in ${color.path('wrangler.jsonc')} with your D1 database ID`
 			);
 		}
 		if (options.docker) {

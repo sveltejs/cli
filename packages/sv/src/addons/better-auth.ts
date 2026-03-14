@@ -9,14 +9,10 @@ import {
 	json,
 	parse,
 	resolveCommand,
-	createPrinter,
-	sanitizeName
+	createPrinter
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { fileExists } from '../core/files.ts';
 import { addToDemoPage } from './common.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
@@ -96,12 +92,6 @@ export default defineAddon({
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
 			const { ast, generateCode, comments } = parse.script(content);
 
-			if (d1)
-				js.imports.addNamed(ast, {
-					from: 'drizzle-orm/d1',
-					imports: ['DrizzleD1Database'],
-					isType: true
-				});
 			js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
 			js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
 			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
@@ -143,7 +133,7 @@ export default defineAddon({
 					}${language === 'ts' ? ' satisfies Omit<Parameters<typeof betterAuth>[0], "database">' : ''};
 
 					// Used at runtime with D1 binding
-					export const createAuth = (d1${language === 'ts' ? ': DrizzleD1Database' : ''}) => betterAuth({
+					export const createAuth = (d1${language === 'ts' ? ': D1Database' : ''}) => betterAuth({
 						...authConfig,
 						database: drizzleAdapter(getDb(d1), { provider: '${provider}' }),
 					});
@@ -250,7 +240,7 @@ export default defineAddon({
 				async ({ event, resolve }) => {
           ${
 						d1
-							? `event.locals.auth = createAuth(event.platform.env.DB);
+							? `event.locals.auth = createAuth(event.platform!.env.DB);
 								const { auth } = event.locals`
 							: '' /* same thing, creates new line */
 					}
@@ -277,29 +267,6 @@ export default defineAddon({
 
 			return generateCode();
 		});
-
-		if (d1) {
-			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
-			const pkg = parse.json(readFileSync(join(cwd, 'package.json'), 'utf-8'));
-			const dbName = sanitizeName(pkg.data.name, 'package') + '-db';
-
-			sv.file(`wrangler.${ext}`, (content) => {
-				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
-
-				data.d1_databases ??= [
-					{
-						binding: 'DB',
-						database_name: dbName,
-						// is optional with auto-provisoning
-						database_id: '<YOUR_DATABASE_ID>',
-						// i cannot find a reference to remote
-						remote: true
-					}
-				];
-
-				return generateCode();
-			});
-		}
 
 		if (hasDemo) {
 			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
