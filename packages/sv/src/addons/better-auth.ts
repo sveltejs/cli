@@ -42,7 +42,7 @@ export default defineAddon({
 		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, files, cwd }) => {
+	run: ({ sv, language, options, kit, dependencyVersion, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const demoPassword = options.demo.includes('password');
