@@ -149,7 +149,7 @@ export default defineAddon({
 					});
 
 					// Used by Better Auth CLI for schema generation (do not use at runtime)
-					export const auth = betterAuth(authConfig);`;
+					export const auth = createAuth(${language === 'ts' ? 'null!' : 'null'});`;
 			} else {
 				authConfig = dedent`
 					export const auth = betterAuth({
