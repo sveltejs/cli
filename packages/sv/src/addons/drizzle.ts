@@ -87,11 +87,16 @@ export default defineAddon({
 	options,
 	setup: ({ kit, unsupported, runsAfter }) => {
 		runsAfter('prettier');
+		runsAfter('sveltekitAdapter');
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, language, options, kit, dependencyVersion, cwd, cancel, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
+
+		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
+			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare — add the adapter first');
+		}
 
 		const typescript = language === 'ts';
 		const baseDBPath = path.resolve(cwd, kit.libDirectory, 'server', 'db');
@@ -490,14 +495,15 @@ export default defineAddon({
 			});
 		}
 	},
-	nextSteps: ({ options, packageManager }) => {
+	nextSteps: ({ options, packageManager, cwd }) => {
 		const steps: string[] = [];
 		if (options.database === 'd1') {
+			const wranglerFile = `wrangler.${fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc'}`;
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
 			steps.push(
-				`Update ${color.env('database_id')} in ${color.path('wrangler.jsonc')} with your D1 database ID`
+				`Update ${color.env('database_id')} in ${color.path(wranglerFile)} with your D1 database ID`
 			);
 		}
 		if (options.docker) {
@@ -527,8 +533,11 @@ function generateEnvFileContent(
 	const DB_URL_KEY = 'DATABASE_URL';
 
 	if (opts.database === 'd1') {
-		content = text.upsert(content, '', { value: '', comment: ['Cloudflare D1'], separator: true });
-		content = text.upsert(content, 'CLOUDFLARE_ACCOUNT_ID', { value: '""' });
+		content = text.upsert(content, 'CLOUDFLARE_ACCOUNT_ID', {
+			value: '""',
+			comment: ['Cloudflare D1'],
+			separator: true
+		});
 		content = text.upsert(content, 'CLOUDFLARE_DATABASE_ID', { value: '""' });
 		content = text.upsert(content, 'CLOUDFLARE_D1_TOKEN', { value: '""' });
 		return content;

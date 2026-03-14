@@ -39,7 +39,6 @@ export default defineAddon({
 		if (!kit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
 
-		// some sort of wrangler / d1 / sveltekit adapter check
 		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
 	},
@@ -236,14 +235,16 @@ export default defineAddon({
 			js.imports.addNamed(ast, { imports: [d1 ? 'createAuth' : 'auth'], from: '$lib/server/auth' });
 			js.imports.addNamed(ast, { imports: ['building'], from: '$app/environment' });
 
+			const d1HandleSetup = d1
+				? dedent`
+					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found — are you running with wrangler?');
+					event.locals.auth = createAuth(event.platform.env.DB);
+					const { auth } = event.locals;`
+				: '';
+
 			const handleContent = dedent`
 				async ({ event, resolve }) => {
-          ${
-						d1
-							? `event.locals.auth = createAuth(event.platform!.env.DB);
-								const { auth } = event.locals`
-							: '' /* same thing, creates new line */
-					}
+					${d1HandleSetup}
 					// Fetch current session from Better Auth
 					const session = await auth.api.getSession({
 						headers: event.request.headers
