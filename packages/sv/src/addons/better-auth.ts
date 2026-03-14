@@ -133,17 +133,23 @@ export default defineAddon({
 			let authConfig = '';
 			if (d1) {
 				authConfig = dedent`
-					export const createAuth = (d1${language === 'ts' ? ': DrizzleD1Database' : ''}) => betterAuth({
+					const authConfig = {
 						baseURL: env.ORIGIN,
 						secret: env.BETTER_AUTH_SECRET,
-						database: drizzleAdapter(getDb(d1), {
-							provider: '${provider}'
-						}),
 						emailAndPassword: {
 							enabled: true
 						},${githubProvider}
 						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
-					});`;
+					}${language === 'ts' ? ' satisfies Omit<Parameters<typeof betterAuth>[0], "database">' : ''};
+
+					// Used at runtime with D1 binding
+					export const createAuth = (d1${language === 'ts' ? ': DrizzleD1Database' : ''}) => betterAuth({
+						...authConfig,
+						database: drizzleAdapter(getDb(d1), { provider: '${provider}' }),
+					});
+
+					// Used by Better Auth CLI for schema generation (do not use at runtime)
+					export const auth = betterAuth(authConfig);`;
 			} else {
 				authConfig = dedent`
 					export const auth = betterAuth({
@@ -194,7 +200,7 @@ export default defineAddon({
 		sv.file('src/app.d.ts', (content) => {
 			const { ast, comments, generateCode } = parse.script(content);
 
-			if (d1) js.imports.addNamed(ast, { imports: ['getAuth'], from: '$lib/server/auth' });
+			if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
 			js.imports.addNamed(ast, {
 				imports: ['User', 'Session'],
 				from: 'better-auth/minimal',
@@ -227,7 +233,7 @@ export default defineAddon({
 			}
 			if (d1 && !auth) {
 				locals.body.body.push(
-					js.common.createTypeProperty('auth', 'ReturnType<typeof getAuth>', false)
+					js.common.createTypeProperty('auth', 'ReturnType<typeof createAuth>', false)
 				);
 			}
 			return generateCode();
