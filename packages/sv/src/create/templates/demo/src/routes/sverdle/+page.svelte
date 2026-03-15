@@ -4,22 +4,20 @@
 	import { confetti } from '@neoconfetti/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 
-	import type { ActionData, PageData } from './$types';
+	import type { PageData } from './$types';
 
 	interface Props {
 		data: PageData;
-		form: ActionData;
 	}
 	/**
 	 * @typedef {Object} Props
 	 * @property {import('./$types').PageData} data
-	 * @property {import('./$types').ActionData} form
 	 */
 
 	/**
 	 * @type {Props}
 	 */
-	let { data, form = $bindable() }: Props = $props();
+	let { data }: Props = $props();
 
 	/** Whether the user prefers reduced motion */
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
