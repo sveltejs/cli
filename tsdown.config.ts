@@ -17,7 +17,7 @@ export default defineConfig([
 			// Without this, the DTS plugin inlines their entire type trees
 			// (vitest pulls in postcss, vite, chai, etc.) bloating testing.d.mts.
 			neverBundle: [/^vitest/, /^@vitest\//, /^@playwright\//, /^vite$/, /^postcss$/],
-			onlyAllowBundle: [
+			onlyBundle: [
 				'@clack/core',
 				'@clack/prompts',
 				'commander',
@@ -68,7 +68,7 @@ export default defineConfig([
 		dts: false,
 		failOnWarn: true,
 		deps: {
-			onlyAllowBundle: [
+			onlyBundle: [
 				'@jridgewell/gen-mapping',
 				'@jridgewell/remapping',
 				'@jridgewell/sourcemap-codec',
@@ -104,13 +104,7 @@ export default defineConfig([
 		failOnWarn: true,
 		deps: {
 			neverBundle: [/^svelte/, '@types/estree', 'estree'],
-			onlyAllowBundle: [
-				'dedent',
-				'package-manager-detector',
-				'smol-toml',
-				'yaml',
-				'zimmerframe'
-			]
+			onlyBundle: ['dedent', 'package-manager-detector', 'smol-toml', 'yaml', 'zimmerframe']
 		}
 	}
 ]);

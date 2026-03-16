@@ -36,7 +36,7 @@
 		"prettier-plugin-svelte": "^3.4.1",
 		"sv": "workspace:*",
 		"svelte": "^5.53.0",
-		"tsdown": "^0.21.0",
+		"tsdown": "^0.21.4",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.54.0",
 		"vitest": "4.1.0-beta.4"
