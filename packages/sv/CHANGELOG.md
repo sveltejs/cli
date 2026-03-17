@@ -1,5 +1,14 @@
 # sv
 
+## 0.12.8
+### Patch Changes
+
+
+- feat(cli): refactor help to give better hints for humans & ai ([#966](https://github.com/sveltejs/cli/pull/966))
+
+- Updated dependencies [[`669b322`](https://github.com/sveltejs/cli/commit/669b3228b6275c4d22b66721c9e2c30825325d69)]:
+  - @sveltejs/sv-utils@0.0.3
+
 ## 0.12.7
 ### Patch Changes
 
