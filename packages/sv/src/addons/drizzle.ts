@@ -499,13 +499,11 @@ export default defineAddon({
 		const steps: string[] = [];
 		if (options.database === 'd1') {
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
-			const pkg = parse.json(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
-			const dbName = sanitizeName(pkg.data.name, 'package') + '-db';
 			const { command, args } = resolveCommand(packageManager, 'run', [
 				'wrangler',
 				'd1',
 				'create',
-				dbName
+				`<DATABASE_NAME>`
 			])!;
 
 			steps.push(

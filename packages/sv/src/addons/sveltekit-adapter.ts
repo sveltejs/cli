@@ -223,16 +223,13 @@ export default defineAddon({
 		}
 	},
 	nextSteps({ options, packageManager }) {
-		const toReturn: string[] = [];
+		const steps: string[] = [];
 		if (options.adapter === 'cloudflare') {
 			const { command, args } = resolveCommand(packageManager, 'run', ['gen'])!;
-			toReturn.push(
-				`${color.command(`${command} ${args.join(' ')}`)} ` +
-					`${color.optional(`# updates `)}` +
-					`${color.route(`cloudflare`)}` +
-					`${color.optional(` types`)}`
+			steps.push(
+				`Run ${color.command(`${command} ${args.join(' ')}`)} to update ${color.addon('cloudflare')} types`
 			);
 		}
-		return toReturn;
+		return steps;
 	}
 });
