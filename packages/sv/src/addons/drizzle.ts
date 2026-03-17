@@ -1,13 +1,4 @@
-import {
-	color,
-	dedent,
-	text,
-	js,
-	parse,
-	resolveCommand,
-	json,
-	sanitizeName
-} from '@sveltejs/sv-utils';
+import { color, dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -91,6 +82,7 @@ export default defineAddon({
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
+
 	run: ({ sv, language, options, kit, dependencyVersion, cwd, cancel, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
@@ -474,27 +466,8 @@ export default defineAddon({
 
 			return generateCode();
 		});
-
-		if (options.database === 'd1') {
-			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
-			const pkg = parse.json(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
-			const dbName = sanitizeName(pkg.data.name, 'package') + '-db';
-
-			sv.file(`wrangler.${ext}`, (content) => {
-				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
-
-				data.d1_databases ??= [
-					{
-						binding: 'DB',
-						database_name: dbName,
-						database_id: '<YOUR_DATABASE_ID>'
-					}
-				];
-
-				return generateCode();
-			});
-		}
 	},
+
 	nextSteps: ({ options, packageManager, cwd }) => {
 		const steps: string[] = [];
 		if (options.database === 'd1') {
@@ -582,7 +555,6 @@ function generateEnvFileContent(
 		value = '"mysql://user:password@host:port/db-name"';
 		comment.push('Replace with your DB credentials!');
 	} else if (opts.database === 'postgresql') {
-		// postgresql
 		value = '"postgres://user:password@host:port/db-name"';
 		comment.push('Replace with your DB credentials!');
 	} else {
