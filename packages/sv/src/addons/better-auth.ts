@@ -131,13 +131,17 @@ export default defineAddon({
 						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
 					}${language === 'ts' ? ' satisfies Omit<Parameters<typeof betterAuth>[0], "database">' : ''};
 
-					// Used at runtime with D1 binding
 					export const createAuth = (d1${language === 'ts' ? ': D1Database' : ''}) => betterAuth({
 						...authConfig,
 						database: drizzleAdapter(getDb(d1), { provider: '${provider}' }),
 					});
 
-					// Used by Better Auth CLI for schema generation (do not use at runtime)
+					/**
+					 * DO NOT USE!
+					 *
+					 * This instance is used by the \`better-auth\` CLI for schema generation ONLY.
+					 * To access \`auth\` at runtime, use \`event.locals.auth\`.
+					 */
 					export const auth = createAuth(${language === 'ts' ? 'null!' : 'null'});`;
 			} else {
 				authConfig = dedent`
