@@ -2,4 +2,4 @@
 '@sveltejs/sv-utils': patch
 ---
 
-add color `hidden`
+feat: add color `hidden`
