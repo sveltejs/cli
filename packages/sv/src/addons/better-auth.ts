@@ -128,7 +128,9 @@ export default defineAddon({
 						emailAndPassword: {
 							enabled: true
 						},${githubProvider}
-						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
+						plugins: [
+							sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
+						],
 					}${language === 'ts' ? ' satisfies Omit<Parameters<typeof betterAuth>[0], "database">' : ''};
 
 					export const createAuth = (d1${language === 'ts' ? ': D1Database' : ''}) => betterAuth({
@@ -148,13 +150,13 @@ export default defineAddon({
 					export const auth = betterAuth({
 						baseURL: env.ORIGIN,
 						secret: env.BETTER_AUTH_SECRET,
-						database: drizzleAdapter(db, {
-							provider: '${provider}'
-						}),
+						database: drizzleAdapter(db, { provider: '${provider}' }),
 						emailAndPassword: {
 							enabled: true
 						},${githubProvider}
-						plugins: [sveltekitCookies(getRequestEvent)], // make sure this is the last plugin in the array
+						plugins: [
+							sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
+						],
 					});`;
 			}
 			js.common.appendFromString(ast, { code: authConfig, comments });
@@ -243,12 +245,11 @@ export default defineAddon({
 				? dedent`
 					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found — are you running with wrangler?');
 					event.locals.auth = createAuth(event.platform.env.DB);
-					const { auth } = event.locals;`
+					const { auth } = event.locals;\n`
 				: '';
 
 			const handleContent = dedent`
-				async ({ event, resolve }) => {
-					${d1HandleSetup}
+				async ({ event, resolve }) => {${d1HandleSetup}
 					// Fetch current session from Better Auth
 					const session = await auth.api.getSession({
 						headers: event.request.headers
@@ -368,7 +369,7 @@ export default defineAddon({
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? "import { auth } from '$lib/server/auth';" : '' /* this creates a new line */}
+					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = async (event) => {
@@ -424,7 +425,9 @@ export default defineAddon({
 					: '';
 
 				const separator =
-					demoPassword && demoGithub ? `\n\n					<hr ${tailwind ? 'class="my-4"' : ''} />` : '';
+					demoPassword && demoGithub
+						? `\n\n\t\t\t\t\t<hr ${tailwind ? 'class="my-4"' : ''} />\n`
+						: '';
 
 				const githubForm = demoGithub
 					? `

@@ -82,7 +82,6 @@ export default defineAddon({
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
-
 	run: ({ sv, language, options, kit, dependencyVersion, cwd, cancel, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
@@ -247,23 +246,27 @@ export default defineAddon({
 				return options.database;
 			};
 
+			const getCredentials = (): string => {
+				const creds: string[] = [];
+				if (d1) {
+					creds.push('accountId: process.env.CLOUDFLARE_ACCOUNT_ID,');
+					creds.push('databaseId: process.env.CLOUDFLARE_DATABASE_ID,');
+					creds.push('token: process.env.CLOUDFLARE_D1_TOKEN,');
+				}
+				if (turso) creds.push('authToken: process.env.DATABASE_AUTH_TOKEN,');
+				if (!d1) creds.push('url: process.env.DATABASE_URL,');
+
+				return creds.join('\n');
+			};
+
 			js.exports.createDefault(ast, {
 				fallback: js.common.parseExpression(`
 					defineConfig({
-						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
+						schema: "./src/lib/server/db/schema.${language}",
 						dialect: "${getDialect()}",
 						${d1 ? "driver: 'd1-http'," : ''}
 						dbCredentials: {
-							${
-								d1
-									? `
-							accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
-							databaseId: process.env.CLOUDFLARE_DATABASE_ID,
-							token: process.env.CLOUDFLARE_D1_TOKEN,`
-									: ''
-							}
-							${turso ? 'authToken: process.env.DATABASE_AUTH_TOKEN,' : ''}
-							${!d1 ? 'url: process.env.DATABASE_URL,' : ''}
+							${getCredentials()}
 						},
 						verbose: true,
 						strict: true
@@ -334,10 +337,7 @@ export default defineAddon({
 
 			if (options.database === 'd1') {
 				js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
-				js.imports.addNamed(ast, {
-					from: 'drizzle-orm/d1',
-					imports: ['drizzle']
-				});
+				js.imports.addNamed(ast, { from: 'drizzle-orm/d1', imports: ['drizzle'] });
 
 				const getDbFn = js.common.parseStatement(
 					`export const getDb = (d1${typescript ? ': D1Database' : ''}) => drizzle(d1, { schema });`
