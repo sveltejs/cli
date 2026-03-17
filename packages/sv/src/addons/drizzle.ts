@@ -498,14 +498,24 @@ export default defineAddon({
 	nextSteps: ({ options, packageManager, cwd }) => {
 		const steps: string[] = [];
 		if (options.database === 'd1') {
-			const wranglerFile = `wrangler.${fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc'}`;
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+			const pkg = parse.json(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
+			const dbName = sanitizeName(pkg.data.name, 'package') + '-db';
+			const { command, args } = resolveCommand(packageManager, 'run', [
+				'wrangler',
+				'd1',
+				'create',
+				dbName
+			])!;
+
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
 			steps.push(
-				`Update ${color.env('database_id')} in ${color.path(wranglerFile)} with your D1 database ID`
+				`Run ${color.command(`${command} ${args.join(' ')}`)} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
+
 		if (options.docker) {
 			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
@@ -516,6 +526,7 @@ export default defineAddon({
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
+
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		steps.push(
 			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`

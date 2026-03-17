@@ -125,14 +125,13 @@ export default defineAddon({
 			sv.devDependency('wrangler', '^4.63.0');
 
 			// default to jsonc
-			const configFormat = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 
 			// Setup Cloudlfare workers/pages config
-			sv.file(`wrangler.${configFormat}`, (content) => {
-				const { data, generateCode } =
-					configFormat === 'jsonc' ? parse.json(content) : parse.toml(content);
+			sv.file(`wrangler.${ext}`, (content) => {
+				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
 
-				if (configFormat === 'jsonc') {
+				if (ext === 'jsonc') {
 					data.$schema ??= './node_modules/wrangler/config-schema.json';
 				}
 
