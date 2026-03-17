@@ -181,6 +181,7 @@ export default defineAddon({
 		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast, { language });
+			js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 			js.imports.addNamed(ast.instance.content, {
 				imports: ['locales', 'localizeHref'],
 				from: '$lib/paraglide/runtime'
@@ -190,7 +191,7 @@ export default defineAddon({
 				ast,
 				`<div style="display:none">
 	{#each locales as locale}
-		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
+		<a href={resolve(localizeHref(page.url.pathname, { locale }))}>{locale}</a>
 	{/each}
 </div>`
 			);
