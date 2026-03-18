@@ -4,22 +4,17 @@ import { relative, sep } from 'node:path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	kit: { adapter: adapter() },
-	vitePlugin: {
-		// ensures rune mode is used by default, but allows for dependencies to use legacy mode
-		// to be removed in svelte 6
-		dynamicCompileOptions: ({ filename }) => {
+	compilerOptions: {
+		// defaults to rune mode for the project, execept for `node_modules`. Can be removed in svelte 6.
+		runes: ({ filename }) => {
 			const relativePath = relative(import.meta.dirname, filename);
 			const pathSegments = relativePath.toLowerCase().split(sep);
 			const isExternalLibrary = pathSegments.includes('node_modules');
 
-			if (isExternalLibrary) {
-				return undefined;
-			} else {
-				return { runes: true };
-			}
+			return isExternalLibrary ? undefined : true;
 		}
 	},
+	kit: { adapter: adapter() },
 	preprocess: [mdsvex()],
 	extensions: ['.svelte', '.svx']
 };
