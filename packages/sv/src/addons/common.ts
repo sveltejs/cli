@@ -45,37 +45,36 @@ export function addEslintConfigPrettier(content: string): string {
 	const isSvelteConfig = (el: any) => {
 		const maybeSpread = el?.type === 'SpreadElement' ? el?.argument : el;
 		return (
-			maybeSpread?.object.type === 'MemberExpression' &&
-			maybeSpread.object.property.type === 'Identifier' &&
-			maybeSpread.object.property.name === 'configs' &&
-			maybeSpread.object.object.type === 'Identifier' &&
-			maybeSpread.object.object.name === svelteImportName
+			maybeSpread?.object?.type === 'MemberExpression' &&
+			maybeSpread?.object?.property?.type === 'Identifier' &&
+			maybeSpread?.object?.property?.name === 'configs' &&
+			maybeSpread?.object?.object?.type === 'Identifier' &&
+			maybeSpread?.object?.object?.name === svelteImportName
 		);
 	};
 
-	if (isDefineConfig) {
-		const container =
-			eslintConfig.arguments.length === 1 && eslintConfig.arguments[0].type === 'ArrayExpression'
-				? // javascript - defineConfig([...])
-					eslintConfig.arguments[0].elements
-				: // typescript - defineConfig(...)
-					eslintConfig.arguments;
+	// i dont know the type
+	let elements: any;
+	if (isArrayExport) elements = eslintConfig.elements;
 
-		const idx = container.findIndex(isSvelteConfig);
-		if (idx !== -1) {
-			container.splice(idx + 1, 0, ...nodesToInsert);
+	if (isDefineConfig) {
+		if (
+			eslintConfig.arguments.length === 1 &&
+			eslintConfig.arguments[0].type === 'ArrayExpression'
+		) {
+			// javascript - defineConfig([...])
+			elements = eslintConfig.arguments[0].elements;
 		} else {
-			container.push(...nodesToInsert);
+			// typescript - defineConfig(...)
+			elements = eslintConfig.arguments;
 		}
 	}
 
-	if (isArrayExport) {
-		const idx = eslintConfig.elements.findIndex(isSvelteConfig);
-		if (idx !== -1) {
-			eslintConfig.elements.splice(idx + 1, 0, ...nodesToInsert);
-		} else {
-			eslintConfig.elements.push(...nodesToInsert);
-		}
+	const idx = elements.findIndex(isSvelteConfig);
+	if (idx !== -1) {
+		elements.splice(idx + 1, 0, ...nodesToInsert);
+	} else {
+		elements.push(...nodesToInsert);
 	}
 
 	return generateCode();
