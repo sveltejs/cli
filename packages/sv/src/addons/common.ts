@@ -19,8 +19,8 @@ export function addEslintConfigPrettier(content: string): string {
 			svelteImportName = specifier.local.name as string;
 		}
 	}
-
 	svelteImportName ??= 'svelte';
+
 	js.imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: svelteImportName });
 	js.imports.addDefault(ast, { from: 'eslint-config-prettier', as: 'prettier' });
 
@@ -38,24 +38,68 @@ export function addEslintConfigPrettier(content: string): string {
 	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
 		nodesToInsert.push(sveltePrettierConfig);
 
-	const elements =
-		eslintConfig.type === 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
-	// finds index of `svelte.configs["..."]`
-	const idx = elements.findIndex(
-		(el) =>
-			el?.type === 'MemberExpression' &&
-			el.object.type === 'MemberExpression' &&
-			el.object.property.type === 'Identifier' &&
-			el.object.property.name === 'configs' &&
-			el.object.object.type === 'Identifier' &&
-			el.object.object.name === svelteImportName
-	);
+	if (eslintConfig.type === 'CallExpression') {
+		// export default defineConfig(...)
+		if (
+			eslintConfig.arguments.length === 1 &&
+			eslintConfig.arguments[0].type === 'ArrayExpression'
+		) {
+			// javascript defineConfig([...])
+			const idx = eslintConfig.arguments[0].elements.findIndex(
+				(el) =>
+					el?.type === 'MemberExpression' &&
+					el.object.type === 'MemberExpression' &&
+					el.object.property.type === 'Identifier' &&
+					el.object.property.name === 'configs' &&
+					el.object.object.type === 'Identifier' &&
+					el.object.object.name === svelteImportName
+			);
+			if (idx !== -1) {
+				eslintConfig.arguments[0].elements.splice(idx + 1, 0, ...nodesToInsert);
+			} else {
+				// append to the end as a fallback
+				eslintConfig.arguments[0].elements.push(...nodesToInsert);
+			}
+		} else {
+			//typescript defineConfig(...)
+			const idx = eslintConfig.arguments.findIndex(
+				(el) =>
+					el?.type === 'MemberExpression' &&
+					el.object.type === 'MemberExpression' &&
+					el.object.property.type === 'Identifier' &&
+					el.object.property.name === 'configs' &&
+					el.object.object.type === 'Identifier' &&
+					el.object.object.name === svelteImportName
+			);
+			if (idx !== -1) {
+				eslintConfig.arguments.splice(idx + 1, 0, ...nodesToInsert);
+			} else {
+				// append to the end as a fallback
+				eslintConfig.arguments.push(...nodesToInsert);
+			}
+		}
+	}
 
-	if (idx !== -1) {
-		elements.splice(idx + 1, 0, ...nodesToInsert);
-	} else {
-		// append to the end as a fallback
-		elements.push(...nodesToInsert);
+	// export default []
+	if (eslintConfig.type === 'ArrayExpression') {
+		// find index of `...svelte.configs["..."]`
+		const idx = eslintConfig.elements.findIndex(
+			(el) =>
+				el?.type === 'SpreadElement' &&
+				el.argument.type === 'MemberExpression' &&
+				el.argument.object.type === 'MemberExpression' &&
+				el.argument.object.property.type === 'Identifier' &&
+				el.argument.object.property.name === 'configs' &&
+				el.argument.object.object.type === 'Identifier' &&
+				el.argument.object.object.name === svelteImportName
+		);
+
+		if (idx !== -1) {
+			eslintConfig.elements.splice(idx + 1, 0, ...nodesToInsert);
+		} else {
+			// append to the end as a fallback
+			eslintConfig.elements.push(...nodesToInsert);
+		}
 	}
 
 	return generateCode();
