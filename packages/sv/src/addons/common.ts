@@ -16,7 +16,7 @@ export function addEslintConfigPrettier(content: string): string {
 	let svelteImportName: string;
 	for (const specifier of sveltePluginImport?.specifiers ?? []) {
 		if (specifier.type === 'ImportDefaultSpecifier' && specifier.local?.name) {
-			svelteImportName = specifier.local.name as string;
+			svelteImportName = specifier.local.name;
 		}
 	}
 	svelteImportName ??= 'svelte';
@@ -41,64 +41,39 @@ export function addEslintConfigPrettier(content: string): string {
 	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
 		nodesToInsert.push(sveltePrettierConfig);
 
+	// i dont know the type
+	const isSvelteConfig = (el: any) => {
+		const maybeSpread = el?.type === 'SpreadElement' ? el?.argument : el;
+		return (
+			maybeSpread?.object.type === 'MemberExpression' &&
+			maybeSpread.object.property.type === 'Identifier' &&
+			maybeSpread.object.property.name === 'configs' &&
+			maybeSpread.object.object.type === 'Identifier' &&
+			maybeSpread.object.object.name === svelteImportName
+		);
+	};
+
 	if (isDefineConfig) {
-		if (
-			eslintConfig.arguments.length === 1 &&
-			eslintConfig.arguments[0].type === 'ArrayExpression'
-		) {
-			// javascript - defineConfig([...])
-			const idx = eslintConfig.arguments[0].elements.findIndex(
-				(el) =>
-					el?.type === 'MemberExpression' &&
-					el.object.type === 'MemberExpression' &&
-					el.object.property.type === 'Identifier' &&
-					el.object.property.name === 'configs' &&
-					el.object.object.type === 'Identifier' &&
-					el.object.object.name === svelteImportName
-			);
-			if (idx !== -1) {
-				eslintConfig.arguments[0].elements.splice(idx + 1, 0, ...nodesToInsert);
-			} else {
-				// append to the end as a fallback
-				eslintConfig.arguments[0].elements.push(...nodesToInsert);
-			}
+		const container =
+			eslintConfig.arguments.length === 1 && eslintConfig.arguments[0].type === 'ArrayExpression'
+				? // javascript - defineConfig([...])
+					eslintConfig.arguments[0].elements
+				: // typescript - defineConfig(...)
+					eslintConfig.arguments;
+
+		const idx = container.findIndex(isSvelteConfig);
+		if (idx !== -1) {
+			container.splice(idx + 1, 0, ...nodesToInsert);
 		} else {
-			//typescript - defineConfig(...)
-			const idx = eslintConfig.arguments.findIndex(
-				(el) =>
-					el?.type === 'MemberExpression' &&
-					el.object.type === 'MemberExpression' &&
-					el.object.property.type === 'Identifier' &&
-					el.object.property.name === 'configs' &&
-					el.object.object.type === 'Identifier' &&
-					el.object.object.name === svelteImportName
-			);
-			if (idx !== -1) {
-				eslintConfig.arguments.splice(idx + 1, 0, ...nodesToInsert);
-			} else {
-				// append to the end as a fallback
-				eslintConfig.arguments.push(...nodesToInsert);
-			}
+			container.push(...nodesToInsert);
 		}
 	}
 
 	if (isArrayExport) {
-		// find index of `...svelte.configs["..."]`
-		const idx = eslintConfig.elements.findIndex(
-			(el) =>
-				el?.type === 'SpreadElement' &&
-				el.argument.type === 'MemberExpression' &&
-				el.argument.object.type === 'MemberExpression' &&
-				el.argument.object.property.type === 'Identifier' &&
-				el.argument.object.property.name === 'configs' &&
-				el.argument.object.object.type === 'Identifier' &&
-				el.argument.object.object.name === svelteImportName
-		);
-
+		const idx = eslintConfig.elements.findIndex(isSvelteConfig);
 		if (idx !== -1) {
 			eslintConfig.elements.splice(idx + 1, 0, ...nodesToInsert);
 		} else {
-			// append to the end as a fallback
 			eslintConfig.elements.push(...nodesToInsert);
 		}
 	}
