@@ -27,8 +27,11 @@ export function addEslintConfigPrettier(content: string): string {
 	const fallbackConfig = js.common.parseExpression('[]');
 	const defaultExport = js.exports.createDefault(ast, { fallback: fallbackConfig });
 	const eslintConfig = defaultExport.value;
-	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression')
-		return content;
+
+	const isDefineConfig = eslintConfig.type === 'CallExpression'; // export default defineConfig()
+	const isArrayExport = eslintConfig.type === 'ArrayExpression'; // export default []
+
+	if (!isArrayExport && !isDefineConfig) return content;
 
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
@@ -38,13 +41,12 @@ export function addEslintConfigPrettier(content: string): string {
 	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
 		nodesToInsert.push(sveltePrettierConfig);
 
-	if (eslintConfig.type === 'CallExpression') {
-		// export default defineConfig(...)
+	if (isDefineConfig) {
 		if (
 			eslintConfig.arguments.length === 1 &&
 			eslintConfig.arguments[0].type === 'ArrayExpression'
 		) {
-			// javascript defineConfig([...])
+			// javascript - defineConfig([...])
 			const idx = eslintConfig.arguments[0].elements.findIndex(
 				(el) =>
 					el?.type === 'MemberExpression' &&
@@ -61,7 +63,7 @@ export function addEslintConfigPrettier(content: string): string {
 				eslintConfig.arguments[0].elements.push(...nodesToInsert);
 			}
 		} else {
-			//typescript defineConfig(...)
+			//typescript - defineConfig(...)
 			const idx = eslintConfig.arguments.findIndex(
 				(el) =>
 					el?.type === 'MemberExpression' &&
@@ -80,8 +82,7 @@ export function addEslintConfigPrettier(content: string): string {
 		}
 	}
 
-	// export default []
-	if (eslintConfig.type === 'ArrayExpression') {
+	if (isArrayExport) {
 		// find index of `...svelte.configs["..."]`
 		const idx = eslintConfig.elements.findIndex(
 			(el) =>
