@@ -109,6 +109,23 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			}
 
+			const rulesOverride = js.object.create({
+				rules: {}
+			});
+			eslintConfigs.push(rulesOverride);
+
+			if (rulesOverride.properties[0].type !== 'Property') {
+				throw new Error('rulesOverride.properties[0].type !== "Property"');
+			}
+			comments.add(rulesOverride.properties[0].key, {
+				type: 'Line',
+				value: ' Override or add rule settings here, such as:'
+			});
+			comments.add(rulesOverride.properties[0].key, {
+				type: 'Line',
+				value: " 'svelte/rule-name': 'error'"
+			});
+
 			const exportExpression = js.functions.createCall({ name: 'defineConfig', args: [] });
 			if (typescript) {
 				exportExpression.arguments.push(...eslintConfigs);
