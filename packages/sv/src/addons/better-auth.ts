@@ -317,7 +317,7 @@ export default defineAddon({
 					import { auth } from '$lib/server/auth';
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/better-auth');
 						}
@@ -406,7 +406,7 @@ export default defineAddon({
 					${ts("import type { PageServerLoad } from './$types';")}
 					import { auth } from '$lib/server/auth';
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/better-auth/login');
 						}
