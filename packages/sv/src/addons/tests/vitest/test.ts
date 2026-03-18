@@ -1,10 +1,8 @@
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import vitest from '../../vitest-addon.ts';
 import { setupTest } from '../_setup/suite.ts';
-
-const TWO_MINUTES = 2 * 60 * 1000;
 
 const { test, testCases } = setupTest(
 	{ vitest },
@@ -14,11 +12,18 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('vitest $variant', (testCase, { expect, ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
-	expect(() =>
-		execSync('pnpm exec playwright install chromium', { cwd, stdio: 'pipe', timeout: TWO_MINUTES })
-	).not.toThrow();
+	expect(
+		spawnSync('pnpm exec playwright install chromium', {
+			cwd,
+			stdio: 'pipe',
+			shell: true,
+			timeout: 2 * 60_000
+		}).status
+	).toBe(0);
 
-	expect(() => execSync('pnpm test', { cwd, stdio: 'pipe', timeout: TWO_MINUTES })).not.toThrow();
+	expect(
+		spawnSync('pnpm test', { cwd, stdio: 'pipe', shell: true, timeout: 2 * 60_000 }).status
+	).toBe(0);
 
 	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
 	const viteFile = path.resolve(cwd, `vite.config.${language}`);
