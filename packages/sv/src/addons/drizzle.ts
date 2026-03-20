@@ -3,14 +3,16 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { fileExists } from '../core/files.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
 
-type Database = 'mysql' | 'postgresql' | 'sqlite';
+type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 const PORTS: Record<Database, string> = {
 	mysql: '3306',
 	postgresql: '5432',
-	sqlite: ''
+	sqlite: '',
+	d1: ''
 };
 
 const options = defineAddonOptions()
@@ -21,7 +23,8 @@ const options = defineAddonOptions()
 		options: [
 			{ value: 'postgresql', label: 'PostgreSQL' },
 			{ value: 'mysql', label: 'MySQL' },
-			{ value: 'sqlite', label: 'SQLite' }
+			{ value: 'sqlite', label: 'SQLite' },
+			{ value: 'd1', label: 'Cloudflare D1' }
 		]
 	})
 	.add('postgresql', {
@@ -75,11 +78,16 @@ export default defineAddon({
 	options,
 	setup: ({ kit, unsupported, runsAfter }) => {
 		runsAfter('prettier');
+		runsAfter('sveltekitAdapter');
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, language, options, kit, dependencyVersion, cwd, cancel, files }) => {
 		if (!kit) throw new Error('SvelteKit is required');
+
+		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
+			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare — add the adapter first');
+		}
 
 		const typescript = language === 'ts';
 		const baseDBPath = path.resolve(cwd, kit.libDirectory, 'server', 'db');
@@ -205,28 +213,65 @@ export default defineAddon({
 		}
 
 		sv.file(paths['drizzle config'], (content) => {
+			const d1 = options.database === 'd1';
+			const turso = options.sqlite === 'turso';
+
 			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
-			ast.body.push(
-				js.common.parseStatement(
-					"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
-				)
-			);
+			if (d1) {
+				ast.body.push(
+					js.common.parseStatement(
+						"if (!process.env.CLOUDFLARE_ACCOUNT_ID) throw new Error('CLOUDFLARE_ACCOUNT_ID is not set');"
+					),
+					js.common.parseStatement(
+						"if (!process.env.CLOUDFLARE_DATABASE_ID) throw new Error('CLOUDFLARE_DATABASE_ID is not set');"
+					),
+					js.common.parseStatement(
+						"if (!process.env.CLOUDFLARE_D1_TOKEN) throw new Error('CLOUDFLARE_D1_TOKEN is not set');"
+					)
+				);
+			} else {
+				ast.body.push(
+					js.common.parseStatement(
+						"if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+					)
+				);
+			}
+
+			const getDialect = (): string => {
+				if (d1) return 'sqlite';
+				if (turso) return 'turso';
+				return options.database;
+			};
+
+			const getCredentials = (): string => {
+				const creds: string[] = [];
+				if (d1) {
+					creds.push('accountId: process.env.CLOUDFLARE_ACCOUNT_ID,');
+					creds.push('databaseId: process.env.CLOUDFLARE_DATABASE_ID,');
+					creds.push('token: process.env.CLOUDFLARE_D1_TOKEN,');
+				}
+				if (turso) creds.push('authToken: process.env.DATABASE_AUTH_TOKEN,');
+				if (!d1) creds.push('url: process.env.DATABASE_URL,');
+
+				return creds.join('\n');
+			};
 
 			js.exports.createDefault(ast, {
 				fallback: js.common.parseExpression(`
 					defineConfig({
-						schema: "./src/lib/server/db/schema.${typescript ? 'ts' : 'js'}",
-						dialect: "${options.sqlite === 'turso' ? 'turso' : options.database}",
+						schema: "./src/lib/server/db/schema.${language}",
+						dialect: "${getDialect()}",
+						${d1 ? "driver: 'd1-http'," : ''}
 						dbCredentials: {
-							${options.sqlite === 'turso' ? 'authToken: process.env.DATABASE_AUTH_TOKEN,' : ''}
-							url: process.env.DATABASE_URL
+							${getCredentials()}
 						},
 						verbose: true,
 						strict: true
-					})`)
+					})
+				`)
 			});
 
 			return generateCode();
@@ -236,7 +281,7 @@ export default defineAddon({
 			const { ast, generateCode } = parse.script(content);
 
 			let taskSchemaExpression;
-			if (options.database === 'sqlite') {
+			if (options.database === 'sqlite' || options.database === 'd1') {
 				js.imports.addNamed(ast, {
 					from: 'drizzle-orm/sqlite-core',
 					imports: ['integer', 'sqliteTable', 'text']
@@ -287,13 +332,23 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(paths['database'], (content) => {
+		sv.file(paths.database, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
-			js.imports.addNamed(ast, {
-				from: '$env/dynamic/private',
-				imports: ['env']
-			});
+			if (options.database === 'd1') {
+				js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
+				js.imports.addNamed(ast, { from: 'drizzle-orm/d1', imports: ['drizzle'] });
+
+				const getDbFn = js.common.parseStatement(
+					`export const getDb = (d1${typescript ? ': D1Database' : ''}) => drizzle(d1, { schema });`
+				);
+
+				ast.body.push(getDbFn);
+
+				return generateCode();
+			}
+
+			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
 			js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
 			// env var checks
@@ -412,18 +467,37 @@ export default defineAddon({
 			return generateCode();
 		});
 	},
-	nextSteps: ({ options, packageManager }) => {
+
+	nextSteps: ({ options, packageManager, cwd }) => {
 		const steps: string[] = [];
+		if (options.database === 'd1') {
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+			const { command, args } = resolveCommand(packageManager, 'run', [
+				'wrangler',
+				'd1',
+				'create',
+				`<DATABASE_NAME>`
+			])!;
+
+			steps.push(
+				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
+			);
+			steps.push(
+				`Run ${color.command(`${command} ${args.join(' ')}`)} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+			);
+		}
+
 		if (options.docker) {
 			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
 			steps.push(
 				`Run ${color.command(`${command} ${args.join(' ')}`)} to start the docker container`
 			);
-		} else {
+		} else if (options.database !== 'd1') {
 			steps.push(
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
+
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		steps.push(
 			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
@@ -439,6 +513,17 @@ function generateEnvFileContent(
 	isExample: boolean
 ) {
 	const DB_URL_KEY = 'DATABASE_URL';
+
+	if (opts.database === 'd1') {
+		content = text.upsert(content, 'CLOUDFLARE_ACCOUNT_ID', {
+			value: '""',
+			comment: ['Cloudflare D1'],
+			separator: true
+		});
+		content = text.upsert(content, 'CLOUDFLARE_DATABASE_ID', { value: '""' });
+		content = text.upsert(content, 'CLOUDFLARE_D1_TOKEN', { value: '""' });
+		return content;
+	}
 
 	// Calculate value and comment based on database options
 	let value: string;
@@ -470,7 +555,6 @@ function generateEnvFileContent(
 		value = '"mysql://user:password@host:port/db-name"';
 		comment.push('Replace with your DB credentials!');
 	} else if (opts.database === 'postgresql') {
-		// postgresql
 		value = '"postgres://user:password@host:port/db-name"';
 		comment.push('Replace with your DB credentials!');
 	} else {

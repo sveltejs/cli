@@ -25,6 +25,7 @@
 <p class="text-red-500">{form?.message ?? ''}</p>
 
 <hr class="my-4" />
+
 <form method="post" action="?/signInSocial" use:enhance>
 	<input type="hidden" name="provider" value="github" />
 	<input type="hidden" name="callbackURL" value="/demo/better-auth" />
