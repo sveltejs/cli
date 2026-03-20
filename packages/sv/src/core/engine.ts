@@ -139,7 +139,8 @@ export function setupAddons(
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
 			throw new Error(
-				`Add-on '${addon.id}' failed during setup: ${msg}\n\n${getErrorHint(loaded.reference.source)}`
+				`Add-on '${addon.id}' failed during setup: ${msg}\n\n${getErrorHint(loaded.reference.source)}`,
+				{ cause: err }
 			);
 		}
 		setupResults[addon.id] = setupResult;
@@ -210,7 +211,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			} catch (error) {
 				const typedError = error as NonZeroExitError;
 				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
-					cause: typedError.output
+					cause: error
 				});
 			}
 		},
@@ -238,7 +239,8 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : String(err);
 		throw new Error(
-			`Add-on '${addon.id}' failed during run: ${msg}\n\n${getErrorHint(loaded.reference.source)}`
+			`Add-on '${addon.id}' failed during run: ${msg}\n\n${getErrorHint(loaded.reference.source)}`,
+			{ cause: err }
 		);
 	}
 
