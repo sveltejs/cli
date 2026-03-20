@@ -6,7 +6,8 @@ export default [
 	...svelte_config,
 	{
 		rules: {
-			'no-undef': 'off'
+			'no-undef': 'off',
+			'no-useless-assignment': 'off'
 		}
 	},
 	{
