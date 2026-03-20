@@ -4,25 +4,17 @@
 	import { confetti } from '@neoconfetti/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 
-	import type { ActionData, PageData } from './$types';
-
-	interface Props {
-		data: PageData;
-		form: ActionData;
-	}
-	/**
-	 * @typedef {Object} Props
-	 * @property {import('./$types').PageData} data
-	 * @property {import('./$types').ActionData} form
-	 */
+	import type { PageProps } from './$types';
 
 	/**
-	 * @type {Props}
+	 * @type {import('./$types').PageProps}
 	 */
-	let { data, form = $bindable() }: Props = $props();
+	let { data }: PageProps = $props();
 
 	/** Whether the user prefers reduced motion */
 	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
+
+	let shake = $state(false);
 
 	/** Whether or not the user has won */
 	let won = $derived(data.answers.at(-1) === 'xxxxx');
@@ -78,7 +70,7 @@
 
 		if (key === 'backspace') {
 			currentGuess = currentGuess.slice(0, -1);
-			if (form?.badGuess) form.badGuess = false;
+			shake = false;
 		} else if (currentGuess.length < 5) {
 			currentGuess += key;
 		}
@@ -114,14 +106,15 @@
 	action="?/enter"
 	use:enhance={() => {
 		// prevent default callback from resetting the form
-		return ({ update }) => {
+		return ({ result, update }) => {
+			shake = result.type === 'failure';
 			update({ reset: false });
 		};
 	}}
 >
 	<a class="how-to-play" href={resolve('/sverdle/how-to-play')}>How to play</a>
 
-	<div class="grid" class:playing={!won} class:bad-guess={form?.badGuess}>
+	<div class="grid" class:playing={!won} class:shake onanimationend={() => (shake = false)}>
 		{#each Array.from(Array(6).keys()) as row (row)}
 			{@const current = row === i}
 			<h2 class="visually-hidden">Row {row + 1}</h2>
@@ -265,7 +258,7 @@
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
-		.grid.bad-guess .row.current {
+		.grid.shake .row.current {
 			animation: wiggle 0.5s;
 		}
 	}

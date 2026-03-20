@@ -1,6 +1,7 @@
 import { log } from '@clack/prompts';
-import { dedent, js, parse, json, text } from '@sveltejs/sv-utils';
+import { color, dedent, js, parse, json, text } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
+import { addToDemoPage } from './common.ts';
 
 export default defineAddon({
 	id: 'playwright',
@@ -24,18 +25,31 @@ export default defineAddon({
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
-		const testFile = kit
-			? `${kit.routesDirectory}/page.svelte.e2e.${language}`
-			: `src/app.svelte.e2e.${language}`;
+		const testDir = kit ? `${kit.routesDirectory}/demo/playwright` : 'src';
+		const testRoute = kit ? '/demo/playwright' : '/';
 
-		sv.file(testFile, (content) => {
+		if (kit) {
+			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
+				return addToDemoPage(content, 'playwright', language);
+			});
+
+			sv.file(`${testDir}/+page.svelte`, (content) => {
+				if (content) return content;
+
+				return dedent`
+					<h1>Playwright e2e test demo</h1>
+					`;
+			});
+		}
+
+		sv.file(`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`, (content) => {
 			if (content) return content;
 
 			return dedent`
 				import { expect, test } from '@playwright/test';
 
-				test('home page has expected h1', async ({ page }) => {
-					await page.goto('/');
+				test('has expected h1', async ({ page }) => {
+					await page.goto('${testRoute}');
 					await expect(page.locator('h1')).toBeVisible();
 				});
 				`;
@@ -58,17 +72,28 @@ export default defineAddon({
 				defaultExport.type === 'CallExpression' &&
 				defaultExport.arguments[0]?.type === 'ObjectExpression'
 			) {
-				// uses the `defineConfig` helper
 				js.imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
 				js.object.overrideProperties(defaultExport.arguments[0], config);
 			} else if (defaultExport.type === 'ObjectExpression') {
-				// if the config is just an object expression, just add the properties
 				js.object.overrideProperties(defaultExport, config);
 			} else {
-				// unexpected config shape
 				log.warn('Unexpected playwright config for playwright add-on. Could not update.');
 			}
 			return generateCode();
 		});
+	},
+
+	nextSteps: ({ kit }) => {
+		const steps: string[] = [];
+
+		steps.push(`Run ${color.command('npx playwright install')} to download browsers`);
+
+		if (kit) {
+			steps.push(`Visit ${color.route('/demo/playwright')} to see the demo page`);
+		}
+
+		steps.push(`Run ${color.command('npm run test:e2e')} to execute the example tests`);
+
+		return steps;
 	}
 });

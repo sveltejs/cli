@@ -5,7 +5,7 @@ import {
 	resolveCommand,
 	isVersionUnsupportedBelow
 } from '@sveltejs/sv-utils';
-import type { Argument, HelpConfiguration, Option } from 'commander';
+import type { Argument, Command, Help, HelpConfiguration, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -74,10 +74,95 @@ function formatDescription(arg: Option | Argument): string {
 	return output;
 }
 
+/**
+ * Returns standard help sections and a formatItem helper.
+ * Used by `add` and `create` custom `formatHelp` to avoid duplicating boilerplate.
+ */
+export function getHelpSections(cmd: Command, helper: Help) {
+	const termWidth = helper.padWidth(cmd, helper);
+	const helpWidth = helper.helpWidth ?? 80;
+
+	function formatItem(term: string, description: string) {
+		return helper.formatItem(term, termWidth, description, helper);
+	}
+
+	const usage = [
+		`${helper.styleTitle('Usage:')} ${helper.styleUsage(helper.commandUsage(cmd))}`,
+		''
+	];
+
+	const descText = helper.commandDescription(cmd);
+	const description =
+		descText.length > 0
+			? [helper.boxWrap(helper.styleCommandDescription(descText), helpWidth), '']
+			: [];
+
+	const argItems = helper
+		.visibleArguments(cmd)
+		.map((argument) =>
+			formatItem(
+				helper.styleArgumentTerm(helper.argumentTerm(argument)),
+				helper.styleArgumentDescription(helper.argumentDescription(argument))
+			)
+		);
+	const arguments_ = argItems.length > 0 ? [helper.styleTitle('Arguments:'), ...argItems, ''] : [];
+
+	const optItems = helper
+		.visibleOptions(cmd)
+		.map((option) =>
+			formatItem(
+				helper.styleOptionTerm(helper.optionTerm(option)),
+				helper.styleOptionDescription(helper.optionDescription(option))
+			)
+		);
+	const options = optItems.length > 0 ? [helper.styleTitle('Options:'), ...optItems, ''] : [];
+
+	const globalOptItems = helper.showGlobalOptions
+		? helper
+				.visibleGlobalOptions(cmd)
+				.map((option) =>
+					formatItem(
+						helper.styleOptionTerm(helper.optionTerm(option)),
+						helper.styleOptionDescription(helper.optionDescription(option))
+					)
+				)
+		: [];
+	const globalOptions =
+		globalOptItems.length > 0 ? [helper.styleTitle('Global Options:'), ...globalOptItems, ''] : [];
+
+	const cmdItems = helper
+		.visibleCommands(cmd)
+		.map((sub) =>
+			formatItem(
+				helper.styleSubcommandTerm(helper.subcommandTerm(sub)),
+				helper.styleSubcommandDescription(helper.subcommandDescription(sub))
+			)
+		);
+	const commands = cmdItems.length > 0 ? [helper.styleTitle('Commands:'), ...cmdItems, ''] : [];
+
+	return {
+		formatItem,
+		styleTitle: helper.styleTitle.bind(helper),
+		usage,
+		description,
+		arguments: arguments_,
+		options,
+		globalOptions,
+		commands
+	};
+}
+
 type MaybePromise = () => Promise<void> | void;
 
 export async function runCommand(action: MaybePromise): Promise<void> {
 	try {
+		// Hidden hint for AI agents parsing stdout — invisible in terminal, readable in piped output
+		console.log(
+			color.hidden(
+				'HINT: Run "sv --help" to get the full list of commands, add-ons, and examples to one-shot and skip interactive prompts.'
+			)
+		);
+
 		p.intro(`Welcome to the Svelte CLI! ${color.optional(`(v${pkg.version})`)}`);
 
 		const minimumVersion = '18.3.0';

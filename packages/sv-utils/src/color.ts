@@ -14,5 +14,8 @@ export const color = {
 	// Status colors
 	success: (str: string): string => styleText('green', str),
 	warning: (str: string): string => styleText('yellow', str),
-	error: (str: string): string => styleText('red', str)
+	error: (str: string): string => styleText('red', str),
+
+	// Visibility
+	hidden: (str: string): string => styleText('hidden', str)
 };

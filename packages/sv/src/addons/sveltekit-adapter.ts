@@ -125,14 +125,13 @@ export default defineAddon({
 			sv.devDependency('wrangler', '^4.63.0');
 
 			// default to jsonc
-			const configFormat = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 
 			// Setup Cloudlfare workers/pages config
-			sv.file(`wrangler.${configFormat}`, (content) => {
-				const { data, generateCode } =
-					configFormat === 'jsonc' ? parse.json(content) : parse.toml(content);
+			sv.file(`wrangler.${ext}`, (content) => {
+				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
 
-				if (configFormat === 'jsonc') {
+				if (ext === 'jsonc') {
 					data.$schema ??= './node_modules/wrangler/config-schema.json';
 				}
 
@@ -224,16 +223,13 @@ export default defineAddon({
 		}
 	},
 	nextSteps({ options, packageManager }) {
-		const toReturn: string[] = [];
+		const steps: string[] = [];
 		if (options.adapter === 'cloudflare') {
 			const { command, args } = resolveCommand(packageManager, 'run', ['gen'])!;
-			toReturn.push(
-				`${color.command(`${command} ${args.join(' ')}`)} ` +
-					`${color.optional(`# updates `)}` +
-					`${color.route(`cloudflare`)}` +
-					`${color.optional(` types`)}`
+			steps.push(
+				`Run ${color.command(`${command} ${args.join(' ')}`)} to update ${color.addon('cloudflare')} types`
 			);
 		}
-		return toReturn;
+		return steps;
 	}
 });

@@ -12,14 +12,14 @@ export default defineAddon({
 		const typescript = language === 'ts';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('eslint', '^9.39.2');
-		sv.devDependency('@eslint/compat', '^2.0.2');
-		sv.devDependency('eslint-plugin-svelte', '^3.14.0');
-		sv.devDependency('globals', '^17.3.0');
-		sv.devDependency('@eslint/js', '^9.39.2');
+		sv.devDependency('eslint', '^10.0.3');
+		sv.devDependency('@eslint/compat', '^2.0.3');
+		sv.devDependency('eslint-plugin-svelte', '^3.15.2');
+		sv.devDependency('globals', '^17.4.0');
+		sv.devDependency('@eslint/js', '^10.0.1');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
-		if (typescript) sv.devDependency('typescript-eslint', '^8.54.0');
+		if (typescript) sv.devDependency('typescript-eslint', '^8.57.0');
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 
@@ -49,11 +49,11 @@ export default defineAddon({
 
 			if (typescript) {
 				const tsConfig = js.common.parseExpression('ts.configs.recommended');
-				eslintConfigs.push(js.common.createSpread(tsConfig));
+				eslintConfigs.push(tsConfig);
 			}
 
 			const svelteConfig = js.common.parseExpression('svelte.configs.recommended');
-			eslintConfigs.push(js.common.createSpread(svelteConfig));
+			eslintConfigs.push(svelteConfig);
 
 			const globalsBrowser = js.common.createSpread(js.common.parseExpression('globals.browser'));
 			const globalsNode = js.common.createSpread(js.common.parseExpression('globals.node'));
@@ -109,17 +109,15 @@ export default defineAddon({
 				eslintConfigs.push(svelteTSParserConfig);
 			}
 
-			let exportExpression: AstTypes.ArrayExpression | AstTypes.CallExpression;
+			const exportExpression = js.functions.createCall({ name: 'defineConfig', args: [] });
 			if (typescript) {
-				const tsConfigCall = js.functions.createCall({ name: 'defineConfig', args: [] });
-				tsConfigCall.arguments.push(...eslintConfigs);
-				exportExpression = tsConfigCall;
+				exportExpression.arguments.push(...eslintConfigs);
 			} else {
 				const eslintArray = js.array.create();
 				eslintConfigs.map((x) => js.array.append(eslintArray, x));
-				exportExpression = eslintArray;
+				exportExpression.arguments.push(eslintArray);
 			}
-			const { value: defaultExport, astNode } = js.exports.createDefault(ast, {
+			const { value: defaultExport } = js.exports.createDefault(ast, {
 				fallback: exportExpression
 			});
 			// if it's not the config we created, then we'll leave it alone and exit out
@@ -128,16 +126,9 @@ export default defineAddon({
 				return content;
 			}
 
-			// type annotate config
-			if (!typescript)
-				js.common.addJsDocTypeComment(astNode, comments, {
-					type: "import('eslint').Linter.Config[]"
-				});
-
 			if (typescript) js.imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
 			js.imports.addDefault(ast, { from: 'globals', as: 'globals' });
-			if (typescript)
-				js.imports.addNamed(ast, { from: 'eslint/config', imports: ['defineConfig'] });
+			js.imports.addNamed(ast, { from: 'eslint/config', imports: ['defineConfig'] });
 			js.imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: 'svelte' });
 			js.imports.addDefault(ast, { from: '@eslint/js', as: 'js' });
 			js.imports.addNamed(ast, {

@@ -49,8 +49,8 @@ export function setupTest(addons, options) {
 	}
 	/** @type {string} */
 	let testName;
-	test.beforeAll(async ({ name }) => {
-		testName = path.dirname(name).split('/').at(-1) ?? '';
+	test.beforeAll(async (_ctx, suite) => {
+		testName = path.dirname(suite.name).split('/').at(-1) ?? '';
 
 		// constructs a builder to create test projects
 		create = createProject({ cwd, templatesDir, testName });

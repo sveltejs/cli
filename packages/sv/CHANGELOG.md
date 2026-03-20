@@ -1,5 +1,47 @@
 # sv
 
+## 0.12.8
+### Patch Changes
+
+
+- feat(cli): refactor help to give better hints for humans & ai ([#966](https://github.com/sveltejs/cli/pull/966))
+
+- Updated dependencies [[`669b322`](https://github.com/sveltejs/cli/commit/669b3228b6275c4d22b66721c9e2c30825325d69)]:
+  - @sveltejs/sv-utils@0.0.3
+
+## 0.12.7
+### Patch Changes
+
+
+- fix(sv): don't dictate rune mode for `node_modules` ([#984](https://github.com/sveltejs/cli/pull/984))
+
+
+- fix(sv): fix Sverdle demo shake animation not replaying on consecutive bad guesses ([#979](https://github.com/sveltejs/cli/pull/979))
+
+
+- chore(cli): bump `vitest` to `^4.1` ([#985](https://github.com/sveltejs/cli/pull/985))
+
+## 0.12.6
+### Patch Changes
+
+
+- feat(vitest): better real world vitest examples ([#960](https://github.com/sveltejs/cli/pull/960))
+
+
+- feat(playwright): use dedicated demo page for e2e tests ([#978](https://github.com/sveltejs/cli/pull/978))
+
+
+- feat(mcp): move opencode config to `.opencode/` folder and generate `svelte.json` plugin config ([#977](https://github.com/sveltejs/cli/pull/977))
+
+
+- feat(playwright): use `**/*.e2e.{ts,js}` files by default ([#919](https://github.com/sveltejs/cli/pull/919))
+
+
+- fix(sv): remove spread operator from ESLint config generation ([#971](https://github.com/sveltejs/cli/pull/971))
+
+
+- fix: default to rune mode ([#952](https://github.com/sveltejs/cli/pull/952))
+
 ## 0.12.5
 ### Patch Changes
 

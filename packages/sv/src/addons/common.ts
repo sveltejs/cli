@@ -32,24 +32,23 @@ export function addEslintConfigPrettier(content: string): string {
 
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
-	const configSpread = js.common.createSpread(sveltePrettierConfig);
 
 	const nodesToInsert = [];
 	if (!js.common.contains(eslintConfig, prettier)) nodesToInsert.push(prettier);
-	if (!js.common.contains(eslintConfig, configSpread)) nodesToInsert.push(configSpread);
+	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
+		nodesToInsert.push(sveltePrettierConfig);
 
 	const elements =
 		eslintConfig.type === 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
-	// finds index of `...svelte.configs["..."]`
+	// finds index of `svelte.configs["..."]`
 	const idx = elements.findIndex(
 		(el) =>
-			el?.type === 'SpreadElement' &&
-			el.argument.type === 'MemberExpression' &&
-			el.argument.object.type === 'MemberExpression' &&
-			el.argument.object.property.type === 'Identifier' &&
-			el.argument.object.property.name === 'configs' &&
-			el.argument.object.object.type === 'Identifier' &&
-			el.argument.object.object.name === svelteImportName
+			el?.type === 'MemberExpression' &&
+			el.object.type === 'MemberExpression' &&
+			el.object.property.type === 'Identifier' &&
+			el.object.property.name === 'configs' &&
+			el.object.object.type === 'Identifier' &&
+			el.object.object.name === svelteImportName
 	);
 
 	if (idx !== -1) {

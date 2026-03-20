@@ -4,3 +4,4 @@
 
 <a href={resolve('/demo/better-auth')}>better-auth</a>
 <a href={resolve('/demo/paraglide')}>paraglide</a>
+<a href={resolve('/demo/playwright')}>playwright</a>
