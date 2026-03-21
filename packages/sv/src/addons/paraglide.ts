@@ -50,13 +50,11 @@ export default defineAddon({
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, file, language, kit }) => {
-		if (!kit) throw new Error('SvelteKit is required');
-
-		const paraglideOutDir = 'src/lib/paraglide';
+	run: ({ sv, options, file, language, directory }) => {
+		const paraglideOutDir = `${directory.lib}/paraglide`;
 
 		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
 
@@ -178,7 +176,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
+		sv.file(`${directory.routes}/+layout.svelte`, (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast, { language });
 			js.imports.addNamed(ast.instance.content, {
@@ -198,12 +196,12 @@ export default defineAddon({
 		});
 
 		if (options.demo) {
-			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
+			sv.file(`${directory.routes}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'paraglide', language);
 			});
 
 			// add usage example
-			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
+			sv.file(`${directory.routes}/demo/paraglide/+page.svelte`, (content) => {
 				const { ast, generateCode } = parse.svelte(content);
 				svelte.ensureScript(ast, { language });
 

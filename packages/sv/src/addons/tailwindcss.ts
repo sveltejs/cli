@@ -30,7 +30,7 @@ export default defineAddon({
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
-	run: ({ sv, options, file, kit, dependencyVersion, language }) => {
+	run: ({ sv, options, file, isKit, directory, dependencyVersion, language }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('tailwindcss', '^4.1.18');
@@ -81,7 +81,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		if (!kit) {
+		if (!isKit) {
 			const appSvelte = 'src/App.svelte';
 			const stylesheetRelative = file.getRelative({ from: appSvelte, to: file.stylesheet });
 			sv.file(appSvelte, (content) => {
@@ -91,7 +91,7 @@ export default defineAddon({
 				return generateCode();
 			});
 		} else {
-			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
+			const layoutSvelte = `${directory.routes}/+layout.svelte`;
 			const stylesheetRelative = file.getRelative({ from: layoutSvelte, to: file.stylesheet });
 			sv.file(layoutSvelte, (content) => {
 				const { ast, generateCode } = parse.svelte(content);

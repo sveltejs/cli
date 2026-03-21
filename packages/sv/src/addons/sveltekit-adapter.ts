@@ -38,8 +38,8 @@ export default defineAddon({
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
 	options,
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;

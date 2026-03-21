@@ -23,7 +23,7 @@ export default defineAddon({
 	homepage: 'https://vitest.dev',
 	options,
 
-	run: ({ sv, file, language, kit, options, dependencyVersion }) => {
+	run: ({ sv, file, language, directory, options, dependencyVersion }) => {
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
@@ -50,7 +50,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		const examplesDir = (kit ? kit.libDirectory : 'src/lib') + '/vitest-examples';
+		const examplesDir = `${directory.lib}/vitest-examples`;
 		const typed = language === 'ts';
 
 		if (unitTesting || componentTesting) {
