@@ -1,8 +1,7 @@
-import { color, js, resolveCommand, json, sanitizeName, text, parse } from '@sveltejs/sv-utils';
+import { color, js, resolveCommand, json, sanitizeName, text, parse, fileExists } from '@sveltejs/sv-utils';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { fileExists } from '../core/files.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },

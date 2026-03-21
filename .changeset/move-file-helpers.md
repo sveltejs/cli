@@ -1,6 +1,6 @@
 ---
-"@sveltejs/sv-utils": minor
-"sv": patch
+'@sveltejs/sv-utils': patch
+'sv': patch
 ---
 
-refactor: move `commonFilePaths`, `getPackageJson`, `readFile`, `fileExists` to `@sveltejs/sv-utils`
+refactor: move files utilities to `@sveltejs/sv-utils`

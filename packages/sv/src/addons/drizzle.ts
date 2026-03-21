@@ -1,9 +1,8 @@
-import { color, dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-utils';
+import { color, dedent, text, js, parse, resolveCommand, json, fileExists } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { fileExists } from '../core/files.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
 

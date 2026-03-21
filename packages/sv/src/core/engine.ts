@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand, type AgentName } from '@sveltejs/sv-utils';
+import { color, resolveCommand, type AgentName, fileExists, installPackages, readFile, writeFile } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import {
@@ -12,7 +12,6 @@ import {
 	type SvApi
 } from './config.ts';
 import { TESTING } from './env.ts';
-import { fileExists, installPackages, readFile, writeFile } from '@sveltejs/sv-utils';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {

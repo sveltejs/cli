@@ -2,17 +2,6 @@ import * as p from '@clack/prompts';
 import { type AgentName, resolveCommand } from '@sveltejs/sv-utils';
 import { exec } from 'tinyexec';
 
-// Re-export from sv-utils for backwards compatibility
-export {
-	commonFilePaths,
-	fileExists,
-	getPackageJson,
-	installPackages,
-	readFile,
-	writeFile,
-	type Package
-} from '@sveltejs/sv-utils';
-
 export async function formatFiles(options: {
 	packageManager: AgentName;
 	cwd: string;
