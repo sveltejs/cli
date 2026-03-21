@@ -1,5 +1,13 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand, type AgentName, fileExists, installPackages, readFile, writeFile } from '@sveltejs/sv-utils';
+import {
+	color,
+	resolveCommand,
+	type AgentName,
+	fileExists,
+	installPackages,
+	readFile,
+	writeFile
+} from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import {

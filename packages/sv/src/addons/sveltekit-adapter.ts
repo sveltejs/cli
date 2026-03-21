@@ -1,4 +1,13 @@
-import { color, js, resolveCommand, json, sanitizeName, text, parse, fileExists } from '@sveltejs/sv-utils';
+import {
+	color,
+	js,
+	resolveCommand,
+	json,
+	sanitizeName,
+	text,
+	parse,
+	fileExists
+} from '@sveltejs/sv-utils';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';

@@ -1,4 +1,13 @@
-import { color, dedent, text, js, parse, resolveCommand, json, fileExists } from '@sveltejs/sv-utils';
+import {
+	color,
+	dedent,
+	text,
+	js,
+	parse,
+	resolveCommand,
+	json,
+	fileExists
+} from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
