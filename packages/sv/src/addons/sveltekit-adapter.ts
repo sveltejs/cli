@@ -1,13 +1,4 @@
-import {
-	color,
-	js,
-	resolveCommand,
-	json,
-	sanitizeName,
-	text,
-	parse,
-	transforms
-} from '@sveltejs/sv-utils';
+import { color, js, resolveCommand, json, sanitizeName, text, transforms } from '@sveltejs/sv-utils';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -136,17 +127,15 @@ export default defineAddon({
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 
-			// Setup Cloudlfare workers/pages config
-			sv.file(`wrangler.${ext}`, (content) => {
-				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
-
+			// Setup Cloudflare workers/pages config
+			const applyWranglerConfig = (data: Record<string, any>) => {
 				if (ext === 'jsonc') {
 					data.$schema ??= './node_modules/wrangler/config-schema.json';
 				}
 
 				if (!data.name) {
-					const pkg = parse.json(readFileSync(join(cwd, files.package), 'utf-8'));
-					data.name = sanitizeName(pkg.data.name, 'wrangler');
+					const pkg = JSON.parse(readFileSync(join(cwd, files.package), 'utf-8'));
+					data.name = sanitizeName(pkg.name, 'wrangler');
 				}
 
 				data.compatibility_date ??= new Date().toISOString().split('T')[0];
@@ -173,9 +162,14 @@ export default defineAddon({
 						data.pages_build_output_dir = '.svelte-kit/cloudflare';
 						break;
 				}
+			};
 
-				return generateCode();
-			});
+			sv.file(
+				`wrangler.${ext}`,
+				ext === 'toml'
+					? transforms.toml(applyWranglerConfig)
+					: transforms.json(applyWranglerConfig)
+			);
 
 			const jsconfig = fileExists(cwd, 'jsconfig.json');
 			const typeChecked = language === 'ts' || jsconfig;
