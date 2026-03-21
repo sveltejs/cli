@@ -181,12 +181,15 @@ export default defineAddon({
 			const typeChecked = language === 'ts' || jsconfig;
 
 			if (typeChecked) {
-				sv.file(files.gitignore, (content) => {
-					if (content.length === 0) return content;
-					return text.upsert(content, '/worker-configuration.d.ts', {
-						comment: 'Cloudflare Types'
-					});
-				});
+				sv.file(
+					files.gitignore,
+					transforms.text((content) => {
+						if (content.length === 0) return false;
+						return text.upsert(content, '/worker-configuration.d.ts', {
+							comment: 'Cloudflare Types'
+						});
+					})
+				);
 
 				// Setup wrangler types command
 				sv.file(

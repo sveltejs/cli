@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, parse, transforms, json } from '@sveltejs/sv-utils';
+import { color, dedent, transforms, json } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier } from './common.ts';
 
@@ -15,55 +15,60 @@ export default defineAddon({
 		sv.devDependency('prettier', '^3.8.1');
 		sv.devDependency('prettier-plugin-svelte', '^3.4.1');
 
-		sv.file(files.prettierignore, (content) => {
-			if (content) return content;
-			return dedent`
-				# Package Managers
-				package-lock.json
-				pnpm-lock.yaml
-				yarn.lock
-				bun.lock
-				bun.lockb
+		sv.file(
+			files.prettierignore,
+			transforms.text((content) => {
+				if (content) return false;
+				return dedent`
+					# Package Managers
+					package-lock.json
+					pnpm-lock.yaml
+					yarn.lock
+					bun.lock
+					bun.lockb
 
-				# Miscellaneous
-				/static/
-			`;
-		});
+					# Miscellaneous
+					/static/
+				`;
+			})
+		);
 
-		sv.file(files.prettierrc, (content) => {
-			let data, generateCode;
-			try {
-				({ data, generateCode } = parse.json(content));
-			} catch {
-				log.warn(
-					`A ${color.warning('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
-				);
-				return content;
-			}
-			if (Object.keys(data).length === 0) {
-				// we'll only set these defaults if there is no pre-existing config
-				data.useTabs = true;
-				data.singleQuote = true;
-				data.trailingComma = 'none';
-				data.printWidth = 100;
-			}
+		sv.file(
+			files.prettierrc,
+			transforms.json(
+				(data) => {
+					if (Object.keys(data).length === 0) {
+						// we'll only set these defaults if there is no pre-existing config
+						data.useTabs = true;
+						data.singleQuote = true;
+						data.trailingComma = 'none';
+						data.printWidth = 100;
+					}
 
-			json.arrayUpsert(data, 'plugins', 'prettier-plugin-svelte');
+					json.arrayUpsert(data, 'plugins', 'prettier-plugin-svelte');
 
-			if (tailwindcssInstalled) {
-				json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
-				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
-			}
+					if (tailwindcssInstalled) {
+						json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
+						data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
+					}
 
-			data.overrides ??= [];
-			const overrides: Array<{ files: string | string[]; options?: { parser?: string } }> =
-				data.overrides;
-			const override = overrides.find((o) => o?.options?.parser === 'svelte');
-			if (!override) {
-				overrides.push({ files: '*.svelte', options: { parser: 'svelte' } });
-			}
-			return generateCode();
-		});
+					data.overrides ??= [];
+					const overrides: Array<{ files: string | string[]; options?: { parser?: string } }> =
+						data.overrides;
+					const override = overrides.find((o) => o?.options?.parser === 'svelte');
+					if (!override) {
+						overrides.push({ files: '*.svelte', options: { parser: 'svelte' } });
+					}
+				},
+				{
+					onParseError: () => {
+						log.warn(
+							`A ${color.warning('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
+						);
+					}
+				}
+			)
+		);
 
 		const eslintVersion = dependencyVersion('eslint');
 		const eslintInstalled = hasEslint(eslintVersion);

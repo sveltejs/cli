@@ -17,6 +17,23 @@ describe('transforms', () => {
 			const fn = transforms.json(() => false);
 			expect(fn(input)).toBe(input);
 		});
+
+		it('onParseError: calls handler and returns original content', () => {
+			const input = 'not: json';
+			let caught = false;
+			const fn = transforms.json(() => {}, {
+				onParseError: () => {
+					caught = true;
+				}
+			});
+			expect(fn(input)).toBe(input);
+			expect(caught).toBe(true);
+		});
+
+		it('throws on parse error without onParseError', () => {
+			const fn = transforms.json(() => {});
+			expect(() => fn('not: json')).toThrow();
+		});
 	});
 
 	describe('text', () => {

@@ -130,13 +130,28 @@ export const transforms = {
 	 * Transform a JSON file.
 	 *
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 *
+	 * Pass `onParseError` to gracefully handle files that aren't valid JSON
+	 * (e.g. `.prettierrc` which may be YAML).
 	 */
-	json<T = any>(cb: (data: T, ctx: TransformContext) => void | false): TransformFn {
+	json<T = any>(
+		cb: (data: T, ctx: TransformContext) => void | false,
+		options?: { onParseError?: (error: unknown) => void }
+	): TransformFn {
 		const fn = ((content: string, ctx?: TransformContext) => {
-			const { data, generateCode } = parseJson(content);
-			const result = cb(data as T, ctx ?? { language: 'ts' });
+			let parsed;
+			try {
+				parsed = parseJson(content);
+			} catch (error) {
+				if (options?.onParseError) {
+					options.onParseError(error);
+					return content;
+				}
+				throw error;
+			}
+			const result = cb(parsed.data as T, ctx ?? { language: 'ts' });
 			if (result === false) return content;
-			return generateCode();
+			return parsed.generateCode();
 		}) as TransformFn;
 		fn[TRANSFORM_KEY] = 'json';
 		return fn;

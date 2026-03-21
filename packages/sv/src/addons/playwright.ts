@@ -19,10 +19,13 @@ export default defineAddon({
 			})
 		);
 
-		sv.file(files.gitignore, (content) => {
-			if (!content) return content;
-			return text.upsert(content, 'test-results', { comment: 'Playwright' });
-		});
+		sv.file(
+			files.gitignore,
+			transforms.text((content) => {
+				if (!content) return false;
+				return text.upsert(content, 'test-results', { comment: 'Playwright' });
+			})
+		);
 
 		const testDir = kit ? `${kit.routesDirectory}/demo/playwright` : 'src';
 		const testRoute = kit ? '/demo/playwright' : '/';
@@ -30,27 +33,33 @@ export default defineAddon({
 		if (kit) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, addToDemoPage('playwright'));
 
-			sv.file(`${testDir}/+page.svelte`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${testDir}/+page.svelte`,
+				transforms.text((content) => {
+					if (content) return false;
 
-				return dedent`
-					<h1>Playwright e2e test demo</h1>
+					return dedent`
+						<h1>Playwright e2e test demo</h1>
 					`;
-			});
+				})
+			);
 		}
 
-		sv.file(`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`, (content) => {
-			if (content) return content;
+		sv.file(
+			`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`,
+			transforms.text((content) => {
+				if (content) return false;
 
-			return dedent`
-				import { expect, test } from '@playwright/test';
+				return dedent`
+					import { expect, test } from '@playwright/test';
 
-				test('has expected h1', async ({ page }) => {
-					await page.goto('${testRoute}');
-					await expect(page.locator('h1')).toBeVisible();
-				});
+					test('has expected h1', async ({ page }) => {
+						await page.goto('${testRoute}');
+						await expect(page.locator('h1')).toBeVisible();
+					});
 				`;
-		});
+			})
+		);
 
 		sv.file(
 			`playwright.config.${language}`,

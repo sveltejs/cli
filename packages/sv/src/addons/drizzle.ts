@@ -125,8 +125,8 @@ export default defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.0');
 
-		sv.file('.env', (content) => generateEnvFileContent(content, options, false));
-		sv.file('.env.example', (content) => generateEnvFileContent(content, options, true));
+		sv.file('.env', transforms.text((content) => generateEnvFileContent(content, options, false)));
+		sv.file('.env.example', transforms.text((content) => generateEnvFileContent(content, options, true)));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
 			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
@@ -137,21 +137,23 @@ export default defineAddon({
 			}
 			if (composeFile === '') throw new Error('unreachable state...');
 
-			sv.file(composeFile, (content) => {
-				// if the file already exists, don't modify it
-				// (in the future, we could add some tooling for modifying yaml)
-				if (content.length > 0) return content;
+			sv.file(
+				composeFile,
+				transforms.text((content) => {
+					// if the file already exists, don't modify it
+					// (in the future, we could add some tooling for modifying yaml)
+					if (content.length > 0) return false;
 
-				const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
-				const port = PORTS[options.database];
+					const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
+					const port = PORTS[options.database];
 
-				const USER = 'root';
-				const PASSWORD = 'mysecretpassword';
-				const DB_NAME = 'local';
+					const USER = 'root';
+					const PASSWORD = 'mysecretpassword';
+					const DB_NAME = 'local';
 
-				let dbSpecificContent = '';
-				if (options.mysql === 'mysql2') {
-					dbSpecificContent = `
+					let dbSpecificContent = '';
+					if (options.mysql === 'mysql2') {
+						dbSpecificContent = `
                       MYSQL_ROOT_PASSWORD: ${PASSWORD}
                       MYSQL_DATABASE: ${DB_NAME}
                     volumes:
@@ -159,9 +161,9 @@ export default defineAddon({
                 volumes:
                   mysqldata:
                 `;
-				}
-				if (options.postgresql === 'postgres.js') {
-					dbSpecificContent = `
+					}
+					if (options.postgresql === 'postgres.js') {
+						dbSpecificContent = `
                       POSTGRES_USER: ${USER}
                       POSTGRES_PASSWORD: ${PASSWORD}
                       POSTGRES_DB: ${DB_NAME}
@@ -170,9 +172,9 @@ export default defineAddon({
                 volumes:
                   pgdata:
                 `;
-				}
+					}
 
-				content = dedent`
+					return dedent`
                 services:
                   db:
                     image: ${imageName}
@@ -181,9 +183,8 @@ export default defineAddon({
                       - ${port}:${port}
                     environment: ${dbSpecificContent}
                 `;
-
-				return content;
-			});
+				})
+			);
 		}
 
 		sv.file(
@@ -199,16 +200,17 @@ export default defineAddon({
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
-			sv.file(files.prettierignore, (content) => {
-				return text.upsert(content, '/drizzle/');
-			});
+			sv.file(files.prettierignore, transforms.text((content) => text.upsert(content, '/drizzle/')));
 		}
 
 		if (options.database === 'sqlite') {
-			sv.file(files.gitignore, (content) => {
-				if (content.length === 0) return content;
-				return text.upsert(content, '*.db', { comment: 'SQLite' });
-			});
+			sv.file(
+				files.gitignore,
+				transforms.text((content) => {
+					if (content.length === 0) return false;
+					return text.upsert(content, '*.db', { comment: 'SQLite' });
+				})
+			);
 		}
 
 		sv.file(

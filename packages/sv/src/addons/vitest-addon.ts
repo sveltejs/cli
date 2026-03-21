@@ -53,69 +53,81 @@ export default defineAddon({
 		const typed = language === 'ts';
 
 		if (unitTesting || componentTesting) {
-			sv.file(`${examplesDir}/greet.${language}`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/greet.${language}`,
+				transforms.text((content) => {
+					if (content) return false;
 
-				return dedent`
-					export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
-						return 'Hello, ' + name + '!';
-					}
-				`;
-			});
+					return dedent`
+						export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
+							return 'Hello, ' + name + '!';
+						}
+					`;
+				})
+			);
 		}
 
 		if (unitTesting) {
-			sv.file(`${examplesDir}/greet.spec.${language}`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/greet.spec.${language}`,
+				transforms.text((content) => {
+					if (content) return false;
 
-				return dedent`
-					import { describe, it, expect } from 'vitest';
-					import { greet } from './greet';
+					return dedent`
+						import { describe, it, expect } from 'vitest';
+						import { greet } from './greet';
 
-					describe('greet', () => {
-						it('returns a greeting', () => {
-							expect(greet('Svelte')).toBe('Hello, Svelte!');
+						describe('greet', () => {
+							it('returns a greeting', () => {
+								expect(greet('Svelte')).toBe('Hello, Svelte!');
+							});
 						});
-					});
-				`;
-			});
+					`;
+				})
+			);
 		}
 
 		if (componentTesting) {
-			sv.file(`${examplesDir}/Welcome.svelte`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/Welcome.svelte`,
+				transforms.text((content) => {
+					if (content) return false;
 
-				return dedent`
-					<script>
-						import { greet } from './greet';
+					return dedent`
+						<script>
+							import { greet } from './greet';
 
-						let { host = 'SvelteKit', guest = 'Vitest' } = $props();
-					</script>
+							let { host = 'SvelteKit', guest = 'Vitest' } = $props();
+						</script>
 
-					<h1>{greet(host)}</h1>
-					<p>{greet(guest)}</p>
-				`;
-			});
+						<h1>{greet(host)}</h1>
+						<p>{greet(guest)}</p>
+					`;
+				})
+			);
 
-			sv.file(`${examplesDir}/Welcome.svelte.spec.${language}`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/Welcome.svelte.spec.${language}`,
+				transforms.text((content) => {
+					if (content) return false;
 
-				return dedent`
-					import { page } from 'vitest/browser';
-					import { describe, expect, it } from 'vitest';
-					import { render } from 'vitest-browser-svelte';
-					import Welcome from './Welcome.svelte';
+					return dedent`
+						import { page } from 'vitest/browser';
+						import { describe, expect, it } from 'vitest';
+						import { render } from 'vitest-browser-svelte';
+						import Welcome from './Welcome.svelte';
 
-					describe('Welcome.svelte', () => {
-						it('renders greetings for host and guest', async () => {
-							render(Welcome, { host: 'SvelteKit', guest: 'Vitest' });
+						describe('Welcome.svelte', () => {
+							it('renders greetings for host and guest', async () => {
+								render(Welcome, { host: 'SvelteKit', guest: 'Vitest' });
 
-							await expect.element(page.getByRole('heading', { level: 1 })).toHaveTextContent('Hello, SvelteKit!');
-							await expect.element(page.getByText('Hello, Vitest!')).toBeInTheDocument();
+								await expect.element(page.getByRole('heading', { level: 1 })).toHaveTextContent('Hello, SvelteKit!');
+								await expect.element(page.getByText('Hello, Vitest!')).toBeInTheDocument();
+							});
 						});
-					});
-				`;
-			});
+					`;
+				})
+			);
 		}
 
 		sv.file(

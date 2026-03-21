@@ -150,14 +150,17 @@ export default defineAddon({
 			})
 		);
 
-		sv.file(files.gitignore, (content) => {
-			if (!content) return content;
+		sv.file(
+			files.gitignore,
+			transforms.text((content) => {
+				if (!content) return false;
 
-			content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
-			content = text.upsert(content, 'project.inlang/cache/');
+				content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
+				content = text.upsert(content, 'project.inlang/cache/');
 
-			return content;
-		});
+				return content;
+			})
+		);
 
 		sv.file(
 			'project.inlang/settings.json',

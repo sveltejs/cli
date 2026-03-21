@@ -58,13 +58,13 @@ export {
  * ```
  */
 export const parse = {
-	css: parseCss,
-	html: parseHtml,
-	json: parseJson,
-	script: parseScript,
-	svelte: parseSvelte,
-	toml: parseToml,
-	yaml: parseYaml
+	css: parseCss as typeof parseCss,
+	html: parseHtml as typeof parseHtml,
+	json: parseJson as typeof parseJson,
+	script: parseScript as typeof parseScript,
+	svelte: parseSvelte as typeof parseSvelte,
+	toml: parseToml as typeof parseToml,
+	yaml: parseYaml as typeof parseYaml
 };
 
 // Utilities
