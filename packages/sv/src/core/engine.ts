@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand, type AgentName } from '@sveltejs/sv-utils';
+import { color, isTransform, resolveCommand, type AgentName } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import {
@@ -171,12 +171,14 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 	const pnpmBuildDependencies: string[] = [];
 	const sv: SvApi = {
-		file: (path, content) => {
+		file: (path, edit) => {
 			try {
 				const exists = fileExists(workspace.cwd, path);
 				let fileContent = exists ? readFile(workspace.cwd, path) : '';
-				// process file
-				fileContent = content(fileContent);
+				// process file — inject workspace context for typed transforms
+				fileContent = isTransform(edit)
+					? edit(fileContent, { language: workspace.language })
+					: edit(fileContent);
 				if (!fileContent) return fileContent;
 
 				writeFile(workspace, path, fileContent);

@@ -28,8 +28,20 @@ export * as text from './tooling/text.ts';
 export * as json from './tooling/json.ts';
 export * as svelte from './tooling/svelte/index.ts';
 
+// Transforms — sv-utils = what to do to content, sv = where and when to do it.
+export {
+	transforms,
+	isTransform,
+	type TransformFn,
+	type TransformContext
+} from './tooling/transforms.ts';
+
 /**
- * Will help you `parse` code into an `ast` from all supported languages.
+ * Low-level parsers. Prefer `transforms` for add-on file edits — it picks the
+ * right parser for you and handles `generateCode()` automatically.
+ *
+ * Use `parse` directly when you need error handling around parsing or
+ * conditional parser selection at runtime.
  * Then manipulate the `ast` as you want,
  * and finally `generateCode()` to write it back to the file.
  *
