@@ -1,35 +1,17 @@
 import * as p from '@clack/prompts';
-import { type AgentName, resolveCommand, parse } from '@sveltejs/sv-utils';
+import {
+	type AgentName,
+	commonFilePaths,
+	getPackageJson,
+	resolveCommand
+} from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
 import { exec } from 'tinyexec';
 import type { Workspace } from './workspace.ts';
 
-export type Package = {
-	name: string;
-	version: string;
-	dependencies?: Record<string, string>;
-	devDependencies?: Record<string, string>;
-	bugs?: string;
-	repository?: { type: string; url: string };
-	keywords?: string[];
-	workspaces?: string[];
-};
-
-export function getPackageJson(cwd: string): {
-	source: string;
-	data: Package;
-	generateCode: () => string;
-} {
-	const packageText = readFile(cwd, commonFilePaths.packageJson);
-	if (!packageText) {
-		const pkgPath = path.join(cwd, commonFilePaths.packageJson);
-		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
-	}
-
-	const { data, generateCode } = parse.json(packageText);
-	return { source: packageText, data: data as Package, generateCode };
-}
+// Re-export from sv-utils for backwards compatibility
+export { commonFilePaths, fileExists, getPackageJson, readFile, type Package } from '@sveltejs/sv-utils';
 
 export async function formatFiles(options: {
 	packageManager: AgentName;
@@ -60,18 +42,6 @@ export async function formatFiles(options: {
 		return;
 	}
 	stop('Successfully formatted modified files');
-}
-
-export function readFile(cwd: string, filePath: string): string {
-	const fullFilePath = path.resolve(cwd, filePath);
-
-	if (!fileExists(cwd, filePath)) {
-		return '';
-	}
-
-	const text = fs.readFileSync(fullFilePath, 'utf8');
-
-	return text;
 }
 
 export function installPackages(
@@ -118,18 +88,3 @@ export function writeFile(workspace: Workspace, filePath: string, content: strin
 
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
-
-export function fileExists(cwd: string, filePath: string): boolean {
-	const fullFilePath = path.resolve(cwd, filePath);
-	return fs.existsSync(fullFilePath);
-}
-
-export const commonFilePaths = {
-	packageJson: 'package.json',
-	svelteConfig: 'svelte.config.js',
-	svelteConfigTS: 'svelte.config.ts',
-	jsconfig: 'jsconfig.json',
-	tsconfig: 'tsconfig.json',
-	viteConfig: 'vite.config.js',
-	viteConfigTS: 'vite.config.ts'
-} as const;
