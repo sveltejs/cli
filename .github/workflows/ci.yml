@@ -41,8 +41,18 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
+        shard: ['']
+        include:
+          - os: windows-latest
+            shard: 1/2
+          - os: windows-latest
+            shard: 2/2
+        exclude:
+          - os: windows-latest
+            shard: ''
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -53,7 +63,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
       - run: pnpm build
-      - run: pnpm test
+      - run: pnpm test ${{ matrix.shard && format('-- --shard={0}', matrix.shard) || '' }}
   preview-release:
     if: github.repository == 'sveltejs/cli' && github.event_name == 'pull_request'
     needs: [lint, check]
