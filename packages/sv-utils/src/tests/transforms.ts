@@ -38,10 +38,8 @@ describe('transforms', () => {
 	});
 
 	describe('text', () => {
-		it('transforms content via mutable wrapper', () => {
-			const fn = transforms.text((data) => {
-				data.content = data.content + '\nappended';
-			});
+		it('transforms content', () => {
+			const fn = transforms.text((content) => content + '\nappended');
 			expect(fn('line1')).toBe('line1\nappended');
 		});
 

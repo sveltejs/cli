@@ -218,17 +218,15 @@ export const transforms = {
 
 	/**
 	 * Transform a plain text file (.env, .gitignore, etc.).
-	 * No parsing — receives a mutable `{ content }` wrapper for consistency
-	 * with other transforms (mutate in place, return `false` to abort).
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Unlike other transforms there's no AST here — just string in, string out.
+	 * Return the new content, or `false` to abort (original content is returned unchanged).
 	 */
-	text(cb: (data: { content: string }, ctx: TransformContext) => void | false): TransformFn {
+	text(cb: (content: string, ctx: TransformContext) => string | false): TransformFn {
 		return brand((content: string, ctx?: TransformContext) => {
-			const data = { content };
-			const result = cb(data, ctx ?? DEFAULT_CONTEXT);
+			const result = cb(content, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return data.content;
+			return result;
 		});
 	}
 };

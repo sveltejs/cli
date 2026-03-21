@@ -142,13 +142,13 @@ export default defineAddon({
 			if (!filesAdded.includes(agentPath)) {
 				sv.file(
 					agentPath,
-					transforms.text((data) => {
-						if (data.content) {
+					transforms.text((content) => {
+						if (content) {
 							filesExistingAlready.push(agentPath);
 							return false;
 						}
 						filesAdded.push(agentPath);
-						data.content = agentFile?.contents ?? '';
+						return agentFile?.contents ?? '';
 					})
 				);
 			}

@@ -22,8 +22,8 @@ export default defineAddon({
 
 		sv.file(
 			`src/lib/~SV-NAME-TODO~/content.txt`,
-			transforms.text((data) => {
-				data.content = `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
+			transforms.text(() => {
+				return `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
 			})
 		);
 

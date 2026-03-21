@@ -127,15 +127,11 @@ export default defineAddon({
 
 		sv.file(
 			'.env',
-			transforms.text((data) => {
-				data.content = generateEnvFileContent(data.content, options, false);
-			})
+			transforms.text((content) => generateEnvFileContent(content, options, false))
 		);
 		sv.file(
 			'.env.example',
-			transforms.text((data) => {
-				data.content = generateEnvFileContent(data.content, options, true);
-			})
+			transforms.text((content) => generateEnvFileContent(content, options, true))
 		);
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
@@ -149,10 +145,10 @@ export default defineAddon({
 
 			sv.file(
 				composeFile,
-				transforms.text((data) => {
+				transforms.text((content) => {
 					// if the file already exists, don't modify it
 					// (in the future, we could add some tooling for modifying yaml)
-					if (data.content.length > 0) return false;
+					if (content.length > 0) return false;
 
 					const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
 					const port = PORTS[options.database];
@@ -184,7 +180,7 @@ export default defineAddon({
                 `;
 					}
 
-					data.content = dedent`
+					return dedent`
                 services:
                   db:
                     image: ${imageName}
@@ -212,18 +208,16 @@ export default defineAddon({
 		if (hasPrettier) {
 			sv.file(
 				files.prettierignore,
-				transforms.text((data) => {
-					data.content = text.upsert(data.content, '/drizzle/');
-				})
+				transforms.text((content) => text.upsert(content, '/drizzle/'))
 			);
 		}
 
 		if (options.database === 'sqlite') {
 			sv.file(
 				files.gitignore,
-				transforms.text((data) => {
-					if (data.content.length === 0) return false;
-					data.content = text.upsert(data.content, '*.db', { comment: 'SQLite' });
+				transforms.text((content) => {
+					if (content.length === 0) return false;
+					return text.upsert(content, '*.db', { comment: 'SQLite' });
 				})
 			);
 		}

@@ -92,15 +92,11 @@ export default defineAddon({
 
 		sv.file(
 			'.env',
-			transforms.text((data) => {
-				data.content = generateEnvFileContent(data.content, demoGithub, false);
-			})
+			transforms.text((content) => generateEnvFileContent(content, demoGithub, false))
 		);
 		sv.file(
 			'.env.example',
-			transforms.text((data) => {
-				data.content = generateEnvFileContent(data.content, demoGithub, true);
-			})
+			transforms.text((content) => generateEnvFileContent(content, demoGithub, true))
 		);
 
 		sv.file(
@@ -194,9 +190,9 @@ export default defineAddon({
 
 		sv.file(
 			`${kit?.libDirectory}/server/db/auth.schema.${language}`,
-			transforms.text((data) => {
-				if (data.content) return false;
-				data.content = dedent`
+			transforms.text((content) => {
+				if (content) return false;
+				return dedent`
 					// If you see this file, you have not run the auth:schema script yet, but you should!
 				`;
 			})
@@ -298,8 +294,8 @@ export default defineAddon({
 
 			sv.file(
 				`${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`,
-				transforms.text((data) => {
-					if (data.content) {
+				transforms.text((content) => {
+					if (content) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -382,7 +378,7 @@ export default defineAddon({
 
 					const needsAPIError = demoPassword;
 
-					data.content = dedent`
+					return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
@@ -404,8 +400,8 @@ export default defineAddon({
 
 			sv.file(
 				`${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`,
-				transforms.text((data) => {
-					if (data.content) {
+				transforms.text((content) => {
+					if (content) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -457,7 +453,7 @@ export default defineAddon({
 					</form>`
 						: '';
 
-					data.content = dedent`
+					return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
 						${ts("import type { ActionData } from './$types';\n")}
@@ -471,8 +467,8 @@ export default defineAddon({
 
 			sv.file(
 				`${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`,
-				transforms.text((data) => {
-					if (data.content) {
+				transforms.text((content) => {
+					if (content) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -480,7 +476,7 @@ export default defineAddon({
 
 					const [ts] = createPrinter(language === 'ts');
 					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
-					data.content = dedent`
+					return dedent`
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
@@ -507,8 +503,8 @@ export default defineAddon({
 
 			sv.file(
 				`${kit!.routesDirectory}/demo/better-auth/+page.svelte`,
-				transforms.text((data) => {
-					if (data.content) {
+				transforms.text((content) => {
+					if (content) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -520,7 +516,7 @@ export default defineAddon({
 
 					const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
 					const [ts, s5] = createPrinter(language === 'ts', svelte5);
-					data.content = dedent`
+					return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
 						${ts("import type { PageServerData } from './$types';\n")}

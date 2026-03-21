@@ -152,11 +152,13 @@ export default defineAddon({
 
 		sv.file(
 			files.gitignore,
-			transforms.text((data) => {
-				if (!data.content) return false;
+			transforms.text((content) => {
+				if (!content) return false;
 
-				data.content = text.upsert(data.content, paraglideOutDir, { comment: 'Paraglide' });
-				data.content = text.upsert(data.content, 'project.inlang/cache/');
+				content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
+				content = text.upsert(content, 'project.inlang/cache/');
+
+				return content;
 			})
 		);
 
