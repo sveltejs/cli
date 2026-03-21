@@ -159,10 +159,11 @@ export default defineAddon({
 			return content;
 		});
 
-		sv.file('project.inlang/settings.json', (content) => {
-			if (content) return content;
+		sv.file(
+			'project.inlang/settings.json',
+			transforms.json((data) => {
+				if (Object.keys(data).length > 0) return false;
 
-			return transforms.json((data) => {
 				for (const key in DEFAULT_INLANG_PROJECT) {
 					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
 				}
@@ -171,8 +172,8 @@ export default defineAddon({
 
 				data.baseLocale = baseLocale;
 				data.locales = validLanguageTags;
-			})(content);
-		});
+			})
+		);
 
 		sv.file(
 			`${kit.routesDirectory}/+layout.svelte`,

@@ -179,6 +179,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 				fileContent = isTransform(edit)
 					? edit(fileContent, { language: workspace.language })
 					: edit(fileContent);
+				// skip writing when the edit returns an empty string (e.g. no content to create)
 				if (!fileContent) return fileContent;
 
 				writeFile(workspace, path, fileContent);

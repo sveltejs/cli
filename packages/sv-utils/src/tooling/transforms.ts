@@ -195,10 +195,14 @@ export const transforms = {
 	/**
 	 * Transform a plain text file (.env, .gitignore, etc.).
 	 * No parsing — just string in, string out.
+	 *
+	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
-	text(cb: (content: string, ctx: TransformContext) => string): TransformFn {
+	text(cb: (content: string, ctx: TransformContext) => string | false): TransformFn {
 		const fn = ((content: string, ctx?: TransformContext) => {
-			return cb(content, ctx ?? { language: 'ts' });
+			const result = cb(content, ctx ?? { language: 'ts' });
+			if (result === false) return content;
+			return result;
 		}) as TransformFn;
 		fn[TRANSFORM_KEY] = 'text';
 		return fn;

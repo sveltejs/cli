@@ -55,6 +55,7 @@ export default defineAddon({
 		sv.devDependency('better-auth', '~1.4.21');
 		sv.devDependency('@better-auth/cli', '~1.4.21');
 
+		// Read-only: extract dialect info from drizzle config without modifying it
 		sv.file(
 			`drizzle.config.${language}`,
 			transforms.script((ast) => {
@@ -84,6 +85,8 @@ export default defineAddon({
 				if (!drizzleDialect) {
 					throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
 				}
+
+				return false;
 			})
 		);
 
