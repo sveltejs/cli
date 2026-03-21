@@ -46,71 +46,92 @@ export default defineAddon({
 		}
 
 		// add the vite plugin
-		sv.file(files.viteConfig, transforms.script((ast) => {
-			const vitePluginName = 'tailwindcss';
-			js.imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
-			js.vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
-		}));
+		sv.file(
+			files.viteConfig,
+			transforms.script((ast) => {
+				const vitePluginName = 'tailwindcss';
+				js.imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
+				js.vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
+			})
+		);
 
-		sv.file(files.stylesheet, transforms.css((ast) => {
-			// since we are prepending all the `AtRule` let's add them in reverse order,
-			// so they appear in the expected order in the final file
+		sv.file(
+			files.stylesheet,
+			transforms.css((ast) => {
+				// since we are prepending all the `AtRule` let's add them in reverse order,
+				// so they appear in the expected order in the final file
 
-			for (const plugin of plugins) {
-				if (!options.plugins.includes(plugin.id)) continue;
+				for (const plugin of plugins) {
+					if (!options.plugins.includes(plugin.id)) continue;
+
+					css.addAtRule(ast, {
+						name: 'plugin',
+						params: `'${plugin.package}'`,
+						append: false
+					});
+				}
 
 				css.addAtRule(ast, {
-					name: 'plugin',
-					params: `'${plugin.package}'`,
+					name: 'import',
+					params: `'tailwindcss'`,
 					append: false
 				});
-			}
-
-			css.addAtRule(ast, {
-				name: 'import',
-				params: `'tailwindcss'`,
-				append: false
-			});
-		}));
+			})
+		);
 
 		if (!kit) {
 			const appSvelte = 'src/App.svelte';
 			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
-			sv.file(appSvelte, transforms.svelte((ast, { language }) => {
-				svelte.ensureScript(ast, { language });
-				js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
-			}));
+			sv.file(
+				appSvelte,
+				transforms.svelte((ast, { language }) => {
+					svelte.ensureScript(ast, { language });
+					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
+				})
+			);
 		} else {
 			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
 			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
-			sv.file(layoutSvelte, transforms.svelte((ast, { language }) => {
-				svelte.ensureScript(ast, { language });
-				js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
+			sv.file(
+				layoutSvelte,
+				transforms.svelte((ast, { language }) => {
+					svelte.ensureScript(ast, { language });
+					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 
-				if (ast.fragment.nodes.length === 0) {
-					const svelteVersion = dependencyVersion('svelte');
-					if (!svelteVersion) throw new Error('Failed to determine svelte version');
-					svelte.addSlot(ast, {
-						svelteVersion
-					});
-				}
-			}));
+					if (ast.fragment.nodes.length === 0) {
+						const svelteVersion = dependencyVersion('svelte');
+						if (!svelteVersion) throw new Error('Failed to determine svelte version');
+						svelte.addSlot(ast, {
+							svelteVersion
+						});
+					}
+				})
+			);
 		}
 
-		sv.file(files.vscodeSettings, transforms.json((data) => {
-			data['files.associations'] ??= {};
-			data['files.associations']['*.css'] = 'tailwindcss';
-		}));
+		sv.file(
+			files.vscodeSettings,
+			transforms.json((data) => {
+				data['files.associations'] ??= {};
+				data['files.associations']['*.css'] = 'tailwindcss';
+			})
+		);
 
-		sv.file(files.vscodeExtensions, transforms.json((data) => {
-			json.arrayUpsert(data, 'recommendations', 'bradlc.vscode-tailwindcss');
-		}));
+		sv.file(
+			files.vscodeExtensions,
+			transforms.json((data) => {
+				json.arrayUpsert(data, 'recommendations', 'bradlc.vscode-tailwindcss');
+			})
+		);
 
 		if (prettierInstalled) {
-			sv.file(files.prettierrc, transforms.json((data) => {
-				json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
-				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
-			}));
+			sv.file(
+				files.prettierrc,
+				transforms.json((data) => {
+					json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
+					data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
+				})
+			);
 		}
 	}
 });

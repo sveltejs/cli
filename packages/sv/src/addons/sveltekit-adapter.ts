@@ -1,4 +1,13 @@
-import { color, js, resolveCommand, json, sanitizeName, text, parse, transforms } from '@sveltejs/sv-utils';
+import {
+	color,
+	js,
+	resolveCommand,
+	json,
+	sanitizeName,
+	text,
+	parse,
+	transforms
+} from '@sveltejs/sv-utils';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -45,74 +54,81 @@ export default defineAddon({
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
-		sv.file(files.package, transforms.json((data) => {
-			const devDeps = data['devDependencies'];
+		sv.file(
+			files.package,
+			transforms.json((data) => {
+				const devDeps = data['devDependencies'];
 
-			for (const pkg of Object.keys(devDeps)) {
-				if (pkg.startsWith('@sveltejs/adapter-')) {
-					delete devDeps[pkg];
+				for (const pkg of Object.keys(devDeps)) {
+					if (pkg.startsWith('@sveltejs/adapter-')) {
+						delete devDeps[pkg];
+					}
 				}
-			}
 
-			// in sk 3, we will keep "preview": "vite preview" like any other adapter
-			if (options.adapter === 'cloudflare') {
-				const preview =
-					options.cfTarget === 'workers'
-						? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
-						: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
-				data.scripts.preview = preview;
-			}
-		}));
+				// in sk 3, we will keep "preview": "vite preview" like any other adapter
+				if (options.adapter === 'cloudflare') {
+					const preview =
+						options.cfTarget === 'workers'
+							? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
+					data.scripts.preview = preview;
+				}
+			})
+		);
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file(files.svelteConfig, transforms.script((ast, comments) => {
-			// finds any existing adapter's import declaration
-			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
-			const adapterImportDecl = importDecls.find(
-				(importDecl) =>
-					typeof importDecl.source.value === 'string' &&
-					importDecl.source.value.startsWith('@sveltejs/adapter-') &&
-					importDecl.importKind === 'value'
-			);
-
-			let adapterName = 'adapter';
-			if (adapterImportDecl) {
-				// replaces the import's source with the new adapter
-				adapterImportDecl.source.value = adapter.package;
-				// reset raw value, so that the string is re-generated
-				adapterImportDecl.source.raw = undefined;
-
-				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
-					?.local?.name as string;
-			} else {
-				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
-			}
-
-			const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
-
-			// override the adapter property
-			js.object.overrideProperties(config, {
-				kit: {
-					adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-				}
-			});
-
-			// reset the comment for non-auto adapters
-			if (adapter.package !== '@sveltejs/adapter-auto') {
-				const fallback = js.object.create({});
-				const cfgKitValue = js.object.property(config, { name: 'kit', fallback });
-
-				// removes any existing adapter auto comments
-				comments.remove(
-					(c) =>
-						c.loc &&
-						cfgKitValue.loc &&
-						c.loc.start.line >= cfgKitValue.loc.start.line &&
-						c.loc.end.line <= cfgKitValue.loc.end.line
+		sv.file(
+			files.svelteConfig,
+			transforms.script((ast, comments) => {
+				// finds any existing adapter's import declaration
+				const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
+				const adapterImportDecl = importDecls.find(
+					(importDecl) =>
+						typeof importDecl.source.value === 'string' &&
+						importDecl.source.value.startsWith('@sveltejs/adapter-') &&
+						importDecl.importKind === 'value'
 				);
-			}
-		}));
+
+				let adapterName = 'adapter';
+				if (adapterImportDecl) {
+					// replaces the import's source with the new adapter
+					adapterImportDecl.source.value = adapter.package;
+					// reset raw value, so that the string is re-generated
+					adapterImportDecl.source.raw = undefined;
+
+					adapterName = adapterImportDecl.specifiers?.find(
+						(s) => s.type === 'ImportDefaultSpecifier'
+					)?.local?.name as string;
+				} else {
+					js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
+				}
+
+				const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
+
+				// override the adapter property
+				js.object.overrideProperties(config, {
+					kit: {
+						adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+					}
+				});
+
+				// reset the comment for non-auto adapters
+				if (adapter.package !== '@sveltejs/adapter-auto') {
+					const fallback = js.object.create({});
+					const cfgKitValue = js.object.property(config, { name: 'kit', fallback });
+
+					// removes any existing adapter auto comments
+					comments.remove(
+						(c) =>
+							c.loc &&
+							cfgKitValue.loc &&
+							c.loc.start.line >= cfgKitValue.loc.start.line &&
+							c.loc.end.line <= cfgKitValue.loc.end.line
+					);
+				}
+			})
+		);
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.63.0');
@@ -173,33 +189,42 @@ export default defineAddon({
 				});
 
 				// Setup wrangler types command
-				sv.file(files.package, transforms.json((data) => {
-					json.packageScriptsUpsert(data, 'gen', 'wrangler types');
-				}));
+				sv.file(
+					files.package,
+					transforms.json((data) => {
+						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
+					})
+				);
 
 				// Add Cloudflare generated types to tsconfig
-				sv.file(`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`, transforms.json((data) => {
-					data.compilerOptions ??= {};
-					data.compilerOptions.types ??= [];
-					data.compilerOptions.types.push('./worker-configuration.d.ts');
-				}));
+				sv.file(
+					`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`,
+					transforms.json((data) => {
+						data.compilerOptions ??= {};
+						data.compilerOptions.types ??= [];
+						data.compilerOptions.types.push('./worker-configuration.d.ts');
+					})
+				);
 
-				sv.file('src/app.d.ts', transforms.script((ast, comments) => {
-					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
-					if (!platform) {
-						throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
-					}
+				sv.file(
+					'src/app.d.ts',
+					transforms.script((ast, comments) => {
+						const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
+						if (!platform) {
+							throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
+						}
 
-					// remove the commented out placeholder since we're adding the real one
-					comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Platform {}');
+						// remove the commented out placeholder since we're adding the real one
+						comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Platform {}');
 
-					platform.body.body.push(
-						js.common.createTypeProperty('env', 'Env'),
-						js.common.createTypeProperty('ctx', 'ExecutionContext'),
-						js.common.createTypeProperty('caches', 'CacheStorage'),
-						js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
-					);
-				}));
+						platform.body.body.push(
+							js.common.createTypeProperty('env', 'Env'),
+							js.common.createTypeProperty('ctx', 'ExecutionContext'),
+							js.common.createTypeProperty('caches', 'CacheStorage'),
+							js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
+						);
+					})
+				);
 			}
 		}
 	},

@@ -11,10 +11,13 @@ export default defineAddon({
 	run: ({ sv, language, files, kit }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
-		sv.file(files.package, transforms.json((data) => {
-			json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
-			json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
-		}));
+		sv.file(
+			files.package,
+			transforms.json((data) => {
+				json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
+				json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
+			})
+		);
 
 		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
@@ -49,30 +52,33 @@ export default defineAddon({
 				`;
 		});
 
-		sv.file(`playwright.config.${language}`, transforms.script((ast) => {
-			const defineConfig = js.common.parseExpression('defineConfig({})');
-			const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
+		sv.file(
+			`playwright.config.${language}`,
+			transforms.script((ast) => {
+				const defineConfig = js.common.parseExpression('defineConfig({})');
+				const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
 
-			const config = {
-				webServer: {
-					command: 'npm run build && npm run preview',
-					port: 4173
-				},
-				testMatch: '**/*.e2e.{ts,js}'
-			};
+				const config = {
+					webServer: {
+						command: 'npm run build && npm run preview',
+						port: 4173
+					},
+					testMatch: '**/*.e2e.{ts,js}'
+				};
 
-			if (
-				defaultExport.type === 'CallExpression' &&
-				defaultExport.arguments[0]?.type === 'ObjectExpression'
-			) {
-				js.imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
-				js.object.overrideProperties(defaultExport.arguments[0], config);
-			} else if (defaultExport.type === 'ObjectExpression') {
-				js.object.overrideProperties(defaultExport, config);
-			} else {
-				log.warn('Unexpected playwright config for playwright add-on. Could not update.');
-			}
-		}));
+				if (
+					defaultExport.type === 'CallExpression' &&
+					defaultExport.arguments[0]?.type === 'ObjectExpression'
+				) {
+					js.imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
+					js.object.overrideProperties(defaultExport.arguments[0], config);
+				} else if (defaultExport.type === 'ObjectExpression') {
+					js.object.overrideProperties(defaultExport, config);
+				} else {
+					log.warn('Unexpected playwright config for playwright add-on. Could not update.');
+				}
+			})
+		);
 	},
 
 	nextSteps: ({ kit }) => {

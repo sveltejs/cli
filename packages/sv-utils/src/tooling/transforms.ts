@@ -21,7 +21,15 @@ export type TransformContext = {
 
 const TRANSFORM_KEY = '__transform' as const;
 
-export type TransformType = 'script' | 'css' | 'svelte' | 'json' | 'yaml' | 'toml' | 'text' | 'html';
+export type TransformType =
+	| 'script'
+	| 'css'
+	| 'svelte'
+	| 'json'
+	| 'yaml'
+	| 'toml'
+	| 'text'
+	| 'html';
 
 export type TransformFn = {
 	(content: string, ctx?: TransformContext): string;
@@ -173,9 +181,7 @@ export const transforms = {
 	 *
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
-	html(
-		cb: (ast: SvelteAst.Fragment, ctx: TransformContext) => void | false
-	): TransformFn {
+	html(cb: (ast: SvelteAst.Fragment, ctx: TransformContext) => void | false): TransformFn {
 		const fn = ((content: string, ctx?: TransformContext) => {
 			const { ast, generateCode } = parseHtml(content);
 			const result = cb(ast, ctx ?? { language: 'ts' });

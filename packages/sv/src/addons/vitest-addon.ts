@@ -40,11 +40,14 @@ export default defineAddon({
 			sv.devDependency('playwright', '^1.58.2');
 		}
 
-		sv.file(files.package, transforms.json((data) => {
-			json.packageScriptsUpsert(data, 'test:unit', 'vitest');
-			// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
-			json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
-		}));
+		sv.file(
+			files.package,
+			transforms.json((data) => {
+				json.packageScriptsUpsert(data, 'test:unit', 'vitest');
+				// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
+				json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
+			})
+		);
 
 		const examplesDir = (kit ? kit.libDirectory : 'src/lib') + '/vitest-examples';
 		const typed = language === 'ts';
@@ -115,63 +118,66 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(files.viteConfig, transforms.script((ast) => {
-			const clientObjectExpression = js.object.create({
-				extends: `./${files.viteConfig}`,
-				test: {
-					name: 'client',
-					browser: {
-						enabled: true,
-						provider: js.functions.createCall({ name: 'playwright', args: [] }),
-						instances: [{ browser: 'chromium', headless: true }]
-					},
-					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					exclude: ['src/lib/server/**']
-				}
-			});
-
-			const serverObjectExpression = js.object.create({
-				extends: `./${files.viteConfig}`,
-				test: {
-					name: 'server',
-					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
-				}
-			});
-
-			const viteConfig = js.vite.getConfig(ast);
-
-			const testObject = js.object.property(viteConfig, {
-				name: 'test',
-				fallback: js.object.create({
-					expect: {
-						requireAssertions: true
+		sv.file(
+			files.viteConfig,
+			transforms.script((ast) => {
+				const clientObjectExpression = js.object.create({
+					extends: `./${files.viteConfig}`,
+					test: {
+						name: 'client',
+						browser: {
+							enabled: true,
+							provider: js.functions.createCall({ name: 'playwright', args: [] }),
+							instances: [{ browser: 'chromium', headless: true }]
+						},
+						include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+						exclude: ['src/lib/server/**']
 					}
-				})
-			});
+				});
 
-			const workspaceArray = js.object.property(testObject, {
-				name: 'projects',
-				fallback: js.array.create()
-			});
+				const serverObjectExpression = js.object.create({
+					extends: `./${files.viteConfig}`,
+					test: {
+						name: 'server',
+						environment: 'node',
+						include: ['src/**/*.{test,spec}.{js,ts}'],
+						exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+					}
+				});
 
-			if (componentTesting) js.array.append(workspaceArray, clientObjectExpression);
-			if (unitTesting) js.array.append(workspaceArray, serverObjectExpression);
+				const viteConfig = js.vite.getConfig(ast);
 
-			// Manage imports
-			if (componentTesting)
-				js.imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
-			const importName = 'defineConfig';
-			const { statement, alias } = js.imports.find(ast, { name: importName, from: 'vite' });
-			if (statement) {
-				// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
-				js.imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
+				const testObject = js.object.property(viteConfig, {
+					name: 'test',
+					fallback: js.object.create({
+						expect: {
+							requireAssertions: true
+						}
+					})
+				});
 
-				// Remove the old import
-				js.imports.remove(ast, { name: importName, from: 'vite', statement });
-			}
-		}));
+				const workspaceArray = js.object.property(testObject, {
+					name: 'projects',
+					fallback: js.array.create()
+				});
+
+				if (componentTesting) js.array.append(workspaceArray, clientObjectExpression);
+				if (unitTesting) js.array.append(workspaceArray, serverObjectExpression);
+
+				// Manage imports
+				if (componentTesting)
+					js.imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
+				const importName = 'defineConfig';
+				const { statement, alias } = js.imports.find(ast, { name: importName, from: 'vite' });
+				if (statement) {
+					// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
+					js.imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
+
+					// Remove the old import
+					js.imports.remove(ast, { name: importName, from: 'vite', statement });
+				}
+			})
+		);
 	},
 
 	nextSteps: ({ language, options }) => {

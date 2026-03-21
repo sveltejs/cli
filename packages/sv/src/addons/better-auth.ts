@@ -55,70 +55,75 @@ export default defineAddon({
 		sv.devDependency('better-auth', '~1.4.21');
 		sv.devDependency('@better-auth/cli', '~1.4.21');
 
-		sv.file(`drizzle.config.${language}`, transforms.script((ast) => {
-			const isProp = (name: string, node: AstTypes.Property) =>
-				node.key.type === 'Identifier' && node.key.name === name;
+		sv.file(
+			`drizzle.config.${language}`,
+			transforms.script((ast) => {
+				const isProp = (name: string, node: AstTypes.Property) =>
+					node.key.type === 'Identifier' && node.key.name === name;
 
-			// tsgo can't infer visitor node types from zimmerframe's distributive conditional
-			Walker.walk(ast as AstTypes.Node, null, {
-				Property(node: AstTypes.Property) {
-					if (
-						isProp('dialect', node) &&
-						node.value.type === 'Literal' &&
-						typeof node.value.value === 'string'
-					) {
-						drizzleDialect = node.value.value as Dialect;
+				// tsgo can't infer visitor node types from zimmerframe's distributive conditional
+				Walker.walk(ast as AstTypes.Node, null, {
+					Property(node: AstTypes.Property) {
+						if (
+							isProp('dialect', node) &&
+							node.value.type === 'Literal' &&
+							typeof node.value.value === 'string'
+						) {
+							drizzleDialect = node.value.value as Dialect;
+						}
+						if (
+							isProp('driver', node) &&
+							node.value.type === 'Literal' &&
+							node.value.value === 'd1-http'
+						) {
+							d1 = true;
+						}
 					}
-					if (
-						isProp('driver', node) &&
-						node.value.type === 'Literal' &&
-						node.value.value === 'd1-http'
-					) {
-						d1 = true;
-					}
+				});
+
+				if (!drizzleDialect) {
+					throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
 				}
-			});
-
-			if (!drizzleDialect) {
-				throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
-			}
-		}));
+			})
+		);
 
 		sv.file('.env', (content) => generateEnvFileContent(content, demoGithub, false));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, demoGithub, true));
 
-		sv.file(`${kit?.libDirectory}/server/auth.${language}`, transforms.script((ast, comments) => {
-			js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
-			js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
-			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
-			js.imports.addNamed(ast, { from: 'better-auth/svelte-kit', imports: ['sveltekitCookies'] });
-			js.imports.addNamed(ast, {
-				from: 'better-auth/adapters/drizzle',
-				imports: ['drizzleAdapter']
-			});
-			js.imports.addNamed(ast, { from: 'better-auth/minimal', imports: ['betterAuth'] });
+		sv.file(
+			`${kit?.libDirectory}/server/auth.${language}`,
+			transforms.script((ast, comments) => {
+				js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
+				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
+				js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
+				js.imports.addNamed(ast, { from: 'better-auth/svelte-kit', imports: ['sveltekitCookies'] });
+				js.imports.addNamed(ast, {
+					from: 'better-auth/adapters/drizzle',
+					imports: ['drizzleAdapter']
+				});
+				js.imports.addNamed(ast, { from: 'better-auth/minimal', imports: ['betterAuth'] });
 
-			const dialectMap: Record<Dialect, string> = {
-				mysql: 'mysql',
-				postgresql: 'pg',
-				sqlite: 'sqlite',
-				turso: 'sqlite'
-			};
-			const provider = dialectMap[drizzleDialect];
+				const dialectMap: Record<Dialect, string> = {
+					mysql: 'mysql',
+					postgresql: 'pg',
+					sqlite: 'sqlite',
+					turso: 'sqlite'
+				};
+				const provider = dialectMap[drizzleDialect];
 
-			const githubProvider = demoGithub
-				? `
+				const githubProvider = demoGithub
+					? `
 				socialProviders: {
 					github: {
 						clientId: env.GITHUB_CLIENT_ID,
 						clientSecret: env.GITHUB_CLIENT_SECRET,
 					},
 				},`
-				: '';
+					: '';
 
-			let authConfig = '';
-			if (d1) {
-				authConfig = dedent`
+				let authConfig = '';
+				if (d1) {
+					authConfig = dedent`
 					const authConfig = {
 						baseURL: env.ORIGIN,
 						secret: env.BETTER_AUTH_SECRET,
@@ -142,8 +147,8 @@ export default defineAddon({
 					 * To access \`auth\` at runtime, use \`event.locals.auth\`.
 					 */
 					export const auth = createAuth(${language === 'ts' ? 'null!' : 'null'});`;
-			} else {
-				authConfig = dedent`
+				} else {
+					authConfig = dedent`
 					export const auth = betterAuth({
 						baseURL: env.ORIGIN,
 						secret: env.BETTER_AUTH_SECRET,
@@ -155,20 +160,24 @@ export default defineAddon({
 							sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 						],
 					});`;
-			}
-			js.common.appendFromString(ast, { code: authConfig, comments });
-		}));
+				}
+				js.common.appendFromString(ast, { code: authConfig, comments });
+			})
+		);
 
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
 		const authSchemaPath = `${kit?.libDirectory}/server/db/auth.schema.${language}`;
 
-		sv.file(files.package, transforms.json((data) => {
-			json.packageScriptsUpsert(
-				data,
-				'auth:schema',
-				`better-auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
-			);
-		}));
+		sv.file(
+			files.package,
+			transforms.json((data) => {
+				json.packageScriptsUpsert(
+					data,
+					'auth:schema',
+					`better-auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
+				);
+			})
+		);
 
 		sv.file(`${kit?.libDirectory}/server/db/auth.schema.${language}`, (content) => {
 			if (content) return content;
@@ -177,62 +186,73 @@ export default defineAddon({
 			`;
 		});
 
-		sv.file(`${kit?.libDirectory}/server/db/schema.${language}`, transforms.script((ast) => {
-			js.exports.addNamespace(ast, { from: './auth.schema' });
-		}));
+		sv.file(
+			`${kit?.libDirectory}/server/db/schema.${language}`,
+			transforms.script((ast) => {
+				js.exports.addNamespace(ast, { from: './auth.schema' });
+			})
+		);
 
-		sv.file('src/app.d.ts', transforms.script((ast, comments) => {
-			if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
-			js.imports.addNamed(ast, {
-				imports: ['User', 'Session'],
-				from: 'better-auth/minimal',
-				isType: true
-			});
+		sv.file(
+			'src/app.d.ts',
+			transforms.script((ast, comments) => {
+				if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
+				js.imports.addNamed(ast, {
+					imports: ['User', 'Session'],
+					from: 'better-auth/minimal',
+					isType: true
+				});
 
-			const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
-			if (!locals) {
-				throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
-			}
+				const locals = js.kit.addGlobalAppInterface(ast, { name: 'Locals' });
+				if (!locals) {
+					throw new Error('Failed detecting `locals` interface in `src/app.d.ts`');
+				}
 
-			// remove the commented out placeholder since we're adding the real one
-			comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Locals {}');
+				// remove the commented out placeholder since we're adding the real one
+				comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Locals {}');
 
-			const user = locals.body.body.find((prop) =>
-				js.common.hasTypeProperty(prop, { name: 'user' })
-			);
-			const session = locals.body.body.find((prop) =>
-				js.common.hasTypeProperty(prop, { name: 'session' })
-			);
-			const auth = locals.body.body.find((prop) =>
-				js.common.hasTypeProperty(prop, { name: 'auth' })
-			);
-
-			if (!user) {
-				locals.body.body.push(js.common.createTypeProperty('user', 'User', true));
-			}
-			if (!session) {
-				locals.body.body.push(js.common.createTypeProperty('session', 'Session', true));
-			}
-			if (d1 && !auth) {
-				locals.body.body.push(
-					js.common.createTypeProperty('auth', 'ReturnType<typeof createAuth>', false)
+				const user = locals.body.body.find((prop) =>
+					js.common.hasTypeProperty(prop, { name: 'user' })
 				);
-			}
-		}));
+				const session = locals.body.body.find((prop) =>
+					js.common.hasTypeProperty(prop, { name: 'session' })
+				);
+				const auth = locals.body.body.find((prop) =>
+					js.common.hasTypeProperty(prop, { name: 'auth' })
+				);
 
-		sv.file(`src/hooks.server.${language}`, transforms.script((ast, comments) => {
-			js.imports.addNamed(ast, { imports: ['svelteKitHandler'], from: 'better-auth/svelte-kit' });
-			js.imports.addNamed(ast, { imports: [d1 ? 'createAuth' : 'auth'], from: '$lib/server/auth' });
-			js.imports.addNamed(ast, { imports: ['building'], from: '$app/environment' });
+				if (!user) {
+					locals.body.body.push(js.common.createTypeProperty('user', 'User', true));
+				}
+				if (!session) {
+					locals.body.body.push(js.common.createTypeProperty('session', 'Session', true));
+				}
+				if (d1 && !auth) {
+					locals.body.body.push(
+						js.common.createTypeProperty('auth', 'ReturnType<typeof createAuth>', false)
+					);
+				}
+			})
+		);
 
-			const d1HandleSetup = d1
-				? dedent`
+		sv.file(
+			`src/hooks.server.${language}`,
+			transforms.script((ast, comments) => {
+				js.imports.addNamed(ast, { imports: ['svelteKitHandler'], from: 'better-auth/svelte-kit' });
+				js.imports.addNamed(ast, {
+					imports: [d1 ? 'createAuth' : 'auth'],
+					from: '$lib/server/auth'
+				});
+				js.imports.addNamed(ast, { imports: ['building'], from: '$app/environment' });
+
+				const d1HandleSetup = d1
+					? dedent`
 					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found — are you running with wrangler?');
 					event.locals.auth = createAuth(event.platform.env.DB);
 					const { auth } = event.locals;\n`
-				: '';
+					: '';
 
-			const handleContent = dedent`
+				const handleContent = dedent`
 				async ({ event, resolve }) => {${d1HandleSetup}
 					// Fetch current session from Better Auth
 					const session = await auth.api.getSession({
@@ -248,13 +268,14 @@ export default defineAddon({
 
 				export const handle = sequence(handleBetterAuth, handleSession);
 			`;
-			js.kit.addHooksHandle(ast, {
-				language,
-				newHandleName: 'handleBetterAuth',
-				handleContent,
-				comments
-			});
-		}));
+				js.kit.addHooksHandle(ast, {
+					language,
+					newHandleName: 'handleBetterAuth',
+					handleContent,
+					comments
+				});
+			})
+		);
 
 		if (hasDemo) {
 			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, addToDemoPage('better-auth'));
