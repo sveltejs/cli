@@ -1,4 +1,12 @@
-import { color, js, resolveCommand, json, sanitizeName, text, transforms } from '@sveltejs/sv-utils';
+import {
+	color,
+	js,
+	resolveCommand,
+	json,
+	sanitizeName,
+	text,
+	transforms
+} from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { fileExists, getPackageJson } from '../core/files.ts';
 
@@ -164,9 +172,7 @@ export default defineAddon({
 
 			sv.file(
 				`wrangler.${ext}`,
-				ext === 'toml'
-					? transforms.toml(applyWranglerConfig)
-					: transforms.json(applyWranglerConfig)
+				ext === 'toml' ? transforms.toml(applyWranglerConfig) : transforms.json(applyWranglerConfig)
 			);
 
 			const jsconfig = fileExists(cwd, 'jsconfig.json');

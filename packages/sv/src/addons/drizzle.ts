@@ -125,8 +125,14 @@ export default defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.0');
 
-		sv.file('.env', transforms.text((content) => generateEnvFileContent(content, options, false)));
-		sv.file('.env.example', transforms.text((content) => generateEnvFileContent(content, options, true)));
+		sv.file(
+			'.env',
+			transforms.text((content) => generateEnvFileContent(content, options, false))
+		);
+		sv.file(
+			'.env.example',
+			transforms.text((content) => generateEnvFileContent(content, options, true))
+		);
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
 			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
@@ -200,7 +206,10 @@ export default defineAddon({
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
-			sv.file(files.prettierignore, transforms.text((content) => text.upsert(content, '/drizzle/')));
+			sv.file(
+				files.prettierignore,
+				transforms.text((content) => text.upsert(content, '/drizzle/'))
+			);
 		}
 
 		if (options.database === 'sqlite') {
