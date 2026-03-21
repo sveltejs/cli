@@ -82,7 +82,7 @@ export default defineAddon({
 
 		if (!kit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, cwd, cancel, files }) => {
+	run: ({ sv, language, options, kit, dependencyVersion, cwd, cancel, file }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
@@ -186,7 +186,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
 			if (options.docker) json.packageScriptsUpsert(data, 'db:start', 'docker compose up');
@@ -200,13 +200,13 @@ export default defineAddon({
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
-			sv.file(files.prettierignore, (content) => {
+			sv.file(file.prettierignore, (content) => {
 				return text.upsert(content, '/drizzle/');
 			});
 		}
 
 		if (options.database === 'sqlite') {
-			sv.file(files.gitignore, (content) => {
+			sv.file(file.gitignore, (content) => {
 				if (content.length === 0) return content;
 				return text.upsert(content, '*.db', { comment: 'SQLite' });
 			});

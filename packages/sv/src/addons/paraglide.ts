@@ -53,7 +53,7 @@ export default defineAddon({
 	setup: ({ kit, unsupported }) => {
 		if (!kit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, language, kit }) => {
+	run: ({ sv, options, file, language, kit }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const paraglideOutDir = 'src/lib/paraglide';
@@ -61,7 +61,7 @@ export default defineAddon({
 		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
 
 		// add the vite plugin
-		sv.file(files.viteConfig, (content) => {
+		sv.file(file.viteConfig, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
 			const vitePluginName = 'paraglideVitePlugin';
@@ -152,7 +152,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(files.gitignore, (content) => {
+		sv.file(file.gitignore, (content) => {
 			if (!content) return content;
 
 			content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });

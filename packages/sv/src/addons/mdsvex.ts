@@ -6,10 +6,10 @@ export default defineAddon({
 	shortDescription: 'svelte + markdown',
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
-	run: ({ sv, files }) => {
+	run: ({ sv, file }) => {
 		sv.devDependency('mdsvex', '^0.12.6');
 
-		sv.file(files.svelteConfig, (content) => {
+		sv.file(file.svelteConfig, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });

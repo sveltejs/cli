@@ -8,14 +8,14 @@ export default defineAddon({
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
-	run: ({ sv, dependencyVersion, files }) => {
+	run: ({ sv, dependencyVersion, file }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
 
 		sv.devDependency('prettier', '^3.8.1');
 		sv.devDependency('prettier-plugin-svelte', '^3.4.1');
 
-		sv.file(files.prettierignore, (content) => {
+		sv.file(file.prettierignore, (content) => {
 			if (content) return content;
 			return dedent`
 				# Package Managers
@@ -30,7 +30,7 @@ export default defineAddon({
 			`;
 		});
 
-		sv.file(files.prettierrc, (content) => {
+		sv.file(file.prettierrc, (content) => {
 			let data, generateCode;
 			try {
 				({ data, generateCode } = parse.json(content));
@@ -52,7 +52,7 @@ export default defineAddon({
 
 			if (tailwindcssInstalled) {
 				json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
-				data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
+				data.tailwindStylesheet ??= file.getRelative({ to: file.stylesheet });
 			}
 
 			data.overrides ??= [];
@@ -68,7 +68,7 @@ export default defineAddon({
 		const eslintVersion = dependencyVersion('eslint');
 		const eslintInstalled = hasEslint(eslintVersion);
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
 			json.packageScriptsUpsert(data, 'lint', 'prettier --check .', { mode: 'prepend' });
@@ -77,7 +77,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(files.vscodeExtensions, (content) => {
+		sv.file(file.vscodeExtensions, (content) => {
 			const { data, generateCode } = parse.json(content);
 			json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
 			return generateCode();
@@ -93,7 +93,7 @@ export default defineAddon({
 
 		if (eslintInstalled) {
 			sv.devDependency('eslint-config-prettier', '^10.1.8');
-			sv.file(files.eslintConfig, addEslintConfigPrettier);
+			sv.file(file.eslintConfig, addEslintConfigPrettier);
 		}
 	}
 });

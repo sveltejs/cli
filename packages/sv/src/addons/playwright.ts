@@ -8,10 +8,10 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, language, files, kit }) => {
+	run: ({ sv, language, file, kit }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
 			json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
@@ -20,7 +20,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(files.gitignore, (content) => {
+		sv.file(file.gitignore, (content) => {
 			if (!content) return content;
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});

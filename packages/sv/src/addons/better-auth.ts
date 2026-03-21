@@ -42,7 +42,7 @@ export default defineAddon({
 		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, files }) => {
+	run: ({ sv, language, options, kit, dependencyVersion, file }) => {
 		if (!kit) throw new Error('SvelteKit is required');
 
 		const demoPassword = options.demo.includes('password');
@@ -168,7 +168,7 @@ export default defineAddon({
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
 		const authSchemaPath = `${kit?.libDirectory}/server/db/auth.schema.${language}`;
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			json.packageScriptsUpsert(
 				data,

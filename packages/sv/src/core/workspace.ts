@@ -21,7 +21,7 @@ export type Workspace = {
 	dependencyVersion: (pkg: string) => string | undefined;
 	/** to know if the workspace is using typescript or javascript */
 	language: 'ts' | 'js';
-	files: {
+	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
 		/** `${kit.routesDirectory}/layout.css` or `src/app.css` */
@@ -119,7 +119,7 @@ export async function createWorkspace({
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detectPackageManager(cwd)),
 		language: typescript ? 'ts' : 'js',
-		files: {
+		file: {
 			viteConfig,
 			svelteConfig,
 			stylesheet,
