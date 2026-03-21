@@ -14,32 +14,48 @@ import {
 /**
  * Context injected by the `sv` engine when running a transform via `sv.file()`.
  * Can also be passed manually for standalone usage or testing.
+ *
+ * When no context is provided (standalone usage), defaults to `{ language: 'js' }`.
  */
 export type TransformContext = {
 	language: 'ts' | 'js';
 };
 
-const TRANSFORM_KEY = '__transform' as const;
+const DEFAULT_CONTEXT: TransformContext = { language: 'js' };
 
-export type TransformType =
-	| 'script'
-	| 'css'
-	| 'svelte'
-	| 'json'
-	| 'yaml'
-	| 'toml'
-	| 'text'
-	| 'html';
+const TRANSFORM_KEY = '__transform' as const;
 
 export type TransformFn = {
 	(content: string, ctx?: TransformContext): string;
-	[TRANSFORM_KEY]: TransformType;
+	[TRANSFORM_KEY]: true;
 };
 
 export function isTransform(
 	fn: (content: string, ctx?: TransformContext) => string
 ): fn is TransformFn {
 	return TRANSFORM_KEY in fn;
+}
+
+type TransformOptions = {
+	/** Called when parsing fails. If provided, the original content is returned unchanged. */
+	onParseError?: (error: unknown) => void;
+};
+
+function withParseError<T>(parseFn: () => T, options?: TransformOptions): T | undefined {
+	try {
+		return parseFn();
+	} catch (error) {
+		if (options?.onParseError) {
+			options.onParseError(error);
+			return undefined;
+		}
+		throw error;
+	}
+}
+
+function brand(fn: (content: string, ctx?: TransformContext) => string): TransformFn {
+	(fn as TransformFn)[TRANSFORM_KEY] = true;
+	return fn as TransformFn;
 }
 
 /**
@@ -76,16 +92,16 @@ export const transforms = {
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
 	script(
-		cb: (ast: TsEstree.Program, comments: Comments, ctx: TransformContext) => void | false
+		cb: (ast: TsEstree.Program, comments: Comments, ctx: TransformContext) => void | false,
+		options?: TransformOptions
 	): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			const { ast, comments, generateCode } = parseScript(content);
-			const result = cb(ast, comments, ctx ?? { language: 'ts' });
+		return brand((content: string, ctx?: TransformContext) => {
+			const parsed = withParseError(() => parseScript(content), options);
+			if (!parsed) return content;
+			const result = cb(parsed.ast, parsed.comments, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return generateCode();
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'script';
-		return fn;
+			return parsed.generateCode();
+		});
 	},
 
 	/**
@@ -94,15 +110,17 @@ export const transforms = {
 	 *
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
-	svelte(cb: (ast: SvelteAst.Root, ctx: TransformContext) => void | false): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			const { ast, generateCode } = parseSvelte(content);
-			const result = cb(ast, ctx ?? { language: 'ts' });
+	svelte(
+		cb: (ast: SvelteAst.Root, ctx: TransformContext) => void | false,
+		options?: TransformOptions
+	): TransformFn {
+		return brand((content: string, ctx?: TransformContext) => {
+			const parsed = withParseError(() => parseSvelte(content), options);
+			if (!parsed) return content;
+			const result = cb(parsed.ast, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return generateCode();
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'svelte';
-		return fn;
+			return parsed.generateCode();
+		});
 	},
 
 	/**
@@ -114,47 +132,34 @@ export const transforms = {
 		cb: (
 			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>,
 			ctx: TransformContext
-		) => void | false
+		) => void | false,
+		options?: TransformOptions
 	): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			const { ast, generateCode } = parseCss(content);
-			const result = cb(ast, ctx ?? { language: 'ts' });
+		return brand((content: string, ctx?: TransformContext) => {
+			const parsed = withParseError(() => parseCss(content), options);
+			if (!parsed) return content;
+			const result = cb(parsed.ast, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return generateCode();
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'css';
-		return fn;
+			return parsed.generateCode();
+		});
 	},
 
 	/**
 	 * Transform a JSON file.
 	 *
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
-	 *
-	 * Pass `onParseError` to gracefully handle files that aren't valid JSON
-	 * (e.g. `.prettierrc` which may be YAML).
 	 */
 	json<T = any>(
 		cb: (data: T, ctx: TransformContext) => void | false,
-		options?: { onParseError?: (error: unknown) => void }
+		options?: TransformOptions
 	): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			let parsed;
-			try {
-				parsed = parseJson(content);
-			} catch (error) {
-				if (options?.onParseError) {
-					options.onParseError(error);
-					return content;
-				}
-				throw error;
-			}
-			const result = cb(parsed.data as T, ctx ?? { language: 'ts' });
+		return brand((content: string, ctx?: TransformContext) => {
+			const parsed = withParseError(() => parseJson(content), options);
+			if (!parsed) return content;
+			const result = cb(parsed.data as T, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
 			return parsed.generateCode();
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'json';
-		return fn;
+		});
 	},
 
 	/**
@@ -163,16 +168,16 @@ export const transforms = {
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
 	yaml(
-		cb: (data: ReturnType<typeof parseYaml>['data'], ctx: TransformContext) => void | false
+		cb: (data: ReturnType<typeof parseYaml>['data'], ctx: TransformContext) => void | false,
+		options?: TransformOptions
 	): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			const { data, generateCode } = parseYaml(content);
-			const result = cb(data, ctx ?? { language: 'ts' });
+		return brand((content: string, ctx?: TransformContext) => {
+			const parsed = withParseError(() => parseYaml(content), options);
+			if (!parsed) return content;
+			const result = cb(parsed.data, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return generateCode();
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'yaml';
-		return fn;
+			return parsed.generateCode();
+		});
 	},
 
 	/**
@@ -180,15 +185,17 @@ export const transforms = {
 	 *
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
-	toml(cb: (data: TomlTable, ctx: TransformContext) => void | false): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			const { data, generateCode } = parseToml(content);
-			const result = cb(data, ctx ?? { language: 'ts' });
+	toml(
+		cb: (data: TomlTable, ctx: TransformContext) => void | false,
+		options?: TransformOptions
+	): TransformFn {
+		return brand((content: string, ctx?: TransformContext) => {
+			const parsed = withParseError(() => parseToml(content), options);
+			if (!parsed) return content;
+			const result = cb(parsed.data, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return generateCode();
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'toml';
-		return fn;
+			return parsed.generateCode();
+		});
 	},
 
 	/**
@@ -196,30 +203,32 @@ export const transforms = {
 	 *
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
-	html(cb: (ast: SvelteAst.Fragment, ctx: TransformContext) => void | false): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			const { ast, generateCode } = parseHtml(content);
-			const result = cb(ast, ctx ?? { language: 'ts' });
+	html(
+		cb: (ast: SvelteAst.Fragment, ctx: TransformContext) => void | false,
+		options?: TransformOptions
+	): TransformFn {
+		return brand((content: string, ctx?: TransformContext) => {
+			const parsed = withParseError(() => parseHtml(content), options);
+			if (!parsed) return content;
+			const result = cb(parsed.ast, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return generateCode();
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'html';
-		return fn;
+			return parsed.generateCode();
+		});
 	},
 
 	/**
 	 * Transform a plain text file (.env, .gitignore, etc.).
-	 * No parsing — just string in, string out.
+	 * No parsing — receives a mutable `{ content }` wrapper for consistency
+	 * with other transforms (mutate in place, return `false` to abort).
 	 *
 	 * Return `false` from the callback to abort — the original content is returned unchanged.
 	 */
-	text(cb: (content: string, ctx: TransformContext) => string | false): TransformFn {
-		const fn = ((content: string, ctx?: TransformContext) => {
-			const result = cb(content, ctx ?? { language: 'ts' });
+	text(cb: (data: { content: string }, ctx: TransformContext) => void | false): TransformFn {
+		return brand((content: string, ctx?: TransformContext) => {
+			const data = { content };
+			const result = cb(data, ctx ?? DEFAULT_CONTEXT);
 			if (result === false) return content;
-			return result;
-		}) as TransformFn;
-		fn[TRANSFORM_KEY] = 'text';
-		return fn;
+			return data.content;
+		});
 	}
 };

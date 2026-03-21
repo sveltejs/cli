@@ -21,9 +21,9 @@ export default defineAddon({
 
 		sv.file(
 			files.gitignore,
-			transforms.text((content) => {
-				if (!content) return false;
-				return text.upsert(content, 'test-results', { comment: 'Playwright' });
+			transforms.text((data) => {
+				if (!data.content) return false;
+				data.content = text.upsert(data.content, 'test-results', { comment: 'Playwright' });
 			})
 		);
 
@@ -35,10 +35,10 @@ export default defineAddon({
 
 			sv.file(
 				`${testDir}/+page.svelte`,
-				transforms.text((content) => {
-					if (content) return false;
+				transforms.text((data) => {
+					if (data.content) return false;
 
-					return dedent`
+					data.content = dedent`
 						<h1>Playwright e2e test demo</h1>
 					`;
 				})
@@ -47,10 +47,10 @@ export default defineAddon({
 
 		sv.file(
 			`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`,
-			transforms.text((content) => {
-				if (content) return false;
+			transforms.text((data) => {
+				if (data.content) return false;
 
-				return dedent`
+				data.content = dedent`
 					import { expect, test } from '@playwright/test';
 
 					test('has expected h1', async ({ page }) => {

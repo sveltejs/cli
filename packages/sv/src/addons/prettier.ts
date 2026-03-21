@@ -17,9 +17,9 @@ export default defineAddon({
 
 		sv.file(
 			files.prettierignore,
-			transforms.text((content) => {
-				if (content) return false;
-				return dedent`
+			transforms.text((data) => {
+				if (data.content) return false;
+				data.content = dedent`
 					# Package Managers
 					package-lock.json
 					pnpm-lock.yaml

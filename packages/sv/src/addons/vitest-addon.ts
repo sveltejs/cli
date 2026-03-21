@@ -55,10 +55,10 @@ export default defineAddon({
 		if (unitTesting || componentTesting) {
 			sv.file(
 				`${examplesDir}/greet.${language}`,
-				transforms.text((content) => {
-					if (content) return false;
+				transforms.text((data) => {
+					if (data.content) return false;
 
-					return dedent`
+					data.content = dedent`
 						export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
 							return 'Hello, ' + name + '!';
 						}
@@ -70,10 +70,10 @@ export default defineAddon({
 		if (unitTesting) {
 			sv.file(
 				`${examplesDir}/greet.spec.${language}`,
-				transforms.text((content) => {
-					if (content) return false;
+				transforms.text((data) => {
+					if (data.content) return false;
 
-					return dedent`
+					data.content = dedent`
 						import { describe, it, expect } from 'vitest';
 						import { greet } from './greet';
 
@@ -90,10 +90,10 @@ export default defineAddon({
 		if (componentTesting) {
 			sv.file(
 				`${examplesDir}/Welcome.svelte`,
-				transforms.text((content) => {
-					if (content) return false;
+				transforms.text((data) => {
+					if (data.content) return false;
 
-					return dedent`
+					data.content = dedent`
 						<script>
 							import { greet } from './greet';
 
@@ -108,10 +108,10 @@ export default defineAddon({
 
 			sv.file(
 				`${examplesDir}/Welcome.svelte.spec.${language}`,
-				transforms.text((content) => {
-					if (content) return false;
+				transforms.text((data) => {
+					if (data.content) return false;
 
-					return dedent`
+					data.content = dedent`
 						import { page } from 'vitest/browser';
 						import { describe, expect, it } from 'vitest';
 						import { render } from 'vitest-browser-svelte';

@@ -181,9 +181,9 @@ export default defineAddon({
 			if (typeChecked) {
 				sv.file(
 					files.gitignore,
-					transforms.text((content) => {
-						if (content.length === 0) return false;
-						return text.upsert(content, '/worker-configuration.d.ts', {
+					transforms.text((data) => {
+						if (data.content.length === 0) return false;
+						data.content = text.upsert(data.content, '/worker-configuration.d.ts', {
 							comment: 'Cloudflare Types'
 						});
 					})
