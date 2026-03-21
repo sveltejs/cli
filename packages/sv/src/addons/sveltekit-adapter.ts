@@ -1,8 +1,6 @@
 import { color, js, resolveCommand, json, sanitizeName, text, transforms } from '@sveltejs/sv-utils';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { fileExists } from '../core/files.ts';
+import { fileExists, getPackageJson } from '../core/files.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
@@ -134,8 +132,8 @@ export default defineAddon({
 				}
 
 				if (!data.name) {
-					const pkg = JSON.parse(readFileSync(join(cwd, files.package), 'utf-8'));
-					data.name = sanitizeName(pkg.name, 'wrangler');
+					const pkg = getPackageJson(cwd);
+					data.name = sanitizeName(pkg.data.name, 'wrangler');
 				}
 
 				data.compatibility_date ??= new Date().toISOString().split('T')[0];
