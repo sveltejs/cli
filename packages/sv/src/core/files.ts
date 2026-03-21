@@ -1,17 +1,17 @@
 import * as p from '@clack/prompts';
-import {
-	type AgentName,
-	commonFilePaths,
-	getPackageJson,
-	resolveCommand
-} from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
+import { type AgentName, resolveCommand } from '@sveltejs/sv-utils';
 import { exec } from 'tinyexec';
-import type { Workspace } from './workspace.ts';
 
 // Re-export from sv-utils for backwards compatibility
-export { commonFilePaths, fileExists, getPackageJson, readFile, type Package } from '@sveltejs/sv-utils';
+export {
+	commonFilePaths,
+	fileExists,
+	getPackageJson,
+	installPackages,
+	readFile,
+	writeFile,
+	type Package
+} from '@sveltejs/sv-utils';
 
 export async function formatFiles(options: {
 	packageManager: AgentName;
@@ -42,49 +42,4 @@ export async function formatFiles(options: {
 		return;
 	}
 	stop('Successfully formatted modified files');
-}
-
-export function installPackages(
-	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	workspace: Workspace
-): string {
-	const { data, generateCode } = getPackageJson(workspace.cwd);
-
-	for (const dependency of dependencies) {
-		if (dependency.dev) {
-			data.devDependencies ??= {};
-			data.devDependencies[dependency.pkg] = dependency.version;
-		} else {
-			data.dependencies ??= {};
-			data.dependencies[dependency.pkg] = dependency.version;
-		}
-	}
-
-	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
-	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
-
-	writeFile(workspace, commonFilePaths.packageJson, generateCode());
-	return commonFilePaths.packageJson;
-}
-
-function alphabetizeProperties(obj: Record<string, string>) {
-	const orderedObj: Record<string, string> = {};
-	const sortedEntries = Object.entries(obj).sort(([a], [b]) => a.localeCompare(b));
-	for (const [key, value] of sortedEntries) {
-		orderedObj[key] = value;
-	}
-	return orderedObj;
-}
-
-export function writeFile(workspace: Workspace, filePath: string, content: string): void {
-	const fullFilePath = path.resolve(workspace.cwd, filePath);
-	const fullDirectoryPath = path.dirname(fullFilePath);
-
-	if (content && !content.endsWith('\n')) content += '\n';
-
-	if (!fs.existsSync(fullDirectoryPath)) {
-		fs.mkdirSync(fullDirectoryPath, { recursive: true });
-	}
-
-	fs.writeFileSync(fullFilePath, content, 'utf8');
 }

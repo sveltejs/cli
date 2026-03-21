@@ -45,6 +45,51 @@ export function fileExists(cwd: string, filePath: string): boolean {
 	return fs.existsSync(fullFilePath);
 }
 
+export function writeFile(cwd: string, filePath: string, content: string): void {
+	const fullFilePath = path.resolve(cwd, filePath);
+	const fullDirectoryPath = path.dirname(fullFilePath);
+
+	if (content && !content.endsWith('\n')) content += '\n';
+
+	if (!fs.existsSync(fullDirectoryPath)) {
+		fs.mkdirSync(fullDirectoryPath, { recursive: true });
+	}
+
+	fs.writeFileSync(fullFilePath, content, 'utf8');
+}
+
+export function installPackages(
+	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
+	cwd: string
+): string {
+	const { data, generateCode } = getPackageJson(cwd);
+
+	for (const dependency of dependencies) {
+		if (dependency.dev) {
+			data.devDependencies ??= {};
+			data.devDependencies[dependency.pkg] = dependency.version;
+		} else {
+			data.dependencies ??= {};
+			data.dependencies[dependency.pkg] = dependency.version;
+		}
+	}
+
+	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
+	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
+
+	writeFile(cwd, commonFilePaths.packageJson, generateCode());
+	return commonFilePaths.packageJson;
+}
+
+function alphabetizeProperties(obj: Record<string, string>) {
+	const orderedObj: Record<string, string> = {};
+	const sortedEntries = Object.entries(obj).sort(([a], [b]) => a.localeCompare(b));
+	for (const [key, value] of sortedEntries) {
+		orderedObj[key] = value;
+	}
+	return orderedObj;
+}
+
 export const commonFilePaths = {
 	packageJson: 'package.json',
 	svelteConfig: 'svelte.config.js',

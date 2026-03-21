@@ -66,7 +66,9 @@ export {
 	commonFilePaths,
 	fileExists,
 	getPackageJson,
+	installPackages,
 	readFile,
+	writeFile,
 	type Package
 } from './files.ts';
 
