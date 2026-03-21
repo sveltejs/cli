@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, parse } from '@sveltejs/sv-utils';
+import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
@@ -150,37 +150,38 @@ export default defineAddon({
 				});
 			}
 
-			sv.file(configPath, (content) => {
-				const { data, generateCode } = parse.json(content);
-
-				if (schema) {
-					data['$schema'] = schema;
-				}
-
-				if (customData) {
-					for (const [key, value] of Object.entries(customData)) {
-						data[key] = value;
+			sv.file(
+				configPath,
+				transforms.json((data) => {
+					if (schema) {
+						data['$schema'] = schema;
 					}
-				}
 
-				if (mcpOptions) {
-					const key = mcpOptions.serversKey ?? 'mcpServers';
-					data[key] ??= {};
-					data[key].svelte =
-						options.setup === 'local' ? getLocalConfig(mcpOptions) : getRemoteConfig(mcpOptions);
-				}
-				return generateCode();
-			});
+					if (customData) {
+						for (const [key, value] of Object.entries(customData)) {
+							data[key] = value;
+						}
+					}
+
+					if (mcpOptions) {
+						const key = mcpOptions.serversKey ?? 'mcpServers';
+						data[key] ??= {};
+						data[key].svelte =
+							options.setup === 'local' ? getLocalConfig(mcpOptions) : getRemoteConfig(mcpOptions);
+					}
+				})
+			);
 
 			if (extraFiles) {
 				for (const extra of extraFiles) {
-					sv.file(extra.path, (content) => {
-						const { data, generateCode } = parse.json(content);
-						for (const [key, value] of Object.entries(extra.data)) {
-							data[key] = value;
-						}
-						return generateCode();
-					});
+					sv.file(
+						extra.path,
+						transforms.json((data) => {
+							for (const [key, value] of Object.entries(extra.data)) {
+								data[key] = value;
+							}
+						})
+					);
 				}
 			}
 		}

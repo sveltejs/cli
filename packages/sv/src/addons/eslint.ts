@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { type AstTypes, js, parse, json } from '@sveltejs/sv-utils';
+import { type AstTypes, js, transforms, json } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier, getNodeTypesVersion } from './common.ts';
 
@@ -23,17 +23,11 @@ export default defineAddon({
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
-
+		sv.file(files.package, transforms.json((data) => {
 			json.packageScriptsUpsert(data, 'lint', 'eslint .');
+		}));
 
-			return generateCode();
-		});
-
-		sv.file(files.eslintConfig, (content) => {
-			const { ast, comments, generateCode } = parse.script(content);
-
+		sv.file(files.eslintConfig, transforms.script((ast, comments) => {
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 			js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
 			const gitIgnorePathStatement = js.common.parseStatement(
@@ -123,7 +117,7 @@ export default defineAddon({
 			// if it's not the config we created, then we'll leave it alone and exit out
 			if (defaultExport !== exportExpression) {
 				log.warn('An eslint config is already defined. Skipping initialization.');
-				return content;
+				return false;
 			}
 
 			if (typescript) js.imports.addDefault(ast, { from: 'typescript-eslint', as: 'ts' });
@@ -136,15 +130,11 @@ export default defineAddon({
 				imports: ['includeIgnoreFile']
 			});
 			js.imports.addDefault(ast, { from: 'node:path', as: 'path' });
+		}));
 
-			return generateCode();
-		});
-
-		sv.file(files.vscodeExtensions, (content) => {
-			const { data, generateCode } = parse.json(content);
+		sv.file(files.vscodeExtensions, transforms.json((data) => {
 			json.arrayUpsert(data, 'recommendations', 'dbaeumer.vscode-eslint');
-			return generateCode();
-		});
+		}));
 
 		if (prettierInstalled) {
 			sv.file(files.eslintConfig, addEslintConfigPrettier);

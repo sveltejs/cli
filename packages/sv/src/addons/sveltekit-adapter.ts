@@ -1,4 +1,4 @@
-import { color, js, resolveCommand, json, sanitizeName, text, parse } from '@sveltejs/sv-utils';
+import { color, js, resolveCommand, json, sanitizeName, text, parse, transforms } from '@sveltejs/sv-utils';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -45,8 +45,7 @@ export default defineAddon({
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
+		sv.file(files.package, transforms.json((data) => {
 			const devDeps = data['devDependencies'];
 
 			for (const pkg of Object.keys(devDeps)) {
@@ -63,15 +62,11 @@ export default defineAddon({
 						: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
 				data.scripts.preview = preview;
 			}
-
-			return generateCode();
-		});
+		}));
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file(files.svelteConfig, (content) => {
-			const { ast, comments, generateCode } = parse.script(content);
-
+		sv.file(files.svelteConfig, transforms.script((ast, comments) => {
 			// finds any existing adapter's import declaration
 			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
 			const adapterImportDecl = importDecls.find(
@@ -117,9 +112,7 @@ export default defineAddon({
 						c.loc.end.line <= cfgKitValue.loc.end.line
 				);
 			}
-
-			return generateCode();
-		});
+		}));
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.63.0');
@@ -180,28 +173,18 @@ export default defineAddon({
 				});
 
 				// Setup wrangler types command
-				sv.file(files.package, (content) => {
-					const { data, generateCode } = parse.json(content);
-
+				sv.file(files.package, transforms.json((data) => {
 					json.packageScriptsUpsert(data, 'gen', 'wrangler types');
-
-					return generateCode();
-				});
+				}));
 
 				// Add Cloudflare generated types to tsconfig
-				sv.file(`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`, (content) => {
-					const { data, generateCode } = parse.json(content);
-
+				sv.file(`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`, transforms.json((data) => {
 					data.compilerOptions ??= {};
 					data.compilerOptions.types ??= [];
 					data.compilerOptions.types.push('./worker-configuration.d.ts');
+				}));
 
-					return generateCode();
-				});
-
-				sv.file('src/app.d.ts', (content) => {
-					const { ast, comments, generateCode } = parse.script(content);
-
+				sv.file('src/app.d.ts', transforms.script((ast, comments) => {
 					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
 					if (!platform) {
 						throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
@@ -216,9 +199,7 @@ export default defineAddon({
 						js.common.createTypeProperty('caches', 'CacheStorage'),
 						js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
 					);
-
-					return generateCode();
-				});
+				}));
 			}
 		}
 	},

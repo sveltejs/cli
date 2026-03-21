@@ -7,7 +7,7 @@ import {
 	text,
 	js,
 	json,
-	parse,
+	transforms,
 	resolveCommand,
 	createPrinter
 } from '@sveltejs/sv-utils';
@@ -55,8 +55,7 @@ export default defineAddon({
 		sv.devDependency('better-auth', '~1.4.21');
 		sv.devDependency('@better-auth/cli', '~1.4.21');
 
-		sv.file(`drizzle.config.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+		sv.file(`drizzle.config.${language}`, transforms.script((ast) => {
 			const isProp = (name: string, node: AstTypes.Property) =>
 				node.key.type === 'Identifier' && node.key.name === name;
 
@@ -83,15 +82,12 @@ export default defineAddon({
 			if (!drizzleDialect) {
 				throw new Error('Failed to detect DB dialect in your `drizzle.config.[js|ts]` file');
 			}
-			return generateCode();
-		});
+		}));
 
 		sv.file('.env', (content) => generateEnvFileContent(content, demoGithub, false));
 		sv.file('.env.example', (content) => generateEnvFileContent(content, demoGithub, true));
 
-		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
-			const { ast, generateCode, comments } = parse.script(content);
-
+		sv.file(`${kit?.libDirectory}/server/auth.${language}`, transforms.script((ast, comments) => {
 			js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
 			js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
 			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
@@ -161,22 +157,18 @@ export default defineAddon({
 					});`;
 			}
 			js.common.appendFromString(ast, { code: authConfig, comments });
-
-			return generateCode();
-		});
+		}));
 
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
 		const authSchemaPath = `${kit?.libDirectory}/server/db/auth.schema.${language}`;
 
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
+		sv.file(files.package, transforms.json((data) => {
 			json.packageScriptsUpsert(
 				data,
 				'auth:schema',
 				`better-auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
 			);
-			return generateCode();
-		});
+		}));
 
 		sv.file(`${kit?.libDirectory}/server/db/auth.schema.${language}`, (content) => {
 			if (content) return content;
@@ -185,17 +177,11 @@ export default defineAddon({
 			`;
 		});
 
-		sv.file(`${kit?.libDirectory}/server/db/schema.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
-
+		sv.file(`${kit?.libDirectory}/server/db/schema.${language}`, transforms.script((ast) => {
 			js.exports.addNamespace(ast, { from: './auth.schema' });
+		}));
 
-			return generateCode();
-		});
-
-		sv.file('src/app.d.ts', (content) => {
-			const { ast, comments, generateCode } = parse.script(content);
-
+		sv.file('src/app.d.ts', transforms.script((ast, comments) => {
 			if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
 			js.imports.addNamed(ast, {
 				imports: ['User', 'Session'],
@@ -232,12 +218,9 @@ export default defineAddon({
 					js.common.createTypeProperty('auth', 'ReturnType<typeof createAuth>', false)
 				);
 			}
-			return generateCode();
-		});
+		}));
 
-		sv.file(`src/hooks.server.${language}`, (content) => {
-			const { ast, generateCode, comments } = parse.script(content);
-
+		sv.file(`src/hooks.server.${language}`, transforms.script((ast, comments) => {
 			js.imports.addNamed(ast, { imports: ['svelteKitHandler'], from: 'better-auth/svelte-kit' });
 			js.imports.addNamed(ast, { imports: [d1 ? 'createAuth' : 'auth'], from: '$lib/server/auth' });
 			js.imports.addNamed(ast, { imports: ['building'], from: '$app/environment' });
@@ -271,14 +254,10 @@ export default defineAddon({
 				handleContent,
 				comments
 			});
-
-			return generateCode();
-		});
+		}));
 
 		if (hasDemo) {
-			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'better-auth', language);
-			});
+			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, addToDemoPage('better-auth'));
 
 			sv.file(
 				`${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`,

@@ -1,4 +1,4 @@
-import { color, dedent, text, js, parse, resolveCommand, json } from '@sveltejs/sv-utils';
+import { color, dedent, text, js, transforms, resolveCommand, json } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -186,17 +186,13 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
-
+		sv.file(files.package, transforms.json((data) => {
 			if (options.docker) json.packageScriptsUpsert(data, 'db:start', 'docker compose up');
 			json.packageScriptsUpsert(data, 'db:push', 'drizzle-kit push');
 			json.packageScriptsUpsert(data, 'db:generate', 'drizzle-kit generate');
 			json.packageScriptsUpsert(data, 'db:migrate', 'drizzle-kit migrate');
 			json.packageScriptsUpsert(data, 'db:studio', 'drizzle-kit studio');
-
-			return generateCode();
-		});
+		}));
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
@@ -212,11 +208,9 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(paths['drizzle config'], (content) => {
+		sv.file(paths['drizzle config'], transforms.script((ast) => {
 			const d1 = options.database === 'd1';
 			const turso = options.sqlite === 'turso';
-
-			const { ast, generateCode } = parse.script(content);
 
 			js.imports.addNamed(ast, { from: 'drizzle-kit', imports: { defineConfig: 'defineConfig' } });
 
@@ -273,13 +267,9 @@ export default defineAddon({
 					})
 				`)
 			});
+		}));
 
-			return generateCode();
-		});
-
-		sv.file(paths['database schema'], (content) => {
-			const { ast, generateCode } = parse.script(content);
-
+		sv.file(paths['database schema'], transforms.script((ast) => {
 			let taskSchemaExpression;
 			if (options.database === 'sqlite' || options.database === 'd1') {
 				js.imports.addNamed(ast, {
@@ -328,13 +318,9 @@ export default defineAddon({
 				name: 'task',
 				fallback: taskIdentifier
 			});
+		}));
 
-			return generateCode();
-		});
-
-		sv.file(paths.database, (content) => {
-			const { ast, generateCode } = parse.script(content);
-
+		sv.file(paths.database, transforms.script((ast) => {
 			if (options.database === 'd1') {
 				js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 				js.imports.addNamed(ast, { from: 'drizzle-orm/d1', imports: ['drizzle'] });
@@ -345,7 +331,7 @@ export default defineAddon({
 
 				ast.body.push(getDbFn);
 
-				return generateCode();
+				return;
 			}
 
 			js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
@@ -463,9 +449,7 @@ export default defineAddon({
 				name: 'db',
 				fallback: db
 			});
-
-			return generateCode();
-		});
+		}));
 	},
 
 	nextSteps: ({ options, packageManager, cwd }) => {

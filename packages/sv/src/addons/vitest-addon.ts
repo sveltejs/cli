@@ -1,4 +1,4 @@
-import { color, dedent, js, parse, json } from '@sveltejs/sv-utils';
+import { color, dedent, js, transforms, json } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const options = defineAddonOptions()
@@ -40,15 +40,11 @@ export default defineAddon({
 			sv.devDependency('playwright', '^1.58.2');
 		}
 
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
-
+		sv.file(files.package, transforms.json((data) => {
 			json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 			// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
 			json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
-
-			return generateCode();
-		});
+		}));
 
 		const examplesDir = (kit ? kit.libDirectory : 'src/lib') + '/vitest-examples';
 		const typed = language === 'ts';
@@ -119,9 +115,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parse.script(content);
-
+		sv.file(files.viteConfig, transforms.script((ast) => {
 			const clientObjectExpression = js.object.create({
 				extends: `./${files.viteConfig}`,
 				test: {
@@ -177,9 +171,7 @@ export default defineAddon({
 				// Remove the old import
 				js.imports.remove(ast, { name: importName, from: 'vite', statement });
 			}
-
-			return generateCode();
-		});
+		}));
 	},
 
 	nextSteps: ({ language, options }) => {

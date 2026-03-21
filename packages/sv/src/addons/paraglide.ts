@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, html, js, parse, svelte, type SvelteAst, text } from '@sveltejs/sv-utils';
+import { color, html, js, svelte, type SvelteAst, text, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -61,24 +61,19 @@ export default defineAddon({
 		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
 
 		// add the vite plugin
-		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parse.script(content);
-
+		sv.file(files.viteConfig, transforms.script((ast) => {
 			const vitePluginName = 'paraglideVitePlugin';
 			js.imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
 			js.vite.addPlugin(ast, {
-				code: `${vitePluginName}({ 
-					project: './project.inlang', 
-					outdir: './${paraglideOutDir}' 
+				code: `${vitePluginName}({
+					project: './project.inlang',
+					outdir: './${paraglideOutDir}'
 				})`
 			});
-
-			return generateCode();
-		});
+		}));
 
 		// reroute hook
-		sv.file(`src/hooks.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+		sv.file(`src/hooks.${language}`, transforms.script((ast) => {
 			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/runtime',
 				imports: ['deLocalizeUrl']
@@ -100,13 +95,10 @@ export default defineAddon({
 			if (existingExport.declaration !== rerouteIdentifier) {
 				log.warn('Adding the reroute hook automatically failed. Add it manually');
 			}
-
-			return generateCode();
-		});
+		}));
 
 		// handle hook
-		sv.file(`src/hooks.server.${language}`, (content) => {
-			const { ast, generateCode, comments } = parse.script(content);
+		sv.file(`src/hooks.server.${language}`, transforms.script((ast, comments) => {
 			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/server',
 				imports: ['paraglideMiddleware']
@@ -128,14 +120,10 @@ export default defineAddon({
 				handleContent: hookHandleContent,
 				comments
 			});
-
-			return generateCode();
-		});
+		}));
 
 		// add the lang and dir attributes placeholder to app.html
-		sv.file('src/app.html', (content) => {
-			const { ast, generateCode } = parse.html(content);
-
+		sv.file('src/app.html', transforms.html((ast) => {
 			const htmlNode = ast.nodes.find(
 				(child): child is SvelteAst.RegularElement =>
 					child.type === 'RegularElement' && child.name === 'html'
@@ -144,13 +132,11 @@ export default defineAddon({
 				log.warn(
 					"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
 				);
-				return generateCode();
+				return;
 			}
 			html.addAttribute(htmlNode, 'lang', '%paraglide.lang%');
 			html.addAttribute(htmlNode, 'dir', '%paraglide.dir%');
-
-			return generateCode();
-		});
+		}));
 
 		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
@@ -164,22 +150,19 @@ export default defineAddon({
 		sv.file('project.inlang/settings.json', (content) => {
 			if (content) return content;
 
-			const { data, generateCode } = parse.json(content);
+			return transforms.json((data) => {
+				for (const key in DEFAULT_INLANG_PROJECT) {
+					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
+				}
+				const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
+				const baseLocale = validLanguageTags[0];
 
-			for (const key in DEFAULT_INLANG_PROJECT) {
-				data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
-			}
-			const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
-			const baseLocale = validLanguageTags[0];
-
-			data.baseLocale = baseLocale;
-			data.locales = validLanguageTags;
-
-			return generateCode();
+				data.baseLocale = baseLocale;
+				data.locales = validLanguageTags;
+			})(content);
 		});
 
-		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
-			const { ast, generateCode } = parse.svelte(content);
+		sv.file(`${kit.routesDirectory}/+layout.svelte`, transforms.svelte((ast, { language }) => {
 			svelte.ensureScript(ast, { language });
 			js.imports.addNamed(ast.instance.content, {
 				imports: ['locales', 'localizeHref'],
@@ -194,17 +177,13 @@ export default defineAddon({
 	{/each}
 </div>`
 			);
-			return generateCode();
-		});
+		}));
 
 		if (options.demo) {
-			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'paraglide', language);
-			});
+			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, addToDemoPage('paraglide'));
 
 			// add usage example
-			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
-				const { ast, generateCode } = parse.svelte(content);
+			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, transforms.svelte((ast, { language }) => {
 				svelte.ensureScript(ast, { language });
 
 				js.imports.addNamed(ast.instance.content, {
@@ -233,19 +212,15 @@ export default defineAddon({
 					'<p>If you use VSCode, install the <a href="https://marketplace.visualstudio.com/items?itemName=inlang.vs-code-extension" target="_blank">Sherlock i18n extension</a> for a better i18n experience.</p>';
 
 				svelte.addFragment(ast, templateCode);
-
-				return generateCode();
-			});
+			}));
 		}
 
 		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 		for (const languageTag of validLanguageTags) {
-			sv.file(`messages/${languageTag}.json`, (content) => {
-				const { data, generateCode } = parse.json(content);
+			sv.file(`messages/${languageTag}.json`, transforms.json((data) => {
 				data['$schema'] = 'https://inlang.com/schema/inlang-message-format';
 				data.hello_world = `Hello, {name} from ${languageTag}!`;
-				return generateCode();
-			});
+			}));
 		}
 	},
 

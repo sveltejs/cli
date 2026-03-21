@@ -1,9 +1,7 @@
-import { type SvelteAst, js, parse, svelte } from '@sveltejs/sv-utils';
+import { type SvelteAst, type TransformFn, js, svelte, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
-export function addEslintConfigPrettier(content: string): string {
-	const { ast, generateCode } = parse.script(content);
-
+export const addEslintConfigPrettier = transforms.script((ast) => {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');
 	const sveltePluginImport = importNodes.find(
@@ -28,7 +26,7 @@ export function addEslintConfigPrettier(content: string): string {
 	const defaultExport = js.exports.createDefault(ast, { fallback: fallbackConfig });
 	const eslintConfig = defaultExport.value;
 	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression')
-		return content;
+		return false;
 
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
@@ -57,43 +55,34 @@ export function addEslintConfigPrettier(content: string): string {
 		// append to the end as a fallback
 		elements.push(...nodesToInsert);
 	}
+});
 
-	return generateCode();
-}
+export function addToDemoPage(path: string): TransformFn {
+	return transforms.svelte((ast, { language }) => {
+		for (const node of ast.fragment.nodes) {
+			if (node.type === 'RegularElement') {
+				const hrefAttribute = node.attributes.find(
+					(x) => x.type === 'Attribute' && x.name === 'href'
+				) as SvelteAst.Attribute;
+				if (!hrefAttribute || !hrefAttribute.value) continue;
 
-export function addToDemoPage(
-	existingContent: string,
-	path: string,
-	language: 'ts' | 'js'
-): string {
-	const { ast, generateCode } = parse.svelte(existingContent);
+				if (!Array.isArray(hrefAttribute.value)) continue;
 
-	for (const node of ast.fragment.nodes) {
-		if (node.type === 'RegularElement') {
-			const hrefAttribute = node.attributes.find(
-				(x) => x.type === 'Attribute' && x.name === 'href'
-			) as SvelteAst.Attribute;
-			if (!hrefAttribute || !hrefAttribute.value) continue;
-
-			if (!Array.isArray(hrefAttribute.value)) continue;
-
-			const hasDemo = hrefAttribute.value.some(
-				// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
-				(x) => x.type === 'Text' && x.data.includes(`/demo/${path}`)
-			);
-			if (hasDemo) {
-				return existingContent;
+				const hasDemo = hrefAttribute.value.some(
+					// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
+					(x) => x.type === 'Text' && x.data.includes(`/demo/${path}`)
+				);
+				if (hasDemo) {
+					return false;
+				}
 			}
 		}
-	}
 
-	svelte.ensureScript(ast, { language });
-	js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
+		svelte.ensureScript(ast, { language });
+		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
-	svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
-	ast.fragment.nodes.unshift();
-
-	return generateCode();
+		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
+	});
 }
 
 /**

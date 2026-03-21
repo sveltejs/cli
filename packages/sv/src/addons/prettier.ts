@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, parse, json } from '@sveltejs/sv-utils';
+import { color, dedent, parse, transforms, json } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier } from './common.ts';
 
@@ -68,20 +68,14 @@ export default defineAddon({
 		const eslintVersion = dependencyVersion('eslint');
 		const eslintInstalled = hasEslint(eslintVersion);
 
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
-
+		sv.file(files.package, transforms.json((data) => {
 			json.packageScriptsUpsert(data, 'lint', 'prettier --check .', { mode: 'prepend' });
 			json.packageScriptsUpsert(data, 'format', 'prettier --write .');
+		}));
 
-			return generateCode();
-		});
-
-		sv.file(files.vscodeExtensions, (content) => {
-			const { data, generateCode } = parse.json(content);
+		sv.file(files.vscodeExtensions, transforms.json((data) => {
 			json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
-			return generateCode();
-		});
+		}));
 
 		if (eslintVersion?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
 			log.warn(

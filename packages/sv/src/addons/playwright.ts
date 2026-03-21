@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, js, parse, json, text } from '@sveltejs/sv-utils';
+import { color, dedent, js, transforms, json, text } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -11,14 +11,10 @@ export default defineAddon({
 	run: ({ sv, language, files, kit }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
-
+		sv.file(files.package, transforms.json((data) => {
 			json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
 			json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
-
-			return generateCode();
-		});
+		}));
 
 		sv.file(files.gitignore, (content) => {
 			if (!content) return content;
@@ -29,9 +25,7 @@ export default defineAddon({
 		const testRoute = kit ? '/demo/playwright' : '/';
 
 		if (kit) {
-			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'playwright', language);
-			});
+			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, addToDemoPage('playwright'));
 
 			sv.file(`${testDir}/+page.svelte`, (content) => {
 				if (content) return content;
@@ -55,8 +49,7 @@ export default defineAddon({
 				`;
 		});
 
-		sv.file(`playwright.config.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+		sv.file(`playwright.config.${language}`, transforms.script((ast) => {
 			const defineConfig = js.common.parseExpression('defineConfig({})');
 			const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
 
@@ -79,8 +72,7 @@ export default defineAddon({
 			} else {
 				log.warn('Unexpected playwright config for playwright add-on. Could not update.');
 			}
-			return generateCode();
-		});
+		}));
 	},
 
 	nextSteps: ({ kit }) => {

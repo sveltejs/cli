@@ -1,4 +1,4 @@
-import { js, parse } from '@sveltejs/sv-utils';
+import { js, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 
 export default defineAddon({
@@ -11,14 +11,13 @@ export default defineAddon({
 		sv.devDependency('vite-plugin-devtools-json', '^1.0.0');
 
 		// add the vite plugin
-		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parse.script(content);
-
-			const vitePluginName = 'devtoolsJson';
-			js.imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
-			js.vite.addPlugin(ast, { code: `${vitePluginName}()` });
-
-			return generateCode();
-		});
+		sv.file(
+			files.viteConfig,
+			transforms.script((ast) => {
+				const vitePluginName = 'devtoolsJson';
+				js.imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
+				js.vite.addPlugin(ast, { code: `${vitePluginName}()` });
+			})
+		);
 	}
 });
