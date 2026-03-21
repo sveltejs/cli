@@ -74,6 +74,7 @@ export function addEslintConfigPrettier(content: string): string {
 	if (idx !== -1) {
 		elements.splice(idx + 1, 0, ...nodesToInsert);
 	} else {
+		// append to the end as a fallback
 		elements.push(...nodesToInsert);
 	}
 
