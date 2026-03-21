@@ -13,18 +13,16 @@ export default defineAddon({
 	id: '@my-org/sv',
 	options,
 
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
 
-	run: ({ kit, sv, options, language, cancel }) => {
-		if (!kit) return cancel('SvelteKit is required');
-
-		sv.file(`src/lib/@my-org/sv/content.txt`, () => {
+	run: ({ directory, sv, options, language }) => {
+		sv.file(`${directory.lib}/@my-org/sv/content.txt`, () => {
 			return `This is a text file made by the Community Addon Template demo for the add-on: '@my-org/sv'!`;
 		});
 
-		sv.file(`src/lib/@my-org/sv/HelloComponent.svelte`, (content) => {
+		sv.file(`${directory.lib}/@my-org/sv/HelloComponent.svelte`, (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast, { language });
 
@@ -36,7 +34,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
+		sv.file(directory.routes + '/+page.svelte', (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast, { language });
 
