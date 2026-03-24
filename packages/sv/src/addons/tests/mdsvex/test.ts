@@ -8,7 +8,7 @@ import { svxFile } from './fixtures.ts';
 
 const { test, testCases, prepareServer } = setupTest(
 	{ mdsvex },
-	{ kinds: [{ type: 'default', options: { mdsvex: {} } }] }
+	{ kinds: [{ type: 'default', options: { mdsvex: { extensions: ['.svx', '.md'] } } }] }
 );
 
 test.concurrent.for(testCases)('mdsvex $variant', async (testCase, { page, ...ctx }) => {
