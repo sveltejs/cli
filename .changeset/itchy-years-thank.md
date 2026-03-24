@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-Add mdsvex MD extensions by default
+feat(mdsvex): enable .svx .md extensions by default in config
