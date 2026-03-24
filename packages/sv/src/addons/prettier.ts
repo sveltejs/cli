@@ -1,14 +1,46 @@
 import { log } from '@clack/prompts';
 import { color, dedent, parse, json } from '@sveltejs/sv-utils';
-import { defineAddon } from '../core/config.ts';
+import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addEslintConfigPrettier } from './common.ts';
+
+const options = defineAddonOptions()
+	.add('useTabs', {
+		type: 'boolean',
+		question: 'Would you like to use tabs for indentation?',
+		default: true,
+		required: false
+	})
+	.add('singleQuote', {
+		type: 'boolean',
+		question: 'Would you like to use single quotes?',
+		default: true,
+		required: false
+	})
+	.add('trailingComma', {
+		type: 'select',
+		question: 'Which trailing comma option would you like to use?',
+		default: 'none',
+		options: [
+			{ value: 'none', label: 'none', hint: 'no trailing commas' },
+			{ value: 'es5', label: 'es5', hint: 'where valid in ES5 (objects, arrays)' },
+			{ value: 'all', label: 'all', hint: 'wherever possible' }
+		],
+		required: false
+	})
+	.add('printWidth', {
+		type: 'number',
+		question: 'What print width would you like to use?',
+		default: 100,
+		required: false
+	})
+	.build();
 
 export default defineAddon({
 	id: 'prettier',
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
-	options: {},
-	run: ({ sv, dependencyVersion, files }) => {
+	options,
+	run: ({ sv, dependencyVersion, files, options }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
 
@@ -42,10 +74,10 @@ export default defineAddon({
 			}
 			if (Object.keys(data).length === 0) {
 				// we'll only set these defaults if there is no pre-existing config
-				data.useTabs = true;
-				data.singleQuote = true;
-				data.trailingComma = 'none';
-				data.printWidth = 100;
+				data.useTabs = options.useTabs;
+				data.singleQuote = options.singleQuote;
+				data.trailingComma = options.trailingComma;
+				data.printWidth = options.printWidth;
 			}
 
 			json.arrayUpsert(data, 'plugins', 'prettier-plugin-svelte');
