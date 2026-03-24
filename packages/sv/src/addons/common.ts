@@ -33,6 +33,9 @@ export function addEslintConfigPrettier(content: string): string {
 
 	if (!isArrayExport && !isDefineConfig) return content;
 
+	type Arguments = Extract<typeof eslintConfig, { type: 'CallExpression' }>['arguments'];
+	type Elements = Extract<typeof eslintConfig, { type: 'ArrayExpression' }>['elements'];
+
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
 
@@ -41,8 +44,7 @@ export function addEslintConfigPrettier(content: string): string {
 	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
 		nodesToInsert.push(sveltePrettierConfig);
 
-	// i dont know the type
-	const isSvelteConfig = (el: js.AstTypes.Expression | js.AstTypes.SpreadElement | null) => {
+	const isSvelteConfig = (el: (Arguments | Elements)[number]) => {
 		const maybeSpread = el?.type === 'SpreadElement' ? el?.argument : el;
 		return (
 			maybeSpread?.type === 'MemberExpression' &&
@@ -54,8 +56,7 @@ export function addEslintConfigPrettier(content: string): string {
 		);
 	};
 
-	// i dont know the type
-	let elements: Array<js.AstTypes.Expression | js.AstTypes.SpreadElement | null> = [];
+	let elements: Arguments | Elements = [];
 	if (isArrayExport) elements = eslintConfig.elements;
 
 	if (isDefineConfig) {
