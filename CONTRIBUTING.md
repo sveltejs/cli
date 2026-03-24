@@ -160,4 +160,13 @@ Here is the command to generate a change set:
 ```sh
 # from root of project
 pnpm changeset
+
+# select package
+# choose the level of change (patch, minor, major)
+# write a summary like:
+#   feat(mdsvex): enable .svx .md extensions by default
+#   fix(vitest): add browser testing to vitest config
+#   chore(cli): update addons dependencies
 ```
+
+- Do not edit `packages/*/CHANGELOG.md` manually.

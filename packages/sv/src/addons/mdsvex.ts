@@ -35,6 +35,7 @@ export default defineAddon({
 				}
 
 				const mdsvexCall = js.functions.createCall({ name: 'mdsvex', args: [] });
+				mdsvexCall.arguments.push(js.object.create({ extensions: ['.svx', '.md'] }));
 				js.array.append(preprocessorArray, mdsvexCall);
 
 				// extensions
@@ -44,6 +45,7 @@ export default defineAddon({
 				});
 				js.array.append(extensionsArray, '.svelte');
 				js.array.append(extensionsArray, '.svx');
+				js.array.append(extensionsArray, '.md');
 			})
 		);
 	}
