@@ -241,8 +241,8 @@ export default defineAddon({
 						? `
 						signInEmail: async (event) => {
 							const formData = await event.request.formData();
-							const email = typeof formData.get('email') === 'string') ? formData.get('email') : '';
-							const password = typeof formData.get('password') === 'string') ? formData.get('password') : '';
+							const email = typeof formData.get('email') === 'string' ? formData.get('email') : '';
+							const password = typeof formData.get('password') === 'string' ? formData.get('password') : '';
 
 							try {
 								await auth.api.signInEmail({
@@ -263,9 +263,9 @@ export default defineAddon({
 						},
 						signUpEmail: async (event) => {
 							const formData = await event.request.formData();
-							const email = typeof formData.get('email') === 'string') ? formData.get('email') : '';
+							const email = typeof formData.get('email') === 'string' ? formData.get('email') : '';
 							const password = typeof formData.get('password') === 'string') ? formData.get('password') : '';
-							const name = typeof formData.get('name') === 'string') ? formData.get('name') : '';
+							const name = typeof formData.get('name') === 'string' ? formData.get('name') : '';
 
 							try {
 								await auth.api.signUpEmail({
@@ -292,8 +292,8 @@ export default defineAddon({
 						signInSocial: async (event) => {
 							const formData = await event.request.formData();
               
-							const provider = typeof formData.get('provider') === 'string') ? formData.get('provider') : 'github';
-							const callbackURL = typeof formData.get('callbackURL') === 'string') ? formData.get('callbackURL') : '/demo/better-auth';
+							const provider = typeof formData.get('provider') === 'string' ? formData.get('provider') : 'github';
+							const callbackURL = typeof formData.get('callbackURL') === 'string' ? formData.get('callbackURL') : '/demo/better-auth';
 
 							const result = await auth.api.signInSocial({
 								body: {
