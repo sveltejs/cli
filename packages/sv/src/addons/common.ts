@@ -42,9 +42,10 @@ export function addEslintConfigPrettier(content: string): string {
 		nodesToInsert.push(sveltePrettierConfig);
 
 	// i dont know the type
-	const isSvelteConfig = (el: any) => {
+	const isSvelteConfig = (el: js.AstTypes.Expression | js.AstTypes.SpreadElement | null) => {
 		const maybeSpread = el?.type === 'SpreadElement' ? el?.argument : el;
 		return (
+			maybeSpread?.type === 'MemberExpression' &&
 			maybeSpread?.object?.type === 'MemberExpression' &&
 			maybeSpread?.object?.property?.type === 'Identifier' &&
 			maybeSpread?.object?.property?.name === 'configs' &&
@@ -54,7 +55,7 @@ export function addEslintConfigPrettier(content: string): string {
 	};
 
 	// i dont know the type
-	let elements: any;
+	let elements: Array<js.AstTypes.Expression | js.AstTypes.SpreadElement | null> = [];
 	if (isArrayExport) elements = eslintConfig.elements;
 
 	if (isDefineConfig) {
