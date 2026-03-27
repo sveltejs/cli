@@ -140,22 +140,20 @@ export default defineAddon({
 
 			// We only add the agent file if it's not already added
 			if (!filesAdded.includes(agentPath)) {
-				sv.file(
-					agentPath,
-					transforms.text((content) => {
-						if (content) {
+				sv.file(agentPath, (content) => {
+					return transforms.text(content, (c) => {
+						if (c) {
 							filesExistingAlready.push(agentPath);
 							return false;
 						}
 						filesAdded.push(agentPath);
 						return agentFile?.contents ?? '';
-					})
-				);
+					});
+				});
 			}
 
-			sv.file(
-				configPath,
-				transforms.json((data) => {
+			sv.file(configPath, (content) => {
+				return transforms.json(content, (data) => {
 					if (schema) {
 						data['$schema'] = schema;
 					}
@@ -172,19 +170,18 @@ export default defineAddon({
 						data[key].svelte =
 							options.setup === 'local' ? getLocalConfig(mcpOptions) : getRemoteConfig(mcpOptions);
 					}
-				})
-			);
+				});
+			});
 
 			if (extraFiles) {
 				for (const extra of extraFiles) {
-					sv.file(
-						extra.path,
-						transforms.json((data) => {
+					sv.file(extra.path, (content) => {
+						return transforms.json(content, (data) => {
 							for (const [key, value] of Object.entries(extra.data)) {
 								data[key] = value;
 							}
-						})
-					);
+						});
+					});
 				}
 			}
 		}

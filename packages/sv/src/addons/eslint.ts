@@ -23,16 +23,14 @@ export default defineAddon({
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 
-		sv.file(
-			files.package,
-			transforms.json((data) => {
+		sv.file(files.package, (content) =>
+			transforms.json(content, (data) => {
 				json.packageScriptsUpsert(data, 'lint', 'eslint .');
 			})
 		);
 
-		sv.file(
-			files.eslintConfig,
-			transforms.script((ast, comments) => {
+		sv.file(files.eslintConfig, (content) => {
+			return transforms.script(content, (ast, comments) => {
 				const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 				js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
 				const gitIgnorePathStatement = js.common.parseStatement(
@@ -135,12 +133,11 @@ export default defineAddon({
 					imports: ['includeIgnoreFile']
 				});
 				js.imports.addDefault(ast, { from: 'node:path', as: 'path' });
-			})
-		);
+			});
+		});
 
-		sv.file(
-			files.vscodeExtensions,
-			transforms.json((data) => {
+		sv.file(files.vscodeExtensions, (content) =>
+			transforms.json(content, (data) => {
 				json.arrayUpsert(data, 'recommendations', 'dbaeumer.vscode-eslint');
 			})
 		);

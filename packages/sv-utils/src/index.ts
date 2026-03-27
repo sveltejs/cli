@@ -29,12 +29,7 @@ export * as json from './tooling/json.ts';
 export * as svelte from './tooling/svelte/index.ts';
 
 // Transforms — sv-utils = what to do to content, sv = where and when to do it.
-export {
-	transforms,
-	isTransform,
-	type TransformFn,
-	type TransformContext
-} from './tooling/transforms.ts';
+export { transforms } from './tooling/transforms.ts';
 
 /**
  * Low-level parsers. Prefer `transforms` for add-on file edits — it picks the
@@ -42,19 +37,17 @@ export {
  *
  * Use `parse` directly when you need error handling around parsing or
  * conditional parser selection at runtime.
- * Then manipulate the `ast` as you want,
- * and finally `generateCode()` to write it back to the file.
  *
  * ```ts
  * import { parse } from '@sveltejs/sv-utils';
  *
- * const { ast, generateCode } = parse.css('body { color: red; }');
- * const { ast, generateCode } = parse.html('<div>Hello, world!</div>');
- * const { ast, generateCode } = parse.json('{ "name": "John", "age": 30 }');
  * const { ast, generateCode } = parse.script('function add(a, b) { return a + b; }');
  * const { ast, generateCode } = parse.svelte('<div>Hello, world!</div>');
- * const { ast, generateCode } = parse.toml('name = "John"');
- * const { ast, generateCode } = parse.yaml('name: John');
+ * const { ast, generateCode } = parse.css('body { color: red; }');
+ * const { data, generateCode } = parse.json('{ "name": "John", "age": 30 }');
+ * const { data, generateCode } = parse.yaml('name: John');
+ * const { data, generateCode } = parse.toml('name = "John"');
+ * const { ast, generateCode } = parse.html('<div>Hello, world!</div>');
  * ```
  */
 export const parse = {

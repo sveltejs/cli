@@ -11,13 +11,12 @@ export default defineAddon({
 		sv.devDependency('vite-plugin-devtools-json', '^1.0.0');
 
 		// add the vite plugin
-		sv.file(
-			files.viteConfig,
-			transforms.script((ast) => {
+		sv.file(files.viteConfig, (content) => {
+			return transforms.script(content, (ast) => {
 				const vitePluginName = 'devtoolsJson';
 				js.imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
 				js.vite.addPlugin(ast, { code: `${vitePluginName}()` });
-			})
-		);
+			});
+		});
 	}
 });

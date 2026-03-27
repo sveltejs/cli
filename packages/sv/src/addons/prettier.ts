@@ -15,10 +15,9 @@ export default defineAddon({
 		sv.devDependency('prettier', '^3.8.1');
 		sv.devDependency('prettier-plugin-svelte', '^3.4.1');
 
-		sv.file(
-			files.prettierignore,
-			transforms.text((content) => {
-				if (content) return false;
+		sv.file(files.prettierignore, (content) => {
+			return transforms.text(content, (c) => {
+				if (c) return false;
 				return dedent`
 					# Package Managers
 					package-lock.json
@@ -30,12 +29,12 @@ export default defineAddon({
 					# Miscellaneous
 					/static/
 				`;
-			})
-		);
+			});
+		});
 
-		sv.file(
-			files.prettierrc,
-			transforms.json(
+		sv.file(files.prettierrc, (content) => {
+			return transforms.json(
+				content,
 				(data) => {
 					if (Object.keys(data).length === 0) {
 						// we'll only set these defaults if there is no pre-existing config
@@ -67,23 +66,21 @@ export default defineAddon({
 						);
 					}
 				}
-			)
-		);
+			);
+		});
 
 		const eslintVersion = dependencyVersion('eslint');
 		const eslintInstalled = hasEslint(eslintVersion);
 
-		sv.file(
-			files.package,
-			transforms.json((data) => {
+		sv.file(files.package, (content) =>
+			transforms.json(content, (data) => {
 				json.packageScriptsUpsert(data, 'lint', 'prettier --check .', { mode: 'prepend' });
 				json.packageScriptsUpsert(data, 'format', 'prettier --write .');
 			})
 		);
 
-		sv.file(
-			files.vscodeExtensions,
-			transforms.json((data) => {
+		sv.file(files.vscodeExtensions, (content) =>
+			transforms.json(content, (data) => {
 				json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
 			})
 		);

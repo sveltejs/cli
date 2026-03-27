@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, isTransform, resolveCommand, type AgentName } from '@sveltejs/sv-utils';
+import { color, resolveCommand, type AgentName } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import {
@@ -175,10 +175,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			try {
 				const exists = fileExists(workspace.cwd, path);
 				let fileContent = exists ? readFile(workspace.cwd, path) : '';
-				// process file — inject workspace context for typed transforms
-				fileContent = isTransform(edit)
-					? edit(fileContent, { language: workspace.language })
-					: edit(fileContent);
+				fileContent = edit(fileContent);
 				// skip writing when the edit returns an empty string (e.g. no content to create)
 				if (!fileContent) return fileContent;
 

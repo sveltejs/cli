@@ -11,19 +11,17 @@ export default defineAddon({
 	run: ({ sv, language, files, kit }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
-		sv.file(
-			files.package,
-			transforms.json((data) => {
+		sv.file(files.package, (content) =>
+			transforms.json(content, (data) => {
 				json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
 				json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
 			})
 		);
 
-		sv.file(
-			files.gitignore,
-			transforms.text((content) => {
-				if (!content) return false;
-				return text.upsert(content, 'test-results', { comment: 'Playwright' });
+		sv.file(files.gitignore, (content) =>
+			transforms.text(content, (c) => {
+				if (!c) return false;
+				return text.upsert(c, 'test-results', { comment: 'Playwright' });
 			})
 		);
 
@@ -31,24 +29,22 @@ export default defineAddon({
 		const testRoute = kit ? '/demo/playwright' : '/';
 
 		if (kit) {
-			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, addToDemoPage('playwright'));
+			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, addToDemoPage('playwright', language));
 
-			sv.file(
-				`${testDir}/+page.svelte`,
-				transforms.text((content) => {
-					if (content) return false;
+			sv.file(`${testDir}/+page.svelte`, (content) => {
+				return transforms.text(content, (c) => {
+					if (c) return false;
 
 					return dedent`
 						<h1>Playwright e2e test demo</h1>
 					`;
-				})
-			);
+				});
+			});
 		}
 
-		sv.file(
-			`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`,
-			transforms.text((content) => {
-				if (content) return false;
+		sv.file(`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`, (content) => {
+			return transforms.text(content, (c) => {
+				if (c) return false;
 
 				return dedent`
 					import { expect, test } from '@playwright/test';
@@ -58,12 +54,11 @@ export default defineAddon({
 						await expect(page.locator('h1')).toBeVisible();
 					});
 				`;
-			})
-		);
+			});
+		});
 
-		sv.file(
-			`playwright.config.${language}`,
-			transforms.script((ast) => {
+		sv.file(`playwright.config.${language}`, (content) => {
+			return transforms.script(content, (ast) => {
 				const defineConfig = js.common.parseExpression('defineConfig({})');
 				const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
 
@@ -86,8 +81,8 @@ export default defineAddon({
 				} else {
 					log.warn('Unexpected playwright config for playwright add-on. Could not update.');
 				}
-			})
-		);
+			});
+		});
 	},
 
 	nextSteps: ({ kit }) => {

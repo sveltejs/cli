@@ -40,9 +40,8 @@ export default defineAddon({
 			sv.devDependency('playwright', '^1.58.2');
 		}
 
-		sv.file(
-			files.package,
-			transforms.json((data) => {
+		sv.file(files.package, (content) =>
+			transforms.json(content, (data) => {
 				json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 				// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
 				json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
@@ -53,25 +52,23 @@ export default defineAddon({
 		const typed = language === 'ts';
 
 		if (unitTesting || componentTesting) {
-			sv.file(
-				`${examplesDir}/greet.${language}`,
-				transforms.text((content) => {
-					if (content) return false;
+			sv.file(`${examplesDir}/greet.${language}`, (content) => {
+				return transforms.text(content, (c) => {
+					if (c) return false;
 
 					return dedent`
 						export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
 							return 'Hello, ' + name + '!';
 						}
 					`;
-				})
-			);
+				});
+			});
 		}
 
 		if (unitTesting) {
-			sv.file(
-				`${examplesDir}/greet.spec.${language}`,
-				transforms.text((content) => {
-					if (content) return false;
+			sv.file(`${examplesDir}/greet.spec.${language}`, (content) => {
+				return transforms.text(content, (c) => {
+					if (c) return false;
 
 					return dedent`
 						import { describe, it, expect } from 'vitest';
@@ -83,15 +80,14 @@ export default defineAddon({
 							});
 						});
 					`;
-				})
-			);
+				});
+			});
 		}
 
 		if (componentTesting) {
-			sv.file(
-				`${examplesDir}/Welcome.svelte`,
-				transforms.text((content) => {
-					if (content) return false;
+			sv.file(`${examplesDir}/Welcome.svelte`, (content) => {
+				return transforms.text(content, (c) => {
+					if (c) return false;
 
 					return dedent`
 						<script>
@@ -103,13 +99,12 @@ export default defineAddon({
 						<h1>{greet(host)}</h1>
 						<p>{greet(guest)}</p>
 					`;
-				})
-			);
+				});
+			});
 
-			sv.file(
-				`${examplesDir}/Welcome.svelte.spec.${language}`,
-				transforms.text((content) => {
-					if (content) return false;
+			sv.file(`${examplesDir}/Welcome.svelte.spec.${language}`, (content) => {
+				return transforms.text(content, (c) => {
+					if (c) return false;
 
 					return dedent`
 						import { page } from 'vitest/browser';
@@ -126,13 +121,12 @@ export default defineAddon({
 							});
 						});
 					`;
-				})
-			);
+				});
+			});
 		}
 
-		sv.file(
-			files.viteConfig,
-			transforms.script((ast) => {
+		sv.file(files.viteConfig, (content) => {
+			return transforms.script(content, (ast) => {
 				const clientObjectExpression = js.object.create({
 					extends: `./${files.viteConfig}`,
 					test: {
@@ -188,8 +182,8 @@ export default defineAddon({
 					// Remove the old import
 					js.imports.remove(ast, { name: importName, from: 'vite', statement });
 				}
-			})
-		);
+			});
+		});
 	},
 
 	nextSteps: ({ language, options }) => {

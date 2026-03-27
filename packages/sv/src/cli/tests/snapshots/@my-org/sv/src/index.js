@@ -17,19 +17,17 @@ export default defineAddon({
 		if (!kit) unsupported('Requires SvelteKit');
 	},
 
-	run: ({ kit, sv, options, cancel }) => {
+	run: ({ kit, sv, options, cancel, language }) => {
 		if (!kit) return cancel('SvelteKit is required');
 
-		sv.file(
-			`src/lib/@my-org/sv/content.txt`,
-			transforms.text(() => {
+		sv.file(`src/lib/@my-org/sv/content.txt`, (content) =>
+			transforms.text(content, () => {
 				return `This is a text file made by the Community Addon Template demo for the add-on: '@my-org/sv'!`;
 			})
 		);
 
-		sv.file(
-			`src/lib/@my-org/sv/HelloComponent.svelte`,
-			transforms.svelte((ast, { language }) => {
+		sv.file(`src/lib/@my-org/sv/HelloComponent.svelte`, (content) => {
+			return transforms.svelte(content, (ast) => {
 				svelte.ensureScript(ast, { language });
 
 				js.imports.addDefault(ast.instance.content, {
@@ -39,12 +37,11 @@ export default defineAddon({
 
 				svelte.addFragment(ast, '<p>{content}</p>');
 				svelte.addFragment(ast, `<h2>Hello ${options.who}!</h2>`);
-			})
-		);
+			});
+		});
 
-		sv.file(
-			kit.routesDirectory + '/+page.svelte',
-			transforms.svelte((ast, { language }) => {
+		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
+			return transforms.svelte(content, (ast) => {
 				svelte.ensureScript(ast, { language });
 
 				js.imports.addDefault(ast.instance.content, {
@@ -53,7 +50,7 @@ export default defineAddon({
 				});
 
 				svelte.addFragment(ast, '<HelloComponent />');
-			})
-		);
+			});
+		});
 	}
 });

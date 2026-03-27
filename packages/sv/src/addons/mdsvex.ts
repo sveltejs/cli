@@ -9,9 +9,8 @@ export default defineAddon({
 	run: ({ sv, files }) => {
 		sv.devDependency('mdsvex', '^0.12.6');
 
-		sv.file(
-			files.svelteConfig,
-			transforms.script((ast) => {
+		sv.file(files.svelteConfig, (content) => {
+			return transforms.script(content, (ast) => {
 				js.imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });
 
 				const { value: exportDefault } = js.exports.createDefault(ast, {
@@ -46,7 +45,7 @@ export default defineAddon({
 				js.array.append(extensionsArray, '.svelte');
 				js.array.append(extensionsArray, '.svx');
 				js.array.append(extensionsArray, '.md');
-			})
-		);
+			});
+		});
 	}
 });
