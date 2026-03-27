@@ -9,8 +9,6 @@ import {
 	fileExists,
 	getPackageJson
 } from '@sveltejs/sv-utils';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const adapters = [

@@ -150,8 +150,8 @@ export default defineAddon({
 			return transforms.text(content, (data) => {
 				if (!data) return false;
 
-				data = text.upsert(c, paraglideOutDir, { comment: 'Paraglide' });
-				data = text.upsert(c, 'project.inlang/cache/');
+				data = text.upsert(data, paraglideOutDir, { comment: 'Paraglide' });
+				data = text.upsert(data, 'project.inlang/cache/');
 
 				return data;
 			});

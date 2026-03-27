@@ -21,7 +21,7 @@ export default defineAddon({
 		sv.file(files.gitignore, (content) =>
 			transforms.text(content, (data) => {
 				if (!data) return false;
-				return text.upsert(c, 'test-results', { comment: 'Playwright' });
+				return text.upsert(data, 'test-results', { comment: 'Playwright' });
 			})
 		);
 

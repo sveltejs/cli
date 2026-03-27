@@ -90,10 +90,10 @@ export default defineAddon({
 		});
 
 		sv.file('.env', (content) =>
-			transforms.text(content, (data) => generateEnvFileContent(c, demoGithub, false))
+			transforms.text(content, (data) => generateEnvFileContent(data, demoGithub, false))
 		);
 		sv.file('.env.example', (content) =>
-			transforms.text(content, (data) => generateEnvFileContent(c, demoGithub, true))
+			transforms.text(content, (data) => generateEnvFileContent(data, demoGithub, true))
 		);
 
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
