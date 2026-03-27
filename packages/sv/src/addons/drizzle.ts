@@ -134,10 +134,10 @@ export default defineAddon({
 			sv.devDependency('@libsql/client', '^0.17.0');
 
 		sv.file('.env', (content) =>
-			transforms.text(content, (c) => generateEnvFileContent(c, options, false))
+			transforms.text(content, (data) => generateEnvFileContent(data, options, false))
 		);
 		sv.file('.env.example', (content) =>
-			transforms.text(content, (c) => generateEnvFileContent(c, options, true))
+			transforms.text(content, (data) => generateEnvFileContent(data, options, true))
 		);
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
@@ -150,10 +150,10 @@ export default defineAddon({
 			if (composeFile === '') throw new Error('unreachable state...');
 
 			sv.file(composeFile, (content) => {
-				return transforms.text(content, (c) => {
+				return transforms.text(content, (data) => {
 					// if the file already exists, don't modify it
 					// (in the future, we could add some tooling for modifying yaml)
-					if (c.length > 0) return false;
+					if (data.length > 0) return false;
 
 					const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
 					const port = PORTS[options.database];
@@ -211,15 +211,15 @@ export default defineAddon({
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
 			sv.file(files.prettierignore, (content) =>
-				transforms.text(content, (c) => text.upsert(c, '/drizzle/'))
+				transforms.text(content, (data) => text.upsert(data, '/drizzle/'))
 			);
 		}
 
 		if (options.database === 'sqlite') {
 			sv.file(files.gitignore, (content) => {
-				return transforms.text(content, (c) => {
-					if (c.length === 0) return false;
-					return text.upsert(c, '*.db', { comment: 'SQLite' });
+				return transforms.text(content, (data) => {
+					if (data.length === 0) return false;
+					return text.upsert(data, '*.db', { comment: 'SQLite' });
 				});
 			});
 		}

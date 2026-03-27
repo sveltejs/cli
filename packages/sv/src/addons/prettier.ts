@@ -16,8 +16,8 @@ export default defineAddon({
 		sv.devDependency('prettier-plugin-svelte', '^3.4.1');
 
 		sv.file(files.prettierignore, (content) => {
-			return transforms.text(content, (c) => {
-				if (c) return false;
+			return transforms.text(content, (data) => {
+				if (data) return false;
 				return dedent`
 					# Package Managers
 					package-lock.json

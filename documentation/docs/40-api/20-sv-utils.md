@@ -100,8 +100,8 @@ Transform a plain text file (.env, .gitignore, etc.). No parser — string in, s
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file('.env', (content) => {
-	return transforms.text(content, (c) => {
-		return c + '\nDATABASE_URL="file:local.db"';
+	return transforms.text(content, (data) => {
+		return data + '\nDATABASE_URL="file:local.db"';
 	});
 });
 ```

@@ -141,8 +141,8 @@ export default defineAddon({
 			// We only add the agent file if it's not already added
 			if (!filesAdded.includes(agentPath)) {
 				sv.file(agentPath, (content) => {
-					return transforms.text(content, (c) => {
-						if (c) {
+					return transforms.text(content, (data) => {
+						if (data) {
 							filesExistingAlready.push(agentPath);
 							return false;
 						}

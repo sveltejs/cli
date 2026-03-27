@@ -90,10 +90,10 @@ export default defineAddon({
 		});
 
 		sv.file('.env', (content) =>
-			transforms.text(content, (c) => generateEnvFileContent(c, demoGithub, false))
+			transforms.text(content, (data) => generateEnvFileContent(c, demoGithub, false))
 		);
 		sv.file('.env.example', (content) =>
-			transforms.text(content, (c) => generateEnvFileContent(c, demoGithub, true))
+			transforms.text(content, (data) => generateEnvFileContent(c, demoGithub, true))
 		);
 
 		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
@@ -184,8 +184,8 @@ export default defineAddon({
 		);
 
 		sv.file(`${kit?.libDirectory}/server/db/auth.schema.${language}`, (content) =>
-			transforms.text(content, (text) => {
-				if (text) return false;
+			transforms.text(content, (data) => {
+				if (data) return false;
 				return dedent`
 					// If you see this file, you have not run the auth:schema script yet, but you should!
 				`;
@@ -286,8 +286,8 @@ export default defineAddon({
 			sv.file(
 				`${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`,
 				(content) => {
-					return transforms.text(content, (c) => {
-						if (c) {
+					return transforms.text(content, (data) => {
+						if (data) {
 							const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`;
 							log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 							return false;
@@ -392,8 +392,8 @@ export default defineAddon({
 			);
 
 			sv.file(`${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`, (content) => {
-				return transforms.text(content, (c) => {
-					if (c) {
+				return transforms.text(content, (data) => {
+					if (data) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -458,8 +458,8 @@ export default defineAddon({
 			});
 
 			sv.file(`${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`, (content) => {
-				return transforms.text(content, (c) => {
-					if (c) {
+				return transforms.text(content, (data) => {
+					if (data) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -493,8 +493,8 @@ export default defineAddon({
 			});
 
 			sv.file(`${kit!.routesDirectory}/demo/better-auth/+page.svelte`, (content) => {
-				return transforms.text(content, (c) => {
-					if (c) {
+				return transforms.text(content, (data) => {
+					if (data) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;

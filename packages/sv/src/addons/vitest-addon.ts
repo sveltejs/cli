@@ -53,8 +53,8 @@ export default defineAddon({
 
 		if (unitTesting || componentTesting) {
 			sv.file(`${examplesDir}/greet.${language}`, (content) => {
-				return transforms.text(content, (c) => {
-					if (c) return false;
+				return transforms.text(content, (data) => {
+					if (data) return false;
 
 					return dedent`
 						export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
@@ -67,8 +67,8 @@ export default defineAddon({
 
 		if (unitTesting) {
 			sv.file(`${examplesDir}/greet.spec.${language}`, (content) => {
-				return transforms.text(content, (c) => {
-					if (c) return false;
+				return transforms.text(content, (data) => {
+					if (data) return false;
 
 					return dedent`
 						import { describe, it, expect } from 'vitest';
@@ -86,8 +86,8 @@ export default defineAddon({
 
 		if (componentTesting) {
 			sv.file(`${examplesDir}/Welcome.svelte`, (content) => {
-				return transforms.text(content, (c) => {
-					if (c) return false;
+				return transforms.text(content, (data) => {
+					if (data) return false;
 
 					return dedent`
 						<script>
@@ -103,8 +103,8 @@ export default defineAddon({
 			});
 
 			sv.file(`${examplesDir}/Welcome.svelte.spec.${language}`, (content) => {
-				return transforms.text(content, (c) => {
-					if (c) return false;
+				return transforms.text(content, (data) => {
+					if (data) return false;
 
 					return dedent`
 						import { page } from 'vitest/browser';

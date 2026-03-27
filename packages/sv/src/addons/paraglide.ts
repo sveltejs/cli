@@ -147,13 +147,13 @@ export default defineAddon({
 		});
 
 		sv.file(files.gitignore, (content) => {
-			return transforms.text(content, (c) => {
-				if (!c) return false;
+			return transforms.text(content, (data) => {
+				if (!data) return false;
 
-				c = text.upsert(c, paraglideOutDir, { comment: 'Paraglide' });
-				c = text.upsert(c, 'project.inlang/cache/');
+				data = text.upsert(c, paraglideOutDir, { comment: 'Paraglide' });
+				data = text.upsert(c, 'project.inlang/cache/');
 
-				return c;
+				return data;
 			});
 		});
 
