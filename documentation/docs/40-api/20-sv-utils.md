@@ -33,6 +33,7 @@ import { transforms, js, svelte, css, json } from '@sveltejs/sv-utils';
 Transform a JavaScript/TypeScript file. The callback receives the AST and comments.
 
 ```js
+// @errors: 2304 7006
 import { transforms, js } from '@sveltejs/sv-utils';
 
 sv.file(files.viteConfig, (content) => {
@@ -48,6 +49,7 @@ sv.file(files.viteConfig, (content) => {
 Transform a Svelte component.
 
 ```js
+// @errors: 2304 7006
 import { transforms, js, svelte } from '@sveltejs/sv-utils';
 
 sv.file(layoutPath, (content) => {
@@ -64,6 +66,7 @@ sv.file(layoutPath, (content) => {
 Transform a CSS file.
 
 ```js
+// @errors: 2304 7006
 import { transforms, css } from '@sveltejs/sv-utils';
 
 sv.file(files.stylesheet, (content) => {
@@ -78,6 +81,7 @@ sv.file(files.stylesheet, (content) => {
 Transform a JSON file. Mutate the `data` object directly.
 
 ```js
+// @errors: 2304 7006
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(files.tsconfig, (content) => {
@@ -97,6 +101,7 @@ Same pattern as `transforms.json`, for YAML and TOML files respectively.
 Transform a plain text file (.env, .gitignore, etc.). No parser — string in, string out.
 
 ```js
+// @errors: 2304 7006
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file('.env', (content) => {
@@ -111,6 +116,7 @@ sv.file('.env', (content) => {
 Return `false` from any transform callback to abort — the original content is returned unchanged.
 
 ```js
+// @errors: 2304 7006
 import { transforms, js } from '@sveltejs/sv-utils';
 
 sv.file(files.eslintConfig, (content) => {
@@ -142,6 +148,7 @@ const result = transforms.script('export default {}', (ast) => {
 Since content flows through explicitly, you can mix transforms and raw edits in a single `sv.file` callback:
 
 ```js
+// @errors: 2304 2552 7006
 sv.file(path, (content) => {
 	content = transforms.script(content, (ast) => {
 		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
@@ -154,6 +161,7 @@ sv.file(path, (content) => {
 Add-ons can also export reusable transform functions:
 
 ```js
+// @errors: 7006
 import { transforms, js, svelte } from '@sveltejs/sv-utils';
 
 // reusable — export from your package
@@ -170,6 +178,7 @@ export function addFooImport(content, language) {
 For cases where transforms don't fit (e.g., conditional parsing, error handling around the parser), the `parse` namespace is still available:
 
 ```js
+// @noErrors
 import { parse } from '@sveltejs/sv-utils';
 
 const { ast, generateCode } = parse.script(content);

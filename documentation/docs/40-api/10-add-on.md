@@ -22,6 +22,7 @@ Typically, an add-on looks like this:
 _hover keywords in the code to have some more context_
 
 ```js
+// @errors: 2304 7006 2552
 import { transforms, svelte } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
