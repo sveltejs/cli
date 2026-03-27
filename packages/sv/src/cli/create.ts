@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand } from '@sveltejs/sv-utils';
+import { color, resolveCommand, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
 import type { LoadedAddon, OptionValues } from '../core/config.ts';
-import { commonFilePaths, formatFiles, getPackageJson } from '../core/files.ts';
+import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
