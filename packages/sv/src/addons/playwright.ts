@@ -25,7 +25,7 @@ export default defineAddon({
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
-		const testDir = isKit ? `${directory.routes}/demo/playwright` : 'src';
+		const testDir = isKit ? `${directory.routes}/demo/playwright` : directory.src;
 		const testRoute = isKit ? '/demo/playwright' : '/';
 
 		if (isKit) {

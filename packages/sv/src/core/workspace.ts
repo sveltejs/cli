@@ -40,7 +40,12 @@ export type Workspace = {
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 	};
 	isKit: boolean;
-	directory: { lib: string; routes: string };
+	directory: {
+		src: string;
+		lib: string;
+		/** Only available in SvelteKit projects. Check `isKit` */
+		routes?: string;
+	};
 	/** The package manager used to install dependencies */
 	packageManager: AgentName;
 };
@@ -110,8 +115,8 @@ export async function createWorkspace({
 	const directory = override?.directory
 		? override.directory
 		: isKit
-			? parseKitOptions(resolvedCwd, svelteConfig)
-			: { lib: 'src/lib', routes: 'src' };
+			? { src: 'src', ...parseKitOptions(resolvedCwd, svelteConfig) }
+			: { src: 'src', lib: 'src/lib' };
 
 	const stylesheet: `${string}/layout.css` | 'src/app.css' = isKit
 		? `${directory.routes}/layout.css`

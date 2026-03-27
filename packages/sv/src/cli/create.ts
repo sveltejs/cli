@@ -437,6 +437,7 @@ export async function createVirtualWorkspace({
 	if (template === 'minimal' || template === 'demo' || template === 'library') {
 		override.isKit = true;
 		override.directory = {
+			src: 'src',
 			lib: 'src/lib',
 			routes: 'src/routes'
 		};

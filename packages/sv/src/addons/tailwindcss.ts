@@ -82,7 +82,7 @@ export default defineAddon({
 		});
 
 		if (!isKit) {
-			const appSvelte = 'src/App.svelte';
+			const appSvelte = `${directory.src}/App.svelte`;
 			const stylesheetRelative = file.getRelative({ from: appSvelte, to: file.stylesheet });
 			sv.file(appSvelte, (content) => {
 				const { ast, generateCode } = parse.svelte(content);
