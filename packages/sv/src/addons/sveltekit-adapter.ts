@@ -5,10 +5,13 @@ import {
 	json,
 	sanitizeName,
 	text,
-	transforms
+	transforms,
+	fileExists,
+	getPackageJson
 } from '@sveltejs/sv-utils';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { fileExists, getPackageJson } from '../core/files.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
