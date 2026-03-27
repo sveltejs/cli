@@ -176,7 +176,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${directory.routes}/+layout.svelte`, (content) => {
+		sv.file(`${directory.kitRoutes}/+layout.svelte`, (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast, { language });
 			js.imports.addNamed(ast.instance.content, {
@@ -196,12 +196,12 @@ export default defineAddon({
 		});
 
 		if (options.demo) {
-			sv.file(`${directory.routes}/demo/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'paraglide', language);
 			});
 
 			// add usage example
-			sv.file(`${directory.routes}/demo/paraglide/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/paraglide/+page.svelte`, (content) => {
 				const { ast, generateCode } = parse.svelte(content);
 				svelte.ensureScript(ast, { language });
 

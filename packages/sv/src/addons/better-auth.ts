@@ -274,13 +274,13 @@ export default defineAddon({
 		});
 
 		if (hasDemo) {
-			sv.file(`${directory.routes}/demo/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'better-auth', language);
 			});
 
-			sv.file(`${directory.routes}/demo/better-auth/login/+page.server.${language}`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`, (content) => {
 				if (content) {
-					const filePath = `${directory.routes}/demo/better-auth/login/+page.server.${language}`;
+					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -381,9 +381,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.routes}/demo/better-auth/login/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.routes}/demo/better-auth/login/+page.svelte`;
+					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -445,9 +445,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.routes}/demo/better-auth/+page.server.${language}`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`, (content) => {
 				if (content) {
-					const filePath = `${directory.routes}/demo/better-auth/+page.server.${language}`;
+					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}
@@ -478,9 +478,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.routes}/demo/better-auth/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.routes}/demo/better-auth/+page.svelte`;
+					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return content;
 				}

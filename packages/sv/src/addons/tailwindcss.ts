@@ -91,7 +91,7 @@ export default defineAddon({
 				return generateCode();
 			});
 		} else {
-			const layoutSvelte = `${directory.routes}/+layout.svelte`;
+			const layoutSvelte = `${directory.kitRoutes}/+layout.svelte`;
 			const stylesheetRelative = file.getRelative({ from: layoutSvelte, to: file.stylesheet });
 			sv.file(layoutSvelte, (content) => {
 				const { ast, generateCode } = parse.svelte(content);

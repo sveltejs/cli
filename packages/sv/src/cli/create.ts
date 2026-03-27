@@ -439,7 +439,7 @@ export async function createVirtualWorkspace({
 		override.directory = {
 			src: 'src',
 			lib: 'src/lib',
-			routes: 'src/routes'
+			kitRoutes: 'src/routes'
 		};
 	}
 

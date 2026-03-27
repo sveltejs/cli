@@ -25,11 +25,11 @@ export default defineAddon({
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
-		const testDir = isKit ? `${directory.routes}/demo/playwright` : directory.src;
+		const testDir = isKit ? `${directory.kitRoutes}/demo/playwright` : directory.src;
 		const testRoute = isKit ? '/demo/playwright' : '/';
 
 		if (isKit) {
-			sv.file(`${directory.routes}/demo/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'playwright', language);
 			});
 

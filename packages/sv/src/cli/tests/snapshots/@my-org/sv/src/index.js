@@ -34,7 +34,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(directory.routes + '/+page.svelte', (content) => {
+		sv.file(directory.kitRoutes + '/+page.svelte', (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast, { language });
 

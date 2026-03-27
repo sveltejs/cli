@@ -43,8 +43,8 @@ export type Workspace = {
 	directory: {
 		src: string;
 		lib: string;
-		/** Only available in SvelteKit projects. Check `isKit` */
-		routes?: string;
+		/** SvelteKit routes directory, taking `kit.files.routes` automatically. Falls back to `src/routes` in non-Kit projects */
+		kitRoutes: string;
 	};
 	/** The package manager used to install dependencies */
 	packageManager: AgentName;
@@ -116,10 +116,10 @@ export async function createWorkspace({
 		? override.directory
 		: isKit
 			? { src: 'src', ...parseKitOptions(resolvedCwd, svelteConfig) }
-			: { src: 'src', lib: 'src/lib' };
+			: { src: 'src', lib: 'src/lib', kitRoutes: 'src/routes' };
 
 	const stylesheet: `${string}/layout.css` | 'src/app.css' = isKit
-		? `${directory.routes}/layout.css`
+		? `${directory.kitRoutes}/layout.css`
 		: 'src/app.css';
 
 	return {
@@ -225,6 +225,6 @@ function parseKitOptions(cwd: string, svelteConfigPath: string) {
 
 	return {
 		lib: (lib.value as string) || 'src/lib',
-		routes: (routes.value as string) || 'src/routes'
+		kitRoutes: (routes.value as string) || 'src/routes'
 	};
 }
