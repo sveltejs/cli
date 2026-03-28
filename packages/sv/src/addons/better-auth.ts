@@ -264,7 +264,7 @@ export default defineAddon({
 						signUpEmail: async (event) => {
 							const formData = await event.request.formData();
 							const email = typeof formData.get('email') === 'string' ? formData.get('email') : '';
-							const password = typeof formData.get('password') === 'string') ? formData.get('password') : '';
+							const password = typeof formData.get('password') === 'string' ? formData.get('password') : '';
 							const name = typeof formData.get('name') === 'string' ? formData.get('name') : '';
 
 							try {
