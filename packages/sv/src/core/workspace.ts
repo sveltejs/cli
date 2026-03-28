@@ -49,8 +49,9 @@ export type Workspace = {
 	isKit: boolean;
 	directory: {
 		src: string;
+		/** In SvelteKit taking `kit.files.lib` automatically. Falls back to `src/lib` in non-Kit projects */
 		lib: string;
-		/** SvelteKit routes directory, taking `kit.files.routes` automatically. Falls back to `src/routes` in non-Kit projects */
+		/** In SvelteKit taking `kit.files.routes` automatically. Falls back to `src/routes` in non-Kit projects */
 		kitRoutes: string;
 	};
 	/** The package manager used to install dependencies */
