@@ -161,3 +161,17 @@ Here is the command to generate a change set:
 # from root of project
 pnpm changeset
 ```
+
+The changeset message should follow this format: `type(scope): description`
+
+- `feat(scope)`: new feature - use `minor` version bump
+- `fix(scope)`: bug fix - use `patch` version bump
+- `chore(scope)`: maintenance - use `patch` version bump
+
+Examples:
+
+```
+feat(vitest): better real world vitest examples     # minor
+fix(sv): stricter logic for rune mode               # patch
+chore(sv): bump ESLint to v10                       # patch
+```
