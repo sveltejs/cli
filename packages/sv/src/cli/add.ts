@@ -20,7 +20,7 @@ import {
 } from '../core/config.ts';
 import { applyAddons, setupAddons } from '../core/engine.ts';
 import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
-import { formatFiles } from '../core/files.ts';
+import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
