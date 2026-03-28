@@ -1,5 +1,23 @@
 # sv
 
+## 0.13.0
+### Minor Changes
+
+
+- feat(drizzle): add cloudflare `D1` database ([#976](https://github.com/sveltejs/cli/pull/976))
+
+
+### Patch Changes
+
+
+- fix(sv): stricter logic for rune mode ([#991](https://github.com/sveltejs/cli/pull/991))
+
+
+- feat(mdsvex): enable .svx .md extensions by default in config ([#998](https://github.com/sveltejs/cli/pull/998))
+
+
+- chore(sv): bump ESLint to v10 and update related dependencies ([#989](https://github.com/sveltejs/cli/pull/989))
+
 ## 0.12.8
 ### Patch Changes
 
