@@ -14,8 +14,8 @@ export const load: PageServerLoad = (event) => {
 export const actions: Actions = {
 	signInEmail: async (event) => {
 		const formData = await event.request.formData();
-		const email = (formData.get('email') ?? '') as string;
-		const password = (formData.get('password') ?? '') as string;
+		const email = typeof formData.get('email') === 'string' ? formData.get('email') : '';
+		const password = typeof formData.get('password') === 'string' ? formData.get('password') : '';
 
 		try {
 			await auth.api.signInEmail({
@@ -36,9 +36,9 @@ export const actions: Actions = {
 	},
 	signUpEmail: async (event) => {
 		const formData = await event.request.formData();
-		const email = (formData.get('email') ?? '') as string;
-		const password = (formData.get('password') ?? '') as string;
-		const name = (formData.get('name') ?? '') as string;
+		const email = typeof formData.get('email') === 'string' ? formData.get('email') : '';
+		const password = typeof formData.get('password') === 'string' ? formData.get('password') : '';
+		const name = typeof formData.get('name') === 'string' ? formData.get('name') : '';
 
 		try {
 			await auth.api.signUpEmail({
@@ -60,8 +60,9 @@ export const actions: Actions = {
 	},
 	signInSocial: async (event) => {
 		const formData = await event.request.formData();
-		const provider = (formData.get('provider') ?? 'github') as string;
-		const callbackURL = (formData.get('callbackURL') ?? '/demo/better-auth') as string;
+         
+		const provider = typeof formData.get('provider') === 'string' ? formData.get('provider') : 'github';
+		const callbackURL = typeof formData.get('callbackURL') === 'string' ? formData.get('callbackURL') : '/demo/better-auth';
 
 		const result = await auth.api.signInSocial({
 			body: {
