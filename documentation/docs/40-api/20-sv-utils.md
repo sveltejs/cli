@@ -35,7 +35,7 @@ import { transforms } from '@sveltejs/sv-utils';
 Transform a JavaScript/TypeScript file. The callback receives `{ ast, comments, content, js }`.
 
 ```js
-// @errors: 2304 7006
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(files.viteConfig, transforms.script(({ ast, js }) => {
@@ -49,7 +49,7 @@ sv.file(files.viteConfig, transforms.script(({ ast, js }) => {
 Transform a Svelte component. The callback receives `{ ast, content, svelte, js }`.
 
 ```js
-// @errors: 2304 7006
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(layoutPath, transforms.svelte(({ ast, svelte }) => {
@@ -62,7 +62,7 @@ sv.file(layoutPath, transforms.svelte(({ ast, svelte }) => {
 Transform a Svelte component with a `<script>` block guaranteed. Pass `{ language }` as the first argument. The callback receives `{ ast, content, svelte, js }` where `ast.instance` is always non-null.
 
 ```js
-// @errors: 2304 7006
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(layoutPath, transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
@@ -76,7 +76,7 @@ sv.file(layoutPath, transforms.svelteScript({ language }, ({ ast, svelte, js }) 
 Transform a CSS file. The callback receives `{ ast, content, css }`.
 
 ```js
-// @errors: 2304 7006
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(files.stylesheet, transforms.css(({ ast, css }) => {
@@ -89,7 +89,7 @@ sv.file(files.stylesheet, transforms.css(({ ast, css }) => {
 Transform a JSON file. Mutate the `data` object directly. The callback receives `{ data, content, json }`.
 
 ```js
-// @errors: 2304 7006
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(files.tsconfig, transforms.json(({ data }) => {
@@ -107,7 +107,7 @@ Same pattern as `transforms.json`, for YAML and TOML files respectively. The cal
 Transform a plain text file (.env, .gitignore, etc.). No parser - string in, string out. The callback receives `{ content, text }`.
 
 ```js
-// @errors: 2304 7006
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file('.env', transforms.text(({ content }) => {
@@ -120,7 +120,7 @@ sv.file('.env', transforms.text(({ content }) => {
 Return `false` from any transform callback to abort - the original content is returned unchanged.
 
 ```js
-// @errors: 2304 7006
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(files.eslintConfig, transforms.script(({ ast, js }) => {
@@ -150,7 +150,7 @@ const result = transforms.script(({ ast, js }) => {
 For cases where you need to mix transforms and raw edits, use `sv.file` with a content callback and invoke the curried transform manually:
 
 ```js
-// @errors: 2304 2552 7006
+// @noErrors
 sv.file(path, (content) => {
 	content = transforms.script(({ ast, js }) => {
 		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });

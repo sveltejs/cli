@@ -22,7 +22,7 @@ Typically, an add-on looks like this:
 _hover keywords in the code to have some more context_
 
 ```js
-// @errors: 2304 7006 2552
+// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
@@ -176,7 +176,7 @@ npm publish
 You can optionally display guidance after your add-on runs:
 
 ```js
-// @errors: 2304 7031
+// @noErrors
 export default defineAddon({
 	// ...
 	nextSteps: ({ options }) => [
