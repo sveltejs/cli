@@ -28,14 +28,30 @@ export function addEslintConfigPrettier(content: string): string {
 	const defaultExport = js.exports.createDefault(ast, { fallback: fallbackConfig });
 	const eslintConfig = defaultExport.value;
 
-	const isDefineConfig = eslintConfig.type === 'CallExpression'; // export default defineConfig()
-	const isArray = eslintConfig.type === 'ArrayExpression'; // export default []
-
-	if (!isArray && !isDefineConfig) return content;
-
 	type Elements =
 		| Extract<typeof eslintConfig, { type: 'CallExpression' }>['arguments']
 		| Extract<typeof eslintConfig, { type: 'ArrayExpression' }>['elements'];
+
+	let elements: Elements = [];
+
+	if (eslintConfig.type === 'ArrayExpression') {
+		// export default []
+		elements = eslintConfig.elements;
+	} else if (eslintConfig.type === 'CallExpression') {
+		if (
+			eslintConfig.arguments.length === 1 &&
+			eslintConfig.arguments[0].type === 'ArrayExpression'
+		) {
+			// export default defineConfig([...])
+			elements = eslintConfig.arguments[0].elements;
+		} else {
+			// export default defineConfig({}, {})
+			elements = eslintConfig.arguments;
+		}
+	} else {
+		// fallback: Not an array or a function call
+		return content;
+	}
 
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
@@ -44,22 +60,6 @@ export function addEslintConfigPrettier(content: string): string {
 	if (!js.common.contains(eslintConfig, prettier)) nodesToInsert.push(prettier);
 	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
 		nodesToInsert.push(sveltePrettierConfig);
-
-	let elements: Elements = [];
-	if (isArray) elements = eslintConfig.elements;
-
-	if (isDefineConfig) {
-		if (
-			eslintConfig.arguments.length === 1 &&
-			eslintConfig.arguments[0].type === 'ArrayExpression'
-		) {
-			// javascript - defineConfig([...])
-			elements = eslintConfig.arguments[0].elements;
-		} else {
-			// typescript - defineConfig(...)
-			elements = eslintConfig.arguments;
-		}
-	}
 
 	const isSvelteConfig = (maybeSpread: Elements[number]) => {
 		const el =
