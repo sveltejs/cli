@@ -23,7 +23,7 @@ export default defineAddon({
 	homepage: 'https://vitest.dev',
 	options,
 
-	run: ({ sv, files, language, kit, options, dependencyVersion }) => {
+	run: ({ sv, file, language, directory, options, dependencyVersion }) => {
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
@@ -41,7 +41,7 @@ export default defineAddon({
 		}
 
 		sv.file(
-			files.package,
+			file.package,
 			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 				// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
@@ -51,7 +51,7 @@ export default defineAddon({
 			})
 		);
 
-		const examplesDir = (kit ? kit.libDirectory : 'src/lib') + '/vitest-examples';
+		const examplesDir = `${directory.lib}/vitest-examples`;
 		const typed = language === 'ts';
 
 		if (unitTesting || componentTesting) {
@@ -133,10 +133,10 @@ export default defineAddon({
 		}
 
 		sv.file(
-			files.viteConfig,
+			file.viteConfig,
 			transforms.script(({ ast, js }) => {
 				const clientObjectExpression = js.object.create({
-					extends: `./${files.viteConfig}`,
+					extends: `./${file.viteConfig}`,
 					test: {
 						name: 'client',
 						browser: {
@@ -150,7 +150,7 @@ export default defineAddon({
 				});
 
 				const serverObjectExpression = js.object.create({
-					extends: `./${files.viteConfig}`,
+					extends: `./${file.viteConfig}`,
 					test: {
 						name: 'server',
 						environment: 'node',

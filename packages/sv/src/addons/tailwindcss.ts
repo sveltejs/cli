@@ -30,7 +30,7 @@ export default defineAddon({
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
-	run: ({ sv, options, files, kit, dependencyVersion, language }) => {
+	run: ({ sv, options, file, isKit, directory, dependencyVersion, language }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('tailwindcss', '^4.1.18');
@@ -47,7 +47,7 @@ export default defineAddon({
 
 		// add the vite plugin
 		sv.file(
-			files.viteConfig,
+			file.viteConfig,
 			transforms.script(({ ast, js }) => {
 				const vitePluginName = 'tailwindcss';
 				js.imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
@@ -56,7 +56,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			files.stylesheet,
+			file.stylesheet,
 			transforms.css(({ ast, css }) => {
 				// since we are prepending all the `AtRule` let's add them in reverse order,
 				// so they appear in the expected order in the final file
@@ -79,9 +79,9 @@ export default defineAddon({
 			})
 		);
 
-		if (!kit) {
-			const appSvelte = 'src/App.svelte';
-			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
+		if (!isKit) {
+			const appSvelte = `${directory.src}/App.svelte`;
+			const stylesheetRelative = file.getRelative({ from: appSvelte, to: file.stylesheet });
 			sv.file(
 				appSvelte,
 				transforms.svelte(({ ast, js }) => {
@@ -90,8 +90,8 @@ export default defineAddon({
 				})
 			);
 		} else {
-			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
-			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
+			const layoutSvelte = `${directory.kitRoutes}/+layout.svelte`;
+			const stylesheetRelative = file.getRelative({ from: layoutSvelte, to: file.stylesheet });
 			sv.file(
 				layoutSvelte,
 				transforms.svelte(({ ast, js }) => {
@@ -110,7 +110,7 @@ export default defineAddon({
 		}
 
 		sv.file(
-			files.vscodeSettings,
+			file.vscodeSettings,
 			transforms.json(({ data }) => {
 				data['files.associations'] ??= {};
 				data['files.associations']['*.css'] = 'tailwindcss';
@@ -118,7 +118,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			files.vscodeExtensions,
+			file.vscodeExtensions,
 			transforms.json(({ data, json }) => {
 				json.arrayUpsert(data, 'recommendations', 'bradlc.vscode-tailwindcss');
 			})
@@ -126,10 +126,10 @@ export default defineAddon({
 
 		if (prettierInstalled) {
 			sv.file(
-				files.prettierrc,
+				file.prettierrc,
 				transforms.json(({ data, json }) => {
 					json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
-					data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
+					data.tailwindStylesheet ??= file.getRelative({ to: file.stylesheet });
 				})
 			);
 		}

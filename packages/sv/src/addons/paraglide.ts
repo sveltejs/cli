@@ -50,19 +50,17 @@ export default defineAddon({
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, language, kit }) => {
-		if (!kit) throw new Error('SvelteKit is required');
-
-		const paraglideOutDir = 'src/lib/paraglide';
+	run: ({ sv, options, file, language, directory }) => {
+		const paraglideOutDir = `${directory.lib}/paraglide`;
 
 		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
 
 		// add the vite plugin
 		sv.file(
-			files.viteConfig,
+			file.viteConfig,
 			transforms.script(({ ast, js }) => {
 				const vitePluginName = 'paraglideVitePlugin';
 				js.imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
@@ -163,7 +161,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			files.gitignore,
+			file.gitignore,
 			transforms.text(({ content }) => {
 				if (!content) return false;
 
@@ -191,7 +189,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			`${kit.routesDirectory}/+layout.svelte`,
+			`${directory.kitRoutes}/+layout.svelte`,
 			transforms.svelte(({ ast, js }) => {
 				svelte.ensureScript(ast, { language });
 				js.imports.addNamed(ast.instance!.content, {
@@ -211,11 +209,11 @@ export default defineAddon({
 		);
 
 		if (options.demo) {
-			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, addToDemoPage('paraglide', language));
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('paraglide', language));
 
 			// add usage example
 			sv.file(
-				`${kit.routesDirectory}/demo/paraglide/+page.svelte`,
+				`${directory.kitRoutes}/demo/paraglide/+page.svelte`,
 				transforms.svelte(({ ast, js }) => {
 					svelte.ensureScript(ast, { language });
 

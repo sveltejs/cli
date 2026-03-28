@@ -50,7 +50,7 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 			/** Why is this addon not supported?
 			 *
 			 * @example
-			 * if (!kit) unsupported('Requires SvelteKit');
+			 * if (!isKit) unsupported('Requires SvelteKit');
 			 */
 			unsupported: (reason: string) => void;
 

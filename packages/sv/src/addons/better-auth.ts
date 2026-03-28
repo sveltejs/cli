@@ -33,16 +33,14 @@ export default defineAddon({
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
 	options,
-	setup: ({ kit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
 
 		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, files }) => {
-		if (!kit) throw new Error('SvelteKit is required');
-
+	run: ({ sv, language, options, directory, dependencyVersion, file }) => {
 		const demoPassword = options.demo.includes('password');
 		const demoGithub = options.demo.includes('github');
 		const hasDemo = demoPassword || demoGithub;
@@ -98,7 +96,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			`${kit?.libDirectory}/server/auth.${language}`,
+			`${directory.lib}/server/auth.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
 				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
@@ -175,11 +173,11 @@ export default defineAddon({
 			})
 		);
 
-		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
-		const authSchemaPath = `${kit?.libDirectory}/server/db/auth.schema.${language}`;
+		const authConfigPath = `${directory.lib}/server/auth.${language}`;
+		const authSchemaPath = `${directory.lib}/server/db/auth.schema.${language}`;
 
 		sv.file(
-			files.package,
+			file.package,
 			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(
 					data,
@@ -190,7 +188,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			`${kit?.libDirectory}/server/db/auth.schema.${language}`,
+			`${directory.lib}/server/db/auth.schema.${language}`,
 			transforms.text(({ content }) => {
 				if (content) return false;
 				return dedent`
@@ -200,7 +198,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			`${kit?.libDirectory}/server/db/schema.${language}`,
+			`${directory.lib}/server/db/schema.${language}`,
 			transforms.script(({ ast, js }) => {
 				js.exports.addNamespace(ast, { from: './auth.schema' });
 			})
@@ -294,13 +292,13 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
-			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, addToDemoPage('better-auth', language));
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
 
 			sv.file(
-				`${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`,
+				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
 				transforms.text(({ content }) => {
 					if (content) {
-						const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`;
+						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
 					}
@@ -403,10 +401,10 @@ export default defineAddon({
 			);
 
 			sv.file(
-				`${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`,
+				`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`,
 				transforms.text(({ content }) => {
 					if (content) {
-						const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`;
+						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
 					}
@@ -470,10 +468,10 @@ export default defineAddon({
 			);
 
 			sv.file(
-				`${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`,
+				`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`,
 				transforms.text(({ content }) => {
 					if (content) {
-						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`;
+						const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
 					}
@@ -506,10 +504,10 @@ export default defineAddon({
 			);
 
 			sv.file(
-				`${kit!.routesDirectory}/demo/better-auth/+page.svelte`,
+				`${directory.kitRoutes}/demo/better-auth/+page.svelte`,
 				transforms.text(({ content }) => {
 					if (content) {
-						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.svelte`;
+						const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
 					}

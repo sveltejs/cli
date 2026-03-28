@@ -43,15 +43,15 @@ export default defineAddon({
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
 	options,
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, cwd, language }) => {
+	run: ({ sv, options, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
 		sv.file(
-			files.package,
+			file.package,
 			transforms.json(({ data }) => {
 				const devDeps = data['devDependencies'];
 
@@ -75,7 +75,7 @@ export default defineAddon({
 		sv.devDependency(adapter.package, adapter.version);
 
 		sv.file(
-			files.svelteConfig,
+			file.svelteConfig,
 			transforms.script(({ ast, comments, js }) => {
 				// finds any existing adapter's import declaration
 				const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -186,7 +186,7 @@ export default defineAddon({
 
 			if (typeChecked) {
 				sv.file(
-					files.gitignore,
+					file.gitignore,
 					transforms.text(({ content }) => {
 						if (content.length === 0) return false;
 						return text.upsert(content, '/worker-configuration.d.ts', {
@@ -197,7 +197,7 @@ export default defineAddon({
 
 				// Setup wrangler types command
 				sv.file(
-					files.package,
+					file.package,
 					transforms.json(({ data, json }) => {
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 					})

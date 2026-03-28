@@ -8,7 +8,7 @@ export default defineAddon({
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
-	run: ({ sv, dependencyVersion, files }) => {
+	run: ({ sv, dependencyVersion, file }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
 
@@ -16,7 +16,7 @@ export default defineAddon({
 		sv.devDependency('prettier-plugin-svelte', '^3.4.1');
 
 		sv.file(
-			files.prettierignore,
+			file.prettierignore,
 			transforms.text(({ content }) => {
 				if (content) return false;
 				return dedent`
@@ -34,7 +34,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			files.prettierrc,
+			file.prettierrc,
 			transforms.json(
 				({ data, json }) => {
 					if (Object.keys(data).length === 0) {
@@ -49,7 +49,7 @@ export default defineAddon({
 
 					if (tailwindcssInstalled) {
 						json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
-						data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
+						data.tailwindStylesheet ??= file.getRelative({ to: file.stylesheet });
 					}
 
 					data.overrides ??= [];
@@ -74,7 +74,7 @@ export default defineAddon({
 		const eslintInstalled = hasEslint(eslintVersion);
 
 		sv.file(
-			files.package,
+			file.package,
 			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(data, 'lint', 'prettier --check .', { mode: 'prepend' });
 				json.packageScriptsUpsert(data, 'format', 'prettier --write .');
@@ -82,7 +82,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			files.vscodeExtensions,
+			file.vscodeExtensions,
 			transforms.json(({ data, json }) => {
 				json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
 			})
@@ -98,7 +98,7 @@ export default defineAddon({
 
 		if (eslintInstalled) {
 			sv.devDependency('eslint-config-prettier', '^10.1.8');
-			sv.file(files.eslintConfig, addEslintConfigPrettier);
+			sv.file(file.eslintConfig, addEslintConfigPrettier);
 		}
 	}
 });
