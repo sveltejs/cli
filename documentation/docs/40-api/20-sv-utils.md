@@ -52,8 +52,20 @@ Transform a Svelte component. The callback receives `{ ast, content, svelte, js 
 // @errors: 2304 7006
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(layoutPath, transforms.svelte(({ ast, svelte, js }) => {
-	svelte.ensureScript(ast, { language });
+sv.file(layoutPath, transforms.svelte(({ ast, svelte }) => {
+	svelte.addFragment(ast, '<Foo />');
+}));
+```
+
+### `transforms.svelteScript`
+
+Transform a Svelte component with a `<script>` block guaranteed. Pass `{ language }` as the first argument. The callback receives `{ ast, content, svelte, js }` where `ast.instance` is always non-null.
+
+```js
+// @errors: 2304 7006
+import { transforms } from '@sveltejs/sv-utils';
+
+sv.file(layoutPath, transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 	js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
 	svelte.addFragment(ast, '<Foo />');
 }));
