@@ -23,7 +23,7 @@ _hover keywords in the code to have some more context_
 
 ```js
 // @errors: 2304 7006 2552
-import { transforms, svelte } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
 // Define options that will be prompted to the user (or passed as arguments)
@@ -52,17 +52,15 @@ export default defineAddon({
 		if (!isKit) return cancel('SvelteKit is required');
 
 		// Add "Hello [who]!" to the root page
-		sv.file(directory.routes + '/+page.svelte', (content) => {
-			return transforms.svelte(content, (ast) => {
-				svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
-			});
-		});
+		sv.file(directory.routes + '/+page.svelte', transforms.svelte(({ ast, svelte }) => {
+			svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
+		}));
 	}
 });
 ```
 
-> `sv` owns the file system — `sv.file()` resolves the path, reads the file, applies the edit function, and writes the result.
-> `@sveltejs/sv-utils` owns the content — `transforms.svelte()` handles parsing, gives you the AST, and serializes back. See [sv-utils](/docs/cli/sv-utils) for the full API.
+> `sv` owns the file system - `sv.file()` resolves the path, reads the file, applies the edit function, and writes the result.
+> `@sveltejs/sv-utils` owns the content - `transforms.svelte()` returns a curried function that handles parsing, gives you the AST and utils, and serializes back. See [sv-utils](/docs/cli/sv-utils) for the full API.
 
 ## Development with `file:` protocol
 

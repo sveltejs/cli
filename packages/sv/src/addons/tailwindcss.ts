@@ -1,4 +1,4 @@
-import { css, js, transforms, svelte, json } from '@sveltejs/sv-utils';
+import { svelte, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const plugins = [
@@ -46,16 +46,18 @@ export default defineAddon({
 		}
 
 		// add the vite plugin
-		sv.file(files.viteConfig, (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			files.viteConfig,
+			transforms.script(({ ast, js }) => {
 				const vitePluginName = 'tailwindcss';
 				js.imports.addDefault(ast, { as: vitePluginName, from: '@tailwindcss/vite' });
 				js.vite.addPlugin(ast, { code: `${vitePluginName}()`, mode: 'prepend' });
-			});
-		});
+			})
+		);
 
-		sv.file(files.stylesheet, (content) => {
-			return transforms.css(content, (ast) => {
+		sv.file(
+			files.stylesheet,
+			transforms.css(({ ast, css }) => {
 				// since we are prepending all the `AtRule` let's add them in reverse order,
 				// so they appear in the expected order in the final file
 
@@ -74,25 +76,27 @@ export default defineAddon({
 					params: `'tailwindcss'`,
 					append: false
 				});
-			});
-		});
+			})
+		);
 
 		if (!kit) {
 			const appSvelte = 'src/App.svelte';
 			const stylesheetRelative = files.getRelative({ from: appSvelte, to: files.stylesheet });
-			sv.file(appSvelte, (content) =>
-				transforms.svelte(content, (ast) => {
+			sv.file(
+				appSvelte,
+				transforms.svelte(({ ast, js }) => {
 					svelte.ensureScript(ast, { language });
-					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
+					js.imports.addEmpty(ast.instance!.content, { from: stylesheetRelative });
 				})
 			);
 		} else {
 			const layoutSvelte = `${kit?.routesDirectory}/+layout.svelte`;
 			const stylesheetRelative = files.getRelative({ from: layoutSvelte, to: files.stylesheet });
-			sv.file(layoutSvelte, (content) => {
-				return transforms.svelte(content, (ast) => {
+			sv.file(
+				layoutSvelte,
+				transforms.svelte(({ ast, js }) => {
 					svelte.ensureScript(ast, { language });
-					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
+					js.imports.addEmpty(ast.instance!.content, { from: stylesheetRelative });
 
 					if (ast.fragment.nodes.length === 0) {
 						const svelteVersion = dependencyVersion('svelte');
@@ -101,26 +105,29 @@ export default defineAddon({
 							svelteVersion
 						});
 					}
-				});
-			});
+				})
+			);
 		}
 
-		sv.file(files.vscodeSettings, (content) =>
-			transforms.json(content, (data) => {
+		sv.file(
+			files.vscodeSettings,
+			transforms.json(({ data }) => {
 				data['files.associations'] ??= {};
 				data['files.associations']['*.css'] = 'tailwindcss';
 			})
 		);
 
-		sv.file(files.vscodeExtensions, (content) =>
-			transforms.json(content, (data) => {
+		sv.file(
+			files.vscodeExtensions,
+			transforms.json(({ data, json }) => {
 				json.arrayUpsert(data, 'recommendations', 'bradlc.vscode-tailwindcss');
 			})
 		);
 
 		if (prettierInstalled) {
-			sv.file(files.prettierrc, (content) =>
-				transforms.json(content, (data) => {
+			sv.file(
+				files.prettierrc,
+				transforms.json(({ data, json }) => {
 					json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
 					data.tailwindStylesheet ??= files.getRelative({ to: files.stylesheet });
 				})

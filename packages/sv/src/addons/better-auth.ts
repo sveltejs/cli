@@ -5,8 +5,6 @@ import {
 	color,
 	dedent,
 	text,
-	js,
-	json,
 	transforms,
 	resolveCommand,
 	createPrinter
@@ -56,8 +54,9 @@ export default defineAddon({
 		sv.devDependency('@better-auth/cli', '~1.4.21');
 
 		// Read-only: extract dialect info from drizzle config without modifying it
-		sv.file(`drizzle.config.${language}`, (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			`drizzle.config.${language}`,
+			transforms.script(({ ast }) => {
 				const isProp = (name: string, node: AstTypes.Property) =>
 					node.key.type === 'Identifier' && node.key.name === name;
 
@@ -86,22 +85,28 @@ export default defineAddon({
 				}
 
 				return false;
-			});
-		});
-
-		sv.file('.env', (content) =>
-			transforms.text(content, (data) => generateEnvFileContent(data, demoGithub, false))
-		);
-		sv.file('.env.example', (content) =>
-			transforms.text(content, (data) => generateEnvFileContent(data, demoGithub, true))
+			})
 		);
 
-		sv.file(`${kit?.libDirectory}/server/auth.${language}`, (content) => {
-			return transforms.script(content, (ast, comments) => {
+		sv.file(
+			'.env',
+			transforms.text(({ content }) => generateEnvFileContent(content, demoGithub, false))
+		);
+		sv.file(
+			'.env.example',
+			transforms.text(({ content }) => generateEnvFileContent(content, demoGithub, true))
+		);
+
+		sv.file(
+			`${kit?.libDirectory}/server/auth.${language}`,
+			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
 				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
 				js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
-				js.imports.addNamed(ast, { from: 'better-auth/svelte-kit', imports: ['sveltekitCookies'] });
+				js.imports.addNamed(ast, {
+					from: 'better-auth/svelte-kit',
+					imports: ['sveltekitCookies']
+				});
 				js.imports.addNamed(ast, {
 					from: 'better-auth/adapters/drizzle',
 					imports: ['drizzleAdapter']
@@ -167,14 +172,15 @@ export default defineAddon({
 					});`;
 				}
 				js.common.appendFromString(ast, { code: authConfig, comments });
-			});
-		});
+			})
+		);
 
 		const authConfigPath = `${kit?.libDirectory}/server/auth.${language}`;
 		const authSchemaPath = `${kit?.libDirectory}/server/db/auth.schema.${language}`;
 
-		sv.file(files.package, (content) =>
-			transforms.json(content, (data) => {
+		sv.file(
+			files.package,
+			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(
 					data,
 					'auth:schema',
@@ -183,23 +189,26 @@ export default defineAddon({
 			})
 		);
 
-		sv.file(`${kit?.libDirectory}/server/db/auth.schema.${language}`, (content) =>
-			transforms.text(content, (data) => {
-				if (data) return false;
+		sv.file(
+			`${kit?.libDirectory}/server/db/auth.schema.${language}`,
+			transforms.text(({ content }) => {
+				if (content) return false;
 				return dedent`
 					// If you see this file, you have not run the auth:schema script yet, but you should!
 				`;
 			})
 		);
 
-		sv.file(`${kit?.libDirectory}/server/db/schema.${language}`, (content) =>
-			transforms.script(content, (ast) => {
+		sv.file(
+			`${kit?.libDirectory}/server/db/schema.${language}`,
+			transforms.script(({ ast, js }) => {
 				js.exports.addNamespace(ast, { from: './auth.schema' });
 			})
 		);
 
-		sv.file('src/app.d.ts', (content) => {
-			return transforms.script(content, (ast, comments) => {
+		sv.file(
+			'src/app.d.ts',
+			transforms.script(({ ast, comments, js }) => {
 				if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
 				js.imports.addNamed(ast, {
 					imports: ['User', 'Session'],
@@ -236,12 +245,16 @@ export default defineAddon({
 						js.common.createTypeProperty('auth', 'ReturnType<typeof createAuth>', false)
 					);
 				}
-			});
-		});
+			})
+		);
 
-		sv.file(`src/hooks.server.${language}`, (content) => {
-			return transforms.script(content, (ast, comments) => {
-				js.imports.addNamed(ast, { imports: ['svelteKitHandler'], from: 'better-auth/svelte-kit' });
+		sv.file(
+			`src/hooks.server.${language}`,
+			transforms.script(({ ast, comments, js }) => {
+				js.imports.addNamed(ast, {
+					imports: ['svelteKitHandler'],
+					from: 'better-auth/svelte-kit'
+				});
 				js.imports.addNamed(ast, {
 					imports: [d1 ? 'createAuth' : 'auth'],
 					from: '$lib/server/auth'
@@ -250,7 +263,7 @@ export default defineAddon({
 
 				const d1HandleSetup = d1
 					? dedent`
-					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found — are you running with wrangler?');
+					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found - are you running with wrangler?');
 					event.locals.auth = createAuth(event.platform.env.DB);
 					const { auth } = event.locals;\n`
 					: '';
@@ -277,28 +290,27 @@ export default defineAddon({
 					handleContent,
 					comments
 				});
-			});
-		});
+			})
+		);
 
 		if (hasDemo) {
 			sv.file(`${kit?.routesDirectory}/demo/+page.svelte`, addToDemoPage('better-auth', language));
 
 			sv.file(
 				`${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`,
-				(content) => {
-					return transforms.text(content, (data) => {
-						if (data) {
-							const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`;
-							log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-							return false;
-						}
+				transforms.text(({ content }) => {
+					if (content) {
+						const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.server.${language}`;
+						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
+						return false;
+					}
 
-						const [ts] = createPrinter(language === 'ts');
+					const [ts] = createPrinter(language === 'ts');
 
-						const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
+					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
-						const signInEmailAction = demoPassword
-							? `
+					const signInEmailAction = demoPassword
+						? `
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const email = formData.get('email')?.toString() ?? '';
@@ -345,10 +357,10 @@ export default defineAddon({
 
 							return redirect(302, '/demo/better-auth');
 						},`
-							: '';
+						: '';
 
-						const signInSocialAction = demoGithub
-							? `
+					const signInSocialAction = demoGithub
+						? `
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = formData.get('provider')?.toString() ?? 'github';
@@ -366,11 +378,11 @@ export default defineAddon({
 							}
 							return fail(400, { message: 'Social sign-in failed' });
 						},`
-							: '';
+						: '';
 
-						const needsAPIError = demoPassword;
+					const needsAPIError = demoPassword;
 
-						return dedent`
+					return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
@@ -387,13 +399,13 @@ export default defineAddon({
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
 				`;
-					});
-				}
+				})
 			);
 
-			sv.file(`${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) {
+			sv.file(
+				`${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`,
+				transforms.text(({ content }) => {
+					if (content) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/login/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -454,12 +466,13 @@ export default defineAddon({
 
 					<h1>Login</h1>${passwordForm}${separator}${githubForm}
 				`;
-				});
-			});
+				})
+			);
 
-			sv.file(`${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) {
+			sv.file(
+				`${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`,
+				transforms.text(({ content }) => {
+					if (content) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -489,12 +502,13 @@ export default defineAddon({
 						}
 					};
 				`;
-				});
-			});
+				})
+			);
 
-			sv.file(`${kit!.routesDirectory}/demo/better-auth/+page.svelte`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) {
+			sv.file(
+				`${kit!.routesDirectory}/demo/better-auth/+page.svelte`,
+				transforms.text(({ content }) => {
+					if (content) {
 						const filePath = `${kit!.routesDirectory}/demo/better-auth/+page.svelte`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
@@ -519,8 +533,8 @@ export default defineAddon({
 						<button ${tailwind ? twBtnClasses : ''}>Sign out</button>
 					</form>
 				`;
-				});
-			});
+				})
+			);
 		}
 	},
 

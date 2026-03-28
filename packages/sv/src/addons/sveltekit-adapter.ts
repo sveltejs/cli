@@ -1,13 +1,11 @@
 import {
 	color,
-	js,
 	resolveCommand,
-	json,
-	sanitizeName,
 	text,
 	transforms,
 	fileExists,
-	getPackageJson
+	getPackageJson,
+	sanitizeName
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -52,8 +50,9 @@ export default defineAddon({
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
-		sv.file(files.package, (content) => {
-			return transforms.json(content, (data) => {
+		sv.file(
+			files.package,
+			transforms.json(({ data }) => {
 				const devDeps = data['devDependencies'];
 
 				for (const pkg of Object.keys(devDeps)) {
@@ -70,13 +69,14 @@ export default defineAddon({
 							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
 					data.scripts.preview = preview;
 				}
-			});
-		});
+			})
+		);
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file(files.svelteConfig, (content) => {
-			return transforms.script(content, (ast, comments) => {
+		sv.file(
+			files.svelteConfig,
+			transforms.script(({ ast, comments, js }) => {
 				// finds any existing adapter's import declaration
 				const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
 				const adapterImportDecl = importDecls.find(
@@ -100,12 +100,18 @@ export default defineAddon({
 					js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 				}
 
-				const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
+				const { value: config } = js.exports.createDefault(ast, {
+					fallback: js.object.create({})
+				});
 
 				// override the adapter property
 				js.object.overrideProperties(config, {
 					kit: {
-						adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+						adapter: js.functions.createCall({
+							name: adapterName,
+							args: [],
+							useIdentifiers: true
+						})
 					}
 				});
 
@@ -123,8 +129,8 @@ export default defineAddon({
 							c.loc.end.line <= cfgKitValue.loc.end.line
 					);
 				}
-			});
-		});
+			})
+		);
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.63.0');
@@ -171,41 +177,45 @@ export default defineAddon({
 
 			sv.file(`wrangler.${ext}`, (content) =>
 				ext === 'toml'
-					? transforms.toml(content, applyWranglerConfig)
-					: transforms.json(content, applyWranglerConfig)
+					? transforms.toml(({ data }) => applyWranglerConfig(data))(content)
+					: transforms.json(({ data }) => applyWranglerConfig(data))(content)
 			);
 
 			const jsconfig = fileExists(cwd, 'jsconfig.json');
 			const typeChecked = language === 'ts' || jsconfig;
 
 			if (typeChecked) {
-				sv.file(files.gitignore, (content) => {
-					return transforms.text(content, (data) => {
-						if (data.length === 0) return false;
-						return text.upsert(data, '/worker-configuration.d.ts', {
+				sv.file(
+					files.gitignore,
+					transforms.text(({ content }) => {
+						if (content.length === 0) return false;
+						return text.upsert(content, '/worker-configuration.d.ts', {
 							comment: 'Cloudflare Types'
 						});
-					});
-				});
+					})
+				);
 
 				// Setup wrangler types command
-				sv.file(files.package, (content) =>
-					transforms.json(content, (data) => {
+				sv.file(
+					files.package,
+					transforms.json(({ data, json }) => {
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 					})
 				);
 
 				// Add Cloudflare generated types to tsconfig
-				sv.file(`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`, (content) => {
-					return transforms.json(content, (data) => {
+				sv.file(
+					`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`,
+					transforms.json(({ data }) => {
 						data.compilerOptions ??= {};
 						data.compilerOptions.types ??= [];
 						data.compilerOptions.types.push('./worker-configuration.d.ts');
-					});
-				});
+					})
+				);
 
-				sv.file('src/app.d.ts', (content) => {
-					return transforms.script(content, (ast, comments) => {
+				sv.file(
+					'src/app.d.ts',
+					transforms.script(({ ast, comments, js }) => {
 						const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
 						if (!platform) {
 							throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
@@ -220,8 +230,8 @@ export default defineAddon({
 							js.common.createTypeProperty('caches', 'CacheStorage'),
 							js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
 						);
-					});
-				});
+					})
+				);
 			}
 		}
 	},

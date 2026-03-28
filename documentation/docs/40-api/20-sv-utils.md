@@ -16,143 +16,133 @@ npm install -D @sveltejs/sv-utils
 The Svelte CLI is split into two packages with a clear boundary:
 
 - **`sv`** = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
-- **`@sveltejs/sv-utils`** = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure — no file system, no workspace awareness.
+- **`@sveltejs/sv-utils`** = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
 
 This separation means transforms are testable without a workspace and composable across add-ons.
 
 ## Transforms
 
-Transforms are typed, parser-aware functions that turn `string -> string`. Each transform takes file content as its first argument, a callback to manipulate the parsed AST, and returns the updated content. The parser choice is baked into the transform type — you can't accidentally parse a vite config as Svelte because you never call a parser yourself.
+Transforms are curried, parser-aware functions that turn `string -> string`. Call a transform with your callback to get a function that plugs directly into `sv.file()`. The parser choice is baked into the transform type - you can't accidentally parse a vite config as Svelte because you never call a parser yourself.
+
+Each transform injects relevant utilities into the callback, so you only need one import:
 
 ```js
-import { transforms, js, svelte, css, json } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 ```
 
 ### `transforms.script`
 
-Transform a JavaScript/TypeScript file. The callback receives the AST and comments.
+Transform a JavaScript/TypeScript file. The callback receives `{ ast, comments, content, js }`.
 
 ```js
 // @errors: 2304 7006
-import { transforms, js } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.viteConfig, (content) => {
-	return transforms.script(content, (ast, comments) => {
-		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
-		js.vite.addPlugin(ast, { code: 'foo()' });
-	});
-});
+sv.file(files.viteConfig, transforms.script(({ ast, js }) => {
+	js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
+	js.vite.addPlugin(ast, { code: 'foo()' });
+}));
 ```
 
 ### `transforms.svelte`
 
-Transform a Svelte component.
+Transform a Svelte component. The callback receives `{ ast, content, svelte, js }`.
 
 ```js
 // @errors: 2304 7006
-import { transforms, js, svelte } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(layoutPath, (content) => {
-	return transforms.svelte(content, (ast) => {
-		svelte.ensureScript(ast, { language });
-		js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
-		svelte.addFragment(ast, '<Foo />');
-	});
-});
+sv.file(layoutPath, transforms.svelte(({ ast, svelte, js }) => {
+	svelte.ensureScript(ast, { language });
+	js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
+	svelte.addFragment(ast, '<Foo />');
+}));
 ```
 
 ### `transforms.css`
 
-Transform a CSS file.
+Transform a CSS file. The callback receives `{ ast, content, css }`.
 
 ```js
 // @errors: 2304 7006
-import { transforms, css } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.stylesheet, (content) => {
-	return transforms.css(content, (ast) => {
-		css.addAtRule(ast, { name: 'import', params: "'tailwindcss'" });
-	});
-});
+sv.file(files.stylesheet, transforms.css(({ ast, css }) => {
+	css.addAtRule(ast, { name: 'import', params: "'tailwindcss'" });
+}));
 ```
 
 ### `transforms.json`
 
-Transform a JSON file. Mutate the `data` object directly.
+Transform a JSON file. Mutate the `data` object directly. The callback receives `{ data, content, json }`.
 
 ```js
 // @errors: 2304 7006
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.tsconfig, (content) => {
-	return transforms.json(content, (data) => {
-		data.compilerOptions ??= {};
-		data.compilerOptions.strict = true;
-	});
-});
+sv.file(files.tsconfig, transforms.json(({ data }) => {
+	data.compilerOptions ??= {};
+	data.compilerOptions.strict = true;
+}));
 ```
 
 ### `transforms.yaml` / `transforms.toml`
 
-Same pattern as `transforms.json`, for YAML and TOML files respectively.
+Same pattern as `transforms.json`, for YAML and TOML files respectively. The callback receives `{ data, content }`.
 
 ### `transforms.text`
 
-Transform a plain text file (.env, .gitignore, etc.). No parser — string in, string out.
+Transform a plain text file (.env, .gitignore, etc.). No parser - string in, string out. The callback receives `{ content, text }`.
 
 ```js
 // @errors: 2304 7006
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file('.env', (content) => {
-	return transforms.text(content, (data) => {
-		return data + '\nDATABASE_URL="file:local.db"';
-	});
-});
+sv.file('.env', transforms.text(({ content }) => {
+	return content + '\nDATABASE_URL="file:local.db"';
+}));
 ```
 
 ### Aborting a transform
 
-Return `false` from any transform callback to abort — the original content is returned unchanged.
+Return `false` from any transform callback to abort - the original content is returned unchanged.
 
 ```js
 // @errors: 2304 7006
-import { transforms, js } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.eslintConfig, (content) => {
-	return transforms.script(content, (ast) => {
-		const { value: existing } = js.exports.createDefault(ast, { fallback: myConfig });
-		if (existing !== myConfig) {
-			// config already exists, don't touch it
-			return false;
-		}
-		// ... continue modifying ast
-	});
-});
+sv.file(files.eslintConfig, transforms.script(({ ast, js }) => {
+	const { value: existing } = js.exports.createDefault(ast, { fallback: myConfig });
+	if (existing !== myConfig) {
+		// config already exists, don't touch it
+		return false;
+	}
+	// ... continue modifying ast
+}));
 ```
 
 ### Standalone usage & testing
 
-Transforms are just functions — they work without the `sv` engine. Pass content directly:
+Transforms are curried functions - call them with the callback, then apply to content:
 
 ```js
-import { transforms, js } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 
-const result = transforms.script('export default {}', (ast) => {
+const result = transforms.script(({ ast, js }) => {
 	js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
-});
+})('export default {}');
 ```
 
 ### Composability
 
-Since content flows through explicitly, you can mix transforms and raw edits in a single `sv.file` callback:
+For cases where you need to mix transforms and raw edits, use `sv.file` with a content callback and invoke the curried transform manually:
 
 ```js
 // @errors: 2304 2552 7006
 sv.file(path, (content) => {
-	content = transforms.script(content, (ast) => {
+	content = transforms.script(({ ast, js }) => {
 		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
-	});
+	})(content);
 	content = content.replace('foo', 'bar');
 	return content;
 });
@@ -162,15 +152,13 @@ Add-ons can also export reusable transform functions:
 
 ```js
 // @errors: 7006
-import { transforms, js, svelte } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 
-// reusable — export from your package
-export function addFooImport(content, language) {
-	return transforms.svelte(content, (ast) => {
-		svelte.ensureScript(ast, { language });
-		js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
-	});
-}
+// reusable - export from your package
+export const addFooImport = transforms.svelte(({ ast, svelte, js }) => {
+	svelte.ensureScript(ast, { language });
+	js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
+});
 ```
 
 ## Parsers (low-level)
@@ -194,9 +182,9 @@ const { ast, generateCode } = parse.html(content);
 
 Namespaced helpers for AST manipulation:
 
-- **`js.*`** — imports, exports, objects, arrays, variables, functions, vite config helpers, SvelteKit helpers
-- **`css.*`** — rules, declarations, at-rules, imports
-- **`svelte.*`** — ensureScript, addSlot, addFragment
-- **`json.*`** — arrayUpsert, packageScriptsUpsert
-- **`html.*`** — attribute manipulation
-- **`text.*`** — upsert lines in flat files (.env, .gitignore)
+- **`js.*`** - imports, exports, objects, arrays, variables, functions, vite config helpers, SvelteKit helpers
+- **`css.*`** - rules, declarations, at-rules, imports
+- **`svelte.*`** - ensureScript, addSlot, addFragment
+- **`json.*`** - arrayUpsert, packageScriptsUpsert
+- **`html.*`** - attribute manipulation
+- **`text.*`** - upsert lines in flat files (.env, .gitignore)

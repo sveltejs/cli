@@ -1,6 +1,10 @@
 import type { TomlTable } from 'smol-toml';
+import * as cssNs from './css/index.ts';
+import * as htmlNs from './html/index.ts';
 import type { Comments, SvelteAst } from './index.ts';
+import * as jsNs from './js/index.ts';
 import type { TsEstree } from './js/ts-estree.ts';
+import * as jsonNs from './json.ts';
 import {
 	parseCss,
 	parseHtml,
@@ -10,6 +14,8 @@ import {
 	parseToml,
 	parseYaml
 } from './parsers.ts';
+import * as svelteNs from './svelte/index.ts';
+import * as textNs from './text.ts';
 
 type TransformOptions = {
 	/** Called when parsing fails. If provided, the original content is returned unchanged. */
@@ -33,152 +39,182 @@ function withParseError<T>(parseFn: () => T, options?: TransformOptions): T | un
  *
  * `sv-utils = what to do to content, sv = where and when to do it.`
  *
- * Each transform wraps: parse -> callback(ast/data) -> generateCode().
- * The parser choice is baked into the transform type — you can't accidentally
+ * Each transform wraps: parse -> callback({ast/data, utils}) -> generateCode().
+ * The parser choice is baked into the transform type - you can't accidentally
  * parse a vite config as svelte because you never call a parser yourself.
+ *
+ * Transforms are curried: call with the callback to get a `(content: string) => string`
+ * function that plugs directly into `sv.file()`.
  *
  * @example
  * ```ts
- * import { transforms, js } from '@sveltejs/sv-utils';
+ * import { transforms } from '@sveltejs/sv-utils';
  *
- * // use with sv.file() — content flows through naturally
- * sv.file(files.viteConfig, (content) => {
- *   return transforms.script(content, (ast) => {
- *     js.vite.addPlugin(ast, { code: 'kitRoutes()' });
- *   });
- * });
+ * // use with sv.file() - curried form plugs in directly
+ * sv.file(files.viteConfig, transforms.script(({ ast, js }) => {
+ *   js.vite.addPlugin(ast, { code: 'kitRoutes()' });
+ * }));
  *
  * // standalone usage / testing
- * const result = transforms.script(fileContent, (ast) => {
+ * const result = transforms.script(({ ast, js }) => {
  *   js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
- * });
+ * })(fileContent);
  * ```
  */
 export const transforms = {
 	/**
 	 * Transform a JavaScript/TypeScript file.
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	script(
-		content: string,
-		cb: (ast: TsEstree.Program, comments: Comments) => void | false,
+		cb: (args: {
+			ast: TsEstree.Program;
+			comments: Comments;
+			content: string;
+			js: typeof jsNs;
+		}) => void | false,
 		options?: TransformOptions
-	): string {
-		const parsed = withParseError(() => parseScript(content), options);
-		if (!parsed) return content;
-		const result = cb(parsed.ast, parsed.comments);
-		if (result === false) return content;
-		return parsed.generateCode();
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseScript(content), options);
+			if (!parsed) return content;
+			const result = cb({ ast: parsed.ast, comments: parsed.comments, content, js: jsNs });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
 	},
 
 	/**
 	 * Transform a Svelte component file.
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	svelte(
-		content: string,
-		cb: (ast: SvelteAst.Root) => void | false,
+		cb: (args: {
+			ast: SvelteAst.Root;
+			content: string;
+			svelte: typeof svelteNs;
+			js: typeof jsNs;
+		}) => void | false,
 		options?: TransformOptions
-	): string {
-		const parsed = withParseError(() => parseSvelte(content), options);
-		if (!parsed) return content;
-		const result = cb(parsed.ast);
-		if (result === false) return content;
-		return parsed.generateCode();
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseSvelte(content), options);
+			if (!parsed) return content;
+			const result = cb({ ast: parsed.ast, content, svelte: svelteNs, js: jsNs });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
 	},
 
 	/**
 	 * Transform a CSS file.
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	css(
-		content: string,
-		cb: (ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>) => void | false,
+		cb: (args: {
+			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
+			content: string;
+			css: typeof cssNs;
+		}) => void | false,
 		options?: TransformOptions
-	): string {
-		const parsed = withParseError(() => parseCss(content), options);
-		if (!parsed) return content;
-		const result = cb(parsed.ast);
-		if (result === false) return content;
-		return parsed.generateCode();
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseCss(content), options);
+			if (!parsed) return content;
+			const result = cb({ ast: parsed.ast, content, css: cssNs });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
 	},
 
 	/**
 	 * Transform a JSON file.
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	json<T = any>(
-		content: string,
-		cb: (data: T) => void | false,
+		cb: (args: { data: T; content: string; json: typeof jsonNs }) => void | false,
 		options?: TransformOptions
-	): string {
-		const parsed = withParseError(() => parseJson(content), options);
-		if (!parsed) return content;
-		const result = cb(parsed.data as T);
-		if (result === false) return content;
-		return parsed.generateCode();
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseJson(content), options);
+			if (!parsed) return content;
+			const result = cb({ data: parsed.data as T, content, json: jsonNs });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
 	},
 
 	/**
 	 * Transform a YAML file.
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	yaml(
-		content: string,
-		cb: (data: ReturnType<typeof parseYaml>['data']) => void | false,
+		cb: (args: { data: ReturnType<typeof parseYaml>['data']; content: string }) => void | false,
 		options?: TransformOptions
-	): string {
-		const parsed = withParseError(() => parseYaml(content), options);
-		if (!parsed) return content;
-		const result = cb(parsed.data);
-		if (result === false) return content;
-		return parsed.generateCode();
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseYaml(content), options);
+			if (!parsed) return content;
+			const result = cb({ data: parsed.data, content });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
 	},
 
 	/**
 	 * Transform a TOML file.
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
-	toml(content: string, cb: (data: TomlTable) => void | false, options?: TransformOptions): string {
-		const parsed = withParseError(() => parseToml(content), options);
-		if (!parsed) return content;
-		const result = cb(parsed.data);
-		if (result === false) return content;
-		return parsed.generateCode();
+	toml(
+		cb: (args: { data: TomlTable; content: string }) => void | false,
+		options?: TransformOptions
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseToml(content), options);
+			if (!parsed) return content;
+			const result = cb({ data: parsed.data, content });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
 	},
 
 	/**
 	 * Transform an HTML file (e.g. app.html).
 	 *
-	 * Return `false` from the callback to abort — the original content is returned unchanged.
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	html(
-		content: string,
-		cb: (ast: SvelteAst.Fragment) => void | false,
+		cb: (args: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,
 		options?: TransformOptions
-	): string {
-		const parsed = withParseError(() => parseHtml(content), options);
-		if (!parsed) return content;
-		const result = cb(parsed.ast);
-		if (result === false) return content;
-		return parsed.generateCode();
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseHtml(content), options);
+			if (!parsed) return content;
+			const result = cb({ ast: parsed.ast, content, html: htmlNs });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
 	},
 
 	/**
 	 * Transform a plain text file (.env, .gitignore, etc.).
 	 *
-	 * Unlike other transforms there's no AST here — just string in, string out.
+	 * Unlike other transforms there's no AST here - just string in, string out.
 	 * Return the new content, or `false` to abort (original content is returned unchanged).
 	 */
-	text(content: string, cb: (content: string) => string | false): string {
-		const result = cb(content);
-		if (result === false) return content;
-		return result;
+	text(
+		cb: (args: { content: string; text: typeof textNs }) => string | false
+	): (content: string) => string {
+		return (content) => {
+			const result = cb({ content, text: textNs });
+			if (result === false) return content;
+			return result;
+		};
 	}
 };

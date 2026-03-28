@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, js, transforms, json, text } from '@sveltejs/sv-utils';
+import { color, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -11,17 +11,19 @@ export default defineAddon({
 	run: ({ sv, language, files, kit }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
-		sv.file(files.package, (content) =>
-			transforms.json(content, (data) => {
+		sv.file(
+			files.package,
+			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
 				json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
 			})
 		);
 
-		sv.file(files.gitignore, (content) =>
-			transforms.text(content, (data) => {
-				if (!data) return false;
-				return text.upsert(data, 'test-results', { comment: 'Playwright' });
+		sv.file(
+			files.gitignore,
+			transforms.text(({ content, text }) => {
+				if (!content) return false;
+				return text.upsert(content, 'test-results', { comment: 'Playwright' });
 			})
 		);
 
@@ -31,20 +33,22 @@ export default defineAddon({
 		if (kit) {
 			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, addToDemoPage('playwright', language));
 
-			sv.file(`${testDir}/+page.svelte`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) return false;
+			sv.file(
+				`${testDir}/+page.svelte`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
 					return dedent`
 						<h1>Playwright e2e test demo</h1>
 					`;
-				});
-			});
+				})
+			);
 		}
 
-		sv.file(`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`, (content) => {
-			return transforms.text(content, (data) => {
-				if (data) return false;
+		sv.file(
+			`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`,
+			transforms.text(({ content }) => {
+				if (content) return false;
 
 				return dedent`
 					import { expect, test } from '@playwright/test';
@@ -54,11 +58,12 @@ export default defineAddon({
 						await expect(page.locator('h1')).toBeVisible();
 					});
 				`;
-			});
-		});
+			})
+		);
 
-		sv.file(`playwright.config.${language}`, (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			`playwright.config.${language}`,
+			transforms.script(({ ast, js }) => {
 				const defineConfig = js.common.parseExpression('defineConfig({})');
 				const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
 
@@ -81,8 +86,8 @@ export default defineAddon({
 				} else {
 					log.warn('Unexpected playwright config for playwright add-on. Could not update.');
 				}
-			});
-		});
+			})
+		);
 	},
 
 	nextSteps: ({ kit }) => {

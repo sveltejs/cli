@@ -1,13 +1,4 @@
-import {
-	color,
-	dedent,
-	text,
-	js,
-	transforms,
-	resolveCommand,
-	json,
-	fileExists
-} from '@sveltejs/sv-utils';
+import { color, dedent, text, transforms, resolveCommand, fileExists } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -94,7 +85,7 @@ export default defineAddon({
 		if (!kit) throw new Error('SvelteKit is required');
 
 		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
-			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare — add the adapter first');
+			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare - add the adapter first');
 		}
 
 		const typescript = language === 'ts';
@@ -133,11 +124,13 @@ export default defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.0');
 
-		sv.file('.env', (content) =>
-			transforms.text(content, (data) => generateEnvFileContent(data, options, false))
+		sv.file(
+			'.env',
+			transforms.text(({ content }) => generateEnvFileContent(content, options, false))
 		);
-		sv.file('.env.example', (content) =>
-			transforms.text(content, (data) => generateEnvFileContent(data, options, true))
+		sv.file(
+			'.env.example',
+			transforms.text(({ content }) => generateEnvFileContent(content, options, true))
 		);
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
@@ -149,11 +142,12 @@ export default defineAddon({
 			}
 			if (composeFile === '') throw new Error('unreachable state...');
 
-			sv.file(composeFile, (content) => {
-				return transforms.text(content, (data) => {
+			sv.file(
+				composeFile,
+				transforms.text(({ content }) => {
 					// if the file already exists, don't modify it
 					// (in the future, we could add some tooling for modifying yaml)
-					if (data.length > 0) return false;
+					if (content.length > 0) return false;
 
 					const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
 					const port = PORTS[options.database];
@@ -194,38 +188,42 @@ export default defineAddon({
                       - ${port}:${port}
                     environment: ${dbSpecificContent}
                 `;
-				});
-			});
+				})
+			);
 		}
 
-		sv.file(files.package, (content) => {
-			return transforms.json(content, (data) => {
+		sv.file(
+			files.package,
+			transforms.json(({ data, json }) => {
 				if (options.docker) json.packageScriptsUpsert(data, 'db:start', 'docker compose up');
 				json.packageScriptsUpsert(data, 'db:push', 'drizzle-kit push');
 				json.packageScriptsUpsert(data, 'db:generate', 'drizzle-kit generate');
 				json.packageScriptsUpsert(data, 'db:migrate', 'drizzle-kit migrate');
 				json.packageScriptsUpsert(data, 'db:studio', 'drizzle-kit studio');
-			});
-		});
+			})
+		);
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
-			sv.file(files.prettierignore, (content) =>
-				transforms.text(content, (data) => text.upsert(data, '/drizzle/'))
+			sv.file(
+				files.prettierignore,
+				transforms.text(({ content }) => text.upsert(content, '/drizzle/'))
 			);
 		}
 
 		if (options.database === 'sqlite') {
-			sv.file(files.gitignore, (content) => {
-				return transforms.text(content, (data) => {
-					if (data.length === 0) return false;
-					return text.upsert(data, '*.db', { comment: 'SQLite' });
-				});
-			});
+			sv.file(
+				files.gitignore,
+				transforms.text(({ content }) => {
+					if (content.length === 0) return false;
+					return text.upsert(content, '*.db', { comment: 'SQLite' });
+				})
+			);
 		}
 
-		sv.file(paths['drizzle config'], (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			paths['drizzle config'],
+			transforms.script(({ ast, js }) => {
 				const d1 = options.database === 'd1';
 				const turso = options.sqlite === 'turso';
 
@@ -287,11 +285,12 @@ export default defineAddon({
 					})
 				`)
 				});
-			});
-		});
+			})
+		);
 
-		sv.file(paths['database schema'], (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			paths['database schema'],
+			transforms.script(({ ast, js }) => {
 				let taskSchemaExpression;
 				if (options.database === 'sqlite' || options.database === 'd1') {
 					js.imports.addNamed(ast, {
@@ -340,11 +339,12 @@ export default defineAddon({
 					name: 'task',
 					fallback: taskIdentifier
 				});
-			});
-		});
+			})
+		);
 
-		sv.file(paths.database, (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			paths.database,
+			transforms.script(({ ast, js }) => {
 				if (options.database === 'd1') {
 					js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 					js.imports.addNamed(ast, { from: 'drizzle-orm/d1', imports: ['drizzle'] });
@@ -473,8 +473,8 @@ export default defineAddon({
 					name: 'db',
 					fallback: db
 				});
-			});
-		});
+			})
+		);
 	},
 
 	nextSteps: ({ options, packageManager, cwd }) => {

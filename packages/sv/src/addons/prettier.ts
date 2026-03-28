@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, transforms, json } from '@sveltejs/sv-utils';
+import { color, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier } from './common.ts';
 
@@ -15,9 +15,10 @@ export default defineAddon({
 		sv.devDependency('prettier', '^3.8.1');
 		sv.devDependency('prettier-plugin-svelte', '^3.4.1');
 
-		sv.file(files.prettierignore, (content) => {
-			return transforms.text(content, (data) => {
-				if (data) return false;
+		sv.file(
+			files.prettierignore,
+			transforms.text(({ content }) => {
+				if (content) return false;
 				return dedent`
 					# Package Managers
 					package-lock.json
@@ -29,13 +30,13 @@ export default defineAddon({
 					# Miscellaneous
 					/static/
 				`;
-			});
-		});
+			})
+		);
 
-		sv.file(files.prettierrc, (content) => {
-			return transforms.json(
-				content,
-				(data) => {
+		sv.file(
+			files.prettierrc,
+			transforms.json(
+				({ data, json }) => {
 					if (Object.keys(data).length === 0) {
 						// we'll only set these defaults if there is no pre-existing config
 						data.useTabs = true;
@@ -66,21 +67,23 @@ export default defineAddon({
 						);
 					}
 				}
-			);
-		});
+			)
+		);
 
 		const eslintVersion = dependencyVersion('eslint');
 		const eslintInstalled = hasEslint(eslintVersion);
 
-		sv.file(files.package, (content) =>
-			transforms.json(content, (data) => {
+		sv.file(
+			files.package,
+			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(data, 'lint', 'prettier --check .', { mode: 'prepend' });
 				json.packageScriptsUpsert(data, 'format', 'prettier --write .');
 			})
 		);
 
-		sv.file(files.vscodeExtensions, (content) =>
-			transforms.json(content, (data) => {
+		sv.file(
+			files.vscodeExtensions,
+			transforms.json(({ data, json }) => {
 				json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
 			})
 		);

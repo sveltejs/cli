@@ -1,4 +1,4 @@
-import { color, dedent, js, transforms, json } from '@sveltejs/sv-utils';
+import { color, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const options = defineAddonOptions()
@@ -40,11 +40,14 @@ export default defineAddon({
 			sv.devDependency('playwright', '^1.58.2');
 		}
 
-		sv.file(files.package, (content) =>
-			transforms.json(content, (data) => {
+		sv.file(
+			files.package,
+			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 				// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
-				json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
+				json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', {
+					mode: 'prepend'
+				});
 			})
 		);
 
@@ -52,23 +55,25 @@ export default defineAddon({
 		const typed = language === 'ts';
 
 		if (unitTesting || componentTesting) {
-			sv.file(`${examplesDir}/greet.${language}`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) return false;
+			sv.file(
+				`${examplesDir}/greet.${language}`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
 					return dedent`
 						export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
 							return 'Hello, ' + name + '!';
 						}
 					`;
-				});
-			});
+				})
+			);
 		}
 
 		if (unitTesting) {
-			sv.file(`${examplesDir}/greet.spec.${language}`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) return false;
+			sv.file(
+				`${examplesDir}/greet.spec.${language}`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
 					return dedent`
 						import { describe, it, expect } from 'vitest';
@@ -80,14 +85,15 @@ export default defineAddon({
 							});
 						});
 					`;
-				});
-			});
+				})
+			);
 		}
 
 		if (componentTesting) {
-			sv.file(`${examplesDir}/Welcome.svelte`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) return false;
+			sv.file(
+				`${examplesDir}/Welcome.svelte`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
 					return dedent`
 						<script>
@@ -99,12 +105,13 @@ export default defineAddon({
 						<h1>{greet(host)}</h1>
 						<p>{greet(guest)}</p>
 					`;
-				});
-			});
+				})
+			);
 
-			sv.file(`${examplesDir}/Welcome.svelte.spec.${language}`, (content) => {
-				return transforms.text(content, (data) => {
-					if (data) return false;
+			sv.file(
+				`${examplesDir}/Welcome.svelte.spec.${language}`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
 					return dedent`
 						import { page } from 'vitest/browser';
@@ -121,12 +128,13 @@ export default defineAddon({
 							});
 						});
 					`;
-				});
-			});
+				})
+			);
 		}
 
-		sv.file(files.viteConfig, (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			files.viteConfig,
+			transforms.script(({ ast, js }) => {
 				const clientObjectExpression = js.object.create({
 					extends: `./${files.viteConfig}`,
 					test: {
@@ -172,7 +180,10 @@ export default defineAddon({
 
 				// Manage imports
 				if (componentTesting)
-					js.imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
+					js.imports.addNamed(ast, {
+						imports: ['playwright'],
+						from: '@vitest/browser-playwright'
+					});
 				const importName = 'defineConfig';
 				const { statement, alias } = js.imports.find(ast, { name: importName, from: 'vite' });
 				if (statement) {
@@ -182,8 +193,8 @@ export default defineAddon({
 					// Remove the old import
 					js.imports.remove(ast, { name: importName, from: 'vite', statement });
 				}
-			});
-		});
+			})
+		);
 	},
 
 	nextSteps: ({ language, options }) => {

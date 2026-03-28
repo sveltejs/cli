@@ -1,4 +1,4 @@
-import { js, transforms } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 
 export default defineAddon({
@@ -9,8 +9,9 @@ export default defineAddon({
 	run: ({ sv, files }) => {
 		sv.devDependency('mdsvex', '^0.12.6');
 
-		sv.file(files.svelteConfig, (content) => {
-			return transforms.script(content, (ast) => {
+		sv.file(
+			files.svelteConfig,
+			transforms.script(({ ast, js }) => {
 				js.imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });
 
 				const { value: exportDefault } = js.exports.createDefault(ast, {
@@ -45,7 +46,7 @@ export default defineAddon({
 				js.array.append(extensionsArray, '.svelte');
 				js.array.append(extensionsArray, '.svx');
 				js.array.append(extensionsArray, '.md');
-			});
-		});
+			})
+		);
 	}
 });

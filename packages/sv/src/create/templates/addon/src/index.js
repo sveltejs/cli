@@ -1,4 +1,4 @@
-import { js, svelte, transforms } from '@sveltejs/sv-utils';
+import { svelte, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
 const options = defineAddonOptions()
@@ -20,14 +20,16 @@ export default defineAddon({
 	run: ({ kit, sv, options, cancel, language }) => {
 		if (!kit) return cancel('SvelteKit is required');
 
-		sv.file(`src/lib/~SV-NAME-TODO~/content.txt`, (content) =>
-			transforms.text(content, () => {
+		sv.file(
+			`src/lib/~SV-NAME-TODO~/content.txt`,
+			transforms.text(() => {
 				return `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
 			})
 		);
 
-		sv.file(`src/lib/~SV-NAME-TODO~/HelloComponent.svelte`, (content) => {
-			return transforms.svelte(content, (ast) => {
+		sv.file(
+			`src/lib/~SV-NAME-TODO~/HelloComponent.svelte`,
+			transforms.svelte(({ ast, js }) => {
 				svelte.ensureScript(ast, { language });
 
 				js.imports.addDefault(ast.instance.content, {
@@ -37,11 +39,12 @@ export default defineAddon({
 
 				svelte.addFragment(ast, '<p>{content}</p>');
 				svelte.addFragment(ast, `<h2>Hello ${options.who}!</h2>`);
-			});
-		});
+			})
+		);
 
-		sv.file(kit.routesDirectory + '/+page.svelte', (content) => {
-			return transforms.svelte(content, (ast) => {
+		sv.file(
+			kit.routesDirectory + '/+page.svelte',
+			transforms.svelte(({ ast, js }) => {
 				svelte.ensureScript(ast, { language });
 
 				js.imports.addDefault(ast.instance.content, {
@@ -50,7 +53,7 @@ export default defineAddon({
 				});
 
 				svelte.addFragment(ast, '<HelloComponent />');
-			});
-		});
+			})
+		);
 	}
 });
