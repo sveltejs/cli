@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-paraglide: add a type annotation for the reroute hooks.
+feat(paraglide): add a type annotation for the reroute hooks
