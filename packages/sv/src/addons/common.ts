@@ -29,12 +29,13 @@ export function addEslintConfigPrettier(content: string): string {
 	const eslintConfig = defaultExport.value;
 
 	const isDefineConfig = eslintConfig.type === 'CallExpression'; // export default defineConfig()
-	const isArrayExport = eslintConfig.type === 'ArrayExpression'; // export default []
+	const isArray = eslintConfig.type === 'ArrayExpression'; // export default []
 
-	if (!isArrayExport && !isDefineConfig) return content;
+	if (!isArray && !isDefineConfig) return content;
 
-	type Arguments = Extract<typeof eslintConfig, { type: 'CallExpression' }>['arguments'];
-	type Elements = Extract<typeof eslintConfig, { type: 'ArrayExpression' }>['elements'];
+	type Elements =
+		| Extract<typeof eslintConfig, { type: 'CallExpression' }>['arguments']
+		| Extract<typeof eslintConfig, { type: 'ArrayExpression' }>['elements'];
 
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
@@ -44,20 +45,8 @@ export function addEslintConfigPrettier(content: string): string {
 	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
 		nodesToInsert.push(sveltePrettierConfig);
 
-	const isSvelteConfig = (el: (Arguments | Elements)[number]) => {
-		const maybeSpread = el?.type === 'SpreadElement' ? el?.argument : el;
-		return (
-			maybeSpread?.type === 'MemberExpression' &&
-			maybeSpread?.object?.type === 'MemberExpression' &&
-			maybeSpread?.object?.property?.type === 'Identifier' &&
-			maybeSpread?.object?.property?.name === 'configs' &&
-			maybeSpread?.object?.object?.type === 'Identifier' &&
-			maybeSpread?.object?.object?.name === svelteImportName
-		);
-	};
-
-	let elements: Arguments | Elements = [];
-	if (isArrayExport) elements = eslintConfig.elements;
+	let elements: Elements = [];
+	if (isArray) elements = eslintConfig.elements;
 
 	if (isDefineConfig) {
 		if (
@@ -72,6 +61,18 @@ export function addEslintConfigPrettier(content: string): string {
 		}
 	}
 
+	const isSvelteConfig = (maybeSpread: Elements[number]) => {
+		const el = maybeSpread?.type === 'SpreadElement' ? maybeSpread?.argument : maybeSpread;
+		return (
+			el &&
+			el.type === 'MemberExpression' &&
+			el.object.type === 'MemberExpression' &&
+			el.object.object.type === 'Identifier' &&
+			el.object.object.name === svelteImportName &&
+			el.object.property.type === 'Identifier' &&
+			el.object.property.name === 'configs'
+		);
+	};
 	const idx = elements.findIndex(isSvelteConfig);
 	if (idx !== -1) {
 		elements.splice(idx + 1, 0, ...nodesToInsert);
