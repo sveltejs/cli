@@ -14,6 +14,7 @@ import {
 	parseToml,
 	parseYaml
 } from './parsers.ts';
+import { type RootWithInstance, ensureScript } from './svelte/index.ts';
 import * as svelteNs from './svelte/index.ts';
 import * as textNs from './text.ts';
 
@@ -103,6 +104,39 @@ export const transforms = {
 			const parsed = withParseError(() => parseSvelte(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, content, svelte: svelteNs, js: jsNs });
+			if (result === false) return content;
+			return parsed.generateCode();
+		};
+	},
+
+	/**
+	 * Transform a Svelte component file with a script block guaranteed.
+	 *
+	 * Calls `ensureScript` before invoking your callback, so `ast.instance` is always non-null.
+	 * Pass `{ language }` as the first argument to set the script language.
+	 *
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 */
+	svelteScript(
+		scriptOptions: { language: 'ts' | 'js' },
+		cb: (args: {
+			ast: RootWithInstance;
+			content: string;
+			svelte: typeof svelteNs;
+			js: typeof jsNs;
+		}) => void | false,
+		options?: TransformOptions
+	): (content: string) => string {
+		return (content) => {
+			const parsed = withParseError(() => parseSvelte(content), options);
+			if (!parsed) return content;
+			ensureScript(parsed.ast, scriptOptions);
+			const result = cb({
+				ast: parsed.ast as RootWithInstance,
+				content,
+				svelte: svelteNs,
+				js: jsNs
+			});
 			if (result === false) return content;
 			return parsed.generateCode();
 		};

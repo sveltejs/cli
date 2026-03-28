@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, svelte, type SvelteAst, text, transforms } from '@sveltejs/sv-utils';
+import { color, type SvelteAst, text, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -190,13 +190,12 @@ export default defineAddon({
 
 		sv.file(
 			`${directory.kitRoutes}/+layout.svelte`,
-			transforms.svelte(({ ast, js }) => {
-				svelte.ensureScript(ast, { language });
-				js.imports.addNamed(ast.instance!.content, {
+			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
+				js.imports.addNamed(ast.instance.content, {
 					imports: ['locales', 'localizeHref'],
 					from: '$lib/paraglide/runtime'
 				});
-				js.imports.addNamed(ast.instance!.content, { imports: ['page'], from: '$app/state' });
+				js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
 				svelte.addFragment(
 					ast,
 					`<div style="display:none">
@@ -214,14 +213,12 @@ export default defineAddon({
 			// add usage example
 			sv.file(
 				`${directory.kitRoutes}/demo/paraglide/+page.svelte`,
-				transforms.svelte(({ ast, js }) => {
-					svelte.ensureScript(ast, { language });
-
-					js.imports.addNamed(ast.instance!.content, {
+				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
+					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
 						from: '$lib/paraglide/messages.js'
 					});
-					js.imports.addNamed(ast.instance!.content, {
+					js.imports.addNamed(ast.instance.content, {
 						imports: {
 							setLocale: 'setLocale'
 						},

@@ -1,4 +1,4 @@
-import { svelte, transforms } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const plugins = [
@@ -84,9 +84,8 @@ export default defineAddon({
 			const stylesheetRelative = file.getRelative({ from: appSvelte, to: file.stylesheet });
 			sv.file(
 				appSvelte,
-				transforms.svelte(({ ast, js }) => {
-					svelte.ensureScript(ast, { language });
-					js.imports.addEmpty(ast.instance!.content, { from: stylesheetRelative });
+				transforms.svelteScript({ language }, ({ ast, js }) => {
+					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 				})
 			);
 		} else {
@@ -94,9 +93,8 @@ export default defineAddon({
 			const stylesheetRelative = file.getRelative({ from: layoutSvelte, to: file.stylesheet });
 			sv.file(
 				layoutSvelte,
-				transforms.svelte(({ ast, js }) => {
-					svelte.ensureScript(ast, { language });
-					js.imports.addEmpty(ast.instance!.content, { from: stylesheetRelative });
+				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
+					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 
 					if (ast.fragment.nodes.length === 0) {
 						const svelteVersion = dependencyVersion('svelte');

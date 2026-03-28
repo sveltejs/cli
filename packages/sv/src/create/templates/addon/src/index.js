@@ -1,4 +1,4 @@
-import { svelte, transforms } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
 const options = defineAddonOptions()
@@ -27,9 +27,7 @@ export default defineAddon({
 
 		sv.file(
 			`${directory.lib}/~SV-NAME-TODO~/HelloComponent.svelte`,
-			transforms.svelte(({ ast, js }) => {
-				svelte.ensureScript(ast, { language });
-
+			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addDefault(ast.instance.content, {
 					as: 'content',
 					from: './content.txt?raw'
@@ -42,9 +40,7 @@ export default defineAddon({
 
 		sv.file(
 			directory.kitRoutes + '/+page.svelte',
-			transforms.svelte(({ ast, js }) => {
-				svelte.ensureScript(ast, { language });
-
+			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addDefault(ast.instance.content, {
 					as: 'HelloComponent',
 					from: `$lib/~SV-NAME-TODO~/HelloComponent.svelte`

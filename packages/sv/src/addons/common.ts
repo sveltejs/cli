@@ -1,4 +1,4 @@
-import { type SvelteAst, svelte, transforms } from '@sveltejs/sv-utils';
+import { type SvelteAst, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
 export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
@@ -58,7 +58,7 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 });
 
 export function addToDemoPage(path: string, language: 'ts' | 'js'): (content: string) => string {
-	return transforms.svelte(({ ast, js }) => {
+	return transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
 		for (const node of ast.fragment.nodes) {
 			if (node.type === 'RegularElement') {
 				const hrefAttribute = node.attributes.find(
@@ -78,8 +78,7 @@ export function addToDemoPage(path: string, language: 'ts' | 'js'): (content: st
 			}
 		}
 
-		svelte.ensureScript(ast, { language });
-		js.imports.addNamed(ast.instance!.content, { imports: ['resolve'], from: '$app/paths' });
+		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, {
 			mode: 'prepend'
