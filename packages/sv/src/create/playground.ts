@@ -1,14 +1,15 @@
 import {
+	type AstTypes,
 	isVersionUnsupportedBelow,
 	js,
 	parse,
 	svelte,
 	downloadJson,
-	Walker
+	Walker,
+	commonFilePaths
 } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
-import { commonFilePaths } from '../core/files.ts';
 import { getSharedFiles } from './utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
@@ -103,7 +104,7 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	];
 
 	for (const file of files) {
-		let ast: js.AstTypes.Program | undefined;
+		let ast: AstTypes.Program | undefined;
 		if (file.name.endsWith('.svelte')) {
 			const { ast: svelteAst } = parse.svelte(file.content);
 			svelte.ensureScript(svelteAst);
@@ -114,7 +115,7 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 		if (!ast) continue;
 
 		const imports = ast.body
-			.filter((node): node is js.AstTypes.ImportDeclaration => node.type === 'ImportDeclaration')
+			.filter((node): node is AstTypes.ImportDeclaration => node.type === 'ImportDeclaration')
 			.map((node) => node.source.value as string)
 			.filter((importPath) => !importPath.startsWith('./') && !importPath.startsWith('/'))
 			.filter((importPath) => !excludedPrefixes.some((prefix) => importPath.startsWith(prefix)))
@@ -197,8 +198,9 @@ export function setupPlaygroundProject(
 				const { ast, generateCode } = parse.svelte(file.contents);
 				// change title and url placeholders
 				svelte.ensureScript(ast);
-				Walker.walk(ast.instance.content as js.AstTypes.Node, null, {
-					Literal(node) {
+				// tsgo can't infer visitor node types from zimmerframe's distributive conditional
+				Walker.walk(ast.instance.content as AstTypes.Node, null, {
+					Literal(node: AstTypes.Literal) {
 						if (node.value === '$sv-title-$sv') {
 							node.value = playground.name;
 							node.raw = undefined;

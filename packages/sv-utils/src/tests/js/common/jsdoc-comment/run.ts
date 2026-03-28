@@ -1,4 +1,5 @@
-import { common, type Comments, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { Comments, AstTypes } from '../../../../tooling/index.ts';
+import { common } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program, comments: Comments): void {
 	const functionDeclaration = ast.body[0] as AstTypes.FunctionDeclaration;

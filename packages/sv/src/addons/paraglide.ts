@@ -67,9 +67,9 @@ export default defineAddon({
 			const vitePluginName = 'paraglideVitePlugin';
 			js.imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
 			js.vite.addPlugin(ast, {
-				code: `${vitePluginName}({ 
-					project: './project.inlang', 
-					outdir: './${paraglideOutDir}' 
+				code: `${vitePluginName}({
+					project: './project.inlang',
+					outdir: './${paraglideOutDir}'
 				})`
 			});
 
@@ -78,7 +78,8 @@ export default defineAddon({
 
 		// reroute hook
 		sv.file(`src/hooks.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
+			const { ast, generateCode, comments } = parse.script(content);
+
 			js.imports.addNamed(ast, {
 				from: '$lib/paraglide/runtime',
 				imports: ['deLocalizeUrl']
@@ -87,9 +88,10 @@ export default defineAddon({
 			const expression = js.common.parseExpression(
 				'(request) => deLocalizeUrl(request.url).pathname'
 			);
+
 			const rerouteIdentifier = js.variables.declaration(ast, {
 				kind: 'const',
-				name: 'reroute',
+				name: `reroute${language === 'ts' ? ': Reroute' : ''}`,
 				value: expression
 			});
 
@@ -99,6 +101,18 @@ export default defineAddon({
 			});
 			if (existingExport.declaration !== rerouteIdentifier) {
 				log.warn('Adding the reroute hook automatically failed. Add it manually');
+			}
+
+			if (language === 'ts') {
+				js.imports.addNamed(ast, {
+					from: '@sveltejs/kit',
+					imports: ['Reroute'],
+					isType: true
+				});
+			} else {
+				js.common.addJsDocTypeComment(existingExport, comments, {
+					type: "import('@sveltejs/kit').Reroute"
+				});
 			}
 
 			return generateCode();

@@ -20,7 +20,7 @@ import {
 } from '../core/config.ts';
 import { applyAddons, setupAddons } from '../core/engine.ts';
 import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
-import { formatFiles } from '../core/files.ts';
+import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
@@ -152,86 +152,28 @@ export const add = new Command('add')
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
-			const termWidth = helper.padWidth(cmd, helper);
-			const helpWidth = helper.helpWidth ?? 80; // in case prepareContext() was not called
+			const s = common.getHelpSections(cmd, helper);
 
-			function callFormatItem(term: string, description: string) {
-				return helper.formatItem(term, termWidth, description, helper);
-			}
+			const addonSection = formatAddonHelpSection({
+				styleTitle: s.styleTitle,
+				formatItem: (term, desc) =>
+					s.formatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
+			});
 
-			// Usage
-			let output = [
-				`${helper.styleTitle('Usage:')} ${helper.styleUsage(helper.commandUsage(cmd))}`,
+			return [
+				...s.usage,
+				...s.description,
+				...s.arguments,
+				...addonSection,
+				...s.options,
+				...s.globalOptions,
+				...s.commands,
+				s.styleTitle('Examples:'),
+				'  sv add prettier eslint',
+				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
+				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
 				''
-			];
-
-			// Description
-			const commandDescription = helper.commandDescription(cmd);
-			if (commandDescription.length > 0) {
-				output = output.concat([
-					helper.boxWrap(helper.styleCommandDescription(commandDescription), helpWidth),
-					''
-				]);
-			}
-
-			// Arguments
-			const argumentList = helper.visibleArguments(cmd).map((argument) => {
-				return callFormatItem(
-					helper.styleArgumentTerm(helper.argumentTerm(argument)),
-					helper.styleArgumentDescription(helper.argumentDescription(argument))
-				);
-			});
-			if (argumentList.length > 0) {
-				output = output.concat([helper.styleTitle('Arguments:'), ...argumentList, '']);
-			}
-
-			// Addon Options
-			const addonList = addonOptions.map((option) => {
-				const description = option.choices;
-				return callFormatItem(
-					helper.styleArgumentTerm(option.id),
-					helper.styleArgumentDescription(description)
-				);
-			});
-			if (addonList.length > 0) {
-				output = output.concat([helper.styleTitle('Add-On Options:'), ...addonList, '']);
-			}
-
-			// Options
-			const optionList = helper.visibleOptions(cmd).map((option) => {
-				return callFormatItem(
-					helper.styleOptionTerm(helper.optionTerm(option)),
-					helper.styleOptionDescription(helper.optionDescription(option))
-				);
-			});
-			if (optionList.length > 0) {
-				output = output.concat([helper.styleTitle('Options:'), ...optionList, '']);
-			}
-
-			if (helper.showGlobalOptions) {
-				const globalOptionList = helper.visibleGlobalOptions(cmd).map((option) => {
-					return callFormatItem(
-						helper.styleOptionTerm(helper.optionTerm(option)),
-						helper.styleOptionDescription(helper.optionDescription(option))
-					);
-				});
-				if (globalOptionList.length > 0) {
-					output = output.concat([helper.styleTitle('Global Options:'), ...globalOptionList, '']);
-				}
-			}
-
-			// Commands
-			const commandList = helper.visibleCommands(cmd).map((cmd) => {
-				return callFormatItem(
-					helper.styleSubcommandTerm(helper.subcommandTerm(cmd)),
-					helper.styleSubcommandDescription(helper.subcommandDescription(cmd))
-				);
-			});
-			if (commandList.length > 0) {
-				output = output.concat([helper.styleTitle('Commands:'), ...commandList, '']);
-			}
-
-			return output.join('\n');
+			].join('\n');
 		}
 	})
 	.action(async (addonInputs: AddonInput[], opts) => {
@@ -879,67 +821,117 @@ export function addonArgsHandler(acc: AddonInput[], current: string): AddonInput
 	return acc;
 }
 
-function getAddonOptionFlags() {
-	const options: Array<{ id: string; choices: string; preset: string }> = [];
+export function getOfficialAddonIds(): string[] {
+	return officialAddons.map((a) => a.id);
+}
+
+export function getAddonOptionFlags() {
+	const options: Array<{ id: string; choices: string }> = [];
 	for (const addon of officialAddons) {
 		const id = addon.id;
 		const details = getAddonDetails(id);
 		if (Object.values(details.options).length === 0) continue;
 
-		const { defaults, groups } = getOptionChoices(details);
+		const { groups, groupDefaults } = getOptionChoices(details);
 		const choices = Object.entries(groups)
-			.map(([group, choices]) => `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}`)
+			.map(([group, choices]) => {
+				const defaults = groupDefaults[group];
+				const defaultStr =
+					defaults === undefined
+						? ''
+						: defaults.length > 0
+							? ` (default: ${defaults.join(', ')})`
+							: ' (default: none)';
+				return `${color.optional(`${group}:`)} ${color.dim(choices.join(', '))}${defaultStr}`;
+			})
 			.join('\n');
-		const preset = defaults.join(', ') || 'none';
-		options.push({ id, choices, preset });
+		options.push({ id, choices });
 	}
 	return options;
 }
 
+/**
+ * Shared addon help section used by `add --help`, `create --help`, and `sv --help`.
+ * Returns formatted lines showing all addons, their options, and syntax examples.
+ */
+export function formatAddonHelpSection(opts: {
+	styleTitle: (s: string) => string;
+	formatItem: (term: string, desc: string) => string;
+}): string[] {
+	const { styleTitle, formatItem } = opts;
+	const output: string[] = [];
+
+	// All add-ons: those with options show their choices and defaults
+	const allIds = getOfficialAddonIds();
+	const withOptionsMap = new Map(addonOptions.map((o) => [o.id, o]));
+	const addonList = allIds.map((id) => {
+		const option = withOptionsMap.get(id);
+		if (!option) return formatItem(id, '(no options)');
+		return formatItem(id, option.choices);
+	});
+	if (addonList.length > 0) {
+		output.push(styleTitle('Add-Ons:'), ...addonList, '');
+	}
+
+	// Syntax
+	output.push(
+		styleTitle('Add-On Syntax:'),
+		'  <addon>                               add with defaults (may still prompt)',
+		'  <addon>=<opt>:<val>                   set a single option',
+		'  <addon>=<opt1>:<val1>+<opt2>:<val2>   set multiple options',
+		'  <addon>=<opt>:none                    explicitly set no value (for multiselect)',
+		'  To skip prompts, explicitly set ALL options (use defaults shown above).',
+		''
+	);
+
+	return output;
+}
+
 function getOptionChoices(details: AddonDefinition) {
 	const choices: string[] = [];
-	const defaults: string[] = [];
 	const groups: Record<string, string[]> = {};
+	const groupDefaults: Record<string, string[]> = {};
 	const options: OptionValues<any> = {};
 	for (const [id, question] of Object.entries(details.options)) {
 		let values: string[] = [];
 		const applyDefault = question.condition?.(options) !== false;
+		const groupId = question.group ?? id;
+		groupDefaults[groupId] ??= [];
+
 		if (question.type === 'boolean') {
 			values = ['yes', `no`];
 			if (applyDefault) {
 				options[id] = question.default;
-				defaults.push((question.default ? values[0] : values[1])!);
+				groupDefaults[groupId].push((question.default ? values[0] : values[1])!);
 			}
 		}
 		if (question.type === 'select') {
 			values = question.options.map((o) => o.value);
 			if (applyDefault) {
 				options[id] = question.default;
-				defaults.push(question.default);
+				groupDefaults[groupId].push(question.default);
 			}
 		}
 		if (question.type === 'multiselect') {
 			values = question.options.map((o) => o.value);
 			if (applyDefault) {
 				options[id] = question.default;
-				defaults.push(...question.default);
+				groupDefaults[groupId].push(...question.default);
 			}
 		}
 		if (question.type === 'string' || question.type === 'number') {
 			values = ['<user-input>'];
 			if (applyDefault && question.default !== undefined) {
 				options[id] = question.default;
-				defaults.push(question.default.toString());
+				groupDefaults[groupId].push(question.default.toString());
 			}
 		}
 
 		choices.push(...values);
-		// we'll fallback to the question's id
-		const groupId = question.group ?? id;
 		groups[groupId] ??= [];
 		groups[groupId].push(...values);
 	}
-	return { choices, defaults, groups };
+	return { choices, groups, groupDefaults };
 }
 
 export async function resolveNonOfficialAddons(

@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 0.0.3
+### Patch Changes
+
+
+- feat: add color `hidden` ([#966](https://github.com/sveltejs/cli/pull/966))
+
 ## 0.0.2
 ### Patch Changes
 

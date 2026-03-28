@@ -61,6 +61,17 @@ export { createPrinter } from './utils.ts';
 export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
 
+// File system helpers
+export {
+	commonFilePaths,
+	fileExists,
+	getPackageJson,
+	installPackages,
+	readFile,
+	writeFile,
+	type Package
+} from './files.ts';
+
 // Terminal styling
 export { color } from './color.ts';
 

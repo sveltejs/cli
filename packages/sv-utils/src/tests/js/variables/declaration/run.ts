@@ -1,4 +1,5 @@
-import { variables, common, object, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { variables, common, object } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const testNumberVariable = variables.declaration(ast, {

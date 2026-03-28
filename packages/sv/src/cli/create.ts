@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand } from '@sveltejs/sv-utils';
+import { color, resolveCommand, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
 import type { LoadedAddon, OptionValues } from '../core/config.ts';
-import { commonFilePaths, formatFiles, getPackageJson } from '../core/files.ts';
+import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
@@ -34,6 +34,7 @@ import { dist } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	classifyAddons,
+	formatAddonHelpSection,
 	promptAddonQuestions,
 	resolveAddons,
 	runAddonsApply,
@@ -52,7 +53,10 @@ const templateOption = new Option('--template <type>', 'template to scaffold').c
 	templateChoices
 );
 const noAddonsOption = new Option('--no-add-ons', 'do not prompt to add add-ons').conflicts('add');
-const addOption = new Option('--add <addon...>', 'add-on to include').default([]);
+const addOption = new Option(
+	'--add <addon...>',
+	'add-ons to include (see Add-Ons section below)'
+).default([]);
 export const noDownloadCheckOption = new Option(
 	'--no-download-check',
 	'skip all download confirmation prompts'
@@ -77,7 +81,7 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
 
 export const create = new Command('create')
-	.description('scaffolds a new SvelteKit project')
+	.description('Scaffold a new project (--add to include add-ons)')
 	.argument('[path]', 'where the project will be created')
 	.addOption(templateOption)
 	.addOption(langOption)
@@ -89,7 +93,35 @@ export const create = new Command('create')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
 	.addOption(noDownloadCheckOption)
 	.addOption(installOption)
-	.configureHelp(common.helpConfig)
+	.configureHelp({
+		...common.helpConfig,
+		formatHelp(cmd, helper) {
+			const s = common.getHelpSections(cmd, helper);
+
+			const addonSection = formatAddonHelpSection({
+				styleTitle: s.styleTitle,
+				formatItem: (term, desc) =>
+					s.formatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
+			});
+
+			return [
+				...s.usage,
+				...s.description,
+				...s.arguments,
+				...s.options,
+				...addonSection,
+				s.styleTitle('Non-interactive usage:'),
+				'  Provide --template, --types, --add, and --install (or --no-install) to skip prompts entirely.',
+				'  Note: --add and --no-add-ons cannot be used together.',
+				'',
+				s.styleTitle('Examples:'),
+				'  sv create my-app --template minimal --types ts --add prettier eslint --install pnpm',
+				'  sv create my-app --template minimal --types ts --add prettier vitest="usages:unit" tailwindcss="plugins:none" --install pnpm',
+				'  sv create my-app --template minimal --types ts --add drizzle="database:postgresql+client:postgres.js" --no-install',
+				''
+			].join('\n');
+		}
+	})
 	.action((projectPath, opts) => {
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);

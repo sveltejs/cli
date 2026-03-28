@@ -1,4 +1,5 @@
-import { functions, common, type AstTypes } from '../../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { functions, common } from '../../../../tooling/js/index.ts';
 
 export function run(ast: AstTypes.Program): void {
 	const insideExpression = common.parseExpression("console.log('foo')");

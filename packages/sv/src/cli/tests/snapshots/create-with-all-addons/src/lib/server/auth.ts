@@ -16,5 +16,7 @@ export const auth = betterAuth({
 			clientSecret: env.GITHUB_CLIENT_SECRET
 		}
 	},
-	plugins: [sveltekitCookies(getRequestEvent)] // make sure this is the last plugin in the array
+	plugins: [
+		sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
+	]
 });

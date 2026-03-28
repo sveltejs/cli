@@ -1,4 +1,5 @@
-import { variables, object, type AstTypes } from '../../../tooling/js/index.ts';
+import type { AstTypes } from '../../../tooling/index.ts';
+import { variables, object } from '../../../tooling/js/index.ts';
 
 export const getTestObjectExpression = (ast: AstTypes.Program): AstTypes.ObjectExpression => {
 	const variable = variables.declaration(ast, {
