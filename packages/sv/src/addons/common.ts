@@ -62,13 +62,19 @@ export function addEslintConfigPrettier(content: string): string {
 	}
 
 	const isSvelteConfig = (maybeSpread: Elements[number]) => {
-		const el = maybeSpread?.type === 'SpreadElement' ? maybeSpread?.argument : maybeSpread;
+		const el =
+			maybeSpread?.type === 'SpreadElement'
+				? // ...svelte.configs.*
+					maybeSpread?.argument
+				: // svelte.configs.*
+					maybeSpread;
 		return (
-			el &&
-			el.type === 'MemberExpression' &&
+			el?.type === 'MemberExpression' &&
 			el.object.type === 'MemberExpression' &&
+			// Check for [svelte].configs.*
 			el.object.object.type === 'Identifier' &&
 			el.object.object.name === svelteImportName &&
+			// Check for svelte.[configs].*
 			el.object.property.type === 'Identifier' &&
 			el.object.property.name === 'configs'
 		);
