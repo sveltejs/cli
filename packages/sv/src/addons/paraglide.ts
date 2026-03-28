@@ -76,7 +76,7 @@ export default defineAddon({
 
 		// reroute hook
 		sv.file(`src/hooks.${language}`, (content) => {
-			return transforms.script(content, (ast) => {
+			return transforms.script(content, (ast, comments) => {
 				js.imports.addNamed(ast, {
 					from: '$lib/paraglide/runtime',
 					imports: ['deLocalizeUrl']
@@ -87,7 +87,7 @@ export default defineAddon({
 				);
 				const rerouteIdentifier = js.variables.declaration(ast, {
 					kind: 'const',
-					name: 'reroute',
+					name: `reroute${language === 'ts' ? ': Reroute' : ''}`,
 					value: expression
 				});
 
@@ -97,6 +97,18 @@ export default defineAddon({
 				});
 				if (existingExport.declaration !== rerouteIdentifier) {
 					log.warn('Adding the reroute hook automatically failed. Add it manually');
+				}
+
+				if (language === 'ts') {
+					js.imports.addNamed(ast, {
+						from: '@sveltejs/kit',
+						imports: ['Reroute'],
+						isType: true
+					});
+				} else {
+					js.common.addJsDocTypeComment(existingExport, comments, {
+						type: "import('@sveltejs/kit').Reroute"
+					});
 				}
 			});
 		});
