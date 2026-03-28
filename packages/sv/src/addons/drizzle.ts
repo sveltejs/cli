@@ -84,21 +84,19 @@ export default defineAddon({
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
-	setup: ({ kit, unsupported, runsAfter }) => {
+	setup: ({ isKit, unsupported, runsAfter }) => {
 		runsAfter('prettier');
 		runsAfter('sveltekitAdapter');
 
-		if (!kit) return unsupported('Requires SvelteKit');
+		if (!isKit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, language, options, kit, dependencyVersion, cwd, cancel, files }) => {
-		if (!kit) throw new Error('SvelteKit is required');
-
+	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file }) => {
 		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
 			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare — add the adapter first');
 		}
 
 		const typescript = language === 'ts';
-		const baseDBPath = path.resolve(cwd, kit.libDirectory, 'server', 'db');
+		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
 			'drizzle config': path.resolve(cwd, `drizzle.config.${language}`),
 			'database schema': path.resolve(baseDBPath, `schema.${language}`),
@@ -194,7 +192,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
 			if (options.docker) json.packageScriptsUpsert(data, 'db:start', 'docker compose up');
@@ -208,13 +206,13 @@ export default defineAddon({
 
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
-			sv.file(files.prettierignore, (content) => {
+			sv.file(file.prettierignore, (content) => {
 				return text.upsert(content, '/drizzle/');
 			});
 		}
 
 		if (options.database === 'sqlite') {
-			sv.file(files.gitignore, (content) => {
+			sv.file(file.gitignore, (content) => {
 				if (content.length === 0) return content;
 				return text.upsert(content, '*.db', { comment: 'SQLite' });
 			});
@@ -270,7 +268,7 @@ export default defineAddon({
 			js.exports.createDefault(ast, {
 				fallback: js.common.parseExpression(`
 					defineConfig({
-						schema: "./src/lib/server/db/schema.${language}",
+						schema: "./${directory.lib}/server/db/schema.${language}",
 						dialect: "${getDialect()}",
 						${d1 ? "driver: 'd1-http'," : ''}
 						dbCredentials: {

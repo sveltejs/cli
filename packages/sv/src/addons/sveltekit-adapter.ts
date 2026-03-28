@@ -46,14 +46,14 @@ export default defineAddon({
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
 	options,
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, cwd, language }) => {
+	run: ({ sv, options, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 			const devDeps = data['devDependencies'];
 
@@ -77,7 +77,7 @@ export default defineAddon({
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file(files.svelteConfig, (content) => {
+		sv.file(file.svelteConfig, (content) => {
 			const { ast, comments, generateCode } = parse.script(content);
 
 			// finds any existing adapter's import declaration
@@ -144,7 +144,7 @@ export default defineAddon({
 				}
 
 				if (!data.name) {
-					const pkg = parse.json(readFileSync(join(cwd, files.package), 'utf-8'));
+					const pkg = parse.json(readFileSync(join(cwd, file.package), 'utf-8'));
 					data.name = sanitizeName(pkg.data.name, 'wrangler');
 				}
 
@@ -180,7 +180,7 @@ export default defineAddon({
 			const typeChecked = language === 'ts' || jsconfig;
 
 			if (typeChecked) {
-				sv.file(files.gitignore, (content) => {
+				sv.file(file.gitignore, (content) => {
 					if (content.length === 0) return content;
 					return text.upsert(content, '/worker-configuration.d.ts', {
 						comment: 'Cloudflare Types'
@@ -188,7 +188,7 @@ export default defineAddon({
 				});
 
 				// Setup wrangler types command
-				sv.file(files.package, (content) => {
+				sv.file(file.package, (content) => {
 					const { data, generateCode } = parse.json(content);
 
 					json.packageScriptsUpsert(data, 'gen', 'wrangler types');

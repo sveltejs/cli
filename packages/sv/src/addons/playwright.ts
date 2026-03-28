@@ -8,10 +8,10 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, language, files, kit }) => {
+	run: ({ sv, language, file, isKit, directory }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
 			json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
@@ -20,16 +20,16 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(files.gitignore, (content) => {
+		sv.file(file.gitignore, (content) => {
 			if (!content) return content;
 			return text.upsert(content, 'test-results', { comment: 'Playwright' });
 		});
 
-		const testDir = kit ? `${kit.routesDirectory}/demo/playwright` : 'src';
-		const testRoute = kit ? '/demo/playwright' : '/';
+		const testDir = isKit ? `${directory.kitRoutes}/demo/playwright` : directory.src;
+		const testRoute = isKit ? '/demo/playwright' : '/';
 
-		if (kit) {
-			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
+		if (isKit) {
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'playwright', language);
 			});
 
@@ -42,7 +42,7 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(`${testDir}/${kit ? 'page' : 'app'}.svelte.e2e.${language}`, (content) => {
+		sv.file(`${testDir}/${isKit ? 'page' : 'app'}.svelte.e2e.${language}`, (content) => {
 			if (content) return content;
 
 			return dedent`
@@ -83,12 +83,12 @@ export default defineAddon({
 		});
 	},
 
-	nextSteps: ({ kit }) => {
+	nextSteps: ({ isKit }) => {
 		const steps: string[] = [];
 
 		steps.push(`Run ${color.command('npx playwright install')} to download browsers`);
 
-		if (kit) {
+		if (isKit) {
 			steps.push(`Visit ${color.route('/demo/playwright')} to see the demo page`);
 		}
 

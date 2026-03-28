@@ -8,7 +8,7 @@ export default defineAddon({
 	shortDescription: 'linter',
 	homepage: 'https://eslint.org',
 	options: {},
-	run: ({ sv, language, dependencyVersion, files }) => {
+	run: ({ sv, language, dependencyVersion, file }) => {
 		const typescript = language === 'ts';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
@@ -23,7 +23,7 @@ export default defineAddon({
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
 			json.packageScriptsUpsert(data, 'lint', 'eslint .');
@@ -31,7 +31,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(files.eslintConfig, (content) => {
+		sv.file(file.eslintConfig, (content) => {
 			const { ast, comments, generateCode } = parse.script(content);
 
 			const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
@@ -140,14 +140,14 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(files.vscodeExtensions, (content) => {
+		sv.file(file.vscodeExtensions, (content) => {
 			const { data, generateCode } = parse.json(content);
 			json.arrayUpsert(data, 'recommendations', 'dbaeumer.vscode-eslint');
 			return generateCode();
 		});
 
 		if (prettierInstalled) {
-			sv.file(files.eslintConfig, addEslintConfigPrettier);
+			sv.file(file.eslintConfig, addEslintConfigPrettier);
 		}
 	}
 });

@@ -50,18 +50,16 @@ export default defineAddon({
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, language, kit }) => {
-		if (!kit) throw new Error('SvelteKit is required');
-
-		const paraglideOutDir = 'src/lib/paraglide';
+	run: ({ sv, options, file, language, directory }) => {
+		const paraglideOutDir = `${directory.lib}/paraglide`;
 
 		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
 
 		// add the vite plugin
-		sv.file(files.viteConfig, (content) => {
+		sv.file(file.viteConfig, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
 			const vitePluginName = 'paraglideVitePlugin';
@@ -166,7 +164,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(files.gitignore, (content) => {
+		sv.file(file.gitignore, (content) => {
 			if (!content) return content;
 
 			content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
@@ -192,7 +190,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		sv.file(`${kit.routesDirectory}/+layout.svelte`, (content) => {
+		sv.file(`${directory.kitRoutes}/+layout.svelte`, (content) => {
 			const { ast, generateCode } = parse.svelte(content);
 			svelte.ensureScript(ast, { language });
 			js.imports.addNamed(ast.instance.content, {
@@ -212,12 +210,12 @@ export default defineAddon({
 		});
 
 		if (options.demo) {
-			sv.file(`${kit.routesDirectory}/demo/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, (content) => {
 				return addToDemoPage(content, 'paraglide', language);
 			});
 
 			// add usage example
-			sv.file(`${kit.routesDirectory}/demo/paraglide/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/demo/paraglide/+page.svelte`, (content) => {
 				const { ast, generateCode } = parse.svelte(content);
 				svelte.ensureScript(ast, { language });
 

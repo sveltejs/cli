@@ -23,7 +23,7 @@ export default defineAddon({
 	homepage: 'https://vitest.dev',
 	options,
 
-	run: ({ sv, files, language, kit, options, dependencyVersion }) => {
+	run: ({ sv, file, language, directory, options, dependencyVersion }) => {
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
@@ -40,7 +40,7 @@ export default defineAddon({
 			sv.devDependency('playwright', '^1.58.2');
 		}
 
-		sv.file(files.package, (content) => {
+		sv.file(file.package, (content) => {
 			const { data, generateCode } = parse.json(content);
 
 			json.packageScriptsUpsert(data, 'test:unit', 'vitest');
@@ -50,7 +50,7 @@ export default defineAddon({
 			return generateCode();
 		});
 
-		const examplesDir = (kit ? kit.libDirectory : 'src/lib') + '/vitest-examples';
+		const examplesDir = `${directory.lib}/vitest-examples`;
 		const typed = language === 'ts';
 
 		if (unitTesting || componentTesting) {
@@ -119,11 +119,11 @@ export default defineAddon({
 			});
 		}
 
-		sv.file(files.viteConfig, (content) => {
+		sv.file(file.viteConfig, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
 			const clientObjectExpression = js.object.create({
-				extends: `./${files.viteConfig}`,
+				extends: `./${file.viteConfig}`,
 				test: {
 					name: 'client',
 					browser: {
@@ -137,7 +137,7 @@ export default defineAddon({
 			});
 
 			const serverObjectExpression = js.object.create({
-				extends: `./${files.viteConfig}`,
+				extends: `./${file.viteConfig}`,
 				test: {
 					name: 'server',
 					environment: 'node',

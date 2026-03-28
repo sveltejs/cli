@@ -7,11 +7,11 @@ export default defineAddon({
 	homepage: 'https://github.com/ChromeDevTools/vite-plugin-devtools-json',
 	options: {},
 
-	run: ({ sv, files }) => {
+	run: ({ sv, file }) => {
 		sv.devDependency('vite-plugin-devtools-json', '^1.0.0');
 
 		// add the vite plugin
-		sv.file(files.viteConfig, (content) => {
+		sv.file(file.viteConfig, (content) => {
 			const { ast, generateCode } = parse.script(content);
 
 			const vitePluginName = 'devtoolsJson';

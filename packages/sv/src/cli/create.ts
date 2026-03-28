@@ -428,15 +428,18 @@ export async function createVirtualWorkspace({
 	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
 	const override: {
-		kit?: Workspace['kit'];
+		isKit?: boolean;
+		directory?: Workspace['directory'];
 		dependencies: Record<string, string>;
 	} = { dependencies: {} };
 
 	// These are our default project structure so we know that it's a kit project
 	if (template === 'minimal' || template === 'demo' || template === 'library') {
-		override.kit = {
-			routesDirectory: 'src/routes',
-			libDirectory: 'src/lib'
+		override.isKit = true;
+		override.directory = {
+			src: 'src',
+			lib: 'src/lib',
+			kitRoutes: 'src/routes'
 		};
 	}
 
@@ -454,8 +457,8 @@ export async function createVirtualWorkspace({
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
 		language: type === 'typescript' ? 'ts' : 'js',
-		files: {
-			...tentativeWorkspace.files,
+		file: {
+			...tentativeWorkspace.file,
 			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
 			svelteConfig: commonFilePaths.svelteConfig // currently we always use js files, never typescript files
 		}
