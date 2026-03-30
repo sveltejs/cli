@@ -184,7 +184,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 				const editedContent = edit(content);
 				if (editedContent === '' || editedContent === false) return content;
 
-				writeFile(workspace.cwd, path, content);
+				writeFile(workspace.cwd, path, editedContent);
 				files.add(path);
 			} catch (e) {
 				if (e instanceof Error) {
