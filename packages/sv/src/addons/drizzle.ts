@@ -1,4 +1,11 @@
-import { color, dedent, text, transforms, resolveCommand, fileExists } from '@sveltejs/sv-utils';
+import {
+	color,
+	dedent,
+	type TransformFn,
+	transforms,
+	resolveCommand,
+	fileExists
+} from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -122,41 +129,36 @@ export default defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.0');
 
-		sv.file(
-			'.env',
-			transforms.text(({ content }) => generateEnvFileContent(content, options, false))
-		);
-		sv.file(
-			'.env.example',
-			transforms.text(({ content }) => generateEnvFileContent(content, options, true))
-		);
+		sv.file('.env', generateEnv(options, false));
+		sv.file('.env.example', generateEnv(options, true));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
-			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
-			let composeFile = '';
-			for (const option of composeFileOptions) {
-				composeFile = option;
-				if (fs.existsSync(path.resolve(cwd, option))) break;
-			}
-			if (composeFile === '') throw new Error('unreachable state...');
+			const composeFileOptions = [
+				// First item has higher priority
+				'compose.yaml', // canonical name
+				'compose.yml',
+				'docker-compose.yaml', // for backward compatibility
+				'docker-compose.yml' // for backward compatibility
+			];
 
-			sv.file(
-				composeFile,
-				transforms.text(({ content }) => {
-					// if the file already exists, don't modify it
-					// (in the future, we could add some tooling for modifying yaml)
-					if (content.length > 0) return false;
+			const composeFile =
+				composeFileOptions.find((option) => fs.existsSync(path.resolve(cwd, option))) ??
+				'compose.yaml';
 
-					const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
-					const port = PORTS[options.database];
+			sv.file(composeFile, (content) => {
+				// `transforms.yaml` not implemented. Therefore, abort if file exist.
+				if (content.length > 0) return false;
 
-					const USER = 'root';
-					const PASSWORD = 'mysecretpassword';
-					const DB_NAME = 'local';
+				const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
+				const port = PORTS[options.database];
 
-					let dbSpecificContent = '';
-					if (options.mysql === 'mysql2') {
-						dbSpecificContent = `
+				const USER = 'root';
+				const PASSWORD = 'mysecretpassword';
+				const DB_NAME = 'local';
+
+				let dbSpecificContent = '';
+				if (options.mysql === 'mysql2') {
+					dbSpecificContent = `
                       MYSQL_ROOT_PASSWORD: ${PASSWORD}
                       MYSQL_DATABASE: ${DB_NAME}
                     volumes:
@@ -164,9 +166,9 @@ export default defineAddon({
                 volumes:
                   mysqldata:
                 `;
-					}
-					if (options.postgresql === 'postgres.js') {
-						dbSpecificContent = `
+				}
+				if (options.postgresql === 'postgres.js') {
+					dbSpecificContent = `
                       POSTGRES_USER: ${USER}
                       POSTGRES_PASSWORD: ${PASSWORD}
                       POSTGRES_DB: ${DB_NAME}
@@ -175,9 +177,9 @@ export default defineAddon({
                 volumes:
                   pgdata:
                 `;
-					}
+				}
 
-					return dedent`
+				return dedent`
                 services:
                   db:
                     image: ${imageName}
@@ -186,8 +188,7 @@ export default defineAddon({
                       - ${port}:${port}
                     environment: ${dbSpecificContent}
                 `;
-				})
-			);
+			});
 		}
 
 		sv.file(
@@ -205,14 +206,14 @@ export default defineAddon({
 		if (hasPrettier) {
 			sv.file(
 				file.prettierignore,
-				transforms.text(({ content }) => text.upsert(content, '/drizzle/'))
+				transforms.text(({ content, text }) => text.upsert(content, '/drizzle/'))
 			);
 		}
 
 		if (options.database === 'sqlite') {
 			sv.file(
 				file.gitignore,
-				transforms.text(({ content }) => {
+				transforms.text(({ content, text }) => {
 					if (content.length === 0) return false;
 					return text.upsert(content, '*.db', { comment: 'SQLite' });
 				})
@@ -514,68 +515,66 @@ export default defineAddon({
 	}
 });
 
-function generateEnvFileContent(
-	content: string,
-	opts: OptionValues<typeof options>,
-	isExample: boolean
-) {
-	const DB_URL_KEY = 'DATABASE_URL';
+type GenerateEnv = (opts: OptionValues<typeof options>, isExample: boolean) => TransformFn;
+const generateEnv: GenerateEnv = (opts, isExample) =>
+	transforms.text(({ content, text }) => {
+		const DB_URL_KEY = 'DATABASE_URL';
 
-	if (opts.database === 'd1') {
-		content = text.upsert(content, 'CLOUDFLARE_ACCOUNT_ID', {
-			value: '""',
-			comment: ['Cloudflare D1'],
-			separator: true
-		});
-		content = text.upsert(content, 'CLOUDFLARE_DATABASE_ID', { value: '""' });
-		content = text.upsert(content, 'CLOUDFLARE_D1_TOKEN', { value: '""' });
-		return content;
-	}
-
-	// Calculate value and comment based on database options
-	let value: string;
-	const comment: NonNullable<Parameters<typeof text.upsert>[2]>['comment'] = ['Drizzle'];
-
-	if (opts.docker) {
-		const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
-		const port = PORTS[opts.database];
-		value = `"${protocol}://root:mysecretpassword@localhost:${port}/local"`;
-	} else if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
-		value = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
-	} else if (opts.sqlite === 'turso') {
-		if (isExample) {
-			value = '"libsql://db-name-user.turso.io"';
-			comment.push(
-				'Replace with your DB credentials!',
-				{ text: 'A local DB can also be used in dev as well', mode: 'append' },
-				{ text: `${DB_URL_KEY}="file:local.db"`, mode: 'append' }
-			);
-		} else {
-			value = '"file:local.db"';
-			comment.push(
-				'Replace with your DB credentials!',
-				`${DB_URL_KEY}="libsql://db-name-user.turso.io"`,
-				'A local DB can also be used in dev as well'
-			);
+		if (opts.database === 'd1') {
+			content = text.upsert(content, 'CLOUDFLARE_ACCOUNT_ID', {
+				value: '""',
+				comment: ['Cloudflare D1'],
+				separator: true
+			});
+			content = text.upsert(content, 'CLOUDFLARE_DATABASE_ID', { value: '""' });
+			content = text.upsert(content, 'CLOUDFLARE_D1_TOKEN', { value: '""' });
+			return content;
 		}
-	} else if (opts.database === 'mysql') {
-		value = '"mysql://user:password@host:port/db-name"';
-		comment.push('Replace with your DB credentials!');
-	} else if (opts.database === 'postgresql') {
-		value = '"postgres://user:password@host:port/db-name"';
-		comment.push('Replace with your DB credentials!');
-	} else {
-		value = '';
-	}
 
-	content = text.upsert(content, DB_URL_KEY, { value, comment, separator: true });
+		// Calculate value and comment based on database options
+		let value: string;
+		const comment: NonNullable<Parameters<typeof text.upsert>[2]>['comment'] = ['Drizzle'];
 
-	// Turso requires an auth token
-	if (opts.sqlite === 'turso') {
-		content = text.upsert(content, 'DATABASE_AUTH_TOKEN', {
-			value: isExample ? `""` : `"${crypto.randomUUID()}"`
-		});
-	}
+		if (opts.docker) {
+			const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
+			const port = PORTS[opts.database];
+			value = `"${protocol}://root:mysecretpassword@localhost:${port}/local"`;
+		} else if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
+			value = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
+		} else if (opts.sqlite === 'turso') {
+			if (isExample) {
+				value = '"libsql://db-name-user.turso.io"';
+				comment.push(
+					'Replace with your DB credentials!',
+					{ text: 'A local DB can also be used in dev as well', mode: 'append' },
+					{ text: `${DB_URL_KEY}="file:local.db"`, mode: 'append' }
+				);
+			} else {
+				value = '"file:local.db"';
+				comment.push(
+					'Replace with your DB credentials!',
+					`${DB_URL_KEY}="libsql://db-name-user.turso.io"`,
+					'A local DB can also be used in dev as well'
+				);
+			}
+		} else if (opts.database === 'mysql') {
+			value = '"mysql://user:password@host:port/db-name"';
+			comment.push('Replace with your DB credentials!');
+		} else if (opts.database === 'postgresql') {
+			value = '"postgres://user:password@host:port/db-name"';
+			comment.push('Replace with your DB credentials!');
+		} else {
+			value = '';
+		}
 
-	return content;
-}
+		content = text.upsert(content, DB_URL_KEY, { value, comment, separator: true });
+
+		// Turso requires an auth token
+		if (opts.sqlite === 'turso') {
+			content = text.upsert(content, 'DATABASE_AUTH_TOKEN', {
+				value: isExample ? `""` : `"${crypto.randomUUID()}"`
+			});
+		}
+
+		return content;
+	});

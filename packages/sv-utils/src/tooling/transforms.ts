@@ -18,6 +18,8 @@ import { type RootWithInstance, ensureScript } from './svelte/index.ts';
 import * as svelteNs from './svelte/index.ts';
 import * as textNs from './text.ts';
 
+export type TransformFn = (content: string) => string;
+
 type TransformOptions = {
 	/** Called when parsing fails. If provided, the original content is returned unchanged. */
 	onParseError?: (error: unknown) => void;
@@ -69,7 +71,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	script(
-		cb: (args: {
+		cb: (file: {
 			ast: TsEstree.Program;
 			comments: Comments;
 			content: string;
@@ -92,7 +94,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	svelte(
-		cb: (args: {
+		cb: (file: {
 			ast: SvelteAst.Root;
 			content: string;
 			svelte: typeof svelteNs;
@@ -119,14 +121,14 @@ export const transforms = {
 	 */
 	svelteScript(
 		scriptOptions: { language: 'ts' | 'js' },
-		cb: (args: {
+		cb: (file: {
 			ast: RootWithInstance;
 			content: string;
 			svelte: typeof svelteNs;
 			js: typeof jsNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseSvelte(content), options);
 			if (!parsed) return content;
@@ -148,13 +150,13 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	css(
-		cb: (args: {
+		cb: (file: {
 			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
 			content: string;
 			css: typeof cssNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseCss(content), options);
 			if (!parsed) return content;
@@ -170,9 +172,9 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	json<T = any>(
-		cb: (args: { data: T; content: string; json: typeof jsonNs }) => void | false,
+		cb: (file: { data: T; content: string; json: typeof jsonNs }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseJson(content), options);
 			if (!parsed) return content;
@@ -188,9 +190,9 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	yaml(
-		cb: (args: { data: ReturnType<typeof parseYaml>['data']; content: string }) => void | false,
+		cb: (file: { data: ReturnType<typeof parseYaml>['data']; content: string }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseYaml(content), options);
 			if (!parsed) return content;
@@ -206,9 +208,9 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	toml(
-		cb: (args: { data: TomlTable; content: string }) => void | false,
+		cb: (file: { data: TomlTable; content: string }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseToml(content), options);
 			if (!parsed) return content;
@@ -224,9 +226,9 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	html(
-		cb: (args: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,
+		cb: (file: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseHtml(content), options);
 			if (!parsed) return content;
@@ -242,9 +244,7 @@ export const transforms = {
 	 * Unlike other transforms there's no AST here - just string in, string out.
 	 * Return the new content, or `false` to abort (original content is returned unchanged).
 	 */
-	text(
-		cb: (args: { content: string; text: typeof textNs }) => string | false
-	): (content: string) => string {
+	text(cb: (file: { content: string; text: typeof textNs }) => string | false): TransformFn {
 		return (content) => {
 			const result = cb({ content, text: textNs });
 			if (result === false) return content;

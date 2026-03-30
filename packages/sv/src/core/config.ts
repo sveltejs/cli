@@ -29,8 +29,12 @@ export type SvApi = {
 	devDependency: (pkg: string, version: string) => void;
 	/** Execute a command in the workspace. */
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
-	/** Edit a file in the workspace. (will create it if it doesn't exist) */
-	file: (path: string, edit: (content: string) => string) => void;
+	/**
+	 * Edit a file in the workspace. (will create it if it doesn't exist)
+	 *
+	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 */
+	file: (path: string, edit: (content: string) => string | false) => void;
 };
 
 export type Addon<Args extends OptionDefinition, Id extends string = string> = {
