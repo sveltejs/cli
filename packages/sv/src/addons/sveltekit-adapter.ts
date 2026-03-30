@@ -5,8 +5,7 @@ import {
 	transforms,
 	fileExists,
 	getPackageJson,
-	sanitizeName,
-	commonFilePaths
+	sanitizeName
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -47,7 +46,7 @@ export default defineAddon({
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, file, cwd, language }) => {
+	run: ({ sv, options, file, cwd }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -178,10 +177,7 @@ export default defineAddon({
 					: transforms.json(({ data }) => applyWranglerConfig(data))
 			);
 
-			const jsconfig = fileExists(cwd, commonFilePaths.jsconfig);
-			const typeChecked = language === 'ts' || jsconfig;
-
-			if (typeChecked) {
+			if (file.typeConfig) {
 				sv.file(
 					file.gitignore,
 					transforms.text(({ content }) => {
@@ -201,14 +197,16 @@ export default defineAddon({
 				);
 
 				// Add Cloudflare generated types to tsconfig
-				sv.file(
-					jsconfig ? commonFilePaths.jsconfig : commonFilePaths.tsconfig,
-					transforms.json(({ data }) => {
-						data.compilerOptions ??= {};
-						data.compilerOptions.types ??= [];
-						data.compilerOptions.types.push('./worker-configuration.d.ts');
-					})
-				);
+				if (file.typeConfig) {
+					sv.file(
+						file.typeConfig,
+						transforms.json(({ data }) => {
+							data.compilerOptions ??= {};
+							data.compilerOptions.types ??= [];
+							data.compilerOptions.types.push('./worker-configuration.d.ts');
+						})
+					);
+				}
 
 				sv.file(
 					'src/app.d.ts',
