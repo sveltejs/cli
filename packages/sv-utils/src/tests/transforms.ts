@@ -19,7 +19,7 @@ describe('transforms', () => {
 		it('onError: calls handler and returns original content', () => {
 			const input = 'not: json';
 			let caught = false;
-			const result = transforms.json(() => { }, {
+			const result = transforms.json(() => {}, {
 				onError: () => {
 					caught = true;
 				}
@@ -29,7 +29,7 @@ describe('transforms', () => {
 		});
 
 		it('throws on parse error without onError', () => {
-			expect(() => transforms.json(() => { })('not: json')).toThrow();
+			expect(() => transforms.json(() => {})('not: json')).toThrow();
 		});
 	});
 
@@ -68,7 +68,7 @@ describe('transforms', () => {
 
 		it('onError: calls handler and returns original content', () => {
 			let caught = false;
-			const result = transforms.script(() => { }, {
+			const result = transforms.script(() => {}, {
 				onError: () => {
 					caught = true;
 				}
