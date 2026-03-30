@@ -128,7 +128,7 @@ export const transforms = {
 			js: typeof jsNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseSvelte(content), options);
 			if (!parsed) return content;
@@ -156,7 +156,7 @@ export const transforms = {
 			css: typeof cssNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseCss(content), options);
 			if (!parsed) return content;
@@ -174,7 +174,7 @@ export const transforms = {
 	json<T = any>(
 		cb: (file: { data: T; content: string; json: typeof jsonNs }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseJson(content), options);
 			if (!parsed) return content;
@@ -192,7 +192,7 @@ export const transforms = {
 	yaml(
 		cb: (file: { data: ReturnType<typeof parseYaml>['data']; content: string }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseYaml(content), options);
 			if (!parsed) return content;
@@ -210,7 +210,7 @@ export const transforms = {
 	toml(
 		cb: (file: { data: TomlTable; content: string }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseToml(content), options);
 			if (!parsed) return content;
@@ -228,7 +228,7 @@ export const transforms = {
 	html(
 		cb: (file: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseHtml(content), options);
 			if (!parsed) return content;
@@ -244,9 +244,7 @@ export const transforms = {
 	 * Unlike other transforms there's no AST here - just string in, string out.
 	 * Return the new content, or `false` to abort (original content is returned unchanged).
 	 */
-	text(
-		cb: (file: { content: string; text: typeof textNs }) => string | false
-	): (content: string) => string {
+	text(cb: (file: { content: string; text: typeof textNs }) => string | false): TransformFn {
 		return (content) => {
 			const result = cb({ content, text: textNs });
 			if (result === false) return content;
