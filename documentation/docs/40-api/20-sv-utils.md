@@ -38,10 +38,13 @@ Transform a JavaScript/TypeScript file. The callback receives `{ ast, comments, 
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.viteConfig, transforms.script(({ ast, js }) => {
-	js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
-	js.vite.addPlugin(ast, { code: 'foo()' });
-}));
+sv.file(
+	files.viteConfig,
+	transforms.script(({ ast, js }) => {
+		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
+		js.vite.addPlugin(ast, { code: 'foo()' });
+	})
+);
 ```
 
 ### `transforms.svelte`
@@ -52,9 +55,12 @@ Transform a Svelte component. The callback receives `{ ast, content, svelte, js 
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(layoutPath, transforms.svelte(({ ast, svelte }) => {
-	svelte.addFragment(ast, '<Foo />');
-}));
+sv.file(
+	layoutPath,
+	transforms.svelte(({ ast, svelte }) => {
+		svelte.addFragment(ast, '<Foo />');
+	})
+);
 ```
 
 ### `transforms.svelteScript`
@@ -65,10 +71,13 @@ Transform a Svelte component with a `<script>` block guaranteed. Pass `{ languag
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(layoutPath, transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
-	js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
-	svelte.addFragment(ast, '<Foo />');
-}));
+sv.file(
+	layoutPath,
+	transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
+		js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
+		svelte.addFragment(ast, '<Foo />');
+	})
+);
 ```
 
 ### `transforms.css`
@@ -79,9 +88,12 @@ Transform a CSS file. The callback receives `{ ast, content, css }`.
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.stylesheet, transforms.css(({ ast, css }) => {
-	css.addAtRule(ast, { name: 'import', params: "'tailwindcss'" });
-}));
+sv.file(
+	files.stylesheet,
+	transforms.css(({ ast, css }) => {
+		css.addAtRule(ast, { name: 'import', params: "'tailwindcss'" });
+	})
+);
 ```
 
 ### `transforms.json`
@@ -92,10 +104,13 @@ Transform a JSON file. Mutate the `data` object directly. The callback receives 
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.tsconfig, transforms.json(({ data }) => {
-	data.compilerOptions ??= {};
-	data.compilerOptions.strict = true;
-}));
+sv.file(
+	files.tsconfig,
+	transforms.json(({ data }) => {
+		data.compilerOptions ??= {};
+		data.compilerOptions.strict = true;
+	})
+);
 ```
 
 ### `transforms.yaml` / `transforms.toml`
@@ -110,9 +125,12 @@ Transform a plain text file (.env, .gitignore, etc.). No parser - string in, str
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file('.env', transforms.text(({ content }) => {
-	return content + '\nDATABASE_URL="file:local.db"';
-}));
+sv.file(
+	'.env',
+	transforms.text(({ content }) => {
+		return content + '\nDATABASE_URL="file:local.db"';
+	})
+);
 ```
 
 ### Aborting a transform
@@ -123,14 +141,17 @@ Return `false` from any transform callback to abort - the original content is re
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 
-sv.file(files.eslintConfig, transforms.script(({ ast, js }) => {
-	const { value: existing } = js.exports.createDefault(ast, { fallback: myConfig });
-	if (existing !== myConfig) {
-		// config already exists, don't touch it
-		return false;
-	}
-	// ... continue modifying ast
-}));
+sv.file(
+	files.eslintConfig,
+	transforms.script(({ ast, js }) => {
+		const { value: existing } = js.exports.createDefault(ast, { fallback: myConfig });
+		if (existing !== myConfig) {
+			// config already exists, don't touch it
+			return false;
+		}
+		// ... continue modifying ast
+	})
+);
 ```
 
 ### Standalone usage & testing
@@ -152,10 +173,14 @@ For cases where you need to mix transforms and raw edits, use `sv.file` with a c
 ```js
 // @noErrors
 sv.file(path, (content) => {
+	// curried
 	content = transforms.script(({ ast, js }) => {
-		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
+		js.imports.addDefault(ast, { as: 'foo', from: 'bar' });
 	})(content);
-	content = content.replace('foo', 'bar');
+
+	// raw string manipulation
+	content = content.replace('foo', 'baz');
+
 	return content;
 });
 ```

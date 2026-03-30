@@ -19,8 +19,6 @@ npx sv create --template addon my-addon
 
 Typically, an add-on looks like this:
 
-_hover keywords in the code to have some more context_
-
 ```js
 // @noErrors
 import { transforms } from '@sveltejs/sv-utils';
@@ -52,9 +50,12 @@ export default defineAddon({
 		if (!isKit) return cancel('SvelteKit is required');
 
 		// Add "Hello [who]!" to the root page
-		sv.file(directory.routes + '/+page.svelte', transforms.svelte(({ ast, svelte }) => {
-			svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
-		}));
+		sv.file(
+			directory.routes + '/+page.svelte',
+			transforms.svelte(({ ast, svelte }) => {
+				svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
+			})
+		);
 	}
 });
 ```
