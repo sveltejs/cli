@@ -294,7 +294,7 @@ export default defineAddon({
 					if (content) {
 						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return content;
+						return false;
 					}
 
 					const [ts] = createPrinter(language === 'ts');
@@ -398,7 +398,7 @@ export default defineAddon({
 				if (content) {
 					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-					return content;
+					return false;
 				}
 
 				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
@@ -462,7 +462,7 @@ export default defineAddon({
 				if (content) {
 					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-					return content;
+					return false;
 				}
 
 				const [ts] = createPrinter(language === 'ts');
@@ -495,7 +495,7 @@ export default defineAddon({
 				if (content) {
 					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-					return content;
+					return false;
 				}
 
 				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;

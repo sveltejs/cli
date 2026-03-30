@@ -143,7 +143,7 @@ export default defineAddon({
 				sv.file(agentPath, (content) => {
 					if (content) {
 						filesExistingAlready.push(agentPath);
-						return content;
+						return false;
 					}
 					filesAdded.push(agentPath);
 					return agentFile?.contents ?? '';

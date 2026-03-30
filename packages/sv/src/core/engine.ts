@@ -180,13 +180,11 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	const sv: SvApi = {
 		file: (path, edit) => {
 			try {
-				const exists = fileExists(workspace.cwd, path);
-				let fileContent = exists ? readFile(workspace.cwd, path) : '';
-				fileContent = edit(fileContent);
-				// skip writing when the edit returns an empty string (e.g. no content to create)
-				if (!fileContent) return fileContent;
+				const content = fileExists(workspace.cwd, path) ? readFile(workspace.cwd, path) : '';
+				const editedContent = edit(content);
+				if (editedContent === '' || editedContent === false) return content;
 
-				writeFile(workspace.cwd, path, fileContent);
+				writeFile(workspace.cwd, path, content);
 				files.add(path);
 			} catch (e) {
 				if (e instanceof Error) {

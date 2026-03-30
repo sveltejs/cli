@@ -30,7 +30,7 @@ export type SvApi = {
 	/** Execute a command in the workspace. */
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 	/** Edit a file in the workspace. (will create it if it doesn't exist) */
-	file: (path: string, edit: (content: string) => string) => void;
+	file: (path: string, edit: (content: string) => string | false) => void;
 };
 
 export type Addon<Args extends OptionDefinition, Id extends string = string> = {
