@@ -133,18 +133,23 @@ export default defineAddon({
 		sv.file('.env.example', generateEnv(options, true));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
-			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
-			let composeFile = '';
-			for (const option of composeFileOptions) {
-				composeFile = option;
-				if (fs.existsSync(path.resolve(cwd, option))) break;
-			}
-			if (composeFile === '') throw new Error('unreachable state...');
+			const composeFileOptions = [
+				// First item has higher priority
+				'compose.yaml', // canonical name
+				'compose.yml',
+				'docker-compose.yaml', // for backward compatibility
+				'docker-compose.yml' // for backward compatibility
+			];
+
+			const composeFile = composeFileOptions.find((option) =>
+				fs.existsSync(path.resolve(cwd, option))
+			);
+
+			if (!composeFile) throw new Error('unreachable state...');
 
 			sv.file(composeFile, (content) => {
-				// if the file already exists, don't modify it
-				// (in the future, we could add some tooling for modifying yaml)
-				if (content.length > 0) return content;
+				// `transform.yaml` not implemented. Therefore, abort if file exist.
+				if (content.length > 0) return false;
 
 				const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
 				const port = PORTS[options.database];
