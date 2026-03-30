@@ -24,15 +24,25 @@ Your `add-on` should:
 - export a function that returns a `defineAddon` object.
 - have a `package.json` with an `exports` field that points to the main entry point of the add-on.
 
-## Sharing your add-on
+## Building
 
-When you're ready to publish your add-on to npm, run:
+Your add-on is bundled with [tsdown](https://tsdown.dev/) into a single file in `dist/`. This bundles everything except `sv` (which is a peer dependency provided at runtime).
 
-```shell
+```sh
+npm run build
+```
+
+## Publishing
+
+When you're ready to publish your add-on to npm:
+
+```sh
 npm login
 npm publish
 ```
 
+> `prepublishOnly` will automatically run the build before publishing.
+
 ## Things to be aware of
 
-Community add-ons are **not permitted** to have any external dependencies outside of `sv`. If the use of a dependency is absolutely necessary, then they can be bundled using a bundler of your choosing (e.g. Rollup, Rolldown, tsup, etc.).
+Community add-ons must have `sv` as a `peerDependency` and should **not** have any `dependencies`. Everything else (including `@sveltejs/sv-utils`) is bundled at build time by tsdown.
