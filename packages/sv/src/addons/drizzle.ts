@@ -141,14 +141,12 @@ export default defineAddon({
 				'docker-compose.yml' // for backward compatibility
 			];
 
-			const composeFile = composeFileOptions.find((option) =>
-				fs.existsSync(path.resolve(cwd, option))
-			);
-
-			if (!composeFile) throw new Error('unreachable state...');
+			const composeFile =
+				composeFileOptions.find((option) => fs.existsSync(path.resolve(cwd, option))) ??
+				'compose.yaml';
 
 			sv.file(composeFile, (content) => {
-				// `transform.yaml` not implemented. Therefore, abort if file exist.
+				// `transforms.yaml` not implemented. Therefore, abort if file exist.
 				if (content.length > 0) return false;
 
 				const imageName = options.database === 'mysql' ? 'mysql' : 'postgres';
