@@ -57,8 +57,9 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	}
 });
 
-export function addToDemoPage(path: string, language: 'ts' | 'js'): (content: string) => string {
-	return transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
+type AddToDemoPage = (path: string, language: 'ts' | 'js') => (content: string) => string;
+export const addToDemoPage: AddToDemoPage = (path, language) =>
+	transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
 		for (const node of ast.fragment.nodes) {
 			if (node.type === 'RegularElement') {
 				const hrefAttribute = node.attributes.find(
@@ -80,11 +81,8 @@ export function addToDemoPage(path: string, language: 'ts' | 'js'): (content: st
 
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
-		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, {
-			mode: 'prepend'
-		});
+		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
 	});
-}
 
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.

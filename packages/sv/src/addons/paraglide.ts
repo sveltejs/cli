@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, type SvelteAst, text, transforms } from '@sveltejs/sv-utils';
+import { color, type SvelteAst, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -153,7 +153,7 @@ export default defineAddon({
 					log.warn(
 						"Could not find <html> node in app.html. You'll need to add the language placeholder manually"
 					);
-					return;
+					return false;
 				}
 				html.addAttribute(htmlNode, 'lang', '%paraglide.lang%');
 				html.addAttribute(htmlNode, 'dir', '%paraglide.dir%');
@@ -162,7 +162,7 @@ export default defineAddon({
 
 		sv.file(
 			file.gitignore,
-			transforms.text(({ content }) => {
+			transforms.text(({ content, text }) => {
 				if (!content) return false;
 
 				content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });

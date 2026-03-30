@@ -4,7 +4,6 @@ import {
 	Walker,
 	color,
 	dedent,
-	text,
 	transforms,
 	resolveCommand,
 	createPrinter
@@ -86,14 +85,8 @@ export default defineAddon({
 			})
 		);
 
-		sv.file(
-			'.env',
-			transforms.text(({ content }) => generateEnvFileContent(content, demoGithub, false))
-		);
-		sv.file(
-			'.env.example',
-			transforms.text(({ content }) => generateEnvFileContent(content, demoGithub, true))
-		);
+		sv.file('.env', generateEnvFileContent(demoGithub, false));
+		sv.file('.env.example', generateEnvFileContent(demoGithub, true));
 
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,
@@ -296,11 +289,11 @@ export default defineAddon({
 
 			sv.file(
 				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
-				transforms.text(({ content }) => {
+				(content) => {
 					if (content) {
 						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
+						return content;
 					}
 
 					const [ts] = createPrinter(language === 'ts');
@@ -397,31 +390,29 @@ export default defineAddon({
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
 				`;
-				})
+				}
 			);
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`,
-				transforms.text(({ content }) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
+			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
+				if (content) {
+					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
+					return content;
+				}
 
-					const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
-					const input = tailwind
-						? ' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"'
-						: '';
-					const btn = tailwind
-						? ' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"'
-						: '';
+				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
+				const input = tailwind
+					? ' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"'
+					: '';
+				const btn = tailwind
+					? ' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"'
+					: '';
 
-					const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-					const [ts, s5] = createPrinter(language === 'ts', svelte5);
+				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
+				const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
-					const passwordForm = demoPassword
-						? `
+				const passwordForm = demoPassword
+					? `
 					<form method="post" action="?/signInEmail" use:enhance>
 						<label>
 							Email
@@ -439,23 +430,23 @@ export default defineAddon({
 						<button formaction="?/signUpEmail"${btn}>Register</button>
 					</form>
 					${tailwind ? `<p class="text-red-500">{form?.message ?? ''}</p>` : `<p style="color: red">{form?.message ?? ''}</p>`}`
+					: '';
+
+				const separator =
+					demoPassword && demoGithub
+						? `\n\n\t\t\t\t\t<hr ${tailwind ? 'class="my-4"' : ''} />\n`
 						: '';
 
-					const separator =
-						demoPassword && demoGithub
-							? `\n\n\t\t\t\t\t<hr ${tailwind ? 'class="my-4"' : ''} />\n`
-							: '';
-
-					const githubForm = demoGithub
-						? `
+				const githubForm = demoGithub
+					? `
 					<form method="post" action="?/signInSocial" use:enhance>
 						<input type="hidden" name="provider" value="github" />
 						<input type="hidden" name="callbackURL" value="/demo/better-auth" />
 						<button${btn}>Sign in with GitHub</button>
 					</form>`
-						: '';
+					: '';
 
-					return dedent`
+				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
 						${ts("import type { ActionData } from './$types';\n")}
@@ -464,21 +455,18 @@ export default defineAddon({
 
 					<h1>Login</h1>${passwordForm}${separator}${githubForm}
 				`;
-				})
-			);
+			});
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`,
-				transforms.text(({ content }) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
+			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`, (content) => {
+				if (content) {
+					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
+					return content;
+				}
 
-					const [ts] = createPrinter(language === 'ts');
-					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
-					return dedent`
+				const [ts] = createPrinter(language === 'ts');
+				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
+				return dedent`
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
@@ -500,25 +488,22 @@ export default defineAddon({
 						}
 					};
 				`;
-				})
-			);
+			});
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/+page.svelte`,
-				transforms.text(({ content }) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
+			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.svelte`, (content) => {
+				if (content) {
+					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
+					return content;
+				}
 
-					const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
-					const twBtnClasses =
-						'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
+				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
+				const twBtnClasses =
+					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
-					const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-					const [ts, s5] = createPrinter(language === 'ts', svelte5);
-					return dedent`
+				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
+				const [ts, s5] = createPrinter(language === 'ts', svelte5);
+				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
 						${ts("import type { PageServerData } from './$types';\n")}
@@ -531,8 +516,7 @@ export default defineAddon({
 						<button ${tailwind ? twBtnClasses : ''}>Sign out</button>
 					</form>
 				`;
-				})
-			);
+			});
 		}
 	},
 
@@ -559,28 +543,32 @@ export default defineAddon({
 	}
 });
 
-function generateEnvFileContent(content: string, demoGithub: boolean, isExample: boolean) {
-	content = text.upsert(content, 'ORIGIN', {
-		value: isExample ? `""` : `"http://localhost:5173"`,
-		separator: true
-	});
-	content = text.upsert(content, 'BETTER_AUTH_SECRET', {
-		value: isExample ? `""` : `"${crypto.randomUUID()}"`,
-		comment: [
-			'Better Auth',
-			'For production use 32 characters and generated with high entropy',
-			'https://www.better-auth.com/docs/installation'
-		],
-		separator: true
-	});
-
-	if (demoGithub) {
-		content = text.upsert(content, 'GITHUB_CLIENT_ID', {
-			value: `""`,
-			comment: 'GitHub OAuth\n# https://www.better-auth.com/docs/authentication/github'
+const generateEnvFileContent: (
+	demoGithub: boolean,
+	isExample: boolean
+) => (content: string) => string = (demoGithub, isExample) =>
+	transforms.text(({ content, text }) => {
+		content = text.upsert(content, 'ORIGIN', {
+			value: isExample ? `""` : `"http://localhost:5173"`,
+			separator: true
 		});
-		content = text.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
-	}
+		content = text.upsert(content, 'BETTER_AUTH_SECRET', {
+			value: isExample ? `""` : `"${crypto.randomUUID()}"`,
+			comment: [
+				'Better Auth',
+				'For production use 32 characters and generated with high entropy',
+				'https://www.better-auth.com/docs/installation'
+			],
+			separator: true
+		});
 
-	return content;
-}
+		if (demoGithub) {
+			content = text.upsert(content, 'GITHUB_CLIENT_ID', {
+				value: `""`,
+				comment: 'GitHub OAuth\n# https://www.better-auth.com/docs/authentication/github'
+			});
+			content = text.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
+		}
+
+		return content;
+	});

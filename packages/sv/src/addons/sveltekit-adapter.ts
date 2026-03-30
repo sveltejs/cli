@@ -5,7 +5,8 @@ import {
 	transforms,
 	fileExists,
 	getPackageJson,
-	sanitizeName
+	sanitizeName,
+	commonFilePaths
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -78,8 +79,8 @@ export default defineAddon({
 			file.svelteConfig,
 			transforms.script(({ ast, comments, js }) => {
 				// finds any existing adapter's import declaration
-				const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
-				const adapterImportDecl = importDecls.find(
+				const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
+				const adapterImports = imports.find(
 					(importDecl) =>
 						typeof importDecl.source.value === 'string' &&
 						importDecl.source.value.startsWith('@sveltejs/adapter-') &&
@@ -87,31 +88,26 @@ export default defineAddon({
 				);
 
 				let adapterName = 'adapter';
-				if (adapterImportDecl) {
+				if (adapterImports) {
 					// replaces the import's source with the new adapter
-					adapterImportDecl.source.value = adapter.package;
+					adapterImports.source.value = adapter.package;
 					// reset raw value, so that the string is re-generated
-					adapterImportDecl.source.raw = undefined;
+					adapterImports.source.raw = undefined;
 
-					adapterName = adapterImportDecl.specifiers?.find(
+					const defaultSpecifier = adapterImports.specifiers?.find(
 						(s) => s.type === 'ImportDefaultSpecifier'
-					)?.local?.name as string;
+					);
+					adapterName = defaultSpecifier!.local.name;
 				} else {
 					js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 				}
 
-				const { value: config } = js.exports.createDefault(ast, {
-					fallback: js.object.create({})
-				});
+				const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
 
 				// override the adapter property
 				js.object.overrideProperties(config, {
 					kit: {
-						adapter: js.functions.createCall({
-							name: adapterName,
-							args: [],
-							useIdentifiers: true
-						})
+						adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
 					}
 				});
 
@@ -175,13 +171,14 @@ export default defineAddon({
 				}
 			};
 
-			sv.file(`wrangler.${ext}`, (content) =>
+			sv.file(
+				`wrangler.${ext}`,
 				ext === 'toml'
-					? transforms.toml(({ data }) => applyWranglerConfig(data))(content)
-					: transforms.json(({ data }) => applyWranglerConfig(data))(content)
+					? transforms.toml(({ data }) => applyWranglerConfig(data))
+					: transforms.json(({ data }) => applyWranglerConfig(data))
 			);
 
-			const jsconfig = fileExists(cwd, 'jsconfig.json');
+			const jsconfig = fileExists(cwd, commonFilePaths.jsconfig);
 			const typeChecked = language === 'ts' || jsconfig;
 
 			if (typeChecked) {
@@ -205,7 +202,7 @@ export default defineAddon({
 
 				// Add Cloudflare generated types to tsconfig
 				sv.file(
-					`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`,
+					jsconfig ? commonFilePaths.jsconfig : commonFilePaths.tsconfig,
 					transforms.json(({ data }) => {
 						data.compilerOptions ??= {};
 						data.compilerOptions.types ??= [];

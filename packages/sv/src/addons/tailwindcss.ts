@@ -79,16 +79,7 @@ export default defineAddon({
 			})
 		);
 
-		if (!isKit) {
-			const appSvelte = `${directory.src}/App.svelte`;
-			const stylesheetRelative = file.getRelative({ from: appSvelte, to: file.stylesheet });
-			sv.file(
-				appSvelte,
-				transforms.svelteScript({ language }, ({ ast, js }) => {
-					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
-				})
-			);
-		} else {
+		if (isKit) {
 			const layoutSvelte = `${directory.kitRoutes}/+layout.svelte`;
 			const stylesheetRelative = file.getRelative({ from: layoutSvelte, to: file.stylesheet });
 			sv.file(
@@ -99,10 +90,17 @@ export default defineAddon({
 					if (ast.fragment.nodes.length === 0) {
 						const svelteVersion = dependencyVersion('svelte');
 						if (!svelteVersion) throw new Error('Failed to determine svelte version');
-						svelte.addSlot(ast, {
-							svelteVersion
-						});
+						svelte.addSlot(ast, { svelteVersion });
 					}
+				})
+			);
+		} else {
+			const appSvelte = `${directory.src}/App.svelte`;
+			const stylesheetRelative = file.getRelative({ from: appSvelte, to: file.stylesheet });
+			sv.file(
+				appSvelte,
+				transforms.svelteScript({ language }, ({ ast, js }) => {
+					js.imports.addEmpty(ast.instance.content, { from: stylesheetRelative });
 				})
 			);
 		}

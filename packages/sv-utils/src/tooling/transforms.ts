@@ -69,7 +69,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	script(
-		cb: (args: {
+		cb: (file: {
 			ast: TsEstree.Program;
 			comments: Comments;
 			content: string;
@@ -92,7 +92,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	svelte(
-		cb: (args: {
+		cb: (file: {
 			ast: SvelteAst.Root;
 			content: string;
 			svelte: typeof svelteNs;
@@ -119,7 +119,7 @@ export const transforms = {
 	 */
 	svelteScript(
 		scriptOptions: { language: 'ts' | 'js' },
-		cb: (args: {
+		cb: (file: {
 			ast: RootWithInstance;
 			content: string;
 			svelte: typeof svelteNs;
@@ -148,7 +148,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	css(
-		cb: (args: {
+		cb: (file: {
 			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
 			content: string;
 			css: typeof cssNs;
@@ -170,7 +170,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	json<T = any>(
-		cb: (args: { data: T; content: string; json: typeof jsonNs }) => void | false,
+		cb: (file: { data: T; content: string; json: typeof jsonNs }) => void | false,
 		options?: TransformOptions
 	): (content: string) => string {
 		return (content) => {
@@ -188,7 +188,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	yaml(
-		cb: (args: { data: ReturnType<typeof parseYaml>['data']; content: string }) => void | false,
+		cb: (file: { data: ReturnType<typeof parseYaml>['data']; content: string }) => void | false,
 		options?: TransformOptions
 	): (content: string) => string {
 		return (content) => {
@@ -206,7 +206,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	toml(
-		cb: (args: { data: TomlTable; content: string }) => void | false,
+		cb: (file: { data: TomlTable; content: string }) => void | false,
 		options?: TransformOptions
 	): (content: string) => string {
 		return (content) => {
@@ -224,7 +224,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	html(
-		cb: (args: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,
+		cb: (file: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,
 		options?: TransformOptions
 	): (content: string) => string {
 		return (content) => {
@@ -243,7 +243,7 @@ export const transforms = {
 	 * Return the new content, or `false` to abort (original content is returned unchanged).
 	 */
 	text(
-		cb: (args: { content: string; text: typeof textNs }) => string | false
+		cb: (file: { content: string; text: typeof textNs }) => string | false
 	): (content: string) => string {
 		return (content) => {
 			const result = cb({ content, text: textNs });

@@ -1,4 +1,4 @@
-import { color, dedent, transforms } from '@sveltejs/sv-utils';
+import { color, createPrinter, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const options = defineAddonOptions()
@@ -45,14 +45,12 @@ export default defineAddon({
 			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(data, 'test:unit', 'vitest');
 				// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
-				json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', {
-					mode: 'prepend'
-				});
+				json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
 			})
 		);
 
 		const examplesDir = `${directory.lib}/vitest-examples`;
-		const typed = language === 'ts';
+		const [ts] = createPrinter(language === 'ts');
 
 		if (unitTesting || componentTesting) {
 			sv.file(
@@ -61,7 +59,7 @@ export default defineAddon({
 					if (content) return false;
 
 					return dedent`
-						export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
+						export function greet(name${ts(': string')})${ts(': string')} {
 							return 'Hello, ' + name + '!';
 						}
 					`;
@@ -180,10 +178,7 @@ export default defineAddon({
 
 				// Manage imports
 				if (componentTesting)
-					js.imports.addNamed(ast, {
-						imports: ['playwright'],
-						from: '@vitest/browser-playwright'
-					});
+					js.imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
 				const importName = 'defineConfig';
 				const { statement, alias } = js.imports.find(ast, { name: importName, from: 'vite' });
 				if (statement) {
