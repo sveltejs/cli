@@ -6,7 +6,8 @@ import {
 	dedent,
 	transforms,
 	resolveCommand,
-	createPrinter
+	createPrinter,
+	type TransformFn
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -85,8 +86,8 @@ export default defineAddon({
 			})
 		);
 
-		sv.file('.env', generateEnvFileContent(demoGithub, false));
-		sv.file('.env.example', generateEnvFileContent(demoGithub, true));
+		sv.file('.env', generateEnv(demoGithub, false));
+		sv.file('.env.example', generateEnv(demoGithub, true));
 
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,
@@ -542,11 +543,8 @@ export default defineAddon({
 		return steps;
 	}
 });
-
-const generateEnvFileContent: (
-	demoGithub: boolean,
-	isExample: boolean
-) => (content: string) => string = (demoGithub, isExample) =>
+type GenerateEnv = (demoGithub: boolean, isExample: boolean) => TransformFn;
+const generateEnv: GenerateEnv = (demoGithub, isExample) =>
 	transforms.text(({ content, text }) => {
 		content = text.upsert(content, 'ORIGIN', {
 			value: isExample ? `""` : `"http://localhost:5173"`,

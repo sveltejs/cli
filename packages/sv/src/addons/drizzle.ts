@@ -1,4 +1,11 @@
-import { color, dedent, transforms, resolveCommand, fileExists } from '@sveltejs/sv-utils';
+import {
+	color,
+	dedent,
+	type TransformFn,
+	transforms,
+	resolveCommand,
+	fileExists
+} from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -122,8 +129,8 @@ export default defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.0');
 
-		sv.file('.env', generateEnvFileContent(options, false));
-		sv.file('.env.example', generateEnvFileContent(options, true));
+		sv.file('.env', generateEnv(options, false));
+		sv.file('.env.example', generateEnv(options, true));
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
 			const composeFileOptions = ['docker-compose.yml', 'docker-compose.yaml', 'compose.yaml'];
@@ -505,11 +512,8 @@ export default defineAddon({
 	}
 });
 
-type GenerateEnvFileContent = (
-	opts: OptionValues<typeof options>,
-	isExample: boolean
-) => (content: string) => string;
-const generateEnvFileContent: GenerateEnvFileContent = (opts, isExample) =>
+type GenerateEnv = (opts: OptionValues<typeof options>, isExample: boolean) => TransformFn;
+const generateEnv: GenerateEnv = (opts, isExample) =>
 	transforms.text(({ content, text }) => {
 		const DB_URL_KEY = 'DATABASE_URL';
 

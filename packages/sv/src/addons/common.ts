@@ -1,4 +1,4 @@
-import { type SvelteAst, transforms } from '@sveltejs/sv-utils';
+import { type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
 export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
@@ -57,7 +57,7 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	}
 });
 
-type AddToDemoPage = (path: string, language: 'ts' | 'js') => (content: string) => string;
+type AddToDemoPage = (path: string, language: 'ts' | 'js') => TransformFn;
 export const addToDemoPage: AddToDemoPage = (path, language) =>
 	transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
 		for (const node of ast.fragment.nodes) {

@@ -18,6 +18,8 @@ import { type RootWithInstance, ensureScript } from './svelte/index.ts';
 import * as svelteNs from './svelte/index.ts';
 import * as textNs from './text.ts';
 
+export type TransformFn = (content: string) => string;
+
 type TransformOptions = {
 	/** Called when parsing fails. If provided, the original content is returned unchanged. */
 	onParseError?: (error: unknown) => void;

@@ -82,3 +82,4 @@ export { color } from './color.ts';
 
 // Types
 export type { Comments, AstTypes, SvelteAst } from './tooling/index.ts';
+export type { TransformFn } from './tooling/transforms.ts';
