@@ -1,9 +1,9 @@
 // @ts-expect-error
 import svelte_config from '@sveltejs/eslint-config';
+import { defineConfig } from 'eslint/config';
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
-	...svelte_config,
+export default defineConfig(
+	svelte_config,
 	{
 		rules: {
 			'no-undef': 'off',
@@ -36,4 +36,4 @@ export default [
 			'packages/sv-utils/src/**/tests/**/{output,input}.ts'
 		]
 	}
-];
+);
