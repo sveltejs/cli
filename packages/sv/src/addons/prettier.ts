@@ -61,7 +61,7 @@ export default defineAddon({
 					}
 				},
 				{
-					onParseError: () => {
+					onError: () => {
 						log.warn(
 							`A ${color.warning('.prettierrc')} config already exists and cannot be parsed as JSON. Skipping initialization.`
 						);

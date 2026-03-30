@@ -22,15 +22,15 @@ export type TransformFn = (content: string) => string;
 
 type TransformOptions = {
 	/** Called when parsing fails. If provided, the original content is returned unchanged. */
-	onParseError?: (error: unknown) => void;
+	onError?: (error: unknown) => void;
 };
 
 function withParseError<T>(parseFn: () => T, options?: TransformOptions): T | undefined {
 	try {
 		return parseFn();
 	} catch (error) {
-		if (options?.onParseError) {
-			options.onParseError(error);
+		if (options?.onError) {
+			options.onError(error);
 			return undefined;
 		}
 		throw error;

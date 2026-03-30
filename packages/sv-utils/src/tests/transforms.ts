@@ -16,11 +16,11 @@ describe('transforms', () => {
 			expect(transforms.json(() => false)(input)).toBe(input);
 		});
 
-		it('onParseError: calls handler and returns original content', () => {
+		it('onError: calls handler and returns original content', () => {
 			const input = 'not: json';
 			let caught = false;
-			const result = transforms.json(() => {}, {
-				onParseError: () => {
+			const result = transforms.json(() => { }, {
+				onError: () => {
 					caught = true;
 				}
 			})(input);
@@ -28,8 +28,8 @@ describe('transforms', () => {
 			expect(caught).toBe(true);
 		});
 
-		it('throws on parse error without onParseError', () => {
-			expect(() => transforms.json(() => {})('not: json')).toThrow();
+		it('throws on parse error without onError', () => {
+			expect(() => transforms.json(() => { })('not: json')).toThrow();
 		});
 	});
 
@@ -66,10 +66,10 @@ describe('transforms', () => {
 			expect(transforms.script(() => false)(input)).toBe(input);
 		});
 
-		it('onParseError: calls handler and returns original content', () => {
+		it('onError: calls handler and returns original content', () => {
 			let caught = false;
-			const result = transforms.script(() => {}, {
-				onParseError: () => {
+			const result = transforms.script(() => { }, {
+				onError: () => {
 					caught = true;
 				}
 			})('this is not valid {{{ js');
