@@ -1,4 +1,4 @@
-import { js, parse, svelte } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
 const options = defineAddonOptions()
@@ -18,34 +18,36 @@ export default defineAddon({
 	},
 
 	run: ({ directory, sv, options, language }) => {
-		sv.file(`${directory.lib}/~SV-NAME-TODO~/content.txt`, () => {
-			return `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
-		});
+		sv.file(
+			`${directory.lib}/~SV-NAME-TODO~/content.txt`,
+			transforms.text(() => {
+				return `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
+			})
+		);
 
-		sv.file(`${directory.lib}/~SV-NAME-TODO~/HelloComponent.svelte`, (content) => {
-			const { ast, generateCode } = parse.svelte(content);
-			svelte.ensureScript(ast, { language });
+		sv.file(
+			`${directory.lib}/~SV-NAME-TODO~/HelloComponent.svelte`,
+			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
+				js.imports.addDefault(ast.instance.content, {
+					as: 'content',
+					from: './content.txt?raw'
+				});
 
-			js.imports.addDefault(ast.instance.content, { as: 'content', from: './content.txt?raw' });
+				svelte.addFragment(ast, '<p>{content}</p>');
+				svelte.addFragment(ast, `<h2>Hello ${options.who}!</h2>`);
+			})
+		);
 
-			svelte.addFragment(ast, '<p>{content}</p>');
-			svelte.addFragment(ast, `<h2>Hello ${options.who}!</h2>`);
+		sv.file(
+			directory.kitRoutes + '/+page.svelte',
+			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
+				js.imports.addDefault(ast.instance.content, {
+					as: 'HelloComponent',
+					from: `$lib/~SV-NAME-TODO~/HelloComponent.svelte`
+				});
 
-			return generateCode();
-		});
-
-		sv.file(directory.kitRoutes + '/+page.svelte', (content) => {
-			const { ast, generateCode } = parse.svelte(content);
-			svelte.ensureScript(ast, { language });
-
-			js.imports.addDefault(ast.instance.content, {
-				as: 'HelloComponent',
-				from: `$lib/~SV-NAME-TODO~/HelloComponent.svelte`
-			});
-
-			svelte.addFragment(ast, '<HelloComponent />');
-
-			return generateCode();
-		});
+				svelte.addFragment(ast, '<HelloComponent />');
+			})
+		);
 	}
 });

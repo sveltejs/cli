@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, js, parse, json, text } from '@sveltejs/sv-utils';
+import { color, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -11,76 +11,83 @@ export default defineAddon({
 	run: ({ sv, language, file, isKit, directory }) => {
 		sv.devDependency('@playwright/test', '^1.58.2');
 
-		sv.file(file.package, (content) => {
-			const { data, generateCode } = parse.json(content);
+		sv.file(
+			file.package,
+			transforms.json(({ data, json }) => {
+				json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
+				json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
+			})
+		);
 
-			json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
-			json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
-
-			return generateCode();
-		});
-
-		sv.file(file.gitignore, (content) => {
-			if (!content) return content;
-			return text.upsert(content, 'test-results', { comment: 'Playwright' });
-		});
+		sv.file(
+			file.gitignore,
+			transforms.text(({ content, text }) => {
+				if (!content) return false;
+				return text.upsert(content, 'test-results', { comment: 'Playwright' });
+			})
+		);
 
 		const testDir = isKit ? `${directory.kitRoutes}/demo/playwright` : directory.src;
 		const testRoute = isKit ? '/demo/playwright' : '/';
 
 		if (isKit) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, (content) => {
-				return addToDemoPage(content, 'playwright', language);
-			});
+			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('playwright', language));
 
-			sv.file(`${testDir}/+page.svelte`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${testDir}/+page.svelte`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
-				return dedent`
-					<h1>Playwright e2e test demo</h1>
+					return dedent`
+						<h1>Playwright e2e test demo</h1>
 					`;
-			});
+				})
+			);
 		}
 
-		sv.file(`${testDir}/${isKit ? 'page' : 'app'}.svelte.e2e.${language}`, (content) => {
-			if (content) return content;
+		sv.file(
+			`${testDir}/${isKit ? 'page' : 'app'}.svelte.e2e.${language}`,
+			transforms.text(({ content }) => {
+				if (content) return false;
 
-			return dedent`
-				import { expect, test } from '@playwright/test';
+				return dedent`
+					import { expect, test } from '@playwright/test';
 
-				test('has expected h1', async ({ page }) => {
-					await page.goto('${testRoute}');
-					await expect(page.locator('h1')).toBeVisible();
-				});
+					test('has expected h1', async ({ page }) => {
+						await page.goto('${testRoute}');
+						await expect(page.locator('h1')).toBeVisible();
+					});
 				`;
-		});
+			})
+		);
 
-		sv.file(`playwright.config.${language}`, (content) => {
-			const { ast, generateCode } = parse.script(content);
-			const defineConfig = js.common.parseExpression('defineConfig({})');
-			const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
+		sv.file(
+			`playwright.config.${language}`,
+			transforms.script(({ ast, js }) => {
+				const defineConfig = js.common.parseExpression('defineConfig({})');
+				const { value: defaultExport } = js.exports.createDefault(ast, { fallback: defineConfig });
 
-			const config = {
-				webServer: {
-					command: 'npm run build && npm run preview',
-					port: 4173
-				},
-				testMatch: '**/*.e2e.{ts,js}'
-			};
+				const config = {
+					webServer: {
+						command: 'npm run build && npm run preview',
+						port: 4173
+					},
+					testMatch: '**/*.e2e.{ts,js}'
+				};
 
-			if (
-				defaultExport.type === 'CallExpression' &&
-				defaultExport.arguments[0]?.type === 'ObjectExpression'
-			) {
-				js.imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
-				js.object.overrideProperties(defaultExport.arguments[0], config);
-			} else if (defaultExport.type === 'ObjectExpression') {
-				js.object.overrideProperties(defaultExport, config);
-			} else {
-				log.warn('Unexpected playwright config for playwright add-on. Could not update.');
-			}
-			return generateCode();
-		});
+				if (
+					defaultExport.type === 'CallExpression' &&
+					defaultExport.arguments[0]?.type === 'ObjectExpression'
+				) {
+					js.imports.addNamed(ast, { imports: ['defineConfig'], from: '@playwright/test' });
+					js.object.overrideProperties(defaultExport.arguments[0], config);
+				} else if (defaultExport.type === 'ObjectExpression') {
+					js.object.overrideProperties(defaultExport, config);
+				} else {
+					log.warn('Unexpected playwright config for playwright add-on. Could not update.');
+				}
+			})
+		);
 	},
 
 	nextSteps: ({ isKit }) => {
