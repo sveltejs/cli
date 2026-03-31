@@ -2,7 +2,7 @@ import { parseScript, type SvelteAst } from '../index.ts';
 import { appendFromString } from '../js/common.ts';
 import { parseSvelte } from '../parsers.ts';
 
-type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
+export type RootWithInstance = SvelteAst.Root & { instance: SvelteAst.Script };
 
 // because we create instance if it doesn't exist, we can assert its presence
 // for all further processing after calling this function.

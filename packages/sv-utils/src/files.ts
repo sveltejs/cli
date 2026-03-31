@@ -1,9 +1,6 @@
-import * as p from '@clack/prompts';
-import { type AgentName, resolveCommand, parse } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
-import { exec } from 'tinyexec';
-import type { Workspace } from './workspace.ts';
+import { parseJson } from './tooling/parsers.ts';
 
 export type Package = {
 	name: string;
@@ -27,39 +24,8 @@ export function getPackageJson(cwd: string): {
 		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
-	const { data, generateCode } = parse.json(packageText);
+	const { data, generateCode } = parseJson(packageText);
 	return { source: packageText, data: data as Package, generateCode };
-}
-
-export async function formatFiles(options: {
-	packageManager: AgentName;
-	cwd: string;
-	filesToFormat: string[];
-}): Promise<void> {
-	if (options.filesToFormat.length === 0) return;
-	const { start, stop } = p.spinner();
-	start('Formatting modified files');
-
-	const args = ['prettier', '--write', '--ignore-unknown', ...options.filesToFormat];
-	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
-
-	try {
-		const result = await exec(cmd.command, cmd.args, {
-			nodeOptions: { cwd: options.cwd, stdio: 'pipe' },
-			throwOnError: true
-		});
-		if (result.exitCode !== 0) {
-			stop('Failed to format files');
-			p.log.error(result.stderr);
-			return;
-		}
-	} catch (e) {
-		stop('Failed to format files');
-		// @ts-expect-error
-		p.log.error(e?.output?.stderr || 'unknown error');
-		return;
-	}
-	stop('Successfully formatted modified files');
 }
 
 export function readFile(cwd: string, filePath: string): string {
@@ -74,11 +40,29 @@ export function readFile(cwd: string, filePath: string): string {
 	return text;
 }
 
+export function fileExists(cwd: string, filePath: string): boolean {
+	const fullFilePath = path.resolve(cwd, filePath);
+	return fs.existsSync(fullFilePath);
+}
+
+export function writeFile(cwd: string, filePath: string, content: string): void {
+	const fullFilePath = path.resolve(cwd, filePath);
+	const fullDirectoryPath = path.dirname(fullFilePath);
+
+	if (content && !content.endsWith('\n')) content += '\n';
+
+	if (!fs.existsSync(fullDirectoryPath)) {
+		fs.mkdirSync(fullDirectoryPath, { recursive: true });
+	}
+
+	fs.writeFileSync(fullFilePath, content, 'utf8');
+}
+
 export function installPackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	workspace: Workspace
+	cwd: string
 ): string {
-	const { data, generateCode } = getPackageJson(workspace.cwd);
+	const { data, generateCode } = getPackageJson(cwd);
 
 	for (const dependency of dependencies) {
 		if (dependency.dev) {
@@ -93,7 +77,7 @@ export function installPackages(
 	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
 	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
 
-	writeFile(workspace, commonFilePaths.packageJson, generateCode());
+	writeFile(cwd, commonFilePaths.packageJson, generateCode());
 	return commonFilePaths.packageJson;
 }
 
@@ -104,24 +88,6 @@ function alphabetizeProperties(obj: Record<string, string>) {
 		orderedObj[key] = value;
 	}
 	return orderedObj;
-}
-
-export function writeFile(workspace: Workspace, filePath: string, content: string): void {
-	const fullFilePath = path.resolve(workspace.cwd, filePath);
-	const fullDirectoryPath = path.dirname(fullFilePath);
-
-	if (content && !content.endsWith('\n')) content += '\n';
-
-	if (!fs.existsSync(fullDirectoryPath)) {
-		fs.mkdirSync(fullDirectoryPath, { recursive: true });
-	}
-
-	fs.writeFileSync(fullFilePath, content, 'utf8');
-}
-
-export function fileExists(cwd: string, filePath: string): boolean {
-	const fullFilePath = path.resolve(cwd, filePath);
-	return fs.existsSync(fullFilePath);
 }
 
 export const commonFilePaths = {

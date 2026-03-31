@@ -71,7 +71,7 @@ Prevents installing dependencies
 > [!NOTE]
 > Svelte maintainers have not reviewed community add-ons for malicious code!
 
-You can find [community add-ons on npm](https://www.npmjs.com/search?q=keywords%3Asv-add) by searching for `keywords:sv-add`.
+You can find [community add-ons on npm](https://www.npmx.dev/search?q=keyword:sv-add) by searching for keyword: `sv-add`.
 
 ### How to install a community add-on
 

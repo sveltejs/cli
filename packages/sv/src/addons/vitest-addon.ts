@@ -1,4 +1,4 @@
-import { color, dedent, js, parse, json } from '@sveltejs/sv-utils';
+import { color, createPrinter, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const options = defineAddonOptions()
@@ -23,7 +23,7 @@ export default defineAddon({
 	homepage: 'https://vitest.dev',
 	options,
 
-	run: ({ sv, files, language, kit, options, dependencyVersion }) => {
+	run: ({ sv, file, language, directory, options, dependencyVersion }) => {
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
@@ -40,146 +40,156 @@ export default defineAddon({
 			sv.devDependency('playwright', '^1.58.2');
 		}
 
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
+		sv.file(
+			file.package,
+			transforms.json(({ data, json }) => {
+				json.packageScriptsUpsert(data, 'test:unit', 'vitest');
+				// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
+				json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
+			})
+		);
 
-			json.packageScriptsUpsert(data, 'test:unit', 'vitest');
-			// we use `--run` so that vitest doesn't run in watch mode when running `npm run test`
-			json.packageScriptsUpsert(data, 'test', 'npm run test:unit -- --run', { mode: 'prepend' });
-
-			return generateCode();
-		});
-
-		const examplesDir = (kit ? kit.libDirectory : 'src/lib') + '/vitest-examples';
-		const typed = language === 'ts';
+		const examplesDir = `${directory.lib}/vitest-examples`;
+		const [ts] = createPrinter(language === 'ts');
 
 		if (unitTesting || componentTesting) {
-			sv.file(`${examplesDir}/greet.${language}`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/greet.${language}`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
-				return dedent`
-					export function greet(${typed ? 'name: string' : 'name'})${typed ? ': string' : ''} {
-						return 'Hello, ' + name + '!';
-					}
-				`;
-			});
+					return dedent`
+						export function greet(name${ts(': string')})${ts(': string')} {
+							return 'Hello, ' + name + '!';
+						}
+					`;
+				})
+			);
 		}
 
 		if (unitTesting) {
-			sv.file(`${examplesDir}/greet.spec.${language}`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/greet.spec.${language}`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
-				return dedent`
-					import { describe, it, expect } from 'vitest';
-					import { greet } from './greet';
+					return dedent`
+						import { describe, it, expect } from 'vitest';
+						import { greet } from './greet';
 
-					describe('greet', () => {
-						it('returns a greeting', () => {
-							expect(greet('Svelte')).toBe('Hello, Svelte!');
+						describe('greet', () => {
+							it('returns a greeting', () => {
+								expect(greet('Svelte')).toBe('Hello, Svelte!');
+							});
 						});
-					});
-				`;
-			});
+					`;
+				})
+			);
 		}
 
 		if (componentTesting) {
-			sv.file(`${examplesDir}/Welcome.svelte`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/Welcome.svelte`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
-				return dedent`
-					<script>
-						import { greet } from './greet';
+					return dedent`
+						<script>
+							import { greet } from './greet';
 
-						let { host = 'SvelteKit', guest = 'Vitest' } = $props();
-					</script>
+							let { host = 'SvelteKit', guest = 'Vitest' } = $props();
+						</script>
 
-					<h1>{greet(host)}</h1>
-					<p>{greet(guest)}</p>
-				`;
-			});
+						<h1>{greet(host)}</h1>
+						<p>{greet(guest)}</p>
+					`;
+				})
+			);
 
-			sv.file(`${examplesDir}/Welcome.svelte.spec.${language}`, (content) => {
-				if (content) return content;
+			sv.file(
+				`${examplesDir}/Welcome.svelte.spec.${language}`,
+				transforms.text(({ content }) => {
+					if (content) return false;
 
-				return dedent`
-					import { page } from 'vitest/browser';
-					import { describe, expect, it } from 'vitest';
-					import { render } from 'vitest-browser-svelte';
-					import Welcome from './Welcome.svelte';
+					return dedent`
+						import { page } from 'vitest/browser';
+						import { describe, expect, it } from 'vitest';
+						import { render } from 'vitest-browser-svelte';
+						import Welcome from './Welcome.svelte';
 
-					describe('Welcome.svelte', () => {
-						it('renders greetings for host and guest', async () => {
-							render(Welcome, { host: 'SvelteKit', guest: 'Vitest' });
+						describe('Welcome.svelte', () => {
+							it('renders greetings for host and guest', async () => {
+								render(Welcome, { host: 'SvelteKit', guest: 'Vitest' });
 
-							await expect.element(page.getByRole('heading', { level: 1 })).toHaveTextContent('Hello, SvelteKit!');
-							await expect.element(page.getByText('Hello, Vitest!')).toBeInTheDocument();
+								await expect.element(page.getByRole('heading', { level: 1 })).toHaveTextContent('Hello, SvelteKit!');
+								await expect.element(page.getByText('Hello, Vitest!')).toBeInTheDocument();
+							});
 						});
-					});
-				`;
-			});
+					`;
+				})
+			);
 		}
 
-		sv.file(files.viteConfig, (content) => {
-			const { ast, generateCode } = parse.script(content);
-
-			const clientObjectExpression = js.object.create({
-				extends: `./${files.viteConfig}`,
-				test: {
-					name: 'client',
-					browser: {
-						enabled: true,
-						provider: js.functions.createCall({ name: 'playwright', args: [] }),
-						instances: [{ browser: 'chromium', headless: true }]
-					},
-					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
-					exclude: ['src/lib/server/**']
-				}
-			});
-
-			const serverObjectExpression = js.object.create({
-				extends: `./${files.viteConfig}`,
-				test: {
-					name: 'server',
-					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
-				}
-			});
-
-			const viteConfig = js.vite.getConfig(ast);
-
-			const testObject = js.object.property(viteConfig, {
-				name: 'test',
-				fallback: js.object.create({
-					expect: {
-						requireAssertions: true
+		sv.file(
+			file.viteConfig,
+			transforms.script(({ ast, js }) => {
+				const clientObjectExpression = js.object.create({
+					extends: `./${file.viteConfig}`,
+					test: {
+						name: 'client',
+						browser: {
+							enabled: true,
+							provider: js.functions.createCall({ name: 'playwright', args: [] }),
+							instances: [{ browser: 'chromium', headless: true }]
+						},
+						include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+						exclude: ['src/lib/server/**']
 					}
-				})
-			});
+				});
 
-			const workspaceArray = js.object.property(testObject, {
-				name: 'projects',
-				fallback: js.array.create()
-			});
+				const serverObjectExpression = js.object.create({
+					extends: `./${file.viteConfig}`,
+					test: {
+						name: 'server',
+						environment: 'node',
+						include: ['src/**/*.{test,spec}.{js,ts}'],
+						exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+					}
+				});
 
-			if (componentTesting) js.array.append(workspaceArray, clientObjectExpression);
-			if (unitTesting) js.array.append(workspaceArray, serverObjectExpression);
+				const viteConfig = js.vite.getConfig(ast);
 
-			// Manage imports
-			if (componentTesting)
-				js.imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
-			const importName = 'defineConfig';
-			const { statement, alias } = js.imports.find(ast, { name: importName, from: 'vite' });
-			if (statement) {
-				// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
-				js.imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
+				const testObject = js.object.property(viteConfig, {
+					name: 'test',
+					fallback: js.object.create({
+						expect: {
+							requireAssertions: true
+						}
+					})
+				});
 
-				// Remove the old import
-				js.imports.remove(ast, { name: importName, from: 'vite', statement });
-			}
+				const workspaceArray = js.object.property(testObject, {
+					name: 'projects',
+					fallback: js.array.create()
+				});
 
-			return generateCode();
-		});
+				if (componentTesting) js.array.append(workspaceArray, clientObjectExpression);
+				if (unitTesting) js.array.append(workspaceArray, serverObjectExpression);
+
+				// Manage imports
+				if (componentTesting)
+					js.imports.addNamed(ast, { imports: ['playwright'], from: '@vitest/browser-playwright' });
+				const importName = 'defineConfig';
+				const { statement, alias } = js.imports.find(ast, { name: importName, from: 'vite' });
+				if (statement) {
+					// Switch the import from 'vite' to 'vitest/config' (keeping the alias)
+					js.imports.addNamed(ast, { imports: { defineConfig: alias }, from: 'vitest/config' });
+
+					// Remove the old import
+					js.imports.remove(ast, { name: importName, from: 'vite', statement });
+				}
+			})
+		);
 	},
 
 	nextSteps: ({ language, options }) => {

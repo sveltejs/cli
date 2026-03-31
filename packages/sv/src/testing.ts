@@ -6,7 +6,8 @@ import process from 'node:process';
 import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
-import type { AddonMap, OptionMap } from './core/engine.ts';
+import { add, type AddonMap, type OptionMap } from './core/engine.ts';
+import { addPnpmBuildDependencies } from './core/package-manager.ts';
 import { create } from './create/index.ts';
 
 export { addPnpmBuildDependencies } from './core/package-manager.ts';
@@ -236,4 +237,125 @@ export async function prepareServer({
 	}
 
 	return { url, close };
+}
+
+export type VitestContext = Pick<
+	typeof import('vitest'),
+	'inject' | 'test' | 'beforeAll' | 'beforeEach'
+>;
+
+export function createSetupTest(vitest: VitestContext): <Addons extends AddonMap>(
+	addons: Addons,
+	options?: SetupTestOptions<Addons>
+) => {
+	test: import('vitest').TestAPI<Fixtures>;
+	testCases: Array<AddonTestCase<AddonMap>>;
+	prepareServer: typeof prepareServer;
+} {
+	return function setupTest<Addons extends AddonMap>(
+		addons: Addons,
+		options?: SetupTestOptions<Addons>
+	) {
+		const { inject, test: vitestTest, beforeAll, beforeEach } = vitest;
+
+		const test = vitestTest.extend({}) as unknown as import('vitest').TestAPI<Fixtures>;
+
+		const cwd = inject('testDir');
+		const templatesDir = inject('templatesDir');
+		const variants = inject('variants');
+
+		const withBrowser = options?.browser ?? true;
+
+		let create: ReturnType<typeof createProject>;
+		let browser: Awaited<ReturnType<typeof import('@playwright/test').chromium.launch>>;
+
+		if (withBrowser) {
+			beforeAll(async () => {
+				let chromium: Awaited<typeof import('@playwright/test')>['chromium'];
+				try {
+					({ chromium } = await import('@playwright/test'));
+				} catch {
+					throw new Error(
+						'Browser testing requires @playwright/test. Install it with: pnpm add -D @playwright/test'
+					);
+				}
+				browser = await chromium.launch();
+				return async () => {
+					await browser.close();
+				};
+			});
+		}
+
+		const testCases: Array<AddonTestCase<Addons>> = [];
+		for (const kind of options?.kinds ?? []) {
+			for (const variant of variants) {
+				const addonTestCase = { variant, kind };
+				if (options?.filter === undefined || options.filter(addonTestCase)) {
+					testCases.push(addonTestCase);
+				}
+			}
+		}
+
+		let testName: string;
+		test.beforeAll(async (_ctx, suite) => {
+			testName = path.dirname(suite.file.filepath).split('/').at(-1)!;
+
+			create = createProject({ cwd, templatesDir, testName });
+
+			fs.writeFileSync(
+				path.resolve(cwd, testName, 'pnpm-workspace.yaml'),
+				"packages:\n  - '**/*'",
+				'utf8'
+			);
+
+			fs.writeFileSync(
+				path.resolve(cwd, testName, 'package.json'),
+				JSON.stringify({
+					name: `${testName}-workspace-root`,
+					private: true
+				})
+			);
+
+			for (const addonTestCase of testCases) {
+				const { variant, kind } = addonTestCase;
+				const cwd = create({ testId: `${kind.type}-${variant}`, variant });
+
+				const metaPath = path.resolve(cwd, 'meta.json');
+				fs.writeFileSync(metaPath, JSON.stringify({ variant, kind }, null, '\t'), 'utf8');
+
+				if (options?.preAdd) {
+					await options.preAdd({ addonTestCase, cwd });
+				}
+				const { pnpmBuildDependencies } = await add({
+					cwd,
+					addons,
+					options: kind.options,
+					packageManager: 'pnpm'
+				});
+				await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+			}
+
+			execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
+		});
+
+		beforeEach<Fixtures>(async (ctx) => {
+			let browserCtx: Awaited<ReturnType<typeof browser.newContext>>;
+			if (withBrowser) {
+				browserCtx = await browser.newContext();
+				ctx.page = await browserCtx.newPage();
+			}
+
+			ctx.cwd = (addonTestCase) => {
+				return path.join(cwd, testName, `${addonTestCase.kind.type}-${addonTestCase.variant}`);
+			};
+
+			return async () => {
+				if (withBrowser) {
+					await browserCtx.close();
+				}
+			};
+		});
+
+		return { test, testCases, prepareServer };
+	};
 }

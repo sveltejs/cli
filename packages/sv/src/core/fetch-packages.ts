@@ -14,22 +14,21 @@ import type { AddonDefinition, AddonReference } from './config.ts';
 const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));
 
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
-	// We should look only for dependencies, not devDependencies or peerDependencies
+	const peerDeps = { ...addonPkg.peerDependencies };
 	const deps = { ...addonPkg.dependencies };
 
-	// valid addons should always have a dependency on `sv`
-	const addonSvVersion = deps['sv'];
+	// valid addons should always have `sv` as a peerDependency
+	const addonSvVersion = peerDeps['sv'];
 	if (!addonSvVersion) {
 		throw new Error(
-			`Invalid add-on package specified: '${specifier}' is missing a dependency on 'sv' in its 'package.json'`
+			`Invalid add-on package specified: '${specifier}' is missing 'sv' in its 'peerDependencies'`
 		);
 	}
 
-	// addons should never have any external dependencies outside of `sv` and `@sveltejs/sv-utils`
-	for (const dep of Object.keys(deps)) {
-		if (dep === 'sv' || dep === '@sveltejs/sv-utils') continue;
+	// addons should not have any dependencies (everything should be bundled)
+	if (Object.keys(deps).length > 0) {
 		throw new Error(
-			`Invalid add-on package detected: '${specifier}'\nCommunity addons should not have any external 'dependencies' besides 'sv'. Consider bundling your dependencies if they are necessary`
+			`Invalid add-on package detected: '${specifier}'\nCommunity add-ons should not have any 'dependencies'. Use 'peerDependencies' for 'sv' and bundle everything else`
 		);
 	}
 

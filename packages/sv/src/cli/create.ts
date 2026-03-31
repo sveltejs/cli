@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand } from '@sveltejs/sv-utils';
+import { color, resolveCommand, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
 import type { LoadedAddon, OptionValues } from '../core/config.ts';
-import { commonFilePaths, formatFiles, getPackageJson } from '../core/files.ts';
+import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmBuildDependencies,
@@ -263,6 +263,14 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const parentDirName = path.basename(path.dirname(projectPath));
 	const projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
+	if (template === 'addon' && !projectName.startsWith('@')) {
+		// At this stage, we don't support un-scoped add-ons
+		// FYI: a demo exists for `npx sv add my-cool-addon`
+		common.errorAndExit(
+			`Community add-ons must be published under an npm org (e.g. ${color.command('@my-org/sv')}). Unscoped package names are not supported at this stage.`
+		);
+	}
+
 	if (template === 'addon' && options.add.length > 0) {
 		common.errorAndExit(
 			`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
@@ -428,15 +436,18 @@ export async function createVirtualWorkspace({
 	type
 }: CreateVirtualWorkspaceOptions): Promise<Workspace> {
 	const override: {
-		kit?: Workspace['kit'];
+		isKit?: boolean;
+		directory?: Workspace['directory'];
 		dependencies: Record<string, string>;
 	} = { dependencies: {} };
 
 	// These are our default project structure so we know that it's a kit project
 	if (template === 'minimal' || template === 'demo' || template === 'library') {
-		override.kit = {
-			routesDirectory: 'src/routes',
-			libDirectory: 'src/lib'
+		override.isKit = true;
+		override.directory = {
+			src: 'src',
+			lib: 'src/lib',
+			kitRoutes: 'src/routes'
 		};
 	}
 
@@ -454,8 +465,8 @@ export async function createVirtualWorkspace({
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
 		language: type === 'typescript' ? 'ts' : 'js',
-		files: {
-			...tentativeWorkspace.files,
+		file: {
+			...tentativeWorkspace.file,
 			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
 			svelteConfig: commonFilePaths.svelteConfig // currently we always use js files, never typescript files
 		}
