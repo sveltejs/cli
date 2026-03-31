@@ -4,7 +4,8 @@ import {
 	type TransformFn,
 	transforms,
 	resolveCommand,
-	fileExists
+	fileExists,
+	createPrinter
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -93,7 +94,7 @@ export default defineAddon({
 			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare - add the adapter first');
 		}
 
-		const typescript = language === 'ts';
+		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
 			'drizzle config': path.resolve(cwd, `drizzle.config.${language}`),
@@ -349,7 +350,7 @@ export default defineAddon({
 					js.imports.addNamed(ast, { from: 'drizzle-orm/d1', imports: ['drizzle'] });
 
 					const getDbFn = js.common.parseStatement(
-						`export const getDb = (d1${typescript ? ': D1Database' : ''}) => drizzle(d1, { schema });`
+						`export const getDb = (d1${ts(': D1Database')} => drizzle(d1, { schema });`
 					);
 
 					ast.body.push(getDbFn);

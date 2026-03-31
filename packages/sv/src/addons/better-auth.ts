@@ -41,6 +41,9 @@ export default defineAddon({
 		runsAfter('tailwindcss');
 	},
 	run: ({ sv, language, options, directory, dependencyVersion, file }) => {
+		const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
+		const [ts, s5] = createPrinter(language === 'ts', svelte5);
+
 		const demoPassword = options.demo.includes('password');
 		const demoGithub = options.demo.includes('github');
 		const hasDemo = demoPassword || demoGithub;
@@ -135,9 +138,9 @@ export default defineAddon({
 						plugins: [
 							sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 						],
-					}${language === 'ts' ? ' satisfies Omit<Parameters<typeof betterAuth>[0], "database">' : ''};
+					}${ts(' satisfies Omit<Parameters<typeof betterAuth>[0], "database">')};
 
-					export const createAuth = (d1${language === 'ts' ? ': D1Database' : ''}) => betterAuth({
+					export const createAuth = (d1${ts(': D1Database')}) => betterAuth({
 						...authConfig,
 						database: drizzleAdapter(getDb(d1), { provider: '${provider}' }),
 					});
@@ -148,7 +151,7 @@ export default defineAddon({
 					 * This instance is used by the \`better-auth\` CLI for schema generation ONLY.
 					 * To access \`auth\` at runtime, use \`event.locals.auth\`.
 					 */
-					export const auth = createAuth(${language === 'ts' ? 'null!' : 'null'});`;
+					export const auth = createAuth(null${ts('!')});`;
 				} else {
 					authConfig = dedent`
 					export const auth = betterAuth({
@@ -297,8 +300,6 @@ export default defineAddon({
 						return false;
 					}
 
-					const [ts] = createPrinter(language === 'ts');
-
 					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
 					const signInEmailAction = demoPassword
@@ -409,9 +410,6 @@ export default defineAddon({
 					? ' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"'
 					: '';
 
-				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = createPrinter(language === 'ts', svelte5);
-
 				const passwordForm = demoPassword
 					? `
 					<form method="post" action="?/signInEmail" use:enhance>
@@ -465,7 +463,6 @@ export default defineAddon({
 					return false;
 				}
 
-				const [ts] = createPrinter(language === 'ts');
 				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 				return dedent`
 					import { redirect } from '@sveltejs/kit';
@@ -502,8 +499,6 @@ export default defineAddon({
 				const twBtnClasses =
 					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
-				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = createPrinter(language === 'ts', svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';

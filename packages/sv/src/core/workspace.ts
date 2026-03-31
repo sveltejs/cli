@@ -31,6 +31,7 @@ export type Workspace = {
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
+		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
 		/** `${directory.routes}/layout.css` or `src/app.css` */
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
@@ -75,9 +76,9 @@ export async function createWorkspace({
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
-	const jtsConfigPath = find.any([commonFilePaths.jsconfig, commonFilePaths.tsconfig], { cwd });
-	const typescript = jtsConfigPath?.endsWith(commonFilePaths.tsconfig) ?? false;
-
+	const typeConfigOptions = [commonFilePaths.jsconfig, commonFilePaths.tsconfig];
+	const typeConfig = find.any(typeConfigOptions, { cwd }) as Workspace['file']['typeConfig'];
+	const typescript = typeConfig?.endsWith(commonFilePaths.tsconfig) ?? false;
 	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
 	const viteConfig = fs.existsSync(viteConfigPath)
@@ -137,6 +138,7 @@ export async function createWorkspace({
 		file: {
 			viteConfig,
 			svelteConfig,
+			typeConfig,
 			stylesheet,
 			package: 'package.json',
 			gitignore: '.gitignore',
