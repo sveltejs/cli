@@ -76,35 +76,37 @@ You can find [community add-ons on npm](https://www.npmx.dev/search?q=keyword:sv
 ### How to install a community add-on
 
 ```sh
-npx sv add [addon_package_name]
+npx sv add @scope
+npx sv add file:../path/to/my-addon
 ```
 
-You can:
-
-- mix and match official and community add-ons
-- use the interactive prompt or give args to the cli
-- use the `--add` option in the `create` command
+You can mix and match official and community add-ons, use the interactive prompt or pass args directly:
 
 ```sh
+# In an existing project
 npx sv add eslint @supacool
-```
 
-```sh
+# Or when creating a new project
 npx sv create --add eslint @supacool
 ```
 
-### Package Protocols
+### Package protocols
+
+For **scoped packages**, the npm package name should be `@org/sv`. Users only need to type the scope:
 
 ```sh
-# Scoped package: @org/sv
+# Installs the npm package `@supacool/sv`
 npx sv add @supacool
+```
 
-# Regular npm package (with or without scope)
-npx sv add my-cool-addon
+For **local add-ons**, use the `file:` protocol. This is useful during development, but also for running custom add-ons that don't need to be published:
 
-# Local add-on
+```sh
 npx sv add file:../path/to/my-addon
 ```
+
+> [!NOTE]
+> Unscoped packages are not supported yet
 
 ### How to create a community add-on
 
