@@ -206,7 +206,6 @@ export default defineAddon({
 					})
 				);
 
-
 				sv.file(
 					'src/app.d.ts',
 					transforms.script(({ ast, comments, js }) => {
