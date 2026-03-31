@@ -76,7 +76,7 @@ You can find [community add-ons on npm](https://www.npmx.dev/search?q=keyword:sv
 ### How to install a community add-on
 
 ```sh
-npx sv add [PROTOCOL][COMMUNITY_ADDON]
+npx sv add [addon_package_name]
 ```
 
 You can:
@@ -86,18 +86,18 @@ You can:
 - use the `--add` option in the `create` command
 
 ```sh
-npx sv add eslint "@supacool"
+npx sv add eslint @supacool
 ```
 
 ```sh
-npx sv create --add eslint "@supacool"
+npx sv create --add eslint @supacool
 ```
 
 ### Package Protocols
 
 ```sh
-# Scoped package: @org (preferred), we will look for @org/sv
-npx sv add "@supacool"
+# Scoped package: @org/sv
+npx sv add @supacool
 
 # Regular npm package (with or without scope)
 npx sv add my-cool-addon
@@ -108,12 +108,4 @@ npx sv add file:../path/to/my-addon
 
 ### How to create a community add-on
 
-To start on a good track, create your add-on with the `addon` template.
-
-```sh
-npx sv create --template addon [path]
-```
-
-In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` to get started.
-
-Then you can continue with the [API docs](/docs/cli/add-on) to start building your add-on. You can also have a look at the [official addons source code](https://github.com/sveltejs/cli/tree/main/packages/sv/src/addons) to get some inspiration on what can be done.
+Please checkout the [Add-on Docs](/docs/cli/add-on) for more details.
