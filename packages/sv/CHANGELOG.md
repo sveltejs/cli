@@ -1,5 +1,23 @@
 # sv
 
+## 0.13.1
+### Patch Changes
+
+
+- feat(paraglide): add a type annotation for the reroute hooks ([#1009](https://github.com/sveltejs/cli/pull/1009))
+
+
+- api: rename `files` to `file`, `kit` to `isKit` & `directory` ([#999](https://github.com/sveltejs/cli/pull/999))
+
+
+- refactor: move files utilities to `@sveltejs/sv-utils` ([#1002](https://github.com/sveltejs/cli/pull/1002))
+
+
+- chore: add text-scale meta in html ([#1011](https://github.com/sveltejs/cli/pull/1011))
+
+- Updated dependencies [[`83601df`](https://github.com/sveltejs/cli/commit/83601dfdfb95d8523f7f9e9e4e00439099d29c4f), [`504bce9`](https://github.com/sveltejs/cli/commit/504bce95e496ec4a3de781cbd3a73e41ad1fefe4)]:
+  - @sveltejs/sv-utils@0.0.4
+
 ## 0.13.0
 ### Minor Changes
 
