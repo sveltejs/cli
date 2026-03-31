@@ -138,7 +138,7 @@ export default defineConfig({
 });
 ```
 
-And create `tests/setup/global.js`:
+And the global test setup script `tests/setup/global.js`:
 
 ```js
 import { fileURLToPath } from 'node:url';
