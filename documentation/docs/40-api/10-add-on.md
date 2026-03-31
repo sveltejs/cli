@@ -2,6 +2,8 @@
 title: add-on
 ---
 
+<!-- moved to /community-addon -->
+
 > [!NOTE]
 > Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
 
@@ -55,7 +57,7 @@ export default defineAddon({
 
 		// Add "Hello [who]!" to the root page
 		sv.file(
-			directory.routes + '/+page.svelte',
+      path.join(directory.routes,'+page.svelte')
 			transforms.svelte(({ ast, svelte }) => {
 				svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
 			})
