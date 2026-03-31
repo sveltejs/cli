@@ -246,7 +246,7 @@ export default defineAddon({
 
 ## Version compatibility
 
-Your add-on should specify a minimum `sv` version in `peerDependencies`. Your user will get a compatibility warning if their `sv` version has a different major version than what was specified.
+Your add-on should specify a minimum `sv` version in `peerDependencies`. Your users will get a compatibility warning if their `sv` version has a different major version than what was specified.
 
 ## Examples
 
