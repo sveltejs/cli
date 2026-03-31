@@ -69,7 +69,7 @@ export default defineAddon({
 
 ## Development
 
-While developing your add-on, you can test it locally using the `file:` protocol:
+You can run your add-on locally using the `file:` protocol:
 
 ```sh
 cd /path/to/test-project
@@ -77,6 +77,8 @@ npx sv add file:../path/to/my-addon
 ```
 
 This allows you to iterate quickly without publishing to npm.
+
+The `file:` protocol also works for custom or private add-ons that you don't intend to publish - for example, to standardize project setup across your team or organization.
 
 > [!NOTE]
 > It is not necessary to build your add-on during development.
@@ -103,9 +105,6 @@ test('adds hello message', async () => {
 });
 ```
 
-> [!NOTE]
-> It is not necessary to build your add-on during development.
-
 ## Publishing
 
 ### Bundling
@@ -116,13 +115,12 @@ Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single f
 
 Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `package.json`:
 
-```json
+```jsonc
 {
-	// must be scoped to `/sv`
 	"name": "@your-org/sv",
 	"version": "1.0.0",
 	"type": "module",
-	// entrypoint during developemnt
+	// entrypoint during development
 	"exports": {
 		".": "./src/index.js"
 	},
@@ -144,9 +142,21 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 }
 ```
 
+### Naming convention
+
+Name your package `@your-org/sv`. Users install it by typing just the scope:
+
+```sh
+# npm package: @your-org/sv
+npx sv add @your-org
+```
+
+> [!NOTE]
+> Unscoped packages are not supported yet
+
 ### Export options
 
-Your package can export the add-on in two ways:
+`sv` first tries to import `your-package/sv`, then falls back to the default export. This means you have two options:
 
 1. **Default export** (recommended for dedicated add-on packages):
 
@@ -158,7 +168,7 @@ Your package can export the add-on in two ways:
    }
    ```
 
-2. **`/sv` export** (for packages that have other functionality):
+2. **`./sv` export** (for packages that also export other functionality):
    ```json
    {
    	"exports": {
@@ -169,8 +179,6 @@ Your package can export the add-on in two ways:
    ```
 
 ### Publish to npm
-
-Community add-ons must be scoped packages (e.g. `@your-org/sv`). Users install with `npx sv add @your-org`.
 
 ```sh
 npm login
