@@ -28,10 +28,10 @@ export type Workspace = {
 	dependencyVersion: (pkg: string) => string | undefined;
 	/** to know if the workspace is using typescript or javascript */
 	language: 'ts' | 'js';
-	files: {
+	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
-		/** `${kit.routesDirectory}/layout.css` or `src/app.css` */
+		/** `${directory.routes}/layout.css` or `src/app.css` */
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
@@ -46,8 +46,14 @@ export type Workspace = {
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 	};
-	/** If we are in a kit project, this object will contain the lib and routes directories */
-	kit: { libDirectory: string; routesDirectory: string } | undefined;
+	isKit: boolean;
+	directory: {
+		src: string;
+		/** In SvelteKit taking `kit.files.lib` automatically. Falls back to `src/lib` in non-Kit projects */
+		lib: string;
+		/** In SvelteKit taking `kit.files.routes` automatically. Falls back to `src/routes` in non-Kit projects */
+		kitRoutes: string;
+	};
 	/** The package manager used to install dependencies */
 	packageManager: AgentName;
 };
@@ -56,7 +62,8 @@ type CreateWorkspaceOptions = {
 	cwd: string;
 	packageManager?: AgentName;
 	override?: {
-		kit?: Workspace['kit'];
+		isKit?: boolean;
+		directory?: Workspace['directory'];
 		dependencies: Record<string, string>;
 	};
 };
@@ -112,21 +119,22 @@ export async function createWorkspace({
 		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
 	}
 
-	const kit = override?.kit
-		? override.kit
-		: dependencies['@sveltejs/kit']
-			? parseKitOptions(resolvedCwd, svelteConfig)
-			: undefined;
+	const isKit = override?.isKit ?? !!dependencies['@sveltejs/kit'];
+	const directory = override?.directory
+		? override.directory
+		: isKit
+			? { src: 'src', ...parseKitOptions(resolvedCwd, svelteConfig) }
+			: { src: 'src', lib: 'src/lib', kitRoutes: 'src/routes' };
 
-	const stylesheet: `${string}/layout.css` | 'src/app.css' = kit
-		? `${kit.routesDirectory}/layout.css`
+	const stylesheet: `${string}/layout.css` | 'src/app.css' = isKit
+		? `${directory.kitRoutes}/layout.css`
 		: 'src/app.css';
 
 	return {
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detectPackageManager(cwd)),
 		language: typescript ? 'ts' : 'js',
-		files: {
+		file: {
 			viteConfig,
 			svelteConfig,
 			stylesheet,
@@ -147,7 +155,8 @@ export async function createWorkspace({
 				return relativePath;
 			}
 		},
-		kit,
+		isKit,
+		directory,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
 }
@@ -222,8 +231,8 @@ function parseKitOptions(cwd: string, svelteConfigPath: string) {
 	});
 	const lib = js.object.property(files, { name: 'lib', fallback: js.common.createLiteral('') });
 
-	const routesDirectory = (routes.value as string) || 'src/routes';
-	const libDirectory = (lib.value as string) || 'src/lib';
-
-	return { routesDirectory, libDirectory };
+	return {
+		lib: (lib.value as string) || 'src/lib',
+		kitRoutes: (routes.value as string) || 'src/routes'
+	};
 }

@@ -178,15 +178,13 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 	const pnpmBuildDependencies: string[] = [];
 	const sv: SvApi = {
-		file: (path, content) => {
+		file: (path, edit) => {
 			try {
-				const exists = fileExists(workspace.cwd, path);
-				let fileContent = exists ? readFile(workspace.cwd, path) : '';
-				// process file
-				fileContent = content(fileContent);
-				if (!fileContent) return fileContent;
+				const content = fileExists(workspace.cwd, path) ? readFile(workspace.cwd, path) : '';
+				const editedContent = edit(content);
+				if (editedContent === '' || editedContent === false) return content;
 
-				writeFile(workspace.cwd, path, fileContent);
+				writeFile(workspace.cwd, path, editedContent);
 				files.add(path);
 			} catch (e) {
 				if (e instanceof Error) {

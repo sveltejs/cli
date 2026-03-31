@@ -1,15 +1,13 @@
 import {
 	color,
-	js,
 	resolveCommand,
-	json,
-	sanitizeName,
 	text,
-	parse,
-	fileExists
+	transforms,
+	fileExists,
+	getPackageJson,
+	sanitizeName,
+	commonFilePaths
 } from '@sveltejs/sv-utils';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const adapters = [
@@ -46,88 +44,89 @@ export default defineAddon({
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
 	options,
-	setup: ({ kit, unsupported }) => {
-		if (!kit) unsupported('Requires SvelteKit');
+	setup: ({ isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, files, cwd, language }) => {
+	run: ({ sv, options, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
-		sv.file(files.package, (content) => {
-			const { data, generateCode } = parse.json(content);
-			const devDeps = data['devDependencies'];
+		sv.file(
+			file.package,
+			transforms.json(({ data }) => {
+				const devDeps = data['devDependencies'];
 
-			for (const pkg of Object.keys(devDeps)) {
-				if (pkg.startsWith('@sveltejs/adapter-')) {
-					delete devDeps[pkg];
+				for (const pkg of Object.keys(devDeps)) {
+					if (pkg.startsWith('@sveltejs/adapter-')) {
+						delete devDeps[pkg];
+					}
 				}
-			}
 
-			// in sk 3, we will keep "preview": "vite preview" like any other adapter
-			if (options.adapter === 'cloudflare') {
-				const preview =
-					options.cfTarget === 'workers'
-						? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
-						: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
-				data.scripts.preview = preview;
-			}
-
-			return generateCode();
-		});
+				// in sk 3, we will keep "preview": "vite preview" like any other adapter
+				if (options.adapter === 'cloudflare') {
+					const preview =
+						options.cfTarget === 'workers'
+							? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
+					data.scripts.preview = preview;
+				}
+			})
+		);
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file(files.svelteConfig, (content) => {
-			const { ast, comments, generateCode } = parse.script(content);
-
-			// finds any existing adapter's import declaration
-			const importDecls = ast.body.filter((n) => n.type === 'ImportDeclaration');
-			const adapterImportDecl = importDecls.find(
-				(importDecl) =>
-					typeof importDecl.source.value === 'string' &&
-					importDecl.source.value.startsWith('@sveltejs/adapter-') &&
-					importDecl.importKind === 'value'
-			);
-
-			let adapterName = 'adapter';
-			if (adapterImportDecl) {
-				// replaces the import's source with the new adapter
-				adapterImportDecl.source.value = adapter.package;
-				// reset raw value, so that the string is re-generated
-				adapterImportDecl.source.raw = undefined;
-
-				adapterName = adapterImportDecl.specifiers?.find((s) => s.type === 'ImportDefaultSpecifier')
-					?.local?.name as string;
-			} else {
-				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
-			}
-
-			const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
-
-			// override the adapter property
-			js.object.overrideProperties(config, {
-				kit: {
-					adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-				}
-			});
-
-			// reset the comment for non-auto adapters
-			if (adapter.package !== '@sveltejs/adapter-auto') {
-				const fallback = js.object.create({});
-				const cfgKitValue = js.object.property(config, { name: 'kit', fallback });
-
-				// removes any existing adapter auto comments
-				comments.remove(
-					(c) =>
-						c.loc &&
-						cfgKitValue.loc &&
-						c.loc.start.line >= cfgKitValue.loc.start.line &&
-						c.loc.end.line <= cfgKitValue.loc.end.line
+		sv.file(
+			file.svelteConfig,
+			transforms.script(({ ast, comments, js }) => {
+				// finds any existing adapter's import declaration
+				const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
+				const adapterImports = imports.find(
+					(importDecl) =>
+						typeof importDecl.source.value === 'string' &&
+						importDecl.source.value.startsWith('@sveltejs/adapter-') &&
+						importDecl.importKind === 'value'
 				);
-			}
 
-			return generateCode();
-		});
+				let adapterName = 'adapter';
+				if (adapterImports) {
+					// replaces the import's source with the new adapter
+					adapterImports.source.value = adapter.package;
+					// reset raw value, so that the string is re-generated
+					adapterImports.source.raw = undefined;
+
+					const defaultSpecifier = adapterImports.specifiers?.find(
+						(s) => s.type === 'ImportDefaultSpecifier'
+					);
+					adapterName = defaultSpecifier!.local.name;
+				} else {
+					js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
+				}
+
+				const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
+
+				// override the adapter property
+				js.object.overrideProperties(config, {
+					kit: {
+						adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
+					}
+				});
+
+				// reset the comment for non-auto adapters
+				if (adapter.package !== '@sveltejs/adapter-auto') {
+					const fallback = js.object.create({});
+					const cfgKitValue = js.object.property(config, { name: 'kit', fallback });
+
+					// removes any existing adapter auto comments
+					comments.remove(
+						(c) =>
+							c.loc &&
+							cfgKitValue.loc &&
+							c.loc.start.line >= cfgKitValue.loc.start.line &&
+							c.loc.end.line <= cfgKitValue.loc.end.line
+					);
+				}
+			})
+		);
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.63.0');
@@ -135,16 +134,14 @@ export default defineAddon({
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 
-			// Setup Cloudlfare workers/pages config
-			sv.file(`wrangler.${ext}`, (content) => {
-				const { data, generateCode } = ext === 'jsonc' ? parse.json(content) : parse.toml(content);
-
+			// Setup Cloudflare workers/pages config
+			const applyWranglerConfig = (data: Record<string, any>) => {
 				if (ext === 'jsonc') {
 					data.$schema ??= './node_modules/wrangler/config-schema.json';
 				}
 
 				if (!data.name) {
-					const pkg = parse.json(readFileSync(join(cwd, files.package), 'utf-8'));
+					const pkg = getPackageJson(cwd);
 					data.name = sanitizeName(pkg.data.name, 'wrangler');
 				}
 
@@ -172,61 +169,66 @@ export default defineAddon({
 						data.pages_build_output_dir = '.svelte-kit/cloudflare';
 						break;
 				}
+			};
 
-				return generateCode();
-			});
+			sv.file(
+				`wrangler.${ext}`,
+				ext === 'toml'
+					? transforms.toml(({ data }) => applyWranglerConfig(data))
+					: transforms.json(({ data }) => applyWranglerConfig(data))
+			);
 
-			const jsconfig = fileExists(cwd, 'jsconfig.json');
+			const jsconfig = fileExists(cwd, commonFilePaths.jsconfig);
 			const typeChecked = language === 'ts' || jsconfig;
 
 			if (typeChecked) {
-				sv.file(files.gitignore, (content) => {
-					if (content.length === 0) return content;
-					return text.upsert(content, '/worker-configuration.d.ts', {
-						comment: 'Cloudflare Types'
-					});
-				});
+				sv.file(
+					file.gitignore,
+					transforms.text(({ content }) => {
+						if (content.length === 0) return false;
+						return text.upsert(content, '/worker-configuration.d.ts', {
+							comment: 'Cloudflare Types'
+						});
+					})
+				);
 
 				// Setup wrangler types command
-				sv.file(files.package, (content) => {
-					const { data, generateCode } = parse.json(content);
-
-					json.packageScriptsUpsert(data, 'gen', 'wrangler types');
-
-					return generateCode();
-				});
+				sv.file(
+					file.package,
+					transforms.json(({ data, json }) => {
+						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
+					})
+				);
 
 				// Add Cloudflare generated types to tsconfig
-				sv.file(`${jsconfig ? 'jsconfig' : 'tsconfig'}.json`, (content) => {
-					const { data, generateCode } = parse.json(content);
+				sv.file(
+					jsconfig ? commonFilePaths.jsconfig : commonFilePaths.tsconfig,
+					transforms.json(({ data }) => {
+						data.compilerOptions ??= {};
+						data.compilerOptions.types ??= [];
+						data.compilerOptions.types.push('./worker-configuration.d.ts');
+					})
+				);
 
-					data.compilerOptions ??= {};
-					data.compilerOptions.types ??= [];
-					data.compilerOptions.types.push('./worker-configuration.d.ts');
+				sv.file(
+					'src/app.d.ts',
+					transforms.script(({ ast, comments, js }) => {
+						const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
+						if (!platform) {
+							throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
+						}
 
-					return generateCode();
-				});
+						// remove the commented out placeholder since we're adding the real one
+						comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Platform {}');
 
-				sv.file('src/app.d.ts', (content) => {
-					const { ast, comments, generateCode } = parse.script(content);
-
-					const platform = js.kit.addGlobalAppInterface(ast, { name: 'Platform' });
-					if (!platform) {
-						throw new Error('Failed detecting `platform` interface in `src/app.d.ts`');
-					}
-
-					// remove the commented out placeholder since we're adding the real one
-					comments.remove((c) => c.type === 'Line' && c.value.trim() === 'interface Platform {}');
-
-					platform.body.body.push(
-						js.common.createTypeProperty('env', 'Env'),
-						js.common.createTypeProperty('ctx', 'ExecutionContext'),
-						js.common.createTypeProperty('caches', 'CacheStorage'),
-						js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
-					);
-
-					return generateCode();
-				});
+						platform.body.body.push(
+							js.common.createTypeProperty('env', 'Env'),
+							js.common.createTypeProperty('ctx', 'ExecutionContext'),
+							js.common.createTypeProperty('caches', 'CacheStorage'),
+							js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
+						);
+					})
+				);
 			}
 		}
 	},
