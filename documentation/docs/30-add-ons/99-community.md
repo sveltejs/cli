@@ -81,7 +81,7 @@ This allows you to iterate quickly without publishing to npm.
 The `file:` protocol also works for custom or private add-ons that you don't intend to publish - for example, to standardize project setup across your team or organization.
 
 > [!NOTE]
-> It is not necessary to build your add-on during development.
+> The `demo-add` script automatically builds your add-on before running it.
 
 ## Testing
 
@@ -164,16 +164,12 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 	"name": "@your-org/sv",
 	"version": "1.0.0",
 	"type": "module",
-	// entrypoint during development
+	// bundled entrypoint (tsdown outputs .mjs for ESM)
 	"exports": {
-		".": "./src/index.js"
+		".": { "default": "./dist/index.mjs" }
 	},
 	"publishConfig": {
-		"access": "public",
-		// entrypoint on build
-		"exports": {
-			".": { "default": "./dist/index.js" }
-		}
+		"access": "public"
 	},
 	// cannot have dependencies
 	"dependencies": {},
