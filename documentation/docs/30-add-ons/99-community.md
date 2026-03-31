@@ -1,5 +1,5 @@
 ---
-title: create your own
+title: [create your own]
 ---
 
 > [!NOTE]
@@ -144,7 +144,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 
 ### Naming convention
 
-Name your package `@your-org/sv`. Users install it by typing just the scope:
+Name your package `@your-org/sv`. Users install it by typing just the org:
 
 ```sh
 # npm package: @your-org/sv
