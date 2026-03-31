@@ -108,4 +108,4 @@ npx sv add file:../path/to/my-addon
 
 ### How to create a community add-on
 
-Please checkout the [Add-on Docs](/docs/cli/community-add-on) for more details.
+Please checkout the [Add-on Docs](/docs/cli/community-add-ons) for more details.
