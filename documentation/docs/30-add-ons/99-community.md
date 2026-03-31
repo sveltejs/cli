@@ -1,0 +1,222 @@
+---
+title: [create your own]
+---
+
+> [!NOTE]
+> Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
+
+This guide covers how to create, test, and publish community add-ons for `sv`.
+
+## Quick start
+
+The easiest way to create an add-on is using the `addon` template:
+
+```sh
+npx sv create --template addon [path]
+```
+
+The project has a `README.md` and `CONTRIBUTING.md` to guide you along.
+
+## Project structure
+
+Typically, an add-on looks like this:
+
+```js
+// @noErrors
+import { transforms } from '@sveltejs/sv-utils';
+import { defineAddon, defineAddonOptions } from 'sv';
+
+// your add-on definition, the entry point
+export default defineAddon({
+	id: 'your-addon-name',
+
+	// optional: one-liner shown in prompts
+	shortDescription: 'does X',
+
+	// optional: link to docs/repo
+	homepage: 'https://...',
+
+	// Define options for user prompts (or passed as arguments)
+	options: defineAddonOptions()
+		.add('who', {
+			question: 'To whom should the addon say hello?',
+			type: 'string' // boolean | number | select | multiselect
+		})
+		.build(),
+
+	// preparing step, check requirements and dependencies
+	setup: ({ dependsOn }) => {
+		dependsOn('tailwindcss');
+	},
+
+	// actual execution of the addon
+	run: ({ isKit, cancel, sv, options, directory }) => {
+		if (!isKit) return cancel('SvelteKit is required');
+
+		// Add "Hello [who]!" to the root page
+		sv.file(
+			directory.kitRoutes + '/+page.svelte',
+			transforms.svelte(({ ast, svelte }) => {
+				svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
+			})
+		);
+	}
+});
+```
+
+> `sv` is responsible for the file system - `sv.file()` accepts a `path` to the file and a callback function to modify it.
+> `@sveltejs/sv-utils` is responsible for the content - `transforms.svelte()` provides you with the proper AST and utils to modify the file. See [sv-utils](/docs/cli/sv-utils) for the full API.
+
+## Development
+
+You can run your add-on locally using the `file:` protocol:
+
+```sh
+cd /path/to/test-project
+npx sv add file:../path/to/my-addon
+```
+
+This allows you to iterate quickly without publishing to npm.
+
+The `file:` protocol also works for custom or private add-ons that you don't intend to publish - for example, to standardize project setup across your team or organization.
+
+> [!NOTE]
+> It is not necessary to build your add-on during development.
+
+## Testing
+
+The `sv/testing` module provides utilities for testing your add-on:
+
+```js
+import { setupTest } from 'sv/testing';
+import { test, expect } from 'vitest';
+import addon from './index.js';
+
+test('adds hello message', async () => {
+	const { content } = await setupTest({
+		addon,
+		options: { who: 'World' },
+		files: {
+			'src/routes/+page.svelte': '<h1>Welcome</h1>'
+		}
+	});
+
+	expect(content('src/routes/+page.svelte')).toContain('Hello World!');
+});
+```
+
+## Publishing
+
+### Bundling
+
+Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
+
+### `package.json`
+
+Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `package.json`:
+
+```jsonc
+{
+	"name": "@your-org/sv",
+	"version": "1.0.0",
+	"type": "module",
+	// entrypoint during development
+	"exports": {
+		".": "./src/index.js"
+	},
+	"publishConfig": {
+		"access": "public",
+		// entrypoint on build
+		"exports": {
+			".": { "default": "./dist/index.js" }
+		}
+	},
+	// cannot have dependencies
+	"dependencies": {},
+	"peerDependencies": {
+		// minimum version required to run by this addon
+		"sv": "^0.13.0"
+	},
+	// Add this keyword so users can discover your add-on
+	"keywords": ["sv-add"]
+}
+```
+
+### Naming convention
+
+Name your package `@your-org/sv`. Users install it by typing just the org:
+
+```sh
+# npm package: @your-org/sv
+npx sv add @your-org
+```
+
+> [!NOTE]
+> Unscoped packages are not supported yet
+
+### Export options
+
+`sv` first tries to import `your-package/sv`, then falls back to the default export. This means you have two options:
+
+1. **Default export** (recommended for dedicated add-on packages):
+
+   ```json
+   {
+   	"exports": {
+   		".": "./src/index.js"
+   	}
+   }
+   ```
+
+2. **`./sv` export** (for packages that also export other functionality):
+   ```json
+   {
+   	"exports": {
+   		".": "./src/main.js",
+   		"./sv": "./src/addon.js"
+   	}
+   }
+   ```
+
+### Publish to npm
+
+```sh
+npm login
+npm publish
+```
+
+> `prepublishOnly` automatically runs the build before publishing.
+
+## Next steps
+
+You can optionally display guidance in the console after your add-on runs:
+
+```js
+// @noErrors
+import { color } from '@sveltejs/sv-utils';
+
+export default defineAddon({
+	// ...
+	nextSteps: ({ options }) => [
+		`Run ${color.command('npm run dev')} to start developing`,
+		`Check out the docs at https://...`
+	]
+});
+```
+
+## Version compatibility
+
+Your add-on should specify a minimum `sv` version in `peerDependencies`. Your user will get a compatibility warning if their `sv` version has a different major version than what was specified.
+
+## Examples
+
+See the [official add-on source code](https://github.com/sveltejs/cli/tree/main/packages/sv/src/addons) for some real world examples.
+
+## Architecture
+
+The Svelte CLI is split into two packages with a clear boundary:
+
+- **`sv`** = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
+- **`@sveltejs/sv-utils`** = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
+
+This separation means transforms are testable without a workspace and composable across add-ons.
