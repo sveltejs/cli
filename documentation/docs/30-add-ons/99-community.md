@@ -9,13 +9,13 @@ This guide covers how to create, test, and publish community add-ons for `sv`.
 
 ## Quick start
 
-The easiest way to create an add-on is using the `addon` template:
+The easiest way to create an add-on is by using the `addon` template:
 
 ```sh
 npx sv create --template addon [path]
 ```
 
-The project has a `README.md` and `CONTRIBUTING.md` to guide you along.
+The newly created project will have a `README.md` and `CONTRIBUTING.md` to guide you along.
 
 ## Project structure
 
@@ -138,7 +138,7 @@ export default defineConfig({
 });
 ```
 
-And create `tests/setup/global.js`:
+And the global test setup script `tests/setup/global.js`:
 
 ```js
 import { fileURLToPath } from 'node:url';
@@ -177,14 +177,14 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 		// minimum version required to run by this addon
 		"sv": "^0.13.0"
 	},
-	// Add this keyword so users can discover your add-on
-	"keywords": ["sv-add"]
+	// Add the "sv-add" keyword so users can discover your add-on
+	"keywords": ["sv-add", "svelte", "sveltekit"]
 }
 ```
 
 ### Naming convention
 
-Name your package `@your-org/sv`. Users install it by typing just the org:
+If you name your package `@your-org/sv`, users can install it by typing just the org handle:
 
 ```sh
 # npm package: @your-org/sv
@@ -246,7 +246,7 @@ export default defineAddon({
 
 ## Version compatibility
 
-Your add-on should specify a minimum `sv` version in `peerDependencies`. Your user will get a compatibility warning if their `sv` version has a different major version than what was specified.
+Your add-on should specify a minimum `sv` version in `peerDependencies`. Your users will get a compatibility warning if their `sv` version has a different major version than what was specified.
 
 ## Examples
 
