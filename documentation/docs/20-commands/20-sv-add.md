@@ -71,43 +71,20 @@ Prevents installing dependencies
 > [!NOTE]
 > Svelte maintainers have not reviewed community add-ons for malicious code!
 
-You can find [community add-ons on npm](https://www.npmx.dev/search?q=keyword:sv-add) by searching for keyword: `sv-add`.
-
-### How to install a community add-on
+Community add-ons are npm packages published by the community. Look out for add-ons from your favorite libraries and tools. _(soon)_ many are building `sv` add-ons to make integration a one-liner. You can find them [on npm](https://www.npmx.dev/search?q=keyword:sv-add) by searching for keyword: `sv-add`.
 
 ```sh
-npx sv add @scope
+# Install a community add-on by org
+npx sv add @supacool
+
+# Use a local add-on (for development or custom/private add-ons)
 npx sv add file:../path/to/my-addon
-```
 
-You can mix and match official and community add-ons, use the interactive prompt or pass args directly:
-
-```sh
-# In an existing project
+# Mix and match official and community add-ons
 npx sv add eslint @supacool
 
-# Or when creating a new project
+# Also works when creating a new project directly
 npx sv create --add eslint @supacool
 ```
 
-### Package protocols
-
-For **scoped packages**, the npm package name should be `@org/sv`. Users only need to type the scope:
-
-```sh
-# Installs the npm package `@supacool/sv`
-npx sv add @supacool
-```
-
-For **local add-ons**, use the `file:` protocol. This is useful during development, but also for running custom add-ons that don't need to be published:
-
-```sh
-npx sv add file:../path/to/my-addon
-```
-
-> [!NOTE]
-> Unscoped packages are not supported yet
-
-### How to create a community add-on
-
-Please checkout the [Add-on Docs](community) for more details.
+Want to create your own? Check the [Add-on Docs](community).
