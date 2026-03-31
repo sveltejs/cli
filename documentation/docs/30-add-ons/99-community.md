@@ -184,7 +184,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 
 ### Naming convention
 
-Name your package `@your-org/sv`. Users install it by typing just the org:
+If you name your package `@your-org/sv`, users can install it by typing just the org handle:
 
 ```sh
 # npm package: @your-org/sv
