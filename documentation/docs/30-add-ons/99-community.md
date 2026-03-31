@@ -9,7 +9,7 @@ This guide covers how to create, test, and publish community add-ons for `sv`.
 
 ## Quick start
 
-The easiest way to create an add-on is using the `addon` template:
+The easiest way to create an add-on is by using the `addon` template:
 
 ```sh
 npx sv create --template addon [path]
