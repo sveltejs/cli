@@ -20,8 +20,8 @@ Each transform injects relevant utilities into the callback, so you only need on
 ```js
 import { transforms } from '@sveltejs/sv-utils';
 
-transforms.script(...)
-transforms.svelte(...)
+transforms.script(/* ... */);
+transforms.svelte(/* ... */);
 // ...
 ```
 
