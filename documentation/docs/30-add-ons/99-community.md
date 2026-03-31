@@ -50,7 +50,7 @@ export default defineAddon({
 	},
 
 	// actual execution of the addon
-	run: ({ isKit, cancel, sv, options, directory }) => {
+	run: ({ isKit, cancel, sv, options, file, language, directory }) => {
 		if (!isKit) return cancel('SvelteKit is required');
 
 		// Add "Hello [who]!" to the root page
@@ -85,24 +85,68 @@ The `file:` protocol also works for custom or private add-ons that you don't int
 
 ## Testing
 
-The `sv/testing` module provides utilities for testing your add-on:
+The `sv/testing` module provides utilities for testing your add-on. `createSetupTest` is a factory that takes your vitest imports and returns a `setupTest` function. It creates real SvelteKit projects from templates, runs your add-on, and gives you access to the resulting files.
 
 ```js
-import { setupTest } from 'sv/testing';
-import { test, expect } from 'vitest';
+import { createSetupTest } from 'sv/testing';
+import { expect } from '@playwright/test';
+import * as vitest from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import addon from './index.js';
 
-test('adds hello message', async () => {
-	const { content } = await setupTest({
-		addon,
-		options: { who: 'World' },
-		files: {
-			'src/routes/+page.svelte': '<h1>Welcome</h1>'
-		}
-	});
+const { test, testCases } = createSetupTest(vitest)(
+	{ addon },
+	{
+		kinds: [
+			{
+				type: 'default',
+				options: {
+					'your-addon-name': { who: 'World' }
+				}
+			}
+		],
+		filter: (testCase) => testCase.variant.includes('kit'),
+		browser: false
+	}
+);
 
-	expect(content('src/routes/+page.svelte')).toContain('Hello World!');
+test.concurrent.for(testCases)(
+	'my-addon $kind.type $variant',
+	async (testCase, ctx) => {
+		const cwd = ctx.cwd(testCase);
+
+		const page = fs.readFileSync(
+			path.resolve(cwd, 'src/routes/+page.svelte'),
+			'utf8'
+		);
+		expect(page).toContain('Hello World!');
+	}
+);
+```
+
+Your `vitest.config.js` must include the global setup from `sv/testing`:
+
+```js
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+	test: {
+		include: ['tests/**/*.test.{js,ts}'],
+		globalSetup: ['tests/setup/global.js']
+	}
 });
+```
+
+And create `tests/setup/global.js`:
+
+```js
+import { fileURLToPath } from 'node:url';
+import { setupGlobal } from 'sv/testing';
+
+const TEST_DIR = fileURLToPath(new URL('../../.test-output/', import.meta.url));
+
+export default setupGlobal({ TEST_DIR });
 ```
 
 ## Publishing

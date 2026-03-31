@@ -34,7 +34,7 @@ Transform a JavaScript/TypeScript file. The callback receives `{ ast, comments, 
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.viteConfig,
+	file.viteConfig,
 	transforms.script(({ ast, js }) => {
 		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
 		js.vite.addPlugin(ast, { code: 'foo()' });
@@ -84,7 +84,7 @@ Transform a CSS file. The callback receives `{ ast, content, css }`.
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.stylesheet,
+	file.stylesheet,
 	transforms.css(({ ast, css }) => {
 		css.addAtRule(ast, { name: 'import', params: "'tailwindcss'" });
 	})
@@ -100,7 +100,7 @@ Transform a JSON file. Mutate the `data` object directly. The callback receives 
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.tsconfig,
+	file.typeConfig,
 	transforms.json(({ data }) => {
 		data.compilerOptions ??= {};
 		data.compilerOptions.strict = true;
@@ -137,7 +137,7 @@ Return `false` from any transform callback to abort - the original content is re
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.eslintConfig,
+	file.eslintConfig,
 	transforms.script(({ ast, js }) => {
 		const { value: existing } = js.exports.createDefault(ast, { fallback: myConfig });
 		if (existing !== myConfig) {
