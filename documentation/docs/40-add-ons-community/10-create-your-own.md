@@ -1,5 +1,5 @@
 ---
-title: add-on
+title: create your own
 ---
 
 > [!NOTE]
@@ -55,7 +55,7 @@ export default defineAddon({
 
 		// Add "Hello [who]!" to the root page
 		sv.file(
-			directory.routes + '/+page.svelte',
+			directory.kitRoutes + '/+page.svelte',
 			transforms.svelte(({ ast, svelte }) => {
 				svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
 			})
@@ -203,3 +203,12 @@ Your add-on should specify a minimum `sv` version in `peerDependencies`. Your us
 ## Examples
 
 See the [official add-on source code](https://github.com/sveltejs/cli/tree/main/packages/sv/src/addons) for some real world examples.
+
+## Architecture
+
+The Svelte CLI is split into two packages with a clear boundary:
+
+- **`sv`** = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
+- **`@sveltejs/sv-utils`** = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
+
+This separation means transforms are testable without a workspace and composable across add-ons.
