@@ -15,7 +15,7 @@ The easiest way to create an add-on is by using the `addon` template:
 npx sv create --template addon [path]
 ```
 
-The project has a `README.md` and `CONTRIBUTING.md` to guide you along.
+The newly created project will have a `README.md` and `CONTRIBUTING.md` to guide you along.
 
 ## Project structure
 
