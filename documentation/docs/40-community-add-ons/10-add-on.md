@@ -55,7 +55,7 @@ export default defineAddon({
 
 		// Add "Hello [who]!" to the root page
 		sv.file(
-      path.join(directory.routes,'+page.svelte')
+			directory.routes + '/+page.svelte',
 			transforms.svelte(({ ast, svelte }) => {
 				svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
 			})
