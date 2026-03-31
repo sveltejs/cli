@@ -196,17 +196,16 @@ export default defineAddon({
 					})
 				);
 
-				// Add Cloudflare generated types to tsconfig
-				if (file.typeConfig) {
-					sv.file(
-						file.typeConfig,
-						transforms.json(({ data }) => {
-							data.compilerOptions ??= {};
-							data.compilerOptions.types ??= [];
-							data.compilerOptions.types.push('./worker-configuration.d.ts');
-						})
-					);
-				}
+				// Add Cloudflare generated types to jsconfig/tsconfig
+				sv.file(
+					file.typeConfig,
+					transforms.json(({ data }) => {
+						data.compilerOptions ??= {};
+						data.compilerOptions.types ??= [];
+						data.compilerOptions.types.push('./worker-configuration.d.ts');
+					})
+				);
+
 
 				sv.file(
 					'src/app.d.ts',
