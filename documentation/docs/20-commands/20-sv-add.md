@@ -87,4 +87,7 @@ npx sv add eslint @supacool
 npx sv create --add eslint @supacool
 ```
 
+> [!NOTE]
+> On Windows, quote community add-ons that start with `@`, for example: `npx sv add "@supacool"`.
+
 Want to create your own? Check the [Add-on Docs](community).
