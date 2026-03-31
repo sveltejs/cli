@@ -1,5 +1,14 @@
 # @sveltejs/sv-utils
 
+## 0.0.4
+### Patch Changes
+
+
+- refactor: move files utilities to `@sveltejs/sv-utils` ([#1002](https://github.com/sveltejs/cli/pull/1002))
+
+
+- feat: add `transform` api to simplify add-on creation ([#1001](https://github.com/sveltejs/cli/pull/1001))
+
 ## 0.0.3
 ### Patch Changes
 
