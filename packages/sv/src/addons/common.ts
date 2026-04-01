@@ -33,7 +33,7 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	let elements: Elements = [];
 
 	if (eslintConfig.type === 'ArrayExpression') {
-		// export default []
+		// export default [...]
 		elements = eslintConfig.elements;
 	} else if (eslintConfig.type === 'CallExpression') {
 		if (
@@ -43,7 +43,7 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 			// export default defineConfig([...])
 			elements = eslintConfig.arguments[0].elements;
 		} else {
-			// export default defineConfig({}, {})
+			// export default defineConfig({...})
 			elements = eslintConfig.arguments;
 		}
 	} else {
