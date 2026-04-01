@@ -168,7 +168,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 	// cannot have dependencies
 	"dependencies": {},
 	"peerDependencies": {
-		// minimum version required to run by this addon
+		// minimum version required to run by this add-on
 		"sv": "^0.13.0"
 	},
 	// Add the "sv-add" keyword so users can discover your add-on

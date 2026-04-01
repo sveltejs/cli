@@ -77,7 +77,7 @@ Community add-ons are npm packages published by the community. Look out for add-
 # Install a community add-on by org
 npx sv add @supacool
 
-# Use a local add-on (for development or custom/private add-ons)
+# Use a local add-on (for development or internal use)
 npx sv add file:../path/to/my-addon
 
 # Mix and match official and community add-ons
@@ -88,6 +88,6 @@ npx sv create --add eslint @supacool
 ```
 
 > [!NOTE]
-> On Windows, quote community add-ons that start with `@`, for example: `npx sv add "@supacool"`.
+> On Windows PowerShell, `@` is a special character that should be escaped with single quotes. For example: `npx sv add '@supacool'`.
 
 Want to create your own? Check the [Add-on Docs](community).
