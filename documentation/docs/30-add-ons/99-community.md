@@ -22,7 +22,6 @@ The newly created project will have a `README.md` and `CONTRIBUTING.md` to guide
 Typically, an add-on looks like this:
 
 ```js
-// @noErrors
 import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
@@ -30,11 +29,7 @@ import { defineAddon, defineAddonOptions } from 'sv';
 export default defineAddon({
 	id: 'your-addon-name',
 
-	// optional: one-liner shown in prompts
-	shortDescription: 'does X',
-
-	// optional: link to docs/repo
-	homepage: 'https://...',
+	shortDescription: 'does xyz',
 
 	// Define options for user prompts (or passed as arguments)
 	options: defineAddonOptions()
@@ -226,11 +221,11 @@ npm publish
 You can optionally display guidance in the console after your add-on runs:
 
 ```js
-// @noErrors
 import { color } from '@sveltejs/sv-utils';
 
 export default defineAddon({
 	// ...
+
 	nextSteps: ({ options }) => [
 		`Run ${color.command('npm run dev')} to start developing`,
 		`Check out the docs at https://...`
