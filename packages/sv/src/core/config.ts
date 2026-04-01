@@ -77,7 +77,7 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 		}
 	) => MaybePromise<void>;
 	/** Next steps to display after the addon is run. */
-	nextSteps?: (data: Workspace & { options: WorkspaceOptions<Args> }) => string[];
+	nextSteps?: (workspace: Workspace & { options: WorkspaceOptions<Args> }) => string[];
 };
 
 /**
