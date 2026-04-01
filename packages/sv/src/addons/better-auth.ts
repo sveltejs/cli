@@ -355,9 +355,8 @@ export default defineAddon({
 						? `
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-              
-							const provider = typeof formData.get('provider') === 'string' ? formData.get('provider') : 'github';
-							const callbackURL = typeof formData.get('callbackURL') === 'string' ? formData.get('callbackURL') : '/demo/better-auth';
+							const provider = formData.get('provider')?.toString() ?? 'github';
+							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
 
 							const result = await auth.api.signInSocial({
 								body: {
