@@ -28,7 +28,7 @@ async function runCheck(cwd: string, args: string[]) {
 	if (!resolved) {
 		const cmd = resolveCommand(pm, 'add', ['-D', 'svelte-check'])!;
 		console.error(
-			`'svelte-check' is not installed locally. Install it with: ${color.command(`${cmd.command} ${cmd.args.join(' ')}`)}`
+			`'svelte-check' is not installed locally. Install it with: ${color.command([cmd.command, ...cmd.args])}`
 		);
 		process.exit(1);
 	}
@@ -41,7 +41,7 @@ async function runCheck(cwd: string, args: string[]) {
 	// avoids printing the stack trace for `sv` when `svelte-check` exits with an error code
 	try {
 		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
-		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
+		execSync([cmd.command, ...cmd.args].join(' '), { stdio: 'inherit', cwd });
 	} catch (error) {
 		forwardExitCode(error);
 	} finally {

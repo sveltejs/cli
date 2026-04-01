@@ -233,7 +233,7 @@ export default defineAddon({
 		if (options.adapter === 'cloudflare') {
 			const { command, args } = resolveCommand(packageManager, 'run', ['gen'])!;
 			steps.push(
-				`Run ${color.command(`${command} ${args.join(' ')}`)} to update ${color.addon('cloudflare')} types`
+				`Run ${color.command([command, ...args])} to update ${color.addon('cloudflare')} types`
 			);
 		}
 		return steps;

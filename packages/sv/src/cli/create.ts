@@ -146,14 +146,13 @@ export const create = new Command('create')
 			}
 			if (!packageManager) {
 				const { args, command } = resolveCommand(pm, 'install', [])!;
-				initialSteps.push(`  ${i++}: ${color.command(`${command} ${args.join(' ')}`)}`);
+				initialSteps.push(`  ${i++}: ${color.command([command, ...args])}`);
 			}
 
 			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
-			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
-				`  ${i++}: ${color.command(pmRunCmd)}`,
+				`  ${i++}: ${color.command([command, ...args])}`,
 				'',
 				`To close the dev server, hit ${color.command('Ctrl-C')}`
 			];

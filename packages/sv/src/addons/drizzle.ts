@@ -492,15 +492,13 @@ export default defineAddon({
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
 			steps.push(
-				`Run ${color.command(`${command} ${args.join(' ')}`)} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+				`Run ${color.command([command, ...args])} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
 
 		if (options.docker) {
 			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
-			steps.push(
-				`Run ${color.command(`${command} ${args.join(' ')}`)} to start the docker container`
-			);
+			steps.push(`Run ${color.command([command, ...args])} to start the docker container`);
 		} else if (options.database !== 'd1') {
 			steps.push(
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
@@ -508,9 +506,7 @@ export default defineAddon({
 		}
 
 		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
-		steps.push(
-			`Run ${color.command(`${command} ${args.join(' ')}`)} to update your database schema`
-		);
+		steps.push(`Run ${color.command([command, ...args])} to update your database schema`);
 
 		return steps;
 	}

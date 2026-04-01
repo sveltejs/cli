@@ -24,7 +24,7 @@ async function runMigrate(cwd: string, args: string[]) {
 		if (pm === 'npm') cmdArgs.unshift('--yes');
 
 		const cmd = resolveCommand(pm, 'execute', cmdArgs)!;
-		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
+		execSync([cmd.command, ...cmd.args].join(' '), { stdio: 'inherit', cwd });
 	} catch (error) {
 		forwardExitCode(error);
 	}
