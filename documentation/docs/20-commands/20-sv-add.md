@@ -77,7 +77,7 @@ Community add-ons are npm packages published by the community. Look out for add-
 # Install a community add-on by org
 npx sv add @supacool
 
-# Use a local add-on (for development or custom/private add-ons)
+# Use a local add-on (for development or internal use)
 npx sv add file:../path/to/my-addon
 
 # Mix and match official and community add-ons
