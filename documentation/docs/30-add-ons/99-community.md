@@ -150,7 +150,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 
 ```jsonc
 {
-	"name": "@your-org/sv",
+	"name": "@my-org/sv",
 	"version": "1.0.0",
 	"type": "module",
 	// bundled entrypoint (tsdown outputs .mjs for ESM)
@@ -173,21 +173,28 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 
 ### Naming convention
 
-If you name your package `@your-org/sv`, users can install it by typing just the org handle:
+#### packages names
+
+If you name your package `@my-org/sv`, users can install it by typing just the org handle:
 
 ```sh
-# npm package: @your-org/sv
-npx sv add @your-org
+npx sv add @my-org
+```
+
+It's also possible to publish like `@my-org/core`, just users will need to type the full package name.
+
+```sh
+npx sv add @my-org/core
 ```
 
 > [!NOTE]
 > Unscoped packages are not supported yet
 
-### Export options
+#### export options
 
 `sv` first tries to import `your-package/sv`, then falls back to the default export. This means you have two options:
 
-1. **Default export** (recommended for dedicated add-on packages):
+1. **Default export** (for dedicated add-on packages):
 
    ```json
    {
