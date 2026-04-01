@@ -517,13 +517,11 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ options, packageManager }) => {
-		const { command: authCmd, args: authArgs } = resolveCommand(packageManager, 'run', [
-			'auth:schema'
-		])!;
-		const { command: dbCmd, args: dbArgs } = resolveCommand(packageManager, 'run', ['db:push'])!;
+		const auth = resolveCommand(packageManager, 'run', ['auth:schema'])!;
+		const db = resolveCommand(packageManager, 'run', ['db:push'])!;
 		const steps = [
-			`Run ${color.command(authCmd, ...authArgs)} to generate the auth schema`,
-			`Run ${color.command(dbCmd, ...dbArgs)} to update your database`,
+			`Run ${color.command(auth.command, ...auth.args)} to generate the auth schema`,
+			`Run ${color.command(db.command, ...db.args)} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
 		if (options.demo.includes('github')) {
