@@ -26,7 +26,7 @@ import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
 export default defineAddon({
-	id: 'your-addon-name',
+	id: 'addon-name',
 
 	shortDescription: 'a better description of what your addon does ;)',
 
@@ -37,13 +37,12 @@ export default defineAddon({
 		})
 		.build(),
 
-	setup: ({ dependsOn }) => {
+	setup: ({ dependsOn, isKit, unsupported }) => {
+		if (!isKit) unsupported('Requires SvelteKit');
 		dependsOn('vitest');
 	},
 
 	run: ({ isKit, cancel, sv, options, file, language, directory }) => {
-		if (!isKit) return cancel('SvelteKit is required');
-
 		// Add "Hello [who]!" to the root page
 		sv.file(
 			directory.kitRoutes + '/+page.svelte',
@@ -51,7 +50,9 @@ export default defineAddon({
 				svelte.addFragment(ast, `<p>Hello ${options.who}!</p>`);
 			})
 		);
-	}
+	},
+
+	nextSteps: ({ options }) => ['enjoy the add-on!']
 });
 ```
 
