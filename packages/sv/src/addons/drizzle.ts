@@ -350,7 +350,7 @@ export default defineAddon({
 					js.imports.addNamed(ast, { from: 'drizzle-orm/d1', imports: ['drizzle'] });
 
 					const getDbFn = js.common.parseStatement(
-						`export const getDb = (d1${ts(': D1Database')} => drizzle(d1, { schema });`
+						`export const getDb = (d1${ts(': D1Database')}) => drizzle(d1, { schema });`
 					);
 
 					ast.body.push(getDbFn);
