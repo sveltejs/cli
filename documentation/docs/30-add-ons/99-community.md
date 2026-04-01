@@ -25,13 +25,11 @@ Typically, an add-on looks like this:
 import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
 
-// your add-on definition, the entry point
 export default defineAddon({
 	id: 'your-addon-name',
 
-	shortDescription: 'does xyz',
+	shortDescription: 'a better description of what your addon does ;)',
 
-	// Define options for user prompts (or passed as arguments)
 	options: defineAddonOptions()
 		.add('who', {
 			question: 'To whom should the addon say hello?',
@@ -39,12 +37,10 @@ export default defineAddon({
 		})
 		.build(),
 
-	// preparing step, check requirements and dependencies
 	setup: ({ dependsOn }) => {
-		dependsOn('tailwindcss');
+		dependsOn('vitest');
 	},
 
-	// actual execution of the addon
 	run: ({ isKit, cancel, sv, options, file, language, directory }) => {
 		if (!isKit) return cancel('SvelteKit is required');
 
@@ -59,8 +55,12 @@ export default defineAddon({
 });
 ```
 
-> `sv` is responsible for the file system - `sv.file()` accepts a `path` to the file and a callback function to modify it.
-> `@sveltejs/sv-utils` is responsible for the content - `transforms.svelte()` provides you with the proper AST and utils to modify the file. See [sv-utils](/docs/cli/sv-utils) for the full API.
+The Svelte CLI is split into two packages with a clear boundary:
+
+- [**`sv`**](sv) = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
+- [**`@sveltejs/sv-utils`**](sv-utils) = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
+
+This separation means transforms are testable without a workspace and composable across add-ons.
 
 ## Development
 
@@ -247,12 +247,3 @@ Your add-on should specify a minimum `sv` version in `peerDependencies`. Your us
 ## Examples
 
 See the [official add-on source code](https://github.com/sveltejs/cli/tree/main/packages/sv/src/addons) for some real world examples.
-
-## Architecture
-
-The Svelte CLI is split into two packages with a clear boundary:
-
-- **`sv`** = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
-- **`@sveltejs/sv-utils`** = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
-
-This separation means transforms are testable without a workspace and composable across add-ons.
