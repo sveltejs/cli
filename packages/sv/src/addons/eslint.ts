@@ -122,7 +122,7 @@ export default defineAddon({
 				});
 				comments.add(rulesOverride.properties[0].key, {
 					type: 'Line',
-					value: " 'svelte/rule-name': 'error'"
+					value: " 'svelte/button-has-type': 'error'"
 				});
 
 				const exportExpression = js.functions.createCall({ name: 'defineConfig', args: [] });
