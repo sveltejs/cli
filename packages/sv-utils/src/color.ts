@@ -3,8 +3,8 @@ import { styleText } from 'node:util';
 export const color = {
 	// Semantic colors
 	addon: (str: string): string => styleText('greenBright', str),
-	command: (str: string | string[]): string =>
-		styleText(['bold', 'cyanBright'], Array.isArray(str) ? str.join(' ') : str),
+	command: (...args: string[]): string =>
+		styleText(['bold', 'cyanBright'], args.length === 1 ? args[0] : args.join(' ')),
 	env: (str: string): string => styleText('yellow', str),
 	path: (str: string): string => styleText('blueBright', str),
 	route: (str: string): string => styleText(['bold', 'underline'], str),

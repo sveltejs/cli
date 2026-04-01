@@ -28,7 +28,7 @@ async function runCheck(cwd: string, args: string[]) {
 	if (!resolved) {
 		const cmd = resolveCommand(pm, 'add', ['-D', 'svelte-check'])!;
 		console.error(
-			`'svelte-check' is not installed locally. Install it with: ${color.command([cmd.command, ...cmd.args])}`
+			`'svelte-check' is not installed locally. Install it with: ${color.command(cmd.command, ...cmd.args)}`
 		);
 		process.exit(1);
 	}
