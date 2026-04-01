@@ -5,7 +5,7 @@ import {
 	color,
 	dedent,
 	transforms,
-	resolveCommand,
+	resolveCommandArray,
 	createPrinter,
 	type TransformFn
 } from '@sveltejs/sv-utils';
@@ -517,11 +517,9 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ options, packageManager }) => {
-		const auth = resolveCommand(packageManager, 'run', ['auth:schema'])!;
-		const db = resolveCommand(packageManager, 'run', ['db:push'])!;
 		const steps = [
-			`Run ${color.command(auth.command, ...auth.args)} to generate the auth schema`,
-			`Run ${color.command(db.command, ...db.args)} to update your database`,
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['auth:schema']))} to generate the auth schema`,
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
 		if (options.demo.includes('github')) {

@@ -1,6 +1,6 @@
 ---
-"@sveltejs/sv-utils": patch
-"sv": patch
+'@sveltejs/sv-utils': patch
+'sv': patch
 ---
 
-feat(sv-utils): `color.command` now also accepts `string[]`
+feat(sv-utils): all semantic colors now accept `string | string[]`

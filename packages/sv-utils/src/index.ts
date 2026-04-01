@@ -1,4 +1,9 @@
 import {
+	resolveCommand as _resolveCommand,
+	type Agent,
+	type Command
+} from 'package-manager-detector';
+import {
 	parseCss,
 	parseHtml,
 	parseJson,
@@ -19,6 +24,12 @@ export {
 	detect,
 	resolveCommand
 } from 'package-manager-detector';
+
+/** Resolves a package manager command and returns it as a string array (command + args). */
+export function resolveCommandArray(agent: Agent, command: Command, args: string[]): string[] {
+	const cmd = _resolveCommand(agent, command, args)!;
+	return [cmd.command, ...cmd.args];
+}
 
 // Parsing & language namespaces
 export * as css from './tooling/css/index.ts';

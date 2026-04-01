@@ -1,4 +1,4 @@
-import { color, resolveCommand } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
 import { execSync } from 'node:child_process';
@@ -26,9 +26,8 @@ async function runCheck(cwd: string, args: string[]) {
 	// validates that `svelte-check` is locally installed
 	const resolved = resolve.from(cwd, 'svelte-check', true);
 	if (!resolved) {
-		const cmd = resolveCommand(pm, 'add', ['-D', 'svelte-check'])!;
 		console.error(
-			`'svelte-check' is not installed locally. Install it with: ${color.command(cmd.command, ...cmd.args)}`
+			`'svelte-check' is not installed locally. Install it with: ${color.command(resolveCommandArray(pm, 'add', ['-D', 'svelte-check']))}`
 		);
 		process.exit(1);
 	}
@@ -40,8 +39,8 @@ async function runCheck(cwd: string, args: string[]) {
 
 	// avoids printing the stack trace for `sv` when `svelte-check` exits with an error code
 	try {
-		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
-		execSync([cmd.command, ...cmd.args].join(' '), { stdio: 'inherit', cwd });
+		const cmd = resolveCommandArray(pm, 'execute-local', ['svelte-check', ...args]).join(' ');
+		execSync(cmd, { stdio: 'inherit', cwd });
 	} catch (error) {
 		forwardExitCode(error);
 	} finally {

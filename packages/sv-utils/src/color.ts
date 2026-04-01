@@ -1,22 +1,24 @@
 import { styleText } from 'node:util';
 
+type ColorInput = string | string[];
+const toStr = (input: ColorInput): string => (Array.isArray(input) ? input.join(' ') : input);
+
 export const color = {
 	// Semantic colors
-	addon: (str: string): string => styleText('greenBright', str),
-	command: (...args: string[]): string =>
-		styleText(['bold', 'cyanBright'], args.length === 1 ? args[0] : args.join(' ')),
-	env: (str: string): string => styleText('yellow', str),
-	path: (str: string): string => styleText('blueBright', str),
-	route: (str: string): string => styleText(['bold', 'underline'], str),
-	website: (str: string): string => styleText('cyan', str),
-	optional: (str: string): string => styleText('gray', str),
-	dim: (str: string): string => styleText(['gray', 'dim'], str), // needed for terminal that don't support `dim` well
+	addon: (str: ColorInput): string => styleText('greenBright', toStr(str)),
+	command: (str: ColorInput): string => styleText(['bold', 'cyanBright'], toStr(str)),
+	env: (str: ColorInput): string => styleText('yellow', toStr(str)),
+	path: (str: ColorInput): string => styleText('blueBright', toStr(str)),
+	route: (str: ColorInput): string => styleText(['bold', 'underline'], toStr(str)),
+	website: (str: ColorInput): string => styleText('cyan', toStr(str)),
+	optional: (str: ColorInput): string => styleText('gray', toStr(str)),
+	dim: (str: ColorInput): string => styleText(['gray', 'dim'], toStr(str)), // needed for terminal that don't support `dim` well
 
 	// Status colors
-	success: (str: string): string => styleText('green', str),
-	warning: (str: string): string => styleText('yellow', str),
-	error: (str: string): string => styleText('red', str),
+	success: (str: ColorInput): string => styleText('green', toStr(str)),
+	warning: (str: ColorInput): string => styleText('yellow', toStr(str)),
+	error: (str: ColorInput): string => styleText('red', toStr(str)),
 
 	// Visibility
-	hidden: (str: string): string => styleText('hidden', str)
+	hidden: (str: ColorInput): string => styleText('hidden', toStr(str))
 };

@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -145,14 +145,12 @@ export const create = new Command('create')
 				);
 			}
 			if (!packageManager) {
-				const { args, command } = resolveCommand(pm, 'install', [])!;
-				initialSteps.push(`  ${i++}: ${color.command(command, ...args)}`);
+				initialSteps.push(`  ${i++}: ${color.command(resolveCommandArray(pm, 'install', []))}`);
 			}
 
-			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
 			const steps = [
 				...initialSteps,
-				`  ${i++}: ${color.command(command, ...args)}`,
+				`  ${i++}: ${color.command(resolveCommandArray(pm, 'run', ['dev', '--open']))}`,
 				'',
 				`To close the dev server, hit ${color.command('Ctrl-C')}`
 			];

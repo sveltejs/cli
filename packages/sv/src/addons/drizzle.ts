@@ -3,7 +3,7 @@ import {
 	dedent,
 	type TransformFn,
 	transforms,
-	resolveCommand,
+	resolveCommandArray,
 	fileExists,
 	createPrinter
 } from '@sveltejs/sv-utils';
@@ -481,32 +481,27 @@ export default defineAddon({
 		const steps: string[] = [];
 		if (options.database === 'd1') {
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
-			const { command, args } = resolveCommand(packageManager, 'run', [
-				'wrangler',
-				'd1',
-				'create',
-				`<DATABASE_NAME>`
-			])!;
-
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
 			steps.push(
-				`Run ${color.command(command, ...args)} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
 
 		if (options.docker) {
-			const { command, args } = resolveCommand(packageManager, 'run', ['db:start'])!;
-			steps.push(`Run ${color.command(command, ...args)} to start the docker container`);
+			steps.push(
+				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:start']))} to start the docker container`
+			);
 		} else if (options.database !== 'd1') {
 			steps.push(
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
 
-		const { command, args } = resolveCommand(packageManager, 'run', ['db:push'])!;
-		steps.push(`Run ${color.command(command, ...args)} to update your database schema`);
+		steps.push(
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database schema`
+		);
 
 		return steps;
 	}
