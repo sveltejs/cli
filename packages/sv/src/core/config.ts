@@ -137,12 +137,12 @@ export type AddonSource =
 	| { readonly kind: 'official'; readonly id: string }
 	| { readonly kind: 'file'; readonly path: string }
 	| {
-		readonly kind: 'npm';
-		readonly packageName: string;
-		readonly npmUrl: string;
-		readonly registryUrl: string;
-		readonly tag: string; // e.g. "latest", "1.0.0"
-	};
+			readonly kind: 'npm';
+			readonly packageName: string;
+			readonly npmUrl: string;
+			readonly registryUrl: string;
+			readonly tag: string; // e.g. "latest", "1.0.0"
+	  };
 
 export type AddonReference = {
 	readonly specifier: string;
