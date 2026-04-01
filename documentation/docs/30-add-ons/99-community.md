@@ -88,11 +88,11 @@ The `file:` protocol also works for custom or private add-ons that you don't int
 The `sv/testing` module provides utilities for testing your add-on. `createSetupTest` is a factory that takes your vitest imports and returns a `setupTest` function. It creates real SvelteKit projects from templates, runs your add-on, and gives you access to the resulting files.
 
 ```js
-import { createSetupTest } from 'sv/testing';
 import { expect } from '@playwright/test';
-import * as vitest from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createSetupTest } from 'sv/testing';
+import * as vitest from 'vitest';
 import addon from './index.js';
 
 const { test, testCases } = createSetupTest(vitest)(
@@ -111,18 +111,12 @@ const { test, testCases } = createSetupTest(vitest)(
 	}
 );
 
-test.concurrent.for(testCases)(
-	'my-addon $kind.type $variant',
-	async (testCase, ctx) => {
-		const cwd = ctx.cwd(testCase);
+test.concurrent.for(testCases)('my-addon $kind.type $variant', async (testCase, ctx) => {
+	const cwd = ctx.cwd(testCase);
 
-		const page = fs.readFileSync(
-			path.resolve(cwd, 'src/routes/+page.svelte'),
-			'utf8'
-		);
-		expect(page).toContain('Hello World!');
-	}
-);
+	const page = fs.readFileSync(path.resolve(cwd, 'src/routes/+page.svelte'), 'utf8');
+	expect(page).toContain('Hello World!');
+});
 ```
 
 Your `vitest.config.js` must include the global setup from `sv/testing`:
