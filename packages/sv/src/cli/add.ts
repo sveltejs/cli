@@ -115,7 +115,7 @@ export function classifyAddons(inputs: AddonInput[], cwd: string): AddonReferenc
 	if (invalidAddons.length > 0) {
 		common.errorAndExit(
 			`Invalid add-ons specified: ${invalidAddons.map((id) => color.command(id)).join(', ')}\n` +
-			`${color.optional('Check the documentation for valid add-on specifiers:')} ${color.website('https://svelte.dev/docs/cli/sv-add')}`
+				`${color.optional('Check the documentation for valid add-on specifiers:')} ${color.website('https://svelte.dev/docs/cli/sv-add')}`
 		);
 	}
 
@@ -506,7 +506,7 @@ export async function promptAddonQuestions({
 					const cyclePath = [...addonChain, addonId, depId].join(' → ');
 					common.errorAndExit(
 						`Circular dependency detected: ${cyclePath}\n` +
-						`Add-ons cannot have circular dependencies.`
+							`Add-ons cannot have circular dependencies.`
 					);
 				}
 
