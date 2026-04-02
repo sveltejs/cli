@@ -4,7 +4,7 @@ type WithFormat = (format: Parameters<typeof styleText>[0]) => (input: string | 
 const withFormat: WithFormat = (format) => (input) =>
 	styleText(format, Array.isArray(input) ? input.join(' ') : input);
 
-export const color = {
+export const color: Record<string, (input: string | string[]) => string> = {
 	// Semantic colors
 	addon: withFormat('greenBright'),
 	command: withFormat(['bold', 'cyanBright']),
