@@ -1,6 +1,6 @@
 import {
 	color,
-	resolveCommand,
+	resolveCommandArray,
 	text,
 	transforms,
 	fileExists,
@@ -231,9 +231,8 @@ export default defineAddon({
 	nextSteps({ options, packageManager }) {
 		const steps: string[] = [];
 		if (options.adapter === 'cloudflare') {
-			const { command, args } = resolveCommand(packageManager, 'run', ['gen'])!;
 			steps.push(
-				`Run ${color.command(`${command} ${args.join(' ')}`)} to update ${color.addon('cloudflare')} types`
+				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['gen']))} to update ${color.addon('cloudflare')} types`
 			);
 		}
 		return steps;

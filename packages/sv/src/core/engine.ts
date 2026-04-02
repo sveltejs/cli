@@ -198,7 +198,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
-			const executedCommand = `${command} ${args.join(' ')}`;
+			const executedCommand = [command, ...args].join(' ');
 			if (!TESTING) {
 				p.log.step(
 					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
