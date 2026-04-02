@@ -115,7 +115,7 @@ export function classifyAddons(inputs: AddonInput[], cwd: string): AddonReferenc
 	if (invalidAddons.length > 0) {
 		common.errorAndExit(
 			`Invalid add-ons specified: ${invalidAddons.map((id) => color.command(id)).join(', ')}\n` +
-				`${color.optional('Check the documentation for valid add-on specifiers:')} ${color.website('https://svelte.dev/docs/cli/sv-add')}`
+			`${color.optional('Check the documentation for valid add-on specifiers:')} ${color.website('https://svelte.dev/docs/cli/sv-add')}`
 		);
 	}
 
@@ -172,7 +172,7 @@ export const add = new Command('add')
 				'  sv add prettier eslint',
 				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
 				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
-				'  sv add @supacool',
+				'  sv add prettier @supacool',
 				'  sv add @supacool/sv@0.1.2',
 				''
 			].join('\n');
@@ -506,7 +506,7 @@ export async function promptAddonQuestions({
 					const cyclePath = [...addonChain, addonId, depId].join(' → ');
 					common.errorAndExit(
 						`Circular dependency detected: ${cyclePath}\n` +
-							`Add-ons cannot have circular dependencies.`
+						`Add-ons cannot have circular dependencies.`
 					);
 				}
 
@@ -872,8 +872,15 @@ export function formatAddonHelpSection(opts: {
 		return formatItem(id, option.choices);
 	});
 	if (addonList.length > 0) {
-		output.push(styleTitle('Add-Ons:'), ...addonList, '');
+		output.push(styleTitle('Official Add-Ons:'), ...addonList, '');
 	}
+
+	// Community
+	output.push(
+		styleTitle('Community Add-Ons:'),
+		'  Find on: https://www.npmjs.com/search?q=keywords:sv-add',
+		''
+	);
 
 	// Syntax
 	output.push(
