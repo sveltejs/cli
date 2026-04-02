@@ -6,7 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
-import type { LoadedAddon, OptionValues } from '../core/config.ts';
+import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
@@ -331,11 +331,13 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
+	let addonSetupResults: Record<string, SetupResult> = {};
 	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,
-			successfulAddons
+			successfulAddons,
+			setupResults
 		} = await runAddonsApply({
 			answers,
 			options: {
@@ -354,6 +356,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		argsFormattedAddons = argsFormatted;
 		addOnFilesToFormat = filesToFormat;
 		addOnSuccessfulAddons = successfulAddons;
+		addonSetupResults = setupResults;
 	}
 
 	const packageManager =
@@ -382,7 +385,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 	}
-	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers);
+	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) {
