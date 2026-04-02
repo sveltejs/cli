@@ -188,6 +188,14 @@ It's also possible to publish like `@my-org/core`, just users will need to type 
 npx sv add @my-org/core
 ```
 
+Users can also ask for a specific version:
+
+```sh
+npx sv add @my-org/sv@1.2.3
+```
+
+When no version is specified, `latest` is used.
+
 > [!NOTE]
 > Unscoped packages are not supported yet
 

@@ -172,6 +172,8 @@ export const add = new Command('add')
 				'  sv add prettier eslint',
 				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
 				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
+				'  sv add @supacool',
+				'  sv add @supacool/sv@0.1.2',
 				''
 			].join('\n');
 		}
