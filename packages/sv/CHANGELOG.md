@@ -1,5 +1,23 @@
 # sv
 
+## 0.13.2
+### Patch Changes
+
+
+- fix(sv): `nextStep` will conform to depedencies ([#1025](https://github.com/sveltejs/cli/pull/1025))
+
+
+- feat(sv-utils): all semantic colors now accept `string | string[]` ([#1024](https://github.com/sveltejs/cli/pull/1024))
+
+
+- fix(drizzle): add missing closing parenthesis in D1 getDb function ([#1022](https://github.com/sveltejs/cli/pull/1022))
+
+
+- fix(eslint): properly handle configs that doesn't use `defineConfig` ([#994](https://github.com/sveltejs/cli/pull/994))
+
+- Updated dependencies [[`dd9c2f8`](https://github.com/sveltejs/cli/commit/dd9c2f834000f4ccd206b55c1440617bbf9156e5)]:
+  - @sveltejs/sv-utils@0.0.5
+
 ## 0.13.1
 ### Patch Changes
 

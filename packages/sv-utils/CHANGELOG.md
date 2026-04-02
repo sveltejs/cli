@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 0.0.5
+### Patch Changes
+
+
+- feat(sv-utils): all semantic colors now accept `string | string[]` ([#1024](https://github.com/sveltejs/cli/pull/1024))
+
 ## 0.0.4
 ### Patch Changes
 
