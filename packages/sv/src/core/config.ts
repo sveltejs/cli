@@ -40,7 +40,9 @@ export type SvApi = {
 export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 	id: Id;
 	alias?: string;
+	/** one-liner shown in prompts  */
 	shortDescription?: string;
+	/** link to docs/repo */
 	homepage?: string;
 	/** If true, this addon won't appear in the interactive prompt but can still be used via CLI */
 	hidden?: boolean;

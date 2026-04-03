@@ -113,7 +113,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 			}
 		}
 
-		return await importAddonCode(pkg.name);
+		return await importAddonCode(pkg.name, pkg.version);
 	}
 
 	const tarballUrl: string = pkg.dist.tarball;
@@ -136,18 +136,35 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		})
 	);
 
-	return await importAddonCode(pkg.name);
+	return await importAddonCode(pkg.name, pkg.version);
 }
 
-async function importAddonCode(pkgName: string): Promise<AddonDefinition> {
+async function importAddonCode(pkgName: string, pkgVersion: string): Promise<AddonDefinition> {
+	const issues: string[] = [];
+
+	let details: AddonDefinition | undefined;
 	try {
-		const { default: details } = await import(`${pkgName}/sv`);
-		return details;
+		({ default: details } = await import(`${pkgName}/sv`));
 	} catch {
-		// /sv export doesn't exist, fall through to default
+		issues.push(`'/sv' export not found`);
 	}
-	const { default: details } = await import(pkgName);
-	return details;
+
+	if (!details) {
+		try {
+			({ default: details } = await import(pkgName));
+		} catch {
+			issues.push(`default export not found`);
+		}
+	}
+
+	if (!details && issues.length > 0) {
+		throw new Error(
+			`Failed to load add-on '${pkgName}@${pkgVersion}':\n- ${issues.join('\n- ')}\n\n` +
+				`Please report this to the add-on author.`
+		);
+	}
+
+	return details!;
 }
 
 type PackageJSON = {

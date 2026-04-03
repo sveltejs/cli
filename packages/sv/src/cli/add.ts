@@ -172,6 +172,8 @@ export const add = new Command('add')
 				'  sv add prettier eslint',
 				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
 				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
+				'  sv add prettier @supacool',
+				'  sv add @supacool/sv@0.1.2',
 				''
 			].join('\n');
 		}
@@ -880,8 +882,15 @@ export function formatAddonHelpSection(opts: {
 		return formatItem(id, option.choices);
 	});
 	if (addonList.length > 0) {
-		output.push(styleTitle('Add-Ons:'), ...addonList, '');
+		output.push(styleTitle('Official Add-Ons:'), ...addonList, '');
 	}
+
+	// Community
+	output.push(
+		styleTitle('Community Add-Ons:'),
+		'  Find on: https://www.npmjs.com/search?q=keywords:sv-add',
+		''
+	);
 
 	// Syntax
 	output.push(
