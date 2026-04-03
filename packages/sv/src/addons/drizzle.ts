@@ -90,7 +90,17 @@ export default defineAddon({
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file, packageManager }) => {
+	run: ({
+		sv,
+		language,
+		options,
+		directory,
+		dependencyVersion,
+		cwd,
+		cancel,
+		file,
+		packageManager
+	}) => {
 		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
 			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare - add the adapter first');
 		}
