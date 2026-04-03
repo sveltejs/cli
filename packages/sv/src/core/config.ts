@@ -21,7 +21,7 @@ export type Scripts = {
 };
 
 export type SvApi = {
-	/** Add a package to the pnpm build dependencies. */
+	/** Add a package to the pnpm onlyBuiltDependencies. */
 	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
