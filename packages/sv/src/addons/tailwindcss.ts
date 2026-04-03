@@ -33,8 +33,8 @@ export default defineAddon({
 	run: ({ sv, options, file, isKit, directory, dependencyVersion, language }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^4.1.18');
-		sv.devDependency('@tailwindcss/vite', '^4.1.18');
+		sv.devDependency('tailwindcss', '^4.2.2');
+		sv.devDependency('@tailwindcss/vite', '^4.2.2');
 		sv.pnpmBuildDependency('@tailwindcss/oxide');
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
