@@ -10,7 +10,7 @@ const browser = false;
 const { test, prepareServer, testCases } = setupTest(
 	{ addon },
 	{
-		kinds: [{ type: 'default', options: { addon: { who: 'you' } } }],
+		kinds: [{ type: 'default', options: { [addon.id]: { who: 'you' } } }],
 		filter: (testCase) => testCase.variant.includes('kit'),
 		browser
 	}
@@ -21,14 +21,17 @@ test.concurrent.for(testCases)(
 	async (testCase, { page, ...ctx }) => {
 		const cwd = ctx.cwd(testCase);
 
-		const msg =
-			"This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!";
+		const msg = "Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!";
 
 		const contentPath = path.resolve(cwd, `src/lib/~SV-NAME-TODO~/content.txt`);
 		const contentContent = fs.readFileSync(contentPath, 'utf8');
-
 		// Check if we have the imports
 		expect(contentContent).toContain(msg);
+
+		const helloPath = path.resolve(cwd, `src/lib/~SV-NAME-TODO~/HelloComponent.svelte`);
+		const helloContent = fs.readFileSync(helloPath, 'utf8');
+		// Check if we have the imports
+		expect(helloContent).toContain('you');
 
 		// For browser testing
 		if (browser) {
