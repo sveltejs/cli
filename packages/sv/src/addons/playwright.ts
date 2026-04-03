@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, transforms } from '@sveltejs/sv-utils';
+import { color, dedent, md, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -88,6 +88,13 @@ export default defineAddon({
 				}
 			})
 		);
+
+		sv.file('README.md', (content) => {
+			return md.upsert(content, '## Add-on Setup', [
+				'Playwright',
+				'- Run `npx playwright install` to download browsers'
+			]);
+		});
 	},
 
 	nextSteps: ({ isKit }) => {
