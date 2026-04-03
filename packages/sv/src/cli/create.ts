@@ -386,7 +386,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
 	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [directory]);
-	common.updateReadme(directory, prompt);
+	common.insertPrompt(directory, prompt);
+	if (fs.existsSync(path.join(directory, '.env.example'))) common.insertEnvMsg(directory);
 
 	common.updateAgent(directory, language, packageManager ?? 'npm', loadedAddons);
 
