@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 0.1.0
+### Minor Changes
+
+
+- feat: community add-ons are now **experimental** ([#1020](https://github.com/sveltejs/cli/pull/1020))
+
 ## 0.0.5
 ### Patch Changes
 

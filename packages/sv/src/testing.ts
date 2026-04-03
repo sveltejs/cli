@@ -239,12 +239,17 @@ export async function prepareServer({
 	return { url, close };
 }
 
+export type PlaywrightContext = Pick<typeof import('@playwright/test'), 'chromium'>;
+
 export type VitestContext = Pick<
 	typeof import('vitest'),
 	'inject' | 'test' | 'beforeAll' | 'beforeEach'
 >;
 
-export function createSetupTest(vitest: VitestContext): <Addons extends AddonMap>(
+export function createSetupTest(
+	vitest: VitestContext,
+	playwright?: PlaywrightContext
+): <Addons extends AddonMap>(
 	addons: Addons,
 	options?: SetupTestOptions<Addons>
 ) => {
@@ -272,12 +277,16 @@ export function createSetupTest(vitest: VitestContext): <Addons extends AddonMap
 		if (withBrowser) {
 			beforeAll(async () => {
 				let chromium: Awaited<typeof import('@playwright/test')>['chromium'];
-				try {
-					({ chromium } = await import('@playwright/test'));
-				} catch {
-					throw new Error(
-						'Browser testing requires @playwright/test. Install it with: pnpm add -D @playwright/test'
-					);
+				if (playwright) {
+					chromium = playwright.chromium;
+				} else {
+					try {
+						({ chromium } = await import('@playwright/test'));
+					} catch {
+						throw new Error(
+							'Browser testing requires @playwright/test. Install it with: pnpm add -D @playwright/test'
+						);
+					}
 				}
 				browser = await chromium.launch();
 				return async () => {
