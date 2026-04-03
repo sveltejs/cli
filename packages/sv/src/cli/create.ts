@@ -267,7 +267,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		// At this stage, we don't support un-scoped add-ons
 		// FYI: a demo exists for `npx sv add my-cool-addon`
 		const org = await p.text({
-			message: `Community add-ons must be published under an npm org. What's your npm org?`,
+			message: `Community add-ons must be published under an npm org. Enter the name of your npm org:`,
 			placeholder: '  @my-org',
 			validate: (value) => {
 				if (!value) return 'Organization name is required';
