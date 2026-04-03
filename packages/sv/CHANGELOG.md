@@ -1,5 +1,17 @@
 # sv
 
+## 0.15.0
+### Minor Changes
+
+
+- feat: replace `sv.pnpmBuildDependency` with `sv.file` + `pnpm.onlyBuiltDependencies` helper and `file.findUp` ([#1035](https://github.com/sveltejs/cli/pull/1035))
+
+
+### Patch Changes
+
+- Updated dependencies [[`36578be`](https://github.com/sveltejs/cli/commit/36578be81519cbe5114537530f0d8eeda3b6766b)]:
+  - @sveltejs/sv-utils@0.2.0
+
 ## 0.14.0
 ### Minor Changes
 
