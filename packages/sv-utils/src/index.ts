@@ -39,6 +39,9 @@ export * as text from './tooling/text.ts';
 export * as json from './tooling/json.ts';
 export * as svelte from './tooling/svelte/index.ts';
 
+// Package manager helpers
+export * as pnpm from './pnpm.ts';
+
 // Transforms — sv-utils = what to do to content, sv = where and when to do it.
 export { transforms } from './tooling/transforms.ts';
 

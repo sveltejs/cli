@@ -3,6 +3,7 @@ import {
 	dedent,
 	type TransformFn,
 	transforms,
+	pnpm,
 	resolveCommandArray,
 	fileExists,
 	createPrinter
@@ -89,7 +90,7 @@ export default defineAddon({
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file }) => {
+	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file, packageManager }) => {
 		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
 			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare - add the adapter first');
 		}
@@ -124,7 +125,9 @@ export default defineAddon({
 			// not a devDependency due to bundling issues
 			sv.dependency('better-sqlite3', '^12.6.2');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
-			sv.pnpmBuildDependency('better-sqlite3');
+			if (packageManager === 'pnpm') {
+				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.onlyBuiltDependencies('better-sqlite3'));
+			}
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')

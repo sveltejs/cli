@@ -326,13 +326,13 @@ export function createSetupTest(vitest: VitestContext): <Addons extends AddonMap
 				if (options?.preAdd) {
 					await options.preAdd({ addonTestCase, cwd });
 				}
-				const { pnpmBuildDependencies } = await add({
+				await add({
 					cwd,
 					addons,
 					options: kind.options,
 					packageManager: 'pnpm'
 				});
-				await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+				await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild']);
 			}
 
 			execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
