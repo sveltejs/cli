@@ -1,5 +1,17 @@
 # sv
 
+## 0.14.0
+### Minor Changes
+
+
+- feat: community add-ons are now **experimental** ([#1020](https://github.com/sveltejs/cli/pull/1020))
+
+
+### Patch Changes
+
+- Updated dependencies [[`c0e5831`](https://github.com/sveltejs/cli/commit/c0e583126279afe7aff8cebb03c5b3928d73b521)]:
+  - @sveltejs/sv-utils@0.1.0
+
 ## 0.13.2
 ### Patch Changes
 
