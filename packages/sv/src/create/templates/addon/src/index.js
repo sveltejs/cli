@@ -1,4 +1,4 @@
-import { transforms } from '@sveltejs/sv-utils';
+import { transforms } from './sv-utils.js';
 import { defineAddon, defineAddonOptions } from 'sv';
 
 const options = defineAddonOptions()
