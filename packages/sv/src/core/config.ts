@@ -51,8 +51,8 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 			/** On what official addons does this addon depend on? */
 			dependsOn: (name: keyof typeof officialAddons) => void;
 
-			/** Why is this addon not supported?
-			 *
+			/**
+			 * Why is this addon not supported?
 			 * @example
 			 * if (!isKit) unsupported('Requires SvelteKit');
 			 */
