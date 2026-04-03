@@ -2,6 +2,7 @@ import {
 	color,
 	dedent,
 	type TransformFn,
+	md,
 	transforms,
 	resolveCommandArray,
 	fileExists,
@@ -132,6 +133,16 @@ export default defineAddon({
 
 		sv.file('.env', generateEnv(options, false));
 		sv.file('.env.example', generateEnv(options, true));
+
+		sv.file('README.md', (content) => {
+			return md.upsert(content, '## Add-on Setup', [
+				'Drizzle',
+				options.database === 'd1' &&
+					'- Run `npm run wrangler d1 create <DATABASE_NAME>` to create a D1 database',
+				options.docker && '- Run `npm run db:start` to start the docker container',
+				'- Run `npm run db:push` to update your database schema'
+			]);
+		});
 
 		if (options.docker && (options.mysql === 'mysql2' || options.postgresql === 'postgres.js')) {
 			const composeFileOptions = [

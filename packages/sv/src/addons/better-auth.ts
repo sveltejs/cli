@@ -4,6 +4,7 @@ import {
 	Walker,
 	color,
 	dedent,
+	md,
 	transforms,
 	resolveCommandArray,
 	createPrinter,
@@ -91,6 +92,14 @@ export default defineAddon({
 
 		sv.file('.env', generateEnv(demoGithub, false));
 		sv.file('.env.example', generateEnv(demoGithub, true));
+
+		sv.file('README.md', (content) => {
+			return md.upsert(content, '## Add-on Setup', [
+				'better-auth',
+				'- Run `npm run auth:schema` to generate the auth schema',
+				'- Run `npm run db:push` to update your database'
+			]);
+		});
 
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,

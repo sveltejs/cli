@@ -1,6 +1,7 @@
 import {
 	color,
 	resolveCommandArray,
+	md,
 	text,
 	transforms,
 	fileExists,
@@ -226,6 +227,15 @@ export default defineAddon({
 					})
 				);
 			}
+		}
+
+		if (options.adapter === 'cloudflare') {
+			sv.file('README.md', (content) => {
+				return md.upsert(content, '## Add-on Setup', [
+					'Cloudflare Adapter',
+					'- Run `npm run gen` to generate Cloudflare types'
+				]);
+			});
 		}
 	},
 	nextSteps({ options, packageManager }) {
