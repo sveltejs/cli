@@ -4,128 +4,118 @@
 
 ```ts
 declare function addPnpmBuildDependencies(
-  cwd: string,
-  packageManager: AgentName | null | undefined,
-  allowedPackages: string[],
+	cwd: string,
+	packageManager: AgentName | null | undefined,
+	allowedPackages: string[]
 ): Promise<void>;
-type ProjectVariant = "kit-js" | "kit-ts" | "vite-js" | "vite-ts";
+type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 declare const variants: ProjectVariant[];
 type CreateProject = (options: {
-  testId: string;
-  variant: ProjectVariant;
-  clean?: boolean;
+	testId: string;
+	variant: ProjectVariant;
+	clean?: boolean;
 }) => string;
 type SetupOptions = {
-  cwd: string;
-  variants: readonly ProjectVariant[];
-  clean?: boolean;
+	cwd: string;
+	variants: readonly ProjectVariant[];
+	clean?: boolean;
 };
 declare function setup({ cwd, clean, variants }: SetupOptions): {
-  templatesDir: string;
+	templatesDir: string;
 };
 type CreateOptions = {
-  cwd: string;
-  testName: string;
-  templatesDir: string;
+	cwd: string;
+	testName: string;
+	templatesDir: string;
 };
-declare function createProject({
-  cwd,
-  testName,
-  templatesDir,
-}: CreateOptions): CreateProject;
+declare function createProject({ cwd, testName, templatesDir }: CreateOptions): CreateProject;
 type PreviewOptions = {
-  cwd: string;
-  command?: string;
+	cwd: string;
+	command?: string;
 };
 declare function startPreview({ cwd, command }: PreviewOptions): Promise<{
-  url: string;
-  close: () => Promise<void>;
+	url: string;
+	close: () => Promise<void>;
 }>;
-declare module "vitest" {
-  interface ProvidedContext {
-    testDir: string;
-    templatesDir: string;
-    variants: ProjectVariant[];
-  }
+declare module 'vitest' {
+	interface ProvidedContext {
+		testDir: string;
+		templatesDir: string;
+		variants: ProjectVariant[];
+	}
 }
 declare function setupGlobal({
-  TEST_DIR,
-  pre,
-  post,
+	TEST_DIR,
+	pre,
+	post
 }: {
-  TEST_DIR: string;
-  pre?: () => Promise<void>;
-  post?: () => Promise<void>;
+	TEST_DIR: string;
+	pre?: () => Promise<void>;
+	post?: () => Promise<void>;
 }): ({ provide }: TestProject) => Promise<() => Promise<void>>;
 type Fixtures = {
-  page: Page;
-  cwd(addonTestCase: AddonTestCase<any>): string;
+	page: Page;
+	cwd(addonTestCase: AddonTestCase<any>): string;
 };
 type AddonTestCase<Addons extends AddonMap> = {
-  variant: ProjectVariant;
-  kind: {
-    type: string;
-    options: OptionMap<Addons>;
-  };
+	variant: ProjectVariant;
+	kind: {
+		type: string;
+		options: OptionMap<Addons>;
+	};
 };
 type SetupTestOptions<Addons extends AddonMap> = {
-  kinds: Array<AddonTestCase<Addons>["kind"]>;
-  filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
-  browser?: boolean;
-  preAdd?: (o: {
-    addonTestCase: AddonTestCase<Addons>;
-    cwd: string;
-  }) => Promise<void> | void;
+	kinds: Array<AddonTestCase<Addons>['kind']>;
+	filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
+	browser?: boolean;
+	preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
 };
 type PrepareServerOptions = {
-  cwd: string;
-  page: Page;
-  buildCommand?: string;
-  previewCommand?: string;
+	cwd: string;
+	page: Page;
+	buildCommand?: string;
+	previewCommand?: string;
 };
 type PrepareServerReturn = {
-  url: string;
-  close: () => Promise<void>;
+	url: string;
+	close: () => Promise<void>;
 };
 declare function prepareServer({
-  cwd,
-  page,
-  buildCommand,
-  previewCommand,
+	cwd,
+	page,
+	buildCommand,
+	previewCommand
 }: PrepareServerOptions): Promise<PrepareServerReturn>;
-type PlaywrightContext = Pick<typeof _playwright_test0, "chromium">;
-type VitestContext = Pick<
-  typeof vitest,
-  "inject" | "test" | "beforeAll" | "beforeEach"
->;
+type PlaywrightContext = Pick<typeof _playwright_test0, 'chromium'>;
+type VitestContext = Pick<typeof vitest, 'inject' | 'test' | 'beforeAll' | 'beforeEach'>;
 declare function createSetupTest(
-  vitest: VitestContext,
-  playwright?: PlaywrightContext,
+	vitest: VitestContext,
+	playwright?: PlaywrightContext
 ): <Addons extends AddonMap>(
-  addons: Addons,
-  options?: SetupTestOptions<Addons>,
+	addons: Addons,
+	options?: SetupTestOptions<Addons>
 ) => {
-  test: vitest.TestAPI<Fixtures>;
-  testCases: Array<AddonTestCase<AddonMap>>;
-  prepareServer: typeof prepareServer;
+	test: vitest.TestAPI<Fixtures>;
+	testCases: Array<AddonTestCase<AddonMap>>;
+	prepareServer: typeof prepareServer;
 };
 export {
-  AddonTestCase,
-  CreateProject,
-  Fixtures,
-  PlaywrightContext,
-  PrepareServerOptions,
-  PrepareServerReturn,
-  ProjectVariant,
-  SetupTestOptions,
-  VitestContext,
-  addPnpmBuildDependencies,
-  createProject,
-  createSetupTest,
-  prepareServer,
-  setup,
-  setupGlobal,
-  startPreview,
-  variants,
+	AddonTestCase,
+	CreateProject,
+	Fixtures,
+	PlaywrightContext,
+	PrepareServerOptions,
+	PrepareServerReturn,
+	ProjectVariant,
+	SetupTestOptions,
+	VitestContext,
+	addPnpmBuildDependencies,
+	createProject,
+	createSetupTest,
+	prepareServer,
+	setup,
+	setupGlobal,
+	startPreview,
+	variants
 };
 ```
