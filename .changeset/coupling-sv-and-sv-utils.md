@@ -7,7 +7,6 @@ feat: sv / sv-utils coupling, pnpm helpers, experimental add-ons, and API snapsh
 
 **Highlights**
 
-- Community add-ons are now **experimental**.
 - Replace `sv.pnpmBuildDependency` with `sv.file` plus `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` and `file.findUp`.
 
 **`@sveltejs/sv-utils`**
