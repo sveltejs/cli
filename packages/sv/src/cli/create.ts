@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommandArray, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray, commonFilePaths, loadPackageJson } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -454,7 +454,7 @@ export async function createVirtualWorkspace({
 
 	// Let's read the package.json of the template we will use and add the dependencies to the override
 	const templatePackageJsonPath = dist(`templates/${template}`);
-	const { data: packageJson } = getPackageJson(templatePackageJsonPath);
+	const { data: packageJson } = loadPackageJson(templatePackageJsonPath);
 	override.dependencies = {
 		...packageJson.devDependencies,
 		...packageJson.dependencies,

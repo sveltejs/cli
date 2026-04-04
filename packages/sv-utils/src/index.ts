@@ -80,18 +80,22 @@ export { createPrinter } from './utils.ts';
 export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
 
-// File system helpers
+// File system helpers (sync, workspace-relative paths)
 export {
 	commonFilePaths,
 	fileExists,
-	getPackageJson,
-	readFile,
-	writeFile,
+	loadFile,
+	loadPackageJson,
+	saveFile,
 	type Package
 } from './files.ts';
 
-/** @deprecated Internal to sv — will be removed from the public API in a future version. */
-export { installPackages } from './files.ts';
+/** @deprecated Use {@link loadFile} instead. */
+export { readFile } from './files.ts';
+/** @deprecated Use {@link saveFile} instead. */
+export { writeFile } from './files.ts';
+/** @deprecated Use {@link loadPackageJson} instead. */
+export { getPackageJson } from './files.ts';
 
 // Terminal styling
 export { color } from './color.ts';

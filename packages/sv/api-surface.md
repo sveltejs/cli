@@ -19,14 +19,11 @@ type Options = {
   template: TemplateType;
   types: LanguageType;
 };
-/** @deprecated Use `create({ cwd, name, template, types })` instead. */
 declare function create(cwd: string, options: Omit<Options, "cwd">): void;
 declare function create(options: Options): void;
-/** @deprecated Unused type, will be removed in a future version. */
 type FileEditor = Workspace & {
   content: string;
 };
-/** @deprecated Unused type, will be removed in a future version. */
 type FileType = {
   name: (options: Workspace) => string;
   condition?: ConditionDefinition;

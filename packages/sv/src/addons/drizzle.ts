@@ -219,7 +219,7 @@ export default defineAddon({
 		const hasPrettier = Boolean(dependencyVersion('prettier'));
 		if (hasPrettier) {
 			sv.file(
-				file.prettierignore,
+				'.prettierignore',
 				transforms.text(({ content, text }) => text.upsert(content, '/drizzle/'))
 			);
 		}

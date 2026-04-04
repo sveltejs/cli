@@ -13,22 +13,23 @@ export type Package = {
 	workspaces?: string[];
 };
 
-export function getPackageJson(cwd: string): {
-	source: string;
-	data: Package;
-	generateCode: () => string;
-} {
-	const packageText = readFile(cwd, commonFilePaths.packageJson);
-	if (!packageText) {
-		const pkgPath = path.join(cwd, commonFilePaths.packageJson);
-		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
-	}
+export const commonFilePaths = {
+	packageJson: 'package.json',
+	svelteConfig: 'svelte.config.js',
+	svelteConfigTS: 'svelte.config.ts',
+	jsconfig: 'jsconfig.json',
+	tsconfig: 'tsconfig.json',
+	viteConfig: 'vite.config.js',
+	viteConfigTS: 'vite.config.ts'
+} as const;
 
-	const { data, generateCode } = parseJson(packageText);
-	return { source: packageText, data: data as Package, generateCode };
+export function fileExists(cwd: string, filePath: string): boolean {
+	const fullFilePath = path.resolve(cwd, filePath);
+	return fs.existsSync(fullFilePath);
 }
 
-export function readFile(cwd: string, filePath: string): string {
+/** Synchronous load of a workspace-relative file as UTF-8 text; missing files yield `''`. */
+export function loadFile(cwd: string, filePath: string): string {
 	const fullFilePath = path.resolve(cwd, filePath);
 
 	if (!fileExists(cwd, filePath)) {
@@ -40,12 +41,8 @@ export function readFile(cwd: string, filePath: string): string {
 	return text;
 }
 
-export function fileExists(cwd: string, filePath: string): boolean {
-	const fullFilePath = path.resolve(cwd, filePath);
-	return fs.existsSync(fullFilePath);
-}
-
-export function writeFile(cwd: string, filePath: string, content: string): void {
+/** Synchronous write of a workspace-relative file (creates parent dirs). */
+export function saveFile(cwd: string, filePath: string, content: string): void {
 	const fullFilePath = path.resolve(cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
@@ -58,47 +55,26 @@ export function writeFile(cwd: string, filePath: string, content: string): void 
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
-/**
- * @deprecated Internal to sv — merged into `package.json` by the add-on runner only. Will be removed from the public API in a future version.
- */
-export function installPackages(
-	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	cwd: string
-): string {
-	const { data, generateCode } = getPackageJson(cwd);
-
-	for (const dependency of dependencies) {
-		if (dependency.dev) {
-			data.devDependencies ??= {};
-			data.devDependencies[dependency.pkg] = dependency.version;
-		} else {
-			data.dependencies ??= {};
-			data.dependencies[dependency.pkg] = dependency.version;
-		}
+export function loadPackageJson(cwd: string): {
+	source: string;
+	data: Package;
+	generateCode: () => string;
+} {
+	const packageText = loadFile(cwd, commonFilePaths.packageJson);
+	if (!packageText) {
+		const pkgPath = path.join(cwd, commonFilePaths.packageJson);
+		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
-	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
-	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
-
-	writeFile(cwd, commonFilePaths.packageJson, generateCode());
-	return commonFilePaths.packageJson;
+	const { data, generateCode } = parseJson(packageText);
+	return { source: packageText, data: data as Package, generateCode };
 }
 
-function alphabetizeProperties(obj: Record<string, string>) {
-	const orderedObj: Record<string, string> = {};
-	const sortedEntries = Object.entries(obj).sort(([a], [b]) => a.localeCompare(b));
-	for (const [key, value] of sortedEntries) {
-		orderedObj[key] = value;
-	}
-	return orderedObj;
-}
+/** @deprecated Use {@link loadFile} instead. */
+export const readFile: typeof loadFile = loadFile;
 
-export const commonFilePaths = {
-	packageJson: 'package.json',
-	svelteConfig: 'svelte.config.js',
-	svelteConfigTS: 'svelte.config.ts',
-	jsconfig: 'jsconfig.json',
-	tsconfig: 'tsconfig.json',
-	viteConfig: 'vite.config.js',
-	viteConfigTS: 'vite.config.ts'
-} as const;
+/** @deprecated Use {@link saveFile} instead. */
+export const writeFile: typeof saveFile = saveFile;
+
+/** @deprecated Use {@link loadPackageJson} instead. */
+export const getPackageJson: typeof loadPackageJson = loadPackageJson;

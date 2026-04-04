@@ -33,7 +33,6 @@ export type Common = {
 	}>;
 };
 
-/** @deprecated Use `create({ cwd, name, template, types })` instead. */
 export function create(cwd: string, options: Omit<Options, 'cwd'>): void;
 export function create(options: Options): void;
 export function create(

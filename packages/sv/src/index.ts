@@ -37,6 +37,4 @@ export type {
 // workspace.ts
 export type { Workspace, WorkspaceOptions } from './core/workspace.ts';
 
-// processors.ts - deprecated, will be removed
-/** @deprecated Unused type, will be removed in a future version. */
 export type { FileEditor, FileType } from './core/processors.ts';
