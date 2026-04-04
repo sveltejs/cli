@@ -8,11 +8,14 @@
  *
  * Run: node scripts/generate-api-surface.js
  * Or: invoked from tsdown `build:done` after all configs finish (see tsdown.config.ts).
+ *
+ * Finishes with Prettier (repo root config) so snapshots match `pnpm format`.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as prettier from 'prettier';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -84,8 +87,17 @@ function clean(source) {
 	return result.trim() + '\n';
 }
 
-/** @returns {number} number of api-surface files written */
-export function generateApiSurface() {
+/**
+ * @param {string} absPath absolute path to the markdown file
+ */
+async function formatWithPrettier(absPath) {
+	const raw = fs.readFileSync(absPath, 'utf8');
+	const formatted = await prettier.format(raw, { filepath: absPath });
+	fs.writeFileSync(absPath, formatted, 'utf8');
+}
+
+/** @returns {Promise<number>} number of api-surface files written */
+export async function generateApiSurface() {
 	let generated = 0;
 	for (const pkg of packages) {
 		const dtsPath = path.resolve(ROOT, pkg.dts);
@@ -105,6 +117,7 @@ export function generateApiSurface() {
 
 		const outPath = path.resolve(ROOT, pkg.out);
 		fs.writeFileSync(outPath, header + cleaned + footer, 'utf8');
+		await formatWithPrettier(outPath);
 		generated++;
 		console.log(`  ${pkg.name} -> ${pkg.out}`);
 	}
@@ -121,5 +134,8 @@ const isMain =
 	process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
 if (isMain) {
-	generateApiSurface();
+	generateApiSurface().catch((err) => {
+		console.error(err);
+		process.exit(1);
+	});
 }
