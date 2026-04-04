@@ -6,7 +6,7 @@ import {
 	color,
 	constructCommand,
 	detect,
-	parse
+	pnpm
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
@@ -92,29 +92,16 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export async function addPnpmBuildDependencies(
+export function addOnlyBuiltDependencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
-	allowedPackages: string[]
-): Promise<void> {
-	if (!packageManager || packageManager !== 'pnpm' || allowedPackages.length === 0) return;
+	...packages: string[]
+): void {
+	if (packageManager !== 'pnpm' || packages.length === 0) return;
 
-	// find the workspace root (if present)
 	const found = find.up('pnpm-workspace.yaml', { cwd });
+	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const { data, generateCode } = parse.yaml(content);
-
-	const onlyBuiltDependencies = data.get('onlyBuiltDependencies');
-	const items: Array<{ value: string } | string> = onlyBuiltDependencies?.items ?? [];
-
-	for (const item of allowedPackages) {
-		if (items.includes(item)) continue;
-		if (items.some((y) => typeof y === 'object' && y.value === item)) continue;
-		items.push(item);
-	}
-	data.set('onlyBuiltDependencies', items);
-
-	const newContent = generateCode();
-	const pnpmWorkspacePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-	if (newContent !== content) fs.writeFileSync(pnpmWorkspacePath, newContent, 'utf-8');
+	const newContent = pnpm.onlyBuiltDependencies(...packages)(content);
+	if (newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }

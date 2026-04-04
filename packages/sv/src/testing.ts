@@ -7,10 +7,10 @@ import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
-import { addPnpmBuildDependencies } from './core/package-manager.ts';
+import { addOnlyBuiltDependencies } from './core/package-manager.ts';
 import { create } from './create/index.ts';
 
-export { addPnpmBuildDependencies } from './core/package-manager.ts';
+export { addOnlyBuiltDependencies } from './core/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 export const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 
@@ -332,7 +332,7 @@ export function createSetupTest(vitest: VitestContext): <Addons extends AddonMap
 					options: kind.options,
 					packageManager: 'pnpm'
 				});
-				await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild']);
+				addOnlyBuiltDependencies(cwd, 'pnpm', 'esbuild');
 			}
 
 			execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
