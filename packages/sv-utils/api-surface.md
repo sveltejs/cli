@@ -1532,6 +1532,11 @@ declare const transforms: {
 
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
+declare namespace pnpm_d_exports {
+	export { onlyBuiltDependencies };
+}
+
+declare function onlyBuiltDependencies(...packages: string[]): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
@@ -1638,6 +1643,7 @@ export {
 	index_d_exports$3 as js,
 	json_d_exports as json,
 	parse,
+	pnpm_d_exports as pnpm,
 	readFile,
 	resolveCommand,
 	resolveCommandArray,
