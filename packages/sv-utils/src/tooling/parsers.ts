@@ -64,8 +64,7 @@ export function parseJson(source: string): { data: any } & ParseBase {
 export function parseYaml(source: string): { data: YamlDocument } & ParseBase {
 	if (!source) source = '';
 	const data = utils.parseYaml(source);
-	const generateCode = () =>
-		utils.serializeYaml(data as Parameters<typeof utils.serializeYaml>[0]);
+	const generateCode = () => utils.serializeYaml(data as Parameters<typeof utils.serializeYaml>[0]);
 
 	return { data: data as YamlDocument, source, generateCode };
 }

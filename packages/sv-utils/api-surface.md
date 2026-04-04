@@ -31,781 +31,725 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 declare class TomlDate extends Date {
-  #private;
-  constructor(date: string | Date);
-  isDateTime(): boolean;
-  isLocal(): boolean;
-  isDate(): boolean;
-  isTime(): boolean;
-  isValid(): boolean;
-  toISOString(): string;
-  static wrapAsOffsetDateTime(jsDate: Date, offset?: string): TomlDate;
-  static wrapAsLocalDateTime(jsDate: Date): TomlDate;
-  static wrapAsLocalDate(jsDate: Date): TomlDate;
-  static wrapAsLocalTime(jsDate: Date): TomlDate;
+	#private;
+	constructor(date: string | Date);
+	isDateTime(): boolean;
+	isLocal(): boolean;
+	isDate(): boolean;
+	isTime(): boolean;
+	isValid(): boolean;
+	toISOString(): string;
+	static wrapAsOffsetDateTime(jsDate: Date, offset?: string): TomlDate;
+	static wrapAsLocalDateTime(jsDate: Date): TomlDate;
+	static wrapAsLocalDate(jsDate: Date): TomlDate;
+	static wrapAsLocalTime(jsDate: Date): TomlDate;
 }
 type TomlPrimitive = string | number | bigint | boolean | TomlDate;
 type TomlTable = {
-  [key: string]: TomlValue;
+	[key: string]: TomlValue;
 };
 type TomlValue = TomlPrimitive | TomlValue[] | TomlTable;
-declare module "estree" {
-  interface TSTypeAnnotation {
-    type: "TSTypeAnnotation";
-    typeAnnotation:
-      | TSStringKeyword
-      | TSTypeReference
-      | TSUnionType
-      | TSIndexedAccessType;
-  }
-  interface TSStringKeyword {
-    type: "TSStringKeyword";
-  }
-  interface TSNullKeyword {
-    type: "TSNullKeyword";
-  }
-  interface TSTypeReference {
-    type: "TSTypeReference";
-    typeName: Identifier;
-  }
-  interface TSAsExpression extends BaseNode {
-    type: "TSAsExpression";
-    expression: Expression;
-    typeAnnotation: TSTypeAnnotation["typeAnnotation"];
-  }
-  interface TSModuleDeclaration extends BaseNode {
-    type: "TSModuleDeclaration";
-    global: boolean;
-    declare: boolean;
-    id: Identifier;
-    body: TSModuleBlock;
-  }
-  interface TSModuleBlock extends BaseNode {
-    type: "TSModuleBlock";
-    body: Array<TSModuleDeclaration | TSInterfaceDeclaration>;
-  }
-  interface TSInterfaceDeclaration extends BaseNode {
-    type: "TSInterfaceDeclaration";
-    id: Identifier;
-    body: TSInterfaceBody;
-  }
-  interface TSInterfaceBody extends BaseNode {
-    type: "TSInterfaceBody";
-    body: TSPropertySignature[];
-  }
-  interface TSPropertySignature extends BaseNode {
-    type: "TSPropertySignature";
-    computed: boolean;
-    key: Identifier;
-    optional?: boolean;
-    typeAnnotation: TSTypeAnnotation;
-  }
-  interface TSProgram extends Omit<Program, "body"> {
-    body: Array<
-      Directive | Statement | ModuleDeclaration | TSModuleDeclaration
-    >;
-  }
-  interface TSUnionType {
-    type: "TSUnionType";
-    types: Array<TSNullKeyword | TSTypeReference | TSImportType>;
-  }
-  interface TSImportType {
-    type: "TSImportType";
-    argument: Literal;
-    qualifier: Identifier;
-  }
-  interface TSIndexedAccessType {
-    type: "TSIndexedAccessType";
-    objectType: TSImportType;
-    indexType: TSLiteralType;
-  }
-  interface TSLiteralType {
-    type: "TSLiteralType";
-    literal: Literal;
-  }
-  interface TSSatisfiesExpression extends BaseNode {
-    type: "TSSatisfiesExpression";
-    expression: Expression;
-    typeAnnotation: TSTypeAnnotation["typeAnnotation"];
-  }
-  interface BaseNodeWithoutComments {
-    type: string;
-    loc?: SourceLocation | null | undefined;
-    range?: [number, number] | undefined;
-    start?: number;
-    end?: number;
-  }
-  interface Identifier {
-    typeAnnotation?: TSTypeAnnotation;
-  }
-  interface ExpressionMap {
-    TSAsExpression: TSAsExpression;
-    TSSatisfiesExpression: TSSatisfiesExpression;
-  }
-  interface NodeMap {
-    TSModuleDeclaration: TSModuleDeclaration;
-    TSInterfaceDeclaration: TSInterfaceDeclaration;
-  }
-  interface ImportDeclaration {
-    importKind: "type" | "value";
-  }
+declare module 'estree' {
+	interface TSTypeAnnotation {
+		type: 'TSTypeAnnotation';
+		typeAnnotation: TSStringKeyword | TSTypeReference | TSUnionType | TSIndexedAccessType;
+	}
+	interface TSStringKeyword {
+		type: 'TSStringKeyword';
+	}
+	interface TSNullKeyword {
+		type: 'TSNullKeyword';
+	}
+	interface TSTypeReference {
+		type: 'TSTypeReference';
+		typeName: Identifier;
+	}
+	interface TSAsExpression extends BaseNode {
+		type: 'TSAsExpression';
+		expression: Expression;
+		typeAnnotation: TSTypeAnnotation['typeAnnotation'];
+	}
+	interface TSModuleDeclaration extends BaseNode {
+		type: 'TSModuleDeclaration';
+		global: boolean;
+		declare: boolean;
+		id: Identifier;
+		body: TSModuleBlock;
+	}
+	interface TSModuleBlock extends BaseNode {
+		type: 'TSModuleBlock';
+		body: Array<TSModuleDeclaration | TSInterfaceDeclaration>;
+	}
+	interface TSInterfaceDeclaration extends BaseNode {
+		type: 'TSInterfaceDeclaration';
+		id: Identifier;
+		body: TSInterfaceBody;
+	}
+	interface TSInterfaceBody extends BaseNode {
+		type: 'TSInterfaceBody';
+		body: TSPropertySignature[];
+	}
+	interface TSPropertySignature extends BaseNode {
+		type: 'TSPropertySignature';
+		computed: boolean;
+		key: Identifier;
+		optional?: boolean;
+		typeAnnotation: TSTypeAnnotation;
+	}
+	interface TSProgram extends Omit<Program, 'body'> {
+		body: Array<Directive | Statement | ModuleDeclaration | TSModuleDeclaration>;
+	}
+	interface TSUnionType {
+		type: 'TSUnionType';
+		types: Array<TSNullKeyword | TSTypeReference | TSImportType>;
+	}
+	interface TSImportType {
+		type: 'TSImportType';
+		argument: Literal;
+		qualifier: Identifier;
+	}
+	interface TSIndexedAccessType {
+		type: 'TSIndexedAccessType';
+		objectType: TSImportType;
+		indexType: TSLiteralType;
+	}
+	interface TSLiteralType {
+		type: 'TSLiteralType';
+		literal: Literal;
+	}
+	interface TSSatisfiesExpression extends BaseNode {
+		type: 'TSSatisfiesExpression';
+		expression: Expression;
+		typeAnnotation: TSTypeAnnotation['typeAnnotation'];
+	}
+	interface BaseNodeWithoutComments {
+		type: string;
+		loc?: SourceLocation | null | undefined;
+		range?: [number, number] | undefined;
+		start?: number;
+		end?: number;
+	}
+	interface Identifier {
+		typeAnnotation?: TSTypeAnnotation;
+	}
+	interface ExpressionMap {
+		TSAsExpression: TSAsExpression;
+		TSSatisfiesExpression: TSSatisfiesExpression;
+	}
+	interface NodeMap {
+		TSModuleDeclaration: TSModuleDeclaration;
+		TSInterfaceDeclaration: TSInterfaceDeclaration;
+	}
+	interface ImportDeclaration {
+		importKind: 'type' | 'value';
+	}
 }
 type CommentType = {
-  type: "Line" | "Block";
-  value: string;
+	type: 'Line' | 'Block';
+	value: string;
 };
 declare class Comments {
-  private original;
-  private leading;
-  private trailing;
-  constructor();
-  add(
-    node: BaseNode$1,
-    comment: CommentType,
-    options?: {
-      position?: "leading" | "trailing";
-    },
-  ): void;
-  remove(
-    predicate: (comment: estree.Comment) => boolean | undefined | null,
-  ): void;
+	private original;
+	private leading;
+	private trailing;
+	constructor();
+	add(
+		node: BaseNode$1,
+		comment: CommentType,
+		options?: {
+			position?: 'leading' | 'trailing';
+		}
+	): void;
+	remove(predicate: (comment: estree.Comment) => boolean | undefined | null): void;
 }
 
 type YamlDocument = {
-  get(key: string): unknown;
-  set(key: string, value: unknown): void;
+	get(key: string): unknown;
+	set(key: string, value: unknown): void;
 };
 type ParseBase = {
-  source: string;
+	source: string;
 
-  generateCode(): string;
+	generateCode(): string;
 };
 declare function parseScript(source: string): {
-  ast: estree.Program;
-  comments: Comments;
+	ast: estree.Program;
+	comments: Comments;
 } & ParseBase;
 declare function parseCss(source: string): {
-  ast: Omit<SvelteAst.CSS.StyleSheetBase, "attributes" | "content">;
+	ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
 } & ParseBase;
 declare function parseHtml(source: string): {
-  ast: SvelteAst.Fragment;
+	ast: SvelteAst.Fragment;
 } & ParseBase;
 declare function parseJson(source: string): {
-  data: any;
+	data: any;
 } & ParseBase;
 declare function parseYaml(source: string): {
-  data: YamlDocument;
+	data: YamlDocument;
 } & ParseBase;
 declare function parseSvelte(source: string): {
-  ast: SvelteAst.Root;
+	ast: SvelteAst.Root;
 } & ParseBase;
 declare function parseToml(source: string): {
-  data: TomlTable;
+	data: TomlTable;
 } & ParseBase;
 
 type Dedent = {
-  (strings: TemplateStringsArray, ...values: unknown[]): string;
-  (source: string): string;
+	(strings: TemplateStringsArray, ...values: unknown[]): string;
+	(source: string): string;
 };
 declare const dedent: Dedent;
-declare module "zimmerframe" {
-  export function walk<
-    T extends {
-      type: string;
-    },
-    U extends Record<string, any> | null,
-  >(node: T, state: U, visitors: Visitors<T, U>): T;
-  type BaseNode = {
-    type: string;
-  };
-  type NodeOf<T extends string, X> = X extends {
-    type: T;
-  }
-    ? X
-    : never;
-  type SpecialisedVisitors<T extends BaseNode, U> = {
-    [K in T["type"]]?: Visitor<NodeOf<K, T>, U, T>;
-  };
-  export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | void;
-  export type Visitors<T extends BaseNode, U> = T["type"] extends "_"
-    ? never
-    : SpecialisedVisitors<T, U> & {
-        _?: Visitor<T, U, T>;
-      };
-  export interface Context<T, U> {
-    next: (state?: U) => T | void;
-    path: T[];
-    state: U;
-    stop: () => void;
-    visit: (node: T, state?: U) => T;
-  }
-  export {};
+declare module 'zimmerframe' {
+	export function walk<
+		T extends {
+			type: string;
+		},
+		U extends Record<string, any> | null
+	>(node: T, state: U, visitors: Visitors<T, U>): T;
+	type BaseNode = {
+		type: string;
+	};
+	type NodeOf<T extends string, X> = X extends {
+		type: T;
+	}
+		? X
+		: never;
+	type SpecialisedVisitors<T extends BaseNode, U> = {
+		[K in T['type']]?: Visitor<NodeOf<K, T>, U, T>;
+	};
+	export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | void;
+	export type Visitors<T extends BaseNode, U> = T['type'] extends '_'
+		? never
+		: SpecialisedVisitors<T, U> & {
+				_?: Visitor<T, U, T>;
+			};
+	export interface Context<T, U> {
+		next: (state?: U) => T | void;
+		path: T[];
+		state: U;
+		stop: () => void;
+		visit: (node: T, state?: U) => T;
+	}
+	export {};
 } //# sourceMappingURL=index.d.ts.map
-declare function resolveCommandArray(
-  agent: Agent,
-  command: Command,
-  args: string[],
-): string[];
+declare function resolveCommandArray(agent: Agent, command: Command, args: string[]): string[];
 declare namespace index_d_exports$1 {
-  export { addAtRule, addDeclaration, addImports, addRule };
+	export { addAtRule, addDeclaration, addImports, addRule };
 }
 declare function addRule(
-  node: SvelteAst.CSS.StyleSheetBase,
-  options: {
-    selector: string;
-  },
+	node: SvelteAst.CSS.StyleSheetBase,
+	options: {
+		selector: string;
+	}
 ): SvelteAst.CSS.Rule;
 declare function addDeclaration(
-  node: SvelteAst.CSS.Rule,
-  options: {
-    property: string;
-    value: string;
-  },
+	node: SvelteAst.CSS.Rule,
+	options: {
+		property: string;
+		value: string;
+	}
 ): void;
 declare function addImports(
-  node: SvelteAst.CSS.StyleSheetBase,
-  options: {
-    imports: string[];
-  },
+	node: SvelteAst.CSS.StyleSheetBase,
+	options: {
+		imports: string[];
+	}
 ): void;
 declare function addAtRule(
-  node: SvelteAst.CSS.StyleSheetBase,
-  options: {
-    name: string;
-    params: string;
-    append: boolean;
-  },
+	node: SvelteAst.CSS.StyleSheetBase,
+	options: {
+		name: string;
+		params: string;
+		append: boolean;
+	}
 ): SvelteAst.CSS.Atrule;
 declare namespace array_d_exports {
-  export { append, create$1 as create, prepend };
+	export { append, create$1 as create, prepend };
 }
 declare function create$1(): estree.ArrayExpression;
 declare function append(
-  node: estree.ArrayExpression,
-  element: string | estree.Expression | estree.SpreadElement,
+	node: estree.ArrayExpression,
+	element: string | estree.Expression | estree.SpreadElement
 ): void;
 declare function prepend(
-  node: estree.ArrayExpression,
-  element: string | estree.Expression | estree.SpreadElement,
+	node: estree.ArrayExpression,
+	element: string | estree.Expression | estree.SpreadElement
 ): void;
 declare namespace object_d_exports {
-  export { create, overrideProperties, property, propertyNode };
+	export { create, overrideProperties, property, propertyNode };
 }
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
-type ObjectValues =
-  | ObjectPrimitiveValues
-  | Record<string, any>
-  | ObjectValues[];
+type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
 type ObjectMap = Record<string, ObjectValues | estree.Expression>;
 declare function property<T extends estree.Expression | estree.Identifier>(
-  node: estree.ObjectExpression,
-  options: {
-    name: string;
-    fallback: T;
-  },
+	node: estree.ObjectExpression,
+	options: {
+		name: string;
+		fallback: T;
+	}
 ): T;
 declare function propertyNode<T extends estree.Expression | estree.Identifier>(
-  node: estree.ObjectExpression,
-  options: {
-    name: string;
-    fallback: T;
-  },
+	node: estree.ObjectExpression,
+	options: {
+		name: string;
+		fallback: T;
+	}
 ): estree.Property;
 declare function create(properties: ObjectMap): estree.ObjectExpression;
 declare function overrideProperties(
-  objectExpression: estree.ObjectExpression,
-  properties: ObjectMap,
+	objectExpression: estree.ObjectExpression,
+	properties: ObjectMap
 ): void;
 declare namespace common_d_exports {
-  export {
-    addJsDocComment,
-    addJsDocTypeComment,
-    appendFromString,
-    appendStatement,
-    areNodesEqual,
-    contains,
-    createBlockStatement,
-    createExpressionStatement,
-    createLiteral,
-    createSatisfies,
-    createSpread,
-    createTypeProperty,
-    hasTypeProperty,
-    parseExpression,
-    parseFromString,
-    parseStatement,
-    typeAnnotate,
-  };
+	export {
+		addJsDocComment,
+		addJsDocTypeComment,
+		appendFromString,
+		appendStatement,
+		areNodesEqual,
+		contains,
+		createBlockStatement,
+		createExpressionStatement,
+		createLiteral,
+		createSatisfies,
+		createSpread,
+		createTypeProperty,
+		hasTypeProperty,
+		parseExpression,
+		parseFromString,
+		parseStatement,
+		typeAnnotate
+	};
 }
 declare function addJsDocTypeComment(
-  node: estree.Node,
-  comments: Comments,
-  options: {
-    type: string;
-  },
+	node: estree.Node,
+	comments: Comments,
+	options: {
+		type: string;
+	}
 ): void;
 declare function addJsDocComment(
-  node: estree.Node,
-  comments: Comments,
-  options: {
-    params: Record<string, string>;
-  },
+	node: estree.Node,
+	comments: Comments,
+	options: {
+		params: Record<string, string>;
+	}
 ): void;
 declare function typeAnnotate(
-  node: estree.Expression,
-  options: {
-    type: string;
-  },
+	node: estree.Expression,
+	options: {
+		type: string;
+	}
 ): estree.TSAsExpression;
 declare function createSatisfies(
-  node: estree.Expression,
-  options: {
-    type: string;
-  },
+	node: estree.Expression,
+	options: {
+		type: string;
+	}
 ): estree.TSSatisfiesExpression;
-declare function createSpread(
-  argument: estree.Expression,
-): estree.SpreadElement;
-declare function createLiteral(
-  value: string | number | boolean | null,
-): estree.Literal;
-declare function areNodesEqual(
-  node: estree.Node,
-  otherNode: estree.Node,
-): boolean;
+declare function createSpread(argument: estree.Expression): estree.SpreadElement;
+declare function createLiteral(value: string | number | boolean | null): estree.Literal;
+declare function areNodesEqual(node: estree.Node, otherNode: estree.Node): boolean;
 declare function createBlockStatement(): estree.BlockStatement;
 declare function createExpressionStatement(options: {
-  expression: estree.Expression;
+	expression: estree.Expression;
 }): estree.ExpressionStatement;
 declare function appendFromString(
-  node: estree.BlockStatement | estree.Program,
-  options: {
-    code: string;
-    comments?: Comments;
-  },
+	node: estree.BlockStatement | estree.Program,
+	options: {
+		code: string;
+		comments?: Comments;
+	}
 ): void;
 declare function parseExpression(code: string): estree.Expression;
 declare function parseStatement(code: string): estree.Statement;
 declare function parseFromString<T extends estree.Node>(code: string): T;
 
 declare function appendStatement(
-  node: estree.BlockStatement | estree.Program,
-  options: {
-    statement: estree.Statement;
-  },
+	node: estree.BlockStatement | estree.Program,
+	options: {
+		statement: estree.Statement;
+	}
 ): void;
 
 declare function contains(node: estree.Node, targetNode: estree.Node): boolean;
 declare function hasTypeProperty(
-  node: estree.TSInterfaceDeclaration["body"]["body"][number],
-  options: {
-    name: string;
-  },
+	node: estree.TSInterfaceDeclaration['body']['body'][number],
+	options: {
+		name: string;
+	}
 ): boolean;
 declare function createTypeProperty(
-  name: string,
-  value: string,
-  optional?: boolean,
-): estree.TSInterfaceBody["body"][number];
+	name: string,
+	value: string,
+	optional?: boolean
+): estree.TSInterfaceBody['body'][number];
 declare namespace function_d_exports {
-  export { createArrow, createCall, getArgument };
+	export { createArrow, createCall, getArgument };
 }
 declare function createCall(options: {
-  name: string;
-  args: string[];
-  useIdentifiers?: boolean;
+	name: string;
+	args: string[];
+	useIdentifiers?: boolean;
 }): estree.CallExpression;
 declare function createArrow(options: {
-  body: estree.Expression | estree.BlockStatement;
-  async: boolean;
+	body: estree.Expression | estree.BlockStatement;
+	async: boolean;
 }): estree.ArrowFunctionExpression;
 declare function getArgument<T extends estree.Expression>(
-  node: estree.CallExpression,
-  options: {
-    index: number;
-    fallback: T;
-  },
+	node: estree.CallExpression,
+	options: {
+		index: number;
+		fallback: T;
+	}
 ): T;
 declare namespace imports_d_exports {
-  export {
-    addDefault,
-    addEmpty,
-    addNamed,
-    addNamespace$1 as addNamespace,
-    find,
-    remove,
-  };
+	export { addDefault, addEmpty, addNamed, addNamespace$1 as addNamespace, find, remove };
 }
 declare function addEmpty(
-  node: estree.Program,
-  options: {
-    from: string;
-  },
+	node: estree.Program,
+	options: {
+		from: string;
+	}
 ): void;
 declare function addNamespace$1(
-  node: estree.Program,
-  options: {
-    from: string;
-    as: string;
-  },
+	node: estree.Program,
+	options: {
+		from: string;
+		as: string;
+	}
 ): void;
 declare function addDefault(
-  node: estree.Program,
-  options: {
-    from: string;
-    as: string;
-  },
+	node: estree.Program,
+	options: {
+		from: string;
+		as: string;
+	}
 ): void;
 declare function addNamed(
-  node: estree.Program,
-  options: {
-    imports: Record<string, string> | string[];
-    from: string;
-    isType?: boolean;
-  },
+	node: estree.Program,
+	options: {
+		imports: Record<string, string> | string[];
+		from: string;
+		isType?: boolean;
+	}
 ): void;
 declare function find(
-  ast: estree.Program,
-  options: {
-    name: string;
-    from: string;
-  },
+	ast: estree.Program,
+	options: {
+		name: string;
+		from: string;
+	}
 ):
-  | {
-      statement: estree.ImportDeclaration;
-      alias: string;
-    }
-  | {
-      statement: undefined;
-      alias: undefined;
-    };
+	| {
+			statement: estree.ImportDeclaration;
+			alias: string;
+	  }
+	| {
+			statement: undefined;
+			alias: undefined;
+	  };
 declare function remove(
-  ast: estree.Program,
-  options: {
-    name: string;
-    from: string;
-    statement?: estree.ImportDeclaration;
-  },
+	ast: estree.Program,
+	options: {
+		name: string;
+		from: string;
+		statement?: estree.ImportDeclaration;
+	}
 ): void;
 declare namespace variables_d_exports {
-  export { createIdentifier, declaration, typeAnnotateDeclarator };
+	export { createIdentifier, declaration, typeAnnotateDeclarator };
 }
 declare function declaration(
-  node: estree.Program | estree.Declaration,
-  options: {
-    kind: "const" | "let" | "var";
-    name: string;
-    value: estree.Expression;
-  },
+	node: estree.Program | estree.Declaration,
+	options: {
+		kind: 'const' | 'let' | 'var';
+		name: string;
+		value: estree.Expression;
+	}
 ): estree.VariableDeclaration;
 declare function createIdentifier(name: string): estree.Identifier;
 declare function typeAnnotateDeclarator(
-  node: estree.VariableDeclarator,
-  options: {
-    typeName: string;
-  },
+	node: estree.VariableDeclarator,
+	options: {
+		typeName: string;
+	}
 ): estree.VariableDeclarator;
 declare namespace exports_d_exports {
-  export { ExportDefaultResult, addNamespace, createDefault, createNamed };
+	export { ExportDefaultResult, addNamespace, createDefault, createNamed };
 }
 type ExportDefaultResult<T> = {
-  astNode: estree.ExportDefaultDeclaration;
-  value: T;
-  isFallback: boolean;
+	astNode: estree.ExportDefaultDeclaration;
+	value: T;
+	isFallback: boolean;
 };
 declare function createDefault<T extends estree.Expression>(
-  node: estree.Program,
-  options: {
-    fallback: T;
-  },
+	node: estree.Program,
+	options: {
+		fallback: T;
+	}
 ): ExportDefaultResult<T>;
 declare function createNamed(
-  node: estree.Program,
-  options: {
-    name: string;
-    fallback: estree.VariableDeclaration;
-  },
+	node: estree.Program,
+	options: {
+		name: string;
+		fallback: estree.VariableDeclaration;
+	}
 ): estree.ExportNamedDeclaration;
 declare function addNamespace(
-  node: estree.Program,
-  options: {
-    from: string;
-    as?: string;
-  },
+	node: estree.Program,
+	options: {
+		from: string;
+		as?: string;
+	}
 ): void;
 declare namespace kit_d_exports {
-  export { addGlobalAppInterface, addHooksHandle };
+	export { addGlobalAppInterface, addHooksHandle };
 }
 declare function addGlobalAppInterface(
-  node: estree.TSProgram,
-  options: {
-    name: "Error" | "Locals" | "PageData" | "PageState" | "Platform";
-  },
+	node: estree.TSProgram,
+	options: {
+		name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform';
+	}
 ): estree.TSInterfaceDeclaration;
 declare function addHooksHandle(
-  node: estree.Program,
-  options: {
-    language: "ts" | "js";
-    newHandleName: string;
-    handleContent: string;
-    comments: Comments;
-  },
+	node: estree.Program,
+	options: {
+		language: 'ts' | 'js';
+		newHandleName: string;
+		handleContent: string;
+		comments: Comments;
+	}
 ): void;
 declare namespace vite_d_exports {
-  export { addPlugin, configProperty, getConfig };
+	export { addPlugin, configProperty, getConfig };
 }
 declare const addPlugin: (
-  ast: estree.Program,
-  options: {
-    code: string;
-    mode?: "append" | "prepend";
-  },
+	ast: estree.Program,
+	options: {
+		code: string;
+		mode?: 'append' | 'prepend';
+	}
 ) => void;
 
-declare function configProperty<
-  T extends estree.Expression | estree.Identifier,
->(
-  ast: estree.Program,
-  config: estree.ObjectExpression,
-  options: {
-    name: string;
-    fallback: T;
-  },
+declare function configProperty<T extends estree.Expression | estree.Identifier>(
+	ast: estree.Program,
+	config: estree.ObjectExpression,
+	options: {
+		name: string;
+		fallback: T;
+	}
 ): T;
 declare const getConfig: (ast: estree.Program) => estree.ObjectExpression;
 declare namespace index_d_exports$3 {
-  export {
-    array_d_exports as array,
-    common_d_exports as common,
-    exports_d_exports as exports,
-    function_d_exports as functions,
-    imports_d_exports as imports,
-    kit_d_exports as kit,
-    object_d_exports as object,
-    variables_d_exports as variables,
-    vite_d_exports as vite,
-  };
+	export {
+		array_d_exports as array,
+		common_d_exports as common,
+		exports_d_exports as exports,
+		function_d_exports as functions,
+		imports_d_exports as imports,
+		kit_d_exports as kit,
+		object_d_exports as object,
+		variables_d_exports as variables,
+		vite_d_exports as vite
+	};
 }
 declare namespace index_d_exports$2 {
-  export {
-    addAttribute,
-    addFromRawHtml,
-    appendElement,
-    createElement,
-    insertElement,
-  };
+	export { addAttribute, addFromRawHtml, appendElement, createElement, insertElement };
 }
 declare function createElement(
-  tagName: string,
-  attributes?: Record<string, string>,
+	tagName: string,
+	attributes?: Record<string, string>
 ): SvelteAst.RegularElement;
-declare function addAttribute(
-  element: SvelteAst.RegularElement,
-  name: string,
-  value: string,
-): void;
+declare function addAttribute(element: SvelteAst.RegularElement, name: string, value: string): void;
 declare function insertElement(
-  fragment: SvelteAst.Fragment,
-  elementToInsert: SvelteAst.Fragment["nodes"][0],
+	fragment: SvelteAst.Fragment,
+	elementToInsert: SvelteAst.Fragment['nodes'][0]
 ): void;
 declare function appendElement(
-  fragment: SvelteAst.Fragment,
-  elementToAppend: SvelteAst.Fragment["nodes"][0],
+	fragment: SvelteAst.Fragment,
+	elementToAppend: SvelteAst.Fragment['nodes'][0]
 ): void;
-declare function addFromRawHtml(
-  fragment: SvelteAst.Fragment,
-  html: string,
-): void;
+declare function addFromRawHtml(fragment: SvelteAst.Fragment, html: string): void;
 declare namespace text_d_exports {
-  export { upsert };
+	export { upsert };
 }
 type CommentEntry = {
-  text: string;
-  mode: "append" | "prepend";
+	text: string;
+	mode: 'append' | 'prepend';
 };
 type CommentOption = string | Array<string | CommentEntry>;
 
 declare function upsert(
-  content: string,
-  key: string,
-  options?: {
-    value?: string;
-    comment?: CommentOption;
-    separator?: boolean;
-  },
+	content: string,
+	key: string,
+	options?: {
+		value?: string;
+		comment?: CommentOption;
+		separator?: boolean;
+	}
 ): string;
 declare namespace json_d_exports {
-  export { arrayUpsert, packageScriptsUpsert };
+	export { arrayUpsert, packageScriptsUpsert };
 }
 declare function arrayUpsert(
-  data: any,
-  key: string,
-  value: any,
-  options?: {
-    mode?: "append" | "prepend";
-  },
+	data: any,
+	key: string,
+	value: any,
+	options?: {
+		mode?: 'append' | 'prepend';
+	}
 ): void;
 declare function packageScriptsUpsert(
-  data: any,
-  key: string,
-  value: string,
-  options?: {
-    mode?: "append" | "prepend";
-  },
+	data: any,
+	key: string,
+	value: string,
+	options?: {
+		mode?: 'append' | 'prepend';
+	}
 ): void;
 declare namespace index_d_exports$4 {
-  export { RootWithInstance, addFragment, addSlot, ensureScript };
+	export { RootWithInstance, addFragment, addSlot, ensureScript };
 }
 type RootWithInstance = SvelteAst.Root & {
-  instance: SvelteAst.Script;
+	instance: SvelteAst.Script;
 };
 declare function ensureScript(
-  ast: SvelteAst.Root,
-  options?: {
-    language?: "ts" | "js";
-  },
+	ast: SvelteAst.Root,
+	options?: {
+		language?: 'ts' | 'js';
+	}
 ): asserts ast is RootWithInstance;
 declare function addSlot(
-  ast: SvelteAst.Root,
-  options: {
-    svelteVersion: string;
-    language?: "ts" | "js";
-  },
+	ast: SvelteAst.Root,
+	options: {
+		svelteVersion: string;
+		language?: 'ts' | 'js';
+	}
 ): void;
 declare function addFragment(
-  ast: SvelteAst.Root,
-  content: string,
-  options?: {
-    mode?: "append" | "prepend";
-  },
+	ast: SvelteAst.Root,
+	content: string,
+	options?: {
+		mode?: 'append' | 'prepend';
+	}
 ): void;
 type TransformFn = (content: string) => string;
 type TransformOptions = {
-  onError?: (error: unknown) => void;
+	onError?: (error: unknown) => void;
 };
 
 declare const transforms: {
-  script(
-    cb: (file: {
-      ast: estree.Program;
-      comments: Comments;
-      content: string;
-      js: typeof index_d_exports$3;
-    }) => void | false,
-    options?: TransformOptions,
-  ): (content: string) => string;
+	script(
+		cb: (file: {
+			ast: estree.Program;
+			comments: Comments;
+			content: string;
+			js: typeof index_d_exports$3;
+		}) => void | false,
+		options?: TransformOptions
+	): (content: string) => string;
 
-  svelte(
-    cb: (file: {
-      ast: SvelteAst.Root;
-      content: string;
-      svelte: typeof index_d_exports$4;
-      js: typeof index_d_exports$3;
-    }) => void | false,
-    options?: TransformOptions,
-  ): (content: string) => string;
+	svelte(
+		cb: (file: {
+			ast: SvelteAst.Root;
+			content: string;
+			svelte: typeof index_d_exports$4;
+			js: typeof index_d_exports$3;
+		}) => void | false,
+		options?: TransformOptions
+	): (content: string) => string;
 
-  svelteScript(
-    scriptOptions: {
-      language: "ts" | "js";
-    },
-    cb: (file: {
-      ast: RootWithInstance;
-      content: string;
-      svelte: typeof index_d_exports$4;
-      js: typeof index_d_exports$3;
-    }) => void | false,
-    options?: TransformOptions,
-  ): TransformFn;
+	svelteScript(
+		scriptOptions: {
+			language: 'ts' | 'js';
+		},
+		cb: (file: {
+			ast: RootWithInstance;
+			content: string;
+			svelte: typeof index_d_exports$4;
+			js: typeof index_d_exports$3;
+		}) => void | false,
+		options?: TransformOptions
+	): TransformFn;
 
-  css(
-    cb: (file: {
-      ast: Omit<SvelteAst.CSS.StyleSheetBase, "attributes" | "content">;
-      content: string;
-      css: typeof index_d_exports$1;
-    }) => void | false,
-    options?: TransformOptions,
-  ): TransformFn;
+	css(
+		cb: (file: {
+			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
+			content: string;
+			css: typeof index_d_exports$1;
+		}) => void | false,
+		options?: TransformOptions
+	): TransformFn;
 
-  json<T = any>(
-    cb: (file: {
-      data: T;
-      content: string;
-      json: typeof json_d_exports;
-    }) => void | false,
-    options?: TransformOptions,
-  ): TransformFn;
+	json<T = any>(
+		cb: (file: { data: T; content: string; json: typeof json_d_exports }) => void | false,
+		options?: TransformOptions
+	): TransformFn;
 
-  yaml(
-    cb: (file: { data: YamlDocument; content: string }) => void | false,
-    options?: TransformOptions,
-  ): TransformFn;
+	yaml(
+		cb: (file: { data: YamlDocument; content: string }) => void | false,
+		options?: TransformOptions
+	): TransformFn;
 
-  toml(
-    cb: (file: { data: TomlTable; content: string }) => void | false,
-    options?: TransformOptions,
-  ): TransformFn;
+	toml(
+		cb: (file: { data: TomlTable; content: string }) => void | false,
+		options?: TransformOptions
+	): TransformFn;
 
-  html(
-    cb: (file: {
-      ast: SvelteAst.Fragment;
-      content: string;
-      html: typeof index_d_exports$2;
-    }) => void | false,
-    options?: TransformOptions,
-  ): TransformFn;
+	html(
+		cb: (file: {
+			ast: SvelteAst.Fragment;
+			content: string;
+			html: typeof index_d_exports$2;
+		}) => void | false,
+		options?: TransformOptions
+	): TransformFn;
 
-  text(
-    cb: (file: {
-      content: string;
-      text: typeof text_d_exports;
-    }) => string | false,
-  ): TransformFn;
+	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
 declare namespace pnpm_d_exports {
-  export { onlyBuiltDependencies };
+	export { onlyBuiltDependencies };
 }
 
 declare function onlyBuiltDependencies(...packages: string[]): TransformFn;
 type Version = {
-  major?: number;
-  minor?: number;
-  patch?: number;
+	major?: number;
+	minor?: number;
+	patch?: number;
 };
 declare function splitVersion(str: string): Version;
 declare function isVersionUnsupportedBelow(
-  versionStr: string,
-  belowStr: string,
+	versionStr: string,
+	belowStr: string
 ): boolean | undefined;
 type Printer = (content: string, alt?: string) => string;
 declare function createPrinter(...conditions: boolean[]): Printer[];
 
-declare function sanitizeName(
-  name: string,
-  style: "package" | "wrangler",
-): string;
+declare function sanitizeName(name: string, style: 'package' | 'wrangler'): string;
 declare const downloadJson: (url: string) => Promise<any>;
 type Package = {
-  name: string;
-  version: string;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  bugs?: string;
-  repository?: {
-    type: string;
-    url: string;
-  };
-  keywords?: string[];
-  workspaces?: string[];
+	name: string;
+	version: string;
+	dependencies?: Record<string, string>;
+	devDependencies?: Record<string, string>;
+	bugs?: string;
+	repository?: {
+		type: string;
+		url: string;
+	};
+	keywords?: string[];
+	workspaces?: string[];
 };
 declare const commonFilePaths: {
-  readonly packageJson: "package.json";
-  readonly svelteConfig: "svelte.config.js";
-  readonly svelteConfigTS: "svelte.config.ts";
-  readonly jsconfig: "jsconfig.json";
-  readonly tsconfig: "tsconfig.json";
-  readonly viteConfig: "vite.config.js";
-  readonly viteConfigTS: "vite.config.ts";
+	readonly packageJson: 'package.json';
+	readonly svelteConfig: 'svelte.config.js';
+	readonly svelteConfigTS: 'svelte.config.ts';
+	readonly jsconfig: 'jsconfig.json';
+	readonly tsconfig: 'tsconfig.json';
+	readonly viteConfig: 'vite.config.js';
+	readonly viteConfigTS: 'vite.config.ts';
 };
 declare function fileExists(cwd: string, filePath: string): boolean;
 
@@ -813,9 +757,9 @@ declare function loadFile(cwd: string, filePath: string): string;
 
 declare function saveFile(cwd: string, filePath: string, content: string): void;
 declare function loadPackageJson(cwd: string): {
-  source: string;
-  data: Package;
-  generateCode: () => string;
+	source: string;
+	data: Package;
+	generateCode: () => string;
 };
 /**
  * @deprecated Use {@link loadFile} instead. This alias will be removed in a future version.
@@ -831,67 +775,67 @@ declare const writeFile: typeof saveFile;
 declare const getPackageJson: typeof loadPackageJson;
 type ColorInput = string | string[];
 declare const color: {
-  addon: (str: ColorInput) => string;
-  command: (str: ColorInput) => string;
-  env: (str: ColorInput) => string;
-  path: (str: ColorInput) => string;
-  route: (str: ColorInput) => string;
-  website: (str: ColorInput) => string;
-  optional: (str: ColorInput) => string;
-  dim: (str: ColorInput) => string;
-  success: (str: ColorInput) => string;
-  warning: (str: ColorInput) => string;
-  error: (str: ColorInput) => string;
-  hidden: (str: ColorInput) => string;
+	addon: (str: ColorInput) => string;
+	command: (str: ColorInput) => string;
+	env: (str: ColorInput) => string;
+	path: (str: ColorInput) => string;
+	route: (str: ColorInput) => string;
+	website: (str: ColorInput) => string;
+	optional: (str: ColorInput) => string;
+	dim: (str: ColorInput) => string;
+	success: (str: ColorInput) => string;
+	warning: (str: ColorInput) => string;
+	error: (str: ColorInput) => string;
+	hidden: (str: ColorInput) => string;
 };
 
 declare const parse: {
-  css: typeof parseCss;
-  html: typeof parseHtml;
-  json: typeof parseJson;
-  script: typeof parseScript;
-  svelte: typeof parseSvelte;
-  toml: typeof parseToml;
-  yaml: typeof parseYaml;
+	css: typeof parseCss;
+	html: typeof parseHtml;
+	json: typeof parseJson;
+	script: typeof parseScript;
+	svelte: typeof parseSvelte;
+	toml: typeof parseToml;
+	yaml: typeof parseYaml;
 };
 export {
-  AGENTS,
-  type AgentName,
-  type estree as AstTypes,
-  COMMANDS,
-  type Comments,
-  type Package,
-  type SvelteAst,
-  type TransformFn,
-  index_d_exports as Walker,
-  type YamlDocument,
-  color,
-  commonFilePaths,
-  constructCommand,
-  createPrinter,
-  index_d_exports$1 as css,
-  dedent,
-  detect,
-  downloadJson,
-  fileExists,
-  getPackageJson,
-  index_d_exports$2 as html,
-  isVersionUnsupportedBelow,
-  index_d_exports$3 as js,
-  json_d_exports as json,
-  loadFile,
-  loadPackageJson,
-  parse,
-  pnpm_d_exports as pnpm,
-  readFile,
-  resolveCommand,
-  resolveCommandArray,
-  sanitizeName,
-  saveFile,
-  splitVersion,
-  index_d_exports$4 as svelte,
-  text_d_exports as text,
-  transforms,
-  writeFile,
+	AGENTS,
+	type AgentName,
+	type estree as AstTypes,
+	COMMANDS,
+	type Comments,
+	type Package,
+	type SvelteAst,
+	type TransformFn,
+	index_d_exports as Walker,
+	type YamlDocument,
+	color,
+	commonFilePaths,
+	constructCommand,
+	createPrinter,
+	index_d_exports$1 as css,
+	dedent,
+	detect,
+	downloadJson,
+	fileExists,
+	getPackageJson,
+	index_d_exports$2 as html,
+	isVersionUnsupportedBelow,
+	index_d_exports$3 as js,
+	json_d_exports as json,
+	loadFile,
+	loadPackageJson,
+	parse,
+	pnpm_d_exports as pnpm,
+	readFile,
+	resolveCommand,
+	resolveCommandArray,
+	sanitizeName,
+	saveFile,
+	splitVersion,
+	index_d_exports$4 as svelte,
+	text_d_exports as text,
+	transforms,
+	writeFile
 };
 ```

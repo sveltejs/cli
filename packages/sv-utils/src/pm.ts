@@ -8,6 +8,7 @@ import {
 	type Agent,
 	type Command
 } from 'package-manager-detector';
+
 export {
 	AGENTS,
 	type AgentName,

@@ -35,10 +35,7 @@ export type Common = {
 
 export function create(cwd: string, options: Omit<Options, 'cwd'>): void;
 export function create(options: Options): void;
-export function create(
-	cwdOrOptions: string | Options,
-	legacyOptions?: Omit<Options, 'cwd'>
-): void {
+export function create(cwdOrOptions: string | Options, legacyOptions?: Omit<Options, 'cwd'>): void {
 	let cwd: string;
 	let options: Omit<Options, 'cwd'>;
 	if (typeof cwdOrOptions === 'string') {
