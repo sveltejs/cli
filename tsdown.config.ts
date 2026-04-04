@@ -3,6 +3,23 @@ import process from 'node:process';
 import { defineConfig } from 'tsdown';
 import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
 
+/**
+ * tsdown runs each `defineConfig` entry in parallel. There is no single
+ * "all builds finished" hook, so we count `build:done` (must match the number
+ * of config objects below) and run api-surface generation once all `.d.mts`
+ * outputs exist.
+ */
+const API_SURFACE_CONFIG_COUNT = 3;
+let apiSurfaceBuildsDone = 0;
+
+function hookApiSurfaceBuildDone(): void | Promise<void> {
+	apiSurfaceBuildsDone++;
+	if (apiSurfaceBuildsDone === API_SURFACE_CONFIG_COUNT) {
+		apiSurfaceBuildsDone = 0;
+		return import('./scripts/generate-api-surface.js').then((m) => m.generateApiSurface());
+	}
+}
+
 export default defineConfig([
 	{
 		cwd: path.resolve('packages/sv'),
@@ -57,7 +74,8 @@ export default defineConfig([
 		hooks: {
 			async 'build:before'() {
 				await buildCliTemplates();
-			}
+			},
+			'build:done': () => hookApiSurfaceBuildDone()
 		}
 	},
 	// sv-utils: runtime build (bundles everything including svelte)
@@ -88,6 +106,9 @@ export default defineConfig([
 				'yaml',
 				'zimmerframe'
 			]
+		},
+		hooks: {
+			'build:done': () => hookApiSurfaceBuildDone()
 		}
 	},
 	// sv-utils: DTS-only build (svelte externalized)
@@ -105,6 +126,9 @@ export default defineConfig([
 		deps: {
 			neverBundle: [/^svelte/, '@types/estree', 'estree'],
 			onlyBundle: ['dedent', 'package-manager-detector', 'smol-toml', 'yaml', 'zimmerframe']
+		},
+		hooks: {
+			'build:done': () => hookApiSurfaceBuildDone()
 		}
 	}
 ]);
