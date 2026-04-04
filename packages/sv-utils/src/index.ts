@@ -90,11 +90,17 @@ export {
 	type Package
 } from './files.ts';
 
-/** @deprecated Use {@link loadFile} instead. */
+/**
+ * @deprecated Use {@link loadFile} instead. This alias will be removed in a future version.
+ */
 export { readFile } from './files.ts';
-/** @deprecated Use {@link saveFile} instead. */
+/**
+ * @deprecated Use {@link saveFile} instead. This alias will be removed in a future version.
+ */
 export { writeFile } from './files.ts';
-/** @deprecated Use {@link loadPackageJson} instead. */
+/**
+ * @deprecated Use {@link loadPackageJson} instead. This alias will be removed in a future version.
+ */
 export { getPackageJson } from './files.ts';
 
 // Terminal styling

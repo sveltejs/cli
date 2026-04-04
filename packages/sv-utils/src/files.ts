@@ -70,11 +70,17 @@ export function loadPackageJson(cwd: string): {
 	return { source: packageText, data: data as Package, generateCode };
 }
 
-/** @deprecated Use {@link loadFile} instead. */
+/**
+ * @deprecated Use {@link loadFile} instead. This alias will be removed in a future version.
+ */
 export const readFile: typeof loadFile = loadFile;
 
-/** @deprecated Use {@link saveFile} instead. */
+/**
+ * @deprecated Use {@link saveFile} instead. This alias will be removed in a future version.
+ */
 export const writeFile: typeof saveFile = saveFile;
 
-/** @deprecated Use {@link loadPackageJson} instead. */
+/**
+ * @deprecated Use {@link loadPackageJson} instead. This alias will be removed in a future version.
+ */
 export const getPackageJson: typeof loadPackageJson = loadPackageJson;
