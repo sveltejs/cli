@@ -1,8 +1,8 @@
 import {
 	color,
-	resolveCommandArray,
 	text,
 	transforms,
+	resolveCommandArray,
 	fileExists,
 	loadPackageJson,
 	sanitizeName

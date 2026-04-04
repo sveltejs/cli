@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommandArray, commonFilePaths, loadPackageJson } from '@sveltejs/sv-utils';
+import { color, commonFilePaths, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';

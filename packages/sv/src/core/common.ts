@@ -1,9 +1,9 @@
 import * as p from '@clack/prompts';
 import {
-	type AgentName,
 	color,
-	resolveCommandArray,
-	isVersionUnsupportedBelow
+	isVersionUnsupportedBelow,
+	type AgentName,
+	resolveCommandArray
 } from '@sveltejs/sv-utils';
 import type { Argument, Command, Help, HelpConfiguration, Option } from 'commander';
 import fs from 'node:fs';

@@ -2,12 +2,12 @@ import * as p from '@clack/prompts';
 import {
 	color,
 	commonFilePaths,
-	resolveCommand,
-	type AgentName,
 	fileExists,
 	loadFile,
 	loadPackageJson,
-	saveFile
+	saveFile,
+	resolveCommand,
+	type AgentName
 } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
