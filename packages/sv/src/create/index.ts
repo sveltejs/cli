@@ -33,19 +33,7 @@ export type Common = {
 	}>;
 };
 
-export function create(cwd: string, options: Omit<Options, 'cwd'>): void;
-export function create(options: Options): void;
-export function create(cwdOrOptions: string | Options, legacyOptions?: Omit<Options, 'cwd'>): void {
-	let cwd: string;
-	let options: Omit<Options, 'cwd'>;
-	if (typeof cwdOrOptions === 'string') {
-		cwd = cwdOrOptions;
-		options = legacyOptions!;
-	} else {
-		cwd = cwdOrOptions.cwd;
-		options = cwdOrOptions;
-	}
-
+export function create({ cwd, ...options }: Options): void {
 	mkdirp(cwd);
 
 	write_template_files(options.template, options.types, options.name, cwd);

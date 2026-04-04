@@ -1,24 +1,23 @@
 /**
- * Reads the generated .d.mts files and produces a cleaned-up
- * api-surface.md for each package. Strips `//#region` / `//#endregion`
- * directives, `//# sourceMappingURL=...` lines, non-deprecated JSDoc, import-only lines,
- * and blank runs so the result is a compact, diff-friendly snapshot
- * of the public API. JSDoc blocks that contain `@deprecated` are kept
- * in full.
+ * Reads generated `.d.mts` files and writes compact `api-surface.md` snapshots per package.
  *
- * Run: node scripts/generate-api-surface.js
- * Or: invoked from tsdown `build:done` after all configs finish (see tsdown.config.ts).
+ * Strips region/source-map directives, non-deprecated block comments, import-only lines,
+ * and excess blank lines. Blocks mentioning `@deprecated` are kept verbatim.
  *
- * Finishes with Prettier (repo root config) so snapshots match `pnpm format`.
+ * @remarks
+ * Run: `node scripts/generate-api-surface.js` — or via root `postbuild` after `pnpm build`.
+ * Output is formatted with Prettier using the repo root `prettier.config.js` so it matches `pnpm format`.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import * as prettier from 'prettier';
+import prettier from 'prettier';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+/** Absolute path to the repo Prettier config (explicit so formatting does not depend on cwd). */
+const PRETTIER_CONFIG = path.join(ROOT, 'prettier.config.js');
 
 const packages = [
 	{
@@ -38,7 +37,11 @@ const packages = [
 	}
 ];
 
-/** Remove `//#region` / `//#endregion` lines emitted by the DTS bundler. */
+/**
+ * Remove `//#region` / `//#endregion` lines emitted by the DTS bundler.
+ * @param {string} source
+ * @returns {string}
+ */
 function stripRegionDirectives(source) {
 	return source
 		.split('\n')
@@ -46,7 +49,11 @@ function stripRegionDirectives(source) {
 		.join('\n');
 }
 
-/** Remove `//# sourceMappingURL=...` lines from declaration emit. */
+/**
+ * Remove `//# sourceMappingURL=...` lines from declaration emit.
+ * @param {string} source
+ * @returns {string}
+ */
 function stripSourceMappingUrl(source) {
 	return source
 		.split('\n')
@@ -55,8 +62,9 @@ function stripSourceMappingUrl(source) {
 }
 
 /**
- * Remove `/** ... *\/` blocks unless they contain `@deprecated`, in which case
- * the full block is preserved (including inline trailing JSDoc on a line).
+ * Remove slash-star-star block comments unless they contain `@deprecated` (full block kept).
+ * @param {string} source
+ * @returns {string}
  */
 function stripJsDoc(source) {
 	return source.replace(/\/\*\*[\s\S]*?\*\//g, (match) => {
@@ -67,18 +75,32 @@ function stripJsDoc(source) {
 	});
 }
 
+/**
+ * Drop top-level `import …` lines (types-only noise in the snapshot).
+ * @param {string} source
+ * @returns {string}
+ */
 function stripImportLines(source) {
-	// Remove `import ...` lines that are only used for type resolution
 	return source
 		.split('\n')
 		.filter((line) => !line.match(/^import\s/))
 		.join('\n');
 }
 
+/**
+ * Collapse three or more consecutive newlines to two.
+ * @param {string} source
+ * @returns {string}
+ */
 function collapseBlankLines(source) {
 	return source.replace(/\n{3,}/g, '\n\n');
 }
 
+/**
+ * Apply all cleaning steps to declaration text.
+ * @param {string} source
+ * @returns {string}
+ */
 function clean(source) {
 	let result = stripRegionDirectives(source);
 	result = stripSourceMappingUrl(result);
@@ -89,11 +111,17 @@ function clean(source) {
 }
 
 /**
+ * Format a file with repo Prettier options (plugins + overrides).
  * @param {string} absPath absolute path to the markdown file
+ * @returns {Promise<void>}
  */
 async function formatWithPrettier(absPath) {
 	const raw = fs.readFileSync(absPath, 'utf8');
-	const formatted = await prettier.format(raw, { filepath: absPath });
+	const options =
+		(await prettier.resolveConfig(absPath, {
+			config: PRETTIER_CONFIG
+		})) ?? {};
+	const formatted = await prettier.format(raw, { ...options, filepath: absPath });
 	fs.writeFileSync(absPath, formatted, 'utf8');
 }
 

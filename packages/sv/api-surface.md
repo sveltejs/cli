@@ -13,8 +13,7 @@ type Options = {
 	template: TemplateType;
 	types: LanguageType;
 };
-declare function create(cwd: string, options: Omit<Options, 'cwd'>): void;
-declare function create(options: Options): void;
+declare function create({ cwd, ...options }: Options): void;
 type FileEditor = Workspace & {
 	content: string;
 };
