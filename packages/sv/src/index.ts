@@ -4,7 +4,39 @@ export type { AddonMap, InstallOptions, OptionMap } from './core/engine.ts';
 export { officialAddons } from './addons/index.ts';
 // Addon authoring API
 export { defineAddon, defineAddonOptions } from './core/config.ts';
-export type * from './core/processors.ts';
-export type * from './core/options.ts';
-export type * from './core/config.ts';
-export type * from './core/workspace.ts';
+
+// options.ts - question types for addon options
+export type {
+	Question,
+	OptionDefinition,
+	OptionValues,
+	BooleanQuestion,
+	StringQuestion,
+	NumberQuestion,
+	SelectQuestion,
+	MultiSelectQuestion,
+	BaseQuestion
+} from './core/options.ts';
+
+// config.ts - addon definition and pipeline types
+export type {
+	Addon,
+	SvApi,
+	AddonDefinition,
+	SetupResult,
+	OptionBuilder,
+	AddonInput,
+	AddonSource,
+	AddonReference,
+	LoadedAddon,
+	PreparedAddon,
+	ConfiguredAddon,
+	AddonResult
+} from './core/config.ts';
+
+// workspace.ts
+export type { Workspace, WorkspaceOptions } from './core/workspace.ts';
+
+// processors.ts - deprecated, will be removed
+/** @deprecated Unused type, will be removed in a future version. */
+export type { FileEditor, FileType } from './core/processors.ts';

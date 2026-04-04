@@ -5,65 +5,68 @@
 ```ts
 type TemplateType = (typeof templateTypes)[number];
 type LanguageType = (typeof languageTypes)[number];
-declare const templateTypes: readonly ['minimal', 'demo', 'library', 'addon', 'svelte'];
-declare const languageTypes: readonly ['typescript', 'checkjs', 'none'];
+declare const templateTypes: readonly [
+  "minimal",
+  "demo",
+  "library",
+  "addon",
+  "svelte",
+];
+declare const languageTypes: readonly ["typescript", "checkjs", "none"];
 type Options = {
-	name: string;
-	template: TemplateType;
-	types: LanguageType;
+  cwd: string;
+  name: string;
+  template: TemplateType;
+  types: LanguageType;
 };
-declare function create(cwd: string, options: Options): void;
+/** @deprecated Use `create({ cwd, name, template, types })` instead. */
+declare function create(cwd: string, options: Omit<Options, "cwd">): void;
+declare function create(options: Options): void;
+/** @deprecated Unused type, will be removed in a future version. */
 type FileEditor = Workspace & {
-	content: string;
+  content: string;
 };
+/** @deprecated Unused type, will be removed in a future version. */
 type FileType = {
-	name: (options: Workspace) => string;
-	condition?: ConditionDefinition;
-	content: (editor: FileEditor) => string;
+  name: (options: Workspace) => string;
+  condition?: ConditionDefinition;
+  content: (editor: FileEditor) => string;
 };
 export {
-	Addon,
-	AddonDefinition,
-	AddonInput,
-	type AddonMap,
-	AddonReference,
-	AddonResult,
-	AddonSource,
-	BaseQuestion,
-	BooleanQuestion,
-	ConditionDefinition,
-	ConfiguredAddon,
-	FileEditor,
-	FileType,
-	type InstallOptions,
-	type LanguageType,
-	LoadedAddon,
-	MultiSelectQuestion,
-	NumberQuestion,
-	OptionBuilder,
-	OptionDefinition,
-	type OptionMap,
-	OptionValues,
-	PackageDefinition,
-	PreparedAddon,
-	Question,
-	Scripts,
-	SelectQuestion,
-	SetupResult,
-	StringQuestion,
-	SvApi,
-	type TemplateType,
-	TestDefinition,
-	Tests,
-	Verification,
-	Workspace,
-	WorkspaceOptions,
-	add,
-	create,
-	createWorkspace,
-	defineAddon,
-	defineAddonOptions,
-	getErrorHint,
-	officialAddons
+  type Addon,
+  type AddonDefinition,
+  type AddonInput,
+  type AddonMap,
+  type AddonReference,
+  type AddonResult,
+  type AddonSource,
+  type BaseQuestion,
+  type BooleanQuestion,
+  type ConfiguredAddon,
+  type FileEditor,
+  type FileType,
+  type InstallOptions,
+  type LanguageType,
+  type LoadedAddon,
+  type MultiSelectQuestion,
+  type NumberQuestion,
+  type OptionBuilder,
+  type OptionDefinition,
+  type OptionMap,
+  type OptionValues,
+  type PreparedAddon,
+  type Question,
+  type SelectQuestion,
+  type SetupResult,
+  type StringQuestion,
+  type SvApi,
+  type TemplateType,
+  type Workspace,
+  type WorkspaceOptions,
+  add,
+  create,
+  defineAddon,
+  defineAddonOptions,
+  officialAddons,
 };
 ```

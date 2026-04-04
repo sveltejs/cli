@@ -11,6 +11,7 @@ const templateTypes = ['minimal', 'demo', 'library', 'addon', 'svelte'] as const
 const languageTypes = ['typescript', 'checkjs', 'none'] as const;
 
 export type Options = {
+	cwd: string;
 	name: string;
 	template: TemplateType;
 	types: LanguageType;
@@ -32,7 +33,23 @@ export type Common = {
 	}>;
 };
 
-export function create(cwd: string, options: Options): void {
+/** @deprecated Use `create({ cwd, name, template, types })` instead. */
+export function create(cwd: string, options: Omit<Options, 'cwd'>): void;
+export function create(options: Options): void;
+export function create(
+	cwdOrOptions: string | Options,
+	legacyOptions?: Omit<Options, 'cwd'>
+): void {
+	let cwd: string;
+	let options: Omit<Options, 'cwd'>;
+	if (typeof cwdOrOptions === 'string') {
+		cwd = cwdOrOptions;
+		options = legacyOptions!;
+	} else {
+		cwd = cwdOrOptions.cwd;
+		options = cwdOrOptions;
+	}
+
 	mkdirp(cwd);
 
 	write_template_files(options.template, options.types, options.name, cwd);
@@ -76,7 +93,7 @@ function write_template_files(template: string, types: LanguageType, name: strin
 	});
 }
 
-function write_common_files(cwd: string, options: Options, name: string) {
+function write_common_files(cwd: string, options: Omit<Options, 'cwd'>, name: string) {
 	const files = getSharedFiles();
 
 	const pkg_file = path.join(cwd, commonFilePaths.packageJson);
@@ -105,7 +122,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 	fs.writeFileSync(pkg_file, JSON.stringify(pkg, null, '\t') + '\n');
 }
 
-function matches_condition(condition: Condition, options: Options) {
+function matches_condition(condition: Condition, options: Omit<Options, 'cwd'>) {
 	if (templateTypes.includes(condition as TemplateType)) {
 		return options.template === condition;
 	}

@@ -37,11 +37,16 @@ export type Workspace = {
 		package: 'package.json';
 		gitignore: '.gitignore';
 
+		/** @deprecated Addon-specific path - use the string literal '.prettierignore' directly. Will be removed in a future version. */
 		prettierignore: '.prettierignore';
+		/** @deprecated Addon-specific path - use the string literal '.prettierrc' directly. Will be removed in a future version. */
 		prettierrc: '.prettierrc';
+		/** @deprecated Addon-specific path - use the string literal 'eslint.config.js' directly. Will be removed in a future version. */
 		eslintConfig: 'eslint.config.js';
 
+		/** @deprecated Addon-specific path - use the string literal '.vscode/settings.json' directly. Will be removed in a future version. */
 		vscodeSettings: '.vscode/settings.json';
+		/** @deprecated Addon-specific path - use the string literal '.vscode/extensions.json' directly. Will be removed in a future version. */
 		vscodeExtensions: '.vscode/extensions.json';
 
 		/** Get the relative path between two files */

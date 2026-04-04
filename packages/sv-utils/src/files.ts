@@ -58,6 +58,9 @@ export function writeFile(cwd: string, filePath: string, content: string): void 
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
+/**
+ * @deprecated Internal to sv — merged into `package.json` by the add-on runner only. Will be removed from the public API in a future version.
+ */
 export function installPackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
 	cwd: string

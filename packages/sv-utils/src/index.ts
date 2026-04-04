@@ -85,11 +85,13 @@ export {
 	commonFilePaths,
 	fileExists,
 	getPackageJson,
-	installPackages,
 	readFile,
 	writeFile,
 	type Package
 } from './files.ts';
+
+/** @deprecated Internal to sv — will be removed from the public API in a future version. */
+export { installPackages } from './files.ts';
 
 // Terminal styling
 export { color } from './color.ts';

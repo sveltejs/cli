@@ -4,7 +4,7 @@ import {
 	resolveCommand,
 	type AgentName,
 	fileExists,
-	installPackages,
+	installPackages as updatePackages,
 	readFile,
 	writeFile
 } from '@sveltejs/sv-utils';
@@ -242,7 +242,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	}
 
 	if (cancels.length === 0) {
-		const pkgPath = installPackages(dependencies, workspace.cwd);
+		const pkgPath = updatePackages(dependencies, workspace.cwd);
 		files.add(pkgPath);
 	}
 
