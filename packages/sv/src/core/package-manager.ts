@@ -92,7 +92,7 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export function addOnlyBuiltDependencies(
+export function addPnpmOnlyBuiltDependencies(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	...packages: string[]
