@@ -20,6 +20,7 @@ import {
 	type SvApi
 } from './config.ts';
 import { TESTING } from './env.ts';
+import type { Question } from './options.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -53,7 +54,7 @@ export async function add<Addons extends AddonMap>({
 		createLoadedAddon(addon as AddonDefinition)
 	);
 
-	const setupResults = setupAddons(loadedAddons, workspace);
+	const setupResults = await setupAddons(loadedAddons, workspace);
 
 	return await applyAddons({ loadedAddons, workspace, options, setupResults });
 }
@@ -120,28 +121,33 @@ export async function applyAddons({
 }
 
 /** Setup addons - takes LoadedAddon[] and returns setup results */
-export function setupAddons(
+export async function setupAddons(
 	loadedAddons: LoadedAddon[],
 	workspace: Workspace
-): Record<string, SetupResult> {
+): Promise<Record<string, SetupResult>> {
 	const setupResults: Record<string, SetupResult> = {};
 
 	for (const loaded of loadedAddons) {
 		const addon = loaded.addon;
+		const additionalOptions: Record<string, Question> = {};
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
-			runsAfter: []
+			runsAfter: [],
+			additionalOptions
 		};
 		try {
-			addon.setup?.({
+			await addon.setup?.({
 				...workspace,
 				dependsOn: (name) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
 				},
 				unsupported: (reason) => setupResult.unsupported.push(reason),
-				runsAfter: (name) => setupResult.runsAfter.push(name)
+				runsAfter: (name) => setupResult.runsAfter.push(name),
+				addOption: (key, question) => {
+					additionalOptions[key] = question;
+				}
 			});
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
@@ -150,6 +156,12 @@ export function setupAddons(
 				{ cause: err }
 			);
 		}
+
+		// Merge dynamic options into the addon's options
+		if (Object.keys(additionalOptions).length > 0) {
+			Object.assign(addon.options, additionalOptions);
+		}
+
 		setupResults[addon.id] = setupResult;
 	}
 

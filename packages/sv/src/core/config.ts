@@ -1,5 +1,13 @@
 import type { officialAddons } from '../addons/index.ts';
-import type { OptionDefinition, OptionValues, Question } from './options.ts';
+import type {
+	BaseQuestion,
+	BooleanQuestion,
+	NumberQuestion,
+	OptionDefinition,
+	OptionValues,
+	Question,
+	StringQuestion
+} from './options.ts';
 import type { Workspace, WorkspaceOptions } from './workspace.ts';
 
 export type { OptionValues } from './options.ts';
@@ -62,13 +70,16 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 
 			/** On what official addons does this addon run after? */
 			runsAfter: (name: keyof typeof officialAddons) => void;
+
+			/** Dynamically add an option to be prompted to the user */
+			addOption: (key: string, question: Question) => void;
 		}
 	) => MaybePromise<void>;
 	/** Run the addon. The actual execution of the addon... Add files, edit files, etc. */
 	run: (
 		workspace: Workspace & {
-			/** Add-on options */
-			options: WorkspaceOptions<Args>;
+			/** Add-on options (includes dynamically added options from setup) */
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			/** Api to interact with the workspace. */
 			sv: SvApi;
 			/** Cancel the addon at any time!
@@ -79,16 +90,45 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 		}
 	) => MaybePromise<void>;
 	/** Next steps to display after the addon is run. */
-	nextSteps?: (workspace: Workspace & { options: WorkspaceOptions<Args> }) => string[];
+	nextSteps?: (
+		workspace: Workspace & { options: WorkspaceOptions<Args> & Record<string, unknown> }
+	) => string[];
+};
+
+/** Maps value types to question definitions for dynamic setup options */
+export type SetupOptions<T extends Record<string, unknown>> = {
+	[K in keyof T]: BaseQuestion<any> &
+		(T[K] extends boolean
+			? BooleanQuestion
+			: T[K] extends string
+				? StringQuestion
+				: T[K] extends number
+					? NumberQuestion
+					: Question<any>);
 };
 
 /**
  * The entry point for your addon, It will hold every thing! (options, setup, run, nextSteps, ...)
+ *
+ * For dynamic options added via `addOption` in setup, use the generic to get strong typing:
+ * ```ts
+ * const addon = defineAddon<{ extra: boolean }>()({ ... });
+ * addon.options.extra.default // boolean
+ * ```
  */
 export function defineAddon<const Id extends string, Args extends OptionDefinition>(
 	config: Addon<Args, Id>
-): Addon<Args, Id> {
-	return config;
+): Addon<Args, Id>;
+export function defineAddon<
+	SetupValues extends Record<string, unknown>
+>(): <const Id extends string, Args extends OptionDefinition>(
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options'> & { options: Args }
+) => Addon<Args & SetupOptions<SetupValues>, Id>;
+export function defineAddon(...args: any[]): any {
+	if (args.length === 0) {
+		return (config: any) => config;
+	}
+	return args[0];
 }
 
 // ============================================================================
@@ -110,7 +150,7 @@ export function defineAddon<const Id extends string, Args extends OptionDefiniti
 //      │
 //      │  setupAddons()
 //      ▼
-//   PreparedAddon[]     ──  Stage 4: Setup done (dependencies resolved)
+//   PreparedAddon[]     ──  Stage 4: Setup done (dependencies resolved, dynamic options merged)
 //      │
 //      │  promptAddonQuestions()
 //      ▼
@@ -195,7 +235,12 @@ export function getErrorHint(source: AddonSource): string {
 	}
 }
 
-export type SetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
+export type SetupResult = {
+	dependsOn: string[];
+	unsupported: string[];
+	runsAfter: string[];
+	additionalOptions: Record<string, Question>;
+};
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 
@@ -276,8 +321,7 @@ export function defineAddonOptions(): OptionBuilder<{}> {
 function createOptionBuilder<const T extends OptionDefinition>(options: T): OptionBuilder<T> {
 	return {
 		add(key, question) {
-			const newOptions = { ...options, [key]: question };
-			return createOptionBuilder(newOptions);
+			return createOptionBuilder({ ...options, [key]: question });
 		},
 		build() {
 			return options;
