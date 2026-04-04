@@ -1,5 +1,4 @@
-import type { TransformFn } from './tooling/transforms.ts';
-import { transforms } from './tooling/transforms.ts';
+import { transforms, type TransformFn } from './tooling/transforms.ts';
 
 /**
  * Returns a TransformFn for `pnpm-workspace.yaml` that adds packages to `onlyBuiltDependencies`.
