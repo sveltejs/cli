@@ -73,27 +73,7 @@ export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
 
 // File system helpers (sync, workspace-relative paths)
-export {
-	commonFilePaths,
-	fileExists,
-	loadFile,
-	loadPackageJson,
-	saveFile,
-	type Package
-} from './files.ts';
-
-/**
- * @deprecated Use {@link loadFile} instead. This alias will be removed in a future version.
- */
-export { readFile } from './files.ts';
-/**
- * @deprecated Use {@link saveFile} instead. This alias will be removed in a future version.
- */
-export { writeFile } from './files.ts';
-/**
- * @deprecated Use {@link loadPackageJson} instead. This alias will be removed in a future version.
- */
-export { getPackageJson } from './files.ts';
+export { fileExists, loadFile, loadPackageJson, saveFile, type Package } from './files.ts';
 
 // Terminal styling
 export { color } from './color.ts';

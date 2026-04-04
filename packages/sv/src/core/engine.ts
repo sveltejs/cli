@@ -1,7 +1,6 @@
 import * as p from '@clack/prompts';
 import {
 	color,
-	commonFilePaths,
 	fileExists,
 	loadFile,
 	loadPackageJson,
@@ -11,6 +10,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
+import { commonFilePaths } from './common.ts';
 import {
 	getErrorHint,
 	type Addon,

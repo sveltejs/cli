@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, commonFilePaths, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
+import { color, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -468,8 +468,11 @@ export async function createVirtualWorkspace({
 		language: type === 'typescript' ? 'ts' : 'js',
 		file: {
 			...tentativeWorkspace.file,
-			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
-			svelteConfig: commonFilePaths.svelteConfig // currently we always use js files, never typescript files
+			viteConfig:
+				type === 'typescript'
+					? common.commonFilePaths.viteConfigTS
+					: common.commonFilePaths.viteConfig,
+			svelteConfig: common.commonFilePaths.svelteConfig // currently we always use js files, never typescript files
 		}
 	};
 

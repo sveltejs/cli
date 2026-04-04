@@ -13,16 +13,6 @@ export type Package = {
 	workspaces?: string[];
 };
 
-export const commonFilePaths = {
-	packageJson: 'package.json',
-	svelteConfig: 'svelte.config.js',
-	svelteConfigTS: 'svelte.config.ts',
-	jsconfig: 'jsconfig.json',
-	tsconfig: 'tsconfig.json',
-	viteConfig: 'vite.config.js',
-	viteConfigTS: 'vite.config.ts'
-} as const;
-
 export function fileExists(cwd: string, filePath: string): boolean {
 	const fullFilePath = path.resolve(cwd, filePath);
 	return fs.existsSync(fullFilePath);
@@ -60,27 +50,12 @@ export function loadPackageJson(cwd: string): {
 	data: Package;
 	generateCode: () => string;
 } {
-	const packageText = loadFile(cwd, commonFilePaths.packageJson);
+	const packageText = loadFile(cwd, 'package.json');
 	if (!packageText) {
-		const pkgPath = path.join(cwd, commonFilePaths.packageJson);
+		const pkgPath = path.join(cwd, 'package.json');
 		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
 	const { data, generateCode } = parseJson(packageText);
 	return { source: packageText, data: data as Package, generateCode };
 }
-
-/**
- * @deprecated Use {@link loadFile} instead. This alias will be removed in a future version.
- */
-export const readFile: typeof loadFile = loadFile;
-
-/**
- * @deprecated Use {@link saveFile} instead. This alias will be removed in a future version.
- */
-export const writeFile: typeof saveFile = saveFile;
-
-/**
- * @deprecated Use {@link loadPackageJson} instead. This alias will be removed in a future version.
- */
-export const getPackageJson: typeof loadPackageJson = loadPackageJson;

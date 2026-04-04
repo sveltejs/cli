@@ -5,11 +5,11 @@ import {
 	parse,
 	svelte,
 	downloadJson,
-	Walker,
-	commonFilePaths
+	Walker
 } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { commonFilePaths } from '../core/common.ts';
 import { getSharedFiles } from './utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
