@@ -1,12 +1,12 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommand, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
-import type { LoadedAddon, OptionValues } from '../core/config.ts';
+import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
@@ -145,15 +145,12 @@ export const create = new Command('create')
 				);
 			}
 			if (!packageManager) {
-				const { args, command } = resolveCommand(pm, 'install', [])!;
-				initialSteps.push(`  ${i++}: ${color.command(`${command} ${args.join(' ')}`)}`);
+				initialSteps.push(`  ${i++}: ${color.command(resolveCommandArray(pm, 'install', []))}`);
 			}
 
-			const { args, command } = resolveCommand(pm, 'run', ['dev', '--open'])!;
-			const pmRunCmd = `${command} ${args.join(' ')}`;
 			const steps = [
 				...initialSteps,
-				`  ${i++}: ${color.command(pmRunCmd)}`,
+				`  ${i++}: ${color.command(resolveCommandArray(pm, 'run', ['dev', '--open']))}`,
 				'',
 				`To close the dev server, hit ${color.command('Ctrl-C')}`
 			];
@@ -261,14 +258,25 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const projectPath = path.resolve(directory);
 	const basename = path.basename(projectPath);
 	const parentDirName = path.basename(path.dirname(projectPath));
-	const projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
+	let projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
 	if (template === 'addon' && !projectName.startsWith('@')) {
 		// At this stage, we don't support un-scoped add-ons
 		// FYI: a demo exists for `npx sv add my-cool-addon`
-		common.errorAndExit(
-			`Community add-ons must be published under an npm org (e.g. ${color.command('@my-org/sv')}). Unscoped package names are not supported at this stage.`
-		);
+		const org = await p.text({
+			message: `Community add-ons must be published under an npm org. Enter the name of your npm org:`,
+			placeholder: '  @my-org',
+			validate: (value) => {
+				if (!value) return 'Organization name is required';
+				if (!value.startsWith('@')) return 'Must start with @';
+				if (value.includes('/')) return 'Just the org, not the full package name';
+			}
+		});
+		if (p.isCancel(org)) {
+			p.cancel('Operation cancelled.');
+			process.exit(0);
+		}
+		projectName = `${org}/${basename}`;
 	}
 
 	if (template === 'addon' && options.add.length > 0) {
@@ -331,11 +339,13 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
+	let addonSetupResults: Record<string, SetupResult> = {};
 	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,
-			successfulAddons
+			successfulAddons,
+			setupResults
 		} = await runAddonsApply({
 			answers,
 			options: {
@@ -354,6 +364,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		argsFormattedAddons = argsFormatted;
 		addOnFilesToFormat = filesToFormat;
 		addOnSuccessfulAddons = successfulAddons;
+		addonSetupResults = setupResults;
 	}
 
 	const packageManager =
@@ -382,7 +393,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 	}
-	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers);
+	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
 	await addPnpmBuildDependencies(projectPath, packageManager, ['esbuild']);
 	if (packageManager) {

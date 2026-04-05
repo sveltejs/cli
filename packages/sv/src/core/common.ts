@@ -2,7 +2,7 @@ import * as p from '@clack/prompts';
 import {
 	type AgentName,
 	color,
-	resolveCommand,
+	resolveCommandArray,
 	isVersionUnsupportedBelow
 } from '@sveltejs/sv-utils';
 import type { Argument, Command, Help, HelpConfiguration, Option } from 'commander';
@@ -236,8 +236,9 @@ export function buildAndLogArgs(
 	if (agent === null || agent === undefined) allArgs.push('--no-install');
 	else allArgs.push('--install', agent);
 
-	const res = resolveCommand(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs])!;
-	const message = [res.command, ...res.args].join(' ');
+	const message = resolveCommandArray(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs]).join(
+		' '
+	);
 
 	p.log.message(color.optional(color.dim(`To skip prompts next time, run:`)));
 	p.log.info(color.optional(message), { spacing: -1 });

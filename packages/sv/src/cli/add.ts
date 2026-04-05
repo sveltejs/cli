@@ -18,7 +18,7 @@ import {
 	type SetupResult,
 	getErrorHint
 } from '../core/config.ts';
-import { applyAddons, setupAddons } from '../core/engine.ts';
+import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
 import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
@@ -172,6 +172,8 @@ export const add = new Command('add')
 				'  sv add prettier eslint',
 				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
 				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
+				'  sv add prettier @supacool',
+				'  sv add @supacool/sv@0.1.2',
 				''
 			].join('\n');
 		}
@@ -655,6 +657,7 @@ export async function runAddonsApply({
 	argsFormattedAddons: string[];
 	filesToFormat: string[];
 	successfulAddons: LoadedAddon[];
+	setupResults: Record<string, SetupResult>;
 }> {
 	if (!setupResults) {
 		// When no addons are selected, use official addons for setup
@@ -666,7 +669,13 @@ export async function runAddonsApply({
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
 	if (loadedAddons.length === 0)
-		return { nextSteps: [], argsFormattedAddons: [], filesToFormat: [], successfulAddons: [] };
+		return {
+			nextSteps: [],
+			argsFormattedAddons: [],
+			filesToFormat: [],
+			successfulAddons: [],
+			setupResults: {}
+		};
 
 	const { filesToFormat, pnpmBuildDependencies, status } = await applyAddons({
 		loadedAddons,
@@ -768,19 +777,22 @@ export async function runAddonsApply({
 		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
 	}
 
-	const nextSteps = getNextSteps(successfulAddons, workspace, answers);
+	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);
 
-	return { nextSteps, argsFormattedAddons, filesToFormat, successfulAddons };
+	return { nextSteps, argsFormattedAddons, filesToFormat, successfulAddons, setupResults };
 }
 
 export function getNextSteps(
 	loadedAddons: LoadedAddon[],
 	workspace: Workspace,
-	answers: Record<string, OptionValues<any>>
+	answers: Record<string, OptionValues<any>>,
+	setupResults: Record<string, SetupResult>
 ): string[] {
-	return loadedAddons
+	const addonDefs = loadedAddons.map((l) => l.addon);
+
+	return orderAddons(addonDefs, setupResults)
 		.map((loaded) => {
-			const addon = loaded.addon;
+			const { addon } = loadedAddons.find((l) => l.addon.id === loaded.id)!;
 			if (!addon.nextSteps) return;
 			const addonOptions = answers[addon.id];
 			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions });
@@ -870,8 +882,15 @@ export function formatAddonHelpSection(opts: {
 		return formatItem(id, option.choices);
 	});
 	if (addonList.length > 0) {
-		output.push(styleTitle('Add-Ons:'), ...addonList, '');
+		output.push(styleTitle('Official Add-Ons:'), ...addonList, '');
 	}
+
+	// Community
+	output.push(
+		styleTitle('Community Add-Ons:'),
+		'  Find on: https://www.npmjs.com/search?q=keywords:sv-add',
+		''
+	);
 
 	// Syntax
 	output.push(

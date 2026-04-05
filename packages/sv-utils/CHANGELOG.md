@@ -1,5 +1,26 @@
 # @sveltejs/sv-utils
 
+## 0.1.0
+### Minor Changes
+
+
+- feat: community add-ons are now **experimental** ([#1020](https://github.com/sveltejs/cli/pull/1020))
+
+## 0.0.5
+### Patch Changes
+
+
+- feat(sv-utils): all semantic colors now accept `string | string[]` ([#1024](https://github.com/sveltejs/cli/pull/1024))
+
+## 0.0.4
+### Patch Changes
+
+
+- refactor: move files utilities to `@sveltejs/sv-utils` ([#1002](https://github.com/sveltejs/cli/pull/1002))
+
+
+- feat: add `transform` api to simplify add-on creation ([#1001](https://github.com/sveltejs/cli/pull/1001))
+
 ## 0.0.3
 ### Patch Changes
 

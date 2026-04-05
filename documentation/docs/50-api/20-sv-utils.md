@@ -3,31 +3,26 @@ title: sv-utils
 ---
 
 > [!NOTE]
-> `@sveltejs/sv-utils` is currently **experimental**. The API may change. Full documentation is not yet available.
+> `@sveltejs/sv-utils` is currently **experimental**. The API may change.
 
-`@sveltejs/sv-utils` provides utilities for parsing, transforming, and generating code in add-ons.
+`@sveltejs/sv-utils` is an add-on utilty for parsing, transforming, and generating code..
 
 ```sh
 npm install -D @sveltejs/sv-utils
 ```
 
-## Architecture
+## transforms
 
-The Svelte CLI is split into two packages with a clear boundary:
-
-- **`sv`** = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
-- **`@sveltejs/sv-utils`** = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
-
-This separation means transforms are testable without a workspace and composable across add-ons.
-
-## Transforms
-
-Transforms are curried, parser-aware functions that turn `string -> string`. Call a transform with your callback to get a function that plugs directly into `sv.file()`. The parser choice is baked into the transform type - you can't accidentally parse a vite config as Svelte because you never call a parser yourself.
+`transforms` is a collection of parser-aware functions that lets you modify the files via abstract syntax tree (AST). It accepts a callback function. The return value is designed to be be passed directly into `sv.file()`. The parser choice is baked into the transform type - you can't accidentally parse a vite config as Svelte because you never call a parser yourself.
 
 Each transform injects relevant utilities into the callback, so you only need one import:
 
 ```js
 import { transforms } from '@sveltejs/sv-utils';
+
+transforms.script(/* ... */);
+transforms.svelte(/* ... */);
+// ...
 ```
 
 ### `transforms.script`
@@ -39,7 +34,7 @@ Transform a JavaScript/TypeScript file. The callback receives `{ ast, comments, 
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.viteConfig,
+	file.viteConfig,
 	transforms.script(({ ast, js }) => {
 		js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
 		js.vite.addPlugin(ast, { code: 'foo()' });
@@ -73,7 +68,7 @@ import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
 	layoutPath,
-	transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
+	transforms.svelteScript({ language: 'ts' }, ({ ast, svelte, js }) => {
 		js.imports.addDefault(ast.instance.content, { as: 'Foo', from: './Foo.svelte' });
 		svelte.addFragment(ast, '<Foo />');
 	})
@@ -89,7 +84,7 @@ Transform a CSS file. The callback receives `{ ast, content, css }`.
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.stylesheet,
+	file.stylesheet,
 	transforms.css(({ ast, css }) => {
 		css.addAtRule(ast, { name: 'import', params: "'tailwindcss'" });
 	})
@@ -105,7 +100,7 @@ Transform a JSON file. Mutate the `data` object directly. The callback receives 
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.tsconfig,
+	file.typeConfig,
 	transforms.json(({ data }) => {
 		data.compilerOptions ??= {};
 		data.compilerOptions.strict = true;
@@ -142,7 +137,7 @@ Return `false` from any transform callback to abort - the original content is re
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	files.eslintConfig,
+	file.eslintConfig,
 	transforms.script(({ ast, js }) => {
 		const { value: existing } = js.exports.createDefault(ast, { fallback: myConfig });
 		if (existing !== myConfig) {
@@ -161,22 +156,26 @@ Transforms are curried functions - call them with the callback, then apply to co
 ```js
 import { transforms } from '@sveltejs/sv-utils';
 
-const result = transforms.script(({ ast, js }) => {
+const transform = transforms.script(({ ast, js }) => {
 	js.imports.addDefault(ast, { as: 'foo', from: 'foo' });
-})('export default {}');
+});
+const result = transform('export default {}');
 ```
 
 ### Composability
 
-For cases where you need to mix transforms and raw edits, use `sv.file` with a content callback and invoke the curried transform manually:
+For cases where you need to mix and match transforms and raw edits, use `sv.file` with a content callback and invoke the curried transform manually:
 
 ```js
 // @noErrors
 sv.file(path, (content) => {
 	// curried
-	content = transforms.script(({ ast, js }) => {
+	const transform = transforms.script(({ ast, js }) => {
 		js.imports.addDefault(ast, { as: 'foo', from: 'bar' });
-	})(content);
+	});
+
+	// parser manipulation
+	content = transform(content);
 
 	// raw string manipulation
 	content = content.replace('foo', 'baz');
@@ -198,9 +197,14 @@ export const addFooImport = transforms.svelte(({ ast, svelte, js }) => {
 });
 ```
 
+```js
+sv.file('+page.svelte', addFooImport);
+sv.file('index.svelte', addFooImport);
+```
+
 ## Parsers (low-level)
 
-For cases where transforms don't fit (e.g., conditional parsing, error handling around the parser), the `parse` namespace is still available:
+`transforms` will fit most users needs (e.g., conditional parsing, error handling around the parser). If not, `parse` is a low-level API available to you:
 
 ```js
 // @noErrors

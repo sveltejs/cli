@@ -1,4 +1,4 @@
-import { resolveCommand } from '@sveltejs/sv-utils';
+import { resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import { execSync } from 'node:child_process';
 import process from 'node:process';
@@ -23,8 +23,7 @@ async function runMigrate(cwd: string, args: string[]) {
 		// skips the download confirmation prompt for `npx`
 		if (pm === 'npm') cmdArgs.unshift('--yes');
 
-		const cmd = resolveCommand(pm, 'execute', cmdArgs)!;
-		execSync(`${cmd.command} ${cmd.args.join(' ')}`, { stdio: 'inherit', cwd });
+		execSync(resolveCommandArray(pm, 'execute', cmdArgs).join(' '), { stdio: 'inherit', cwd });
 	} catch (error) {
 		forwardExitCode(error);
 	}

@@ -71,49 +71,23 @@ Prevents installing dependencies
 > [!NOTE]
 > Svelte maintainers have not reviewed community add-ons for malicious code!
 
-You can find [community add-ons on npm](https://www.npmx.dev/search?q=keyword:sv-add) by searching for keyword: `sv-add`.
-
-### How to install a community add-on
+Community add-ons are npm packages published by the community. Look out for add-ons from your favourite libraries and tools. _(soon)_ Many developers are building `sv` add-ons to make their integrations a one-liner. You can find them on [npmx](https://www.npmx.dev/search?q=keyword:sv-add) by searching for the keyword: `sv-add`.
 
 ```sh
-npx sv add [PROTOCOL][COMMUNITY_ADDON]
-```
+# Install a community add-on by org name (it will look at @org/sv)
+npx sv add @supacool
 
-You can:
-
-- mix and match official and community add-ons
-- use the interactive prompt or give args to the cli
-- use the `--add` option in the `create` command
-
-```sh
-npx sv add eslint "@supacool"
-```
-
-```sh
-npx sv create --add eslint "@supacool"
-```
-
-### Package Protocols
-
-```sh
-# Scoped package: @org (preferred), we will look for @org/sv
-npx sv add "@supacool"
-
-# Regular npm package (with or without scope)
-npx sv add my-cool-addon
-
-# Local add-on
+# Use a local add-on (for development or internal use)
 npx sv add file:../path/to/my-addon
+
+# Mix and match official and community add-ons
+npx sv add eslint @supacool
+
+# Also works when creating a new project directly
+npx sv create --add eslint @supacool
 ```
 
-### How to create a community add-on
+> [!NOTE]
+> On Windows PowerShell, `@` is a special character that should be escaped with single quotes. For example: `npx sv add '@supacool'`.
 
-To start on a good track, create your add-on with the `addon` template.
-
-```sh
-npx sv create --template addon [path]
-```
-
-In your new add-on directory, check out the `README.md` and `CONTRIBUTING.md` to get started.
-
-Then you can continue with the [API docs](/docs/cli/add-on) to start building your add-on. You can also have a look at the [official addons source code](https://github.com/sveltejs/cli/tree/main/packages/sv/src/addons) to get some inspiration on what can be done.
+Want to create your own? Check the [Add-on Docs](community).

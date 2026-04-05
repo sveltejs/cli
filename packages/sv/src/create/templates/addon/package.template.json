@@ -6,8 +6,8 @@
 	"license": "MIT",
 	"scripts": {
 		"demo-create": "sv create demo --types ts --template minimal --no-add-ons --no-install",
-		"demo-add": "sv add file:../ --cwd demo --no-git-check --no-install",
-		"demo-add:ci": "sv add file:../=who:you --cwd demo --no-git-check --no-download-check --no-install",
+		"demo-add": "pnpm build && sv add file:../ --cwd demo --no-git-check --no-install",
+		"demo-add:ci": "pnpm build && sv add file:../=who:you --cwd demo --no-git-check --no-download-check --no-install",
 		"build": "tsdown",
 		"prepublishOnly": "npm run build",
 		"test": "vitest run"
@@ -15,16 +15,11 @@
 	"files": ["dist"],
 	"exports": {
 		".": {
-			"default": "./src/index.js"
+			"default": "./dist/index.mjs"
 		}
 	},
 	"publishConfig": {
-		"access": "public",
-		"exports": {
-			".": {
-				"default": "./dist/index.js"
-			}
-		}
+		"access": "public"
 	},
 	"peerDependencies": {
 		"sv": "workspace:*"
@@ -37,5 +32,5 @@
 		"tsdown": "^0.21.4",
 		"vitest": "^4.1.1"
 	},
-	"keywords": ["sv-add"]
+	"keywords": ["sv-add", "svelte", "sveltekit"]
 }

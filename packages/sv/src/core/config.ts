@@ -21,7 +21,7 @@ export type Scripts = {
 };
 
 export type SvApi = {
-	/** Add a package to the pnpm build dependencies. */
+	/** Add a package to the pnpm onlyBuiltDependencies. */
 	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
@@ -40,7 +40,9 @@ export type SvApi = {
 export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 	id: Id;
 	alias?: string;
+	/** one-liner shown in prompts  */
 	shortDescription?: string;
+	/** link to docs/repo */
 	homepage?: string;
 	/** If true, this addon won't appear in the interactive prompt but can still be used via CLI */
 	hidden?: boolean;
@@ -51,8 +53,8 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 			/** On what official addons does this addon depend on? */
 			dependsOn: (name: keyof typeof officialAddons) => void;
 
-			/** Why is this addon not supported?
-			 *
+			/**
+			 * Why is this addon not supported?
 			 * @example
 			 * if (!isKit) unsupported('Requires SvelteKit');
 			 */
@@ -77,7 +79,7 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 		}
 	) => MaybePromise<void>;
 	/** Next steps to display after the addon is run. */
-	nextSteps?: (data: Workspace & { options: WorkspaceOptions<Args> }) => string[];
+	nextSteps?: (workspace: Workspace & { options: WorkspaceOptions<Args> }) => string[];
 };
 
 /**

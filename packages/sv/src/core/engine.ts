@@ -198,7 +198,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
-			const executedCommand = `${command} ${args.join(' ')}`;
+			const executedCommand = [command, ...args].join(' ');
 			if (!TESTING) {
 				p.log.step(
 					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
@@ -264,7 +264,10 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 // orders addons by putting addons that don't require any other addon in the front.
 // This is a drastic simplification, as this could still cause some inconvenient circumstances,
 // but works for now in contrary to the previous implementation
-function orderAddons(addons: Array<Addon<any>>, setupResults: Record<string, SetupResult>) {
+export function orderAddons(
+	addons: Array<Addon<any>>,
+	setupResults: Record<string, SetupResult>
+): Array<Addon<any>> {
 	return addons.sort((a, b) => {
 		return setupResults[a.id]?.runsAfter?.length - setupResults[b.id]?.runsAfter?.length;
 	});

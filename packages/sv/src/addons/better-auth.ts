@@ -5,7 +5,7 @@ import {
 	color,
 	dedent,
 	transforms,
-	resolveCommand,
+	resolveCommandArray,
 	createPrinter,
 	type TransformFn
 } from '@sveltejs/sv-utils';
@@ -41,6 +41,9 @@ export default defineAddon({
 		runsAfter('tailwindcss');
 	},
 	run: ({ sv, language, options, directory, dependencyVersion, file }) => {
+		const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
+		const [ts, s5] = createPrinter(language === 'ts', svelte5);
+
 		const demoPassword = options.demo.includes('password');
 		const demoGithub = options.demo.includes('github');
 		const hasDemo = demoPassword || demoGithub;
@@ -135,9 +138,9 @@ export default defineAddon({
 						plugins: [
 							sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 						],
-					}${language === 'ts' ? ' satisfies Omit<Parameters<typeof betterAuth>[0], "database">' : ''};
+					}${ts(' satisfies Omit<Parameters<typeof betterAuth>[0], "database">')};
 
-					export const createAuth = (d1${language === 'ts' ? ': D1Database' : ''}) => betterAuth({
+					export const createAuth = (d1${ts(': D1Database')}) => betterAuth({
 						...authConfig,
 						database: drizzleAdapter(getDb(d1), { provider: '${provider}' }),
 					});
@@ -148,7 +151,7 @@ export default defineAddon({
 					 * This instance is used by the \`better-auth\` CLI for schema generation ONLY.
 					 * To access \`auth\` at runtime, use \`event.locals.auth\`.
 					 */
-					export const auth = createAuth(${language === 'ts' ? 'null!' : 'null'});`;
+					export const auth = createAuth(null${ts('!')});`;
 				} else {
 					authConfig = dedent`
 					export const auth = betterAuth({
@@ -297,8 +300,6 @@ export default defineAddon({
 						return false;
 					}
 
-					const [ts] = createPrinter(language === 'ts');
-
 					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
 					const signInEmailAction = demoPassword
@@ -381,7 +382,7 @@ export default defineAddon({
 					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/better-auth');
 						}
@@ -408,9 +409,6 @@ export default defineAddon({
 				const btn = tailwind
 					? ' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"'
 					: '';
-
-				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
 				const passwordForm = demoPassword
 					? `
@@ -465,7 +463,6 @@ export default defineAddon({
 					return false;
 				}
 
-				const [ts] = createPrinter(language === 'ts');
 				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 				return dedent`
 					import { redirect } from '@sveltejs/kit';
@@ -473,7 +470,7 @@ export default defineAddon({
 					${ts("import type { PageServerLoad } from './$types';")}
 					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
 
-					export const load${ts(': PageServerLoad')} = async (event) => {
+					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
 							return redirect(302, '/demo/better-auth/login');
 						}
@@ -502,8 +499,6 @@ export default defineAddon({
 				const twBtnClasses =
 					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
-				const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
-				const [ts, s5] = createPrinter(language === 'ts', svelte5);
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
@@ -522,13 +517,9 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ options, packageManager }) => {
-		const { command: authCmd, args: authArgs } = resolveCommand(packageManager, 'run', [
-			'auth:schema'
-		])!;
-		const { command: dbCmd, args: dbArgs } = resolveCommand(packageManager, 'run', ['db:push'])!;
 		const steps = [
-			`Run ${color.command(`${authCmd} ${authArgs.join(' ')}`)} to generate the auth schema`,
-			`Run ${color.command(`${dbCmd} ${dbArgs.join(' ')}`)} to update your database`,
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['auth:schema']))} to generate the auth schema`,
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
 		if (options.demo.includes('github')) {

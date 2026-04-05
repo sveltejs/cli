@@ -14,19 +14,42 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	let svelteImportName: string;
 	for (const specifier of sveltePluginImport?.specifiers ?? []) {
 		if (specifier.type === 'ImportDefaultSpecifier' && specifier.local?.name) {
-			svelteImportName = specifier.local.name as string;
+			svelteImportName = specifier.local.name;
 		}
 	}
-
 	svelteImportName ??= 'svelte';
+
 	js.imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: svelteImportName });
 	js.imports.addDefault(ast, { from: 'eslint-config-prettier', as: 'prettier' });
 
 	const fallbackConfig = js.common.parseExpression('[]');
 	const defaultExport = js.exports.createDefault(ast, { fallback: fallbackConfig });
 	const eslintConfig = defaultExport.value;
-	if (eslintConfig.type !== 'ArrayExpression' && eslintConfig.type !== 'CallExpression')
+
+	type Elements =
+		| Extract<typeof eslintConfig, { type: 'CallExpression' }>['arguments']
+		| Extract<typeof eslintConfig, { type: 'ArrayExpression' }>['elements'];
+
+	let elements: Elements = [];
+
+	if (eslintConfig.type === 'ArrayExpression') {
+		// export default [...]
+		elements = eslintConfig.elements;
+	} else if (eslintConfig.type === 'CallExpression') {
+		if (
+			eslintConfig.arguments.length === 1 &&
+			eslintConfig.arguments[0].type === 'ArrayExpression'
+		) {
+			// export default defineConfig([...])
+			elements = eslintConfig.arguments[0].elements;
+		} else {
+			// export default defineConfig({...})
+			elements = eslintConfig.arguments;
+		}
+	} else {
+		// fallback: Not an array or a function call
 		return false;
+	}
 
 	const prettier = js.common.parseExpression('prettier');
 	const sveltePrettierConfig = js.common.parseExpression(`${svelteImportName}.configs.prettier`);
@@ -36,19 +59,25 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	if (!js.common.contains(eslintConfig, sveltePrettierConfig))
 		nodesToInsert.push(sveltePrettierConfig);
 
-	const elements =
-		eslintConfig.type === 'ArrayExpression' ? eslintConfig.elements : eslintConfig.arguments;
-	// finds index of `svelte.configs["..."]`
-	const idx = elements.findIndex(
-		(el) =>
+	const isSvelteConfig = (maybeSpread: Elements[number]) => {
+		const el =
+			maybeSpread?.type === 'SpreadElement'
+				? // ...svelte.configs.*
+					maybeSpread?.argument
+				: // svelte.configs.*
+					maybeSpread;
+		return (
 			el?.type === 'MemberExpression' &&
 			el.object.type === 'MemberExpression' &&
-			el.object.property.type === 'Identifier' &&
-			el.object.property.name === 'configs' &&
+			// Check for [svelte].configs.*
 			el.object.object.type === 'Identifier' &&
-			el.object.object.name === svelteImportName
-	);
-
+			el.object.object.name === svelteImportName &&
+			// Check for svelte.[configs].*
+			el.object.property.type === 'Identifier' &&
+			el.object.property.name === 'configs'
+		);
+	};
+	const idx = elements.findIndex(isSvelteConfig);
 	if (idx !== -1) {
 		elements.splice(idx + 1, 0, ...nodesToInsert);
 	} else {

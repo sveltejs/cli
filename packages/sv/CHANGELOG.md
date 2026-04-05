@@ -1,5 +1,53 @@
 # sv
 
+## 0.14.0
+### Minor Changes
+
+
+- feat: community add-ons are now **experimental** ([#1020](https://github.com/sveltejs/cli/pull/1020))
+
+
+### Patch Changes
+
+- Updated dependencies [[`c0e5831`](https://github.com/sveltejs/cli/commit/c0e583126279afe7aff8cebb03c5b3928d73b521)]:
+  - @sveltejs/sv-utils@0.1.0
+
+## 0.13.2
+### Patch Changes
+
+
+- fix(sv): `nextStep` will conform to depedencies ([#1025](https://github.com/sveltejs/cli/pull/1025))
+
+
+- feat(sv-utils): all semantic colors now accept `string | string[]` ([#1024](https://github.com/sveltejs/cli/pull/1024))
+
+
+- fix(drizzle): add missing closing parenthesis in D1 getDb function ([#1022](https://github.com/sveltejs/cli/pull/1022))
+
+
+- fix(eslint): properly handle configs that doesn't use `defineConfig` ([#994](https://github.com/sveltejs/cli/pull/994))
+
+- Updated dependencies [[`dd9c2f8`](https://github.com/sveltejs/cli/commit/dd9c2f834000f4ccd206b55c1440617bbf9156e5)]:
+  - @sveltejs/sv-utils@0.0.5
+
+## 0.13.1
+### Patch Changes
+
+
+- feat(paraglide): add a type annotation for the reroute hooks ([#1009](https://github.com/sveltejs/cli/pull/1009))
+
+
+- api: rename `files` to `file`, `kit` to `isKit` & `directory` ([#999](https://github.com/sveltejs/cli/pull/999))
+
+
+- refactor: move files utilities to `@sveltejs/sv-utils` ([#1002](https://github.com/sveltejs/cli/pull/1002))
+
+
+- chore: add text-scale meta in html ([#1011](https://github.com/sveltejs/cli/pull/1011))
+
+- Updated dependencies [[`83601df`](https://github.com/sveltejs/cli/commit/83601dfdfb95d8523f7f9e9e4e00439099d29c4f), [`504bce9`](https://github.com/sveltejs/cli/commit/504bce95e496ec4a3de781cbd3a73e41ad1fefe4)]:
+  - @sveltejs/sv-utils@0.0.4
+
 ## 0.13.0
 ### Minor Changes
 
