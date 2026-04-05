@@ -119,9 +119,10 @@ export type SetupOptions<T extends Record<string, unknown>> = {
 export function defineAddon<const Id extends string, Args extends OptionDefinition>(
 	config: Addon<Args, Id>
 ): Addon<Args, Id>;
-export function defineAddon<
-	SetupValues extends Record<string, unknown>
->(): <const Id extends string, Args extends OptionDefinition>(
+export function defineAddon<SetupValues extends Record<string, unknown>>(): <
+	const Id extends string,
+	Args extends OptionDefinition
+>(
 	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options'> & { options: Args }
 ) => Addon<Args & SetupOptions<SetupValues>, Id>;
 export function defineAddon(...args: any[]): any {
