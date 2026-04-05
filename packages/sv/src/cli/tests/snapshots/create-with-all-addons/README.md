@@ -11,13 +11,6 @@ If you're seeing this, you've probably already done this step. Congrats!
 npx sv create my-app
 ```
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@0.0.0 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" devtools-json drizzle="database:sqlite+sqlite:libsql" better-auth="demo:password,github" mdsvex paraglide="languageTags:en,es+demo:yes" mcp="ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local" --no-install packages/sv/.test-output/cli/create-with-all-addons
-```
-
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
