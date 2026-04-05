@@ -13,13 +13,10 @@ test.concurrent.for(testCases)('devtools-json $variant', (testCase, ctx) => {
 	const cwd = ctx.cwd(testCase);
 
 	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
-	const viteFile = path.resolve(cwd, `vite.config.${language}`);
-	const viteContent = fs.readFileSync(viteFile, 'utf8');
+	const hooksFile = path.resolve(cwd, `src/hooks.server.${language}`);
+	const hooksContent = fs.readFileSync(hooksFile, 'utf8');
 
-	// Check if we have the import part
-	expect(viteContent).toContain(`import devtoolsJson from`);
-	expect(viteContent).toContain(`vite-plugin-devtools-json`);
-
-	// Check if it's called
-	expect(viteContent).toContain(`devtoolsJson()`);
+	expect(hooksContent).toContain(`handleDevtoolsJson`);
+	expect(hooksContent).toContain(`com.chrome.devtools.json`);
+	expect(hooksContent).toContain(`from '$app/environment'`);
 });

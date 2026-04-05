@@ -271,6 +271,7 @@ export function addHooksHandle(
 		} else {
 			node.body.push(newHandleDecl, exportDecl);
 		}
+		return;
 	}
 	// At this point, the existing `handle` doesn't call `sequence`, so we'll need to rename the original
 	// `handle` and create a new `handle` that uses `sequence`

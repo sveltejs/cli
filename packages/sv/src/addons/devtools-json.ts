@@ -3,20 +3,28 @@ import { defineAddon } from '../core/config.ts';
 
 export default defineAddon({
 	id: 'devtools-json',
-	shortDescription: 'devtools json',
-	homepage: 'https://github.com/ChromeDevTools/vite-plugin-devtools-json',
+	shortDescription: 'handle devtools json in dev mode',
 	options: {},
 
-	run: ({ sv, file }) => {
-		sv.devDependency('vite-plugin-devtools-json', '^1.0.0');
-
-		// add the vite plugin
+	run: ({ sv, language }) => {
 		sv.file(
-			file.viteConfig,
-			transforms.script(({ ast, js }) => {
-				const vitePluginName = 'devtoolsJson';
-				js.imports.addDefault(ast, { as: vitePluginName, from: 'vite-plugin-devtools-json' });
-				js.vite.addPlugin(ast, { code: `${vitePluginName}()` });
+			`src/hooks.server.${language}`,
+			transforms.script(({ ast, comments, js }) => {
+				js.imports.addNamed(ast, { imports: ['dev'], from: '$app/environment' });
+
+				const handleContent = `({ event, resolve }) => {
+		if (dev && event.url.pathname === '/.well-known/appspecific/com.chrome.devtools.json') {
+			return new Response(undefined, { status: 404 });
+		}
+		return resolve(event);
+	};`;
+
+				js.kit.addHooksHandle(ast, {
+					language,
+					newHandleName: 'handleDevtoolsJson',
+					handleContent,
+					comments
+				});
 			})
 		);
 	}
