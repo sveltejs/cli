@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, type SvelteAst, transforms } from '@sveltejs/sv-utils';
+import { color, dedent, type SvelteAst, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -196,13 +196,22 @@ export default defineAddon({
 					from: '$lib/paraglide/runtime'
 				});
 				js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
+				js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
+				if (language === 'ts') {
+					js.imports.addNamed(ast.instance.content, {
+						imports: ['Pathname'],
+						from: '$app/types',
+						isType: true
+					});
+				}
 				svelte.addFragment(
 					ast,
-					`<div style="display:none">
-	{#each locales as locale}
-		<a href={localizeHref(page.url.pathname, { locale })}>{locale}</a>
-	{/each}
-</div>`
+					dedent`
+						<div style="display:none">
+							{#each locales as locale (locale)}
+								<a href={resolve(localizeHref(page.url.pathname, { locale }))}>{locale}</a>
+							{/each}
+						</div>`
 				);
 			})
 		);
