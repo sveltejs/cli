@@ -125,6 +125,71 @@ async function formatWithPrettier(absPath) {
 	fs.writeFileSync(absPath, formatted, 'utf8');
 }
 
+/**
+ * Collect names marked `@deprecated` in chunk files imported by the entry .d.mts.
+ * Returns a Set of exported names whose declarations carry `@deprecated`.
+ * @param {string} entrySource
+ * @param {string} entryDir
+ * @returns {Set<string>}
+ */
+function collectDeprecatedFromChunks(entrySource, entryDir) {
+	/** @type {Set<string>} */
+	const deprecated = new Set();
+
+	// match: import { A as Foo, B as Bar } from "../chunk.mjs";
+	const importRe = /^import\s+\{([^}]+)\}\s+from\s+"([^"]+)"/gm;
+	let m;
+	while ((m = importRe.exec(entrySource))) {
+		const specifiers = m[1];
+		const chunkRel = m[2];
+		const chunkPath = path.resolve(entryDir, chunkRel.replace(/\.mjs$/, '.d.mts'));
+		if (!fs.existsSync(chunkPath)) continue;
+
+		const chunkSrc = fs.readFileSync(chunkPath, 'utf8');
+
+		// collect full type names marked @deprecated in the chunk
+		const deprecatedNames = new Set();
+		// Match /** @deprecated ... */ directly followed by a top-level type declaration
+		// The [^{}]* ensures we don't cross type body boundaries
+		const depRe = /\/\*\*\s*@deprecated[^{}]*?\*\/\s*(?:export\s+)?type\s+(\w+)/g;
+		let dm;
+		while ((dm = depRe.exec(chunkSrc))) {
+			deprecatedNames.add(dm[1]);
+		}
+
+		// map import specifiers (alias as ExportedName) back to chunk names
+		// entry: "d as ConditionDefinition" -> chunk exports "ConditionDefinition as d"
+		// so we check if ExportedName is deprecated in the chunk
+		for (const spec of specifiers.split(',')) {
+			const parts = spec.trim().split(/\s+as\s+/);
+			if (parts.length !== 2) continue;
+			const exportedName = parts[1];
+			if (deprecatedNames.has(exportedName)) {
+				deprecated.add(exportedName);
+			}
+		}
+	}
+	return deprecated;
+}
+
+/**
+ * Annotate `type Foo` entries in the export block with `/** @deprecated *\/` if
+ * the underlying declaration was marked deprecated in a chunk file.
+ * @param {string} cleaned
+ * @param {Set<string>} deprecated
+ * @returns {string}
+ */
+function annotateDeprecatedExports(cleaned, deprecated) {
+	if (deprecated.size === 0) return cleaned;
+	// match "type Name" inside export { ... } blocks
+	return cleaned.replace(/\btype\s+(\w+)/g, (match, name) => {
+		if (deprecated.has(name)) {
+			return `/** @deprecated */ type ${name}`;
+		}
+		return match;
+	});
+}
+
 /** @returns {Promise<number>} number of api-surface files written */
 export async function generateApiSurface() {
 	let generated = 0;
@@ -136,7 +201,9 @@ export async function generateApiSurface() {
 		}
 
 		const raw = fs.readFileSync(dtsPath, 'utf8');
-		const cleaned = clean(raw);
+		const deprecated = collectDeprecatedFromChunks(raw, path.dirname(dtsPath));
+		let cleaned = clean(raw);
+		cleaned = annotateDeprecatedExports(cleaned, deprecated);
 
 		const header =
 			`# ${pkg.name} - Public API Surface\n\n` +

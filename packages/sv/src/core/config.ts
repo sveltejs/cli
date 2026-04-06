@@ -4,8 +4,10 @@ import type { Workspace, WorkspaceOptions } from './workspace.ts';
 
 export type { OptionValues } from './options.ts';
 
+/** @deprecated not part of the public API */
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
+/** @deprecated not part of the public API */
 export type PackageDefinition = {
 	name: string;
 	version: string;
@@ -13,6 +15,7 @@ export type PackageDefinition = {
 	condition?: ConditionDefinition;
 };
 
+/** @deprecated not part of the public API */
 export type Scripts = {
 	description: string;
 	args: string[];
@@ -199,6 +202,7 @@ export type SetupResult = { dependsOn: string[]; unsupported: string[]; runsAfte
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 
+/** @deprecated not part of the public API */
 export type Tests = {
 	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
 	elementExists: (selector: string) => Promise<void>;
@@ -206,6 +210,7 @@ export type Tests = {
 	expectUrlPath: (path: string) => void;
 };
 
+/** @deprecated not part of the public API */
 export type TestDefinition<Args extends OptionDefinition> = {
 	name: string;
 	run: (tests: Tests) => Promise<void>;
@@ -214,6 +219,7 @@ export type TestDefinition<Args extends OptionDefinition> = {
 
 type MaybePromise<T> = Promise<T> | T;
 
+/** @deprecated not part of the public API */
 export type Verification = {
 	name: string;
 	run: () => MaybePromise<{ success: boolean; message: string | undefined }>;
