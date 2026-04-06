@@ -153,16 +153,16 @@ To run svelte-migrate locally:
 node ./packages/migrate/bin.js
 ```
 
-## Deprecation pattern
+## Deprecation
 
-When removing public API from `sv`, **do not hard-remove** it. Instead, deprecate it and keep it working until the next major version.
+Public APIs cannot be changed in a minor release since it is a breaking change. Instead, the old behaviour is marked as deprecated until the next major version, at which point they can be removed.
 
 ### How to deprecate
 
 1. **Add `@deprecated` JSDoc** on the type/function - IDEs will show strikethrough:
 
    ```ts
-   /** @deprecated use `newThing()` instead */
+   /** @deprecated use `newThing()` instead. */
    ```
 
 2. **Emit a runtime warning** (for functions/methods) using `svDeprecated()` from `core/deprecated.ts`. Warns once per message:
@@ -175,7 +175,7 @@ When removing public API from `sv`, **do not hard-remove** it. Instead, deprecat
 
 ### Before a major release
 
-Search for `svDeprecated` and `@deprecated` to find and remove all deprecated APIs:
+Search for `svDeprecated` and `@deprecated` to find and remove all deprecated APIs.
 
 ## Generating changelogs
 

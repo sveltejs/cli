@@ -325,7 +325,7 @@ export function updateAgent(
 	}
 }
 
-export const commonFilePaths = {
+export const filePaths = {
 	packageJson: 'package.json',
 	svelteConfig: 'svelte.config.js',
 	svelteConfigTS: 'svelte.config.ts',

@@ -3,7 +3,7 @@ import { create as _create, type Options as CreateOptions } from './create/index
 
 export type { TemplateType, LanguageType } from './create/index.ts';
 
-/** @deprecated use `create({ cwd, ...options })` instead */
+/** @deprecated use `create({ cwd, ...options })` instead. */
 export function create(cwd: string, options: Omit<CreateOptions, 'cwd'>): void;
 export function create(options: CreateOptions): void;
 export function create(

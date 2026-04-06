@@ -9,7 +9,7 @@ import {
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import { commonFilePaths } from './common.ts';
+import { filePaths } from './common.ts';
 import { svDeprecated } from './deprecated.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
@@ -38,15 +38,15 @@ export type Workspace = {
 		package: 'package.json';
 		gitignore: '.gitignore';
 
-		/** @deprecated use the string `'.prettierignore'` directly */
+		/** @deprecated use the string `.prettierignore` instead. */
 		prettierignore: '.prettierignore';
-		/** @deprecated use the string `'.prettierrc'` directly */
+		/** @deprecated use the string `.prettierrc` instead. */
 		prettierrc: '.prettierrc';
-		/** @deprecated use the string `'eslint.config.js'` directly */
+		/** @deprecated use the string `eslint.config.js` instead. */
 		eslintConfig: 'eslint.config.js';
-		/** @deprecated use the string `'.vscode/settings.json'` directly */
+		/** @deprecated use the string `.vscode/settings.json` instead. */
 		vscodeSettings: '.vscode/settings.json';
-		/** @deprecated use the string `'.vscode/extensions.json'` directly */
+		/** @deprecated use the string `.vscode/extensions.json` instead. */
 		vscodeExtensions: '.vscode/extensions.json';
 
 		/** Get the relative path between two files */
@@ -87,18 +87,16 @@ export async function createWorkspace({
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
-	const typeConfigOptions = [commonFilePaths.jsconfig, commonFilePaths.tsconfig];
+	const typeConfigOptions = [filePaths.jsconfig, filePaths.tsconfig];
 	const typeConfig = find.any(typeConfigOptions, { cwd }) as Workspace['file']['typeConfig'];
-	const typescript = typeConfig?.endsWith(commonFilePaths.tsconfig) ?? false;
+	const typescript = typeConfig?.endsWith(filePaths.tsconfig) ?? false;
 	// This is not linked with typescript detection
-	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	const viteConfig = fs.existsSync(viteConfigPath)
-		? commonFilePaths.viteConfigTS
-		: commonFilePaths.viteConfig;
-	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const viteConfigPath = path.join(resolvedCwd, filePaths.viteConfigTS);
+	const viteConfig = fs.existsSync(viteConfigPath) ? filePaths.viteConfigTS : filePaths.viteConfig;
+	const svelteConfigPath = path.join(resolvedCwd, filePaths.svelteConfigTS);
 	const svelteConfig = fs.existsSync(svelteConfigPath)
-		? commonFilePaths.svelteConfigTS
-		: commonFilePaths.svelteConfig;
+		? filePaths.svelteConfigTS
+		: filePaths.svelteConfig;
 
 	let dependencies: Record<string, string> = {};
 	if (override?.dependencies) {
@@ -113,7 +111,7 @@ export async function createWorkspace({
 			// we are still in the workspace (including the workspace root)
 			directory.length >= workspaceRoot.length
 		) {
-			if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+			if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
 				const { data: packageJson } = loadPackageJson(directory);
 				dependencies = {
 					...packageJson.devDependencies,
@@ -156,35 +154,35 @@ export async function createWorkspace({
 			/** @deprecated */
 			get prettierignore() {
 				svDeprecated(
-					'`workspace.file.prettierignore` is deprecated, use the string `".prettierignore"` directly'
+					'`workspace.file.prettierignore` is deprecated, use the string `.prettierignore` isntead.'
 				);
 				return '.prettierignore' as const;
 			},
 			/** @deprecated */
 			get prettierrc() {
 				svDeprecated(
-					'`workspace.file.prettierrc` is deprecated, use the string `".prettierrc"` directly'
+					'`workspace.file.prettierrc` is deprecated, use the string `.prettierrc` isntead.'
 				);
 				return '.prettierrc' as const;
 			},
 			/** @deprecated */
 			get eslintConfig() {
 				svDeprecated(
-					'`workspace.file.eslintConfig` is deprecated, use the string `"eslint.config.js"` directly'
+					'`workspace.file.eslintConfig` is deprecated, use the string `eslint.config.js` isntead.'
 				);
 				return 'eslint.config.js' as const;
 			},
 			/** @deprecated */
 			get vscodeSettings() {
 				svDeprecated(
-					'`workspace.file.vscodeSettings` is deprecated, use the string `".vscode/settings.json"` directly'
+					'`workspace.file.vscodeSettings` is deprecated, use the string `.vscode/settings.json` isntead.'
 				);
 				return '.vscode/settings.json' as const;
 			},
 			/** @deprecated */
 			get vscodeExtensions() {
 				svDeprecated(
-					'`workspace.file.vscodeExtensions` is deprecated, use the string `".vscode/extensions.json"` directly'
+					'`workspace.file.vscodeExtensions` is deprecated, use the string `.vscode/extensions.json` isntead.'
 				);
 				return '.vscode/extensions.json' as const;
 			},
@@ -217,7 +215,7 @@ function findWorkspaceRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {
-		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+		if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
 			// in pnpm it can be a file
 			if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
 				return directory;
