@@ -1,9 +1,4 @@
 import {
-	resolveCommand as _resolveCommand,
-	type Agent,
-	type Command
-} from 'package-manager-detector';
-import {
 	parseCss,
 	parseHtml,
 	parseJson,
@@ -16,20 +11,17 @@ import {
 // External re-exports
 export { default as dedent } from 'dedent';
 export * as Walker from 'zimmerframe';
+
+// Package managers (delegates to `package-manager-detector`; see `pm.ts`)
 export {
 	AGENTS,
 	type AgentName,
 	COMMANDS,
 	constructCommand,
 	detect,
-	resolveCommand
-} from 'package-manager-detector';
-
-/** Resolves a package manager command and returns it as a string array (command + args). */
-export function resolveCommandArray(agent: Agent, command: Command, args: string[]): string[] {
-	const cmd = _resolveCommand(agent, command, args)!;
-	return [cmd.command, ...cmd.args];
-}
+	resolveCommand,
+	resolveCommandArray
+} from './pm.ts';
 
 // Parsing & language namespaces
 export * as css from './tooling/css/index.ts';
@@ -80,16 +72,8 @@ export { createPrinter } from './utils.ts';
 export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
 
-// File system helpers
-export {
-	commonFilePaths,
-	fileExists,
-	getPackageJson,
-	installPackages,
-	readFile,
-	writeFile,
-	type Package
-} from './files.ts';
+// File system helpers (sync, workspace-relative paths)
+export { fileExists, loadFile, loadPackageJson, saveFile, type Package } from './files.ts';
 
 // Terminal styling
 export { color } from './color.ts';
@@ -97,3 +81,4 @@ export { color } from './color.ts';
 // Types
 export type { Comments, AstTypes, SvelteAst } from './tooling/index.ts';
 export type { TransformFn } from './tooling/transforms.ts';
+export type { YamlDocument } from './tooling/parsers.ts';

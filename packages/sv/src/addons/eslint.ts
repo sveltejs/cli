@@ -31,7 +31,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			file.eslintConfig,
+			'eslint.config.js',
 			transforms.script(({ ast, comments, js }) => {
 				const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
 				js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
@@ -156,14 +156,14 @@ export default defineAddon({
 		);
 
 		sv.file(
-			file.vscodeExtensions,
+			'.vscode/extensions.json',
 			transforms.json(({ data, json }) => {
 				json.arrayUpsert(data, 'recommendations', 'dbaeumer.vscode-eslint');
 			})
 		);
 
 		if (prettierInstalled) {
-			sv.file(file.eslintConfig, addEslintConfigPrettier);
+			sv.file('eslint.config.js', addEslintConfigPrettier);
 		}
 	}
 });

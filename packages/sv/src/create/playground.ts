@@ -5,11 +5,11 @@ import {
 	parse,
 	svelte,
 	downloadJson,
-	Walker,
-	commonFilePaths
+	Walker
 } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { filePaths } from '../core/common.ts';
 import { getSharedFiles } from './utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
@@ -241,7 +241,7 @@ export function setupPlaygroundProject(
 	fs.writeFileSync(filePath, newContent, 'utf-8');
 
 	// add packages as dependencies to package.json if requested
-	const pkgPath = path.join(cwd, commonFilePaths.packageJson);
+	const pkgPath = path.join(cwd, filePaths.packageJson);
 	const pkgSource = fs.readFileSync(pkgPath, 'utf-8');
 	const pkgJson = parse.json(pkgSource);
 	let updatePackageJson = false;
@@ -255,7 +255,7 @@ export function setupPlaygroundProject(
 
 	let experimentalAsyncNeeded = true;
 	const addExperimentalAsync = () => {
-		const svelteConfigPath = path.join(cwd, commonFilePaths.svelteConfig);
+		const svelteConfigPath = path.join(cwd, filePaths.svelteConfig);
 		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
 		const { ast, generateCode } = parse.script(svelteConfig);
 		const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
