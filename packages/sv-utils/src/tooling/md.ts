@@ -17,18 +17,13 @@ export function upsert(
 		return joinContent(content, linesToAdd);
 	}
 
-	const [headerLevel, ...headerNameArray] = header.split(' ');
-	const headerName = headerNameArray.join(' ');
-	const sectionRegex = new RegExp(`^(${headerLevel}) ${escapeRegex(headerName)}\\s*$`, 'm');
-	const headerMatch = content.match(sectionRegex);
+	const headerMatch = findHeader(content, header);
 
 	if (!headerMatch) {
 		return joinContent(content, header, linesToAdd);
 	}
+	const { end: headerLineEnd, after: restOfContent } = headerMatch;
 
-	const headerStart = headerMatch.index!;
-	const headerLineEnd = content.indexOf('\n', headerStart);
-	const restOfContent = headerLineEnd === -1 ? '' : content.slice(headerLineEnd + 1);
 	const nextHeaderMatch = restOfContent.match(HEADER_REGEX);
 
 	let insertPos: number;
@@ -73,4 +68,27 @@ function joinContent(...args: string[]): string {
 		result = `${prev}${separator}${curr}`;
 	}
 	return `${result}\n`;
+}
+
+function findHeader(
+	content: string,
+	header: Header
+): { before: string; after: string; start: number; end: number } | null {
+	const [headerLevel, ...headerNameArray] = header.split(' ');
+	const headerName = headerNameArray.join(' ');
+
+	const sectionRegex = new RegExp(`^(${headerLevel}) ${escapeRegex(headerName)}\\s*$`, 'm');
+	const headerMatch = content.match(sectionRegex);
+
+	if (!headerMatch) return null;
+
+	const start = headerMatch.index!;
+	const end = start + header.length;
+
+	return {
+		start,
+		end,
+		before: content.slice(0, start),
+		after: content.slice(end + 1)
+	};
 }
