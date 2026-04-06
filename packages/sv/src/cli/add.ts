@@ -20,7 +20,6 @@ import {
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
 import {
-	type CommunityAddonInfo,
 	discoverCommunityAddons,
 	downloadPackage,
 	getPackageJSON
@@ -442,42 +441,37 @@ export async function promptAddonQuestions({
 	// prompt which addons to apply (only when no addons were specified)
 	// Only show selection prompt if no addons were specified at all
 	if (addons.length === 0) {
-		// For the prompt, we only show official addons
+		// build official addon options
 		const officialLoaded = officialAddons.map((a) => createLoadedAddon(a));
 		const results = setupAddons(officialLoaded, workspace);
-		const addonOptions: Array<{ label: string; value: string; hint: string }> = officialAddons
-			// only display supported addons relative to the current environment
+		const officialIds = new Set(officialAddons.map((a) => a.id));
+
+		const officialOptions = officialAddons
 			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
-				hint: `${shortDescription} - ${color.website(homepage)}`
+				hint: `${shortDescription}${homepage ? ` - ${color.website(homepage)}` : ''}`
 			}));
 
-		// discover community addons from local and global node_modules
-		let communityAddons = discoverCommunityAddons(options.cwd);
-		// filter out any that share an id with an official addon
-		const officialIds = new Set(officialAddons.map((a) => a.id));
-		communityAddons = communityAddons.filter((c) => !officialIds.has(c.name));
+		// build community addon options from local and global node_modules
+		const communityAddons = discoverCommunityAddons(options.cwd).filter(
+			(c) => !officialIds.has(c.name)
+		);
 
-		for (const community of communityAddons) {
-			const sourceHint = community.local ? '[local]' : '[global]';
-			const displayName = community.name.endsWith('/sv')
-				? community.name.slice(0, -3)
-				: community.name;
-			const homepage = community.homepage
-				? ` - ${color.website(community.homepage)}`
-				: '';
-			addonOptions.push({
+		const communityOptions = communityAddons.map((c) => {
+			const displayName = c.name.endsWith('/sv') ? c.name.slice(0, -3) : c.name;
+			const homepage = c.homepage ? ` - ${color.website(c.homepage)}` : '';
+			return {
 				label: `${color.dim('[community]')} ${displayName}`,
-				value: community.name,
-				hint: `${sourceHint} ${community.shortDescription}${homepage}`
-			});
-		}
+				value: c.name,
+				hint: `[${c.source}] ${c.description}${homepage}`
+			};
+		});
 
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${color.dim('(use arrow keys / space bar)')}`,
-			options: addonOptions,
+			options: [...officialOptions, ...communityOptions],
 			required: false
 		});
 		if (p.isCancel(selected)) {
@@ -485,33 +479,26 @@ export async function promptAddonQuestions({
 			process.exit(1);
 		}
 
-		// separate official and community selections
-		const selectedOfficialIds = selected.filter((id) => officialIds.has(id));
-		const selectedCommunityNames = selected.filter((id) => !officialIds.has(id));
-
-		for (const id of selectedOfficialIds) {
-			const addon = getAddonDetails(id);
-			addons.push(createLoadedAddon(addon));
+		// handle official selections
+		for (const id of selected.filter((id) => officialIds.has(id))) {
+			addons.push(createLoadedAddon(getAddonDetails(id)));
 			answers[id] = {};
 		}
 
-		// resolve selected community addons
-		if (selectedCommunityNames.length > 0) {
-			const communityRefs = selectedCommunityNames.map((name) => {
+		// handle community selections
+		const selectedCommunity = selected
+			.filter((id) => !officialIds.has(id))
+			.map((name) => {
 				const info = communityAddons.find((c) => c.name === name);
-				const isLocal = info?.local ?? false;
-				return { name, isLocal };
+				return { name, source: info?.source ?? 'global' };
 			});
 
-			const addonInputs: AddonInput[] = communityRefs.map(({ name }) => ({
-				specifier: name,
-				options: []
-			}));
-
-			const refs = classifyAddons(addonInputs, options.cwd);
-
-			// skip the security warning for locally installed addons
-			const allLocal = communityRefs.every((r) => r.isLocal);
+		if (selectedCommunity.length > 0) {
+			const refs = classifyAddons(
+				selectedCommunity.map(({ name }) => ({ specifier: name, options: [] })),
+				options.cwd
+			);
+			const allLocal = selectedCommunity.every((c) => c.source === 'local');
 			const resolved = await resolveNonOfficialAddons(refs, !allLocal, {
 				skipWarning: allLocal
 			});
