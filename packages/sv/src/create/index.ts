@@ -21,7 +21,7 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = TemplateType | LanguageType | 'playground' | 'mcp';
+export type Condition = TemplateType | LanguageType | 'playground' | 'mcp' | 'skills';
 
 export type Common = {
 	files: Array<{

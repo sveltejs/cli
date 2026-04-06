@@ -148,7 +148,7 @@ await updatePackageFiles('packages/sv/src/create/templates', 'package.template.j
 // Update shared package.json files
 await updatePackageFiles('packages/sv/src/create/shared', 'package.json', 'shared');
 
-// Fetch the latest AGENTS.md from the MCP repo
+// Fetch the latest AGENTS.md from the ai-tools repo
 const agents_response = await fetch(
 	'https://raw.githubusercontent.com/sveltejs/ai-tools/refs/heads/main/tools/instructions/AGENTS.md'
 );
@@ -156,3 +156,37 @@ fs.writeFileSync(
 	path.resolve('packages', 'sv', 'src', 'create', 'shared', '+mcp', 'AGENTS.md'),
 	await agents_response.text()
 );
+
+// Fetch the latest skills from the ai-tools repo
+const skillsBase =
+	'https://raw.githubusercontent.com/sveltejs/ai-tools/refs/heads/main/tools/skills';
+const sharedSkillsBase = path.resolve('packages', 'sv', 'src', 'create', 'shared', '+skills');
+
+/** @param {string} skillPath */
+async function fetchSkillFile(skillPath) {
+	const response = await fetch(`${skillsBase}/${skillPath}`);
+	const dest = path.resolve(sharedSkillsBase, skillPath);
+	fs.mkdirSync(path.dirname(dest), { recursive: true });
+	fs.writeFileSync(dest, await response.text());
+}
+
+// Fetch skill files using the GitHub API to discover all files
+const skillsApiBase = 'https://api.github.com/repos/sveltejs/ai-tools/contents/tools/skills';
+
+/** @param {string} apiUrl */
+async function fetchSkillDir(apiUrl) {
+	const response = await fetch(apiUrl);
+	const entries = await response.json();
+	for (const entry of entries) {
+		if (entry.type === 'file') {
+			const skillPath = entry.path.replace('tools/skills/', '');
+			console.log(`  - fetching skill: ${styleText('blue', skillPath)}`);
+			await fetchSkillFile(skillPath);
+		} else if (entry.type === 'dir') {
+			await fetchSkillDir(entry.url);
+		}
+	}
+}
+
+console.log(`Fetching ${styleText(['cyanBright', 'bold'], 'skills')} from ai-tools repo`);
+await fetchSkillDir(skillsApiBase);

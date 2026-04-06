@@ -1,23 +1,29 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from 'vitest';
-import mcp from '../../mcp.ts';
+import aiTools from '../../ai-tools.ts';
 import { setupTest } from '../_setup/suite.ts';
 
 const { test, testCases } = setupTest(
-	{ mcp },
+	{ 'ai-tools': aiTools },
 	{
 		kinds: [
 			{
 				type: 'default-local',
 				options: {
-					mcp: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'local' }
+					'ai-tools': {
+						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
+						setup: 'local'
+					}
 				}
 			},
 			{
 				type: 'default-remote',
 				options: {
-					mcp: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'remote' }
+					'ai-tools': {
+						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
+						setup: 'remote'
+					}
 				}
 			}
 		],
@@ -45,12 +51,12 @@ const { test, testCases } = setupTest(
 	}
 );
 
-test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
+test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) => {
 	const cwd = ctx.cwd(testCase);
 
 	const getContent = (filePath: string) => {
-		const cursorPath = path.resolve(cwd, filePath);
-		return fs.readFileSync(cursorPath, 'utf8');
+		const fullPath = path.resolve(cwd, filePath);
+		return fs.readFileSync(fullPath, 'utf8');
 	};
 
 	const cursorMcpContent = getContent(`.cursor/mcp.json`);
@@ -214,4 +220,23 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			}
 		`);
 	}
+
+	// skills should be installed for claude-code and opencode
+	const claudeSkillsDir = path.resolve(cwd, '.claude/skills');
+	expect(fs.existsSync(claudeSkillsDir)).toBe(true);
+	expect(
+		fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-code-writer/SKILL.md'))
+	).toBe(true);
+	expect(
+		fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))
+	).toBe(true);
+
+	const opencodeSkillsDir = path.resolve(cwd, '.opencode/skills');
+	expect(fs.existsSync(opencodeSkillsDir)).toBe(true);
+	expect(
+		fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-code-writer/SKILL.md'))
+	).toBe(true);
+	expect(
+		fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))
+	).toBe(true);
 });

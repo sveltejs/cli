@@ -32,7 +32,7 @@ describe('cli', () => {
 				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
+				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
 				// 'storybook' // No storybook addon during tests!
 			]
 		},
@@ -93,9 +93,30 @@ describe('cli', () => {
 				projectName
 			);
 			const relativeFiles = fs.readdirSync(testOutputPath, { recursive: true }) as string[];
+
+			// Collect skill files per skill directory instead of snapshotting their content
+			const skillFiles: Record<string, string[]> = {};
+			const skillsPattern = /[\\/]skills[\\/]/;
+
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
 				if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
+
+				const normalized = relativeFile.replace(/\\/g, '/');
+
+				// Group skill files by skill directory for manifest comparison
+				if (skillsPattern.test(normalized)) {
+					const parts = normalized.split('/skills/');
+					const skillBase = parts[0] + '/skills';
+					const rest = parts[1];
+					const skillName = rest.split('/')[0];
+					const skillDir = `${skillBase}/${skillName}`;
+					const fileInSkill = rest.slice(skillName.length + 1);
+					skillFiles[skillDir] ??= [];
+					if (fileInSkill) skillFiles[skillDir].push(fileInSkill);
+					else skillFiles[skillDir].push(rest);
+					continue;
+				}
 
 				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
@@ -116,6 +137,15 @@ describe('cli', () => {
 				await expect(generated).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
+				);
+			}
+
+			// Compare skill file listings against sv-files-snapshots.md manifests
+			for (const [skillDir, files] of Object.entries(skillFiles)) {
+				const manifest = files.sort().join('\n') + '\n';
+				await expect(manifest).toMatchFileSnapshot(
+					path.resolve(snapPath, skillDir, 'sv-files-snapshots.md'),
+					`skill manifest "${skillDir}" does not match snapshot`
 				);
 			}
 

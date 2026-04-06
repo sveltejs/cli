@@ -53,7 +53,7 @@ Prevents installing dependencies
 - [`devtools-json`](devtools-json)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
-- [`mcp`](mcp)
+- [`ai-tools`](ai-tools)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
 - [`playwright`](playwright)

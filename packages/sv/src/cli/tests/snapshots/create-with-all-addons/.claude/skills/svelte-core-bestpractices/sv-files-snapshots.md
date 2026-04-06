@@ -1,0 +1,10 @@
+SKILL.md
+references/$inspect.md
+references/@attach.md
+references/@render.md
+references/await-expressions.md
+references/bind.md
+references/each.md
+references/hydratable.md
+references/snippet.md
+references/svelte-reactivity.md

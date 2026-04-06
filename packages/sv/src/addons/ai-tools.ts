@@ -32,9 +32,9 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'mcp',
-	shortDescription: 'Svelte MCP',
-	homepage: 'https://svelte.dev/docs/mcp',
+	id: 'ai-tools',
+	shortDescription: 'Svelte AI Tools',
+	homepage: 'https://svelte.dev/docs/ai',
 	options,
 	run: ({ sv, options }) => {
 		const getLocalConfig = (o?: {
@@ -72,14 +72,16 @@ export default defineAddon({
 					};
 					agentPath: string;
 					configPath: string;
+					skillsPath?: string;
 					customData?: Record<string, any>;
 					extraFiles?: Array<{ path: string; data: Record<string, any> }>;
 			  }
 			| { other: true }
 		> = {
 			'claude-code': {
-				agentPath: 'CLAUDE.md',
+				agentPath: '.claude/CLAUDE.md',
 				configPath: '.mcp.json',
+				skillsPath: '.claude/skills',
 				mcpOptions: {
 					typeLocal: 'stdio',
 					typeRemote: 'http',
@@ -101,6 +103,7 @@ export default defineAddon({
 			opencode: {
 				agentPath: 'AGENTS.md',
 				configPath: '.opencode/opencode.json',
+				skillsPath: '.opencode/skills',
 				schema: 'https://opencode.ai/config.json',
 				customData: { plugin: ['@sveltejs/opencode'] },
 				extraFiles: [
@@ -127,8 +130,10 @@ export default defineAddon({
 		const filesAdded: string[] = [];
 		const filesExistingAlready: string[] = [];
 
-		const sharedFiles = getSharedFiles().filter((file) => file.include.includes('mcp'));
-		const agentFile = sharedFiles.find((file) => file.name === 'AGENTS.md');
+		const sharedFiles = getSharedFiles();
+		const mcpFiles = sharedFiles.filter((file) => file.include.includes('mcp'));
+		const skillFiles = sharedFiles.filter((file) => file.include.includes('skills'));
+		const agentFile = mcpFiles.find((file) => file.name === 'AGENTS.md');
 
 		for (const ide of options.ide) {
 			const value = configurator[ide];
@@ -136,7 +141,8 @@ export default defineAddon({
 			if (value === undefined) continue;
 			if ('other' in value) continue;
 
-			const { mcpOptions, agentPath, configPath, schema, customData, extraFiles } = value;
+			const { mcpOptions, agentPath, configPath, skillsPath, schema, customData, extraFiles } =
+				value;
 
 			// We only add the agent file if it's not already added
 			if (!filesAdded.includes(agentPath)) {
@@ -184,12 +190,26 @@ export default defineAddon({
 					);
 				}
 			}
+
+			// Add skills for clients that support them
+			if (skillsPath) {
+				for (const file of skillFiles) {
+					const filePath = `${skillsPath}/${file.name}`;
+					sv.file(filePath, (content) => {
+						if (content) {
+							filesExistingAlready.push(filePath);
+							return false;
+						}
+						return file.contents;
+					});
+				}
+			}
 		}
 
 		if (filesExistingAlready.length > 0) {
 			log.warn(
 				`${filesExistingAlready.map((path) => color.path(path)).join(', ')} already exists, we didn't touch ${filesExistingAlready.length > 1 ? 'them' : 'it'}. ` +
-					`See ${color.website('https://svelte.dev/docs/mcp/overview#Usage')} for manual setup.`
+					`See ${color.website('https://svelte.dev/docs/ai')} for manual setup.`
 			);
 		}
 	},
