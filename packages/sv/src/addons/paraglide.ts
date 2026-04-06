@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, type SvelteAst, transforms } from '@sveltejs/sv-utils';
+import { color, createPrinter, dedent, type SvelteAst, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -54,6 +54,7 @@ export default defineAddon({
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, options, file, language, directory }) => {
+		const [ts] = createPrinter(language === 'ts');
 		const paraglideOutDir = `${directory.lib}/paraglide`;
 
 		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
@@ -209,9 +210,10 @@ export default defineAddon({
 					dedent`
 						<div style="display:none">
 							{#each locales as locale (locale)}
-								<a href={resolve(localizeHref(page.url.pathname, { locale })${language === 'ts' ? ' as Pathname' : ''})}>{locale}</a>
+								<a href={resolve(localizeHref(page.url.pathname, { locale })${ts(' as Pathname')})}>{locale}</a>
 							{/each}
-						</div>`
+						</div>`,
+					{ language }
 				);
 			})
 		);
