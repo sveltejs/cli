@@ -14,12 +14,20 @@ export type Package = {
 };
 
 /** Check if a file exists at the given workspace-relative path. */
+/**
+ * Checks the file.
+ * @param filePath - Resolves paths relative to the workspace.
+ */
 export function fileExists(cwd: string, filePath: string): boolean {
 	const fullFilePath = path.resolve(cwd, filePath);
 	return fs.existsSync(fullFilePath);
 }
 
-/** Synchronous load of a workspace-relative file; missing files yield `''`. */
+/**
+ * Reads the file.
+ * @param filePath - Resolves paths relative to the workspace.
+ * @returns The raw UTF-8 text, or `''` if the file is not found.
+ */
 export function loadFile(cwd: string, filePath: string): string {
 	const fullFilePath = path.resolve(cwd, filePath);
 
@@ -32,7 +40,10 @@ export function loadFile(cwd: string, filePath: string): string {
 	return text;
 }
 
-/** Synchronous write of a workspace-relative file (creates parent dirs). */
+/**
+ * Writes the file. Will make parent directories as needed.
+ * @param filePath - Resolves paths relative to the workspace.
+ */
 export function saveFile(cwd: string, filePath: string, content: string): void {
 	const fullFilePath = path.resolve(cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
@@ -47,6 +58,13 @@ export function saveFile(cwd: string, filePath: string, content: string): void {
 }
 
 /** Load and parse a workspace-relative `package.json`. Throws if missing or invalid. */
+/**
+ * Loads the workspace `package.json`.
+ * @returns
+ * - `source`: The raw UTF-8 text.
+ * - `data`: The parsed JSON object.
+ * - `generateCode`: A function to serialize the data back to a string.
+ */
 export function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;
