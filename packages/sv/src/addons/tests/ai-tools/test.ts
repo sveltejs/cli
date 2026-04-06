@@ -238,8 +238,6 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 	expect(fs.existsSync(path.resolve(cwd, '.claude/agents/svelte-file-editor.md'))).toBe(true);
 	expect(fs.existsSync(path.resolve(cwd, '.cursor/agents/svelte-file-editor.md'))).toBe(true);
 	expect(fs.existsSync(path.resolve(cwd, '.gemini/agents/svelte-file-editor.md'))).toBe(true);
-	expect(fs.existsSync(path.resolve(cwd, '.github/agents/svelte-file-editor.agent.md'))).toBe(
-		true
-	);
+	expect(fs.existsSync(path.resolve(cwd, '.github/agents/svelte-file-editor.agent.md'))).toBe(true);
 	expect(fs.existsSync(path.resolve(cwd, '.opencode/agents'))).toBe(false);
 });
