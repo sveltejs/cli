@@ -38,15 +38,15 @@ export type Workspace = {
 		package: 'package.json';
 		gitignore: '.gitignore';
 
-		/** @deprecated use the string `'.prettierignore'` directly */
+		/** @deprecated use the string `.prettierignore` instead. */
 		prettierignore: '.prettierignore';
-		/** @deprecated use the string `'.prettierrc'` directly */
+		/** @deprecated use the string `.prettierrc` instead. */
 		prettierrc: '.prettierrc';
-		/** @deprecated use the string `'eslint.config.js'` directly */
+		/** @deprecated use the string `eslint.config.js` instead. */
 		eslintConfig: 'eslint.config.js';
-		/** @deprecated use the string `'.vscode/settings.json'` directly */
+		/** @deprecated use the string `.vscode/settings.json` instead. */
 		vscodeSettings: '.vscode/settings.json';
-		/** @deprecated use the string `'.vscode/extensions.json'` directly */
+		/** @deprecated use the string `.vscode/extensions.json` instead. */
 		vscodeExtensions: '.vscode/extensions.json';
 
 		/** Get the relative path between two files */
@@ -154,35 +154,35 @@ export async function createWorkspace({
 			/** @deprecated */
 			get prettierignore() {
 				svDeprecated(
-					'`workspace.file.prettierignore` is deprecated, use the string `".prettierignore"` directly'
+					'`workspace.file.prettierignore` is deprecated, use the string `.prettierignore` isntead.'
 				);
 				return '.prettierignore' as const;
 			},
 			/** @deprecated */
 			get prettierrc() {
 				svDeprecated(
-					'`workspace.file.prettierrc` is deprecated, use the string `".prettierrc"` directly'
+					'`workspace.file.prettierrc` is deprecated, use the string `.prettierrc` isntead.'
 				);
 				return '.prettierrc' as const;
 			},
 			/** @deprecated */
 			get eslintConfig() {
 				svDeprecated(
-					'`workspace.file.eslintConfig` is deprecated, use the string `"eslint.config.js"` directly'
+					'`workspace.file.eslintConfig` is deprecated, use the string `eslint.config.js` isntead.'
 				);
 				return 'eslint.config.js' as const;
 			},
 			/** @deprecated */
 			get vscodeSettings() {
 				svDeprecated(
-					'`workspace.file.vscodeSettings` is deprecated, use the string `".vscode/settings.json"` directly'
+					'`workspace.file.vscodeSettings` is deprecated, use the string `.vscode/settings.json` isntead.'
 				);
 				return '.vscode/settings.json' as const;
 			},
 			/** @deprecated */
 			get vscodeExtensions() {
 				svDeprecated(
-					'`workspace.file.vscodeExtensions` is deprecated, use the string `".vscode/extensions.json"` directly'
+					'`workspace.file.vscodeExtensions` is deprecated, use the string `.vscode/extensions.json` isntead.'
 				);
 				return '.vscode/extensions.json' as const;
 			},
