@@ -1,5 +1,5 @@
-import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from 'sv';
+import { transforms } from './sv-utils.js';
 
 const options = defineAddonOptions()
 	.add('who', {
