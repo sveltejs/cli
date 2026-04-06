@@ -13,12 +13,13 @@ export type Package = {
 	workspaces?: string[];
 };
 
+/** Check if a file exists at the given workspace-relative path. */
 export function fileExists(cwd: string, filePath: string): boolean {
 	const fullFilePath = path.resolve(cwd, filePath);
 	return fs.existsSync(fullFilePath);
 }
 
-/** Synchronous load of a workspace-relative file as UTF-8 text; missing files yield `''`. */
+/** Synchronous load of a workspace-relative file; missing files yield `''`. */
 export function loadFile(cwd: string, filePath: string): string {
 	const fullFilePath = path.resolve(cwd, filePath);
 
@@ -45,6 +46,7 @@ export function saveFile(cwd: string, filePath: string, content: string): void {
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
+/** Load and parse a workspace-relative `package.json`. Throws if missing or invalid. */
 export function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;
