@@ -8,15 +8,13 @@ export function upsert(
 	options?: {
 		header?: Header;
 		mode?: 'prepend' | 'append';
-		// position: Header
 	}
 ): string {
 	const { header, mode = 'append' } = options ?? {};
-
 	const linesToAdd = lines.filter(Boolean).join('\n');
 
 	if (!header) {
-		return joinContent(content, `${linesToAdd}\n`);
+		return joinContent(content, linesToAdd);
 	}
 
 	const [headerLevel, ...headerNameArray] = header.split(' ');
@@ -25,57 +23,54 @@ export function upsert(
 	const headerMatch = content.match(sectionRegex);
 
 	if (!headerMatch) {
-		const length = content.trim().length;
-		const separator = length ? '\n\n' : '';
-
-		return `${content.trimEnd()}${separator}${header}\n\n${linesToAdd}\n`;
+		return joinContent(content, header, linesToAdd);
 	}
 
 	const headerStart = headerMatch.index!;
 	const headerLineEnd = content.indexOf('\n', headerStart);
-	const restOfContent = content.slice(headerLineEnd + 1);
+	const restOfContent = headerLineEnd === -1 ? '' : content.slice(headerLineEnd + 1);
 	const nextHeaderMatch = restOfContent.match(HEADER_REGEX);
 
-	if (headerLineEnd === -1) {
-		return joinContent(content, `${linesToAdd}\n`);
-	}
-
-	if (!nextHeaderMatch) {
-		if (mode === 'prepend') {
-			const before = content.slice(0, headerLineEnd + 1);
-			const after = content.slice(headerLineEnd + 1).replace(/^\n/, '');
-			return `${before}\n${linesToAdd}\n${after}\n`;
-		}
-		return joinContent(content, `${linesToAdd}\n`);
-	}
-
-	const nextHeaderIndex = restOfContent.indexOf(nextHeaderMatch[0]);
-	const insertPos = headerLineEnd + 1 + nextHeaderIndex;
-
+	let insertPos: number;
 	if (mode === 'prepend') {
-		const before = content.slice(0, headerLineEnd + 1);
-		const middle = content.slice(headerLineEnd + 1, insertPos).replace(/^\n/, '');
-		const after = content.slice(insertPos);
-		return `${before}\n${linesToAdd}\n${middle}${after}`;
+		insertPos = headerLineEnd + 1;
+	} else if (nextHeaderMatch) {
+		insertPos = headerLineEnd + 1 + restOfContent.indexOf(nextHeaderMatch[0]);
+	} else {
+		insertPos = content.length;
 	}
 
 	const before = content.slice(0, insertPos);
 	const after = content.slice(insertPos);
 
-	return joinContent(before, linesToAdd) + '\n\n' + after;
+	return joinContent(before, linesToAdd, after);
 }
 
 function escapeRegex(str: string): string {
 	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function joinContent(content: string, newContent: string) {
-	const trimmedContent = content.trimEnd();
-	if (!trimmedContent) return `${newContent}`;
+/**
+ * Ensure the distance between a header and a non-header is always \n\n
+ */
+function joinContent(...args: string[]): string {
+	const trimmedArgs = args.map((content) => content.trim()).filter((content) => content !== '');
 
-	const lastLine = trimmedContent.split('\n').at(-1) ?? '';
-	const isMdHeader = HEADER_REGEX.test(lastLine);
-	const separator = isMdHeader ? '\n\n' : '\n';
+	if (trimmedArgs.length === 0) return '';
+	if (trimmedArgs.length === 1) return `${trimmedArgs[0]}\n`;
 
-	return `${trimmedContent}${separator}${newContent}`;
+	let result = trimmedArgs[0];
+	for (let i = 1; i < trimmedArgs.length; i++) {
+		const prev = result.trimEnd();
+		const prevLastLine = prev.split('\n').at(-1)!;
+		const prevIsHeader = HEADER_REGEX.test(prevLastLine);
+
+		const curr = trimmedArgs[i];
+		const currFirstLine = curr.split('\n').at(0)!;
+		const currIsHeader = HEADER_REGEX.test(currFirstLine);
+
+		const separator = prevIsHeader || currIsHeader ? '\n\n' : '\n';
+		result = `${prev}${separator}${curr}`;
+	}
+	return `${result}\n`;
 }
