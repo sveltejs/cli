@@ -46,6 +46,12 @@ export type Workspace = {
 
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
+
+		/**
+		 * Find a file by walking up the directory tree from cwd.
+		 * Returns the relative path from cwd, or the filename itself if not found.
+		 */
+		findUp: (filename: string) => string;
 	};
 	isKit: boolean;
 	directory: {
@@ -155,6 +161,15 @@ export async function createWorkspace({
 					relativePath = `./${relativePath}`;
 				}
 				return relativePath;
+			},
+			findUp(filename) {
+				const found = find.up(filename, { cwd: resolvedCwd });
+				if (!found) return filename;
+				// don't escape .test-output during tests
+				if (resolvedCwd.includes('.test-output') && !found.includes('.test-output')) {
+					return filename;
+				}
+				return path.relative(resolvedCwd, found);
 			}
 		},
 		isKit,

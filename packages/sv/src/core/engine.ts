@@ -71,11 +71,9 @@ export async function applyAddons({
 	options
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
-	pnpmBuildDependencies: string[];
 	status: Record<string, string[] | 'success'>;
 }> {
 	const filesToFormat = new Set<string>();
-	const allPnpmBuildDependencies: string[] = [];
 	const status: Record<string, string[] | 'success'> = {};
 
 	const addonDefs = loadedAddons.map((l) => l.addon);
@@ -95,7 +93,7 @@ export async function applyAddons({
 		// If we don't have a formatter yet, check if the addon adds one
 		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
-		const { files, pnpmBuildDependencies, cancels } = await runAddon({
+		const { files, cancels } = await runAddon({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
@@ -104,7 +102,6 @@ export async function applyAddons({
 		});
 
 		files.forEach((f) => filesToFormat.add(f));
-		pnpmBuildDependencies.forEach((s) => allPnpmBuildDependencies.push(s));
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
 		} else {
@@ -114,7 +111,6 @@ export async function applyAddons({
 
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
-		pnpmBuildDependencies: allPnpmBuildDependencies,
 		status
 	};
 }
@@ -176,7 +172,6 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	}
 
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
-	const pnpmBuildDependencies: string[] = [];
 	const sv: SvApi = {
 		file: (path, edit) => {
 			try {
@@ -225,9 +220,6 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		},
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
-		},
-		pnpmBuildDependency: (pkg) => {
-			pnpmBuildDependencies.push(pkg);
 		}
 	};
 
@@ -256,7 +248,6 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 
 	return {
 		files: Array.from(files),
-		pnpmBuildDependencies,
 		cancels
 	};
 }
