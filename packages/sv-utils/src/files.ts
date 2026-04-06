@@ -13,7 +13,6 @@ export type Package = {
 	workspaces?: string[];
 };
 
-/** Check if a file exists at the given workspace-relative path. */
 /**
  * Checks the file.
  * @param filePath - Resolves paths relative to the workspace.
@@ -57,7 +56,6 @@ export function saveFile(cwd: string, filePath: string, content: string): void {
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
-/** Load and parse a workspace-relative `package.json`. Throws if missing or invalid. */
 /**
  * Loads the workspace `package.json`.
  * @returns
