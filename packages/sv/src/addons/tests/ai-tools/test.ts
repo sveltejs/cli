@@ -224,19 +224,15 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 	// skills should be installed for claude-code and opencode
 	const claudeSkillsDir = path.resolve(cwd, '.claude/skills');
 	expect(fs.existsSync(claudeSkillsDir)).toBe(true);
-	expect(
-		fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-code-writer/SKILL.md'))
-	).toBe(true);
-	expect(
-		fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))
-	).toBe(true);
+	expect(fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-code-writer/SKILL.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))).toBe(
+		true
+	);
 
 	const opencodeSkillsDir = path.resolve(cwd, '.opencode/skills');
 	expect(fs.existsSync(opencodeSkillsDir)).toBe(true);
-	expect(
-		fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-code-writer/SKILL.md'))
-	).toBe(true);
-	expect(
-		fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))
-	).toBe(true);
+	expect(fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-code-writer/SKILL.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))).toBe(
+		true
+	);
 });
