@@ -19,7 +19,12 @@ import {
 	getErrorHint
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
-import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
+import {
+	type CommunityAddonInfo,
+	discoverCommunityAddons,
+	downloadPackage,
+	getPackageJSON
+} from '../core/fetch-packages.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
@@ -440,14 +445,35 @@ export async function promptAddonQuestions({
 		// For the prompt, we only show official addons
 		const officialLoaded = officialAddons.map((a) => createLoadedAddon(a));
 		const results = setupAddons(officialLoaded, workspace);
-		const addonOptions = officialAddons
+		const addonOptions: Array<{ label: string; value: string; hint: string }> = officialAddons
 			// only display supported addons relative to the current environment
 			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
-				hint: `${shortDescription} - ${homepage}`
+				hint: `${shortDescription} - ${color.website(homepage)}`
 			}));
+
+		// discover community addons from local and global node_modules
+		let communityAddons = discoverCommunityAddons(options.cwd);
+		// filter out any that share an id with an official addon
+		const officialIds = new Set(officialAddons.map((a) => a.id));
+		communityAddons = communityAddons.filter((c) => !officialIds.has(c.name));
+
+		for (const community of communityAddons) {
+			const sourceHint = community.local ? '[local]' : '[global]';
+			const displayName = community.name.endsWith('/sv')
+				? community.name.slice(0, -3)
+				: community.name;
+			const homepage = community.homepage
+				? ` - ${color.website(community.homepage)}`
+				: '';
+			addonOptions.push({
+				label: `${color.dim('[community]')} ${displayName}`,
+				value: community.name,
+				hint: `${sourceHint} ${community.shortDescription}${homepage}`
+			});
+		}
 
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${color.dim('(use arrow keys / space bar)')}`,
@@ -459,11 +485,44 @@ export async function promptAddonQuestions({
 			process.exit(1);
 		}
 
-		for (const id of selected) {
-			// Create LoadedAddon for newly selected official addon
+		// separate official and community selections
+		const selectedOfficialIds = selected.filter((id) => officialIds.has(id));
+		const selectedCommunityNames = selected.filter((id) => !officialIds.has(id));
+
+		for (const id of selectedOfficialIds) {
 			const addon = getAddonDetails(id);
 			addons.push(createLoadedAddon(addon));
 			answers[id] = {};
+		}
+
+		// resolve selected community addons
+		if (selectedCommunityNames.length > 0) {
+			const communityRefs = selectedCommunityNames.map((name) => {
+				const info = communityAddons.find((c) => c.name === name);
+				const isLocal = info?.local ?? false;
+				return { name, isLocal };
+			});
+
+			const addonInputs: AddonInput[] = communityRefs.map(({ name }) => ({
+				specifier: name,
+				options: []
+			}));
+
+			const refs = classifyAddons(addonInputs, options.cwd);
+
+			// skip the security warning for locally installed addons
+			const allLocal = communityRefs.every((r) => r.isLocal);
+			const resolved = await resolveNonOfficialAddons(refs, !allLocal, {
+				skipWarning: allLocal
+			});
+
+			for (let i = 0; i < refs.length; i++) {
+				const addon = resolved[i];
+				if (addon) {
+					addons.push({ reference: refs[i], addon });
+					answers[addon.id] = {};
+				}
+			}
 		}
 
 		// Re-run setup for all selected addons (including any that were added via CLI options)
@@ -952,7 +1011,8 @@ function getOptionChoices(details: AddonDefinition) {
 
 export async function resolveNonOfficialAddons(
 	refs: AddonReference[],
-	downloadCheck: boolean
+	downloadCheck: boolean,
+	options?: { skipWarning?: boolean }
 ): Promise<AddonDefinition[]> {
 	const selectedAddons: AddonDefinition[] = [];
 	const { start, stop } = p.spinner();
@@ -977,9 +1037,11 @@ export async function resolveNonOfficialAddons(
 			}
 		}
 
-		p.log.warn(
-			'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
-		);
+		if (!options?.skipWarning) {
+			p.log.warn(
+				'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
+			);
+		}
 
 		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
 		const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));

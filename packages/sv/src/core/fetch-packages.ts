@@ -1,4 +1,5 @@
 import { color, downloadJson, splitVersion } from '@sveltejs/sv-utils';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
@@ -211,4 +212,110 @@ export async function getPackageJSON(ref: AddonReference): Promise<{
 		repo: pkg.repository?.url ?? source.npmUrl,
 		warning
 	};
+}
+
+export type CommunityAddonInfo = {
+	name: string;
+	version: string;
+	shortDescription: string;
+	homepage: string;
+	/** Whether the addon was found in local node_modules (vs global) */
+	local: boolean;
+};
+
+const SV_ADD_KEYWORD = 'sv-add';
+
+/**
+ * Scans a node_modules directory (depth 0) for packages with the `sv-add` keyword.
+ */
+function scanNodeModules(nodeModulesPath: string, local: boolean): CommunityAddonInfo[] {
+	const addons: CommunityAddonInfo[] = [];
+
+	if (!fs.existsSync(nodeModulesPath)) return addons;
+
+	const entries = fs.readdirSync(nodeModulesPath, { withFileTypes: true });
+
+	for (const entry of entries) {
+		if (entry.name === '.package-lock.json' || entry.name === '.cache') continue;
+
+		// handle scoped packages (@scope/pkg)
+		if (entry.name.startsWith('@') && entry.isDirectory()) {
+			const scopePath = path.join(nodeModulesPath, entry.name);
+			const scopedEntries = fs.readdirSync(scopePath, { withFileTypes: true });
+			for (const scopedEntry of scopedEntries) {
+				const info = readAddonInfo(
+					path.join(scopePath, scopedEntry.name),
+					`${entry.name}/${scopedEntry.name}`,
+					local
+				);
+				if (info) addons.push(info);
+			}
+		} else if (entry.isDirectory()) {
+			const info = readAddonInfo(path.join(nodeModulesPath, entry.name), entry.name, local);
+			if (info) addons.push(info);
+		}
+	}
+
+	return addons;
+}
+
+function readAddonInfo(
+	pkgDir: string,
+	name: string,
+	local: boolean
+): CommunityAddonInfo | undefined {
+	try {
+		const pkgJsonPath = path.join(pkgDir, 'package.json');
+		if (!fs.existsSync(pkgJsonPath)) return;
+
+		const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
+		const keywords: string[] = pkgJson.keywords ?? [];
+
+		if (!keywords.includes(SV_ADD_KEYWORD)) return;
+
+		// must have sv as a peerDependency
+		const peerDeps = pkgJson.peerDependencies ?? {};
+		if (!peerDeps['sv']) return;
+
+		return {
+			name: pkgJson.name ?? name,
+			version: pkgJson.version ?? '0.0.0',
+			shortDescription: pkgJson.description ?? '',
+			homepage: pkgJson.homepage ?? pkgJson.repository?.homepage ?? pkgJson.repository?.url ?? '',
+			local
+		};
+	} catch {
+		return;
+	}
+}
+
+/**
+ * Discovers community addons from local and global node_modules.
+ * Only returns packages with `sv-add` keyword and `sv` in peerDependencies.
+ */
+export function discoverCommunityAddons(cwd: string): CommunityAddonInfo[] {
+	const addons: CommunityAddonInfo[] = [];
+
+	// scan local node_modules
+	const localNodeModules = path.join(cwd, 'node_modules');
+	addons.push(...scanNodeModules(localNodeModules, true));
+
+	// scan global node_modules
+	try {
+		const globalRoot = execSync('npm root -g', { encoding: 'utf8' }).trim();
+		addons.push(...scanNodeModules(globalRoot, false));
+	} catch {
+		// silently ignore if npm root -g fails
+	}
+
+	// deduplicate (prefer local over global)
+	const seen = new Map<string, CommunityAddonInfo>();
+	for (const addon of addons) {
+		const existing = seen.get(addon.name);
+		if (!existing || addon.local) {
+			seen.set(addon.name, addon);
+		}
+	}
+
+	return Array.from(seen.values());
 }
