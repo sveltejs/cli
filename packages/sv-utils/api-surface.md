@@ -756,7 +756,6 @@ declare function saveFile(cwd: string, filePath: string, content: string): void;
 declare function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;
-	generateCode: () => string;
 };
 type ColorInput = string | string[];
 declare const color: {

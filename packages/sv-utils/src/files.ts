@@ -61,19 +61,18 @@ export function saveFile(cwd: string, filePath: string, content: string): void {
  * @returns
  * - `source`: The raw UTF-8 text.
  * - `data`: The parsed JSON object.
- * - `generateCode`: A function to serialize the data back to a string.
  */
 export function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;
-	generateCode: () => string;
 } {
-	const packageText = loadFile(cwd, 'package.json');
-	if (!packageText) {
+	const source = loadFile(cwd, 'package.json');
+
+	if (!source) {
 		const pkgPath = path.join(cwd, 'package.json');
 		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
-	const { data, generateCode } = parseJson(packageText);
-	return { source: packageText, data: data as Package, generateCode };
+	const { data } = parseJson(source);
+	return { source, data: data as Package };
 }

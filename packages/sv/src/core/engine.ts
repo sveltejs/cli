@@ -4,6 +4,7 @@ import {
 	fileExists,
 	loadFile,
 	loadPackageJson,
+	parse,
 	saveFile,
 	resolveCommand,
 	type AgentName
@@ -25,7 +26,7 @@ import { TESTING } from './env.ts';
 import { addPnpmOnlyBuiltDependencies } from './package-manager.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
-function alphabetizePackageJsonDependencies(obj: Record<string, string>) {
+function alphabetizeRecord(obj: Record<string, string>) {
 	const ordered: Record<string, string> = {};
 	for (const [key, value] of Object.entries(obj).sort(([a], [b]) => a.localeCompare(b))) {
 		ordered[key] = value;
@@ -37,7 +38,8 @@ function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
 	cwd: string
 ): string {
-	const { data, generateCode } = loadPackageJson(cwd);
+	const { source } = loadPackageJson(cwd);
+	const { data, generateCode } = parse.json(source);
 
 	for (const dependency of dependencies) {
 		if (dependency.dev) {
@@ -49,9 +51,8 @@ function updatePackages(
 		}
 	}
 
-	if (data.dependencies) data.dependencies = alphabetizePackageJsonDependencies(data.dependencies);
-	if (data.devDependencies)
-		data.devDependencies = alphabetizePackageJsonDependencies(data.devDependencies);
+	if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
+	if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
 
 	saveFile(cwd, filePaths.packageJson, generateCode());
 	return filePaths.packageJson;
