@@ -108,10 +108,9 @@ export default defineConfig([
 				'@types/estree',
 				'estree',
 				'yaml',
-				'dedent',
 				'package-manager-detector'
 			],
-			onlyBundle: ['smol-toml', 'zimmerframe']
+			onlyBundle: ['smol-toml', 'zimmerframe', 'dedent']
 		}
 	}
 ]);

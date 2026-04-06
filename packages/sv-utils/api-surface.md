@@ -194,11 +194,17 @@ declare function parseSvelte(source: string): {
 declare function parseToml(source: string): {
 	data: TomlTable;
 } & ParseBase;
-
-type Dedent = {
+interface DedentOptions {
+	alignValues?: boolean;
+	escapeSpecialCharacters?: boolean;
+	trimWhitespace?: boolean;
+}
+interface Dedent {
+	(literals: string): string;
 	(strings: TemplateStringsArray, ...values: unknown[]): string;
-	(source: string): string;
-};
+	withOptions: CreateDedent;
+}
+type CreateDedent = (options: DedentOptions) => Dedent;
 declare const dedent: Dedent;
 declare module 'zimmerframe' {
 	export function walk<

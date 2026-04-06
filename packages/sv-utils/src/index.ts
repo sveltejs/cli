@@ -9,7 +9,7 @@ import {
 } from './tooling/parsers.ts';
 
 // External re-exports
-export { default as dedent } from './dedent.ts';
+export { default as dedent } from 'dedent';
 export * as Walker from 'zimmerframe';
 
 // Package managers (delegates to `package-manager-detector`; see `pm.ts`)
