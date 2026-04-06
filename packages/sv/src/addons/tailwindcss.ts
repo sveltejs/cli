@@ -1,4 +1,4 @@
-import { transforms } from '@sveltejs/sv-utils';
+import { pnpm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const plugins = [
@@ -30,12 +30,14 @@ export default defineAddon({
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
-	run: ({ sv, options, file, isKit, directory, dependencyVersion, language }) => {
+	run: ({ sv, options, file, isKit, directory, dependencyVersion, language, packageManager }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('tailwindcss', '^4.2.2');
 		sv.devDependency('@tailwindcss/vite', '^4.2.2');
-		sv.pnpmBuildDependency('@tailwindcss/oxide');
+		if (packageManager === 'pnpm') {
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.onlyBuiltDependencies('@tailwindcss/oxide'));
+		}
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
 
