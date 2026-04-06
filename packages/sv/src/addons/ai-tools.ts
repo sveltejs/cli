@@ -29,6 +29,20 @@ const options = defineAddonOptions()
 		required: true,
 		condition: ({ ide }) => !(ide.length === 1 && ide.includes('opencode'))
 	})
+	.add('skills', {
+		question: 'Do you want to install skills?',
+		type: 'select',
+		default: 'files',
+		options: [
+			{ value: 'files', label: 'Add files to the project' },
+			{
+				value: 'none',
+				label: 'Skip',
+				hint: 'for Claude Code you can install the plugin instead: /plugin install svelte'
+			}
+		],
+		condition: ({ ide }) => ide.some((i) => i !== 'opencode' && i !== 'other')
+	})
 	.build();
 
 export default defineAddon({
@@ -73,6 +87,8 @@ export default defineAddon({
 					agentPath: string;
 					configPath: string;
 					skillsPath?: string;
+					agentsPath?: string;
+					agentExtension?: string;
 					customData?: Record<string, any>;
 					extraFiles?: Array<{ path: string; data: Record<string, any> }>;
 			  }
@@ -82,6 +98,7 @@ export default defineAddon({
 				agentPath: '.claude/CLAUDE.md',
 				configPath: '.mcp.json',
 				skillsPath: '.claude/skills',
+				agentsPath: '.claude/agents',
 				mcpOptions: {
 					typeLocal: 'stdio',
 					typeRemote: 'http',
@@ -91,11 +108,13 @@ export default defineAddon({
 			cursor: {
 				agentPath: 'AGENTS.md',
 				configPath: '.cursor/mcp.json',
+				agentsPath: '.cursor/agents',
 				mcpOptions: {}
 			},
 			gemini: {
 				agentPath: 'GEMINI.md',
 				configPath: '.gemini/settings.json',
+				agentsPath: '.gemini/agents',
 				schema:
 					'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
 				mcpOptions: {}
@@ -103,7 +122,6 @@ export default defineAddon({
 			opencode: {
 				agentPath: 'AGENTS.md',
 				configPath: '.opencode/opencode.json',
-				skillsPath: '.opencode/skills',
 				schema: 'https://opencode.ai/config.json',
 				customData: { plugin: ['@sveltejs/opencode'] },
 				extraFiles: [
@@ -118,6 +136,8 @@ export default defineAddon({
 			vscode: {
 				agentPath: 'AGENTS.md',
 				configPath: '.vscode/mcp.json',
+				agentsPath: '.github/agents',
+				agentExtension: '.agent.md',
 				mcpOptions: {
 					serversKey: 'servers'
 				}
@@ -133,6 +153,7 @@ export default defineAddon({
 		const sharedFiles = getSharedFiles();
 		const mcpFiles = sharedFiles.filter((file) => file.include.includes('mcp'));
 		const skillFiles = sharedFiles.filter((file) => file.include.includes('skills'));
+		const agentFiles = sharedFiles.filter((file) => file.include.includes('agents'));
 		const agentFile = mcpFiles.find((file) => file.name === 'AGENTS.md');
 
 		for (const ide of options.ide) {
@@ -141,8 +162,17 @@ export default defineAddon({
 			if (value === undefined) continue;
 			if ('other' in value) continue;
 
-			const { mcpOptions, agentPath, configPath, skillsPath, schema, customData, extraFiles } =
-				value;
+			const {
+				mcpOptions,
+				agentPath,
+				configPath,
+				skillsPath,
+				agentsPath,
+				agentExtension,
+				schema,
+				customData,
+				extraFiles
+			} = value;
 
 			// We only add the agent file if it's not already added
 			if (!filesAdded.includes(agentPath)) {
@@ -191,10 +221,26 @@ export default defineAddon({
 				}
 			}
 
-			// Add skills for clients that support them
-			if (skillsPath) {
+			// Add skills for clients that support them (not opencode - plugin handles it)
+			if (skillsPath && options.skills === 'files') {
 				for (const file of skillFiles) {
 					const filePath = `${skillsPath}/${file.name}`;
+					sv.file(filePath, (content) => {
+						if (content) {
+							filesExistingAlready.push(filePath);
+							return false;
+						}
+						return file.contents;
+					});
+				}
+			}
+
+			// Add sub-agents for clients that support them (not opencode - plugin handles it)
+			if (agentsPath) {
+				for (const file of agentFiles) {
+					const ext = agentExtension ?? '.md';
+					const name = file.name.replace(/\.md$/, ext);
+					const filePath = `${agentsPath}/${name}`;
 					sv.file(filePath, (content) => {
 						if (content) {
 							filesExistingAlready.push(filePath);

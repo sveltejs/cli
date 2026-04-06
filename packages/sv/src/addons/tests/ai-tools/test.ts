@@ -13,7 +13,8 @@ const { test, testCases } = setupTest(
 				options: {
 					'ai-tools': {
 						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
-						setup: 'local'
+						setup: 'local',
+						skills: 'files'
 					}
 				}
 			},
@@ -22,7 +23,8 @@ const { test, testCases } = setupTest(
 				options: {
 					'ai-tools': {
 						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
-						setup: 'remote'
+						setup: 'remote',
+						skills: 'files'
 					}
 				}
 			}
@@ -221,7 +223,7 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		`);
 	}
 
-	// skills should be installed for claude-code and opencode
+	// skills should be installed for claude-code only (opencode uses plugin)
 	const claudeSkillsDir = path.resolve(cwd, '.claude/skills');
 	expect(fs.existsSync(claudeSkillsDir)).toBe(true);
 	expect(fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-code-writer/SKILL.md'))).toBe(true);
@@ -229,10 +231,15 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		true
 	);
 
-	const opencodeSkillsDir = path.resolve(cwd, '.opencode/skills');
-	expect(fs.existsSync(opencodeSkillsDir)).toBe(true);
-	expect(fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-code-writer/SKILL.md'))).toBe(true);
-	expect(fs.existsSync(path.resolve(opencodeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))).toBe(
+	// opencode should NOT have skills (plugin handles it)
+	expect(fs.existsSync(path.resolve(cwd, '.opencode/skills'))).toBe(false);
+
+	// sub-agents should be installed for all clients except opencode
+	expect(fs.existsSync(path.resolve(cwd, '.claude/agents/svelte-file-editor.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(cwd, '.cursor/agents/svelte-file-editor.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(cwd, '.gemini/agents/svelte-file-editor.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(cwd, '.github/agents/svelte-file-editor.agent.md'))).toBe(
 		true
 	);
+	expect(fs.existsSync(path.resolve(cwd, '.opencode/agents'))).toBe(false);
 });

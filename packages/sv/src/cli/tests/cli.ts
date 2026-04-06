@@ -32,7 +32,7 @@ describe('cli', () => {
 				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
+				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local+skills:files'
 				// 'storybook' // No storybook addon during tests!
 			]
 		},
@@ -94,9 +94,10 @@ describe('cli', () => {
 			);
 			const relativeFiles = fs.readdirSync(testOutputPath, { recursive: true }) as string[];
 
-			// Collect skill files per skill directory instead of snapshotting their content
-			const skillFiles: Record<string, string[]> = {};
-			const skillsPattern = /[\\/]skills[\\/]/;
+			// Files from ai-tools repo (skills, agents) change independently -
+			// snapshot only file listings, not content
+			const aiToolsFiles: Record<string, string[]> = {};
+			const aiToolsPattern = /[\\/](skills|agents)[\\/]/;
 
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
@@ -104,17 +105,14 @@ describe('cli', () => {
 
 				const normalized = relativeFile.replace(/\\/g, '/');
 
-				// Group skill files by skill directory for manifest comparison
-				if (skillsPattern.test(normalized)) {
-					const parts = normalized.split('/skills/');
-					const skillBase = parts[0] + '/skills';
-					const rest = parts[1];
-					const skillName = rest.split('/')[0];
-					const skillDir = `${skillBase}/${skillName}`;
-					const fileInSkill = rest.slice(skillName.length + 1);
-					skillFiles[skillDir] ??= [];
-					if (fileInSkill) skillFiles[skillDir].push(fileInSkill);
-					else skillFiles[skillDir].push(rest);
+				// Group ai-tools files by directory for manifest comparison
+				if (aiToolsPattern.test(normalized)) {
+					const match = normalized.match(/(.+\/(?:skills|agents))\/(.*)/);
+					if (match) {
+						const [, base, rest] = match;
+						aiToolsFiles[base] ??= [];
+						aiToolsFiles[base].push(rest);
+					}
 					continue;
 				}
 
@@ -140,12 +138,12 @@ describe('cli', () => {
 				);
 			}
 
-			// Compare skill file listings against sv-files-snapshots.md manifests
-			for (const [skillDir, files] of Object.entries(skillFiles)) {
+			// Compare ai-tools file listings against sv-files-snapshots.md manifests
+			for (const [dir, files] of Object.entries(aiToolsFiles)) {
 				const manifest = files.sort().join('\n') + '\n';
 				await expect(manifest).toMatchFileSnapshot(
-					path.resolve(snapPath, skillDir, 'sv-files-snapshots.md'),
-					`skill manifest "${skillDir}" does not match snapshot`
+					path.resolve(snapPath, dir, 'sv-files-snapshots.md'),
+					`ai-tools manifest "${dir}" does not match snapshot`
 				);
 			}
 

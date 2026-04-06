@@ -190,3 +190,22 @@ async function fetchSkillDir(apiUrl) {
 
 console.log(`Fetching ${styleText(['cyanBright', 'bold'], 'skills')} from ai-tools repo`);
 await fetchSkillDir(skillsApiBase);
+
+// Fetch the latest agents from the ai-tools repo
+const agentsBase =
+	'https://raw.githubusercontent.com/sveltejs/ai-tools/refs/heads/main/tools/agents';
+const sharedAgentsBase = path.resolve('packages', 'sv', 'src', 'create', 'shared', '+agents');
+const agentsApiBase = 'https://api.github.com/repos/sveltejs/ai-tools/contents/tools/agents';
+
+console.log(`Fetching ${styleText(['cyanBright', 'bold'], 'agents')} from ai-tools repo`);
+const agentsResponse = await fetch(agentsApiBase);
+const agentEntries = await agentsResponse.json();
+for (const entry of agentEntries) {
+	if (entry.type === 'file') {
+		const agentName = entry.name;
+		console.log(`  - fetching agent: ${styleText('blue', agentName)}`);
+		const response = await fetch(`${agentsBase}/${agentName}`);
+		fs.mkdirSync(sharedAgentsBase, { recursive: true });
+		fs.writeFileSync(path.resolve(sharedAgentsBase, agentName), await response.text());
+	}
+}
