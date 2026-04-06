@@ -9,7 +9,7 @@ import {
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import { commonFilePaths } from './common.ts';
+import { filePaths } from './common.ts';
 import { svDeprecated } from './deprecated.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
@@ -87,18 +87,16 @@ export async function createWorkspace({
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
-	const typeConfigOptions = [commonFilePaths.jsconfig, commonFilePaths.tsconfig];
+	const typeConfigOptions = [filePaths.jsconfig, filePaths.tsconfig];
 	const typeConfig = find.any(typeConfigOptions, { cwd }) as Workspace['file']['typeConfig'];
-	const typescript = typeConfig?.endsWith(commonFilePaths.tsconfig) ?? false;
+	const typescript = typeConfig?.endsWith(filePaths.tsconfig) ?? false;
 	// This is not linked with typescript detection
-	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	const viteConfig = fs.existsSync(viteConfigPath)
-		? commonFilePaths.viteConfigTS
-		: commonFilePaths.viteConfig;
-	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const viteConfigPath = path.join(resolvedCwd, filePaths.viteConfigTS);
+	const viteConfig = fs.existsSync(viteConfigPath) ? filePaths.viteConfigTS : filePaths.viteConfig;
+	const svelteConfigPath = path.join(resolvedCwd, filePaths.svelteConfigTS);
 	const svelteConfig = fs.existsSync(svelteConfigPath)
-		? commonFilePaths.svelteConfigTS
-		: commonFilePaths.svelteConfig;
+		? filePaths.svelteConfigTS
+		: filePaths.svelteConfig;
 
 	let dependencies: Record<string, string> = {};
 	if (override?.dependencies) {
@@ -113,7 +111,7 @@ export async function createWorkspace({
 			// we are still in the workspace (including the workspace root)
 			directory.length >= workspaceRoot.length
 		) {
-			if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+			if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
 				const { data: packageJson } = loadPackageJson(directory);
 				dependencies = {
 					...packageJson.devDependencies,
@@ -217,7 +215,7 @@ function findWorkspaceRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {
-		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+		if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
 			// in pnpm it can be a file
 			if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
 				return directory;

@@ -10,7 +10,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
-import { commonFilePaths } from './common.ts';
+import { filePaths } from './common.ts';
 import {
 	getErrorHint,
 	type Addon,
@@ -53,8 +53,8 @@ function updatePackages(
 	if (data.devDependencies)
 		data.devDependencies = alphabetizePackageJsonDependencies(data.devDependencies);
 
-	saveFile(cwd, commonFilePaths.packageJson, generateCode());
-	return commonFilePaths.packageJson;
+	saveFile(cwd, filePaths.packageJson, generateCode());
+	return filePaths.packageJson;
 }
 
 export type InstallOptions<Addons extends AddonMap> = {

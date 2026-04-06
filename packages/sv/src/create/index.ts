@@ -1,7 +1,7 @@
 import { sanitizeName } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
-import { commonFilePaths } from '../core/common.ts';
+import { filePaths } from '../core/common.ts';
 import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
@@ -81,7 +81,7 @@ function write_template_files(template: string, types: LanguageType, name: strin
 function write_common_files(cwd: string, options: Omit<Options, 'cwd'>, name: string) {
 	const files = getSharedFiles();
 
-	const pkg_file = path.join(cwd, commonFilePaths.packageJson);
+	const pkg_file = path.join(cwd, filePaths.packageJson);
 	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
 
 	sort_files(files).forEach((file) => {
@@ -90,7 +90,7 @@ function write_common_files(cwd: string, options: Omit<Options, 'cwd'>, name: st
 
 		if (exclude || !include) return;
 
-		if (file.name === commonFilePaths.packageJson) {
+		if (file.name === filePaths.packageJson) {
 			const new_pkg = JSON.parse(file.contents);
 			merge(pkg, new_pkg);
 		} else {
