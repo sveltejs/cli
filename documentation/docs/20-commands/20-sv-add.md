@@ -73,6 +73,17 @@ Prevents installing dependencies
 
 Community add-ons are npm packages published by the community. Look out for add-ons from your favourite libraries and tools. _(soon)_ Many developers are building `sv` add-ons to make their integrations a one-liner. You can find them on [npmx](https://www.npmx.dev/search?q=keyword:sv-add) by searching for the keyword: `sv-add`.
 
+### Automatic discovery
+
+Community add-ons installed in your project's `node_modules` or globally via `npm i -g` are automatically shown in the interactive selection prompt alongside official add-ons. Packages must have the `sv-add` keyword and `sv` as a peer dependency to be detected.
+
+- **[local]** add-ons are found in the project's `node_modules`
+- **[global]** add-ons are found in the global `node_modules`
+
+Local add-ons skip the security warning since they are already part of your project.
+
+### Manual usage
+
 ```sh
 # Install a community add-on by org name (it will look at @org/sv)
 npx sv add @supacool

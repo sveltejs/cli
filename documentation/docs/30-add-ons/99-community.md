@@ -167,10 +167,13 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 		// minimum version required to run by this add-on
 		"sv": "^0.13.0"
 	},
-	// Add the "sv-add" keyword so users can discover your add-on
+	// Required: makes your add-on discoverable in the interactive prompt
 	"keywords": ["sv-add", "svelte", "sveltekit"]
 }
 ```
+
+> [!NOTE]
+> The `sv-add` keyword combined with `sv` in `peerDependencies` is what makes your add-on automatically appear in the interactive selection prompt when installed locally or globally. Without these, users must specify your package name explicitly.
 
 ### Naming convention
 
