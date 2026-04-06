@@ -3,20 +3,21 @@
 '@sveltejs/sv-utils': minor
 ---
 
-feat: sv / sv-utils coupling, pnpm helpers, experimental add-ons, and API snapshots
-
-**Highlights**
-
-- Replace `sv.pnpmBuildDependency` with `sv.file` plus `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` and `file.findUp`.
+feat: decouple sv / sv-utils, explicit public API, deprecation pass
 
 **`@sveltejs/sv-utils`**
 
-- Add `pnpm.onlyBuiltDependencies` to append packages to `onlyBuiltDependencies` in pnpm YAML via `transforms.yaml`.
-- Type `YamlDocument` (`parse.yaml`) with `get` / `set` using `unknown` so consumers narrow explicitly; align YAML transforms with that contract.
+- Rename file helpers: `readFile` -> `loadFile`, `writeFile` -> `saveFile`, `getPackageJson` -> `loadPackageJson`
+- Add `pnpm.onlyBuiltDependencies()` transform for `pnpm-workspace.yaml`
+- Export `YamlDocument` type from parsers
+- Remove `commonFilePaths`, `installPackages` (moved internal to `sv`)
 
 **`sv`**
 
-- Refactor workspace / engine / package-manager flows around file IO and package JSON loading (`loadFile`, `saveFile`, `loadPackageJson`), and trim workspace addon path handling; update addons accordingly.
-- Reorganize the public `testing` entry for Vitest helpers and document the surface.
-- Add generated `api-surface` markdown snapshots and a `scripts/generate-api-surface.js` helper (wired through the build) to track the public API.
-- Remove deprecated `pnpmBuildDependency` usage and stop exporting internal pnpm-only-built helpers from the public `sv` surface.
+- `create()` signature changed to `create({ cwd, ...options })`. The old `create(cwd, options)` form still works but is deprecated and will be removed in the next major.
+- `sv.pnpmBuildDependency()` is deprecated. Use `sv.file()` with `pnpm.onlyBuiltDependencies()` from `@sveltejs/sv-utils` instead. Still works for now.
+- `workspace.file.prettierignore`, `.prettierrc`, `.eslintConfig`, `.vscodeSettings`, `.vscodeExtensions` are deprecated. Use the raw strings directly (e.g. `'.prettierignore'`). Still works for now.
+- Add `workspace.file.findUp()` to locate files by walking up the directory tree.
+- Make type exports explicit (no more `export type *`). Removed types that were never part of the intended public API: `PackageDefinition`, `Scripts`, `TestDefinition`.
+- Remove `setup`, `createProject`, `startPreview`, `addPnpmBuildDependencies` from `sv/testing` exports.
+- Add `api-surface.md` snapshots (auto-generated on build) to track the public API of `sv` and `@sveltejs/sv-utils`.
