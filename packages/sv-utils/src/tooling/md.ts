@@ -7,11 +7,11 @@ export function upsert(
 	lines: Array<string | false | undefined | null | 0 | 0n>,
 	options?: {
 		header?: Header;
-		// mode: 'prepend'|'append',
+		mode?: 'prepend' | 'append';
 		// position: Header
 	}
 ): string {
-	const { header } = options ?? {};
+	const { header, mode = 'append' } = options ?? {};
 
 	const linesToAdd = lines.filter(Boolean).join('\n');
 
@@ -36,12 +36,29 @@ export function upsert(
 	const restOfContent = content.slice(headerLineEnd + 1);
 	const nextHeaderMatch = restOfContent.match(HEADER_REGEX);
 
-	if (headerLineEnd === -1 || !nextHeaderMatch) {
+	if (headerLineEnd === -1) {
+		return joinContent(content, `${linesToAdd}\n`);
+	}
+
+	if (!nextHeaderMatch) {
+		if (mode === 'prepend') {
+			const before = content.slice(0, headerLineEnd + 1);
+			const after = content.slice(headerLineEnd + 1).replace(/^\n/, '');
+			return `${before}\n${linesToAdd}\n${after}\n`;
+		}
 		return joinContent(content, `${linesToAdd}\n`);
 	}
 
 	const nextHeaderIndex = restOfContent.indexOf(nextHeaderMatch[0]);
 	const insertPos = headerLineEnd + 1 + nextHeaderIndex;
+
+	if (mode === 'prepend') {
+		const before = content.slice(0, headerLineEnd + 1);
+		const middle = content.slice(headerLineEnd + 1, insertPos).replace(/^\n/, '');
+		const after = content.slice(insertPos);
+		return `${before}\n${linesToAdd}\n${middle}${after}`;
+	}
+
 	const before = content.slice(0, insertPos);
 	const after = content.slice(insertPos);
 

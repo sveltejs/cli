@@ -67,4 +67,30 @@ describe('md upsert', () => {
 		const result = upsert(content, ['new line'], {});
 		expect(result).toBe('existing content\nnew line\n');
 	});
+
+	it('should append by default', () => {
+		const content = '# Section\n\nold content\n\n## Next\n';
+		const withDefault = upsert(content, ['new'], { header: '# Section' });
+		const withExplicit = upsert(content, ['new'], { header: '# Section', mode: 'append' });
+		expect(withDefault).toBe('# Section\n\nold content\nnew\n\n## Next\n');
+		expect(withDefault).toBe(withExplicit);
+	});
+
+	it('adds content right after header', () => {
+		const content = '# Hello\n\nSome content\n\n## World\n';
+		const result = upsert(content, ['new line'], { header: '# Hello', mode: 'prepend' });
+		expect(result).toBe('# Hello\n\nnew line\nSome content\n\n## World\n');
+	});
+
+	it('prepend multiple lines', () => {
+		const content = '# Section\n\nexisting content';
+		const result = upsert(content, ['line 1', 'line 2'], { header: '# Section', mode: 'prepend' });
+		expect(result).toBe('# Section\n\nline 1\nline 2\nexisting content\n');
+	});
+
+	it('prepend works with different header levels', () => {
+		const content = '## H2\n\nexisting';
+		const result = upsert(content, ['new'], { header: '## H2', mode: 'prepend' });
+		expect(result).toBe('## H2\n\nnew\nexisting\n');
+	});
 });
