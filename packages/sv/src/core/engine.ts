@@ -106,8 +106,6 @@ export async function applyAddons({
 	options
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
-	/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
-	pnpmBuildDependencies: string[];
 	status: Record<string, string[] | 'success'>;
 }> {
 	const filesToFormat = new Set<string>();
@@ -148,8 +146,6 @@ export async function applyAddons({
 
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
-		/** @deprecated */
-		pnpmBuildDependencies: [],
 		status
 	};
 }

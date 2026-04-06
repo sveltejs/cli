@@ -10,20 +10,6 @@ type CreateProject = (options: {
 	variant: ProjectVariant;
 	clean?: boolean;
 }) => string;
-type SetupOptions = {
-	cwd: string;
-	variants: readonly ProjectVariant[];
-	clean?: boolean;
-};
-type CreateOptions = {
-	cwd: string;
-	testName: string;
-	templatesDir: string;
-};
-type PreviewOptions = {
-	cwd: string;
-	command?: string;
-};
 declare module 'vitest' {
 	interface ProvidedContext {
 		testDir: string;
@@ -86,23 +72,6 @@ declare function createSetupTest(
 	testCases: Array<AddonTestCase<AddonMap>>;
 	prepareServer: typeof prepareServer;
 };
-/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
-declare function addPnpmBuildDependencies(
-	cwd: string,
-	packageManager: AgentName | null | undefined,
-	allowedPackages: string[]
-): Promise<void>;
-/** @deprecated internal test utility, no longer part of the public API */
-declare function deprecatedSetup(options: SetupOptions): {
-	templatesDir: string;
-};
-/** @deprecated internal test utility, no longer part of the public API */
-declare function deprecatedCreateProject(options: CreateOptions): CreateProject;
-/** @deprecated internal test utility, no longer part of the public API */
-declare function deprecatedStartPreview(options: PreviewOptions): Promise<{
-	url: string;
-	close: () => Promise<void>;
-}>;
 export {
 	AddonTestCase,
 	CreateProject,
@@ -113,14 +82,7 @@ export {
 	ProjectVariant,
 	SetupTestOptions,
 	VitestContext,
-	addPnpmBuildDependencies,
-	deprecatedCreateProject as createProject,
-	deprecatedCreateProject,
 	createSetupTest,
-	deprecatedSetup,
-	deprecatedSetup as setup,
-	deprecatedStartPreview,
-	deprecatedStartPreview as startPreview,
 	prepareServer,
 	setupGlobal,
 	variants

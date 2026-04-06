@@ -1,5 +1,4 @@
 import type { Page } from '@playwright/test';
-import type { AgentName } from '@sveltejs/sv-utils';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -7,7 +6,6 @@ import process from 'node:process';
 import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
-import { svDeprecated } from './core/deprecated.ts';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
 import { addPnpmOnlyBuiltDependencies } from './core/package-manager.ts';
 import { create } from './create/index.ts';
@@ -372,41 +370,3 @@ export function createSetupTest(
 		return { test, testCases, prepareServer };
 	};
 }
-
-// Deprecated exports kept for backward compatibility, will be removed in next major.
-
-/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
-export function addPnpmBuildDependencies(
-	cwd: string,
-	packageManager: AgentName | null | undefined,
-	allowedPackages: string[]
-): Promise<void> {
-	svDeprecated(
-		'use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead of `addPnpmBuildDependencies`'
-	);
-	addPnpmOnlyBuiltDependencies(cwd, packageManager, ...allowedPackages);
-	return Promise.resolve();
-}
-
-/** @deprecated internal test utility, no longer part of the public API */
-export function deprecatedSetup(options: SetupOptions): { templatesDir: string } {
-	svDeprecated('`setup` from `sv/testing` is deprecated');
-	return setup(options);
-}
-export { deprecatedSetup as setup };
-
-/** @deprecated internal test utility, no longer part of the public API */
-export function deprecatedCreateProject(options: CreateOptions): CreateProject {
-	svDeprecated('`createProject` from `sv/testing` is deprecated');
-	return createProject(options);
-}
-export { deprecatedCreateProject as createProject };
-
-/** @deprecated internal test utility, no longer part of the public API */
-export function deprecatedStartPreview(
-	options: PreviewOptions
-): Promise<{ url: string; close: () => Promise<void> }> {
-	svDeprecated('`startPreview` from `sv/testing` is deprecated');
-	return Promise.resolve(startPreview(options));
-}
-export { deprecatedStartPreview as startPreview };

@@ -57,19 +57,3 @@ export type {
 export type { Workspace, WorkspaceOptions } from './core/workspace.ts';
 
 export type { FileEditor, FileType } from './core/processors.ts';
-
-// Deprecated types kept for backward compatibility, will be removed in next major.
-export type {
-	/** @deprecated not part of the public API */
-	ConditionDefinition,
-	/** @deprecated not part of the public API */
-	PackageDefinition,
-	/** @deprecated not part of the public API */
-	Scripts,
-	/** @deprecated not part of the public API */
-	Tests,
-	/** @deprecated not part of the public API */
-	TestDefinition,
-	/** @deprecated not part of the public API */
-	Verification
-} from './core/config.ts';
