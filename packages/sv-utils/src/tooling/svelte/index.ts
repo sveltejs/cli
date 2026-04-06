@@ -21,14 +21,14 @@ export function ensureScript(
 		attributes:
 			options?.language === 'ts'
 				? [
-						{
-							type: 'Attribute',
-							start: 8,
-							end: 17,
-							name: 'lang',
-							value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
-						}
-					]
+					{
+						type: 'Attribute',
+						start: 8,
+						end: 17,
+						name: 'lang',
+						value: [{ start: 14, end: 16, type: 'Text', raw: 'ts', data: 'ts' }]
+					}
+				]
 				: [],
 		content: parseScript('').ast
 	};
@@ -87,9 +87,13 @@ export function addFragment(
 	content: string,
 	options?: {
 		mode?: 'append' | 'prepend';
+		language?: 'ts' | 'js';
 	}
 ): void {
-	const { ast: fragmentAst } = parseSvelte(content);
+	if (options?.language === 'ts') ensureScript(ast, { language: 'ts' });
+
+	const source = options?.language === 'ts' ? `<script lang="ts"></script>${content}` : content;
+	const { ast: fragmentAst } = parseSvelte(source);
 
 	if (options?.mode === 'prepend') {
 		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
