@@ -1,5 +1,14 @@
 # sv
 
+## 0.14.1
+### Patch Changes
+
+
+- chore: simplify `runes` option ([#1039](https://github.com/sveltejs/cli/pull/1039))
+
+
+- fix(playwright): auto-install Playwright browsers via `prepare` script ([#1041](https://github.com/sveltejs/cli/pull/1041))
+
 ## 0.14.0
 ### Minor Changes
 
