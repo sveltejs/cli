@@ -1,7 +1,3 @@
-<script>
-	let count = 0;
-</script>
+<script></script>
 
-<div>
-	<p>This is a Svelte component.</p>
-</div>
+<div><p>This is a Svelte component.</p></div>

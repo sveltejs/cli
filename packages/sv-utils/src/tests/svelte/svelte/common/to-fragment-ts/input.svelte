@@ -1,3 +1,1 @@
-<div>
-	<p>This is a Svelte component.</p>
-</div>
+<div><p>This is a Svelte component.</p></div>
