@@ -20,7 +20,9 @@ import {
 	type SetupResult,
 	type SvApi
 } from './config.ts';
+import { svDeprecated } from './deprecated.ts';
 import { TESTING } from './env.ts';
+import { addPnpmOnlyBuiltDependencies } from './package-manager.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 function alphabetizePackageJsonDependencies(obj: Record<string, string>) {
@@ -104,6 +106,8 @@ export async function applyAddons({
 	options
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
+	/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
+	pnpmBuildDependencies: string[];
 	status: Record<string, string[] | 'success'>;
 }> {
 	const filesToFormat = new Set<string>();
@@ -144,6 +148,8 @@ export async function applyAddons({
 
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
+		/** @deprecated */
+		pnpmBuildDependencies: [],
 		status
 	};
 }
@@ -253,6 +259,13 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		},
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
+		},
+		/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
+		pnpmBuildDependency: (pkg) => {
+			svDeprecated(
+				'use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
+			);
+			addPnpmOnlyBuiltDependencies(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
 

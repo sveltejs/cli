@@ -1,4 +1,23 @@
-export { create, type TemplateType, type LanguageType } from './create/index.ts';
+import { svDeprecated } from './core/deprecated.ts';
+import { create as _create, type Options as CreateOptions } from './create/index.ts';
+
+export type { TemplateType, LanguageType } from './create/index.ts';
+
+/** @deprecated use `create({ cwd, ...options })` instead */
+export function create(cwd: string, options: Omit<CreateOptions, 'cwd'>): void;
+export function create(options: CreateOptions): void;
+export function create(
+	cwdOrOptions: string | CreateOptions,
+	legacyOptions?: Omit<CreateOptions, 'cwd'>
+): void {
+	if (typeof cwdOrOptions === 'string') {
+		svDeprecated('use `create({ cwd, ...options })` instead of `create(cwd, options)`');
+		_create({ cwd: cwdOrOptions, ...legacyOptions! });
+	} else {
+		_create(cwdOrOptions);
+	}
+}
+
 export { add } from './core/engine.ts';
 export type { AddonMap, InstallOptions, OptionMap } from './core/engine.ts';
 export { officialAddons } from './addons/index.ts';
@@ -38,3 +57,19 @@ export type {
 export type { Workspace, WorkspaceOptions } from './core/workspace.ts';
 
 export type { FileEditor, FileType } from './core/processors.ts';
+
+// Deprecated types kept for backward compatibility, will be removed in next major.
+export type {
+	/** @deprecated not part of the public API */
+	ConditionDefinition,
+	/** @deprecated not part of the public API */
+	PackageDefinition,
+	/** @deprecated not part of the public API */
+	Scripts,
+	/** @deprecated not part of the public API */
+	Tests,
+	/** @deprecated not part of the public API */
+	TestDefinition,
+	/** @deprecated not part of the public API */
+	Verification
+} from './core/config.ts';

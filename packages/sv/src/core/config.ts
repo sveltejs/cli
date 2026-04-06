@@ -21,6 +21,8 @@ export type Scripts = {
 };
 
 export type SvApi = {
+	/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
+	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
 	/** Add a package to the dev dependencies. */

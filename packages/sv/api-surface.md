@@ -13,7 +13,6 @@ type Options = {
 	template: TemplateType;
 	types: LanguageType;
 };
-declare function create({ cwd, ...options }: Options): void;
 type FileEditor = Workspace & {
 	content: string;
 };
@@ -22,6 +21,9 @@ type FileType = {
 	condition?: ConditionDefinition;
 	content: (editor: FileEditor) => string;
 };
+/** @deprecated use `create({ cwd, ...options })` instead */
+declare function create(cwd: string, options: Omit<Options, 'cwd'>): void;
+declare function create(options: Options): void;
 export {
 	type Addon,
 	type AddonDefinition,
@@ -32,6 +34,7 @@ export {
 	type AddonSource,
 	type BaseQuestion,
 	type BooleanQuestion,
+	type ConditionDefinition,
 	type ConfiguredAddon,
 	type FileEditor,
 	type FileType,
@@ -44,13 +47,18 @@ export {
 	type OptionDefinition,
 	type OptionMap,
 	type OptionValues,
+	type PackageDefinition,
 	type PreparedAddon,
 	type Question,
+	type Scripts,
 	type SelectQuestion,
 	type SetupResult,
 	type StringQuestion,
 	type SvApi,
 	type TemplateType,
+	type TestDefinition,
+	type Tests,
+	type Verification,
 	type Workspace,
 	type WorkspaceOptions,
 	add,

@@ -10,6 +10,7 @@ import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import { commonFilePaths } from './common.ts';
+import { svDeprecated } from './deprecated.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
 
@@ -36,6 +37,17 @@ export type Workspace = {
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
+
+		/** @deprecated use `findUp('.prettierignore')` instead */
+		prettierignore: '.prettierignore';
+		/** @deprecated use `findUp('.prettierrc')` instead */
+		prettierrc: '.prettierrc';
+		/** @deprecated use `findUp('eslint.config.js')` instead */
+		eslintConfig: 'eslint.config.js';
+		/** @deprecated use `findUp('.vscode/settings.json')` instead */
+		vscodeSettings: '.vscode/settings.json';
+		/** @deprecated use `findUp('.vscode/extensions.json')` instead */
+		vscodeExtensions: '.vscode/extensions.json';
 
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
@@ -141,6 +153,35 @@ export async function createWorkspace({
 			stylesheet,
 			package: 'package.json',
 			gitignore: '.gitignore',
+			/** @deprecated */
+			get prettierignore() {
+				svDeprecated('use `findUp(".prettierignore")` instead of `workspace.file.prettierignore`');
+				return '.prettierignore' as const;
+			},
+			/** @deprecated */
+			get prettierrc() {
+				svDeprecated('use `findUp(".prettierrc")` instead of `workspace.file.prettierrc`');
+				return '.prettierrc' as const;
+			},
+			/** @deprecated */
+			get eslintConfig() {
+				svDeprecated('use `findUp("eslint.config.js")` instead of `workspace.file.eslintConfig`');
+				return 'eslint.config.js' as const;
+			},
+			/** @deprecated */
+			get vscodeSettings() {
+				svDeprecated(
+					'use `findUp(".vscode/settings.json")` instead of `workspace.file.vscodeSettings`'
+				);
+				return '.vscode/settings.json' as const;
+			},
+			/** @deprecated */
+			get vscodeExtensions() {
+				svDeprecated(
+					'use `findUp(".vscode/extensions.json")` instead of `workspace.file.vscodeExtensions`'
+				);
+				return '.vscode/extensions.json' as const;
+			},
 			getRelative({ from, to }) {
 				from = from ?? '';
 				let relativePath = path.posix.relative(path.posix.dirname(from), to);
