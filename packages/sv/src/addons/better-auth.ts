@@ -94,11 +94,15 @@ export default defineAddon({
 		sv.file('.env.example', generateEnv(demoGithub, true));
 
 		sv.file('README.md', (content) => {
-			return md.upsert(content, '## Add-on Setup', [
-				'better-auth',
-				'- Run `npm run auth:schema` to generate the auth schema',
-				'- Run `npm run db:push` to update your database'
-			]);
+			return md.upsert(
+				content,
+				[
+					'better-auth',
+					'- Run `npm run auth:schema` to generate the auth schema',
+					'- Run `npm run db:push` to update your database'
+				],
+				{ header: '## Add-on Setup' }
+			);
 		});
 
 		sv.file(

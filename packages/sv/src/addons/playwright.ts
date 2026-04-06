@@ -91,10 +91,11 @@ export default defineAddon({
 		);
 
 		sv.file('README.md', (content) => {
-			return md.upsert(content, '## Add-on Setup', [
-				'Playwright',
-				'- Run `npx playwright install` to download browsers'
-			]);
+			return md.upsert(
+				content,
+				['Playwright', '- Run `npx playwright install` to download browsers'],
+				{ header: '## Add-on Setup' }
+			);
 		});
 	},
 

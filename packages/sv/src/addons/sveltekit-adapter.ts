@@ -231,10 +231,11 @@ export default defineAddon({
 
 		if (options.adapter === 'cloudflare') {
 			sv.file('README.md', (content) => {
-				return md.upsert(content, '## Add-on Setup', [
-					'Cloudflare Adapter',
-					'- Run `npm run gen` to generate Cloudflare types'
-				]);
+				return md.upsert(
+					content,
+					['Cloudflare Adapter', '- Run `npm run gen` to generate Cloudflare types'],
+					{ header: '## Add-on Setup' }
+				);
 			});
 		}
 	},
