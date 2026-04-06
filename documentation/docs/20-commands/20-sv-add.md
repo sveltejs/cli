@@ -49,11 +49,11 @@ Prevents installing dependencies
 
 ## Official add-ons
 
+- [`ai-tools`](ai-tools)
 - [`better-auth`](better-auth)
 - [`devtools-json`](devtools-json)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
-- [`ai-tools`](ai-tools)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
 - [`playwright`](playwright)
