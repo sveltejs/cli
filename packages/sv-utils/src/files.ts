@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { appendContent, findHeader, findSection, joinContent, type Line } from './tooling/md.ts';
 import { parseJson } from './tooling/parsers.ts';
 
 export type Package = {
@@ -99,3 +100,37 @@ export const commonFilePaths = {
 	viteConfig: 'vite.config.js',
 	viteConfigTS: 'vite.config.ts'
 } as const;
+
+export function addNextSteps(content: string, lines: Line[]): string {
+	const linesToAdd = lines.filter(Boolean).join('\n');
+
+	const svSection = findSection(content, '# sv');
+	if (!svSection) return content;
+
+	const header = '## Next Steps';
+	const nextStepsHeader = findHeader(svSection.innerContent, header);
+	if (!nextStepsHeader) return content;
+
+	return appendContent(content, linesToAdd, header);
+}
+
+export function removeEmptyNextSteps(content: string): string {
+	const svSection = findSection(content, '# sv');
+	if (!svSection) return content;
+
+	const header = '## Next Steps';
+	const nextStepsSection = findSection(svSection.innerContent, header);
+	if (!nextStepsSection) return content;
+
+	if (nextStepsSection.innerContent.trim() === '') {
+		return joinContent(
+			svSection.before,
+			svSection.header,
+			nextStepsSection.before,
+			// a workaround for a very naive implementation that doesn't account for comments which also starts with `#`
+			nextStepsSection.after + svSection.after
+		);
+	}
+
+	return content;
+}

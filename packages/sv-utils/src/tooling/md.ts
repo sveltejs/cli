@@ -1,4 +1,5 @@
 type Header = `${'#' | '##' | '###' | '####' | '#####' | '######'} ${string}`;
+export type Line = string | false | undefined | null | 0 | 0n;
 
 const HEADER_REGEX = /^#{1,6} .+$/m;
 
@@ -6,14 +7,17 @@ function getHeaderLevel(header: Header): number {
 	return header.split(' ')[0].length;
 }
 
-function escapeRegex(str: string): string {
-	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// vendor from https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
+export function escapeStringRegexp(string: string): string {
+	// Escape characters with special meaning either inside or outside character sets.
+	// Use a simple backslash escape when it’s always valid, and a `\xnn` escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
+	return string.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d');
 }
 
 /**
  * Ensure the distance between a header and a non-header is always \n\n
  */
-function joinContent(...args: string[]): string {
+export function joinContent(...args: string[]): string {
 	const trimmedArgs = args.map((content) => content.trim()).filter((content) => content !== '');
 
 	if (trimmedArgs.length === 0) return '';
@@ -22,11 +26,11 @@ function joinContent(...args: string[]): string {
 	let result = trimmedArgs[0];
 	for (let i = 1; i < trimmedArgs.length; i++) {
 		const prev = result.trimEnd();
-		const prevLastLine = prev.split('\n').at(-1)!;
+		const prevLastLine = prev.split('\n').at(-1) ?? '';
 		const prevIsHeader = HEADER_REGEX.test(prevLastLine);
 
 		const curr = trimmedArgs[i];
-		const currFirstLine = curr.split('\n').at(0)!;
+		const currFirstLine = curr.split('\n').at(0) ?? '';
 		const currIsHeader = HEADER_REGEX.test(currFirstLine);
 
 		const separator = prevIsHeader || currIsHeader ? '\n\n' : '\n';
@@ -35,14 +39,14 @@ function joinContent(...args: string[]): string {
 	return `${result}\n`;
 }
 
-function findHeader(
+export function findHeader(
 	content: string,
 	header: Header
 ): { before: string; after: string; start: number; end: number } | null {
 	const [headerLevel, ...headerNameArray] = header.split(' ');
 	const headerName = headerNameArray.join(' ');
 
-	const sectionRegex = new RegExp(`^(${headerLevel}) ${escapeRegex(headerName)}\\s*$`, 'm');
+	const sectionRegex = new RegExp(`^(${headerLevel}) ${escapeStringRegexp(headerName)}\\s*$`, 'm');
 	const headerMatch = content.match(sectionRegex);
 
 	if (!headerMatch) return null;
@@ -58,7 +62,7 @@ function findHeader(
 	};
 }
 
-function findSection(
+export function findSection(
 	content: string,
 	header: Header
 ): {
@@ -76,17 +80,17 @@ function findSection(
 	const { start, end: headerEnd, before } = headerMatch;
 	const level = getHeaderLevel(header);
 	const nextHeaderRegex = new RegExp(`^#{${level}} `, 'm');
-	const afterHeader = content.slice(headerEnd + 1);
+	const afterHeader = content.slice(headerEnd);
 	const nextHeaderMatch = afterHeader.match(nextHeaderRegex);
 
 	let end: number;
 	if (nextHeaderMatch) {
-		end = headerEnd + 1 + afterHeader.indexOf(nextHeaderMatch[0]);
+		end = headerEnd + nextHeaderMatch.index!;
 	} else {
 		end = content.length;
 	}
 
-	const innerContent = content.slice(headerEnd + 1, end);
+	const innerContent = content.slice(headerEnd, end);
 	const after = content.slice(end);
 
 	return {
@@ -99,49 +103,7 @@ function findSection(
 	};
 }
 
-export function upsert(
-	content: string,
-	lines: Array<string | false | undefined | null | 0 | 0n>,
-	options?: {
-		header?:
-			| Header
-			| {
-					name: Header;
-					parent?: Header;
-			  };
-	}
-): string {
-	const { header } = options ?? {};
-	const linesToAdd = lines.filter(Boolean).join('\n');
-
-	if (!header) {
-		return joinContent(content, linesToAdd);
-	}
-
-	if (typeof header === 'string') {
-		return asdf(content, linesToAdd, header);
-	} else {
-		if (!header.parent) {
-			return asdf(content, linesToAdd, header.name);
-		}
-		const section = findSection(content, header.parent);
-
-		if (!section) {
-			return joinContent(content, header.parent, header.name, linesToAdd);
-		}
-
-		return joinContent(
-			section.before,
-			section.header,
-			section.innerContent,
-			header.name,
-			linesToAdd,
-			section.after
-		);
-	}
-}
-
-function asdf(content: string, linesToAdd: string, header: Header): string {
+export function appendContent(content: string, linesToAdd: string, header: Header): string {
 	const section = findSection(content, header);
 
 	if (!section) {
@@ -162,19 +124,4 @@ function asdf(content: string, linesToAdd: string, header: Header): string {
 	const after = content.slice(insertPos);
 
 	return joinContent(before, linesToAdd, after);
-}
-
-export function addNextSteps(
-	content: string,
-	lines: Array<string | false | undefined | null | 0 | 0n>
-): string {
-	const linesToAdd = lines.filter(Boolean).join('\n');
-
-	const svSection = findSection(content, '# sv');
-	if (!svSection) return content;
-
-	const firstChildMatch = svSection.innerContent.match(/^## Add-on Setup\s*$/m);
-	if (!firstChildMatch) return content;
-
-	return asdf(content, linesToAdd, '## Add-on Setup');
 }

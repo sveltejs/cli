@@ -1,98 +1,172 @@
 import { describe, expect, it } from 'vitest';
-import { upsert } from '../tooling/md.ts';
+import { findHeader, findSection, joinContent } from '../tooling/md.ts';
 
-describe('md upsert', () => {
-	it("adds to the end when there's no header option", () => {
+describe('joinContent', () => {
+	it('joins two non-headers', () => {
+		const result = joinContent('hello', 'world');
+		expect(result).toBe('hello\nworld\n');
+	});
+
+	it('joins a header and a non-header', () => {
+		const result = joinContent('# Hello', 'content');
+		expect(result).toBe('# Hello\n\ncontent\n');
+	});
+
+	it('joins two headers', () => {
+		const result = joinContent('# Hello', '## World');
+		expect(result).toBe('# Hello\n\n## World\n');
+	});
+
+	it('joins a non-header and a header', () => {
+		const result = joinContent('content', '# Next');
+		expect(result).toBe('content\n\n# Next\n');
+	});
+
+	it('filters out empty strings', () => {
+		const result = joinContent('hello', '', 'world');
+		expect(result).toBe('hello\nworld\n');
+	});
+
+	it('returns an empty string when all inputs are empty', () => {
+		const result = joinContent('', '', '');
+		expect(result).toBe('');
+	});
+
+	it('trims content before joining', () => {
+		const result = joinContent('  hello  ', '  world  ');
+		expect(result).toBe('hello\nworld\n');
+	});
+
+	it('handles a single argument', () => {
+		const result = joinContent('hello');
+		expect(result).toBe('hello\n');
+	});
+});
+
+describe('findHeader', () => {
+	it('finds a header', () => {
 		const content = '# Hello\n\nSome content\n\n## World\n';
-		const result = upsert(content, ['new line']);
-		expect(result).toBe('# Hello\n\nSome content\n\n## World\n\nnew line\n');
+		const result = findHeader(content, '# Hello');
+
+		expect(result).not.toBeNull();
+		expect(result!.start).toBe(0);
+		expect(result!.end).toBe(7);
+		expect(result!.before).toBe('');
+		expect(result!.after).toBe('\nSome content\n\n## World\n');
 	});
 
-	it('add lines under existing header', () => {
-		const content = '# Hello\n\nSome content\n\n## World\n';
-		const result = upsert(content, ['new line'], { header: '# Hello' });
-		expect(result).toBe('# Hello\n\nSome content\nnew line\n\n## World\n');
+	it('returns null when the header is not found', () => {
+		const content = '# Hello\n\nSome content';
+		const result = findHeader(content, '## Missing');
 
-		const result2 = upsert(content, ['new line'], { header: '## World' });
-		expect(result2).toBe('# Hello\n\nSome content\n\n## World\n\nnew line\n');
+		expect(result).toBeNull();
 	});
 
-	it('create new header section when not found', () => {
-		const content = '# Existing\n\ncontent';
-		const result = upsert(content, ['new line'], { header: '## New Section' });
-		expect(result).toBe('# Existing\n\ncontent\n\n## New Section\n\nnew line\n');
+	it('finds a header in the middle of content', () => {
+		const content = 'some prefix\n\n# Header\n\nsome suffix';
+		const result = findHeader(content, '# Header');
+
+		expect(result).not.toBeNull();
+		expect(result!.before).toBe('some prefix\n\n');
+		expect(result!.after).toBe('\nsome suffix');
 	});
 
-	it('works with different header levels', () => {
-		expect(upsert('', ['line'], { header: '# H1' })).toBe('# H1\n\nline\n');
-		expect(upsert('', ['line'], { header: '## H2' })).toBe('## H2\n\nline\n');
-		expect(upsert('', ['line'], { header: '### H3' })).toBe('### H3\n\nline\n');
-		expect(upsert('', ['line'], { header: '#### H4' })).toBe('#### H4\n\nline\n');
-		expect(upsert('', ['line'], { header: '##### H5' })).toBe('##### H5\n\nline\n');
-		expect(upsert('', ['line'], { header: '###### H6' })).toBe('###### H6\n\nline\n');
+	it('handles different header levels', () => {
+		const content = '## H2\n\n### H3\n\n#### H4';
+
+		expect(findHeader(content, '## H2')).not.toBeNull();
+		expect(findHeader(content, '### H3')).not.toBeNull();
+		expect(findHeader(content, '#### H4')).not.toBeNull();
 	});
 
-	it('filters falsy values from lines', () => {
-		const content = '# Section\n';
-		const result = upsert(content, ['valid', false, null, undefined, 0, 0n, '', 'also valid'], {
-			header: '# Section'
-		});
-		expect(result).toBe('# Section\n\nvalid\nalso valid\n');
+	it('finds a header with trailing whitespace', () => {
+		const content = '# Header  \ncontent';
+		const result = findHeader(content, '# Header');
+
+		expect(result).not.toBeNull();
 	});
 
-	it('adds multiple lines', () => {
-		const content = '# Section';
-		const result = upsert(content, ['line 1', 'line 2', 'line 3'], { header: '# Section' });
-		expect(result).toBe('# Section\n\nline 1\nline 2\nline 3\n');
+	it('finds the first occurrence when duplicate headers exist', () => {
+		const content = '# Title\n\ncontent1\n\n# Title\n\ncontent2';
+		const result = findHeader(content, '# Title');
+
+		expect(result).not.toBeNull();
+		expect(result!.before).toBe('');
+		expect(result!.after).toBe('\ncontent1\n\n# Title\n\ncontent2');
 	});
 
-	it('handles a header containing all common regex metacharacters', () => {
-		const trickyHeader = '# [v1.0]* + (Review)? ^Search$ | {Match}.';
-		const content = `${trickyHeader}\nexisting_data: true`;
-		const linesToAdd = 'new_data: true';
+	it('handles a header with special regex characters', () => {
+		const content = '# [test]* (example) $special\ncontent';
+		const result = findHeader(content, '# [test]* (example) $special');
 
-		const result = upsert(content, [linesToAdd], { header: trickyHeader });
+		expect(result).not.toBeNull();
+	});
+});
 
-		expect(result).toContain(`${trickyHeader}\nexisting_data: true\n${linesToAdd}\n`);
+describe('findSection', () => {
+	it('finds a section and returns the header with its inner content', () => {
+		const content = '# Hello\n\nSome content\n\n## World\nmore content\n\n# Another';
+		const result = findSection(content, '# Hello');
+
+		expect(result).not.toBeNull();
+		expect(result!.header).toBe('# Hello');
+		expect(result!.innerContent).toBe('\n\nSome content\n\n## World\nmore content\n\n');
 	});
 
-	it('appends lines without header', () => {
-		const content = 'existing content';
-		const result = upsert(content, ['new line'], {});
-		expect(result).toBe('existing content\nnew line\n');
+	it('returns null when the header is not found', () => {
+		const content = '# Existing\ncontent';
+		const result = findSection(content, '## Missing');
+
+		expect(result).toBeNull();
 	});
 
-	it('appends to content ending with newline', () => {
-		const content = 'existing content\n';
-		const result = upsert(content, ['new line'], {});
-		expect(result).toBe('existing content\nnew line\n');
+	it('should all add up', () => {
+		const content =
+			'# Parent\n\n## Child\nchild content\n\n### Grandchild\ngc content\n\n### Hmm\n\n## Two\n\n## One';
+		const result = findSection(content, '## Child');
+
+		expect(result).not.toBeNull();
+		expect(
+			result!.before.length +
+				result!.header.length +
+				result!.innerContent.length +
+				result!.after.length
+		).toEqual(content.length);
 	});
 
-	it('works with object header syntax', () => {
-		const content = '# Section\n\nexisting';
-		const result = upsert(content, ['new'], { header: { name: '# Section' } });
-		expect(result).toBe('# Section\n\nexisting\nnew\n');
+	it('finds a section up to the next header of the same level', () => {
+		const content = '# Parent\n\n## Child1\ncontent1\n\n## Child2\ncontent2\n\n# Sibling';
+		const result = findSection(content, '# Parent');
+
+		expect(result).not.toBeNull();
+		expect(result!.innerContent).toBe('\n\n## Child1\ncontent1\n\n## Child2\ncontent2\n\n');
 	});
 
-	it('adds child header under parent section', () => {
-		const content = '# Parent\n\nparent content';
-		const result = upsert(content, ['child content'], {
-			header: { name: '## Child', parent: '# Parent' }
-		});
-		expect(result).toBe('# Parent\n\nparent content\n\n## Child\n\nchild content\n');
+	it('finds a nested section within a parent', () => {
+		const content =
+			'# Parent\n\n## Child\nchild content\n\n### Grandchild\ngc content\n\n### Hmm\n\n## Two\n\n## One';
+		const result = findSection(content, '## Child');
+
+		expect(result).not.toBeNull();
+		expect(result!.header).toBe('## Child');
+		expect(result!.innerContent).toBe(
+			'\nchild content\n\n### Grandchild\ngc content\n\n### Hmm\n\n'
+		);
 	});
 
-	it('creates parent section if not found', () => {
-		const content = '# Existing';
-		const result = upsert(content, ['child content'], {
-			header: { name: '## Child', parent: '# New Parent' }
-		});
-		expect(result).toBe('# Existing\n\n# New Parent\n\n## Child\n\nchild content\n');
+	it('handles a section at the end of content', () => {
+		const content = '# Last\n\nfinal content';
+		const result = findSection(content, '# Last');
+
+		expect(result).not.toBeNull();
+		expect(result!.innerContent).toBe('\n\nfinal content');
 	});
 
-	it('works with nested headers', () => {
-		const content = '# Parent\n\n## Child1\n\ncontent1\n\n## Child2\n\ncontent2';
-		const result = upsert(content, ['new'], { header: { name: '## Child1' } });
-		expect(result).toBe('# Parent\n\n## Child1\n\ncontent1\nnew\n\n## Child2\n\ncontent2\n');
+	it('returns the inner content for a header with no content', () => {
+		const content = '# Empty\n\n## Next';
+		const result = findSection(content, '# Empty');
+
+		expect(result).not.toBeNull();
+		expect(result!.innerContent).toBe('\n\n## Next');
 	});
 });

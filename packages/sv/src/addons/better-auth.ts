@@ -2,9 +2,9 @@ import { log } from '@clack/prompts';
 import {
 	type AstTypes,
 	Walker,
+	addNextSteps,
 	color,
 	dedent,
-	md,
 	transforms,
 	resolveCommandArray,
 	createPrinter,
@@ -94,15 +94,11 @@ export default defineAddon({
 		sv.file('.env.example', generateEnv(demoGithub, true));
 
 		sv.file('README.md', (content) => {
-			return md.upsert(
-				content,
-				[
-					'better-auth',
-					'- Run `npm run auth:schema` to generate the auth schema',
-					'- Run `npm run db:push` to update your database'
-				],
-				{ header: '## Add-on Setup' }
-			);
+			return addNextSteps(content, [
+				'better-auth',
+				'- Run `npm run auth:schema` to generate the auth schema',
+				'- Run `npm run db:push` to update your database'
+			]);
 		});
 
 		sv.file(

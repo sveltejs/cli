@@ -2,16 +2,14 @@
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## Add-on Setup
+## Next Steps
 
 Configure your environment variables based on the `.env.example`.
 
 Playwright
 - Run `npx playwright install` to download browsers
-
 Drizzle
 - Run `npm run db:push` to update your database schema
-
 better-auth
 - Run `npm run auth:schema` to generate the auth schema
 - Run `npm run db:push` to update your database

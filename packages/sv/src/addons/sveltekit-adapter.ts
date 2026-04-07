@@ -1,7 +1,7 @@
 import {
+	addNextSteps,
 	color,
 	resolveCommandArray,
-	md,
 	text,
 	transforms,
 	fileExists,
@@ -231,11 +231,10 @@ export default defineAddon({
 
 		if (options.adapter === 'cloudflare') {
 			sv.file('README.md', (content) => {
-				return md.upsert(
-					content,
-					['Cloudflare Adapter', '- Run `npm run gen` to generate Cloudflare types'],
-					{ header: '## Add-on Setup' }
-				);
+				return addNextSteps(content, [
+					'Cloudflare Adapter',
+					'- Run `npm run gen` to generate Cloudflare types'
+				]);
 			});
 		}
 	},

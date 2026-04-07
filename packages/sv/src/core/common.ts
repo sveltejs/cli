@@ -278,7 +278,7 @@ export function insertEnvMsg(projectPath: string) {
 	let content = fs.readFileSync(readmePath, 'utf-8');
 	const message = 'Configure your environment variables based on the `.env.example`.';
 
-	const setupPattern = /## Add-on Setup[\s\S]*?(?=## |$)/;
+	const setupPattern = /## Next Steps[\s\S]*?(?=## |$)/;
 	const setupMatch = content.match(setupPattern);
 	if (!setupMatch) {
 		fs.writeFileSync(readmePath, content + message + `\n`);
@@ -287,7 +287,7 @@ export function insertEnvMsg(projectPath: string) {
 	}
 
 	const existingSection = setupMatch[0];
-	const updatedSection = existingSection.replace(/(## Add-on Setup)/, `$1\n\n${message}`);
+	const updatedSection = existingSection.replace(/(## Next Steps)/, `$1\n\n${message}`);
 
 	content = content.replace(setupPattern, updatedSection);
 	fs.writeFileSync(readmePath, content);

@@ -83,11 +83,13 @@ export { downloadJson } from './downloadJson.ts';
 
 // File system helpers
 export {
+	addNextSteps,
 	commonFilePaths,
 	fileExists,
 	getPackageJson,
 	installPackages,
 	readFile,
+	removeEmptyNextSteps,
 	writeFile,
 	type Package
 } from './files.ts';

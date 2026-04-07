@@ -1,5 +1,11 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommandArray, commonFilePaths, getPackageJson } from '@sveltejs/sv-utils';
+import {
+	color,
+	resolveCommandArray,
+	commonFilePaths,
+	getPackageJson,
+	removeEmptyNextSteps
+} from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -387,7 +393,15 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [directory]);
 	common.insertPrompt(directory, prompt);
+
 	if (fs.existsSync(path.join(directory, '.env.example'))) common.insertEnvMsg(directory);
+
+	const readmePath = path.join(directory, 'README.md');
+	if (fs.existsSync(readmePath)) {
+		const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+		const cleanedContent = removeEmptyNextSteps(readmeContent);
+		fs.writeFileSync(readmePath, cleanedContent, 'utf-8');
+	}
 
 	common.updateAgent(directory, language, packageManager ?? 'npm', loadedAddons);
 
