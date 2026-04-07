@@ -163,3 +163,18 @@ function asdf(content: string, linesToAdd: string, header: Header): string {
 
 	return joinContent(before, linesToAdd, after);
 }
+
+export function addNextSteps(
+	content: string,
+	lines: Array<string | false | undefined | null | 0 | 0n>
+): string {
+	const linesToAdd = lines.filter(Boolean).join('\n');
+
+	const svSection = findSection(content, '# sv');
+	if (!svSection) return content;
+
+	const firstChildMatch = svSection.innerContent.match(/^## Add-on Setup\s*$/m);
+	if (!firstChildMatch) return content;
+
+	return asdf(content, linesToAdd, '## Add-on Setup');
+}
