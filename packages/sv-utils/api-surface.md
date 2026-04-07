@@ -639,6 +639,7 @@ declare function addFragment(
 	content: string,
 	options?: {
 		mode?: 'append' | 'prepend';
+		language?: 'ts' | 'js';
 	}
 ): void;
 type TransformFn = (content: string) => string;
@@ -748,11 +749,13 @@ type Package = {
 	keywords?: string[];
 	workspaces?: string[];
 };
+
 declare function fileExists(cwd: string, filePath: string): boolean;
 
 declare function loadFile(cwd: string, filePath: string): string;
 
 declare function saveFile(cwd: string, filePath: string, content: string): void;
+
 declare function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;

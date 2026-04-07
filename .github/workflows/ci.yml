@@ -37,6 +37,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - name: Verify API surface is up to date
+        run: git diff --exit-code '**/api-surface*.md' || (echo "API surface is out of date. Run 'pnpm build' and commit the changes." && exit 1)
       - run: pnpm check
   test:
     runs-on: ${{ matrix.os }}
