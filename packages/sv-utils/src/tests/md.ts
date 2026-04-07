@@ -68,29 +68,31 @@ describe('md upsert', () => {
 		expect(result).toBe('existing content\nnew line\n');
 	});
 
-	it('should append by default', () => {
-		const content = '# Section\n\nold content\n\n## Next\n';
-		const withDefault = upsert(content, ['new'], { header: '# Section' });
-		const withExplicit = upsert(content, ['new'], { header: '# Section', mode: 'append' });
-		expect(withDefault).toBe('# Section\n\nold content\nnew\n\n## Next\n');
-		expect(withDefault).toBe(withExplicit);
+	it('works with object header syntax', () => {
+		const content = '# Section\n\nexisting';
+		const result = upsert(content, ['new'], { header: { name: '# Section' } });
+		expect(result).toBe('# Section\n\nexisting\nnew\n');
 	});
 
-	it('adds content right after header', () => {
-		const content = '# Hello\n\nSome content\n\n## World\n';
-		const result = upsert(content, ['new line'], { header: '# Hello', mode: 'prepend' });
-		expect(result).toBe('# Hello\n\nnew line\nSome content\n\n## World\n');
+	it('adds child header under parent section', () => {
+		const content = '# Parent\n\nparent content';
+		const result = upsert(content, ['child content'], {
+			header: { name: '## Child', parent: '# Parent' }
+		});
+		expect(result).toBe('# Parent\n\nparent content\n\n## Child\n\nchild content\n');
 	});
 
-	it('prepend multiple lines', () => {
-		const content = '# Section\n\nexisting content';
-		const result = upsert(content, ['line 1', 'line 2'], { header: '# Section', mode: 'prepend' });
-		expect(result).toBe('# Section\n\nline 1\nline 2\nexisting content\n');
+	it('creates parent section if not found', () => {
+		const content = '# Existing';
+		const result = upsert(content, ['child content'], {
+			header: { name: '## Child', parent: '# New Parent' }
+		});
+		expect(result).toBe('# Existing\n\n# New Parent\n\n## Child\n\nchild content\n');
 	});
 
-	it('prepend works with different header levels', () => {
-		const content = '## H2\n\nexisting';
-		const result = upsert(content, ['new'], { header: '## H2', mode: 'prepend' });
-		expect(result).toBe('## H2\n\nnew\nexisting\n');
+	it('works with nested headers', () => {
+		const content = '# Parent\n\n## Child1\n\ncontent1\n\n## Child2\n\ncontent2';
+		const result = upsert(content, ['new'], { header: { name: '## Child1' } });
+		expect(result).toBe('# Parent\n\n## Child1\n\ncontent1\nnew\n\n## Child2\n\ncontent2\n');
 	});
 });

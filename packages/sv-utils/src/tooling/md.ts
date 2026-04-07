@@ -2,43 +2,8 @@ type Header = `${'#' | '##' | '###' | '####' | '#####' | '######'} ${string}`;
 
 const HEADER_REGEX = /^#{1,6} .+$/m;
 
-export function upsert(
-	content: string,
-	lines: Array<string | false | undefined | null | 0 | 0n>,
-	options?: {
-		header?: Header;
-		mode?: 'prepend' | 'append';
-	}
-): string {
-	const { header, mode = 'append' } = options ?? {};
-	const linesToAdd = lines.filter(Boolean).join('\n');
-
-	if (!header) {
-		return joinContent(content, linesToAdd);
-	}
-
-	const headerMatch = findHeader(content, header);
-
-	if (!headerMatch) {
-		return joinContent(content, header, linesToAdd);
-	}
-	const { end: headerLineEnd, after: restOfContent } = headerMatch;
-
-	const nextHeaderMatch = restOfContent.match(HEADER_REGEX);
-
-	let insertPos: number;
-	if (mode === 'prepend') {
-		insertPos = headerLineEnd + 1;
-	} else if (nextHeaderMatch) {
-		insertPos = headerLineEnd + 1 + restOfContent.indexOf(nextHeaderMatch[0]);
-	} else {
-		insertPos = content.length;
-	}
-
-	const before = content.slice(0, insertPos);
-	const after = content.slice(insertPos);
-
-	return joinContent(before, linesToAdd, after);
+function getHeaderLevel(header: Header): number {
+	return header.split(' ')[0].length;
 }
 
 function escapeRegex(str: string): string {
@@ -91,4 +56,110 @@ function findHeader(
 		before: content.slice(0, start),
 		after: content.slice(end + 1)
 	};
+}
+
+function findSection(
+	content: string,
+	header: Header
+): {
+	before: string;
+	after: string;
+	header: Header;
+	innerContent: string;
+	start: number;
+	end: number;
+} | null {
+	const headerMatch = findHeader(content, header);
+
+	if (!headerMatch) return null;
+
+	const { start, end: headerEnd, before } = headerMatch;
+	const level = getHeaderLevel(header);
+	const nextHeaderRegex = new RegExp(`^#{${level}} `, 'm');
+	const afterHeader = content.slice(headerEnd + 1);
+	const nextHeaderMatch = afterHeader.match(nextHeaderRegex);
+
+	let end: number;
+	if (nextHeaderMatch) {
+		end = headerEnd + 1 + afterHeader.indexOf(nextHeaderMatch[0]);
+	} else {
+		end = content.length;
+	}
+
+	const innerContent = content.slice(headerEnd + 1, end);
+	const after = content.slice(end);
+
+	return {
+		before,
+		after,
+		header,
+		innerContent,
+		start,
+		end
+	};
+}
+
+export function upsert(
+	content: string,
+	lines: Array<string | false | undefined | null | 0 | 0n>,
+	options?: {
+		header?:
+			| Header
+			| {
+					name: Header;
+					parent?: Header;
+			  };
+	}
+): string {
+	const { header } = options ?? {};
+	const linesToAdd = lines.filter(Boolean).join('\n');
+
+	if (!header) {
+		return joinContent(content, linesToAdd);
+	}
+
+	if (typeof header === 'string') {
+		return asdf(content, linesToAdd, header);
+	} else {
+		if (!header.parent) {
+			return asdf(content, linesToAdd, header.name);
+		}
+		const section = findSection(content, header.parent);
+
+		if (!section) {
+			return joinContent(content, header.parent, header.name, linesToAdd);
+		}
+
+		return joinContent(
+			section.before,
+			section.header,
+			section.innerContent,
+			header.name,
+			linesToAdd,
+			section.after
+		);
+	}
+}
+
+function asdf(content: string, linesToAdd: string, header: Header): string {
+	const section = findSection(content, header);
+
+	if (!section) {
+		return joinContent(content, header, linesToAdd);
+	}
+
+	const { start, end, innerContent } = section;
+	const firstNextHeaderMatch = innerContent.match(HEADER_REGEX);
+
+	let insertPos: number;
+	if (firstNextHeaderMatch) {
+		insertPos = start + header.length + 1 + innerContent.indexOf(firstNextHeaderMatch[0]);
+	} else {
+		insertPos = end;
+	}
+
+	const before = content.slice(0, insertPos);
+	const after = content.slice(insertPos);
+
+	return joinContent(before, linesToAdd, after);
 }
