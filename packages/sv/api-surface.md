@@ -21,7 +21,7 @@ type FileType = {
 	condition?: ConditionDefinition;
 	content: (editor: FileEditor) => string;
 };
-/** @deprecated use `create({ cwd, ...options })` instead */
+/** @deprecated use `create({ cwd, ...options })` instead. */
 declare function create(cwd: string, options: Omit<Options, 'cwd'>): void;
 declare function create(options: Options): void;
 export {
