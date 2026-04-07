@@ -4,8 +4,8 @@ Everything you need to build a Svelte project, powered by [`sv`](https://github.
 
 ## Next Steps
 
-Configure your environment variables based on the `.env.example`.
-
+general
+- Configure your environment variables based on the `.env.example`.
 Playwright
 - Run `npx playwright install` to download browsers
 Drizzle
