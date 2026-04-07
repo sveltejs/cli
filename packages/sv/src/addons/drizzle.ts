@@ -302,6 +302,24 @@ export default defineAddon({
 		);
 
 		sv.file(
+			file.svelteConfig,
+			transforms.script(({ ast, js }) => {
+				const { value: config } = js.exports.createDefault(ast, {
+					fallback: js.object.create({})
+				});
+				js.object.overrideProperties(config, {
+					kit: {
+						typescript: {
+							config: js.common.parseExpression(
+								`(config) => ({ ...config, include: [...config.include, '../drizzle.config.${language}'] })`
+							)
+						}
+					}
+				});
+			})
+		);
+
+		sv.file(
 			paths['database schema'],
 			transforms.script(({ ast, js }) => {
 				let taskSchemaExpression;
