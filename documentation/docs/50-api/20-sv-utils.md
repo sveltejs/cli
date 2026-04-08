@@ -137,7 +137,7 @@ Return `false` from any transform callback to abort - the original content is re
 import { transforms } from '@sveltejs/sv-utils';
 
 sv.file(
-	file.eslintConfig,
+	'eslint.config.js',
 	transforms.script(({ ast, js }) => {
 		const { value: existing } = js.exports.createDefault(ast, { fallback: myConfig });
 		if (existing !== myConfig) {
@@ -229,3 +229,18 @@ Namespaced helpers for AST manipulation:
 - **`json.*`** - arrayUpsert, packageScriptsUpsert
 - **`html.*`** - attribute manipulation
 - **`text.*`** - upsert lines in flat files (.env, .gitignore)
+
+## Package manager helpers
+
+### `pnpm.onlyBuiltDependencies`
+
+Returns a transform for `pnpm-workspace.yaml` that adds packages to the `onlyBuiltDependencies` list. Use with `sv.file` when the project uses pnpm.
+
+```js
+// @noErrors
+import { pnpm } from '@sveltejs/sv-utils';
+
+if (packageManager === 'pnpm') {
+	sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.onlyBuiltDependencies('my-native-dep'));
+}
+```

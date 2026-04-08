@@ -42,7 +42,7 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 
-		create(cwd, { name: `create-svelte-test-${template}-${types}`, template, types });
+		create({ cwd, name: `create-svelte-test-${template}-${types}`, template, types });
 		await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));

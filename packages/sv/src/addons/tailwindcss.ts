@@ -1,4 +1,4 @@
-import { transforms } from '@sveltejs/sv-utils';
+import { pnpm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const plugins = [
@@ -30,12 +30,14 @@ export default defineAddon({
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,
-	run: ({ sv, options, file, isKit, directory, dependencyVersion, language }) => {
+	run: ({ sv, options, file, isKit, directory, dependencyVersion, language, packageManager }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^4.1.18');
-		sv.devDependency('@tailwindcss/vite', '^4.1.18');
-		sv.pnpmBuildDependency('@tailwindcss/oxide');
+		sv.devDependency('tailwindcss', '^4.2.2');
+		sv.devDependency('@tailwindcss/vite', '^4.2.2');
+		if (packageManager === 'pnpm') {
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.onlyBuiltDependencies('@tailwindcss/oxide'));
+		}
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
 
@@ -106,7 +108,7 @@ export default defineAddon({
 		}
 
 		sv.file(
-			file.vscodeSettings,
+			'.vscode/settings.json',
 			transforms.json(({ data }) => {
 				data['files.associations'] ??= {};
 				data['files.associations']['*.css'] = 'tailwindcss';
@@ -114,7 +116,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			file.vscodeExtensions,
+			'.vscode/extensions.json',
 			transforms.json(({ data, json }) => {
 				json.arrayUpsert(data, 'recommendations', 'bradlc.vscode-tailwindcss');
 			})
@@ -122,7 +124,7 @@ export default defineAddon({
 
 		if (prettierInstalled) {
 			sv.file(
-				file.prettierrc,
+				'.prettierrc',
 				transforms.json(({ data, json }) => {
 					json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
 					data.tailwindStylesheet ??= file.getRelative({ to: file.stylesheet });

@@ -3,13 +3,14 @@ import {
 	type AstTypes,
 	js,
 	parse,
-	commonFilePaths,
-	getPackageJson,
-	readFile
+	loadFile,
+	loadPackageJson
 } from '@sveltejs/sv-utils';
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
+import { filePaths } from './common.ts';
+import { svDeprecated } from './deprecated.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
 
@@ -37,15 +38,25 @@ export type Workspace = {
 		package: 'package.json';
 		gitignore: '.gitignore';
 
+		/** @deprecated use the string `.prettierignore` instead. */
 		prettierignore: '.prettierignore';
+		/** @deprecated use the string `.prettierrc` instead. */
 		prettierrc: '.prettierrc';
+		/** @deprecated use the string `eslint.config.js` instead. */
 		eslintConfig: 'eslint.config.js';
-
+		/** @deprecated use the string `.vscode/settings.json` instead. */
 		vscodeSettings: '.vscode/settings.json';
+		/** @deprecated use the string `.vscode/extensions.json` instead. */
 		vscodeExtensions: '.vscode/extensions.json';
 
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
+
+		/**
+		 * Find a file by walking up the directory tree from cwd.
+		 * Returns the relative path from cwd, or the filename itself if not found.
+		 */
+		findUp: (filename: string) => string;
 	};
 	isKit: boolean;
 	directory: {
@@ -76,18 +87,16 @@ export async function createWorkspace({
 	const resolvedCwd = path.resolve(cwd);
 
 	// Will go up and prioritize jsconfig.json as it's first in the array
-	const typeConfigOptions = [commonFilePaths.jsconfig, commonFilePaths.tsconfig];
+	const typeConfigOptions = [filePaths.jsconfig, filePaths.tsconfig];
 	const typeConfig = find.any(typeConfigOptions, { cwd }) as Workspace['file']['typeConfig'];
-	const typescript = typeConfig?.endsWith(commonFilePaths.tsconfig) ?? false;
+	const typescript = typeConfig?.endsWith(filePaths.tsconfig) ?? false;
 	// This is not linked with typescript detection
-	const viteConfigPath = path.join(resolvedCwd, commonFilePaths.viteConfigTS);
-	const viteConfig = fs.existsSync(viteConfigPath)
-		? commonFilePaths.viteConfigTS
-		: commonFilePaths.viteConfig;
-	const svelteConfigPath = path.join(resolvedCwd, commonFilePaths.svelteConfigTS);
+	const viteConfigPath = path.join(resolvedCwd, filePaths.viteConfigTS);
+	const viteConfig = fs.existsSync(viteConfigPath) ? filePaths.viteConfigTS : filePaths.viteConfig;
+	const svelteConfigPath = path.join(resolvedCwd, filePaths.svelteConfigTS);
 	const svelteConfig = fs.existsSync(svelteConfigPath)
-		? commonFilePaths.svelteConfigTS
-		: commonFilePaths.svelteConfig;
+		? filePaths.svelteConfigTS
+		: filePaths.svelteConfig;
 
 	let dependencies: Record<string, string> = {};
 	if (override?.dependencies) {
@@ -102,8 +111,8 @@ export async function createWorkspace({
 			// we are still in the workspace (including the workspace root)
 			directory.length >= workspaceRoot.length
 		) {
-			if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
-				const { data: packageJson } = getPackageJson(directory);
+			if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
+				const { data: packageJson } = loadPackageJson(directory);
 				dependencies = {
 					...packageJson.devDependencies,
 					...packageJson.dependencies,
@@ -142,11 +151,41 @@ export async function createWorkspace({
 			stylesheet,
 			package: 'package.json',
 			gitignore: '.gitignore',
-			prettierignore: '.prettierignore',
-			prettierrc: '.prettierrc',
-			eslintConfig: 'eslint.config.js',
-			vscodeSettings: '.vscode/settings.json',
-			vscodeExtensions: '.vscode/extensions.json',
+			/** @deprecated */
+			get prettierignore() {
+				svDeprecated(
+					'`workspace.file.prettierignore` is deprecated, use the string `.prettierignore` isntead.'
+				);
+				return '.prettierignore' as const;
+			},
+			/** @deprecated */
+			get prettierrc() {
+				svDeprecated(
+					'`workspace.file.prettierrc` is deprecated, use the string `.prettierrc` isntead.'
+				);
+				return '.prettierrc' as const;
+			},
+			/** @deprecated */
+			get eslintConfig() {
+				svDeprecated(
+					'`workspace.file.eslintConfig` is deprecated, use the string `eslint.config.js` isntead.'
+				);
+				return 'eslint.config.js' as const;
+			},
+			/** @deprecated */
+			get vscodeSettings() {
+				svDeprecated(
+					'`workspace.file.vscodeSettings` is deprecated, use the string `.vscode/settings.json` isntead.'
+				);
+				return '.vscode/settings.json' as const;
+			},
+			/** @deprecated */
+			get vscodeExtensions() {
+				svDeprecated(
+					'`workspace.file.vscodeExtensions` is deprecated, use the string `.vscode/extensions.json` isntead.'
+				);
+				return '.vscode/extensions.json' as const;
+			},
 			getRelative({ from, to }) {
 				from = from ?? '';
 				let relativePath = path.posix.relative(path.posix.dirname(from), to);
@@ -155,6 +194,15 @@ export async function createWorkspace({
 					relativePath = `./${relativePath}`;
 				}
 				return relativePath;
+			},
+			findUp(filename) {
+				const found = find.up(filename, { cwd: resolvedCwd });
+				if (!found) return filename;
+				// don't escape .test-output during tests
+				if (resolvedCwd.includes('.test-output') && !found.includes('.test-output')) {
+					return filename;
+				}
+				return path.relative(resolvedCwd, found);
 			}
 		},
 		isKit,
@@ -167,13 +215,13 @@ function findWorkspaceRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {
-		if (fs.existsSync(path.join(directory, commonFilePaths.packageJson))) {
+		if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
 			// in pnpm it can be a file
 			if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
 				return directory;
 			}
 			// in other package managers it's a workspaces key in the package.json
-			const { data } = getPackageJson(directory);
+			const { data } = loadPackageJson(directory);
 			if (data.workspaces) {
 				return directory;
 			}
@@ -189,7 +237,7 @@ function findWorkspaceRoot(cwd: string): string {
 }
 
 function parseKitOptions(cwd: string, svelteConfigPath: string) {
-	const configSource = readFile(cwd, svelteConfigPath);
+	const configSource = loadFile(cwd, svelteConfigPath);
 	const { ast } = parse.script(configSource);
 
 	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
