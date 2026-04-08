@@ -1,6 +1,5 @@
 import {
 	color,
-	text,
 	transforms,
 	resolveCommandArray,
 	fileExists,
