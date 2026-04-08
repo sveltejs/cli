@@ -16,7 +16,7 @@ export default defineAddon({
 		sv.devDependency('prettier-plugin-svelte', '^3.4.1');
 
 		sv.file(
-			file.prettierignore,
+			'.prettierignore',
 			transforms.text(({ content }) => {
 				if (content) return false;
 				return dedent`
@@ -34,7 +34,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			file.prettierrc,
+			'.prettierrc',
 			transforms.json(
 				({ data, json }) => {
 					if (Object.keys(data).length === 0) {
@@ -82,7 +82,7 @@ export default defineAddon({
 		);
 
 		sv.file(
-			file.vscodeExtensions,
+			'.vscode/extensions.json',
 			transforms.json(({ data, json }) => {
 				json.arrayUpsert(data, 'recommendations', 'esbenp.prettier-vscode');
 			})
@@ -98,7 +98,7 @@ export default defineAddon({
 
 		if (eslintInstalled) {
 			sv.devDependency('eslint-config-prettier', '^10.1.8');
-			sv.file(file.eslintConfig, addEslintConfigPrettier);
+			sv.file('eslint.config.js', addEslintConfigPrettier);
 		}
 	}
 });

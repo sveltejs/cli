@@ -14,22 +14,21 @@ export type Package = {
 	workspaces?: string[];
 };
 
-export function getPackageJson(cwd: string): {
-	source: string;
-	data: Package;
-	generateCode: () => string;
-} {
-	const packageText = readFile(cwd, commonFilePaths.packageJson);
-	if (!packageText) {
-		const pkgPath = path.join(cwd, commonFilePaths.packageJson);
-		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
-	}
-
-	const { data, generateCode } = parseJson(packageText);
-	return { source: packageText, data: data as Package, generateCode };
+/**
+ * Checks the file.
+ * @param filePath - Resolves paths relative to the workspace.
+ */
+export function fileExists(cwd: string, filePath: string): boolean {
+	const fullFilePath = path.resolve(cwd, filePath);
+	return fs.existsSync(fullFilePath);
 }
 
-export function readFile(cwd: string, filePath: string): string {
+/**
+ * Reads the file.
+ * @param filePath - Resolves paths relative to the workspace.
+ * @returns The raw UTF-8 text, or `''` if the file is not found.
+ */
+export function loadFile(cwd: string, filePath: string): string {
 	const fullFilePath = path.resolve(cwd, filePath);
 
 	if (!fileExists(cwd, filePath)) {
@@ -41,12 +40,11 @@ export function readFile(cwd: string, filePath: string): string {
 	return text;
 }
 
-export function fileExists(cwd: string, filePath: string): boolean {
-	const fullFilePath = path.resolve(cwd, filePath);
-	return fs.existsSync(fullFilePath);
-}
-
-export function writeFile(cwd: string, filePath: string, content: string): void {
+/**
+ * Writes the file. Will make parent directories as needed.
+ * @param filePath - Resolves paths relative to the workspace.
+ */
+export function saveFile(cwd: string, filePath: string, content: string): void {
 	const fullFilePath = path.resolve(cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
@@ -59,47 +57,26 @@ export function writeFile(cwd: string, filePath: string, content: string): void 
 	fs.writeFileSync(fullFilePath, content, 'utf8');
 }
 
-export function installPackages(
-	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	cwd: string
-): string {
-	const { data, generateCode } = getPackageJson(cwd);
+/**
+ * Loads the workspace `package.json`.
+ * @returns
+ * - `source`: The raw UTF-8 text.
+ * - `data`: The parsed JSON object.
+ */
+export function loadPackageJson(cwd: string): {
+	source: string;
+	data: Package;
+} {
+	const source = loadFile(cwd, 'package.json');
 
-	for (const dependency of dependencies) {
-		if (dependency.dev) {
-			data.devDependencies ??= {};
-			data.devDependencies[dependency.pkg] = dependency.version;
-		} else {
-			data.dependencies ??= {};
-			data.dependencies[dependency.pkg] = dependency.version;
-		}
+	if (!source) {
+		const pkgPath = path.join(cwd, 'package.json');
+		throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 	}
 
-	if (data.dependencies) data.dependencies = alphabetizeProperties(data.dependencies);
-	if (data.devDependencies) data.devDependencies = alphabetizeProperties(data.devDependencies);
-
-	writeFile(cwd, commonFilePaths.packageJson, generateCode());
-	return commonFilePaths.packageJson;
+	const { data } = parseJson(source);
+	return { source, data: data as Package };
 }
-
-function alphabetizeProperties(obj: Record<string, string>) {
-	const orderedObj: Record<string, string> = {};
-	const sortedEntries = Object.entries(obj).sort(([a], [b]) => a.localeCompare(b));
-	for (const [key, value] of sortedEntries) {
-		orderedObj[key] = value;
-	}
-	return orderedObj;
-}
-
-export const commonFilePaths = {
-	packageJson: 'package.json',
-	svelteConfig: 'svelte.config.js',
-	svelteConfigTS: 'svelte.config.ts',
-	jsconfig: 'jsconfig.json',
-	tsconfig: 'tsconfig.json',
-	viteConfig: 'vite.config.js',
-	viteConfigTS: 'vite.config.ts'
-} as const;
 
 export function addNextSteps(content: string, lines: Line[]): string {
 	const linesToAdd = lines.filter(Boolean).join('\n');

@@ -1,9 +1,9 @@
 import * as p from '@clack/prompts';
 import {
-	type AgentName,
 	color,
-	resolveCommandArray,
-	isVersionUnsupportedBelow
+	isVersionUnsupportedBelow,
+	type AgentName,
+	resolveCommandArray
 } from '@sveltejs/sv-utils';
 import type { Argument, Command, Help, HelpConfiguration, Option } from 'commander';
 import fs from 'node:fs';
@@ -346,3 +346,13 @@ export function updateAgent(
 		fs.writeFileSync(agentPath, content);
 	}
 }
+
+export const filePaths = {
+	packageJson: 'package.json',
+	svelteConfig: 'svelte.config.js',
+	svelteConfigTS: 'svelte.config.ts',
+	jsconfig: 'jsconfig.json',
+	tsconfig: 'tsconfig.json',
+	viteConfig: 'vite.config.js',
+	viteConfigTS: 'vite.config.ts'
+} as const;

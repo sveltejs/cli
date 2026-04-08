@@ -1,11 +1,11 @@
 import {
 	addNextSteps,
 	color,
-	resolveCommandArray,
 	text,
 	transforms,
+	resolveCommandArray,
 	fileExists,
-	getPackageJson,
+	loadPackageJson,
 	sanitizeName
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -141,7 +141,7 @@ export default defineAddon({
 				}
 
 				if (!data.name) {
-					const pkg = getPackageJson(cwd);
+					const pkg = loadPackageJson(cwd);
 					data.name = sanitizeName(pkg.data.name, 'wrangler');
 				}
 

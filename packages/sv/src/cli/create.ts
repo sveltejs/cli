@@ -1,11 +1,5 @@
 import * as p from '@clack/prompts';
-import {
-	color,
-	resolveCommandArray,
-	commonFilePaths,
-	getPackageJson,
-	removeEmptyNextSteps
-} from '@sveltejs/sv-utils';
+import { color, resolveCommandArray, removeEmptyNextSteps } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -330,7 +324,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		answers = result.answers;
 	}
 
-	createKit(projectPath, {
+	createKit({
+		cwd: projectPath,
 		name: projectName,
 		template,
 		types: language
@@ -479,7 +474,7 @@ export async function createVirtualWorkspace({
 
 	// Let's read the package.json of the template we will use and add the dependencies to the override
 	const templatePackageJsonPath = dist(`templates/${template}`);
-	const { data: packageJson } = getPackageJson(templatePackageJsonPath);
+	const { data: packageJson } = loadPackageJson(templatePackageJsonPath);
 	override.dependencies = {
 		...packageJson.devDependencies,
 		...packageJson.dependencies,
@@ -493,8 +488,9 @@ export async function createVirtualWorkspace({
 		language: type === 'typescript' ? 'ts' : 'js',
 		file: {
 			...tentativeWorkspace.file,
-			viteConfig: type === 'typescript' ? commonFilePaths.viteConfigTS : commonFilePaths.viteConfig,
-			svelteConfig: commonFilePaths.svelteConfig // currently we always use js files, never typescript files
+			viteConfig:
+				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig,
+			svelteConfig: common.filePaths.svelteConfig // currently we always use js files, never typescript files
 		}
 	};
 

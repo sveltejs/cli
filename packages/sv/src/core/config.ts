@@ -6,21 +6,9 @@ export type { OptionValues } from './options.ts';
 
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
-export type PackageDefinition = {
-	name: string;
-	version: string;
-	dev: boolean;
-	condition?: ConditionDefinition;
-};
-
-export type Scripts = {
-	description: string;
-	args: string[];
-	stdio: 'inherit' | 'pipe';
-	condition?: ConditionDefinition;
-};
-
 export type SvApi = {
+	/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
+	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
 	/** Add a package to the dev dependencies. */
@@ -202,12 +190,6 @@ export type Tests = {
 	elementExists: (selector: string) => Promise<void>;
 	click: (selector: string, path?: string) => Promise<void>;
 	expectUrlPath: (path: string) => void;
-};
-
-export type TestDefinition<Args extends OptionDefinition> = {
-	name: string;
-	run: (tests: Tests) => Promise<void>;
-	condition?: (options: OptionValues<Args>) => boolean;
 };
 
 type MaybePromise<T> = Promise<T> | T;
