@@ -27,7 +27,6 @@ describe('cli', () => {
 				'playwright',
 				'tailwindcss=plugins:typography,forms',
 				'sveltekit-adapter=adapter:node',
-				'devtools-json',
 				'drizzle=database:sqlite+sqlite:libsql',
 				'better-auth=demo:password,github',
 				'mdsvex',
