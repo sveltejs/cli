@@ -32,12 +32,12 @@ export default defineAddon({
 			.replaceAll('~', '')
 			?.startsWith('3.');
 
-		sv.devDependency('vitest', '^4.1.1');
+		sv.devDependency('vitest', '^4.1.3');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser-playwright', '^4.1.1');
-			sv.devDependency('vitest-browser-svelte', '^2.0.2');
-			sv.devDependency('playwright', '^1.58.2');
+			sv.devDependency('@vitest/browser-playwright', '^4.1.3');
+			sv.devDependency('vitest-browser-svelte', '^2.1.0');
+			sv.devDependency('playwright', '^1.59.1');
 		}
 
 		sv.file(

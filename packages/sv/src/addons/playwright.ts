@@ -9,7 +9,7 @@ export default defineAddon({
 	homepage: 'https://playwright.dev',
 	options: {},
 	run: ({ sv, language, file, isKit, directory }) => {
-		sv.devDependency('@playwright/test', '^1.58.2');
+		sv.devDependency('@playwright/test', '^1.59.1');
 
 		sv.file(
 			file.package,
