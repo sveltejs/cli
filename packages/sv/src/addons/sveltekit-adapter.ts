@@ -178,21 +178,13 @@ export default defineAddon({
 			);
 
 			if (file.typeConfig) {
-				sv.file(
-					file.gitignore,
-					transforms.text(({ content }) => {
-						if (content.length === 0) return false;
-						return text.upsert(content, '/worker-configuration.d.ts', {
-							comment: 'Cloudflare Types'
-						});
-					})
-				);
-
-				// Setup wrangler types command
+				// Setup wrangler types command and prepend to check/build
 				sv.file(
 					file.package,
 					transforms.json(({ data, json }) => {
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
+						json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
+						json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
 					})
 				);
 
