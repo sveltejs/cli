@@ -1,5 +1,51 @@
 # sv
 
+## 0.15.0
+### Minor Changes
+
+
+- feat: decouple sv / sv-utils, explicit public API, deprecation pass ([#1046](https://github.com/sveltejs/cli/pull/1046))
+  
+  **`@sveltejs/sv-utils`**
+  
+  - Rename file helpers: `readFile` -> `loadFile`, `writeFile` -> `saveFile`, `getPackageJson` -> `loadPackageJson`
+  - Add `pnpm.onlyBuiltDependencies()` transform for `pnpm-workspace.yaml`
+  - Export `YamlDocument` type from parsers
+  - Remove `commonFilePaths`, `installPackages` (moved internal to `sv`)
+  
+  **`sv`**
+  
+  - `create()` signature changed to `create({ cwd, ...options })`. The old `create(cwd, options)` is deprecated and will be removed in the next major release.
+  - `sv.pnpmBuildDependency()` is deprecated and will be removed in the next major release. Use `sv.file()` with `pnpm.onlyBuiltDependencies()` from `@sveltejs/sv-utils` instead.
+  - `workspace.file.prettierignore`, `.prettierrc`, `.eslintConfig`, `.vscodeSettings`, `.vscodeExtensions` are deprecated and will be removed in the next major release. Use the raw strings directly (e.g. `'.prettierignore'`).
+  - Add `workspace.file.findUp()` to locate files by walking up the directory tree.
+  - Add `api-surface.md` snapshots (auto-generated on build) to track the public API of `sv` and `@sveltejs/sv-utils`.
+  - Remove `setup`, `createProject`, `startPreview`, `addPnpmBuildDependencies` from `sv/testing` exports.
+  - Make type exports explicit (no more `export type *`). Removed types that were never part of the intended public API: `PackageDefinition`, `Scripts`, `TestDefinition`.
+
+- remove: `devtools-json` add-on as SvelteKit will [silently 404 Chrome DevTools workspaces request](https://github.com/sveltejs/kit/pull/15656). You can still add `vite-plugin-devtools-json` manually if needed. ([#1047](https://github.com/sveltejs/cli/pull/1047))
+
+
+- feat: replace `sv.pnpmBuildDependency` with `sv.file` + `pnpm.onlyBuiltDependencies` helper and `file.findUp` ([#1037](https://github.com/sveltejs/cli/pull/1037))
+
+
+### Patch Changes
+
+
+- feat(sv): bump all templates to use vite 8 ([#1005](https://github.com/sveltejs/cli/pull/1005))
+
+
+- fix(paraglide): type and lint errors ([#1049](https://github.com/sveltejs/cli/pull/1049))
+
+
+- feat(sv): bump all templates to use typescript 6 ([#1055](https://github.com/sveltejs/cli/pull/1055))
+
+
+- chore(cli): bump defaults versions ([#1056](https://github.com/sveltejs/cli/pull/1056))
+
+- Updated dependencies [[`baba23f`](https://github.com/sveltejs/cli/commit/baba23f8ec95948e7f0317ce50c7f594f595546e), [`37a701e`](https://github.com/sveltejs/cli/commit/37a701e18e06ba50468e9265831455ed10a0f66a), [`aead922`](https://github.com/sveltejs/cli/commit/aead92212639504c79644ff0b39ceb54ec36ada3)]:
+  - @sveltejs/sv-utils@0.2.0
+
 ## 0.14.1
 ### Patch Changes
 
