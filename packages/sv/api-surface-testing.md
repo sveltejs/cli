@@ -59,8 +59,8 @@ declare function prepareServer({
 	buildCommand,
 	previewCommand
 }: PrepareServerOptions): Promise<PrepareServerReturn>;
-type PlaywrightContext = Pick<typeof _playwright_test0, 'chromium'>;
-type VitestContext = Pick<typeof vitest, 'inject' | 'test' | 'beforeAll' | 'beforeEach'>;
+type PlaywrightContext = Pick<typeof _$_playwright_test0, 'chromium'>;
+type VitestContext = Pick<typeof _$vitest, 'inject' | 'test' | 'beforeAll' | 'beforeEach'>;
 declare function createSetupTest(
 	vitest: VitestContext,
 	playwright?: PlaywrightContext
@@ -68,7 +68,7 @@ declare function createSetupTest(
 	addons: Addons,
 	options?: SetupTestOptions<Addons>
 ) => {
-	test: vitest.TestAPI<Fixtures>;
+	test: _$vitest.TestAPI<Fixtures>;
 	testCases: Array<AddonTestCase<AddonMap>>;
 	prepareServer: typeof prepareServer;
 };

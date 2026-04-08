@@ -7,7 +7,7 @@ export default defineAddon({
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
 	run: ({ sv, file }) => {
-		sv.devDependency('mdsvex', '^0.12.6');
+		sv.devDependency('mdsvex', '^0.12.7');
 
 		sv.file(
 			file.svelteConfig,
