@@ -1,6 +1,7 @@
 import { parse } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -116,6 +117,25 @@ describe('cli', () => {
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
 				);
+			}
+
+			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
+				await exec('pnpm', ['install', '--no-frozen-lockfile'], {
+					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+				});
+				await exec('pnpm', ['build'], {
+					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+				});
+				await exec('pnpm', ['auth:schema'], {
+					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+				});
+				const check = await exec('pnpm', ['check'], {
+					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+				});
+				expect(
+					check.exitCode,
+					`svelte-check failed:\n  stdout: ${check.stdout}\n  stderr: ${check.stderr}`
+				).toBe(0);
 			}
 
 			if (template === 'addon') {
