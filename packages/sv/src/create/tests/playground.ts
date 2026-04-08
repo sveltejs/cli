@@ -153,7 +153,8 @@ test('real world download and convert playground async', async () => {
 		fs.rmSync(directory, { recursive: true });
 	}
 
-	create(directory, {
+	create({
+		cwd: directory,
 		name: 'real-world-playground',
 		template: 'minimal',
 		types: 'typescript'
@@ -204,7 +205,8 @@ test('real world download and convert playground without async', async () => {
 		fs.rmSync(directory, { recursive: true });
 	}
 
-	create(directory, {
+	create({
+		cwd: directory,
 		name: 'real-world-playground-old',
 		template: 'minimal',
 		types: 'typescript'

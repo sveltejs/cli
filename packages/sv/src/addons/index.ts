@@ -1,7 +1,6 @@
 import type { Addon, AddonDefinition } from '../core/config.ts';
 import aiTools from './ai-tools.ts';
 import betterAuth from './better-auth.ts';
-import devtoolsJson from './devtools-json.ts';
 import drizzle from './drizzle.ts';
 import eslint from './eslint.ts';
 import mdsvex from './mdsvex.ts';
@@ -20,7 +19,6 @@ type OfficialAddons = {
 	playwright: Addon<any>;
 	tailwindcss: Addon<any>;
 	sveltekitAdapter: Addon<any>;
-	devtoolsJson: Addon<any>;
 	drizzle: Addon<any>;
 	betterAuth: Addon<any>;
 	mdsvex: Addon<any>;
@@ -38,7 +36,6 @@ export const officialAddons: OfficialAddons = {
 	playwright,
 	tailwindcss,
 	sveltekitAdapter,
-	devtoolsJson,
 	drizzle,
 	betterAuth,
 	mdsvex,

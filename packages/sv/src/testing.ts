@@ -7,10 +7,9 @@ import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
-import { addPnpmBuildDependencies } from './core/package-manager.ts';
+import { addPnpmOnlyBuiltDependencies } from './core/package-manager.ts';
 import { create } from './create/index.ts';
 
-export { addPnpmBuildDependencies } from './core/package-manager.ts';
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 export const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 
@@ -29,7 +28,8 @@ type SetupOptions = {
 	/** @default false */
 	clean?: boolean;
 };
-export function setup({ cwd, clean = false, variants }: SetupOptions): { templatesDir: string } {
+
+function setup({ cwd, clean = false, variants }: SetupOptions): { templatesDir: string } {
 	const workingDir = path.resolve(cwd);
 	if (clean && fs.existsSync(workingDir)) {
 		fs.rmSync(workingDir, { force: true, recursive: true });
@@ -43,13 +43,13 @@ export function setup({ cwd, clean = false, variants }: SetupOptions): { templat
 		if (fs.existsSync(templatePath)) continue;
 
 		if (variant === 'kit-js') {
-			create(templatePath, { name: variant, template: 'minimal', types: 'checkjs' });
+			create({ cwd: templatePath, name: variant, template: 'minimal', types: 'checkjs' });
 		} else if (variant === 'kit-ts') {
-			create(templatePath, { name: variant, template: 'minimal', types: 'typescript' });
+			create({ cwd: templatePath, name: variant, template: 'minimal', types: 'typescript' });
 		} else if (variant === 'vite-js') {
-			create(templatePath, { name: variant, template: 'svelte', types: 'none' });
+			create({ cwd: templatePath, name: variant, template: 'svelte', types: 'none' });
 		} else if (variant === 'vite-ts') {
-			create(templatePath, { name: variant, template: 'svelte', types: 'typescript' });
+			create({ cwd: templatePath, name: variant, template: 'svelte', types: 'typescript' });
 		} else {
 			throw new Error(`Unknown project variant: ${variant}`);
 		}
@@ -59,7 +59,8 @@ export function setup({ cwd, clean = false, variants }: SetupOptions): { templat
 }
 
 type CreateOptions = { cwd: string; testName: string; templatesDir: string };
-export function createProject({ cwd, testName, templatesDir }: CreateOptions): CreateProject {
+
+function createProject({ cwd, testName, templatesDir }: CreateOptions): CreateProject {
 	// create the reference dir
 	const testDir = path.resolve(cwd, testName);
 	fs.mkdirSync(testDir, { recursive: true });
@@ -75,7 +76,8 @@ export function createProject({ cwd, testName, templatesDir }: CreateOptions): C
 }
 
 type PreviewOptions = { cwd: string; command?: string };
-export async function startPreview({
+
+async function startPreview({
 	cwd,
 	command = 'npm run preview'
 }: PreviewOptions): Promise<{ url: string; close: () => Promise<void> }> {
@@ -335,13 +337,13 @@ export function createSetupTest(
 				if (options?.preAdd) {
 					await options.preAdd({ addonTestCase, cwd });
 				}
-				const { pnpmBuildDependencies } = await add({
+				await add({
 					cwd,
 					addons,
 					options: kind.options,
 					packageManager: 'pnpm'
 				});
-				await addPnpmBuildDependencies(cwd, 'pnpm', ['esbuild', ...pnpmBuildDependencies]);
+				addPnpmOnlyBuiltDependencies(cwd, 'pnpm', 'esbuild');
 			}
 
 			execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });

@@ -51,7 +51,6 @@ Prevents installing dependencies
 
 - [`ai-tools`](ai-tools)
 - [`better-auth`](better-auth)
-- [`devtools-json`](devtools-json)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
 - [`mdsvex`](mdsvex)

@@ -12,7 +12,8 @@ import {
 	parseScript,
 	parseSvelte,
 	parseToml,
-	parseYaml
+	parseYaml,
+	type YamlDocument
 } from './parsers.ts';
 import { type RootWithInstance, ensureScript } from './svelte/index.ts';
 import * as svelteNs from './svelte/index.ts';
@@ -190,7 +191,7 @@ export const transforms = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	yaml(
-		cb: (file: { data: ReturnType<typeof parseYaml>['data']; content: string }) => void | false,
+		cb: (file: { data: YamlDocument; content: string }) => void | false,
 		options?: TransformOptions
 	): TransformFn {
 		return (content) => {
