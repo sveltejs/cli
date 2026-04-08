@@ -26,7 +26,8 @@ const workspace: Workspace = {
 		eslintConfig: 'eslint.config.js',
 		vscodeSettings: '.vscode/settings.json',
 		vscodeExtensions: '.vscode/extensions.json',
-		getRelative: () => ''
+		getRelative: () => '',
+		findUp: () => ''
 	},
 	isKit: false,
 	directory: { src: 'src', lib: 'src/lib', kitRoutes: 'src/routes' },
@@ -42,8 +43,8 @@ describe('setupAddons', () => {
 		const addon: AddonDefinition = {
 			id: 'test-addon',
 			options: {},
-			setup: () => {},
-			run: () => {}
+			setup: () => { },
+			run: () => { }
 		};
 
 		const results = await setupAddons([toLoaded(addon)], workspace);
@@ -66,7 +67,7 @@ describe('setupAddons', () => {
 					default: 'my-org'
 				});
 			},
-			run: () => {}
+			run: () => { }
 		};
 
 		const results = await setupAddons([toLoaded(addon)], workspace);
@@ -127,7 +128,7 @@ describe('setupAddons', () => {
 					default: true
 				});
 			},
-			run: () => {}
+			run: () => { }
 		};
 
 		const results = await setupAddons([toLoaded(addon)], workspace);
@@ -156,7 +157,7 @@ describe('setupAddons', () => {
 					]
 				});
 			},
-			run: () => {}
+			run: () => { }
 		};
 
 		const results = await setupAddons([toLoaded(addon)], workspace);
