@@ -57,7 +57,7 @@ export default defineAddon({
 		const [ts] = createPrinter(language === 'ts');
 		const paraglideOutDir = `${directory.lib}/paraglide`;
 
-		sv.devDependency('@inlang/paraglide-js', '^2.10.0');
+		sv.devDependency('@inlang/paraglide-js', '^2.15.2');
 
 		// add the vite plugin
 		sv.file(

@@ -10,12 +10,12 @@ import {
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.0' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.5.2' },
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.1' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.5.4' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.10' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.3.1' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.6' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^5.2.4' }
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.3.3' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.8' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^6.0.4' }
 ] as const;
 
 const options = defineAddonOptions()
@@ -128,7 +128,7 @@ export default defineAddon({
 		);
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
-			sv.devDependency('wrangler', '^4.63.0');
+			sv.devDependency('wrangler', '^4.81.0');
 
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
