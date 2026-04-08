@@ -12,7 +12,9 @@ import { transforms, type TransformFn } from './tooling/transforms.ts';
  */
 export function onlyBuiltDependencies(...packages: string[]): TransformFn {
 	return transforms.yaml(({ data }) => {
-		const existing = data.get('onlyBuiltDependencies');
+		const existing = data.get('onlyBuiltDependencies') as
+			| { items?: Array<{ value: string } | string> }
+			| undefined;
 		const items: Array<{ value: string } | string> = existing?.items ?? [];
 		for (const pkg of packages) {
 			if (items.includes(pkg)) continue;

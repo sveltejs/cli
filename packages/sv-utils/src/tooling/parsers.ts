@@ -1,6 +1,15 @@
 import type { TomlTable } from 'smol-toml';
 import * as utils from './index.ts';
 
+/**
+ * Minimal shape for YAML document roots from `parse.yaml` — avoids re-exporting the full `yaml` types.
+ * At runtime this is the library’s document type; only `get` / `set` are part of the public contract.
+ */
+export type YamlDocument = {
+	get(key: string): unknown;
+	set(key: string, value: unknown): void;
+};
+
 type ParseBase = {
 	source: string;
 	/**
@@ -52,14 +61,12 @@ export function parseJson(source: string): { data: any } & ParseBase {
 	return { data, source, generateCode };
 }
 
-export function parseYaml(
-	source: string
-): { data: ReturnType<typeof utils.parseYaml> } & ParseBase {
+export function parseYaml(source: string): { data: YamlDocument } & ParseBase {
 	if (!source) source = '';
 	const data = utils.parseYaml(source);
-	const generateCode = () => utils.serializeYaml(data);
+	const generateCode = () => utils.serializeYaml(data as Parameters<typeof utils.serializeYaml>[0]);
 
-	return { data, source, generateCode };
+	return { data: data as YamlDocument, source, generateCode };
 }
 
 export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & ParseBase {

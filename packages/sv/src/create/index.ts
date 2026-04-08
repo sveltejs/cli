@@ -1,6 +1,7 @@
-import { sanitizeName, commonFilePaths } from '@sveltejs/sv-utils';
+import { sanitizeName } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { filePaths } from '../core/common.ts';
 import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
@@ -11,6 +12,7 @@ const templateTypes = ['minimal', 'demo', 'library', 'addon', 'svelte'] as const
 const languageTypes = ['typescript', 'checkjs', 'none'] as const;
 
 export type Options = {
+	cwd: string;
 	name: string;
 	template: TemplateType;
 	types: LanguageType;
@@ -32,7 +34,7 @@ export type Common = {
 	}>;
 };
 
-export function create(cwd: string, options: Options): void {
+export function create({ cwd, ...options }: Options): void {
 	mkdirp(cwd);
 
 	write_template_files(options.template, options.types, options.name, cwd);
@@ -76,10 +78,10 @@ function write_template_files(template: string, types: LanguageType, name: strin
 	});
 }
 
-function write_common_files(cwd: string, options: Options, name: string) {
+function write_common_files(cwd: string, options: Omit<Options, 'cwd'>, name: string) {
 	const files = getSharedFiles();
 
-	const pkg_file = path.join(cwd, commonFilePaths.packageJson);
+	const pkg_file = path.join(cwd, filePaths.packageJson);
 	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
 
 	sort_files(files).forEach((file) => {
@@ -88,7 +90,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 
 		if (exclude || !include) return;
 
-		if (file.name === commonFilePaths.packageJson) {
+		if (file.name === filePaths.packageJson) {
 			const new_pkg = JSON.parse(file.contents);
 			merge(pkg, new_pkg);
 		} else {
@@ -105,7 +107,7 @@ function write_common_files(cwd: string, options: Options, name: string) {
 	fs.writeFileSync(pkg_file, JSON.stringify(pkg, null, '\t') + '\n');
 }
 
-function matches_condition(condition: Condition, options: Options) {
+function matches_condition(condition: Condition, options: Omit<Options, 'cwd'>) {
 	if (templateTypes.includes(condition as TemplateType)) {
 		return options.template === condition;
 	}

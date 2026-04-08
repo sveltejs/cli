@@ -9,6 +9,7 @@
 	},
 	"scripts": {
 		"build": "tsdown",
+		"postbuild": "node scripts/generate-api-surface.js",
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
 		"dev": "tsdown -w & pnpm --parallel check -w & wait",

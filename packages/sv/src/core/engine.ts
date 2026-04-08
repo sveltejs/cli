@@ -1,15 +1,17 @@
 import * as p from '@clack/prompts';
 import {
 	color,
-	resolveCommand,
-	type AgentName,
 	fileExists,
-	installPackages,
-	readFile,
-	writeFile
+	loadFile,
+	loadPackageJson,
+	parse,
+	saveFile,
+	resolveCommand,
+	type AgentName
 } from '@sveltejs/sv-utils';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
+import { filePaths } from './common.ts';
 import {
 	getErrorHint,
 	type Addon,
@@ -19,8 +21,42 @@ import {
 	type SetupResult,
 	type SvApi
 } from './config.ts';
+import { svDeprecated } from './deprecated.ts';
 import { TESTING } from './env.ts';
+import { addPnpmOnlyBuiltDependencies } from './package-manager.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
+
+function alphabetizeRecord(obj: Record<string, string>) {
+	const ordered: Record<string, string> = {};
+	for (const [key, value] of Object.entries(obj).sort(([a], [b]) => a.localeCompare(b))) {
+		ordered[key] = value;
+	}
+	return ordered;
+}
+
+function updatePackages(
+	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
+	cwd: string
+): string {
+	const { source } = loadPackageJson(cwd);
+	const { data, generateCode } = parse.json(source);
+
+	for (const dependency of dependencies) {
+		if (dependency.dev) {
+			data.devDependencies ??= {};
+			data.devDependencies[dependency.pkg] = dependency.version;
+		} else {
+			data.dependencies ??= {};
+			data.dependencies[dependency.pkg] = dependency.version;
+		}
+	}
+
+	if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
+	if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
+
+	saveFile(cwd, filePaths.packageJson, generateCode());
+	return filePaths.packageJson;
+}
 
 export type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
@@ -175,11 +211,11 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	const sv: SvApi = {
 		file: (path, edit) => {
 			try {
-				const content = fileExists(workspace.cwd, path) ? readFile(workspace.cwd, path) : '';
+				const content = fileExists(workspace.cwd, path) ? loadFile(workspace.cwd, path) : '';
 				const editedContent = edit(content);
 				if (editedContent === '' || editedContent === false) return content;
 
-				writeFile(workspace.cwd, path, editedContent);
+				saveFile(workspace.cwd, path, editedContent);
 				files.add(path);
 			} catch (e) {
 				if (e instanceof Error) {
@@ -220,6 +256,13 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		},
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
+		},
+		/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
+		pnpmBuildDependency: (pkg) => {
+			svDeprecated(
+				'use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
+			);
+			addPnpmOnlyBuiltDependencies(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
 
@@ -242,7 +285,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	}
 
 	if (cancels.length === 0) {
-		const pkgPath = installPackages(dependencies, workspace.cwd);
+		const pkgPath = updatePackages(dependencies, workspace.cwd);
 		files.add(pkgPath);
 	}
 
