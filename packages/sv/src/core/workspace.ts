@@ -98,7 +98,7 @@ function addDeprecatedFileProperties(
 		Object.defineProperty(file, key, {
 			get() {
 				svDeprecated(
-					`use the string \`${value}\` instead of \`file.${key}\``
+					`use the string \`"${value}"\` instead of \`file.${key}\``
 				);
 				return value;
 			},
