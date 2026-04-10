@@ -87,7 +87,7 @@ const deprecatedFiles = {
 	vscodeExtensions: '.vscode/extensions.json'
 } as const;
 
-/** 
+/**
  * Adds deprecated file properties as non-enumerable getters so they don't trigger on spread
  * Once we remove these deprecatedFiles, we can get rid of addDeprecatedFileProperties
  */
@@ -97,9 +97,7 @@ function addDeprecatedFileProperties(
 	for (const [key, value] of Object.entries(deprecatedFiles)) {
 		Object.defineProperty(file, key, {
 			get() {
-				svDeprecated(
-					`use the string \`"${value}"\` instead of \`file.${key}\``
-				);
+				svDeprecated(`use the string \`"${value}"\` instead of \`file.${key}\``);
 				return value;
 			},
 			enumerable: false
