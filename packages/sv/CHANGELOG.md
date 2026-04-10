@@ -1,5 +1,14 @@
 # sv
 
+## 0.15.1
+### Patch Changes
+
+
+- fix(adapter-cloudflare): use `--check` flag for wrangler types in check/build scripts ([#1057](https://github.com/sveltejs/cli/pull/1057))
+
+
+- fix(cli): deprecated file warnings no longer trigger on object spread ([#1060](https://github.com/sveltejs/cli/pull/1060))
+
 ## 0.15.0
 ### Minor Changes
 
