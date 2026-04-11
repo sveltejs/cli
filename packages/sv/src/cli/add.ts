@@ -19,7 +19,11 @@ import {
 	getErrorHint
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
-import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
+import {
+	discoverCommunityAddons,
+	downloadPackage,
+	getPackageJSON
+} from '../core/fetch-packages.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
@@ -437,21 +441,37 @@ export async function promptAddonQuestions({
 	// prompt which addons to apply (only when no addons were specified)
 	// Only show selection prompt if no addons were specified at all
 	if (addons.length === 0) {
-		// For the prompt, we only show official addons
+		// build official addon options
 		const officialLoaded = officialAddons.map((a) => createLoadedAddon(a));
 		const results = setupAddons(officialLoaded, workspace);
-		const addonOptions = officialAddons
-			// only display supported addons relative to the current environment
+		const officialIds = new Set(officialAddons.map((a) => a.id));
+
+		const officialOptions = officialAddons
 			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
 			.map(({ id, homepage, shortDescription }) => ({
 				label: id,
 				value: id,
-				hint: `${shortDescription} - ${homepage}`
+				hint: `${shortDescription}${homepage ? ` - ${color.website(homepage)}` : ''}`
 			}));
+
+		// build community addon options from local and global node_modules
+		const communityAddons = discoverCommunityAddons(options.cwd).filter(
+			(c) => !officialIds.has(c.name)
+		);
+
+		const communityOptions = communityAddons.map((c) => {
+			const displayName = c.name.endsWith('/sv') ? c.name.slice(0, -3) : c.name;
+			const homepage = c.homepage ? ` - ${color.website(c.homepage)}` : '';
+			return {
+				label: `${color.dim('[community]')} ${displayName}`,
+				value: c.name,
+				hint: `[${c.source}] ${c.description}${homepage}`
+			};
+		});
 
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${color.dim('(use arrow keys / space bar)')}`,
-			options: addonOptions,
+			options: [...officialOptions, ...communityOptions],
 			required: false
 		});
 		if (p.isCancel(selected)) {
@@ -459,11 +479,37 @@ export async function promptAddonQuestions({
 			process.exit(1);
 		}
 
-		for (const id of selected) {
-			// Create LoadedAddon for newly selected official addon
-			const addon = getAddonDetails(id);
-			addons.push(createLoadedAddon(addon));
+		// handle official selections
+		for (const id of selected.filter((id) => officialIds.has(id))) {
+			addons.push(createLoadedAddon(getAddonDetails(id)));
 			answers[id] = {};
+		}
+
+		// handle community selections
+		const selectedCommunity = selected
+			.filter((id) => !officialIds.has(id))
+			.map((name) => {
+				const info = communityAddons.find((c) => c.name === name);
+				return { name, source: info?.source ?? 'global' };
+			});
+
+		if (selectedCommunity.length > 0) {
+			const refs = classifyAddons(
+				selectedCommunity.map(({ name }) => ({ specifier: name, options: [] })),
+				options.cwd
+			);
+			const allLocal = selectedCommunity.every((c) => c.source === 'local');
+			const resolved = await resolveNonOfficialAddons(refs, !allLocal, {
+				skipWarning: allLocal
+			});
+
+			for (let i = 0; i < refs.length; i++) {
+				const addon = resolved[i];
+				if (addon) {
+					addons.push({ reference: refs[i], addon });
+					answers[addon.id] = {};
+				}
+			}
 		}
 
 		// Re-run setup for all selected addons (including any that were added via CLI options)
@@ -952,7 +998,8 @@ function getOptionChoices(details: AddonDefinition) {
 
 export async function resolveNonOfficialAddons(
 	refs: AddonReference[],
-	downloadCheck: boolean
+	downloadCheck: boolean,
+	options?: { skipWarning?: boolean }
 ): Promise<AddonDefinition[]> {
 	const selectedAddons: AddonDefinition[] = [];
 	const { start, stop } = p.spinner();
@@ -977,9 +1024,11 @@ export async function resolveNonOfficialAddons(
 			}
 		}
 
-		p.log.warn(
-			'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
-		);
+		if (!options?.skipWarning) {
+			p.log.warn(
+				'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
+			);
+		}
 
 		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
 		const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));

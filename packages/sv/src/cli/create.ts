@@ -314,6 +314,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				install: false,
 				gitCheck: false,
 				downloadCheck: options.downloadCheck,
+
 				addons: addonsOptionsMap
 			},
 			loadedAddons,
@@ -355,6 +356,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				install: false,
 				gitCheck: false,
 				downloadCheck: options.downloadCheck,
+
 				addons: addonsOptionsMap
 			},
 			loadedAddons,
