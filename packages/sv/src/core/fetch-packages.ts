@@ -1,4 +1,5 @@
 import { color, downloadJson, splitVersion } from '@sveltejs/sv-utils';
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
@@ -211,4 +212,83 @@ export async function getPackageJSON(ref: AddonReference): Promise<{
 		repo: pkg.repository?.url ?? source.npmUrl,
 		warning
 	};
+}
+
+export type DiscoveredAddonSource = 'local' | 'global';
+
+export type CommunityAddonInfo = {
+	name: string;
+	description: string;
+	homepage: string;
+	source: DiscoveredAddonSource;
+};
+
+/**
+ * Discovers community addons from local and global node_modules.
+ * Scans for packages with `sv-add` keyword and `sv` in peerDependencies.
+ */
+export function discoverCommunityAddons(cwd: string): CommunityAddonInfo[] {
+	const local = scanNodeModules(path.join(cwd, 'node_modules'), 'local');
+
+	let global: CommunityAddonInfo[] = [];
+	try {
+		const globalRoot = execSync('npm root -g', { encoding: 'utf8' }).trim();
+		global = scanNodeModules(globalRoot, 'global');
+	} catch {
+		// silently ignore if npm root -g fails
+	}
+
+	// deduplicate: local wins over global
+	const byName = new Map<string, CommunityAddonInfo>();
+	for (const addon of [...global, ...local]) {
+		byName.set(addon.name, addon);
+	}
+	return Array.from(byName.values());
+}
+
+function scanNodeModules(
+	nodeModulesPath: string,
+	source: DiscoveredAddonSource
+): CommunityAddonInfo[] {
+	if (!fs.existsSync(nodeModulesPath)) return [];
+
+	const results: CommunityAddonInfo[] = [];
+	for (const entry of fs.readdirSync(nodeModulesPath, { withFileTypes: true })) {
+		if (!entry.isDirectory()) continue;
+
+		if (entry.name.startsWith('@')) {
+			const scopePath = path.join(nodeModulesPath, entry.name);
+			for (const scoped of fs.readdirSync(scopePath, { withFileTypes: true })) {
+				if (!scoped.isDirectory()) continue;
+				const info = readCommunityAddon(path.join(scopePath, scoped.name), source);
+				if (info) results.push(info);
+			}
+		} else {
+			const info = readCommunityAddon(path.join(nodeModulesPath, entry.name), source);
+			if (info) results.push(info);
+		}
+	}
+	return results;
+}
+
+function readCommunityAddon(
+	pkgDir: string,
+	source: DiscoveredAddonSource
+): CommunityAddonInfo | undefined {
+	try {
+		const raw = fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8');
+		const pkg = JSON.parse(raw);
+
+		if (!pkg.keywords?.includes('sv-add')) return;
+		if (!pkg.peerDependencies?.sv) return;
+
+		return {
+			name: pkg.name,
+			description: pkg.description ?? '',
+			homepage: pkg.homepage ?? pkg.repository?.homepage ?? pkg.repository?.url ?? '',
+			source
+		};
+	} catch {
+		return;
+	}
 }
