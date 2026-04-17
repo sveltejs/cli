@@ -1,5 +1,11 @@
 # sv
 
+## 0.15.2
+### Patch Changes
+
+
+- fix(sv): scope `@deprecated` tag to the legacy `create(cwd, options)` overload only ([#1064](https://github.com/sveltejs/cli/pull/1064))
+
 ## 0.15.1
 ### Patch Changes
 
