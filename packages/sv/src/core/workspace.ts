@@ -9,7 +9,7 @@ import {
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
-import { filePaths } from './common.ts';
+import { filePaths, stripVersionRange } from './common.ts';
 import { svDeprecated } from './deprecated.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
@@ -153,7 +153,7 @@ export async function createWorkspace({
 
 	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
 	for (const [key, value] of Object.entries(dependencies)) {
-		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
+		dependencies[key] = stripVersionRange(value);
 	}
 
 	const isKit = override?.isKit ?? !!dependencies['@sveltejs/kit'];

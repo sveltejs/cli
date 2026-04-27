@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizePosix, parseAddonOptions } from '../common.ts';
+import { normalizePosix, parseAddonOptions, stripVersionRange } from '../common.ts';
 
 describe('normalizePosix', () => {
 	const std = 'this/is/going/forward';
@@ -49,5 +49,13 @@ describe('parseAddonOptions', () => {
 		expect(() => parseAddonOptions('foo+bar')).toThrowError(
 			"Malformed arguments: The following add-on options: 'foo', 'bar' are missing their option name or value (e.g. 'addon=option1:value1+option2:value2')."
 		);
+	});
+});
+
+describe('stripVersionRange', () => {
+	it('removes range prefixes and non-version characters', () => {
+		expect(stripVersionRange('^9.0.0')).toBe('9.0.0');
+		expect(stripVersionRange('~1.2.3')).toBe('1.2.3');
+		expect(stripVersionRange('workspace:^5.4.3')).toBe('5.4.3');
 	});
 });
