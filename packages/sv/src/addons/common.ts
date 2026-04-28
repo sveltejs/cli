@@ -1,6 +1,11 @@
 import { type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
+// This is in common because the eslint addon installs this version,
+// and the prettier addon uses this to check if the installed major version of
+// eslint is supported by `addEslintConfigPrettier(...)`.
+export const ESLINT_VERSION = '^10.2.0';
+
 export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
 	const importNodes = ast.body.filter((n) => n.type === 'ImportDeclaration');

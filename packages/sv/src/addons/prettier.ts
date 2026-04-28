@@ -1,7 +1,8 @@
 import { log } from '@clack/prompts';
 import { color, dedent, transforms } from '@sveltejs/sv-utils';
+import { stripVersionRange } from '../core/common.ts';
 import { defineAddon } from '../core/config.ts';
-import { addEslintConfigPrettier } from './common.ts';
+import { addEslintConfigPrettier, ESLINT_VERSION } from './common.ts';
 
 export default defineAddon({
 	id: 'prettier',
@@ -90,7 +91,7 @@ export default defineAddon({
 
 		if (eslintVersion?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
 			log.warn(
-				`An older major version of ${color.warning(
+				`An unsupported major version of ${color.warning(
 					'eslint'
 				)} was detected. Skipping ${color.warning('eslint-config-prettier')} installation.`
 			);
@@ -103,7 +104,7 @@ export default defineAddon({
 	}
 });
 
-const SUPPORTED_ESLINT_VERSION = '9';
+const SUPPORTED_ESLINT_VERSION = stripVersionRange(ESLINT_VERSION).split('.')[0];
 
 function hasEslint(version: string | undefined): boolean {
 	return !!version && version.startsWith(SUPPORTED_ESLINT_VERSION);
