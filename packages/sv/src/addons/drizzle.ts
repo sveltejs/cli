@@ -101,9 +101,6 @@ export default defineAddon({
 		file,
 		packageManager
 	}) => {
-		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
-			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare - add the adapter first');
-		}
 
 		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
@@ -508,9 +505,14 @@ export default defineAddon({
 		);
 	},
 
-	nextSteps: ({ options, packageManager, cwd }) => {
+	nextSteps: ({ options, packageManager, cwd, dependencyVersion }) => {
 		const steps: string[] = [];
 		if (options.database === 'd1') {
+			if (!dependencyVersion('@sveltejs/adapter-cloudflare')) {
+				steps.push(
+					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${color.command(resolveCommandArray(packageManager, 'execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare']))} to add it`
+				);
+			}
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
