@@ -142,7 +142,7 @@ describe('cli', () => {
 				// replace sv and sv-utils versions in package.json for tests
 				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
-				// pnpm 11 rejects `file:` in `peerDependencies`; `*` accepts the workspace-resolved sv
+				// pnpm 11 rejects `file:` in `peerDependencies`; `*` accepts any version
 				packageJson.peerDependencies['sv'] = '*';
 				packageJson.devDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../../sv-utils';
@@ -150,6 +150,10 @@ describe('cli', () => {
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
 				);
+
+				// the test cwd is excluded from the monorepo's pnpm-workspace.yaml; pin pnpm to
+				// install/run locally so it doesn't walk up and treat this as a workspace install
+				fs.writeFileSync(path.resolve(testOutputPath, '.npmrc'), 'ignore-workspace=true\n');
 
 				const cmds = [
 					// list of cmds to test
