@@ -158,7 +158,7 @@ describe('cli', () => {
 					['run', 'test']
 				];
 				for (const cmd of cmds) {
-					const res = await exec('npm', cmd, {
+					const res = await exec('pnpm', cmd, {
 						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 					});
 					expect(
