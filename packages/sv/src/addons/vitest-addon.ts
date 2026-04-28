@@ -1,4 +1,4 @@
-import { color, createPrinter, dedent, transforms } from '@sveltejs/sv-utils';
+import { coerceVersion, color, createPrinter, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const options = defineAddonOptions()
@@ -27,10 +27,10 @@ export default defineAddon({
 		const unitTesting = options.usages.includes('unit');
 		const componentTesting = options.usages.includes('component');
 
-		vitestV3Installed = (dependencyVersion('vitest') ?? '')
-			.replaceAll('^', '')
-			.replaceAll('~', '')
-			?.startsWith('3.');
+		const vitestVersion = dependencyVersion('vitest');
+		if (vitestVersion) {
+			vitestV3Installed = coerceVersion(vitestVersion).major === 3;
+		}
 
 		sv.devDependency('vitest', '^4.1.3');
 
