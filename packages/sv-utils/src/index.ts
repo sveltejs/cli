@@ -67,7 +67,7 @@ export const parse = {
 };
 
 // Utilities
-export { splitVersion, isVersionUnsupportedBelow } from './common.ts';
+export { splitVersion, isVersionUnsupportedBelow, minVersion } from './common.ts';
 export { createPrinter } from './utils.ts';
 export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';

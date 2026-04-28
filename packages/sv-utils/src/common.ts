@@ -1,8 +1,25 @@
+import semverMinVersion from 'semver/ranges/min-version.js';
+
 type Version = {
 	major?: number;
 	minor?: number;
 	patch?: number;
 };
+
+/**
+ * Returns the lowest version that satisfies the given range, e.g.
+ * `^9.0.0` -> `9.0.0`, `~1.2.3` -> `1.2.3`, `workspace:^5.4.3` -> `5.4.3`.
+ * Throws on unparseable inputs like `latest` or `workspace:*`.
+ */
+export function minVersion(range: string): string {
+	const cleaned = range.replace(/^workspace:/, '');
+	if (cleaned === '*' || cleaned === '') {
+		throw new Error(`Cannot determine min version from range: ${range}`);
+	}
+	const min = semverMinVersion(cleaned);
+	if (!min) throw new Error(`Cannot determine min version from range: ${range}`);
+	return min.version;
+}
 
 export function splitVersion(str: string): Version {
 	const [major, minor, patch] = str?.split('.') ?? [];

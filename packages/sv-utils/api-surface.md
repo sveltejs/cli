@@ -726,6 +726,8 @@ type Version = {
 	minor?: number;
 	patch?: number;
 };
+
+declare function minVersion(range: string): string;
 declare function splitVersion(str: string): Version;
 declare function isVersionUnsupportedBelow(
 	versionStr: string,
@@ -810,6 +812,7 @@ export {
 	json_d_exports as json,
 	loadFile,
 	loadPackageJson,
+	minVersion,
 	parse,
 	pnpm_d_exports as pnpm,
 	resolveCommand,

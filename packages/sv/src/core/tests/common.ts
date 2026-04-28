@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizePosix, parseAddonOptions, stripVersionRange } from '../common.ts';
+import { normalizePosix, parseAddonOptions } from '../common.ts';
 
 describe('normalizePosix', () => {
 	const std = 'this/is/going/forward';
@@ -52,10 +52,3 @@ describe('parseAddonOptions', () => {
 	});
 });
 
-describe('stripVersionRange', () => {
-	it('removes range prefixes and non-version characters', () => {
-		expect(stripVersionRange('^9.0.0')).toBe('9.0.0');
-		expect(stripVersionRange('~1.2.3')).toBe('1.2.3');
-		expect(stripVersionRange('workspace:^5.4.3')).toBe('5.4.3');
-	});
-});

@@ -1,6 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, transforms } from '@sveltejs/sv-utils';
-import { stripVersionRange } from '../core/common.ts';
+import { color, dedent, minVersion, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier, ESLINT_VERSION } from './common.ts';
 
@@ -104,7 +103,7 @@ export default defineAddon({
 	}
 });
 
-const SUPPORTED_ESLINT_VERSION = stripVersionRange(ESLINT_VERSION).split('.')[0];
+const SUPPORTED_ESLINT_VERSION = minVersion(ESLINT_VERSION).split('.')[0];
 
 function hasEslint(version: string | undefined): boolean {
 	return !!version && version.startsWith(SUPPORTED_ESLINT_VERSION);

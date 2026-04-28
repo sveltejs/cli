@@ -26,10 +26,12 @@
 	},
 	"devDependencies": {
 		"@types/estree": "^1.0.8",
+		"@types/semver": "^7.7.1",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.0",
 		"esrap": "^2.2.2",
 		"package-manager-detector": "^1.6.0",
+		"semver": "^7.7.4",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.5.2",
 		"svelte": "^5.53.0",

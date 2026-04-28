@@ -1,5 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import { splitVersion, isVersionUnsupportedBelow } from '../common.ts';
+import { splitVersion, isVersionUnsupportedBelow, minVersion } from '../common.ts';
 
 describe('versionSplit', () => {
 	const combinationsVersionSplit = [
@@ -45,4 +45,19 @@ describe('minimumRequirement', () => {
 			expect(isVersionUnsupportedBelow(version, below)).toEqual(expected);
 		}
 	);
+});
+
+describe('minVersion', () => {
+	it('returns the lowest version that satisfies the range', () => {
+		expect(minVersion('^9.0.0')).toBe('9.0.0');
+		expect(minVersion('~1.2.3')).toBe('1.2.3');
+		expect(minVersion('workspace:^5.4.3')).toBe('5.4.3');
+		expect(minVersion('2.x')).toBe('2.0.0');
+		expect(minVersion('>=1.0.0 || >=2.3.1 <2.4.5')).toBe('1.0.0');
+	});
+
+	it('throws on unparseable ranges', () => {
+		expect(() => minVersion('latest')).toThrow();
+		expect(() => minVersion('workspace:*')).toThrow();
+	});
 });

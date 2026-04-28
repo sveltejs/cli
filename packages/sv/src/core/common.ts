@@ -282,11 +282,6 @@ export const normalizePosix = (dir: string) => {
 	return path.posix.normalize(dir.replace(/\\/g, '/'));
 };
 
-export function stripVersionRange(versionRange: string): string {
-	// Removes the version range (e.g. `^` is removed from: `^9.0.0`)
-	return versionRange.replaceAll(/[^\d|.]/g, '');
-}
-
 export function updateAgent(
 	projectPath: string,
 	language: 'typescript' | 'checkjs' | 'none',
