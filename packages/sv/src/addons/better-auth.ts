@@ -7,7 +7,8 @@ import {
 	transforms,
 	resolveCommandArray,
 	createPrinter,
-	type TransformFn
+	type TransformFn,
+	coerceVersion
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -41,7 +42,8 @@ export default defineAddon({
 		runsAfter('tailwindcss');
 	},
 	run: ({ sv, language, options, directory, dependencyVersion, file }) => {
-		const svelte5 = !!dependencyVersion('svelte')?.startsWith('5');
+		const svelteVersion = dependencyVersion('svelte');
+		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
 		const demoPassword = options.demo.includes('password');

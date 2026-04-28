@@ -1,3 +1,4 @@
+import { coerceVersion } from '../../semver.ts';
 import { parseScript, type SvelteAst } from '../index.ts';
 import { appendFromString } from '../js/common.ts';
 import { parseSvelte } from '../parsers.ts';
@@ -38,9 +39,8 @@ export function addSlot(
 	ast: SvelteAst.Root,
 	options: { svelteVersion: string; language?: 'ts' | 'js' }
 ): void {
-	const slotSyntax =
-		options.svelteVersion &&
-		(options.svelteVersion.startsWith('4') || options.svelteVersion.startsWith('3'));
+	const svelteVersionMajor = options.svelteVersion && coerceVersion(options.svelteVersion).major;
+	const slotSyntax = svelteVersionMajor === 4 || svelteVersionMajor === 3;
 
 	if (slotSyntax) {
 		// @ts-expect-error
