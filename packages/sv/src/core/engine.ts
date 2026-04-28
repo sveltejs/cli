@@ -125,9 +125,7 @@ export async function applyAddons({
 		const canceledDeps = dependsOn.filter((dep) => canceledAddons.has(dep));
 		if (canceledDeps.length > 0) {
 			canceledAddons.add(addon.id);
-			status[addon.id] = canceledDeps.map(
-				(dep) => `Because dependency '${dep}' was canceled`
-			);
+			status[addon.id] = canceledDeps.map((dep) => `Because dependency '${dep}' was canceled`);
 			continue;
 		}
 

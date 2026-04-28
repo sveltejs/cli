@@ -101,7 +101,6 @@ export default defineAddon({
 		file,
 		packageManager
 	}) => {
-
 		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
