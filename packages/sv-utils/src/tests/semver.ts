@@ -1,10 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import {
-	splitVersion,
-	coerceVersion,
-	isVersionUnsupportedBelow,
-	minVersion
-} from '../semver.ts';
+import { splitVersion, coerceVersion, isVersionUnsupportedBelow, minVersion } from '../semver.ts';
 
 describe('versionSplit', () => {
 	const combinationsVersionSplit = [

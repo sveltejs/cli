@@ -67,12 +67,7 @@ export const parse = {
 };
 
 // Utilities
-export {
-	splitVersion,
-	coerceVersion,
-	isVersionUnsupportedBelow,
-	minVersion
-} from './semver.ts';
+export { splitVersion, coerceVersion, isVersionUnsupportedBelow, minVersion } from './semver.ts';
 export { createPrinter } from './utils.ts';
 export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
