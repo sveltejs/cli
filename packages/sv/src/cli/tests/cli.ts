@@ -158,8 +158,16 @@ describe('cli', () => {
 					['run', 'test']
 				];
 				for (const cmd of cmds) {
-					const res = await exec('pnpm', cmd, {
-						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+					const res = await exec('npm', cmd, {
+						nodeOptions: {
+							stdio: 'pipe',
+							cwd: testOutputPath,
+							env: {
+								...process.env,
+								// Disable warning about npm instead of pnpm
+								COREPACK_ENABLE_STRICT: '0'
+							}
+						}
 					});
 					expect(
 						res.exitCode,
