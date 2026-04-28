@@ -111,6 +111,7 @@ export async function applyAddons({
 }> {
 	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
+	const canceledAddons = new Set<string>();
 
 	const addonDefs = loadedAddons.map((l) => l.addon);
 	const ordered = orderAddons(addonDefs, setupResults);
@@ -118,6 +119,18 @@ export async function applyAddons({
 	let hasFormatter = false;
 
 	for (const addon of ordered) {
+		// Skip addons whose `dependsOn` dependency was canceled. Running them would
+		// fail with misleading errors since they expect state from the canceled addon.
+		const dependsOn = setupResults[addon.id]?.dependsOn ?? [];
+		const canceledDeps = dependsOn.filter((dep) => canceledAddons.has(dep));
+		if (canceledDeps.length > 0) {
+			canceledAddons.add(addon.id);
+			status[addon.id] = canceledDeps.map(
+				(dep) => `Because dependency '${dep}' was canceled`
+			);
+			continue;
+		}
+
 		const loaded = loadedAddons.find((l) => l.addon.id === addon.id)!;
 		const workspaceOptions = options[addon.id] || {};
 
@@ -141,6 +154,7 @@ export async function applyAddons({
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
 		} else {
+			canceledAddons.add(addon.id);
 			status[addon.id] = cancels;
 		}
 	}
