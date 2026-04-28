@@ -4,7 +4,8 @@ import {
 	js,
 	parse,
 	loadFile,
-	loadPackageJson
+	loadPackageJson,
+	minVersion
 } from '@sveltejs/sv-utils';
 import * as find from 'empathic/find';
 import fs from 'node:fs';
@@ -151,9 +152,14 @@ export async function createWorkspace({
 		}
 	}
 
-	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
+	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`).
+	// non-semver values (e.g. `latest`, `workspace:*`, `git+...`) are left untouched.
 	for (const [key, value] of Object.entries(dependencies)) {
-		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
+		try {
+			dependencies[key] = minVersion(value);
+		} catch {
+			// keep original value
+		}
 	}
 
 	const isKit = override?.isKit ?? !!dependencies['@sveltejs/kit'];

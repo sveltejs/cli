@@ -1,7 +1,7 @@
 import { log } from '@clack/prompts';
-import { color, dedent, transforms } from '@sveltejs/sv-utils';
+import { color, coerceVersion, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
-import { addEslintConfigPrettier } from './common.ts';
+import { addEslintConfigPrettier, ESLINT_VERSION } from './common.ts';
 
 export default defineAddon({
 	id: 'prettier',
@@ -70,8 +70,7 @@ export default defineAddon({
 			)
 		);
 
-		const eslintVersion = dependencyVersion('eslint');
-		const eslintInstalled = hasEslint(eslintVersion);
+		const eslintInfo = checkEslint(dependencyVersion('eslint'));
 
 		sv.file(
 			file.package,
@@ -88,23 +87,24 @@ export default defineAddon({
 			})
 		);
 
-		if (eslintVersion?.startsWith(SUPPORTED_ESLINT_VERSION) === false) {
+		if (eslintInfo.installed && !eslintInfo.supported) {
 			log.warn(
-				`An older major version of ${color.warning(
+				`An unsupported major version of ${color.warning(
 					'eslint'
 				)} was detected. Skipping ${color.warning('eslint-config-prettier')} installation.`
 			);
 		}
 
-		if (eslintInstalled) {
+		if (eslintInfo.supported) {
 			sv.devDependency('eslint-config-prettier', '^10.1.8');
 			sv.file('eslint.config.js', addEslintConfigPrettier);
 		}
 	}
 });
 
-const SUPPORTED_ESLINT_VERSION = '9';
-
-function hasEslint(version: string | undefined): boolean {
-	return !!version && version.startsWith(SUPPORTED_ESLINT_VERSION);
+function checkEslint(version: string | undefined): { installed: boolean; supported: boolean } {
+	if (!version) return { installed: false, supported: false };
+	const supportedMajor = coerceVersion(ESLINT_VERSION).major;
+	const installedMajor = coerceVersion(version).major;
+	return { installed: true, supported: installedMajor === supportedMajor };
 }
