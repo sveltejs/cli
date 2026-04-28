@@ -3,5 +3,5 @@ packages:
   - '!.test-tmp/**'
   - '!**/.test-output/**'
 
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  esbuild: true

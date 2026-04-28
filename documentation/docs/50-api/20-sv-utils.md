@@ -232,15 +232,20 @@ Namespaced helpers for AST manipulation:
 
 ## Package manager helpers
 
-### `pnpm.onlyBuiltDependencies`
+### `pnpm.allowBuilds`
 
-Returns a transform for `pnpm-workspace.yaml` that adds packages to the `onlyBuiltDependencies` list. Use with `sv.file` when the project uses pnpm.
+Returns a transform for `pnpm-workspace.yaml` that adds packages to the pnpm "allow builds" config. Use with `sv.file` when the project uses pnpm.
+
+The helper detects the installed pnpm version via `pnpm --version`:
+
+- pnpm `>= 11`: writes to the unified `allowBuilds` map (`{ pkg: true }`), migrating any legacy `onlyBuiltDependencies` list into the map.
+- pnpm `< 11`: writes to the legacy `onlyBuiltDependencies` list.
 
 ```js
 // @noErrors
 import { pnpm } from '@sveltejs/sv-utils';
 
 if (packageManager === 'pnpm') {
-	sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.onlyBuiltDependencies('my-native-dep'));
+	sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('my-native-dep'));
 }
 ```

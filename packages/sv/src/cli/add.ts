@@ -23,7 +23,7 @@ import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmOnlyBuiltDependencies,
+	addPnpmAllowBuilds,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
@@ -712,7 +712,7 @@ export async function runAddonsApply({
 				? await packageManagerPrompt(options.cwd)
 				: options.install;
 
-	addPnpmOnlyBuiltDependencies(workspace.cwd, packageManager, 'esbuild');
+	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
 
 	const argsFormattedAddons: string[] = [];
 	for (const loaded of successfulAddons) {

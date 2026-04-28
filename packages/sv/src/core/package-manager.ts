@@ -92,7 +92,7 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export function addPnpmOnlyBuiltDependencies(
+export function addPnpmAllowBuilds(
 	cwd: string,
 	packageManager: AgentName | null | undefined,
 	...packages: string[]
@@ -102,6 +102,6 @@ export function addPnpmOnlyBuiltDependencies(
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.onlyBuiltDependencies(...packages)(content);
+	const newContent = pnpm.allowBuilds(...packages)(content);
 	if (newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
