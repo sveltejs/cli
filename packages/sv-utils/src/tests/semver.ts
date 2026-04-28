@@ -1,5 +1,10 @@
 import { expect, describe, it } from 'vitest';
-import { splitVersion, isVersionUnsupportedBelow, minVersion } from '../semver.ts';
+import {
+	splitVersion,
+	coerceVersion,
+	isVersionUnsupportedBelow,
+	minVersion
+} from '../semver.ts';
 
 describe('versionSplit', () => {
 	const combinationsVersionSplit = [
@@ -15,6 +20,37 @@ describe('versionSplit', () => {
 		'should return the correct version for $version',
 		({ version, expected }) => {
 			expect(splitVersion(version)).toEqual(expected);
+		}
+	);
+});
+
+describe('coerceVersion', () => {
+	const combinationsCoerceVersion = [
+		{ version: '18.13.0', expected: { major: 18, minor: 13, patch: 0, version: '18.13.0' } },
+		// semver.coerce regex-shifts: first numeric run becomes major
+		{ version: 'x.13.0', expected: { major: 13, minor: 0, patch: 0, version: '13.0.0' } },
+		// missing/non-numeric parts are filled with 0
+		{ version: '18.y.0', expected: { major: 18, minor: 0, patch: 0, version: '18.0.0' } },
+		{ version: '18.13.z', expected: { major: 18, minor: 13, patch: 0, version: '18.13.0' } },
+		{ version: '18', expected: { major: 18, minor: 0, patch: 0, version: '18.0.0' } },
+		{ version: '18.13', expected: { major: 18, minor: 13, patch: 0, version: '18.13.0' } },
+		// ranges and `workspace:` prefix are understood
+		{ version: '^9.0.0', expected: { major: 9, minor: 0, patch: 0, version: '9.0.0' } },
+		{ version: '~1.2.3', expected: { major: 1, minor: 2, patch: 3, version: '1.2.3' } },
+		{
+			version: 'workspace:^5.4.3',
+			expected: { major: 5, minor: 4, patch: 3, version: '5.4.3' }
+		},
+		// unparseable input
+		{
+			version: 'invalid',
+			expected: { major: undefined, minor: undefined, patch: undefined, version: undefined }
+		}
+	];
+	it.each(combinationsCoerceVersion)(
+		'should return the correct version for $version',
+		({ version, expected }) => {
+			expect(coerceVersion(version)).toEqual(expected);
 		}
 	);
 });
