@@ -1,2 +1,2 @@
-allowBuilds:
-  '@tailwindcss/oxide': true
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'

@@ -1,8 +1,22 @@
+import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { allowBuilds, onlyBuiltDependencies } from '../pnpm.ts';
 
-// We assume the test runner has pnpm 11+ available on PATH (the repo itself is on pnpm 11).
-describe('allowBuilds', () => {
+const pnpmMajor = (() => {
+	try {
+		const out = execFileSync('pnpm', ['--version'], {
+			encoding: 'utf-8',
+			stdio: ['ignore', 'pipe', 'ignore']
+		});
+		return Number.parseInt(out.trim().split('.')[0]!, 10);
+	} catch {
+		return 11;
+	}
+})();
+
+const isPnpm11 = pnpmMajor >= 11;
+
+describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
 	it('creates allowBuilds map in empty file', () => {
 		expect(allowBuilds('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
 	});
@@ -65,10 +79,35 @@ allowBuilds:
 `;
 		expect(allowBuilds('esbuild')(input)).toBe(input);
 	});
+
+	it('deprecated onlyBuiltDependencies delegates to allowBuilds', () => {
+		expect(onlyBuiltDependencies('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
+	});
 });
 
-describe('onlyBuiltDependencies (deprecated)', () => {
-	it('delegates to allowBuilds', () => {
-		expect(onlyBuiltDependencies('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
+describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
+	it('creates onlyBuiltDependencies list in empty file', () => {
+		expect(allowBuilds('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
+	});
+
+	it('appends to existing onlyBuiltDependencies list', () => {
+		const input = `onlyBuiltDependencies:
+  - foo
+`;
+		expect(allowBuilds('esbuild')(input)).toBe(`onlyBuiltDependencies:
+  - foo
+  - esbuild
+`);
+	});
+
+	it('is idempotent on legacy list', () => {
+		const input = `onlyBuiltDependencies:
+  - esbuild
+`;
+		expect(allowBuilds('esbuild')(input)).toBe(input);
+	});
+
+	it('deprecated onlyBuiltDependencies delegates to allowBuilds', () => {
+		expect(onlyBuiltDependencies('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
 	});
 });
