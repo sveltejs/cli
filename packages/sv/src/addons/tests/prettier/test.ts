@@ -1,9 +1,19 @@
+import { log } from '@clack/prompts';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { vi } from 'vitest';
 import { ESLINT_VERSION } from '../../common.ts';
 import prettier from '../../prettier.ts';
 import { setupTest } from '../_setup/suite.ts';
+
+const origLogWarn = log.warn;
+vi.spyOn(log, 'warn').mockImplementation((msg, opts) => {
+	// Suppress expected warnings about unsupported ESLint versions
+	if (msg.includes('unsupported major version')) return;
+
+	return origLogWarn(msg, opts);
+});
 
 const { test, testCases } = setupTest(
 	{ prettier },
