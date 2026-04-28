@@ -142,9 +142,10 @@ describe('cli', () => {
 				// replace sv and sv-utils versions in package.json for tests
 				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
-				packageJson.peerDependencies['sv'] = 'file:../../../..';
+				// pnpm 11 rejects `file:` in `peerDependencies`; `*` accepts the workspace-resolved sv
+				packageJson.peerDependencies['sv'] = '*';
 				packageJson.devDependencies['sv'] = 'file:../../../..';
-				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../sv-utils';
+				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../../sv-utils';
 				fs.writeFileSync(
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
