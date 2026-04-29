@@ -10,7 +10,7 @@ import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmOnlyBuiltDependencies,
+	addPnpmAllowBuilds,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -396,7 +396,7 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	}
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
-	addPnpmOnlyBuiltDependencies(projectPath, packageManager, 'esbuild');
+	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
 	if (packageManager) {
 		await installDependencies(packageManager, projectPath);
 		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });

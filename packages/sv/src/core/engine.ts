@@ -23,7 +23,7 @@ import {
 } from './config.ts';
 import { svDeprecated } from './deprecated.ts';
 import { TESTING } from './env.ts';
-import { addPnpmOnlyBuiltDependencies } from './package-manager.ts';
+import { addPnpmAllowBuilds } from './package-manager.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 function alphabetizeRecord(obj: Record<string, string>) {
@@ -257,12 +257,12 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
 		},
-		/** @deprecated use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead */
+		/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
 		pnpmBuildDependency: (pkg) => {
 			svDeprecated(
-				'use `pnpm.onlyBuiltDependencies` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
+				'use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
 			);
-			addPnpmOnlyBuiltDependencies(workspace.cwd, workspace.packageManager, pkg);
+			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
 
