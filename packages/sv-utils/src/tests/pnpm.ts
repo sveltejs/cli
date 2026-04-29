@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { allowBuilds, detectPnpmMajor, onlyBuiltDependencies } from '../pnpm.ts';
 
-const isPnpm11 = detectPnpmMajor() >= 11;
+const major = detectPnpmMajor();
+const isPnpm11 = major === undefined || major >= 11;
 
 describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
 	it('creates allowBuilds map in empty file', () => {

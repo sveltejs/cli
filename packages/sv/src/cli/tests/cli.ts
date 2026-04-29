@@ -158,6 +158,8 @@ describe('cli', () => {
 					['run', 'test']
 				];
 				for (const cmd of cmds) {
+					// use npm here so the install doesn't walk up into the monorepo's
+					// pnpm workspace and try to resolve packages from there
 					const res = await exec('npm', cmd, {
 						nodeOptions: {
 							stdio: 'pipe',

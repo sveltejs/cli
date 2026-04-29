@@ -1,9 +1,9 @@
 import {
+	allowBuilds,
 	color,
 	dedent,
 	type TransformFn,
 	transforms,
-	pnpm,
 	resolveCommandArray,
 	fileExists,
 	createPrinter
@@ -136,7 +136,7 @@ export default defineAddon({
 			sv.dependency('better-sqlite3', '^12.8.0');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('better-sqlite3'));
+				sv.file(file.findUp('pnpm-workspace.yaml'), allowBuilds('better-sqlite3'));
 			}
 		}
 

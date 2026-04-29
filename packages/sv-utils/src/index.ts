@@ -1,4 +1,3 @@
-import { allowBuilds, onlyBuiltDependencies } from './pnpm.ts';
 import {
 	parseCss,
 	parseHtml,
@@ -33,10 +32,7 @@ export * as json from './tooling/json.ts';
 export * as svelte from './tooling/svelte/index.ts';
 
 // Package manager helpers
-export const pnpm = {
-	allowBuilds: allowBuilds as typeof allowBuilds,
-	onlyBuiltDependencies: onlyBuiltDependencies as typeof onlyBuiltDependencies
-};
+export { allowBuilds, onlyBuiltDependencies } from './pnpm.ts';
 
 // Transforms — sv-utils = what to do to content, sv = where and when to do it.
 export { transforms } from './tooling/transforms.ts';

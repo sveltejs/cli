@@ -18,18 +18,16 @@ type YamlDoc = {
 	createNode(value: unknown, options?: { flow?: boolean }): unknown;
 };
 
-export function detectPnpmMajor(): number {
+export function detectPnpmMajor(): number | undefined {
 	try {
 		const out = execSync('pnpm --version', {
 			encoding: 'utf-8',
 			stdio: ['ignore', 'pipe', 'ignore']
 		});
-		const { major } = coerceVersion(out.trim());
-		if (major !== undefined) return major;
+		return coerceVersion(out.trim()).major;
 	} catch {
-		// pnpm not on PATH — assume modern
+		return undefined;
 	}
-	return 11;
 }
 
 /**
@@ -43,12 +41,13 @@ export function detectPnpmMajor(): number {
  *
  * ```ts
  * if (packageManager === 'pnpm') {
- *   sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('my-native-dep'));
+ *   sv.file(file.findUp('pnpm-workspace.yaml'), allowBuilds('my-native-dep'));
  * }
  * ```
  */
 export function allowBuilds(...packages: string[]): TransformFn {
-	if (detectPnpmMajor() < 11) return writeLegacy(packages);
+	const major = detectPnpmMajor();
+	if (major !== undefined && major < 11) return writeLegacy(packages);
 	return writeAllowBuilds(packages);
 }
 

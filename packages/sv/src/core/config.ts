@@ -7,7 +7,7 @@ export type { OptionValues } from './options.ts';
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
 export type SvApi = {
-	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
+	/** @deprecated use `allowBuilds` from `@sveltejs/sv-utils` instead */
 	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
