@@ -1,20 +1,7 @@
-import { execSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
-import { allowBuilds, onlyBuiltDependencies } from '../pnpm.ts';
+import { allowBuilds, detectPnpmMajor, onlyBuiltDependencies } from '../pnpm.ts';
 
-const pnpmMajor = (() => {
-	try {
-		const out = execSync('pnpm --version', {
-			encoding: 'utf-8',
-			stdio: ['ignore', 'pipe', 'ignore']
-		});
-		return Number.parseInt(out.trim().split('.')[0]!, 10);
-	} catch {
-		return 11;
-	}
-})();
-
-const isPnpm11 = pnpmMajor >= 11;
+const isPnpm11 = detectPnpmMajor() >= 11;
 
 describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
 	it('creates allowBuilds map in empty file', () => {

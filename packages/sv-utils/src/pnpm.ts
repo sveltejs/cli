@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import { coerceVersion } from './semver.ts';
 import { transforms, type TransformFn } from './tooling/transforms.ts';
 
 type YamlMap = {
@@ -17,14 +18,14 @@ type YamlDoc = {
 	createNode(value: unknown, options?: { flow?: boolean }): unknown;
 };
 
-function detectPnpmMajor(): number {
+export function detectPnpmMajor(): number {
 	try {
 		const out = execSync('pnpm --version', {
 			encoding: 'utf-8',
 			stdio: ['ignore', 'pipe', 'ignore']
 		});
-		const major = Number.parseInt(out.trim().split('.')[0]!, 10);
-		if (Number.isFinite(major)) return major;
+		const { major } = coerceVersion(out.trim());
+		if (major !== undefined) return major;
 	} catch {
 		// pnpm not on PATH — assume modern
 	}
