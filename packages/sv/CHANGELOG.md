@@ -1,5 +1,29 @@
 # sv
 
+## 0.15.2
+### Patch Changes
+
+
+- fix(drizzle): don't cancel if `D1` is selected without `@sveltejs/adapter-cloudflare`, but add info to next steps ([#1071](https://github.com/sveltejs/cli/pull/1071))
+
+
+- fix(sv): skip add-ons when a `dependsOn` dependency cancels ([#1071](https://github.com/sveltejs/cli/pull/1071))
+
+
+- fix(sv): scope `@deprecated` tag to the legacy `create(cwd, options)` overload only ([#1064](https://github.com/sveltejs/cli/pull/1064))
+
+
+- fix(playwright): move `playwright install` from `prepare` to `test:e2e` script ([#1072](https://github.com/sveltejs/cli/pull/1072))
+
+
+- feat(sv): improve `vitest` v3 detection ([#1073](https://github.com/sveltejs/cli/pull/1073))
+
+
+- fix(sv): align eslint version to `10` accross all addons ([#1069](https://github.com/sveltejs/cli/pull/1069))
+
+- Updated dependencies [[`d753ce6`](https://github.com/sveltejs/cli/commit/d753ce6427a9221afe682a037272825775228901), [`e94734e`](https://github.com/sveltejs/cli/commit/e94734ef6c26d6c6ad2d65089e9f084fed59bf48), [`65d8f01`](https://github.com/sveltejs/cli/commit/65d8f011934a7983f705df4734a67068c825579b)]:
+  - @sveltejs/sv-utils@0.2.1
+
 ## 0.15.1
 ### Patch Changes
 

@@ -1,5 +1,17 @@
 # @sveltejs/sv-utils
 
+## 0.2.1
+### Patch Changes
+
+
+- add `minVersion` & `coerceVersion` from `semver`. Deprecate `splitVersion` ([#1069](https://github.com/sveltejs/cli/pull/1069))
+
+
+- handle `pnpm@11`: add `pnpm.allowBuilds` helper that auto-detects the installed pnpm version and writes to `allowBuilds` (pnpm 11+) or the legacy `onlyBuiltDependencies` list (pnpm 10). Deprecate `pnpm.onlyBuiltDependencies` ([#1074](https://github.com/sveltejs/cli/pull/1074))
+
+
+- improve `svelte` version detection ([#1075](https://github.com/sveltejs/cli/pull/1075))
+
 ## 0.2.0
 ### Minor Changes
 
