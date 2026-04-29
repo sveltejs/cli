@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { transforms, type TransformFn } from './tooling/transforms.ts';
 
 type YamlMap = {
@@ -19,7 +19,7 @@ type YamlDoc = {
 
 function detectPnpmMajor(): number {
 	try {
-		const out = execFileSync('pnpm', ['--version'], {
+		const out = execSync('pnpm --version', {
 			encoding: 'utf-8',
 			stdio: ['ignore', 'pipe', 'ignore']
 		});

@@ -1,10 +1,10 @@
-import { execFileSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { allowBuilds, onlyBuiltDependencies } from '../pnpm.ts';
 
 const pnpmMajor = (() => {
 	try {
-		const out = execFileSync('pnpm', ['--version'], {
+		const out = execSync('pnpm --version', {
 			encoding: 'utf-8',
 			stdio: ['ignore', 'pipe', 'ignore']
 		});
