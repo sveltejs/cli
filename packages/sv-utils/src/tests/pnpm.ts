@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { allowBuilds, detectPnpmMajor, onlyBuiltDependencies } from '../pnpm.ts';
+import { detectPnpmMajor } from '../pnpm-internals.ts';
+import { allowBuilds, onlyBuiltDependencies } from '../pnpm.ts';
 
 const major = detectPnpmMajor();
 const isPnpm11 = major === undefined || major >= 11;

@@ -716,6 +716,9 @@ declare const transforms: {
 
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
+declare namespace pnpm_d_exports {
+	export { allowBuilds, onlyBuiltDependencies };
+}
 
 declare function allowBuilds(...packages: string[]): TransformFn;
 /**
@@ -805,7 +808,6 @@ export {
 	type TransformFn,
 	index_d_exports as Walker,
 	type YamlDocument,
-	allowBuilds,
 	coerceVersion,
 	color,
 	constructCommand,
@@ -822,8 +824,8 @@ export {
 	loadFile,
 	loadPackageJson,
 	minVersion,
-	onlyBuiltDependencies,
 	parse,
+	pnpm_d_exports as pnpm,
 	resolveCommand,
 	resolveCommandArray,
 	sanitizeName,

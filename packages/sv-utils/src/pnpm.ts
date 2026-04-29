@@ -1,5 +1,4 @@
-import { execSync } from 'node:child_process';
-import { coerceVersion } from './semver.ts';
+import { detectPnpmMajor } from './pnpm-internals.ts';
 import { transforms, type TransformFn } from './tooling/transforms.ts';
 
 type YamlMap = {
@@ -18,18 +17,6 @@ type YamlDoc = {
 	createNode(value: unknown, options?: { flow?: boolean }): unknown;
 };
 
-export function detectPnpmMajor(): number | undefined {
-	try {
-		const out = execSync('pnpm --version', {
-			encoding: 'utf-8',
-			stdio: ['ignore', 'pipe', 'ignore']
-		});
-		return coerceVersion(out.trim()).major;
-	} catch {
-		return undefined;
-	}
-}
-
 /**
  * Returns a TransformFn for `pnpm-workspace.yaml` that adds packages to the
  * pnpm "allow builds" config.
@@ -41,7 +28,7 @@ export function detectPnpmMajor(): number | undefined {
  *
  * ```ts
  * if (packageManager === 'pnpm') {
- *   sv.file(file.findUp('pnpm-workspace.yaml'), allowBuilds('my-native-dep'));
+ *   sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('my-native-dep'));
  * }
  * ```
  */

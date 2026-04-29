@@ -257,10 +257,10 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
 		},
-		/** @deprecated use `allowBuilds` from `@sveltejs/sv-utils` instead */
+		/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
 		pnpmBuildDependency: (pkg) => {
 			svDeprecated(
-				'use `allowBuilds` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
+				'use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
 			);
 			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
 		}

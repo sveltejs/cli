@@ -3,10 +3,10 @@ import {
 	AGENTS,
 	type AgentName,
 	COMMANDS,
-	allowBuilds,
 	color,
 	constructCommand,
-	detect
+	detect,
+	pnpm
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
@@ -102,6 +102,6 @@ export function addPnpmAllowBuilds(
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = allowBuilds(...packages)(content);
+	const newContent = pnpm.allowBuilds(...packages)(content);
 	if (newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
