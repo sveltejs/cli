@@ -162,84 +162,6 @@ declare class Comments {
 	): void;
 	remove(predicate: (comment: estree.Comment) => boolean | undefined | null): void;
 }
-
-type YamlDocument = {
-	get(key: string): unknown;
-	set(key: string, value: unknown): void;
-};
-type ParseBase = {
-	source: string;
-
-	generateCode(): string;
-};
-declare function parseScript(source: string): {
-	ast: estree.Program;
-	comments: Comments;
-} & ParseBase;
-declare function parseCss(source: string): {
-	ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
-} & ParseBase;
-declare function parseHtml(source: string): {
-	ast: SvelteAst.Fragment;
-} & ParseBase;
-declare function parseJson(source: string): {
-	data: any;
-} & ParseBase;
-declare function parseYaml(source: string): {
-	data: YamlDocument;
-} & ParseBase;
-declare function parseSvelte(source: string): {
-	ast: SvelteAst.Root;
-} & ParseBase;
-declare function parseToml(source: string): {
-	data: TomlTable;
-} & ParseBase;
-interface DedentOptions {
-	alignValues?: boolean;
-	escapeSpecialCharacters?: boolean;
-	trimWhitespace?: boolean;
-}
-interface Dedent {
-	(literals: string): string;
-	(strings: TemplateStringsArray, ...values: unknown[]): string;
-	withOptions: CreateDedent;
-}
-type CreateDedent = (options: DedentOptions) => Dedent;
-declare const dedent: Dedent;
-declare module 'zimmerframe' {
-	export function walk<
-		T extends {
-			type: string;
-		},
-		U extends Record<string, any> | null
-	>(node: T, state: U, visitors: Visitors<T, U>): T;
-	type BaseNode = {
-		type: string;
-	};
-	type NodeOf<T extends string, X> = X extends {
-		type: T;
-	}
-		? X
-		: never;
-	type SpecialisedVisitors<T extends BaseNode, U> = {
-		[K in T['type']]?: Visitor<NodeOf<K, T>, U, T>;
-	};
-	export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | void;
-	export type Visitors<T extends BaseNode, U> = T['type'] extends '_'
-		? never
-		: SpecialisedVisitors<T, U> & {
-				_?: Visitor<T, U, T>;
-			};
-	export interface Context<T, U> {
-		next: (state?: U) => T | void;
-		path: T[];
-		state: U;
-		stop: () => void;
-		visit: (node: T, state?: U) => T;
-	}
-	export {};
-} //# sourceMappingURL=index.d.ts.map
-declare function resolveCommandArray(agent: Agent, command: Command, args: string[]): string[];
 declare namespace index_d_exports$1 {
 	export { addAtRule, addDeclaration, addImports, addRule };
 }
@@ -270,6 +192,23 @@ declare function addAtRule(
 		append: boolean;
 	}
 ): SvelteAst.CSS.Atrule;
+declare namespace index_d_exports$2 {
+	export { addAttribute, addFromRawHtml, appendElement, createElement, insertElement };
+}
+declare function createElement(
+	tagName: string,
+	attributes?: Record<string, string>
+): SvelteAst.RegularElement;
+declare function addAttribute(element: SvelteAst.RegularElement, name: string, value: string): void;
+declare function insertElement(
+	fragment: SvelteAst.Fragment,
+	elementToInsert: SvelteAst.Fragment['nodes'][0]
+): void;
+declare function appendElement(
+	fragment: SvelteAst.Fragment,
+	elementToAppend: SvelteAst.Fragment['nodes'][0]
+): void;
+declare function addFromRawHtml(fragment: SvelteAst.Fragment, html: string): void;
 declare namespace array_d_exports {
 	export { append, create$1 as create, prepend };
 }
@@ -561,41 +500,6 @@ declare namespace index_d_exports$3 {
 		vite_d_exports as vite
 	};
 }
-declare namespace index_d_exports$2 {
-	export { addAttribute, addFromRawHtml, appendElement, createElement, insertElement };
-}
-declare function createElement(
-	tagName: string,
-	attributes?: Record<string, string>
-): SvelteAst.RegularElement;
-declare function addAttribute(element: SvelteAst.RegularElement, name: string, value: string): void;
-declare function insertElement(
-	fragment: SvelteAst.Fragment,
-	elementToInsert: SvelteAst.Fragment['nodes'][0]
-): void;
-declare function appendElement(
-	fragment: SvelteAst.Fragment,
-	elementToAppend: SvelteAst.Fragment['nodes'][0]
-): void;
-declare function addFromRawHtml(fragment: SvelteAst.Fragment, html: string): void;
-declare namespace text_d_exports {
-	export { upsert };
-}
-type CommentEntry = {
-	text: string;
-	mode: 'append' | 'prepend';
-};
-type CommentOption = string | Array<string | CommentEntry>;
-
-declare function upsert(
-	content: string,
-	key: string,
-	options?: {
-		value?: string;
-		comment?: CommentOption;
-		separator?: boolean;
-	}
-): string;
 declare namespace json_d_exports {
 	export { arrayUpsert, packageScriptsUpsert };
 }
@@ -615,6 +519,38 @@ declare function packageScriptsUpsert(
 		mode?: 'append' | 'prepend';
 	}
 ): void;
+
+type YamlDocument = {
+	get(key: string): unknown;
+	set(key: string, value: unknown): void;
+};
+type ParseBase = {
+	source: string;
+
+	generateCode(): string;
+};
+declare function parseScript(source: string): {
+	ast: estree.Program;
+	comments: Comments;
+} & ParseBase;
+declare function parseCss(source: string): {
+	ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
+} & ParseBase;
+declare function parseHtml(source: string): {
+	ast: SvelteAst.Fragment;
+} & ParseBase;
+declare function parseJson(source: string): {
+	data: any;
+} & ParseBase;
+declare function parseYaml(source: string): {
+	data: YamlDocument;
+} & ParseBase;
+declare function parseSvelte(source: string): {
+	ast: SvelteAst.Root;
+} & ParseBase;
+declare function parseToml(source: string): {
+	data: TomlTable;
+} & ParseBase;
 declare namespace index_d_exports$4 {
 	export { RootWithInstance, addFragment, addSlot, ensureScript };
 }
@@ -642,6 +578,24 @@ declare function addFragment(
 		language?: 'ts' | 'js';
 	}
 ): void;
+declare namespace text_d_exports {
+	export { upsert };
+}
+type CommentEntry = {
+	text: string;
+	mode: 'append' | 'prepend';
+};
+type CommentOption = string | Array<string | CommentEntry>;
+
+declare function upsert(
+	content: string,
+	key: string,
+	options?: {
+		value?: string;
+		comment?: CommentOption;
+		separator?: boolean;
+	}
+): string;
 type TransformFn = (content: string) => string;
 type TransformOptions = {
 	onError?: (error: unknown) => void;
@@ -716,15 +670,58 @@ declare const transforms: {
 
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
-declare namespace pnpm_d_exports {
-	export { allowBuilds, onlyBuiltDependencies };
-}
 
 declare function allowBuilds(...packages: string[]): TransformFn;
 /**
  * @deprecated Use {@link allowBuilds} instead.
  */
 declare function onlyBuiltDependencies(...packages: string[]): TransformFn;
+interface DedentOptions {
+	alignValues?: boolean;
+	escapeSpecialCharacters?: boolean;
+	trimWhitespace?: boolean;
+}
+interface Dedent {
+	(literals: string): string;
+	(strings: TemplateStringsArray, ...values: unknown[]): string;
+	withOptions: CreateDedent;
+}
+type CreateDedent = (options: DedentOptions) => Dedent;
+declare const dedent: Dedent;
+declare module 'zimmerframe' {
+	export function walk<
+		T extends {
+			type: string;
+		},
+		U extends Record<string, any> | null
+	>(node: T, state: U, visitors: Visitors<T, U>): T;
+	type BaseNode = {
+		type: string;
+	};
+	type NodeOf<T extends string, X> = X extends {
+		type: T;
+	}
+		? X
+		: never;
+	type SpecialisedVisitors<T extends BaseNode, U> = {
+		[K in T['type']]?: Visitor<NodeOf<K, T>, U, T>;
+	};
+	export type Visitor<T, U, V> = (node: T, context: Context<V, U>) => V | void;
+	export type Visitors<T extends BaseNode, U> = T['type'] extends '_'
+		? never
+		: SpecialisedVisitors<T, U> & {
+				_?: Visitor<T, U, T>;
+			};
+	export interface Context<T, U> {
+		next: (state?: U) => T | void;
+		path: T[];
+		state: U;
+		stop: () => void;
+		visit: (node: T, state?: U) => T;
+	}
+	export {};
+} //# sourceMappingURL=index.d.ts.map
+declare function resolveCommandArray(agent: Agent, command: Command, args: string[]): string[];
 type Version = {
 	major?: number;
 	minor?: number;
@@ -787,6 +784,10 @@ declare const color: {
 	error: (str: ColorInput) => string;
 	hidden: (str: ColorInput) => string;
 };
+declare const pnpm: {
+	allowBuilds: typeof allowBuilds;
+	onlyBuiltDependencies: typeof onlyBuiltDependencies;
+};
 
 declare const parse: {
 	css: typeof parseCss;
@@ -825,7 +826,7 @@ export {
 	loadPackageJson,
 	minVersion,
 	parse,
-	pnpm_d_exports as pnpm,
+	pnpm,
 	resolveCommand,
 	resolveCommandArray,
 	sanitizeName,
