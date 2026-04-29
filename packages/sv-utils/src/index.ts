@@ -34,8 +34,8 @@ export * as svelte from './tooling/svelte/index.ts';
 
 // Package manager helpers
 export const pnpm = {
-	allowBuilds,
-	onlyBuiltDependencies
+	allowBuilds: allowBuilds as typeof allowBuilds,
+	onlyBuiltDependencies: onlyBuiltDependencies as typeof onlyBuiltDependencies
 };
 
 // Transforms — sv-utils = what to do to content, sv = where and when to do it.
