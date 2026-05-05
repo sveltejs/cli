@@ -1,7 +1,14 @@
 import decircular from 'decircular';
 import dedent from 'dedent';
 import * as Walker from 'zimmerframe';
-import { type AstTypes, type Comments, parseScript, serializeScript, stripAst } from '../index.ts';
+import {
+	type AstTypes,
+	type Comments,
+	parseScript,
+	serializeScript,
+	stripAst,
+	transformToInternal
+} from '../index.ts';
 
 export function addJsDocTypeComment(
 	node: AstTypes.Node,
@@ -115,25 +122,33 @@ export function appendFromString(
 	node: AstTypes.BlockStatement | AstTypes.Program,
 	options: { code: string; comments?: Comments }
 ): void {
-	const parsed = parseScript(dedent(options.code));
+	const target = options.comments && transformToInternal(options.comments);
 
-	// Merge comments if provided
-	if (options.comments) {
-		const parsedInternal = parsed.comments as unknown as {
-			original: AstTypes.Comment[];
-			leading: WeakMap<AstTypes.Node, AstTypes.Comment[]>;
-			trailing: WeakMap<AstTypes.Node, AstTypes.Comment[]>;
-		};
-		const targetInternal = options.comments as unknown as {
-			original: AstTypes.Comment[];
-		};
-		targetInternal.original.push(...parsedInternal.original);
-	}
+	// Esrap binds comments to nodes by source `loc`. Each parse starts at line 1,
+	// so repeated calls collide; pad the source so the parser emits fresh lines.
+	let source = dedent(options.code);
+	if (target) source = '\n'.repeat(maxLine(node, target.original)) + source;
+
+	const parsed = parseScript(source);
+
+	if (target) target.original.push(...transformToInternal(parsed.comments).original);
 
 	for (const childNode of parsed.ast.body) {
 		// @ts-expect-error
 		node.body.push(childNode);
 	}
+}
+
+function maxLine(node: AstTypes.Node, comments: AstTypes.Comment[]): number {
+	let max = 0;
+	Walker.walk(node, null, {
+		_(n, { next }) {
+			if (n.loc && n.loc.end.line > max) max = n.loc.end.line;
+			next();
+		}
+	});
+	for (const c of comments) if (c.loc && c.loc.end.line > max) max = c.loc.end.line;
+	return max;
 }
 
 export function parseExpression(code: string): AstTypes.Expression {
