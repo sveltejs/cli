@@ -89,11 +89,16 @@ export function addNamed(
 		return specifier;
 	});
 
+	const expectedImportKind = options.isType ? 'type' : 'value';
 	let importDecl: AstTypes.ImportDeclaration | undefined;
 
 	Walker.walk(node as AstTypes.Node, null, {
 		ImportDeclaration(declaration) {
-			if (declaration.source.value === options.from && declaration.specifiers) {
+			if (
+				declaration.source.value === options.from &&
+				declaration.specifiers &&
+				declaration.importKind === expectedImportKind
+			) {
 				importDecl = declaration;
 			}
 		}
@@ -125,7 +130,7 @@ export function addNamed(
 		},
 		specifiers,
 		attributes: [],
-		importKind: options.isType ? 'type' : 'value'
+		importKind: expectedImportKind
 	};
 
 	node.body.unshift(expectedImportDeclaration);
