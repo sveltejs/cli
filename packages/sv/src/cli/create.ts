@@ -337,6 +337,18 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	p.log.success('Project created');
 
+	// Resolve the package manager early in case it's used in an add-on.
+	const packageManager =
+		options.install === false
+			? null
+			: options.install === true
+				? await packageManagerPrompt(projectPath)
+				: options.install;
+
+	if (packageManager) {
+		workspace.packageManager = packageManager;
+	}
+
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
@@ -368,13 +380,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		addonSetupResults = setupResults;
 	}
 
-	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(projectPath)
-				: options.install;
-
 	// Build args for next time based on non-default options
 	const argsFormatted: string[] = [];
 
@@ -391,9 +396,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	common.updateAgent(directory, language, packageManager ?? 'npm', loadedAddons);
 
-	if (packageManager) {
-		workspace.packageManager = packageManager;
-	}
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
 	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');

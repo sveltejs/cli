@@ -56,25 +56,41 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		retainLog: true
 	});
 
+	const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
+
+	const proc = exec(command, args, {
+		nodeOptions: { cwd, stdio: 'pipe' },
+		throwOnError: false
+	});
+
+	const output: string[] = [];
 	try {
-		const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
-
-		const proc = exec(command, args, {
-			nodeOptions: { cwd, stdio: 'pipe' },
-			throwOnError: true
-		});
-
 		for await (const line of proc) {
 			// line will be from stderr/stdout in the order you'd see it in a term
+			output.push(line);
 			task.message(line);
 		}
-
-		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
 	} catch {
-		task.error('Failed to install dependencies');
-		p.cancel('Operation failed.');
-		process.exit(2);
+		// fall through to exit-code handling below
 	}
+
+	const exitCode = proc.exitCode ?? 0;
+	if (exitCode === 0) {
+		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
+		return;
+	}
+
+	if (agent === 'pnpm' && output.join('\n').includes('ERR_PNPM_IGNORED_BUILDS')) {
+		task.success(`Installed dependencies with ${color.command(agent)}`);
+		p.log.warn(
+			`Some build scripts were skipped. Run ${color.command(`${agent} approve-builds`)} to approve them.`
+		);
+		return;
+	}
+
+	task.error('Failed to install dependencies');
+	p.cancel('Operation failed.');
+	process.exit(2);
 }
 
 export async function detectPackageManager(cwd: string): Promise<AgentName> {
