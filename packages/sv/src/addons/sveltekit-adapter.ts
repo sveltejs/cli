@@ -4,7 +4,8 @@ import {
 	resolveCommandArray,
 	fileExists,
 	loadPackageJson,
-	sanitizeName
+	sanitizeName,
+	pnpm
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -45,7 +46,7 @@ export default defineAddon({
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, file, cwd }) => {
+	run: ({ sv, options, packageManager, file, cwd }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -128,6 +129,10 @@ export default defineAddon({
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.81.0');
+
+			if (packageManager === 'pnpm') {
+				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('workerd', 'sharp'));
+			}
 
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
