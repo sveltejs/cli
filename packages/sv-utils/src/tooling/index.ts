@@ -248,13 +248,13 @@ export class Comments {
 	}
 }
 
-interface CommentsInternal {
+export interface CommentsInternal {
 	original: TsEstree.Comment[];
 	leading: WeakMap<BaseNode, CommentType[]>;
 	trailing: WeakMap<BaseNode, CommentType[]>;
 }
 
-function transformToInternal(comments: Comments | undefined): CommentsInternal {
+export function transformToInternal(comments: Comments | undefined): CommentsInternal {
 	return (comments ?? new Comments()) as unknown as CommentsInternal;
 }
 
