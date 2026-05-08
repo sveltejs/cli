@@ -1,5 +1,20 @@
 # @sveltejs/sv-utils
 
+## 0.2.2
+### Patch Changes
+
+
+- fix: `js.common.appendFromString` no longer corrupts the output when called multiple times with comments ([#1081](https://github.com/sveltejs/cli/pull/1081))
+
+
+- fix: prevent `js.exports.createNamed` from crashing when the AST contains an exported function or class declaration ([#1084](https://github.com/sveltejs/cli/pull/1084))
+
+
+- fix: `js.imports.addNamed` now respects `isType` when merging into an existing import declaration ([#1080](https://github.com/sveltejs/cli/pull/1080))
+
+
+- fix: `js.object.create` no longer corrupts the AST when an object value contains a `type` property ([#1082](https://github.com/sveltejs/cli/pull/1082))
+
 ## 0.2.1
 ### Patch Changes
 

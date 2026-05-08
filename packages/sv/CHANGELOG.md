@@ -1,5 +1,17 @@
 # sv
 
+## 0.15.3
+### Patch Changes
+
+
+- fix(sveltekit-adapter): register `workerd` and `sharp` as pnpm allow-builds when the cloudflare adapter is selected ([#1085](https://github.com/sveltejs/cli/pull/1085))
+
+
+- fix(sv): resolve package manager before applying add-ons so pnpm-only logic in add-ons (drizzle, tailwindcss, sveltekit-adapter) actually runs. Also soften pnpm `ERR_PNPM_IGNORED_BUILDS` to a warning instead of failing the install. ([#1085](https://github.com/sveltejs/cli/pull/1085))
+
+- Updated dependencies [[`e3595a8`](https://github.com/sveltejs/cli/commit/e3595a89af6746f82bd342b838bd7838c1b27627), [`a991697`](https://github.com/sveltejs/cli/commit/a99169702fbfd31d9c10109f056f8c6451d4db83), [`2c4a157`](https://github.com/sveltejs/cli/commit/2c4a15707709b1e135b7ebcb0ad495893c9c3378), [`2917f88`](https://github.com/sveltejs/cli/commit/2917f885531a256f7b248cf6f74e17e9eb5c5ad5)]:
+  - @sveltejs/sv-utils@0.2.2
+
 ## 0.15.2
 ### Patch Changes
 
