@@ -12,6 +12,7 @@ export default defineProject({
 		testTimeout: ONE_MINUTE * (isWindows ? 5 : 3),
 		hookTimeout: ONE_MINUTE * (isWindows ? 5 : 3),
 		retry: env.CI ? 3 : 0,
+		maxConcurrency: 4,
 		expect: {
 			requireAssertions: true
 		}
