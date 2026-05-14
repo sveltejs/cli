@@ -265,7 +265,7 @@ export default defineAddon({
 
 		if (options.ide.includes('other')) {
 			steps.push(
-				`For other clients: ${color.website(`https://svelte.dev/docs/mcp/${options.setup}-setup#Other-clients`)}`
+				`For other clients: ${color.website(`https://svelte.dev/docs/ai/${options.setup}-setup#Other-clients`)}`
 			);
 		}
 
