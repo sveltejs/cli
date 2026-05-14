@@ -36,7 +36,7 @@ export default defineAddon({
 		sv.devDependency('tailwindcss', '^4.2.2');
 		sv.devDependency('@tailwindcss/vite', '^4.2.2');
 		if (packageManager === 'pnpm') {
-			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.onlyBuiltDependencies('@tailwindcss/oxide'));
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('@tailwindcss/oxide'));
 		}
 
 		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');

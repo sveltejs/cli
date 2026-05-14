@@ -21,9 +21,9 @@ type FileType = {
 	condition?: ConditionDefinition;
 	content: (editor: FileEditor) => string;
 };
+declare function create(options: Options): void;
 /** @deprecated use `create({ cwd, ...options })` instead. */
 declare function create(cwd: string, options: Omit<Options, 'cwd'>): void;
-declare function create(options: Options): void;
 export {
 	type Addon,
 	type AddonDefinition,

@@ -6,6 +6,38 @@ type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
 type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
 
+// Used to disambiguate user-supplied objects (which may have a `type` property)
+// from actual AST Expression nodes when populating an ObjectExpression.
+const AST_EXPRESSION_TYPES = new Set([
+	'ArrayExpression',
+	'ArrowFunctionExpression',
+	'AssignmentExpression',
+	'AwaitExpression',
+	'BinaryExpression',
+	'CallExpression',
+	'ChainExpression',
+	'ClassExpression',
+	'ConditionalExpression',
+	'FunctionExpression',
+	'Identifier',
+	'ImportExpression',
+	'Literal',
+	'LogicalExpression',
+	'MemberExpression',
+	'MetaProperty',
+	'NewExpression',
+	'ObjectExpression',
+	'SequenceExpression',
+	'TaggedTemplateExpression',
+	'TemplateLiteral',
+	'ThisExpression',
+	'UnaryExpression',
+	'UpdateExpression',
+	'YieldExpression',
+	'TSAsExpression',
+	'TSSatisfiesExpression'
+]);
+
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
 	node: AstTypes.ObjectExpression,
 	options: { name: string; fallback: T }
@@ -105,8 +137,9 @@ function populateObjectExpression(options: {
 				array.append(expression, getExpression(v));
 			}
 		} else if (typeof value === 'object' && value !== null) {
-			// if the type property is defined, we assume it's an AST type
-			if (value.type !== undefined) {
+			// only treat as an AST node if `type` matches a known AST expression type,
+			// so plain objects like `{ type: 'foo' }` are still serialized as data
+			if (typeof value.type === 'string' && AST_EXPRESSION_TYPES.has(value.type)) {
 				expression = value as AstTypes.Expression;
 			} else {
 				// If we're overriding and there's an existing object expression, merge with it

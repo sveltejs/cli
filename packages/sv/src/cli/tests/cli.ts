@@ -172,7 +172,7 @@ describe('cli', () => {
 				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 				packageJson.peerDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['sv'] = 'file:../../../..';
-				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../sv-utils';
+				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../../sv-utils';
 				fs.writeFileSync(
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
@@ -186,8 +186,18 @@ describe('cli', () => {
 					['run', 'test']
 				];
 				for (const cmd of cmds) {
+					// use npm here so the install doesn't walk up into the monorepo's
+					// pnpm workspace and try to resolve packages from there
 					const res = await exec('npm', cmd, {
-						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+						nodeOptions: {
+							stdio: 'pipe',
+							cwd: testOutputPath,
+							env: {
+								...process.env,
+								// allow npm under a repo whose packageManager is pnpm
+								COREPACK_ENABLE_STRICT: '0'
+							}
+						}
 					});
 					expect(
 						res.exitCode,

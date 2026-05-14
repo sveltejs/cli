@@ -172,6 +172,9 @@ importers:
       '@types/estree':
         specifier: ^1.0.8
         version: 1.0.8
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.7.1
       decircular:
         specifier: ^1.0.0
         version: 1.0.0
@@ -184,6 +187,9 @@ importers:
       package-manager-detector:
         specifier: ^1.6.0
         version: 1.6.0
+      semver:
+        specifier: ^7.7.4
+        version: 7.7.4
       silver-fleece:
         specifier: ^1.2.1
         version: 1.2.1
@@ -1332,9 +1338,6 @@ packages:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
-
-  get-tsconfig@4.13.6:
-    resolution: {integrity: sha512-shZT/QMiSHc/YBLxxOkMtgSid5HFoauqCE3/exfsEcwg1WkeqjG+V40yBbBrsD+jW2HDXcs28xOfcbm2jI8Ddw==}
 
   get-tsconfig@4.13.7:
     resolution: {integrity: sha512-7tN6rFgBlMgpBML5j8typ92BKFi2sFQvIdpAqLA2beia5avZDrMs0FLZiM5etShWq5irVyGcGMEA1jcDaK7A/Q==}
@@ -3205,7 +3208,7 @@ snapshots:
       enhanced-resolve: 5.20.1
       eslint: 10.2.0
       eslint-plugin-es-x: 7.8.0(eslint@10.2.0)
-      get-tsconfig: 4.13.6
+      get-tsconfig: 4.13.7
       globals: 15.15.0
       globrex: 0.1.2
       ignore: 5.3.2
@@ -3414,10 +3417,6 @@ snapshots:
 
   fsevents@2.3.3:
     optional: true
-
-  get-tsconfig@4.13.6:
-    dependencies:
-      resolve-pkg-maps: 1.0.0
 
   get-tsconfig@4.13.7:
     dependencies:
@@ -4068,7 +4067,7 @@ snapshots:
 
   ts-declaration-location@1.0.7(typescript@6.0.2):
     dependencies:
-      picomatch: 4.0.3
+      picomatch: 4.0.4
       typescript: 6.0.2
 
   ts-interface-checker@0.1.13: {}
@@ -4151,7 +4150,7 @@ snapshots:
   vite@8.0.1(@types/node@20.19.37)(yaml@2.8.2):
     dependencies:
       lightningcss: 1.32.0
-      picomatch: 4.0.3
+      picomatch: 4.0.4
       postcss: 8.5.8
       rolldown: 1.0.0-rc.10
       tinyglobby: 0.2.15

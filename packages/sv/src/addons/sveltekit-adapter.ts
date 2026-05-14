@@ -1,11 +1,11 @@
 import {
 	color,
-	text,
 	transforms,
 	resolveCommandArray,
 	fileExists,
 	loadPackageJson,
-	sanitizeName
+	sanitizeName,
+	pnpm
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -46,7 +46,7 @@ export default defineAddon({
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, file, cwd }) => {
+	run: ({ sv, options, packageManager, file, cwd }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -130,6 +130,10 @@ export default defineAddon({
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.81.0');
 
+			if (packageManager === 'pnpm') {
+				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('workerd', 'sharp'));
+			}
+
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 
@@ -178,21 +182,13 @@ export default defineAddon({
 			);
 
 			if (file.typeConfig) {
-				sv.file(
-					file.gitignore,
-					transforms.text(({ content }) => {
-						if (content.length === 0) return false;
-						return text.upsert(content, '/worker-configuration.d.ts', {
-							comment: 'Cloudflare Types'
-						});
-					})
-				);
-
-				// Setup wrangler types command
+				// Setup wrangler types command and prepend to check/build
 				sv.file(
 					file.package,
 					transforms.json(({ data, json }) => {
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
+						json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
+						json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
 					})
 				);
 

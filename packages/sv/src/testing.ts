@@ -7,7 +7,7 @@ import pstree, { type PS } from 'ps-tree';
 import { exec, x } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
-import { addPnpmOnlyBuiltDependencies } from './core/package-manager.ts';
+import { addPnpmAllowBuilds } from './core/package-manager.ts';
 import { create } from './create/index.ts';
 
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
@@ -343,7 +343,7 @@ export function createSetupTest(
 					options: kind.options,
 					packageManager: 'pnpm'
 				});
-				addPnpmOnlyBuiltDependencies(cwd, 'pnpm', 'esbuild');
+				addPnpmAllowBuilds(cwd, 'pnpm', 'esbuild');
 			}
 
 			execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });

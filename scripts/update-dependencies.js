@@ -22,12 +22,16 @@ async function updateAddonDependencies() {
 		const svDepRegex = /sv\.(?:dependency|devDependency)\('([^']+)',\s*'([^']+)'\)/g;
 		// regex to extract from object literal properties `{ package: '...', version: '...' }` (ex: tailwind add-on)
 		const objectLiteralRegex = /package:\s*'([^']+)',\s*version:\s*'([^']+)'/g;
+		// regex to extract from comments `/* update-deps: <package-name> */ '<version>'` (for any custom cases, ex: common constants)
+		const commentRegex = /\/\*\s*update-deps:\s*(\S+)\s*\*\/\s*'([^']+)'/g;
 
 		const svDepMatches = Array.from(content.matchAll(svDepRegex));
 		const objectLiteralMatches = Array.from(content.matchAll(objectLiteralRegex));
+		const commentMatches = Array.from(content.matchAll(commentRegex));
 
 		content = await replaceDeps(content, svDepMatches);
 		content = await replaceDeps(content, objectLiteralMatches);
+		content = await replaceDeps(content, commentMatches);
 
 		fs.writeFileSync(filePath, content);
 	}

@@ -1,7 +1,7 @@
 import { log } from '@clack/prompts';
 import { type AstTypes, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
-import { addEslintConfigPrettier, getNodeTypesVersion } from './common.ts';
+import { addEslintConfigPrettier, ESLINT_VERSION, getNodeTypesVersion } from './common.ts';
 
 export default defineAddon({
 	id: 'eslint',
@@ -12,7 +12,7 @@ export default defineAddon({
 		const typescript = language === 'ts';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('eslint', '^10.2.0');
+		sv.devDependency('eslint', ESLINT_VERSION);
 		sv.devDependency('@eslint/compat', '^2.0.4');
 		sv.devDependency('eslint-plugin-svelte', '^3.17.0');
 		sv.devDependency('globals', '^17.4.0');

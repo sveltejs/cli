@@ -717,16 +717,28 @@ declare const transforms: {
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
 declare namespace pnpm_d_exports {
-	export { onlyBuiltDependencies };
+	export { allowBuilds, onlyBuiltDependencies };
 }
 
+declare function allowBuilds(...packages: string[]): TransformFn;
+/**
+ * @deprecated Use {@link allowBuilds} instead.
+ */
 declare function onlyBuiltDependencies(...packages: string[]): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
 	patch?: number;
+	version?: string;
 };
+
+declare function minVersion(range: string): string;
+/**
+ * @deprecated Use `coerceVersion` instead.
+ */
 declare function splitVersion(str: string): Version;
+
+declare function coerceVersion(str: string): Version;
 declare function isVersionUnsupportedBelow(
 	versionStr: string,
 	belowStr: string
@@ -796,6 +808,7 @@ export {
 	type TransformFn,
 	index_d_exports as Walker,
 	type YamlDocument,
+	coerceVersion,
 	color,
 	constructCommand,
 	createPrinter,
@@ -810,6 +823,7 @@ export {
 	json_d_exports as json,
 	loadFile,
 	loadPackageJson,
+	minVersion,
 	parse,
 	pnpm_d_exports as pnpm,
 	resolveCommand,

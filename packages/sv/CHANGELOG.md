@@ -1,5 +1,50 @@
 # sv
 
+## 0.15.3
+### Patch Changes
+
+
+- fix(sveltekit-adapter): register `workerd` and `sharp` as pnpm allow-builds when the cloudflare adapter is selected ([#1085](https://github.com/sveltejs/cli/pull/1085))
+
+
+- fix(sv): resolve package manager before applying add-ons so pnpm-only logic in add-ons (drizzle, tailwindcss, sveltekit-adapter) actually runs. Also soften pnpm `ERR_PNPM_IGNORED_BUILDS` to a warning instead of failing the install. ([#1085](https://github.com/sveltejs/cli/pull/1085))
+
+- Updated dependencies [[`e3595a8`](https://github.com/sveltejs/cli/commit/e3595a89af6746f82bd342b838bd7838c1b27627), [`a991697`](https://github.com/sveltejs/cli/commit/a99169702fbfd31d9c10109f056f8c6451d4db83), [`2c4a157`](https://github.com/sveltejs/cli/commit/2c4a15707709b1e135b7ebcb0ad495893c9c3378), [`2917f88`](https://github.com/sveltejs/cli/commit/2917f885531a256f7b248cf6f74e17e9eb5c5ad5)]:
+  - @sveltejs/sv-utils@0.2.2
+
+## 0.15.2
+### Patch Changes
+
+
+- fix(drizzle): don't cancel if `D1` is selected without `@sveltejs/adapter-cloudflare`, but add info to next steps ([#1071](https://github.com/sveltejs/cli/pull/1071))
+
+
+- fix(sv): skip add-ons when a `dependsOn` dependency cancels ([#1071](https://github.com/sveltejs/cli/pull/1071))
+
+
+- fix(sv): scope `@deprecated` tag to the legacy `create(cwd, options)` overload only ([#1064](https://github.com/sveltejs/cli/pull/1064))
+
+
+- fix(playwright): move `playwright install` from `prepare` to `test:e2e` script ([#1072](https://github.com/sveltejs/cli/pull/1072))
+
+
+- feat(sv): improve `vitest` v3 detection ([#1073](https://github.com/sveltejs/cli/pull/1073))
+
+
+- fix(sv): align eslint version to `10` accross all addons ([#1069](https://github.com/sveltejs/cli/pull/1069))
+
+- Updated dependencies [[`d753ce6`](https://github.com/sveltejs/cli/commit/d753ce6427a9221afe682a037272825775228901), [`e94734e`](https://github.com/sveltejs/cli/commit/e94734ef6c26d6c6ad2d65089e9f084fed59bf48), [`65d8f01`](https://github.com/sveltejs/cli/commit/65d8f011934a7983f705df4734a67068c825579b)]:
+  - @sveltejs/sv-utils@0.2.1
+
+## 0.15.1
+### Patch Changes
+
+
+- fix(adapter-cloudflare): use `--check` flag for wrangler types in check/build scripts ([#1057](https://github.com/sveltejs/cli/pull/1057))
+
+
+- fix(cli): deprecated file warnings no longer trigger on object spread ([#1060](https://github.com/sveltejs/cli/pull/1060))
+
 ## 0.15.0
 ### Minor Changes
 

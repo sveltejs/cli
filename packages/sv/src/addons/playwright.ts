@@ -14,8 +14,8 @@ export default defineAddon({
 		sv.file(
 			file.package,
 			transforms.json(({ data, json }) => {
-				json.packageScriptsUpsert(data, 'prepare', 'playwright install', { mode: 'prepend' });
 				json.packageScriptsUpsert(data, 'test:e2e', 'playwright test');
+				json.packageScriptsUpsert(data, 'test:e2e', 'playwright install', { mode: 'prepend' });
 				json.packageScriptsUpsert(data, 'test', 'npm run test:e2e');
 			})
 		);

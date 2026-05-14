@@ -1,6 +1,7 @@
 packages:
   - 'packages/*'
   - '!.test-tmp/**'
+  - '!**/.test-output/**'
 
 onlyBuiltDependencies:
   - esbuild

@@ -4,7 +4,8 @@ import {
 	js,
 	parse,
 	loadFile,
-	loadPackageJson
+	loadPackageJson,
+	minVersion
 } from '@sveltejs/sv-utils';
 import * as find from 'empathic/find';
 import fs from 'node:fs';
@@ -79,6 +80,33 @@ type CreateWorkspaceOptions = {
 		dependencies: Record<string, string>;
 	};
 };
+const deprecatedFiles = {
+	prettierignore: '.prettierignore',
+	prettierrc: '.prettierrc',
+	eslintConfig: 'eslint.config.js',
+	vscodeSettings: '.vscode/settings.json',
+	vscodeExtensions: '.vscode/extensions.json'
+} as const;
+
+/**
+ * Adds deprecated file properties as non-enumerable getters so they don't trigger on spread
+ * Once we remove these deprecatedFiles, we can get rid of addDeprecatedFileProperties
+ */
+function addDeprecatedFileProperties(
+	file: Omit<Workspace['file'], keyof typeof deprecatedFiles>
+): Workspace['file'] {
+	for (const [key, value] of Object.entries(deprecatedFiles)) {
+		Object.defineProperty(file, key, {
+			get() {
+				svDeprecated(`use the string \`"${value}"\` instead of \`file.${key}\``);
+				return value;
+			},
+			enumerable: false
+		});
+	}
+	return file as Workspace['file'];
+}
+
 export async function createWorkspace({
 	cwd,
 	packageManager,
@@ -124,9 +152,14 @@ export async function createWorkspace({
 		}
 	}
 
-	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`)
+	// removes the version ranges (e.g. `^` is removed from: `^9.0.0`).
+	// non-semver values (e.g. `latest`, `workspace:*`, `git+...`) are left untouched.
 	for (const [key, value] of Object.entries(dependencies)) {
-		dependencies[key] = value.replaceAll(/[^\d|.]/g, '');
+		try {
+			dependencies[key] = minVersion(value);
+		} catch {
+			// keep original value
+		}
 	}
 
 	const isKit = override?.isKit ?? !!dependencies['@sveltejs/kit'];
@@ -144,48 +177,13 @@ export async function createWorkspace({
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detectPackageManager(cwd)),
 		language: typescript ? 'ts' : 'js',
-		file: {
+		file: addDeprecatedFileProperties({
 			viteConfig,
 			svelteConfig,
 			typeConfig,
 			stylesheet,
 			package: 'package.json',
 			gitignore: '.gitignore',
-			/** @deprecated */
-			get prettierignore() {
-				svDeprecated(
-					'`workspace.file.prettierignore` is deprecated, use the string `.prettierignore` isntead.'
-				);
-				return '.prettierignore' as const;
-			},
-			/** @deprecated */
-			get prettierrc() {
-				svDeprecated(
-					'`workspace.file.prettierrc` is deprecated, use the string `.prettierrc` isntead.'
-				);
-				return '.prettierrc' as const;
-			},
-			/** @deprecated */
-			get eslintConfig() {
-				svDeprecated(
-					'`workspace.file.eslintConfig` is deprecated, use the string `eslint.config.js` isntead.'
-				);
-				return 'eslint.config.js' as const;
-			},
-			/** @deprecated */
-			get vscodeSettings() {
-				svDeprecated(
-					'`workspace.file.vscodeSettings` is deprecated, use the string `.vscode/settings.json` isntead.'
-				);
-				return '.vscode/settings.json' as const;
-			},
-			/** @deprecated */
-			get vscodeExtensions() {
-				svDeprecated(
-					'`workspace.file.vscodeExtensions` is deprecated, use the string `.vscode/extensions.json` isntead.'
-				);
-				return '.vscode/extensions.json' as const;
-			},
 			getRelative({ from, to }) {
 				from = from ?? '';
 				let relativePath = path.posix.relative(path.posix.dirname(from), to);
@@ -204,7 +202,7 @@ export async function createWorkspace({
 				}
 				return path.relative(resolvedCwd, found);
 			}
-		},
+		}),
 		isKit,
 		directory,
 		dependencyVersion: (pkg) => dependencies[pkg]
