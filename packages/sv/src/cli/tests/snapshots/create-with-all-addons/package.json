@@ -23,7 +23,6 @@
 	},
 	"devDependencies": {
 		"@better-auth/cli": "~1.4.21",
-		"@eslint/compat": "^2.0.4",
 		"@eslint/js": "^10.0.1",
 		"@inlang/paraglide-js": "^2.15.2",
 		"@libsql/client": "^0.17.2",
@@ -38,7 +37,7 @@
 		"better-auth": "~1.4.21",
 		"drizzle-kit": "^0.31.10",
 		"drizzle-orm": "^0.45.2",
-		"eslint": "^10.2.0",
+		"eslint": "^10.4.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.17.0",
 		"globals": "^17.4.0",

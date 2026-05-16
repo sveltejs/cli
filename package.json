@@ -29,7 +29,7 @@
 		"@types/node": "^20.19.30",
 		"@typescript/native-preview": "7.0.0-dev.20251212.1",
 		"@vitest/ui": "4.1.1",
-		"eslint": "^10.2.0",
+		"eslint": "^10.4.0",
 		"eslint-plugin-svelte": "^3.17.0",
 		"magic-string": "^0.30.21",
 		"prettier": "^3.8.1",

@@ -13,7 +13,6 @@ export default defineAddon({
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('eslint', ESLINT_VERSION);
-		sv.devDependency('@eslint/compat', '^2.0.4');
 		sv.devDependency('eslint-plugin-svelte', '^3.17.0');
 		sv.devDependency('globals', '^17.4.0');
 		sv.devDependency('@eslint/js', '^10.0.1');
@@ -148,7 +147,7 @@ export default defineAddon({
 				js.imports.addDefault(ast, { from: 'eslint-plugin-svelte', as: 'svelte' });
 				js.imports.addDefault(ast, { from: '@eslint/js', as: 'js' });
 				js.imports.addNamed(ast, {
-					from: '@eslint/compat',
+					from: 'eslint/config',
 					imports: ['includeIgnoreFile']
 				});
 				js.imports.addDefault(ast, { from: 'node:path', as: 'path' });
