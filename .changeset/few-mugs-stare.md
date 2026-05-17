@@ -2,4 +2,4 @@
 'sv': minor
 ---
 
-Replace `includeIgnoreFile` from `@eslint/compat` to `eslint/config`
+chore(eslint): drop `@eslint/compat`. Now using `includeIgnoreFile` of `eslint` directly
