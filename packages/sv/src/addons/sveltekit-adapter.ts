@@ -192,6 +192,9 @@ export default defineAddon({
 					transforms.json(({ data, json }) => {
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 						json.packageScriptsUpsert(data, 'check', 'pnpm gen', { mode: 'prepend' });
+						// use `wrangler types --check` when we move to SvelteKit 3 and a newer wrangler version
+						// json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
+						// json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
 					})
 				);
 
