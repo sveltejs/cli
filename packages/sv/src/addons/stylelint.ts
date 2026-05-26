@@ -8,10 +8,10 @@ const options = defineAddonOptions()
 		question: 'What files should Stylelint validate?',
 		default: ['svelte', 'css'],
 		options: [
-			{ value: 'svelte', label: 'Svelte', hint: 'Lint my Svelte files' },
-			{ value: 'css', label: 'CSS', hint: 'Lint my CSS files' },
-			{ value: 'sass', label: 'SASS', hint: 'Lint my SASS files' },
-			{ value: 'scss', label: 'SCSS', hint: 'Lint my SCSS files' },
+			{ value: 'svelte', label: 'Svelte', hint: 'Lint my Svelte files.' },
+			{ value: 'css', label: 'CSS', hint: 'Lint my CSS files.' },
+			{ value: 'sass', label: 'SASS', hint: 'Lint my SASS files.' },
+			{ value: 'scss', label: 'SCSS', hint: 'Lint my SCSS files.' },
 		],
 		required: false
 	})
@@ -31,6 +31,15 @@ const options = defineAddonOptions()
 		options: [
 			{ value: 'explicit', label: 'Explicitly', hint: 'Only if the user manually saves.' },
 			{ value: 'always', label: 'Always', hint: 'Whenever your files get saved.' },
+		],
+	})
+	.add('severity', {
+		type: 'select',
+		question: 'What should be the default warning severity of Stylelint??',
+		default: 'warn',
+		options: [
+			{ value: 'warn', label: 'Warning', hint: 'Lint warning show up as a warning.' },
+			{ value: 'error', label: 'Error', hint: 'Lint warnings show up as an error.' },
 		],
 	})
 	.build();
@@ -74,12 +83,11 @@ export default defineAddon({
 					js.imports.addDefault(ast, { from: 'postcss-scss', as: 'postcssSass' });
 				}
 
-				// Add this line right after the import:
+				// TODO: Add this line right after the import:
 				// /** @type {import('stylelint').Config} */
 				const sampleConfig = {
-					extends: ['stylelint-config-standard'], // others
-					plugins: [] as string[], // add stylelistic and stylelint
-					// customSyntax: postcssScss,
+					extends: ['stylelint-config-standard'],
+					plugins: [] as string[],
 					defaultSeverity: 'warning',  // make option
 					overrides: [
 						{
@@ -89,6 +97,10 @@ export default defineAddon({
 					],
 					rules: {}
 				};
+
+				if (options.severity.includes('error')) {
+					sampleConfig.defaultSeverity = 'error';
+				}
 
 				if (sass) {
 					sampleConfig.extends.push('stylelint-config-standard-scss');
@@ -111,7 +123,7 @@ export default defineAddon({
 
 				// If it's not the config we created, then we'll leave it alone and exit out
 				if (defaultExport !== config) {
-					log.warn('An stylelint config is already defined. Skipping initialization.');
+					log.warn('A Stylelint config is already defined. Skipping initialization.');
 					return false;
 				}
 
