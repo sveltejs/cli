@@ -18,7 +18,7 @@ const options = defineAddonOptions()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Would you like to add other Stylelint plugins?',
-		default: ['stylistic'],
+		default: [],
 		options: [
 			{ value: 'stylistic', label: 'Stylistic', hint: 'A formatter for your css.' },
 		],
@@ -27,7 +27,7 @@ const options = defineAddonOptions()
 	.add('save', {
 		type: 'select',
 		question: 'When should Stylelint run on save?',
-		default: 'always',
+		default: '',
 		options: [
 			{ value: 'explicit', label: 'Explicitly', hint: 'Only if the user manually saves.' },
 			{ value: 'always', label: 'Always', hint: 'Whenever your files get saved.' },
@@ -35,7 +35,7 @@ const options = defineAddonOptions()
 	})
 	.add('severity', {
 		type: 'select',
-		question: 'What should be the default warning severity of Stylelint??',
+		question: 'What should be the default warning severity of Stylelint?',
 		default: 'warn',
 		options: [
 			{ value: 'warn', label: 'Warning', hint: 'Lint warning show up as a warning.' },
