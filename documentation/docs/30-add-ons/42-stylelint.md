@@ -13,7 +13,7 @@ npx sv add stylelint
 ## What you get
 
 - the relevant packages installed including `postcss-html`
-- an `stylelint.config.js` file
+- a `stylelint.config.js` file
 - updated `.vscode/extensions.json`
 
 ## Options
