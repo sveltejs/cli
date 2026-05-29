@@ -27,7 +27,7 @@
 		"sv": "latest"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.59.1",
+		"@playwright/test": "^1.60.0",
 		"@sveltejs/sv-utils": "latest",
 		"sv": "latest",
 		"tsdown": "^0.21.7",

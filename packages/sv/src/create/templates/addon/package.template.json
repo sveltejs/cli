@@ -27,7 +27,7 @@
 	"devDependencies": {
 		"sv": "workspace:*",
 		"@sveltejs/sv-utils": "workspace:*",
-		"@playwright/test": "^1.59.1",
+		"@playwright/test": "^1.60.0",
 		"@types/node": "^25.5.2",
 		"tsdown": "^0.21.7",
 		"vitest": "^4.1.3"
