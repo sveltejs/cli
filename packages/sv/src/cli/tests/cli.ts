@@ -102,6 +102,15 @@ describe('cli', () => {
 					const { data: generatedPackageJson } = parse.json(generated);
 					// remove @types/node from generated package.json as we test on different node versions
 					delete generatedPackageJson.devDependencies['@types/node'];
+					// Normalize workspace package versions to avoid snapshot drift on version bumps
+					for (const pkg of ['sv', '@sveltejs/sv-utils']) {
+						if (generatedPackageJson.peerDependencies?.[pkg]) {
+							generatedPackageJson.peerDependencies[pkg] = '^0.0.0';
+						}
+						if (generatedPackageJson.devDependencies?.[pkg]) {
+							generatedPackageJson.devDependencies[pkg] = '^0.0.0';
+						}
+					}
 					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
 				}
 
