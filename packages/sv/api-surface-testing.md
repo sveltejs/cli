@@ -48,6 +48,8 @@ type PrepareServerOptions = {
 	page: Page;
 	buildCommand?: string;
 	previewCommand?: string;
+
+	expect?: VitestContext['expect'];
 };
 type PrepareServerReturn = {
 	url: string;
@@ -57,10 +59,14 @@ declare function prepareServer({
 	cwd,
 	page,
 	buildCommand,
-	previewCommand
+	previewCommand,
+	expect
 }: PrepareServerOptions): Promise<PrepareServerReturn>;
 type PlaywrightContext = Pick<typeof _$_playwright_test0, 'chromium'>;
-type VitestContext = Pick<typeof _$vitest, 'inject' | 'test' | 'beforeAll' | 'beforeEach'>;
+type VitestContext = Pick<
+	typeof _$vitest,
+	'inject' | 'test' | 'beforeAll' | 'beforeEach' | 'expect'
+>;
 declare function createSetupTest(
 	vitest: VitestContext,
 	playwright?: PlaywrightContext
