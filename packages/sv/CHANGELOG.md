@@ -1,5 +1,20 @@
 # sv
 
+## 0.15.4
+### Patch Changes
+
+
+- fix(better-auth): import `User`/`Session` types from `better-auth` instead of `better-auth/minimal` ([#1107](https://github.com/sveltejs/cli/pull/1107))
+
+
+- chore(eslint): drop `@eslint/compat`. Now using `includeIgnoreFile` of `eslint` directly ([#1094](https://github.com/sveltejs/cli/pull/1094))
+
+
+- fix: community add-on template imports `expect` from `vitest` ([#1090](https://github.com/sveltejs/cli/pull/1090))
+
+
+- fix(sv): community add-on template now pins `sv` and `@sveltejs/sv-utils` to a version range instead of `latest` ([#1108](https://github.com/sveltejs/cli/pull/1108))
+
 ## 0.15.3
 ### Patch Changes
 
