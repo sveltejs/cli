@@ -9,7 +9,6 @@ import type { TestProject } from 'vitest/node';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
 import { addPnpmAllowBuilds } from './core/package-manager.ts';
 import { create } from './create/index.ts';
-import { pnpmInstallErrorMessage } from './pnpm-install-error.ts';
 
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 export const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
@@ -366,11 +365,13 @@ export function createSetupTest(
 			}
 
 			const installDir = path.resolve(cwd, testName);
-			try {
-				execSync('pnpm install', { cwd: installDir, stdio: 'pipe' });
-			} catch (e) {
-				const err = e as { stdout?: Buffer; stderr?: Buffer };
-				throw new Error(pnpmInstallErrorMessage(installDir, err.stdout, err.stderr), { cause: e });
+			const install = await exec('pnpm', ['install'], {
+				nodeOptions: { cwd: installDir, stdio: 'pipe' }
+			});
+			if (install.exitCode !== 0) {
+				throw new Error(
+					`pnpm install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+				);
 			}
 		});
 
