@@ -4,6 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { pnpmInstallErrorMessage } from '../../pnpm-install-error.ts';
 
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
 const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
@@ -129,9 +130,13 @@ describe('cli', () => {
 			}
 
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
-				await exec('pnpm', ['install', '--no-frozen-lockfile'], {
+				const installResult = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
 					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 				});
+				expect(
+					installResult.exitCode,
+					pnpmInstallErrorMessage(testOutputPath, installResult.stdout, installResult.stderr)
+				).toBe(0);
 				await exec('pnpm', ['build'], {
 					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 				});

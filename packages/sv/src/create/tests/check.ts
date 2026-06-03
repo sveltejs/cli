@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { add, officialAddons } from '../../../../sv/src/index.ts';
+import { pnpmInstallErrorMessage } from '../../pnpm-install-error.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 
 // Resolve the given path relative to the current file
@@ -22,9 +23,16 @@ fs.writeFileSync(path.join(test_workspace_dir, 'pnpm-workspace.yaml'), 'packages
 const exec_async = promisify(exec);
 
 beforeAll(async () => {
-	await exec_async('pnpm install --no-frozen-lockfile', {
-		cwd: test_workspace_dir
-	});
+	try {
+		await exec_async('pnpm install --no-frozen-lockfile', {
+			cwd: test_workspace_dir
+		});
+	} catch (e) {
+		const err = e as { stdout?: string; stderr?: string };
+		throw new Error(pnpmInstallErrorMessage(test_workspace_dir, err.stdout, err.stderr), {
+			cause: e
+		});
+	}
 }, 60000);
 
 /**
