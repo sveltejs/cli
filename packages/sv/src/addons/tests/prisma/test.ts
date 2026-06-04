@@ -25,6 +25,8 @@ test.concurrent.for(testCases)('prisma $kind.type $variant', (testCase, { ...ctx
 	const client = fs.readFileSync(path.resolve(cwd, `src/lib/prisma.${language}`), 'utf8');
 	const env = fs.readFileSync(path.resolve(cwd, '.env'), 'utf8');
 
+	// checks all the neccesary files and packages in package.json
+	expect(packageJson.dependencies?.prisma).toBe('^7.8.0');
 	expect(packageJson.dependencies?.['@prisma/client']).toBe('^7.8.0');
 	expect(packageJson.dependencies?.dotenv).toBe('^17.4.2');
 	expect(config).toContain('schema: "prisma/schema.prisma"');

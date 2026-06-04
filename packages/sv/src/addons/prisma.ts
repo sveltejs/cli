@@ -62,7 +62,7 @@ export default defineAddon({
 			}
 		}
 
-		sv.devDependency('prisma', PRISMA_VERSION);
+		sv.dependency('prisma', PRISMA_VERSION);
 		sv.dependency('@prisma/client', PRISMA_CLIENT_VERSION);
 
 		if (database === 'sqlite') {
