@@ -19,6 +19,8 @@ const TYPES_PG_VERSION = '^8.20.0';
 const DOTENV_VERSION = '^17.4.2';
 const BETTER_SQLITE3_VERSION = '^12.10.0';
 
+type Database = 'postgresql' | 'sqlite';
+
 const options = defineAddonOptions()
 	.add('database', {
 		question: 'Which database would you like to use?',
@@ -43,7 +45,7 @@ export default defineAddon({
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
 	run: ({ sv, language, cwd, cancel, file, dependencyVersion, packageManager, options }) => {
-		const isSqlite = options.database === 'sqlite';
+		const database = options.database as Database;
 		const schemaPath = path.resolve(cwd, 'prisma', 'schema.prisma');
 		const configPath = path.resolve(cwd, `prisma.config.${language}`);
 		const clientPath = path.resolve(cwd, 'src', 'lib', `prisma.${language}`);
@@ -63,22 +65,24 @@ export default defineAddon({
 		sv.devDependency('prisma', PRISMA_VERSION);
 		sv.dependency('@prisma/client', PRISMA_CLIENT_VERSION);
 
-		if (isSqlite) {
+		if (database === 'sqlite') {
 			sv.dependency('@prisma/adapter-better-sqlite3', PRISMA_BETTER_SQLITE3_ADAPTER_VERSION);
 			sv.dependency('better-sqlite3', BETTER_SQLITE3_VERSION);
 			if (packageManager === 'pnpm') {
 				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('better-sqlite3'));
 			}
-		} else {
+		} else if (database === 'postgresql') {
 			sv.dependency('@prisma/adapter-pg', PRISMA_PG_ADAPTER_VERSION);
 			sv.dependency('pg', PG_VERSION);
 			sv.devDependency('@types/pg', TYPES_PG_VERSION);
+		} else {
+			throw new Error(`Unsupported Prisma database: ${database}`);
 		}
 
 		sv.dependency('dotenv', DOTENV_VERSION);
 
-		sv.file('.env', generateEnv(isSqlite, false));
-		sv.file('.env.example', generateEnv(isSqlite, true));
+		sv.file('.env', generateEnv(database, false));
+		sv.file('.env.example', generateEnv(database, true));
 
 		sv.file(
 			file.package,
@@ -115,7 +119,7 @@ export default defineAddon({
 			transforms.text(({ content }) => {
 				if (content) return false;
 
-				return generateSchema(isSqlite);
+				return generateSchema(database);
 			})
 		);
 
@@ -146,7 +150,7 @@ export default defineAddon({
 			transforms.text(({ content }) => {
 				if (content) return false;
 
-				if (isSqlite) {
+				if (database === 'sqlite') {
 					return dedent`
 						import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 						import { PrismaClient } from "../generated/prisma/client";
@@ -162,12 +166,11 @@ export default defineAddon({
 
 						export default prisma;
 					`;
-				}
-
-				return dedent`
-					import { PrismaPg } from "@prisma/adapter-pg";
-					import { PrismaClient } from "../generated/prisma/client";
-					import { DATABASE_URL } from "$env/static/private";
+				} else if (database === 'postgresql') {
+					return dedent`
+						import { PrismaPg } from "@prisma/adapter-pg";
+						import { PrismaClient } from "../generated/prisma/client";
+						import { DATABASE_URL } from "$env/static/private";
 
 					const adapter = new PrismaPg({
 						connectionString: DATABASE_URL
@@ -177,65 +180,113 @@ export default defineAddon({
 						adapter
 					});
 
-					export default prisma;
-				`;
+						export default prisma;
+					`;
+				}
+
+				throw new Error(`Unsupported Prisma database: ${database}`);
 			})
 		);
 	},
 	nextSteps: ({ packageManager, options }) => [
-		options.database === 'sqlite'
-			? `Use ${color.env('DATABASE_URL')} in ${color.path('.env')} to point at your SQLite file`
-			: `Create a Prisma Postgres database, then replace ${color.env('DATABASE_URL')} in ${color.path('.env')}`,
+		(() => {
+			const database = options.database as Database;
+			if (database === 'sqlite') {
+				return `Use ${color.env('DATABASE_URL')} in ${color.path('.env')} to point at your SQLite file`;
+			} else if (database === 'postgresql') {
+				return `Create a Postgres database, then replace ${color.env('DATABASE_URL')} in ${color.path('.env')}`;
+			}
+
+			throw new Error(`Unsupported Prisma database: ${database}`);
+		})(),
 		`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:migrate']))} to create tables`,
 		`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:generate']))} after schema changes`,
 		`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:studio']))} to inspect your data`
 	]
 });
 
-const generateSchema = (isSqlite: boolean) => dedent`
-	generator client {
-	  provider = "prisma-client"
-	  output   = "../src/generated/prisma"
+const generateSchema = (database: Database) => {
+	if (database === 'sqlite') {
+		return dedent`
+			generator client {
+			  provider = "prisma-client"
+			  output   = "../src/generated/prisma"
+			}
+
+			datasource db {
+			  provider = "sqlite"
+			}
+
+			model User {
+			  id    Int     @id @default(autoincrement())
+			  email String  @unique
+			  name  String?
+			  posts Post[]
+			}
+
+			model Post {
+			  id        Int     @id @default(autoincrement())
+			  title     String
+			  content   String?
+			  published Boolean @default(false)
+			  authorId  Int
+			  author    User    @relation(fields: [authorId], references: [id])
+			}
+		`;
+	} else if (database === 'postgresql') {
+		return dedent`
+			generator client {
+			  provider = "prisma-client"
+			  output   = "../src/generated/prisma"
+			}
+
+			datasource db {
+			  provider = "postgresql"
+			}
+
+			model User {
+			  id    Int     @id @default(autoincrement())
+			  email String  @unique
+			  name  String?
+			  posts Post[]
+			}
+
+			model Post {
+			  id        Int     @id @default(autoincrement())
+			  title     String
+			  content   String?
+			  published Boolean @default(false)
+			  authorId  Int
+			  author    User    @relation(fields: [authorId], references: [id])
+			}
+		`;
 	}
 
-	datasource db {
-	  provider = "${isSqlite ? 'sqlite' : 'postgresql'}"
-	}
+	throw new Error(`Unsupported Prisma database: ${database}`);
+};
 
-	model User {
-	  id    Int     @id @default(autoincrement())
-	  email String  @unique
-	  name  String?
-	  posts Post[]
-	}
-
-	model Post {
-	  id        Int     @id @default(autoincrement())
-	  title     String
-	  content   String?
-	  published Boolean @default(false)
-	  authorId  Int
-	  author    User    @relation(fields: [authorId], references: [id])
-	}
-`;
-
-type GenerateEnv = (isSqlite: boolean, isExample: boolean) => TransformFn;
-const generateEnv: GenerateEnv = (isSqlite, isExample) =>
+type GenerateEnv = (database: Database, isExample: boolean) => TransformFn;
+const generateEnv: GenerateEnv = (database, isExample) =>
 	transforms.text(({ content, text }) => {
-		const value = isExample
-			? '""'
-			: isSqlite
-				? '"file:dev.db"'
-				: '"postgres://user:password@host:port/db-name"';
+		let value: string;
+		let comment: string;
+
+		if (isExample) {
+			value = '""';
+			comment = 'Prisma';
+		} else if (database === 'sqlite') {
+			value = '"file:dev.db"';
+			comment = 'Replace with your SQLite file URL!';
+		} else if (database === 'postgresql') {
+			value = '"postgres://user:password@host:port/db-name"';
+			comment = 'Replace with your Prisma Postgres connection string!';
+		} else {
+			throw new Error(`Unsupported Prisma database: ${database}`);
+		}
 
 		content = text.upsert(content, 'DATABASE_URL', {
 			value,
-			comment: [
-				'Prisma',
-				isSqlite
-					? 'Replace with your SQLite file URL!'
-					: 'Replace with your Prisma Postgres connection string!'
-			],
+			comment: ['Prisma', comment],
 			separator: true
 		});
 
