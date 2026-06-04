@@ -24,6 +24,9 @@ export default defineConfig([
 				'empathic',
 				'event-stream',
 				'events-universal',
+				'fast-string-truncated-width',
+				'fast-string-width',
+				'fast-wrap-ansi',
 				'from',
 				'duplexer',
 				'map-stream',
@@ -104,13 +107,7 @@ export default defineConfig([
 		},
 		failOnWarn: true,
 		deps: {
-			neverBundle: [
-				/^svelte/,
-				'@types/estree',
-				'estree',
-				'yaml',
-				'package-manager-detector'
-			],
+			neverBundle: [/^svelte/, '@types/estree', 'estree', 'yaml', 'package-manager-detector'],
 			onlyBundle: ['smol-toml', 'zimmerframe', 'dedent']
 		}
 	}
