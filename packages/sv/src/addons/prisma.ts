@@ -81,8 +81,7 @@ export default defineAddon({
 
 		sv.dependency('dotenv', DOTENV_VERSION);
 
-		sv.file('.env', generateEnv(database, false));
-		sv.file('.env.example', generateEnv(database, true));
+		sv.file('.env', generateEnv(database));
 
 		sv.file(
 			file.package,
@@ -265,16 +264,13 @@ const generateSchema = (database: Database) => {
 	throw new Error(`Unsupported Prisma database: ${database}`);
 };
 
-type GenerateEnv = (database: Database, isExample: boolean) => TransformFn;
-const generateEnv: GenerateEnv = (database, isExample) =>
+type GenerateEnv = (database: Database) => TransformFn;
+const generateEnv: GenerateEnv = (database) =>
 	transforms.text(({ content, text }) => {
 		let value: string;
 		let comment: string;
 
-		if (isExample) {
-			value = '""';
-			comment = 'Prisma';
-		} else if (database === 'sqlite') {
+		if (database === 'sqlite') {
 			value = '"file:dev.db"';
 			comment = 'Replace with your SQLite file URL!';
 		} else if (database === 'postgresql') {

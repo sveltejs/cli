@@ -24,7 +24,6 @@ test.concurrent.for(testCases)('prisma $kind.type $variant', (testCase, { ...ctx
 	const config = fs.readFileSync(path.resolve(cwd, `prisma.config.${language}`), 'utf8');
 	const client = fs.readFileSync(path.resolve(cwd, `src/lib/prisma.${language}`), 'utf8');
 	const env = fs.readFileSync(path.resolve(cwd, '.env'), 'utf8');
-	const envExample = fs.readFileSync(path.resolve(cwd, '.env.example'), 'utf8');
 
 	expect(packageJson.dependencies?.['@prisma/client']).toBe('^7.8.0');
 	expect(packageJson.dependencies?.dotenv).toBe('^17.4.2');
@@ -37,7 +36,6 @@ test.concurrent.for(testCases)('prisma $kind.type $variant', (testCase, { ...ctx
 		expect(client).toContain('PrismaBetterSqlite3');
 		expect(client).toContain('url: DATABASE_URL');
 		expect(env).toContain('DATABASE_URL="file:dev.db"');
-		expect(envExample).toContain('DATABASE_URL=""');
 		expect(packageJson.dependencies?.['@prisma/adapter-better-sqlite3']).toBe('^7.8.0');
 		expect(packageJson.dependencies?.['better-sqlite3']).toBe('^12.10.0');
 		expect(packageJson.dependencies?.['@prisma/adapter-pg']).toBeUndefined();
@@ -49,7 +47,6 @@ test.concurrent.for(testCases)('prisma $kind.type $variant', (testCase, { ...ctx
 		expect(client).toContain('PrismaPg');
 		expect(client).toContain('connectionString: DATABASE_URL');
 		expect(env).toContain('DATABASE_URL="postgres://user:password@host:port/db-name"');
-		expect(envExample).toContain('DATABASE_URL=""');
 		expect(packageJson.dependencies?.['@prisma/adapter-pg']).toBe('^7.8.0');
 		expect(packageJson.dependencies?.pg).toBe('^8.21.0');
 		expect(packageJson.devDependencies?.['@types/pg']).toBe('^8.20.0');
