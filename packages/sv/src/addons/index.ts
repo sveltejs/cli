@@ -7,6 +7,7 @@ import mdsvex from './mdsvex.ts';
 import paraglide from './paraglide.ts';
 import playwright from './playwright.ts';
 import prettier from './prettier.ts';
+import prisma from './prisma.ts';
 import storybook from './storybook.ts';
 import sveltekitAdapter from './sveltekit-adapter.ts';
 import tailwindcss from './tailwindcss.ts';
@@ -20,6 +21,7 @@ type OfficialAddons = {
 	tailwindcss: Addon<any>;
 	sveltekitAdapter: Addon<any>;
 	drizzle: Addon<any>;
+	prisma: Addon<any>;
 	betterAuth: Addon<any>;
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
@@ -37,6 +39,7 @@ export const officialAddons: OfficialAddons = {
 	tailwindcss,
 	sveltekitAdapter,
 	drizzle,
+	prisma,
 	betterAuth,
 	mdsvex,
 	paraglide,
