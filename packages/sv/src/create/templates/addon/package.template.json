@@ -28,9 +28,9 @@
 		"sv": "workspace:*",
 		"@sveltejs/sv-utils": "workspace:*",
 		"@playwright/test": "^1.60.0",
-		"@types/node": "^25.5.2",
-		"tsdown": "^0.21.7",
-		"vitest": "^4.1.3"
+		"@types/node": "^25.9.1",
+		"tsdown": "^0.22.1",
+		"vitest": "^4.1.8"
 	},
 	"keywords": ["sv-add", "svelte", "sveltekit"]
 }

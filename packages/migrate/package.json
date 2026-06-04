@@ -33,17 +33,17 @@
 		"magic-string": "^0.30.21",
 		"package-manager-detector": "^0.2.11",
 		"picocolors": "^1.1.1",
-		"semver": "^7.7.3",
+		"semver": "^7.8.1",
 		"tiny-glob": "^0.2.9",
 		"ts-morph": "^24.0.0",
-		"typescript": "^6.0.0",
+		"typescript": "^6.0.3",
 		"zimmerframe": "^1.1.4"
 	},
 	"devDependencies": {
-		"@types/node": "^20.14.8",
+		"@types/node": "^20.19.41",
 		"@types/prompts": "^2.4.9",
 		"@types/semver": "^7.7.1",
-		"svelte": "^5.53.0"
+		"svelte": "^5.56.1"
 	},
 	"keywords": [
 		"migration",

@@ -33,13 +33,13 @@ export default defineAddon({
 	run: ({ sv, options, file, isKit, directory, dependencyVersion, language, packageManager }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^4.2.2');
-		sv.devDependency('@tailwindcss/vite', '^4.2.2');
+		sv.devDependency('tailwindcss', '^4.3.0');
+		sv.devDependency('@tailwindcss/vite', '^4.3.0');
 		if (packageManager === 'pnpm') {
 			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('@tailwindcss/oxide'));
 		}
 
-		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.7.2');
+		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.0');
 
 		for (const plugin of plugins) {
 			if (!options.plugins.includes(plugin.id)) continue;

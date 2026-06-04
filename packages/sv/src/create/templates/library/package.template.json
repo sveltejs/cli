@@ -24,13 +24,13 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
-		"@sveltejs/kit": "^2.57.0",
-		"@sveltejs/package": "^2.5.7",
-		"@sveltejs/vite-plugin-svelte": "^7.0.0",
-		"publint": "^0.3.18",
-		"svelte": "^5.55.2",
-		"typescript": "^6.0.2",
-		"vite": "^8.0.7"
+		"@sveltejs/kit": "^2.63.0",
+		"@sveltejs/package": "^2.5.8",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"publint": "^0.3.21",
+		"svelte": "^5.56.1",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.16"
 	},
 	"keywords": ["svelte"]
 }
