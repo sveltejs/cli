@@ -26,9 +26,9 @@ test.concurrent.for(testCases)('prisma $kind.type $variant', (testCase, { ...ctx
 	const env = fs.readFileSync(path.resolve(cwd, '.env'), 'utf8');
 
 	// checks all the neccesary files and packages in package.json
-	expect(packageJson.dependencies?.prisma).toBe('^7.8.0');
+	expect(packageJson.devDependencies.prisma).toBe('^7.8.0');
 	expect(packageJson.dependencies?.['@prisma/client']).toBe('^7.8.0');
-	expect(packageJson.dependencies?.dotenv).toBe('^17.4.2');
+	expect(packageJson.dependencies.dotenv).toBe('^17.4.2');
 	expect(config).toContain('schema: "prisma/schema.prisma"');
 	expect(config).toContain('url: env("DATABASE_URL")');
 
@@ -38,22 +38,22 @@ test.concurrent.for(testCases)('prisma $kind.type $variant', (testCase, { ...ctx
 		expect(client).toContain('PrismaBetterSqlite3');
 		expect(client).toContain('url: DATABASE_URL');
 		expect(env).toContain('DATABASE_URL="file:dev.db"');
-		expect(packageJson.dependencies?.['@prisma/adapter-better-sqlite3']).toBe('^7.8.0');
-		expect(packageJson.dependencies?.['better-sqlite3']).toBe('^12.10.0');
-		expect(packageJson.dependencies?.['@prisma/adapter-pg']).toBeUndefined();
-		expect(packageJson.dependencies?.pg).toBeUndefined();
-		expect(packageJson.devDependencies?.['@types/pg']).toBeUndefined();
+		expect(packageJson.dependencies['@prisma/adapter-better-sqlite3']).toBe('^7.8.0');
+		expect(packageJson.dependencies['better-sqlite3']).toBe('^12.10.0');
+		expect(packageJson.dependencies['@prisma/adapter-pg']).toBeUndefined();
+		expect(packageJson.dependencies.pg).toBeUndefined();
+		expect(packageJson.devDependencies['@types/pg']).toBeUndefined();
 	} else if (testCase.kind.type === 'postgresql') {
 		expect(schema).toContain('provider = "postgresql"');
 		expect(client).toContain('@prisma/adapter-pg');
 		expect(client).toContain('PrismaPg');
 		expect(client).toContain('connectionString: DATABASE_URL');
 		expect(env).toContain('DATABASE_URL="postgres://user:password@host:port/db-name"');
-		expect(packageJson.dependencies?.['@prisma/adapter-pg']).toBe('^7.8.0');
-		expect(packageJson.dependencies?.pg).toBe('^8.21.0');
-		expect(packageJson.devDependencies?.['@types/pg']).toBe('^8.20.0');
-		expect(packageJson.dependencies?.['@prisma/adapter-better-sqlite3']).toBeUndefined();
-		expect(packageJson.dependencies?.['better-sqlite3']).toBeUndefined();
+		expect(packageJson.dependencies['@prisma/adapter-pg']).toBe('^7.8.0');
+		expect(packageJson.dependencies.pg).toBe('^8.21.0');
+		expect(packageJson.devDependencies['@types/pg']).toBe('^8.20.0');
+		expect(packageJson.dependencies['@prisma/adapter-better-sqlite3']).toBeUndefined();
+		expect(packageJson.dependencies['better-sqlite3']).toBeUndefined();
 	} else {
 		throw new Error(`Unsupported prisma test kind: ${testCase.kind.type}`);
 	}
