@@ -128,11 +128,7 @@ export default defineAddon({
 		);
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
-			// we can use a newer version after migrating to SvelteKit 3
-			// wrangler@4.26.1 causes type errors when generating types because it includes
-			// the build output file which isn't type-safe
-			// see https://github.com/cloudflare/workers-sdk/pull/9897
-			sv.devDependency('wrangler', '4.26.0');
+			sv.devDependency('wrangler', '^4.81.0');
 
 			if (packageManager === 'pnpm') {
 				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('workerd', 'sharp'));
@@ -191,10 +187,8 @@ export default defineAddon({
 					file.package,
 					transforms.json(({ data, json }) => {
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
-						json.packageScriptsUpsert(data, 'check', 'pnpm gen', { mode: 'prepend' });
-						// use `wrangler types --check` when we move to SvelteKit 3 and a newer wrangler version
-						// json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
-						// json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
+						json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
+						json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
 					})
 				);
 
