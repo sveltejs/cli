@@ -16,6 +16,7 @@ export default defineAddon({
 		sv.devDependency('eslint-plugin-svelte', '^3.17.0');
 		sv.devDependency('globals', '^17.4.0');
 		sv.devDependency('@eslint/js', '^10.0.1');
+		sv.devDependency('@sveltejs/load-config', '^0.1.1');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.58.1');
@@ -33,7 +34,13 @@ export default defineAddon({
 			'eslint.config.js',
 			transforms.script(({ ast, comments, js }) => {
 				const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
-				js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
+
+				js.imports.addNamed(ast, { from: '@sveltejs/load-config', imports: ['loadConfig'] });
+				const svelteConfigStatement = js.common.parseStatement(
+					"\nconst svelteConfig = await loadConfig('./', { traverse: false })"
+				);
+				js.common.appendStatement(ast, { statement: svelteConfigStatement });
+
 				const gitIgnorePathStatement = js.common.parseStatement(
 					"\nconst gitignorePath = path.resolve(import.meta.dirname, '.gitignore');"
 				);
@@ -90,7 +97,7 @@ export default defineAddon({
 								projectService: true,
 								extraFileExtensions: ['.svelte'],
 								parser: js.variables.createIdentifier('ts.parser'),
-								svelteConfig: js.variables.createIdentifier('svelteConfig')
+								svelteConfig: js.variables.createIdentifier('svelteConfig.config')
 							}
 						}
 					});
@@ -100,7 +107,7 @@ export default defineAddon({
 						files: ['**/*.svelte', '**/*.svelte.js'],
 						languageOptions: {
 							parserOptions: {
-								svelteConfig: js.variables.createIdentifier('svelteConfig')
+								svelteConfig: js.variables.createIdentifier('svelteConfig.config')
 							}
 						}
 					});
