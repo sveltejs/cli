@@ -364,7 +364,15 @@ export function createSetupTest(
 				addPnpmAllowBuilds(cwd, 'pnpm', 'esbuild');
 			}
 
-			execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
+			const installDir = path.resolve(cwd, testName);
+			const install = await exec('pnpm', ['install'], {
+				nodeOptions: { cwd: installDir, stdio: 'pipe' }
+			});
+			if (install.exitCode !== 0) {
+				throw new Error(
+					`pnpm install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+				);
+			}
 		});
 
 		beforeEach<Fixtures>(async (ctx) => {
