@@ -13,7 +13,7 @@ export default defineAddon({
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('eslint', ESLINT_VERSION);
-		sv.devDependency('eslint-plugin-svelte', '^3.17.0');
+		sv.devDependency('eslint-plugin-svelte', '^3.19.0');
 		sv.devDependency('globals', '^17.4.0');
 		sv.devDependency('@eslint/js', '^10.0.1');
 		sv.devDependency('@sveltejs/load-config', '^0.1.1');

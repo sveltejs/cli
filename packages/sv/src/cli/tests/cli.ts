@@ -129,9 +129,13 @@ describe('cli', () => {
 			}
 
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
-				await exec('pnpm', ['install', '--no-frozen-lockfile'], {
+				const installResult = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
 					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 				});
+				expect(
+					installResult.exitCode,
+					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`
+				).toBe(0);
 				await exec('pnpm', ['build'], {
 					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 				});
