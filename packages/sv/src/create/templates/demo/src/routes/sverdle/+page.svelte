@@ -116,17 +116,19 @@
 
 	<div class="grid" class:playing={!won} class:shake onanimationend={() => (shake = false)}>
 		{#each Array.from(Array(6).keys()) as row (row)}
-			{@const current = row === i}
+			{const current = $derived(row === i)}
+
 			<h2 class="visually-hidden">Row {row + 1}</h2>
 			<div class="row" class:current>
 				{#each Array.from(Array(5).keys()) as column (column)}
-					{@const guess = current ? currentGuess : data.guesses[row]}
-					{@const answer = data.answers[row]?.[column]}
-					{@const value = guess?.[column] ?? ''}
-					{@const selected = current && column === guess.length}
-					{@const exact = answer === 'x'}
-					{@const close = answer === 'c'}
-					{@const missing = answer === '_'}
+					{const guess = $derived(current ? currentGuess : data.guesses[row])}
+					{const answer = $derived(data.answers[row]?.[column])}
+					{const value = $derived(guess?.[column] ?? '')}
+					{const selected = $derived(current && column === guess.length)}
+					{const exact = $derived(answer === 'x')}
+					{const close = $derived(answer === 'c')}
+					{const missing = $derived(answer === '_')}
+
 					<div class="letter" class:exact class:close class:missing class:selected>
 						{value}
 						<span class="visually-hidden">
