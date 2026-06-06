@@ -230,6 +230,47 @@ Namespaced helpers for AST manipulation:
 - **`html.*`** - attribute manipulation
 - **`text.*`** - upsert lines in flat files (.env, .gitignore)
 
+## Svelte config
+
+A SvelteKit project's config can live in two places: the default export of a `svelte.config.{js,ts}`, or the object passed to `sveltekit()` in a `vite.config.{js,ts}`. `svelteConf` edits it wherever it is, so add-ons don't have to care which.
+
+### `svelteConf`
+
+Locates the config and hands your callback two object expressions to edit:
+
+- **`config`** - the svelte-level config (`preprocess`, `extensions`, `compilerOptions`, `vitePlugin`).
+- **`kit`** - the kit-level config (`adapter`, `alias`, `files`, `typescript`, …).
+
+In a `svelte.config.js`, `kit` is the nested `kit: { … }` object. In a `vite.config.js`, `sveltekit()` takes a flattened `KitConfig & SvelteConfig`, so `config` and `kit` point at the same object. You write the same code either way:
+
+```js
+// @noErrors
+import { svelteConf } from '@sveltejs/sv-utils';
+
+// inside an add-on's `run({ sv, cwd })`:
+svelteConf({ sv, cwd }, ({ ast, config, kit, js }) => {
+	// svelte-level option:
+	js.array.append(
+		js.object.property(config, { name: 'extensions', fallback: js.array.create() }),
+		'.svx'
+	);
+	// kit-level option (nested under `kit` in svelte.config, top-level in vite.config):
+	js.imports.addDefault(ast, { from: '@sveltejs/adapter-node', as: 'adapter' });
+	js.object.overrideProperties(kit, {
+		adapter: js.functions.createCall({ name: 'adapter', args: [], useIdentifiers: true })
+	});
+});
+```
+
+It writes through `sv.file`, so the edit is tracked like any other. It throws if the project has no config in either location.
+
+### `findSvelteConfig` / `getSvelteConfigObjects`
+
+Lower-level building blocks if you need them outside an edit:
+
+- **`findSvelteConfig(read)`** - returns `{ path, kind: 'svelte' | 'vite' }` (or `null`), where `read(path)` returns a file's contents or `null`. Detection is static (it never executes the config), and `svelte.config` wins when both are present.
+- **`getSvelteConfigObjects(ast, kind)`** - given a parsed program and the `kind` from `findSvelteConfig`, returns the `{ config, kit }` object expressions.
+
 ## Package manager helpers
 
 ### `pnpm.allowBuilds`
