@@ -29,13 +29,13 @@ test.concurrent.for(testCases)('adapter $kind.type $variant', (testCase, { ...ct
 	const cwd = ctx.cwd(testCase);
 
 	if (testCase.kind.type === 'node') {
-		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch('adapter-auto');
-		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).not.toMatch(
+		expect(readFileSync(join(cwd, 'vite.config.js'), 'utf8')).not.toMatch('adapter-auto');
+		expect(readFileSync(join(cwd, 'vite.config.js'), 'utf8')).not.toMatch(
 			'adapter-auto only supports some environments'
 		);
 	} else if (testCase.kind.type === 'auto') {
-		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).toMatch('adapter-auto');
-		expect(readFileSync(join(cwd, 'svelte.config.js'), 'utf8')).toMatch(
+		expect(readFileSync(join(cwd, 'vite.config.js'), 'utf8')).toMatch('adapter-auto');
+		expect(readFileSync(join(cwd, 'vite.config.js'), 'utf8')).toMatch(
 			'adapter-auto only supports some environments'
 		);
 	} else if (testCase.kind.type === 'cloudflare-workers') {

@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { type AstTypes, transforms } from '@sveltejs/sv-utils';
+import { type AstTypes, fileExists, loadFile, svelteConfig, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier, ESLINT_VERSION, getNodeTypesVersion } from './common.ts';
 
@@ -8,9 +8,16 @@ export default defineAddon({
 	shortDescription: 'linter',
 	homepage: 'https://eslint.org',
 	options: {},
-	run: ({ sv, language, dependencyVersion, file }) => {
+	run: ({ sv, language, dependencyVersion, file, cwd }) => {
 		const typescript = language === 'ts';
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
+		// Only wire up `svelteConfig` when there's a separate `svelte.config.{js,ts}` file to import.
+		// When the config lives in `vite.config.js` instead, there's nothing importable here:
+		// `svelte-eslint-parser` falls back to its defaults when `svelteConfig` is omitted, and the
+		// docs warn against feeding it the vite-extracted config (non-serializable props like the
+		// `runes` function break eslint's `--cache`).
+		const configLocation = svelteConfig.find((p) => (fileExists(cwd, p) ? loadFile(cwd, p) : null));
+		const svelteConfigFile = configLocation?.kind === 'svelte' ? configLocation.path : undefined;
 
 		sv.devDependency('eslint', ESLINT_VERSION);
 		sv.devDependency('eslint-plugin-svelte', '^3.19.0');
@@ -33,7 +40,9 @@ export default defineAddon({
 			'eslint.config.js',
 			transforms.script(({ ast, comments, js }) => {
 				const eslintConfigs: Array<AstTypes.Expression | AstTypes.SpreadElement> = [];
-				js.imports.addDefault(ast, { from: './svelte.config.js', as: 'svelteConfig' });
+				if (svelteConfigFile) {
+					js.imports.addDefault(ast, { from: `./${svelteConfigFile}`, as: 'svelteConfig' });
+				}
 				const gitIgnorePathStatement = js.common.parseStatement(
 					"\nconst gitignorePath = path.resolve(import.meta.dirname, '.gitignore');"
 				);
@@ -82,6 +91,9 @@ export default defineAddon({
 
 				eslintConfigs.push(globalsConfig);
 
+				const svelteConfigProp = svelteConfigFile
+					? { svelteConfig: js.variables.createIdentifier('svelteConfig') }
+					: {};
 				if (typescript) {
 					const svelteTSParserConfig = js.object.create({
 						files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
@@ -90,7 +102,7 @@ export default defineAddon({
 								projectService: true,
 								extraFileExtensions: ['.svelte'],
 								parser: js.variables.createIdentifier('ts.parser'),
-								svelteConfig: js.variables.createIdentifier('svelteConfig')
+								...svelteConfigProp
 							}
 						}
 					});
@@ -100,7 +112,7 @@ export default defineAddon({
 						files: ['**/*.svelte', '**/*.svelte.js'],
 						languageOptions: {
 							parserOptions: {
-								svelteConfig: js.variables.createIdentifier('svelteConfig')
+								...svelteConfigProp
 							}
 						}
 					});

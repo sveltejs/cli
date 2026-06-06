@@ -6,7 +6,8 @@ import {
 	pnpm,
 	resolveCommandArray,
 	fileExists,
-	createPrinter
+	createPrinter,
+	svelteConfig
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -297,23 +298,15 @@ export default defineAddon({
 			})
 		);
 
-		sv.file(
-			file.svelteConfig,
-			transforms.script(({ ast, js }) => {
-				const { value: config } = js.exports.createDefault(ast, {
-					fallback: js.object.create({})
-				});
-				js.object.overrideProperties(config, {
-					kit: {
-						typescript: {
-							config: js.common.parseExpression(
-								`(config) => ({ ...config, include: [...config.include, '../drizzle.config.${language}'] })`
-							)
-						}
-					}
-				});
-			})
-		);
+		svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
+			override({
+				typescript: {
+					config: js.common.parseExpression(
+						`(config) => ({ ...config, include: [...config.include, '../drizzle.config.${language}'] })`
+					)
+				}
+			});
+		});
 
 		sv.file(
 			paths['database schema'],
