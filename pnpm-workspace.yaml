@@ -1,4 +1,4 @@
-minimumReleaseAge: 2880
+minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - '@sveltejs/*'
   - svelte
