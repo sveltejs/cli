@@ -13,9 +13,12 @@ import { transforms } from './tooling/transforms.ts';
 
 export type { SvelteConfigKind } from './tooling/js/svelte-config.ts';
 
+/** The four config file paths the helper understands. */
+export type SvelteConfigPath = `${'svelte.config' | 'vite.config'}.${'js' | 'ts'}`;
+
 export type SvelteConfigLocation = {
 	/** path relative to the workspace root, e.g. `vite.config.ts` or `svelte.config.js` */
-	path: string;
+	path: SvelteConfigPath;
 	kind: SvelteConfigKind;
 };
 
@@ -213,11 +216,11 @@ function edit({ sv, cwd }: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdi
  */
 export const svelteConfig: {
 	/** Edit the config wherever it lives (creating `svelte.config.js` if there is none). */
-	edit: typeof edit;
+	edit: (target: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdit) => void;
 	/** Locate the config file, returning `{ path, kind }` or `null`. Detection is static (no execution). */
-	find: typeof find;
+	find: (read: ConfigFileReader) => SvelteConfigLocation | null;
 	/** Locate + parse the config in one pass, returning `{ location, config, kit }` or `null`. */
-	read: typeof read;
+	read: (read: ConfigFileReader) => SvelteConfigObjects | null;
 } = {
 	edit,
 	find,

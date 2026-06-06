@@ -411,7 +411,7 @@ declare function getArgument<T extends estree.Expression>(
 	}
 ): T;
 declare namespace imports_d_exports {
-	export { addDefault, addEmpty, addNamed, addNamespace$1 as addNamespace, find$1 as find, remove };
+	export { addDefault, addEmpty, addNamed, addNamespace$1 as addNamespace, find, remove };
 }
 declare function addEmpty(
 	node: estree.Program,
@@ -441,7 +441,7 @@ declare function addNamed(
 		isType?: boolean;
 	}
 ): void;
-declare function find$1(
+declare function find(
 	ast: estree.Program,
 	options: {
 		name: string;
@@ -774,8 +774,10 @@ declare function loadPackageJson(cwd: string): {
 };
 
 type SvelteConfigKind = 'svelte' | 'vite';
+
+type SvelteConfigPath = `${'svelte.config' | 'vite.config'}.${'js' | 'ts'}`;
 type SvelteConfigLocation = {
-	path: string;
+	path: SvelteConfigPath;
 	kind: SvelteConfigKind;
 };
 
@@ -787,10 +789,6 @@ type SvelteConfigObjects = {
 
 type ConfigFileReader = (path: string) => string | null;
 type ObjectMap = Parameters<typeof overrideProperties>[1];
-
-declare function find(read: ConfigFileReader): SvelteConfigLocation | null;
-
-declare function read(readFile: ConfigFileReader): SvelteConfigObjects | null;
 type SvelteConfEdit = (file: {
 	ast: estree.Program;
 	comments: Comments;
@@ -816,21 +814,16 @@ type SvFileApi = {
 	file: (path: string, edit: (content: string) => string | false) => void;
 };
 
-declare function edit(
-	{
-		sv,
-		cwd
-	}: {
-		sv: SvFileApi;
-		cwd: string;
-	},
-	editFn: SvelteConfEdit
-): void;
-
 declare const svelteConfig: {
-	edit: typeof edit;
-	find: typeof find;
-	read: typeof read;
+	edit: (
+		target: {
+			sv: SvFileApi;
+			cwd: string;
+		},
+		editFn: SvelteConfEdit
+	) => void;
+	find: (read: ConfigFileReader) => SvelteConfigLocation | null;
+	read: (read: ConfigFileReader) => SvelteConfigObjects | null;
 };
 type ColorInput = string | string[];
 declare const color: {

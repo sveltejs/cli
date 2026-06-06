@@ -11,7 +11,11 @@ const reader = (files: Record<string, string>) => (path: string) => files[path] 
 
 /** Runs an edit against `content` for a given location kind, returning the serialized result. */
 const applyEdit = (content: string, kind: SvelteConfigKind, edit: SvelteConfEdit) =>
-	_editConfigContent(content, { path: '', kind }, edit);
+	_editConfigContent(
+		content,
+		{ path: kind === 'vite' ? 'vite.config.js' : 'svelte.config.js', kind },
+		edit
+	);
 
 const addAlias: SvelteConfEdit = ({ override, js }) =>
 	override({ alias: js.object.create({ $lib: js.common.createLiteral('./src/lib') }) });

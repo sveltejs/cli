@@ -232,44 +232,42 @@ Namespaced helpers for AST manipulation:
 
 ## Svelte config
 
-A SvelteKit project's config can live in two places: the default export of a `svelte.config.{js,ts}`, or the object passed to `sveltekit()` in a `vite.config.{js,ts}`. `svelteConf` edits it wherever it is, so add-ons don't have to care which.
+As of SvelteKit 2.62, the svelte/kit config can be passed straight to the `sveltekit()` plugin in `vite.config.{js,ts}`, and a separate `svelte.config.{js,ts}` is no longer required. **This is now the default for projects created by `sv`** - generated projects keep their config inside `vite.config.js` and ship no `svelte.config.js`.
 
-### `svelteConf`
+`svelteConfig` lets add-ons read and edit that config wherever it lives - the `sveltekit()` argument in `vite.config.{js,ts}` (the new default), or a `svelte.config.{js,ts}` default export (still supported) - without having to know which.
 
-Locates the config and hands your callback two object expressions to edit:
+### `svelteConfig.edit`
 
-- **`config`** - the svelte-level config (`preprocess`, `extensions`, `compilerOptions`, `vitePlugin`).
-- **`kit`** - the kit-level config (`adapter`, `alias`, `files`, `typescript`, …).
-
-In a `svelte.config.js`, `kit` is the nested `kit: { … }` object. In a `vite.config.js`, `sveltekit()` takes a flattened `KitConfig & SvelteConfig`, so `config` and `kit` point at the same object. You write the same code either way:
+You address options by name and the helper writes each one to the right place, so you never deal with the `kit` nesting yourself. Svelte-level options (`compilerOptions`, `preprocess`, `extensions`, `vitePlugin`) sit on the config object; everything else (`adapter`, `alias`, `files`, `typescript`, …) is a kit option, which means flattened onto the `sveltekit()` argument in a vite config, or nested under `kit` in a `svelte.config`.
 
 ```js
 // @noErrors
-import { svelteConf } from '@sveltejs/sv-utils';
+import { svelteConfig } from '@sveltejs/sv-utils';
 
 // inside an add-on's `run({ sv, cwd })`:
-svelteConf({ sv, cwd }, ({ ast, config, kit, js }) => {
-	// svelte-level option:
-	js.array.append(
-		js.object.property(config, { name: 'extensions', fallback: js.array.create() }),
-		'.svx'
-	);
-	// kit-level option (nested under `kit` in svelte.config, top-level in vite.config):
+svelteConfig.edit({ sv, cwd }, ({ ast, property, override, js }) => {
+	// svelte-level option - get-or-create its value, then mutate in place:
+	js.array.append(property('extensions', { fallback: js.array.create() }), '.svx');
+
+	// kit option - routed automatically, no `kit` nesting to think about:
 	js.imports.addDefault(ast, { from: '@sveltejs/adapter-node', as: 'adapter' });
-	js.object.overrideProperties(kit, {
+	override({
 		adapter: js.functions.createCall({ name: 'adapter', args: [], useIdentifiers: true })
 	});
 });
 ```
 
-It writes through `sv.file`, so the edit is tracked like any other. It throws if the project has no config in either location.
+- **`property(name, { fallback })`** - get-or-create an option's value to mutate in place (arrays, nested objects).
+- **`override(props, { dropLeadingComments })`** - set/replace options; `dropLeadingComments` clears a now-stale leading comment (e.g. the adapter-auto note when switching adapters).
 
-### `findSvelteConfig` / `getSvelteConfigObjects`
+It writes through `sv.file`, so the edit is tracked like any other. If the project has neither config file, a `svelte.config.js` is created.
 
-Lower-level building blocks if you need them outside an edit:
+### `svelteConfig.find` / `svelteConfig.read`
 
-- **`findSvelteConfig(read)`** - returns `{ path, kind: 'svelte' | 'vite' }` (or `null`), where `read(path)` returns a file's contents or `null`. Detection is static (it never executes the config), and `svelte.config` wins when both are present.
-- **`getSvelteConfigObjects(ast, kind)`** - given a parsed program and the `kind` from `findSvelteConfig`, returns the `{ config, kit }` object expressions.
+Lower-level building blocks, both reading candidate files through an injected `read(path)` (returns the file contents or `null`) so detection stays static - the config is never executed:
+
+- **`svelteConfig.find(read)`** - returns `{ path, kind }` or `null` (`kind` is `'vite'` or `'svelte'`; `svelte.config` wins when both are present).
+- **`svelteConfig.read(read)`** - locates and parses in one pass, returning `{ location, config, kit }` (the object expressions) or `null`.
 
 ## Package manager helpers
 
