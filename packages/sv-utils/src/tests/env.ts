@@ -1,5 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { resolveEnvMode } from '../env.ts';
+import { _bindEnv, type EnvMode } from '../env.ts';
+import { readExplicitEnvFlag } from '../env.ts';
+import * as js from '../tooling/js/index.ts';
+import { parseScript } from '../tooling/parsers.ts';
 
 describe('resolveEnvMode', () => {
 	test('no kit -> legacy', () => {
@@ -18,10 +22,6 @@ describe('resolveEnvMode', () => {
 		expect(resolveEnvMode({ kitRange: 'next', explicitEnvFlag: false })).toBe('declared');
 	});
 });
-
-import { _bindEnv, type EnvMode } from '../env.ts';
-import * as js from '../tooling/js/index.ts';
-import { parseScript } from '../tooling/parsers.ts';
 
 /** A fake `sv` capturing file writes in-memory. */
 function fakeSv(files: Record<string, string> = {}) {
@@ -68,16 +68,13 @@ describe('defineEnv.reference', () => {
 	});
 });
 
-import { readExplicitEnvFlag } from '../env.ts';
-
-
 const reader = (files: Record<string, string>) => (path: string) => files[path] ?? null;
 
 describe('readExplicitEnvFlag', () => {
 	test('true when set in svelte.config', () => {
 		const files = {
 			'svelte.config.js':
-				"export default { kit: { experimental: { explicitEnvironmentVariables: true } } };\n"
+				'export default { kit: { experimental: { explicitEnvironmentVariables: true } } };\n'
 		};
 		expect(readExplicitEnvFlag(reader(files))).toBe(true);
 	});

@@ -47,10 +47,7 @@ export type DefineEnv = {
 	reference: (ast: AstTypes.Program, js: typeof jsNs, opts: ReferenceOpts) => string;
 };
 
-function findProp(
-	obj: AstTypes.ObjectExpression,
-	name: string
-): AstTypes.Property | undefined {
+function findProp(obj: AstTypes.ObjectExpression, name: string): AstTypes.Property | undefined {
 	return obj.properties.find(
 		(p): p is AstTypes.Property =>
 			p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === name
