@@ -201,6 +201,13 @@ describe('svelteConfig.edit routing', () => {
 		expect(result).toContain('export default');
 		expect(result).toContain("extensions: ['.svx']");
 	});
+
+	test('scaffolds a vite config (import + sveltekit() plugin) when editing empty content', () => {
+		const result = applyEdit('', 'vite', addExtension);
+		expect(result).toContain("import { sveltekit } from '@sveltejs/kit/vite'");
+		expect(result).toMatch(/plugins:\s*\[[\s\S]*sveltekit\(/);
+		expect(result).toContain("extensions: ['.svx']");
+	});
 });
 
 describe('svelteConfig.edit shapes', () => {
