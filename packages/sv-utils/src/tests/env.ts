@@ -1,7 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { resolveEnvMode } from '../env.ts';
-import { _bindEnv, type EnvMode } from '../env.ts';
-import { readExplicitEnvFlag } from '../env.ts';
+import { _bindEnv, readExplicitEnvFlag, resolveEnvMode, type EnvMode } from '../env.ts';
 import * as js from '../tooling/js/index.ts';
 import { parseScript } from '../tooling/parsers.ts';
 
