@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-support kit's explicit environment variables in `drizzle` and `better-auth`
+chore: support kit's explicit environment variables in `drizzle` and `better-auth`
