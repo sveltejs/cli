@@ -1,6 +1,7 @@
 import { coerceVersion } from './semver.ts';
 import { svelteConfig, type ConfigFileReader } from './svelte-config.ts';
 import type { AstTypes } from './tooling/index.ts';
+import * as jsNs from './tooling/js/index.ts';
 import { transforms } from './tooling/transforms.ts';
 
 export type EnvMode = 'declared' | 'legacy';
@@ -19,8 +20,6 @@ export function resolveEnvMode({
 	if (major === 2 && explicitEnvFlag) return 'declared';
 	return 'legacy';
 }
-
-import * as jsNs from './tooling/js/index.ts';
 
 export type EnvScope = 'private' | 'public';
 
