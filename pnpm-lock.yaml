@@ -137,8 +137,8 @@ importers:
         specifier: ^15.0.0
         version: 15.0.0
       create-vite:
-        specifier: ^9.0.7
-        version: 9.0.7
+        specifier: ^8.2.0
+        version: 8.3.0
       empathic:
         specifier: ^2.0.1
         version: 2.0.1
@@ -1165,8 +1165,8 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  create-vite@9.0.7:
-    resolution: {integrity: sha512-TyuOQvwX4i/QN9acJzC7wzM7FfC12/1XlH3+d05PeD7Kj5o4BObuq78fB1x84SrEoi5KcQOi+b9K3JV+PWNHvw==}
+  create-vite@8.3.0:
+    resolution: {integrity: sha512-58bnPOiwODNTOV60tS/zttmTG1V1xZJThqqvpDPmp0i55fT9i2YsjWdnx7uFy0/FmWRUv4HJeEPlq6zAW3hwTQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
@@ -3343,7 +3343,7 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  create-vite@9.0.7: {}
+  create-vite@8.3.0: {}
 
   cross-spawn@7.0.6:
     dependencies:
