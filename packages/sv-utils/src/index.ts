@@ -84,6 +84,19 @@ export {
 	type SvelteConfigObjects
 } from './svelte-config.ts';
 
+// Env access (abstracts over legacy `$env/dynamic/*` vs declared `$app/env/*` + `src/env.ts`)
+export {
+	defineEnv,
+	resolveEnvMode,
+	readExplicitEnvFlag,
+	type DefineEnv,
+	type DefineEnvContext,
+	type EnvMode,
+	type EnvScope,
+	type EnvVarSpec,
+	type ReferenceOpts
+} from './env.ts';
+
 // Terminal styling
 export { color } from './color.ts';
 
