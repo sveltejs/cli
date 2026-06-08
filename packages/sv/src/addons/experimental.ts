@@ -5,7 +5,7 @@ import { defineAddon, defineAddonOptions } from '../core/config.ts';
 // of the default selection; `inNext: false` marks flags removed in kit 3 (skipped when `kit@next` is chosen).
 type Feature = { label: string; path?: string; hint?: string; off?: boolean; inNext?: boolean };
 const FEATURES: Record<string, Feature> = {
-	async: { label: 'async (await in components)', path: 'compilerOptions.experimental.async' },
+	async: { label: 'async', hint: 'await in components', path: 'compilerOptions.experimental.async' }, // prettier-ignore
 	remoteFunctions: { label: 'remote functions' },
 	explicitEnvironmentVariables: { label: 'explicit environment variables', hint: 'kit ^2 only', inNext: false }, // prettier-ignore
 	handleRenderingErrors: { label: 'rendering error boundaries' },
@@ -34,11 +34,7 @@ const options = defineAddonOptions()
 		default: Object.entries(FEATURES)
 			.filter(([, f]) => !f.off)
 			.map(([value]) => value),
-		options: Object.entries(FEATURES).map(([value, { label, hint }]) => ({
-			value,
-			label,
-			...(hint && { hint })
-		})),
+		options: Object.entries(FEATURES).map(([value, { label, hint }]) => ({ value, label, hint })),
 		required: false
 	})
 	.build();
