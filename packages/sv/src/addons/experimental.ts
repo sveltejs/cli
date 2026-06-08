@@ -1,4 +1,4 @@
-import { isVersionUnsupportedBelow, svelteConfig } from '@sveltejs/sv-utils';
+import { isVersionUnsupportedBelow, loadPackageJson, svelteConfig } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 // Single source of truth, keyed by flag name. `path` defaults to `experimental.<name>`; `off` opts out
@@ -44,6 +44,9 @@ export default defineAddon({
 	shortDescription: 'svelte & kit experimental features',
 	homepage: 'https://svelte.dev/docs/kit/configuration#experimental',
 	options,
+
+	setup: ({ runsAfter }) => runsAfter('sveltekitAdapter'),
+
 	run: ({ sv, cwd, options, language, dependencyVersion }) => {
 		const kitNext = options.versions.includes('kit');
 
@@ -53,6 +56,12 @@ export default defineAddon({
 				if (pkg === 'typescript' && language !== 'ts') continue;
 				const current = dependencyVersion(pkg);
 				if (current && isVersionUnsupportedBelow(current, range)) sv.devDependency(pkg, range);
+			}
+			// adapters track kit's major, so move any installed `@sveltejs/adapter-*` to its `next` line too
+			const { data: pkg } = loadPackageJson(cwd);
+			const deps = { ...pkg.devDependencies, ...pkg.dependencies };
+			for (const name of Object.keys(deps)) {
+				if (name.startsWith('@sveltejs/adapter-')) sv.devDependency(name, 'next');
 			}
 		}
 

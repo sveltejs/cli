@@ -53,6 +53,8 @@ test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { 
 
 	if (testCase.kind.type === 'next-all') {
 		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).toBe('next');
+		// the adapter must follow kit onto its `next` line (it peers on kit's major)
+		expect(JSON.parse(pkg).devDependencies['@sveltejs/adapter-auto']).toBe('next');
 		expect(source).toMatch('async: true');
 		expect(source).toMatch('remoteFunctions: true');
 		expect(source).toMatch('handleRenderingErrors: true');
