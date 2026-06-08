@@ -92,7 +92,7 @@ function getOrCreateVariablesObject(
 	}
 	const stmt = js.common.parseStatement(
 		'export const variables = defineEnvVars({});'
-	) as AstTypes.ExportNamedDeclaration;
+	) as unknown as AstTypes.ExportNamedDeclaration;
 	ast.body.push(stmt);
 	const decl = stmt.declaration as AstTypes.VariableDeclaration;
 	const call = decl.declarations[0].init as AstTypes.CallExpression;
