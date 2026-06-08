@@ -12,7 +12,7 @@ npx sv add experimental
 
 ## What you get
 
-- the selected experimental flags set in your config (wherever it lives)
+- the selected experimental flags set in your config
 - optionally `@sveltejs/kit` (and your adapter) moved to their `next` line
 
 ## Options
