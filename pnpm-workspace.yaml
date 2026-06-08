@@ -1,4 +1,7 @@
-minimumReleaseAge: 2880
+# Let's follow pnpm default settings for minimumReleaseAge as sv users will have this by default too.
+minimumReleaseAge: 1440
+# This Exclude list is for "sv-utils" that we trust & bundle.
+# But keep in mind that sv users may not have any exclude list!
 minimumReleaseAgeExclude:
   - '@sveltejs/*'
   - svelte
