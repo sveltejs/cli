@@ -1,5 +1,4 @@
-import path from 'node:path';
-import { fileExists, loadPackageJson } from './files.ts';
+import { fileExists } from './files.ts';
 import { coerceVersion } from './semver.ts';
 import { svelteConfig, type ConfigFileReader, type SvFileApi } from './svelte-config.ts';
 import type { AstTypes } from './tooling/index.ts';
@@ -35,6 +34,8 @@ export type EnvVarSpec = {
 export type DefineEnvContext = {
 	sv: SvFileApi;
 	cwd: string;
+	/** The project's `@sveltejs/kit` range, e.g. from `dependencyVersion('@sveltejs/kit')`. */
+	kitVersion: string | undefined;
 };
 
 export type ReferenceOpts = { name: string; scope?: EnvScope; static?: boolean };
@@ -101,35 +102,12 @@ function getOrCreateVariablesObject(
 }
 
 /**
- * Resolves `@sveltejs/kit`'s range, walking up to parent `package.json` files (closest wins) the
- * same way the workspace does - so a monorepo project that only declares kit in a parent is still
- * detected. Returns `undefined` when kit is nowhere up the tree (i.e. not a kit project).
+ * Detects the env mode from the project (the passed `kitVersion`, or the kit-2
+ * `explicitEnvironmentVariables` flag read from the config at `cwd`) and binds the context. Add-ons
+ * just call `define`/`reference` and never deal with the legacy-vs-declared distinction themselves.
  */
-function findKitRange(cwd: string): string | undefined {
-	let dir = path.resolve(cwd);
-	for (;;) {
-		if (fileExists(dir, 'package.json')) {
-			const { data } = loadPackageJson(dir);
-			const range =
-				data.devDependencies?.['@sveltejs/kit'] ?? data.dependencies?.['@sveltejs/kit'];
-			if (range) return range;
-		}
-		const parent = path.dirname(dir);
-		if (parent === dir) return undefined;
-		dir = parent;
-	}
-}
-
-/**
- * Detects the env mode from the project at `cwd` (kit major version / `next` tag, or the kit-2
- * `explicitEnvironmentVariables` flag) and binds the `sv`/`cwd` context. Add-ons just call
- * `define`/`reference` and never deal with the legacy-vs-declared distinction themselves.
- */
-export function defineEnv({ sv, cwd }: DefineEnvContext): DefineEnv {
-	const mode = resolveEnvMode({
-		kitRange: findKitRange(cwd),
-		explicitEnvFlag: readExplicitEnvFlag(cwd)
-	});
+export function defineEnv({ sv, cwd, kitVersion }: DefineEnvContext): DefineEnv {
+	const mode = resolveEnvMode({ kitRange: kitVersion, explicitEnvFlag: readExplicitEnvFlag(cwd) });
 	const language = fileExists(cwd, 'tsconfig.json') ? 'ts' : 'js';
 	return _bindEnv({ sv, mode, language });
 }

@@ -96,7 +96,7 @@ export default defineAddon({
 		sv.file('.env', generateEnv(demoGithub, false));
 		sv.file('.env.example', generateEnv(demoGithub, true));
 
-		const env = defineEnv({ sv, cwd });
+		const env = defineEnv({ sv, cwd, kitVersion: dependencyVersion('@sveltejs/kit') });
 		env.define({ name: 'ORIGIN', description: 'App origin / base URL' });
 		env.define({ name: 'BETTER_AUTH_SECRET', description: 'Secret used by better-auth' });
 		if (demoGithub) {

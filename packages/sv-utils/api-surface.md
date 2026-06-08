@@ -838,6 +838,7 @@ type EnvVarSpec = {
 type DefineEnvContext = {
 	sv: SvFileApi;
 	cwd: string;
+	kitVersion: string | undefined;
 };
 type ReferenceOpts = {
 	name: string;
@@ -850,7 +851,7 @@ type DefineEnv = {
 	reference: (ast: estree.Program, js: typeof index_d_exports$3, opts: ReferenceOpts) => string;
 };
 
-declare function defineEnv({ sv, cwd }: DefineEnvContext): DefineEnv;
+declare function defineEnv({ sv, cwd, kitVersion }: DefineEnvContext): DefineEnv;
 type ColorInput = string | string[];
 declare const color: {
 	addon: (str: ColorInput) => string;

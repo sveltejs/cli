@@ -364,7 +364,7 @@ export default defineAddon({
 			})
 		);
 
-		const env = defineEnv({ sv, cwd });
+		const env = defineEnv({ sv, cwd, kitVersion: dependencyVersion('@sveltejs/kit') });
 		if (options.database !== 'd1') {
 			env.define({ name: 'DATABASE_URL', description: 'Connection string for the database' });
 			if (options.sqlite === 'turso') {
