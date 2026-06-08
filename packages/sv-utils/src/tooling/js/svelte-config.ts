@@ -2,6 +2,7 @@ import * as Walker from 'zimmerframe';
 import type { AstTypes } from '../index.ts';
 import * as array from './array.ts';
 import * as exports from './exports.ts';
+import * as imports from './imports.ts';
 import * as object from './object.ts';
 import * as vite from './vite.ts';
 
@@ -96,6 +97,12 @@ function sveltekitArg(ast: AstTypes.Program): AstTypes.ObjectExpression {
 	}
 	// fall back to a broad search (e.g. plugins assembled via a variable or spread)
 	call ??= findSveltekitCall(ast);
+	// no call at all: scaffold one (the empty-`vite.config.js` fallback path from `edit`)
+	if (!call) {
+		imports.addNamed(ast, { imports: ['sveltekit'], from: '@sveltejs/kit/vite' });
+		vite.addPlugin(ast, { code: 'sveltekit()' });
+		call = findSveltekitCall(ast);
+	}
 	if (!call) {
 		throw new Error('Unable to find a `sveltekit()` plugin call in the vite config');
 	}

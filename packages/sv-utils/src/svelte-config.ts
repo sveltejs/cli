@@ -212,8 +212,8 @@ function editContent(
  */
 function edit({ sv, cwd }: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdit): void {
 	const location = find(cwd) ?? {
-		path: 'svelte.config.js',
-		kind: 'svelte'
+		path: 'vite.config.js',
+		kind: 'vite'
 	};
 
 	sv.file(location.path, (content) => editContent(content, location, editFn));
