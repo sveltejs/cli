@@ -1,10 +1,4 @@
-import {
-	type AgentName,
-	js,
-	loadPackageJson,
-	minVersion,
-	svelteConfig
-} from '@sveltejs/sv-utils';
+import { type AgentName, js, loadPackageJson, minVersion, svelteConfig } from '@sveltejs/sv-utils';
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
