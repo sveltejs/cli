@@ -67,3 +67,56 @@ describe('defineEnv.reference', () => {
 		expect(generateCode()).toContain("import { PUBLIC_X } from '$env/static/public';");
 	});
 });
+
+import { readExplicitEnvFlag } from '../env.ts';
+
+
+const reader = (files: Record<string, string>) => (path: string) => files[path] ?? null;
+
+describe('readExplicitEnvFlag', () => {
+	test('true when set in svelte.config', () => {
+		const files = {
+			'svelte.config.js':
+				"export default { kit: { experimental: { explicitEnvironmentVariables: true } } };\n"
+		};
+		expect(readExplicitEnvFlag(reader(files))).toBe(true);
+	});
+	test('false when absent', () => {
+		const files = { 'svelte.config.js': 'export default { kit: {} };\n' };
+		expect(readExplicitEnvFlag(reader(files))).toBe(false);
+	});
+	test('false when no config', () => {
+		expect(readExplicitEnvFlag(reader({}))).toBe(false);
+	});
+});
+
+describe('defineEnv.declare', () => {
+	test('declared: creates src/env.ts with defineEnvVars + description', () => {
+		const { sv, files } = fakeSv();
+		const env = defineEnv({ sv, cwd: '/proj', language: 'ts', dependencyVersion: () => 'next' });
+		env.declare({ name: 'DATABASE_URL', description: 'db url' });
+		const out = files['src/env.ts'];
+		expect(out).toContain("import { defineEnvVars } from '@sveltejs/kit/hooks';");
+		expect(out).toContain('export const variables = defineEnvVars({');
+		expect(out).toContain('DATABASE_URL');
+		expect(out).toContain("description: 'db url'");
+	});
+
+	test('declared: second declare merges into the same variables object', () => {
+		const { sv, files } = fakeSv();
+		const env = defineEnv({ sv, cwd: '/proj', language: 'ts', dependencyVersion: () => 'next' });
+		env.declare({ name: 'DATABASE_URL' });
+		env.declare({ name: 'DATABASE_AUTH_TOKEN' });
+		const out = files['src/env.ts'];
+		expect(out).toContain('DATABASE_URL');
+		expect(out).toContain('DATABASE_AUTH_TOKEN');
+		expect(out.match(/defineEnvVars/g)?.length).toBe(2); // import + one call, no duplicate object
+	});
+
+	test('legacy: declare is a no-op (no env file written)', () => {
+		const { sv, files } = fakeSv();
+		const env = defineEnv({ sv, cwd: '/proj', language: 'ts', dependencyVersion: () => '^2.0.0' });
+		env.declare({ name: 'DATABASE_URL' });
+		expect(files['src/env.ts']).toBeUndefined();
+	});
+});
