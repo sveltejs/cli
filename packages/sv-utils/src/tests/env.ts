@@ -19,7 +19,7 @@ describe('resolveEnvMode', () => {
 	});
 });
 
-import { defineEnv } from '../env.ts';
+import { _bindEnv, type EnvMode } from '../env.ts';
 import * as js from '../tooling/js/index.ts';
 import { parseScript } from '../tooling/parsers.ts';
 
@@ -36,15 +36,15 @@ function fakeSv(files: Record<string, string> = {}) {
 	};
 }
 
-function envFor(kitRange: string) {
+function envFor(mode: EnvMode) {
 	const { sv, files } = fakeSv();
-	const env = defineEnv({ sv, cwd: '/proj', language: 'ts', dependencyVersion: () => kitRange });
+	const env = _bindEnv({ sv, mode, language: 'ts' });
 	return { env, files };
 }
 
 describe('defineEnv.reference', () => {
 	test('declared: named import from $app/env/private + bare accessor', () => {
-		const { env } = envFor('next');
+		const { env } = envFor('declared');
 		const { ast, generateCode } = parseScript('');
 		const access = env.reference(ast, js, { name: 'DATABASE_URL' });
 		expect(access).toBe('DATABASE_URL');
@@ -52,7 +52,7 @@ describe('defineEnv.reference', () => {
 	});
 
 	test('legacy dynamic: env import + env.DATABASE_URL accessor', () => {
-		const { env } = envFor('^2.0.0');
+		const { env } = envFor('legacy');
 		const { ast, generateCode } = parseScript('');
 		const access = env.reference(ast, js, { name: 'DATABASE_URL' });
 		expect(access).toBe('env.DATABASE_URL');
@@ -60,7 +60,7 @@ describe('defineEnv.reference', () => {
 	});
 
 	test('legacy static: named import from $env/static/public + bare accessor', () => {
-		const { env } = envFor('^2.0.0');
+		const { env } = envFor('legacy');
 		const { ast, generateCode } = parseScript('');
 		const access = env.reference(ast, js, { name: 'PUBLIC_X', scope: 'public', static: true });
 		expect(access).toBe('PUBLIC_X');
@@ -90,11 +90,10 @@ describe('readExplicitEnvFlag', () => {
 	});
 });
 
-describe('defineEnv.declare', () => {
+describe('defineEnv.define', () => {
 	test('declared: creates src/env.ts with defineEnvVars + description', () => {
-		const { sv, files } = fakeSv();
-		const env = defineEnv({ sv, cwd: '/proj', language: 'ts', dependencyVersion: () => 'next' });
-		env.declare({ name: 'DATABASE_URL', description: 'db url' });
+		const { env, files } = envFor('declared');
+		env.define({ name: 'DATABASE_URL', description: 'db url' });
 		const out = files['src/env.ts'];
 		expect(out).toContain("import { defineEnvVars } from '@sveltejs/kit/hooks';");
 		expect(out).toContain('export const variables = defineEnvVars({');
@@ -102,21 +101,19 @@ describe('defineEnv.declare', () => {
 		expect(out).toContain("description: 'db url'");
 	});
 
-	test('declared: second declare merges into the same variables object', () => {
-		const { sv, files } = fakeSv();
-		const env = defineEnv({ sv, cwd: '/proj', language: 'ts', dependencyVersion: () => 'next' });
-		env.declare({ name: 'DATABASE_URL' });
-		env.declare({ name: 'DATABASE_AUTH_TOKEN' });
+	test('declared: second define merges into the same variables object', () => {
+		const { env, files } = envFor('declared');
+		env.define({ name: 'DATABASE_URL' });
+		env.define({ name: 'DATABASE_AUTH_TOKEN' });
 		const out = files['src/env.ts'];
 		expect(out).toContain('DATABASE_URL');
 		expect(out).toContain('DATABASE_AUTH_TOKEN');
 		expect(out.match(/defineEnvVars/g)?.length).toBe(2); // import + one call, no duplicate object
 	});
 
-	test('legacy: declare is a no-op (no env file written)', () => {
-		const { sv, files } = fakeSv();
-		const env = defineEnv({ sv, cwd: '/proj', language: 'ts', dependencyVersion: () => '^2.0.0' });
-		env.declare({ name: 'DATABASE_URL' });
+	test('legacy: define is a no-op (no env file written)', () => {
+		const { env, files } = envFor('legacy');
+		env.define({ name: 'DATABASE_URL' });
 		expect(files['src/env.ts']).toBeUndefined();
 	});
 });

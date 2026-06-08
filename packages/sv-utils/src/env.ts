@@ -1,5 +1,6 @@
+import { fileExists, loadPackageJson } from './files.ts';
 import { coerceVersion } from './semver.ts';
-import { svelteConfig, type ConfigFileReader } from './svelte-config.ts';
+import { svelteConfig, type ConfigFileReader, type SvFileApi } from './svelte-config.ts';
 import type { AstTypes } from './tooling/index.ts';
 import * as jsNs from './tooling/js/index.ts';
 import { transforms } from './tooling/transforms.ts';
@@ -31,17 +32,16 @@ export type EnvVarSpec = {
 };
 
 export type DefineEnvContext = {
-	sv: { file: (path: string, edit: (content: string) => string | false) => void };
+	sv: SvFileApi;
 	cwd: string;
-	language: 'ts' | 'js';
-	dependencyVersion: (pkg: string) => string | undefined;
 };
 
 export type ReferenceOpts = { name: string; scope?: EnvScope; static?: boolean };
 
 export type DefineEnv = {
+	/** Resolved once from the project; add-ons don't need to consult it. */
 	mode: EnvMode;
-	declare: (spec: EnvVarSpec) => void;
+	define: (spec: EnvVarSpec) => void;
 	reference: (ast: AstTypes.Program, js: typeof jsNs, opts: ReferenceOpts) => string;
 };
 
@@ -99,19 +99,38 @@ function getOrCreateVariablesObject(
 	return call.arguments[0] as AstTypes.ObjectExpression;
 }
 
-export function defineEnv(ctx: DefineEnvContext): DefineEnv {
-	const kitRange = ctx.dependencyVersion('@sveltejs/kit');
-	const explicitEnvFlag = readExplicitEnvFlag(ctx.cwd);
-	const mode = resolveEnvMode({ kitRange, explicitEnvFlag });
+/**
+ * Detects the env mode from the project at `cwd` (kit major version / `next` tag, or the kit-2
+ * `explicitEnvironmentVariables` flag) and binds the `sv`/`cwd` context. Add-ons just call
+ * `define`/`reference` and never deal with the legacy-vs-declared distinction themselves.
+ */
+export function defineEnv({ sv, cwd }: DefineEnvContext): DefineEnv {
+	const { data } = loadPackageJson(cwd);
+	const kitRange = data.devDependencies?.['@sveltejs/kit'] ?? data.dependencies?.['@sveltejs/kit'];
+	const mode = resolveEnvMode({ kitRange, explicitEnvFlag: readExplicitEnvFlag(cwd) });
+	const language = fileExists(cwd, 'tsconfig.json') ? 'ts' : 'js';
+	return _bindEnv({ sv, mode, language });
+}
+
+/** @internal The mode-resolved core, exported for filesystem-free tests. */
+export function _bindEnv({
+	sv,
+	mode,
+	language
+}: {
+	sv: SvFileApi;
+	mode: EnvMode;
+	language: 'ts' | 'js';
+}): DefineEnv {
 	const declared = new Map<string, EnvVarSpec>();
 
 	return {
 		mode,
-		declare(spec) {
+		define(spec) {
 			declared.set(spec.name, spec);
 			if (mode !== 'declared') return;
-			const envPath = `src/env.${ctx.language}`;
-			ctx.sv.file(envPath, (content) =>
+			const envPath = `src/env.${language}`;
+			sv.file(envPath, (content) =>
 				transforms.script(({ ast, js }) => {
 					js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });
 					const variables = getOrCreateVariablesObject(ast, js);

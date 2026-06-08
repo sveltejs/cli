@@ -96,12 +96,12 @@ export default defineAddon({
 		sv.file('.env', generateEnv(demoGithub, false));
 		sv.file('.env.example', generateEnv(demoGithub, true));
 
-		const env = defineEnv({ sv, cwd, language, dependencyVersion });
-		env.declare({ name: 'ORIGIN', description: 'App origin / base URL' });
-		env.declare({ name: 'BETTER_AUTH_SECRET', description: 'Secret used by better-auth' });
+		const env = defineEnv({ sv, cwd });
+		env.define({ name: 'ORIGIN', description: 'App origin / base URL' });
+		env.define({ name: 'BETTER_AUTH_SECRET', description: 'Secret used by better-auth' });
 		if (demoGithub) {
-			env.declare({ name: 'GITHUB_CLIENT_ID' });
-			env.declare({ name: 'GITHUB_CLIENT_SECRET' });
+			env.define({ name: 'GITHUB_CLIENT_ID' });
+			env.define({ name: 'GITHUB_CLIENT_SECRET' });
 		}
 
 		sv.file(
