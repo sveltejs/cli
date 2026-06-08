@@ -34,8 +34,8 @@ export type EnvVarSpec = {
 export type DefineEnvContext = {
 	sv: SvFileApi;
 	cwd: string;
-	/** The project's `@sveltejs/kit` range, e.g. from `dependencyVersion('@sveltejs/kit')`. */
-	kitVersion: string | undefined;
+	/** Resolves a dependency's range (the workspace's authoritative, walk-up-aware lookup). */
+	dependencyVersion: (pkg: string) => string | undefined;
 };
 
 export type ReferenceOpts = { name: string; scope?: EnvScope; static?: boolean };
@@ -106,8 +106,11 @@ function getOrCreateVariablesObject(
  * `explicitEnvironmentVariables` flag read from the config at `cwd`) and binds the context. Add-ons
  * just call `define`/`reference` and never deal with the legacy-vs-declared distinction themselves.
  */
-export function defineEnv({ sv, cwd, kitVersion }: DefineEnvContext): DefineEnv {
-	const mode = resolveEnvMode({ kitRange: kitVersion, explicitEnvFlag: readExplicitEnvFlag(cwd) });
+export function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv {
+	const mode = resolveEnvMode({
+		kitRange: dependencyVersion('@sveltejs/kit'),
+		explicitEnvFlag: readExplicitEnvFlag(cwd)
+	});
 	const language = fileExists(cwd, 'tsconfig.json') ? 'ts' : 'js';
 	return _bindEnv({ sv, mode, language });
 }
