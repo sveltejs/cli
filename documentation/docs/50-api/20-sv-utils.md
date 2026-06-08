@@ -232,9 +232,9 @@ Namespaced helpers for AST manipulation:
 
 ## Svelte config
 
-As of SvelteKit 2.62, the svelte/kit config can be passed straight to the `sveltekit()` plugin in `vite.config.{js,ts}`, and a separate `svelte.config.{js,ts}` is no longer required. **This is now the default for projects created by `sv`** - generated projects keep their config inside `vite.config.js` and ship no `svelte.config.js`.
+The svelte/kit config can live in two places: passed straight to the `sveltekit()` plugin in `vite.config.{js,ts}`, or as a default export in a separate `svelte.config.{js,ts}`. Projects created by `sv` keep their config inside `vite.config.js` and ship no `svelte.config.js`.
 
-`svelteConfig` lets add-ons read and edit that config wherever it lives - the `sveltekit()` argument in `vite.config.{js,ts}` (the new default), or a `svelte.config.{js,ts}` default export (still supported) - without having to know which.
+`svelteConfig` lets add-ons read and edit that config wherever it lives - the `sveltekit()` argument in `vite.config.{js,ts}`, or a `svelte.config.{js,ts}` default export - without having to know which.
 
 ### `svelteConfig.edit`
 
