@@ -37,6 +37,16 @@ describe('cli', () => {
 			]
 		},
 		{
+			projectName: 'create-experimental',
+			args: [
+				'--add',
+				'sveltekit-adapter=adapter:cloudflare+cfTarget:workers',
+				'drizzle=database:sqlite+sqlite:libsql',
+				'better-auth=demo:password,github',
+				'experimental=versions:+features:explicitEnvironmentVariables'
+			]
+		},
+		{
 			projectName: '@my-org/sv',
 			template: 'addon',
 			args: []
@@ -149,6 +159,16 @@ describe('cli', () => {
 					check.exitCode,
 					`svelte-check failed:\n  stdout: ${check.stdout}\n  stderr: ${check.stderr}`
 				).toBe(0);
+			}
+
+			if (projectName === 'create-experimental') {
+				const read = (p: string) => fs.readFileSync(path.resolve(testOutputPath, p), 'utf-8');
+				const envFile = read('src/env.ts');
+				expect(envFile).toContain('defineEnvVars');
+				expect(envFile).toContain('DATABASE_URL');
+				expect(read('src/lib/server/db/index.ts')).toContain("from '$app/env/private'");
+				expect(read('src/lib/server/auth.ts')).toContain("from '$app/env/private'");
+				expect(read('src/lib/server/db/index.ts')).not.toContain('$env/dynamic/private');
 			}
 
 			if (template === 'addon') {
