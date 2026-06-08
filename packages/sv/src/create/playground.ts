@@ -5,6 +5,7 @@ import {
 	parse,
 	svelte,
 	svelteConfig,
+	loadFile,
 	downloadJson,
 	Walker
 } from '@sveltejs/sv-utils';
@@ -263,11 +264,9 @@ export function setupPlaygroundProject(
 				cwd,
 				sv: {
 					file: (p, edit) => {
-						const full = path.join(cwd, p);
-						const content = fs.existsSync(full) ? fs.readFileSync(full, 'utf-8') : '';
-						const result = edit(content);
+						const result = edit(loadFile(cwd, p));
 						if (result === false || result === '') return;
-						fs.writeFileSync(full, result, 'utf-8');
+						fs.writeFileSync(path.join(cwd, p), result, 'utf-8');
 					}
 				}
 			},

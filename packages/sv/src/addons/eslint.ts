@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { type AstTypes, fileExists, loadFile, svelteConfig, transforms } from '@sveltejs/sv-utils';
+import { type AstTypes, svelteConfig, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier, ESLINT_VERSION, getNodeTypesVersion } from './common.ts';
 
@@ -16,7 +16,7 @@ export default defineAddon({
 		// `svelte-eslint-parser` falls back to its defaults when `svelteConfig` is omitted, and the
 		// docs warn against feeding it the vite-extracted config (non-serializable props like the
 		// `runes` function break eslint's `--cache`).
-		const configLocation = svelteConfig.find((p) => (fileExists(cwd, p) ? loadFile(cwd, p) : null));
+		const configLocation = svelteConfig.find(cwd);
 		const svelteConfigFile = configLocation?.kind === 'svelte' ? configLocation.path : undefined;
 
 		sv.devDependency('eslint', ESLINT_VERSION);

@@ -1,4 +1,4 @@
-import { fileExists, loadFile } from './files.ts';
+import { loadFile } from './files.ts';
 import type { AstTypes, Comments } from './tooling/index.ts';
 import * as jsNs from './tooling/js/index.ts';
 import {
@@ -33,6 +33,15 @@ export type SvelteConfigObjects = {
 
 /** Reads a workspace file. Returns `null` when the file doesn't exist. (the injected environment) */
 export type ConfigFileReader = (path: string) => string | null;
+
+/**
+ * A `cwd` (read through `loadFile`) or an explicit reader (e.g. an in-memory map for tests).
+ * `loadFile` returns `''` for a missing file, which parses to an empty program and matches no
+ * candidate - i.e. the same outcome as a `null` from a custom reader.
+ */
+type ConfigSource = string | ConfigFileReader;
+const toReader = (source: ConfigSource): ConfigFileReader =>
+	typeof source === 'string' ? (path) => loadFile(source, path) : source;
 
 type ObjectMap = Parameters<typeof jsNs.object.overrideProperties>[1];
 
@@ -86,8 +95,8 @@ function locate(
  * Returns `null` when no config could be found (e.g. not a SvelteKit project, or the config
  * file is unparsable). Detection is static - the config is never executed.
  */
-function find(read: ConfigFileReader): SvelteConfigLocation | null {
-	return locate(read)?.location ?? null;
+function find(source: ConfigSource): SvelteConfigLocation | null {
+	return locate(toReader(source))?.location ?? null;
 }
 
 /**
@@ -95,8 +104,8 @@ function find(read: ConfigFileReader): SvelteConfigLocation | null {
  * parse. Returns `null` when no config is found. Throws if the located config has an unexpected
  * shape (e.g. a non-object default export).
  */
-function read(readFile: ConfigFileReader): SvelteConfigObjects | null {
-	const found = locate(readFile);
+function read(source: ConfigSource): SvelteConfigObjects | null {
+	const found = locate(toReader(source));
 	if (!found) return null;
 	const config = getConfigRoot(found.ast, found.location.kind);
 	const kit = getKitObject(config, found.location.kind);
@@ -202,7 +211,7 @@ function editContent(
  * ```
  */
 function edit({ sv, cwd }: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdit): void {
-	const location = find((p) => (fileExists(cwd, p) ? loadFile(cwd, p) : null)) ?? {
+	const location = find(cwd) ?? {
 		path: 'svelte.config.js',
 		kind: 'svelte'
 	};
@@ -218,9 +227,9 @@ export const svelteConfig: {
 	/** Edit the config wherever it lives (creating `svelte.config.js` if there is none). */
 	edit: (target: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdit) => void;
 	/** Locate the config file, returning `{ path, kind }` or `null`. Detection is static (no execution). */
-	find: (read: ConfigFileReader) => SvelteConfigLocation | null;
+	find: (source: ConfigSource) => SvelteConfigLocation | null;
 	/** Locate + parse the config in one pass, returning `{ location, config, kit }` or `null`. */
-	read: (read: ConfigFileReader) => SvelteConfigObjects | null;
+	read: (source: ConfigSource) => SvelteConfigObjects | null;
 } = {
 	edit,
 	find,

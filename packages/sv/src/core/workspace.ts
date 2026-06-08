@@ -1,8 +1,6 @@
 import {
 	type AgentName,
 	js,
-	loadFile,
-	fileExists,
 	loadPackageJson,
 	minVersion,
 	svelteConfig
@@ -265,7 +263,7 @@ function parseKitOptions(cwd: string): { lib: string; kitRoutes: string } {
 	let kit;
 	try {
 		// `read` locates + parses in one pass (no double parse); tolerate a malformed/odd config
-		const config = svelteConfig.read((p) => (fileExists(cwd, p) ? loadFile(cwd, p) : null));
+		const config = svelteConfig.read(cwd);
 		if (!config) return fallback;
 		kit = config.kit;
 	} catch {

@@ -788,6 +788,8 @@ type SvelteConfigObjects = {
 };
 
 type ConfigFileReader = (path: string) => string | null;
+
+type ConfigSource = string | ConfigFileReader;
 type ObjectMap = Parameters<typeof overrideProperties>[1];
 type SvelteConfEdit = (file: {
 	ast: estree.Program;
@@ -822,8 +824,8 @@ declare const svelteConfig: {
 		},
 		editFn: SvelteConfEdit
 	) => void;
-	find: (read: ConfigFileReader) => SvelteConfigLocation | null;
-	read: (read: ConfigFileReader) => SvelteConfigObjects | null;
+	find: (source: ConfigSource) => SvelteConfigLocation | null;
+	read: (source: ConfigSource) => SvelteConfigObjects | null;
 };
 type ColorInput = string | string[];
 declare const color: {
