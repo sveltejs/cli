@@ -44,7 +44,6 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
-	// on this branch the config lives in vite.config.{ts,js}
 	const config = ['vite.config.ts', 'vite.config.js']
 		.map((name) => join(cwd, name))
 		.find((file) => existsSync(file))!;
