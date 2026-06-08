@@ -1,5 +1,4 @@
 ---
-'@sveltejs/sv-utils': minor
 'sv': patch
 ---
 
