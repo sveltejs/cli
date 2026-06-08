@@ -2,6 +2,7 @@ import type { Addon, AddonDefinition } from '../core/config.ts';
 import betterAuth from './better-auth.ts';
 import drizzle from './drizzle.ts';
 import eslint from './eslint.ts';
+import experimental from './experimental.ts';
 import mcp from './mcp.ts';
 import mdsvex from './mdsvex.ts';
 import paraglide from './paraglide.ts';
@@ -25,6 +26,7 @@ type OfficialAddons = {
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
 	mcp: Addon<any>;
+	experimental: Addon<any>;
 };
 
 // The order of addons here determines the order they are displayed inside the CLI
@@ -41,7 +43,8 @@ export const officialAddons: OfficialAddons = {
 	mdsvex,
 	paraglide,
 	storybook,
-	mcp
+	mcp,
+	experimental
 };
 
 export function getAddonDetails(id: string): AddonDefinition {
