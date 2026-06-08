@@ -287,7 +287,7 @@ declare namespace object_d_exports {
 }
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
-type ObjectMap = Record<string, ObjectValues | estree.Expression>;
+type ObjectMap$1 = Record<string, ObjectValues | estree.Expression>;
 declare function property<T extends estree.Expression | estree.Identifier>(
 	node: estree.ObjectExpression,
 	options: {
@@ -302,10 +302,10 @@ declare function propertyNode<T extends estree.Expression | estree.Identifier>(
 		fallback: T;
 	}
 ): estree.Property;
-declare function create(properties: ObjectMap): estree.ObjectExpression;
+declare function create(properties: ObjectMap$1): estree.ObjectExpression;
 declare function overrideProperties(
 	objectExpression: estree.ObjectExpression,
-	properties: ObjectMap
+	properties: ObjectMap$1
 ): void;
 declare namespace common_d_exports {
 	export {
@@ -772,6 +772,61 @@ declare function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;
 };
+
+type SvelteConfigKind = 'svelte' | 'vite';
+
+type SvelteConfigPath = `${'svelte.config' | 'vite.config'}.${'js' | 'ts'}`;
+type SvelteConfigLocation = {
+	path: SvelteConfigPath;
+	kind: SvelteConfigKind;
+};
+
+type SvelteConfigObjects = {
+	location: SvelteConfigLocation;
+	config: estree.ObjectExpression;
+	kit: estree.ObjectExpression;
+};
+
+type ConfigFileReader = (path: string) => string | null;
+
+type ConfigSource = string | ConfigFileReader;
+type ObjectMap = Parameters<typeof overrideProperties>[1];
+type SvelteConfEdit = (file: {
+	ast: estree.Program;
+	comments: Comments;
+	js: typeof index_d_exports$3;
+	location: SvelteConfigLocation;
+
+	property: <T extends estree.Expression | estree.Identifier>(
+		name: string,
+		opts: {
+			fallback: T;
+		}
+	) => T;
+
+	override: (
+		props: ObjectMap,
+		opts?: {
+			dropLeadingComments?: string[];
+		}
+	) => void;
+}) => void | false;
+
+type SvFileApi = {
+	file: (path: string, edit: (content: string) => string | false) => void;
+};
+
+declare const svelteConfig: {
+	edit: (
+		target: {
+			sv: SvFileApi;
+			cwd: string;
+		},
+		editFn: SvelteConfEdit
+	) => void;
+	find: (source: ConfigSource) => SvelteConfigLocation | null;
+	read: (source: ConfigSource) => SvelteConfigObjects | null;
+};
 type ColorInput = string | string[];
 declare const color: {
 	addon: (str: ColorInput) => string;
@@ -803,8 +858,12 @@ export {
 	type estree as AstTypes,
 	COMMANDS,
 	type Comments,
+	type ConfigFileReader,
 	type Package,
 	type SvelteAst,
+	type SvelteConfigKind,
+	type SvelteConfigLocation,
+	type SvelteConfigObjects,
 	type TransformFn,
 	index_d_exports as Walker,
 	type YamlDocument,
@@ -832,6 +891,7 @@ export {
 	saveFile,
 	splitVersion,
 	index_d_exports$4 as svelte,
+	svelteConfig,
 	text_d_exports as text,
 	transforms
 };

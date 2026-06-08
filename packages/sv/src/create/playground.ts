@@ -4,6 +4,8 @@ import {
 	js,
 	parse,
 	svelte,
+	svelteConfig,
+	loadFile,
 	downloadJson,
 	Walker
 } from '@sveltejs/sv-utils';
@@ -255,12 +257,23 @@ export function setupPlaygroundProject(
 
 	let experimentalAsyncNeeded = true;
 	const addExperimentalAsync = () => {
-		const svelteConfigPath = path.join(cwd, filePaths.svelteConfig);
-		const svelteConfig = fs.readFileSync(svelteConfigPath, 'utf-8');
-		const { ast, generateCode } = parse.script(svelteConfig);
-		const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
-		js.object.overrideProperties(config, { compilerOptions: { experimental: { async: true } } });
-		fs.writeFileSync(svelteConfigPath, generateCode(), 'utf-8');
+		// `compilerOptions` is a svelte-level option, so it goes on `config` regardless of whether
+		// the config lives in `svelte.config.js` or inside `sveltekit()` in `vite.config.js`.
+		svelteConfig.edit(
+			{
+				cwd,
+				sv: {
+					file: (p, edit) => {
+						const result = edit(loadFile(cwd, p));
+						if (result === false || result === '') return;
+						fs.writeFileSync(path.join(cwd, p), result, 'utf-8');
+					}
+				}
+			},
+			({ override }) => {
+				override({ compilerOptions: { experimental: { async: true } } });
+			}
+		);
 	};
 
 	// we want to change the svelte version, even if the user decided
