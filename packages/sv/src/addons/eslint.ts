@@ -21,11 +21,11 @@ export default defineAddon({
 
 		sv.devDependency('eslint', ESLINT_VERSION);
 		sv.devDependency('eslint-plugin-svelte', '^3.19.0');
-		sv.devDependency('globals', '^17.4.0');
+		sv.devDependency('globals', '^17.6.0');
 		sv.devDependency('@eslint/js', '^10.0.1');
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
-		if (typescript) sv.devDependency('typescript-eslint', '^8.58.1');
+		if (typescript) sv.devDependency('typescript-eslint', '^8.60.1');
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 
