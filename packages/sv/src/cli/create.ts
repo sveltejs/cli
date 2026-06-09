@@ -71,7 +71,7 @@ const OptionsSchema = v.strictObject({
 	),
 	addOns: v.boolean(),
 	add: v.array(v.string()),
-	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
+	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
 	dirCheck: v.boolean(),
