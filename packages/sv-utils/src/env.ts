@@ -99,8 +99,8 @@ function getOrCreateVariablesObject(
 }
 
 /**
- * Detects the env mode from the project (the passed `kitVersion`, or the kit-2
- * `explicitEnvironmentVariables` flag read from the config at `cwd`) and binds the context. Add-ons
+ * Detects the env mode from the project (the `@sveltejs/kit` range via `dependencyVersion`, or the
+ * kit-2 `explicitEnvironmentVariables` flag read from the config at `cwd`) and binds the context. Add-ons
  * just call `define`/`reference` and never deal with the legacy-vs-declared distinction themselves.
  */
 export function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv {

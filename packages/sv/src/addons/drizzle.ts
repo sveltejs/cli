@@ -366,9 +366,12 @@ export default defineAddon({
 
 		const env = defineEnv({ sv, cwd, dependencyVersion });
 		if (options.database !== 'd1') {
-			env.define({ name: 'DATABASE_URL', description: 'Connection string for the database' });
+			env.define({ name: 'DATABASE_URL', description: 'The database connection string.' });
 			if (options.sqlite === 'turso') {
-				env.define({ name: 'DATABASE_AUTH_TOKEN', description: 'Auth token for Turso' });
+				env.define({
+					name: 'DATABASE_AUTH_TOKEN',
+					description: 'Auth token for the [Turso](https://turso.tech) database.'
+				});
 			}
 		}
 

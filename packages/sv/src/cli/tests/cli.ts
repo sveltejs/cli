@@ -132,6 +132,14 @@ describe('cli', () => {
 					generated = generated.replace(/sv@\d+\.\d+\.\d+/g, 'sv@0.0.0');
 				}
 
+				// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift
+				if (relativeFile === 'wrangler.jsonc') {
+					generated = generated.replace(
+						/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
+						'"compatibility_date": "2020-01-01"'
+					);
+				}
+
 				await expect(generated).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
