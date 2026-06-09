@@ -5,7 +5,7 @@ title: sv-utils
 > [!NOTE]
 > `@sveltejs/sv-utils` is currently **experimental**. The API may change.
 
-`@sveltejs/sv-utils` is an add-on utilty for parsing, transforming, and generating code..
+`@sveltejs/sv-utils` is an add-on utility for parsing, transforming, and generating code..
 
 ```sh
 npm install -D @sveltejs/sv-utils
