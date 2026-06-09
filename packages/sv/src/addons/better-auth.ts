@@ -97,7 +97,10 @@ export default defineAddon({
 		sv.file('.env.example', generateEnv(demoGithub, true));
 
 		const env = defineEnv({ sv, cwd, dependencyVersion });
-		env.define({ name: 'ORIGIN', description: 'The app origin (base URL), e.g. `http://localhost:5173`.' });
+		env.define({
+			name: 'ORIGIN',
+			description: 'The app origin (base URL), e.g. `http://localhost:5173`.'
+		});
 		env.define({
 			name: 'BETTER_AUTH_SECRET',
 			description:
