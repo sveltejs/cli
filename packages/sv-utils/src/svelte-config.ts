@@ -133,8 +133,8 @@ export type SvelteConfEdit = (file: {
 	override: (props: ObjectMap, opts?: { dropLeadingComments?: string[] }) => void;
 }) => void | false;
 
-/** Minimal shape of the `sv` api needed to write the config file. */
-type SvFileApi = {
+/** Minimal shape of the `sv` api needed to write a file. */
+export type SvFileApi = {
 	file: (path: string, edit: (content: string) => string | false) => void;
 };
 

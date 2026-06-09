@@ -8,7 +8,8 @@ import {
 	resolveCommandArray,
 	createPrinter,
 	type TransformFn,
-	coerceVersion
+	coerceVersion,
+	defineEnv
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -40,8 +41,9 @@ export default defineAddon({
 
 		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
+		runsAfter('experimental');
 	},
-	run: ({ sv, language, options, directory, dependencyVersion, file }) => {
+	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
@@ -94,12 +96,34 @@ export default defineAddon({
 		sv.file('.env', generateEnv(demoGithub, false));
 		sv.file('.env.example', generateEnv(demoGithub, true));
 
+		const env = defineEnv({ sv, cwd, dependencyVersion });
+		env.define({
+			name: 'ORIGIN',
+			description: 'The app origin (base URL), e.g. `http://localhost:5173`.'
+		});
+		env.define({
+			name: 'BETTER_AUTH_SECRET',
+			description:
+				'Secret used to sign tokens. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation).'
+		});
+		if (demoGithub) {
+			env.define({
+				name: 'GITHUB_CLIENT_ID',
+				description:
+					'GitHub OAuth client ID. See [Better Auth GitHub provider](https://www.better-auth.com/docs/authentication/github).'
+			});
+			env.define({
+				name: 'GITHUB_CLIENT_SECRET',
+				description:
+					'GitHub OAuth client secret. See [Better Auth GitHub provider](https://www.better-auth.com/docs/authentication/github).'
+			});
+		}
+
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
 				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
-				js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
 				js.imports.addNamed(ast, {
 					from: 'better-auth/svelte-kit',
 					imports: ['sveltekitCookies']
@@ -109,6 +133,13 @@ export default defineAddon({
 					imports: ['drizzleAdapter']
 				});
 				js.imports.addNamed(ast, { from: 'better-auth/minimal', imports: ['betterAuth'] });
+
+				const origin = env.reference(ast, js, { name: 'ORIGIN' });
+				const secret = env.reference(ast, js, { name: 'BETTER_AUTH_SECRET' });
+				const githubId = demoGithub ? env.reference(ast, js, { name: 'GITHUB_CLIENT_ID' }) : '';
+				const githubSecret = demoGithub
+					? env.reference(ast, js, { name: 'GITHUB_CLIENT_SECRET' })
+					: '';
 
 				const dialectMap: Record<Dialect, string> = {
 					mysql: 'mysql',
@@ -122,8 +153,8 @@ export default defineAddon({
 					? `
 				socialProviders: {
 					github: {
-						clientId: env.GITHUB_CLIENT_ID,
-						clientSecret: env.GITHUB_CLIENT_SECRET,
+						clientId: ${githubId},
+						clientSecret: ${githubSecret},
 					},
 				},`
 					: '';
@@ -132,8 +163,8 @@ export default defineAddon({
 				if (d1) {
 					authConfig = dedent`
 					const authConfig = {
-						baseURL: env.ORIGIN,
-						secret: env.BETTER_AUTH_SECRET,
+						baseURL: ${origin},
+						secret: ${secret},
 						emailAndPassword: {
 							enabled: true
 						},${githubProvider}
@@ -157,8 +188,8 @@ export default defineAddon({
 				} else {
 					authConfig = dedent`
 					export const auth = betterAuth({
-						baseURL: env.ORIGIN,
-						secret: env.BETTER_AUTH_SECRET,
+						baseURL: ${origin},
+						secret: ${secret},
 						database: drizzleAdapter(db, { provider: '${provider}' }),
 						emailAndPassword: {
 							enabled: true

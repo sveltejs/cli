@@ -827,6 +827,31 @@ declare const svelteConfig: {
 	find: (source: ConfigSource) => SvelteConfigLocation | null;
 	read: (source: ConfigSource) => SvelteConfigObjects | null;
 };
+type EnvMode = 'declared' | 'legacy';
+type EnvScope = 'private' | 'public';
+type EnvVarSpec = {
+	name: string;
+	description?: string;
+	public?: boolean;
+	static?: boolean;
+};
+type DefineEnvContext = {
+	sv: SvFileApi;
+	cwd: string;
+	dependencyVersion: (pkg: string) => string | undefined;
+};
+type ReferenceOpts = {
+	name: string;
+	scope?: EnvScope;
+	static?: boolean;
+};
+type DefineEnv = {
+	mode: EnvMode;
+	define: (spec: EnvVarSpec) => void;
+	reference: (ast: estree.Program, js: typeof index_d_exports$3, opts: ReferenceOpts) => string;
+};
+
+declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
 type ColorInput = string | string[];
 declare const color: {
 	addon: (str: ColorInput) => string;
@@ -873,6 +898,7 @@ export {
 	createPrinter,
 	index_d_exports$1 as css,
 	dedent,
+	defineEnv,
 	detect,
 	downloadJson,
 	fileExists,

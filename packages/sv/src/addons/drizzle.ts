@@ -7,7 +7,8 @@ import {
 	resolveCommandArray,
 	fileExists,
 	createPrinter,
-	svelteConfig
+	svelteConfig,
+	defineEnv
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -88,6 +89,7 @@ export default defineAddon({
 	setup: ({ isKit, unsupported, runsAfter }) => {
 		runsAfter('prettier');
 		runsAfter('sveltekitAdapter');
+		runsAfter('experimental');
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
@@ -362,6 +364,17 @@ export default defineAddon({
 			})
 		);
 
+		const env = defineEnv({ sv, cwd, dependencyVersion });
+		if (options.database !== 'd1') {
+			env.define({ name: 'DATABASE_URL', description: 'The database connection string.' });
+			if (options.sqlite === 'turso') {
+				env.define({
+					name: 'DATABASE_AUTH_TOKEN',
+					description: 'Auth token for the [Turso](https://turso.tech) database.'
+				});
+			}
+		}
+
 		sv.file(
 			paths.database,
 			transforms.script(({ ast, js }) => {
@@ -378,14 +391,12 @@ export default defineAddon({
 					return;
 				}
 
-				js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
+				const dbUrl = env.reference(ast, js, { name: 'DATABASE_URL' });
 				js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
-				// env var checks
-				const dbURLCheck = js.common.parseStatement(
-					"if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+				ast.body.push(
+					js.common.parseStatement(`if (!${dbUrl}) throw new Error('DATABASE_URL is not set');`)
 				);
-				ast.body.push(dbURLCheck);
 
 				let clientExpression;
 				// SQLite
@@ -396,7 +407,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('new Database(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`new Database(${dbUrl})`);
 				}
 				if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
 					js.imports.addNamed(ast, {
@@ -409,16 +420,17 @@ export default defineAddon({
 					});
 
 					if (options.sqlite === 'turso') {
+						const dbToken = env.reference(ast, js, { name: 'DATABASE_AUTH_TOKEN' });
 						ast.body.push(
 							js.common.parseStatement(
-								"if (!env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
+								`if (!${dbToken}) throw new Error('DATABASE_AUTH_TOKEN is not set');`
 							)
 						);
 						clientExpression = js.common.parseExpression(
-							'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
+							`createClient({ url: ${dbUrl}, authToken: ${dbToken} })`
 						);
 					} else {
-						clientExpression = js.common.parseExpression('createClient({ url: env.DATABASE_URL })');
+						clientExpression = js.common.parseExpression(`createClient({ url: ${dbUrl} })`);
 					}
 				}
 				// MySQL
@@ -429,7 +441,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('mysql.createPool(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`mysql.createPool(${dbUrl})`);
 				}
 				// PostgreSQL
 				if (options.postgresql === 'neon') {
@@ -442,7 +454,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('neon(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`neon(${dbUrl})`);
 				}
 				if (options.postgresql === 'postgres.js') {
 					js.imports.addDefault(ast, { from: 'postgres', as: 'postgres' });
@@ -451,7 +463,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('postgres(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`postgres(${dbUrl})`);
 				}
 
 				if (!clientExpression) throw new Error('unreachable state...');

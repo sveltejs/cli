@@ -37,6 +37,16 @@ describe('cli', () => {
 			]
 		},
 		{
+			projectName: 'create-experimental',
+			args: [
+				'--add',
+				'sveltekit-adapter=adapter:cloudflare+cfTarget:workers',
+				'drizzle=database:sqlite+sqlite:libsql',
+				'better-auth=demo:password,github',
+				'experimental=versions:+features:explicitEnvironmentVariables'
+			]
+		},
+		{
 			projectName: '@my-org/sv',
 			template: 'addon',
 			args: []
@@ -122,6 +132,14 @@ describe('cli', () => {
 					generated = generated.replace(/sv@\d+\.\d+\.\d+/g, 'sv@0.0.0');
 				}
 
+				// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift
+				if (relativeFile === 'wrangler.jsonc') {
+					generated = generated.replace(
+						/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
+						'"compatibility_date": "2020-01-01"'
+					);
+				}
+
 				await expect(generated).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
@@ -149,6 +167,16 @@ describe('cli', () => {
 					check.exitCode,
 					`svelte-check failed:\n  stdout: ${check.stdout}\n  stderr: ${check.stderr}`
 				).toBe(0);
+			}
+
+			if (projectName === 'create-experimental') {
+				const read = (p: string) => fs.readFileSync(path.resolve(testOutputPath, p), 'utf-8');
+				const envFile = read('src/env.ts');
+				expect(envFile).toContain('defineEnvVars');
+				expect(envFile).toContain('DATABASE_URL');
+				expect(read('src/lib/server/db/index.ts')).toContain("from '$app/env/private'");
+				expect(read('src/lib/server/auth.ts')).toContain("from '$app/env/private'");
+				expect(read('src/lib/server/db/index.ts')).not.toContain('$env/dynamic/private');
 			}
 
 			if (template === 'addon') {
