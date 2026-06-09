@@ -32,11 +32,11 @@ export default defineAddon({
 			vitestV3Installed = coerceVersion(vitestVersion).major === 3;
 		}
 
-		sv.devDependency('vitest', '^4.1.3');
+		sv.devDependency('vitest', '^4.1.8');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser-playwright', '^4.1.3');
-			sv.devDependency('vitest-browser-svelte', '^2.1.0');
+			sv.devDependency('@vitest/browser-playwright', '^4.1.8');
+			sv.devDependency('vitest-browser-svelte', '^2.1.1');
 			sv.devDependency('playwright', '^1.60.0');
 		}
 
