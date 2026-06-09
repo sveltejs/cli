@@ -1,5 +1,26 @@
 # sv
 
+## 0.16.0
+### Minor Changes
+
+
+- chore: bump templates to `@sveltejs/kit` `^2.62.0` and move svelte config to vite plugin (info: https://github.com/sveltejs/kit/pull/15944) ([#1119](https://github.com/sveltejs/cli/pull/1119))
+
+
+### Patch Changes
+
+
+- chore(sv): demo template uses the new `{const ...}` declaration tags ([sveltejs/svelte#18282](https://github.com/sveltejs/svelte/pull/18282)) ([#1110](https://github.com/sveltejs/cli/pull/1110))
+
+
+- chore: support kit's explicit environment variables in `drizzle` and `better-auth` ([#1122](https://github.com/sveltejs/cli/pull/1122))
+
+
+- add(experimental): new add-on to toggle experimental flags and opt into `@next` versions ([#1121](https://github.com/sveltejs/cli/pull/1121))
+
+- Updated dependencies [[`fbdb1a0`](https://github.com/sveltejs/cli/commit/fbdb1a06b67809d43ce57ef8d53bcca6a287643f), [`20f6cf7`](https://github.com/sveltejs/cli/commit/20f6cf7eff575ed953deeaaabb5a32dca60a716d)]:
+  - @sveltejs/sv-utils@0.3.0
+
 ## 0.15.4
 ### Patch Changes
 
