@@ -1,5 +1,11 @@
 # sv
 
+## 0.16.1
+### Patch Changes
+
+
+- fix(cli): restore `sv create` and `sv add` when neither `--install` nor `--no-install` is passed ([#1128](https://github.com/sveltejs/cli/pull/1128))
+
 ## 0.16.0
 ### Minor Changes
 
