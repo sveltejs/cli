@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, dedent, transforms } from '@sveltejs/sv-utils';
+import { color, dedent, resolveCommandArray, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -91,16 +91,20 @@ export default defineAddon({
 		);
 	},
 
-	nextSteps: ({ isKit }) => {
+	nextSteps: ({ isKit, packageManager }) => {
 		const steps: string[] = [];
 
-		steps.push(`Run ${color.command('npx playwright install')} to download browsers`);
+		steps.push(
+			`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['playwright', 'install']))} to download browsers`
+		);
 
 		if (isKit) {
 			steps.push(`Visit ${color.route('/demo/playwright')} to see the demo page`);
 		}
 
-		steps.push(`Run ${color.command('npm run test:e2e')} to execute the example tests`);
+		steps.push(
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['test:e2e']))} to execute the example tests`
+		);
 
 		return steps;
 	}
