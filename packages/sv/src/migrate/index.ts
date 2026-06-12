@@ -1,4 +1,6 @@
 import type { Package } from '@sveltejs/sv-utils';
+import type { SvApi } from '../core/config.ts';
+import type { Workspace } from '../core/workspace.ts';
 
 export type Migration = {
 	id: string;
@@ -28,15 +30,12 @@ export type TaskOptions = {
 export type Task = {
 	id: string;
 	description: string;
-	setup: (options: TaskSetupOptions) => Promise<void> | void;
-	run: () => Promise<void> | void;
+	run: (options: TaskRunOptions) => Promise<void> | void;
 };
 
 export type TaskWithOptions = Task & TaskOptions;
 
-export type TaskSetupOptions = {
-	skip: (reason?: string) => void;
-};
+export type TaskRunOptions = Workspace & { sv: SvApi };
 
 export function defineMigration(migration: Migration) {
 	return migration;

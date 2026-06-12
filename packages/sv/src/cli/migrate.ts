@@ -1,12 +1,14 @@
 import * as p from '@clack/prompts';
 import { color, loadPackageJson, type Package } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
-import * as find from 'empathic/find';
-import * as path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
+import { prepareSvApi } from '../core/engine.ts';
+import { formatFiles } from '../core/formatFiles.ts';
+import { installDependencies, packageManagerPrompt } from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory } from '../core/verifiers.ts';
+import { createWorkspace } from '../core/workspace.ts';
 import type {
 	Migration,
 	MigrationCollectOptions,
@@ -74,26 +76,34 @@ export const migrate = new Command('migrate')
 
 			const tasks = await determineTasks(migration, verifiedOptions, pkg);
 			if (!tasks) return;
-			await applyTasks(tasks);
+
+			const modifiedFiles = await applyTasks(options, tasks);
+			const workspace = await createWorkspace({ cwd: options.cwd });
+
+			const hasFormatter = !!workspace.dependencyVersion('prettier');
+			if (hasFormatter) {
+				await formatFiles({
+					cwd: workspace.cwd,
+					packageManager: workspace.packageManager,
+					filesToFormat: modifiedFiles.values().toArray()
+				});
+			}
+
+			const packageManager = await packageManagerPrompt(workspace.cwd);
+			await installDependencies(packageManager || workspace.packageManager, workspace.cwd);
 		});
 	});
 
 function ensureValidWorkspace(cwd: string) {
-	const filePath = find.up('package.json', { cwd }) ?? path.join(cwd, 'package.json');
-
-	if (!filePath) {
-		common.errorAndExit(`No package.json found in ${cwd} or any of its parent directories.`);
-	}
-
-	const { data: pkg } = loadPackageJson(path.dirname(filePath));
+	const { data: pkg, source } = loadPackageJson(cwd);
 	if (!pkg) {
-		common.errorAndExit(`Failed to load package.json at ${filePath}.`);
+		common.errorAndExit(`Failed to load package.json at ${source}.`);
 		return;
 	}
 
 	if (!pkg.devDependencies?.['svelte'] && !pkg.devDependencies?.['@sveltejs/kit']) {
 		common.errorAndExit(
-			`No svelte or @sveltejs/kit dependency found in package.json at ${filePath}.`
+			`No svelte or @sveltejs/kit dependency found in package.json at ${source}.`
 		);
 	}
 
@@ -153,10 +163,11 @@ async function determineTasks(
 				label: t.id,
 				hint: t.description
 			})),
-			initialValues: optionalTasks.filter((t) => t.required).map((t) => t.id)
+			initialValues: optionalTasks.filter((t) => t.required).map((t) => t.id),
+			required: false
 		});
 
-		if (typeof optionalTaskIdsToRun === 'symbol' || optionalTaskIdsToRun.length === 0) {
+		if (typeof optionalTaskIdsToRun === 'symbol') {
 			p.cancel('Operation cancelled.');
 			process.exit(1);
 		}
@@ -188,6 +199,35 @@ async function determineTasks(
 	return tasksToRun;
 }
 
-async function applyTasks(tasks: TaskWithOptions[]) {
-	console.log('Applying tasks...', tasks);
+async function applyTasks(options: Options, tasks: TaskWithOptions[]) {
+	const files = new Set<string>();
+	const { start, stop, message, error } = p.spinner();
+
+	start('Applying migration tasks...');
+
+	for (let i = 0; i < tasks.length; i++) {
+		const task = tasks[i];
+		message(`${i + 1}/${tasks.length}: ${task.id}`);
+		try {
+			// reload workspace for each task to ensure a clean state, as tasks might make changes to the file system that affect subsequent tasks
+			const workspace = await createWorkspace({ cwd: options.cwd });
+			const { sv, updateDependencies } = prepareSvApi(workspace, files, `${task.id}: `);
+
+			await task.run({ sv, ...workspace });
+
+			const pkgPath = updateDependencies();
+			files.add(pkgPath);
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : String(err);
+			const message = `Task '${task.id}' failed: ${errorMessage}`;
+			error(message);
+			p.log.message();
+			p.cancel('Migration failed.');
+			process.exit(1);
+		}
+	}
+
+	stop('All tasks applied successfully!');
+
+	return files;
 }

@@ -219,6 +219,46 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		}
 	}
 
+	const { sv, updateDependencies } = prepareSvApi(
+		workspace,
+		files,
+		multiple ? `${addon.id}: ` : ''
+	);
+
+	const cancels: string[] = [];
+	try {
+		await addon.run({
+			cancel: (reason) => {
+				cancels.push(reason);
+			},
+			...workspace,
+			options,
+			sv
+		});
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(
+			`Add-on '${addon.id}' failed during run: ${msg}\n\n${getErrorHint(loaded.reference.source)}`,
+			{ cause: err }
+		);
+	}
+
+	if (cancels.length === 0) {
+		const pkgPath = updateDependencies();
+		files.add(pkgPath);
+	}
+
+	return {
+		files: Array.from(files),
+		cancels
+	};
+}
+
+export function prepareSvApi(
+	workspace: Workspace,
+	files: Set<string>,
+	executeOutputPrefix: string | undefined = undefined
+): { sv: SvApi; updateDependencies: () => string } {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 	const sv: SvApi = {
 		file: (path, edit) => {
@@ -240,11 +280,10 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		execute: async (commandArgs, stdio) => {
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
-			const addonPrefix = multiple ? `${addon.id}: ` : '';
 			const executedCommand = [command, ...args].join(' ');
 			if (!TESTING) {
 				p.log.step(
-					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
+					`${executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
 				);
 			}
 
@@ -277,34 +316,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
-
-	const cancels: string[] = [];
-	try {
-		await addon.run({
-			cancel: (reason) => {
-				cancels.push(reason);
-			},
-			...workspace,
-			options,
-			sv
-		});
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		throw new Error(
-			`Add-on '${addon.id}' failed during run: ${msg}\n\n${getErrorHint(loaded.reference.source)}`,
-			{ cause: err }
-		);
-	}
-
-	if (cancels.length === 0) {
-		const pkgPath = updatePackages(dependencies, workspace.cwd);
-		files.add(pkgPath);
-	}
-
-	return {
-		files: Array.from(files),
-		cancels
-	};
+	return { sv, updateDependencies: () => updatePackages(dependencies, workspace.cwd) };
 }
 
 // orders addons by putting addons that don't require any other addon in the front.
