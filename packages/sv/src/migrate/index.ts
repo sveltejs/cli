@@ -4,8 +4,9 @@ import type { Workspace } from '../core/workspace.ts';
 
 export type Migration = {
 	id: string;
-	changelog: string;
+	changelog?: string;
 	description: string;
+	legacy?: boolean;
 	setup: (options: MigrationSetupOptions) => Promise<void> | void;
 	collect: (options: MigrationCollectOptions) => Promise<void> | void;
 };

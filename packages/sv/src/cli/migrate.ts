@@ -15,10 +15,11 @@ import type {
 	MigrationSetupOptions,
 	TaskWithOptions
 } from '../migrate/index.ts';
+import { legacyMigrations } from '../migrate/migrations/legacy-migrations/index.ts';
 import kit3 from '../migrate/migrations/sveltekit-3/index.ts';
-import testMigration from '../migrate/migrations/test-migration/index.ts';
 
-const migrations = [kit3, testMigration] as const;
+// TODO: support historic migrations from `svelte-migrate` by handing over to `svelte-migrate`
+const migrations = [kit3, ...legacyMigrations] as const;
 const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 
 const OptionsSchema = v.strictObject({
@@ -69,17 +70,21 @@ export const migrate = new Command('migrate')
 				common.errorAndExit(`Migration ${verifiedMigrationName} not found`);
 				return;
 			}
+			const legacyMigration = migration.legacy ?? false;
 
-			p.log.warn(
-				`Make sure to read the changelog for this migration before running it: ${migration.changelog}`
-			);
+			if (migration.changelog) {
+				p.log.warn(
+					`Make sure to read the changelog for this migration before running it: ${migration.changelog}`
+				);
+			}
 
 			const tasks = await determineTasks(migration, verifiedOptions, pkg);
 			if (!tasks) return;
 
-			const modifiedFiles = await applyTasks(options, tasks);
-			const workspace = await createWorkspace({ cwd: options.cwd });
+			const modifiedFiles = await applyTasks(options, tasks, legacyMigration);
+			if (legacyMigration) return;
 
+			const workspace = await createWorkspace({ cwd: options.cwd });
 			const hasFormatter = !!workspace.dependencyVersion('prettier');
 			if (hasFormatter) {
 				await formatFiles({
@@ -199,15 +204,15 @@ async function determineTasks(
 	return tasksToRun;
 }
 
-async function applyTasks(options: Options, tasks: TaskWithOptions[]) {
+async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigration: boolean) {
 	const files = new Set<string>();
 	const { start, stop, message, error } = p.spinner();
 
-	start('Applying migration tasks...');
+	if (!legacyMigration) start('Applying migration tasks...');
 
 	for (let i = 0; i < tasks.length; i++) {
 		const task = tasks[i];
-		message(`${i + 1}/${tasks.length}: ${task.id}`);
+		if (!legacyMigration) message(`${i + 1}/${tasks.length}: ${task.id}`);
 		try {
 			// reload workspace for each task to ensure a clean state, as tasks might make changes to the file system that affect subsequent tasks
 			const workspace = await createWorkspace({ cwd: options.cwd });
@@ -220,14 +225,14 @@ async function applyTasks(options: Options, tasks: TaskWithOptions[]) {
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : String(err);
 			const message = `Task '${task.id}' failed: ${errorMessage}`;
-			error(message);
+			if (!legacyMigration) error(message);
 			p.log.message();
 			p.cancel('Migration failed.');
 			process.exit(1);
 		}
 	}
 
-	stop('All tasks applied successfully!');
+	if (!legacyMigration) stop('All tasks applied successfully!');
 
 	return files;
 }
