@@ -522,7 +522,7 @@ export default defineAddon({
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
 			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+				`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
 
