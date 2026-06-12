@@ -1,3 +1,5 @@
+import type { Package } from '@sveltejs/sv-utils';
+
 export type Migration = {
 	id: string;
 	changelog: string;
@@ -7,13 +9,20 @@ export type Migration = {
 };
 
 export type MigrationSetupOptions = {
+	cwd: string;
+	pkg: Package;
 	requires: (migrationId: string) => void;
 };
 
 export type MigrationCollectOptions = {
+	cwd: string;
 	tasks: {
-		add: (task: Task, options: { required: boolean }) => void;
+		add: (task: Task, options: TaskOptions) => void;
 	};
+};
+
+export type TaskOptions = {
+	required: boolean;
 };
 
 export type Task = {
@@ -23,17 +32,16 @@ export type Task = {
 	run: () => Promise<void> | void;
 };
 
+export type TaskWithOptions = Task & TaskOptions;
+
 export type TaskSetupOptions = {
 	skip: (reason?: string) => void;
-	alreadyApplied: () => void;
 };
 
 export function defineMigration(migration: Migration) {
-	console.log(migration);
 	return migration;
 }
 
 export function defineMigrationTask(task: Task) {
-	console.log(task);
 	return task;
 }
