@@ -29,6 +29,8 @@ export type SvelteConfigObjects = {
 	config: AstTypes.ObjectExpression;
 	/** kit-level config object (`adapter`, `alias`, `files`, `typescript`, ...). */
 	kit: AstTypes.ObjectExpression;
+	/** the full config file's AST */
+	ast: AstTypes.Program;
 };
 
 /** Reads a workspace file. Returns `null` when the file doesn't exist. (the injected environment) */
@@ -109,7 +111,7 @@ function read(source: ConfigSource): SvelteConfigObjects | null {
 	if (!found) return null;
 	const config = getConfigRoot(found.ast, found.location.kind);
 	const kit = getKitObject(config, found.location.kind);
-	return { location: found.location, config, kit };
+	return { location: found.location, config, kit, ast: found.ast };
 }
 
 export type SvelteConfEdit = (file: {
@@ -224,7 +226,7 @@ function edit({ sv, cwd }: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdi
  * export or in the object passed to `sveltekit()` in a `vite.config.{js,ts}`.
  */
 export const svelteConfig: {
-	/** Edit the config wherever it lives (creating `svelte.config.js` if there is none). */
+	/** Edit the config wherever it lives (creating `vite.config.js` if there is none). */
 	edit: (target: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdit) => void;
 	/** Locate the config file, returning `{ path, kind }` or `null`. Detection is static (no execution). */
 	find: (source: ConfigSource) => SvelteConfigLocation | null;
