@@ -9,6 +9,8 @@ import {
 	resolveCommand,
 	type AgentName
 } from '@sveltejs/sv-utils';
+import fs from 'node:fs';
+import path from 'node:path';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import { filePaths } from './common.ts';
@@ -16,6 +18,7 @@ import {
 	getErrorHint,
 	type Addon,
 	type AddonDefinition,
+	type FileEdit,
 	type LoadedAddon,
 	type OptionValues,
 	type SetupResult,
@@ -254,27 +257,54 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	};
 }
 
+function editFile(
+	file: string,
+	edit: FileEdit,
+	workspace: Workspace,
+	files: Set<string>,
+	include?: (content: string) => boolean
+) {
+	try {
+		const exists = fileExists(workspace.cwd, file);
+		if (exists && !fs.statSync(path.resolve(workspace.cwd, file)).isFile()) return;
+
+		const content = exists ? loadFile(workspace.cwd, file) : '';
+		const skip = include === undefined ? false : !include(content);
+		if (skip) return;
+
+		const editedContent = edit(content);
+		if (editedContent === '' || editedContent === false) return;
+
+		saveFile(workspace.cwd, file, editedContent);
+		files.add(file);
+	} catch (e) {
+		if (e instanceof Error) {
+			e.message = `Unable to process '${file}'. Reason: ${e.message}`;
+		}
+		throw e;
+	}
+}
+
 export function prepareSvApi(
 	workspace: Workspace,
 	files: Set<string>,
 	executeOutputPrefix: string | undefined = undefined
 ): { sv: SvApi; updateDependencies: () => string } {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+
 	const sv: SvApi = {
 		file: (path, edit) => {
-			try {
-				const content = fileExists(workspace.cwd, path) ? loadFile(workspace.cwd, path) : '';
-				const editedContent = edit(content);
-				if (editedContent === '' || editedContent === false) return content;
+			editFile(path, edit, workspace, files);
+		},
+		files: (options, edit) => {
+			const { include, exclude } = options;
+			const globbedFiles = fs.globSync(include, {
+				cwd: workspace.cwd,
+				exclude: ['node_modules/**', '**/node_modules/**', '.*/**', '**/.*/**', ...(exclude ?? [])]
+			});
 
-				saveFile(workspace.cwd, path, editedContent);
-				files.add(path);
-			} catch (e) {
-				if (e instanceof Error) {
-					e.message = `Unable to process '${path}'. Reason: ${e.message}`;
-					throw e;
-				}
-				throw e;
+			for (const file of globbedFiles) {
+				editFile(file, edit, workspace, files, options.where);
 			}
 		},
 		execute: async (commandArgs, stdio) => {

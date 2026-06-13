@@ -785,6 +785,7 @@ type SvelteConfigObjects = {
 	location: SvelteConfigLocation;
 	config: estree.ObjectExpression;
 	kit: estree.ObjectExpression;
+	ast: estree.Program;
 };
 
 type ConfigFileReader = (path: string) => string | null;
