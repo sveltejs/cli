@@ -15,6 +15,7 @@ export default defineMigrationTask({
 		const originalConfigObject = svelteConfig.read(cwd);
 		if (!originalConfigObject) return;
 
+		// delete the original config file, so that the we will use the vite config afterwards
 		fs.unlinkSync(path.join(cwd, configSource.path));
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, override }) => {
