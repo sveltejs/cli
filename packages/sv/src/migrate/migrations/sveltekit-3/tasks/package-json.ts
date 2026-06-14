@@ -4,18 +4,11 @@ import { defineMigrationTask } from '../../../index.ts';
 export default defineMigrationTask({
 	id: 'package-json',
 	description: 'Update package.json to be compatible with SvelteKit 3.0',
-	run: ({ cwd, language, sv, dependencyVersion, file, isKit, directory, packageManager }) => {
+	run: (args) => {
 		// instead of duplicating the logic of the experimental addon, lets just call it.
 		// migrates kit to it's 'next' version.
 		experimentalAddon.run({
-			cwd,
-			language,
-			sv,
-			dependencyVersion,
-			file,
-			isKit,
-			directory,
-			packageManager,
+			...args,
 			options: { versions: ['kit'], features: [] },
 			cancel: () => {}
 		});
