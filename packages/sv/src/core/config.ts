@@ -7,6 +7,7 @@ export type { OptionValues } from './options.ts';
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
 export type FileEdit = (content: string) => string | false;
+export type FileEditMultiple = (content: string, path: string) => string | false;
 
 export type SvApi = {
 	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
@@ -43,7 +44,7 @@ export type SvApi = {
 			 */
 			where?: (content: string) => boolean;
 		},
-		edit: FileEdit
+		edit: FileEditMultiple
 	) => void;
 };
 

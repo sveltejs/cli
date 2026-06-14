@@ -309,7 +309,8 @@ export function prepareSvApi(
 			});
 
 			for (const file of globbedFiles) {
-				editFile(file, edit, workspace, files, opts.where, options?.saveFileInfix);
+				const singleFileEdit = (content: string) => edit(content, file);
+				editFile(file, singleFileEdit, workspace, files, opts.where, options?.saveFileInfix);
 			}
 		},
 		execute: async (commandArgs, stdio) => {

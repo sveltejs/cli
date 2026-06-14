@@ -1,9 +1,21 @@
-import { js, transforms, type AstTypes } from '@sveltejs/sv-utils';
+import { js, transforms, type AstTypes, type SvelteAst } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
 type DeclaredEnvVar = {
 	public?: boolean;
 	static?: boolean;
+};
+
+type EnvSourceInfo = {
+	kind: 'static' | 'dynamic';
+	scope: 'private' | 'public';
+};
+
+type EnvImport = {
+	importNode: AstTypes.ImportDeclaration;
+	sourceInfo: EnvSourceInfo;
+	staticImports: Record<string, string>;
+	dynamicAliases: Set<string>;
 };
 
 export default defineMigrationTask({
@@ -12,22 +24,26 @@ export default defineMigrationTask({
 	run: ({ sv, language }) => {
 		const declaredVars = new Map<string, DeclaredEnvVar>();
 
-		// TODO: find a way to combine both calls because it still duplicates some stuff
 		sv.files(
-			{ include: '**/*.svelte', where: (content) => content.includes('$env/') },
-			transforms.svelteScript({ language }, ({ ast }) => {
-				return changeImports(ast.instance.content, declaredVars);
-			})
-		);
-		sv.files(
-			{ include: '**/*.{ts,js}', where: (content) => content.includes('$env/') },
-			transforms.script(({ ast }) => {
-				return changeImports(ast, declaredVars);
-			})
+			{ include: '**/*.{ts,js,svelte}', where: (content) => content.includes('$env/') },
+			(content, path) => {
+				if (path.endsWith('.svelte')) {
+					return transforms.svelteScript({ language }, ({ ast }) => {
+						return runMigration(ast.instance.content, declaredVars, ast.fragment);
+					})(content);
+				}
+
+				return transforms.script(({ ast }) => {
+					return runMigration(ast, declaredVars);
+				})(content);
+			}
 		);
 
 		if (declaredVars.size > 0) {
-			sv.file('src/env.ts', transforms.script(({ ast }) => addEnvDeclarations(ast, declaredVars)));
+			sv.file(
+				'src/env.ts',
+				transforms.script(({ ast }) => addEnvDeclarations(ast, declaredVars))
+			);
 		}
 
 		// TODO: Rename $app/environment to $app/env
@@ -35,32 +51,67 @@ export default defineMigrationTask({
 	}
 });
 
-function changeImports(
+function runMigration(
 	ast: AstTypes.Program,
-	declaredVars: Map<string, DeclaredEnvVar>
+	declaredVars: Map<string, DeclaredEnvVar>,
+	template?: SvelteAst.Fragment
 ): void | false {
-	const imports = ast.body.filter((node): node is AstTypes.ImportDeclaration => {
-		return node.type === 'ImportDeclaration';
-	});
-	const envImports = imports.filter(
-		(i) => typeof i.source.value === 'string' && i.source.value.startsWith('$env')
-	);
+	const envImports = collectEnvImports(ast);
 
 	if (envImports.length === 0) {
 		return false; // no env imports, skip;
 	}
 
-	let changed = false;
+	const replacementImports = new Map<'private' | 'public', Record<string, string>>();
+	const dynamicAliases = new Map<string, EnvSourceInfo>();
 
 	for (const importNode of envImports) {
+		for (const [name, alias] of Object.entries(importNode.staticImports)) {
+			addReplacementImport(replacementImports, importNode.sourceInfo.scope, name, alias);
+			declareEnvVar(declaredVars, name, importNode.sourceInfo);
+		}
+
+		for (const alias of importNode.dynamicAliases) {
+			dynamicAliases.set(alias, importNode.sourceInfo);
+		}
+	}
+
+	for (const usage of replaceDynamicEnvUsages(ast, dynamicAliases)) {
+		addReplacementImport(replacementImports, usage.sourceInfo.scope, usage.name, usage.name);
+		declareEnvVar(declaredVars, usage.name, usage.sourceInfo);
+	}
+
+	// Dynamic env aliases imported in <script> can be referenced from the template too.
+	for (const usage of template ? replaceDynamicEnvUsages(template, dynamicAliases) : []) {
+		addReplacementImport(replacementImports, usage.sourceInfo.scope, usage.name, usage.name);
+		declareEnvVar(declaredVars, usage.name, usage.sourceInfo);
+	}
+
+	for (const [scope, imports] of replacementImports) {
+		js.imports.addNamed(ast, { from: `$app/env/${scope}`, imports });
+	}
+
+	for (const importNode of envImports) {
+		removeImport(ast, importNode.importNode);
+	}
+
+	return replacementImports.size > 0 ? undefined : false;
+}
+
+function collectEnvImports(ast: AstTypes.Program): EnvImport[] {
+	const imports = ast.body.filter((node): node is AstTypes.ImportDeclaration => {
+		return node.type === 'ImportDeclaration';
+	});
+
+	return imports.flatMap((importNode) => {
 		const source = importNode.source.value;
-		if (typeof source !== 'string') continue;
+		if (typeof source !== 'string') return [];
 
 		const sourceInfo = getEnvSourceInfo(source);
-		if (!sourceInfo) continue;
+		if (!sourceInfo) return [];
 
-		const importsToAdd: Record<string, string> = {};
-		const dynamicEnvAliases = new Set<string>();
+		const staticImports: Record<string, string> = {};
+		const dynamicAliases = new Set<string>();
 
 		for (const specifier of importNode.specifiers) {
 			if (specifier.type !== 'ImportSpecifier') continue;
@@ -68,31 +119,27 @@ function changeImports(
 			if (specifier.local?.type !== 'Identifier') continue;
 
 			if (sourceInfo.kind === 'static') {
-				importsToAdd[specifier.imported.name] = specifier.local.name;
-				declareEnvVar(declaredVars, specifier.imported.name, sourceInfo);
+				staticImports[specifier.imported.name] = specifier.local.name;
 			} else if (specifier.imported.name === 'env') {
-				dynamicEnvAliases.add(specifier.local.name);
+				dynamicAliases.add(specifier.local.name);
 			}
 		}
 
-		if (dynamicEnvAliases.size > 0) {
-			for (const name of replaceDynamicEnvReferences(ast, dynamicEnvAliases)) {
-				importsToAdd[name] = name;
-				declareEnvVar(declaredVars, name, sourceInfo);
-			}
-		}
+		if (Object.keys(staticImports).length === 0 && dynamicAliases.size === 0) return [];
 
-		if (Object.keys(importsToAdd).length > 0) {
-			js.imports.addNamed(ast, {
-				from: `$app/env/${sourceInfo.scope}`,
-				imports: importsToAdd
-			});
-			removeImport(ast, importNode);
-			changed = true;
-		}
-	}
+		return [{ importNode, sourceInfo, staticImports, dynamicAliases }];
+	});
+}
 
-	return changed ? undefined : false;
+function addReplacementImport(
+	imports: Map<'private' | 'public', Record<string, string>>,
+	scope: 'private' | 'public',
+	name: string,
+	alias: string
+): void {
+	const scopedImports = imports.get(scope) ?? {};
+	scopedImports[name] = alias;
+	imports.set(scope, scopedImports);
 }
 
 function addEnvDeclarations(
@@ -149,12 +196,7 @@ function getOrCreateVariablesObject(ast: AstTypes.Program): AstTypes.ObjectExpre
 	return call.arguments[0] as AstTypes.ObjectExpression;
 }
 
-function getEnvSourceInfo(source: string):
-	| {
-			kind: 'static' | 'dynamic';
-			scope: 'private' | 'public';
-	  }
-	| undefined {
+function getEnvSourceInfo(source: string): EnvSourceInfo | undefined {
 	const match = /^\$env\/(static|dynamic)\/(private|public)$/.exec(source);
 	if (!match) return;
 
@@ -167,7 +209,7 @@ function getEnvSourceInfo(source: string):
 function declareEnvVar(
 	declaredVars: Map<string, DeclaredEnvVar>,
 	name: string,
-	sourceInfo: { kind: 'static' | 'dynamic'; scope: 'private' | 'public' }
+	sourceInfo: EnvSourceInfo
 ): void {
 	const current = declaredVars.get(name) ?? {};
 	declaredVars.set(name, {
@@ -181,11 +223,11 @@ function removeImport(ast: AstTypes.Program, importNode: AstTypes.ImportDeclarat
 	if (index !== -1) ast.body.splice(index, 1);
 }
 
-function replaceDynamicEnvReferences(
-	node: AstTypes.Node,
-	envAliases: Set<string>
-): Set<string> {
-	const names = new Set<string>();
+function replaceDynamicEnvUsages(
+	node: AstTypes.Node | SvelteAst.SvelteNode,
+	envAliases: Map<string, EnvSourceInfo>
+): Array<{ name: string; sourceInfo: EnvSourceInfo }> {
+	const usages = new Map<string, { name: string; sourceInfo: EnvSourceInfo }>();
 
 	// Direct member reads become named imports from $app/env/{scope}.
 	replaceNode(node, (child) => {
@@ -196,22 +238,21 @@ function replaceDynamicEnvReferences(
 			!child.computed &&
 			child.property.type === 'Identifier'
 		) {
-			names.add(child.property.name);
-			return {
-				type: 'Identifier',
-				name: child.property.name
-			};
+			const sourceInfo = envAliases.get(child.object.name)!;
+			const name = child.property.name;
+			usages.set(`${sourceInfo.scope}:${name}`, { name, sourceInfo });
+			return { ...child.property };
 		}
 	});
 
-	return names;
+	return Array.from(usages.values());
 }
 
 function replaceNode(
-	node: AstTypes.Node,
+	node: AstTypes.Node | SvelteAst.SvelteNode,
 	replace: (node: AstTypes.Node) => AstTypes.Node | undefined
-): AstTypes.Node {
-	const replacement = replace(node);
+): AstTypes.Node | SvelteAst.SvelteNode {
+	const replacement = isJsNode(node) ? replace(node) : undefined;
 	if (replacement) return replacement;
 
 	const record = node as unknown as Record<string, unknown>;
@@ -233,6 +274,10 @@ function replaceNode(
 	return node;
 }
 
-function isNode(value: unknown): value is AstTypes.Node {
+function isNode(value: unknown): value is AstTypes.Node | SvelteAst.SvelteNode {
 	return typeof value === 'object' && value !== null && 'type' in value;
+}
+
+function isJsNode(value: unknown): value is AstTypes.Node {
+	return isNode(value) && typeof (value as { type?: unknown }).type === 'string';
 }

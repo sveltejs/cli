@@ -48,6 +48,10 @@ for (const migrationDirectory of migrationDirectories) {
 
 				updateDependencies();
 
+				if (modifiedFiles.size === 0) {
+					throw new Error('No files were modified by the migration.');
+				}
+
 				for (const file of modifiedFiles) {
 					const actual = fs.readFileSync(path.join(cwd, file), 'utf-8');
 					const expectedFileName = file.replace('.actual', '.snapshot');
