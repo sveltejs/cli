@@ -6,12 +6,12 @@ export default defineMigrationTask({
 	description: 'tbd - migrate environment variables to the new format',
 	run: ({ sv, language }) => {
 		// TODO: find a way to combine both calls because it still duplicates some stuff
-sv.files(
-	{ include: '**/*.svelte', where: (content) => content.includes('$env/') },
-	transforms.svelteScript({ language }, ({ ast }) => {
-		return changeImports(ast.instance.content);
-	})
-);
+		sv.files(
+			{ include: '**/*.svelte', where: (content) => content.includes('$env/') },
+			transforms.svelteScript({ language }, ({ ast }) => {
+				return changeImports(ast.instance.content);
+			})
+		);
 		sv.files(
 			{ include: '**/*.{ts,js}', where: (content) => content.includes('$env/') },
 			transforms.script(({ ast }) => {
