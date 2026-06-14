@@ -216,12 +216,13 @@ async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigr
 		try {
 			// reload workspace for each task to ensure a clean state, as tasks might make changes to the file system that affect subsequent tasks
 			const workspace = await createWorkspace({ cwd: options.cwd });
-			const { sv, updateDependencies } = prepareSvApi(workspace, files, `${task.id}: `);
+			const { sv, updateDependencies } = prepareSvApi(workspace, files, {
+				executeOutputPrefix: `${task.id}:`
+			});
 
 			await task.run({ sv, ...workspace });
 
-			const pkgPath = updateDependencies();
-			files.add(pkgPath);
+			updateDependencies();
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : String(err);
 			const message = `Task '${task.id}' failed: ${errorMessage}`;

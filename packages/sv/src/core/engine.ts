@@ -39,7 +39,8 @@ function alphabetizeRecord(obj: Record<string, string>) {
 
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	cwd: string
+	cwd: string,
+	saveFileInfix?: string
 ): string {
 	const { source } = loadPackageJson(cwd);
 	const { data, generateCode } = parse.json(source);
@@ -57,8 +58,8 @@ function updatePackages(
 	if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
 	if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
 
-	saveFile(cwd, filePaths.packageJson, generateCode());
-	return filePaths.packageJson;
+	const filePath = saveFile(cwd, filePaths.packageJson, generateCode(), saveFileInfix);
+	return filePath;
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -222,11 +223,9 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		}
 	}
 
-	const { sv, updateDependencies } = prepareSvApi(
-		workspace,
-		files,
-		multiple ? `${addon.id}: ` : ''
-	);
+	const { sv, updateDependencies } = prepareSvApi(workspace, files, {
+		executeOutputPrefix: multiple ? `${addon.id}: ` : ''
+	});
 
 	const cancels: string[] = [];
 	try {
@@ -247,8 +246,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	}
 
 	if (cancels.length === 0) {
-		const pkgPath = updateDependencies();
-		files.add(pkgPath);
+		updateDependencies();
 	}
 
 	return {
@@ -262,7 +260,8 @@ function editFile(
 	edit: FileEdit,
 	workspace: Workspace,
 	files: Set<string>,
-	include?: (content: string) => boolean
+	include?: (content: string) => boolean,
+	saveFileInfix?: string
 ) {
 	try {
 		const exists = fileExists(workspace.cwd, file);
@@ -275,7 +274,7 @@ function editFile(
 		const editedContent = edit(content);
 		if (editedContent === '' || editedContent === false) return;
 
-		saveFile(workspace.cwd, file, editedContent);
+		file = saveFile(workspace.cwd, file, editedContent, saveFileInfix);
 		files.add(file);
 	} catch (e) {
 		if (e instanceof Error) {
@@ -288,8 +287,14 @@ function editFile(
 export function prepareSvApi(
 	workspace: Workspace,
 	files: Set<string>,
-	executeOutputPrefix: string | undefined = undefined
-): { sv: SvApi; updateDependencies: () => string } {
+	options: {
+		executeOutputPrefix?: string | undefined;
+		saveFileInfix?: string | undefined;
+	} = {
+		executeOutputPrefix: undefined,
+		saveFileInfix: undefined
+	}
+): { sv: SvApi; updateDependencies: () => void } {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 
 	const sv: SvApi = {
@@ -313,7 +318,7 @@ export function prepareSvApi(
 			const executedCommand = [command, ...args].join(' ');
 			if (!TESTING) {
 				p.log.step(
-					`${executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
+					`${options?.executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
 				);
 			}
 
@@ -346,7 +351,15 @@ export function prepareSvApi(
 			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
-	return { sv, updateDependencies: () => updatePackages(dependencies, workspace.cwd) };
+	return {
+		sv,
+		updateDependencies: () => {
+			if (dependencies.length === 0) return;
+
+			const filePath = updatePackages(dependencies, workspace.cwd, options?.saveFileInfix);
+			files.add(filePath);
+		}
+	};
 }
 
 // orders addons by putting addons that don't require any other addon in the front.
