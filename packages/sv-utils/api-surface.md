@@ -766,7 +766,12 @@ declare function fileExists(cwd: string, filePath: string): boolean;
 
 declare function loadFile(cwd: string, filePath: string): string;
 
-declare function saveFile(cwd: string, filePath: string, content: string): void;
+declare function saveFile(
+	cwd: string,
+	filePath: string,
+	content: string,
+	saveFileInfix?: string
+): string;
 
 declare function loadPackageJson(cwd: string): {
 	source: string;
