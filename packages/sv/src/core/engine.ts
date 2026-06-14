@@ -299,17 +299,17 @@ export function prepareSvApi(
 
 	const sv: SvApi = {
 		file: (path, edit) => {
-			editFile(path, edit, workspace, files);
+			editFile(path, edit, workspace, files, undefined, options?.saveFileInfix);
 		},
-		files: (options, edit) => {
-			const { include, exclude } = options;
+		files: (opts, edit) => {
+			const { include, exclude } = opts;
 			const globbedFiles = fs.globSync(include, {
 				cwd: workspace.cwd,
 				exclude: ['node_modules/**', '**/node_modules/**', '.*/**', '**/.*/**', ...(exclude ?? [])]
 			});
 
 			for (const file of globbedFiles) {
-				editFile(file, edit, workspace, files, options.where);
+				editFile(file, edit, workspace, files, opts.where, options?.saveFileInfix);
 			}
 		},
 		execute: async (commandArgs, stdio) => {
