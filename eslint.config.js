@@ -1,4 +1,3 @@
-// @ts-expect-error
 import svelte_config from '@sveltejs/eslint-config';
 import { defineConfig } from 'eslint/config';
 
@@ -33,7 +32,8 @@ export default defineConfig(
 			'packages/sv/src/create/templates/**/*',
 			'packages/sv/src/cli/tests/snapshots/*',
 			'packages/sv/src/**/tests/**/{output,input}.ts',
-			'packages/sv-utils/src/**/tests/**/{output,input}.ts'
+			'packages/sv-utils/src/**/tests/**/{output,input}.ts',
+			'packages/sv/src/migrate/migrations/**/tests/*'
 		]
 	}
 );

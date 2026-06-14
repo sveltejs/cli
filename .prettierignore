@@ -1,2 +1,3 @@
 packages/sv/src/cli/tests/snapshots/*
+packages/sv/src/migrate/migrations/**/tests/*
 packages/sv-utils/src/tests/**/output.ts
