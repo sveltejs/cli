@@ -4,7 +4,17 @@ on:
   push:
     branches:
       - main
+    paths-ignore: &paths_ignore
+      - '.changeset/**'
+      - '.github/FUNDING.yml'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - 'documentation/**'
+      - 'packages/*/CHANGELOG*.md'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'README.md'
   pull_request:
+    paths-ignore: *paths_ignore
 
 # cancel in-progress runs on new commits to same PR (gitub.event.number)
 concurrency:
