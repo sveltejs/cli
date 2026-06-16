@@ -1,4 +1,4 @@
-import { Walker, transforms, type AstTypes, type SvelteAst } from '@sveltejs/sv-utils';
+import { Walker, js, transforms, type AstTypes, type SvelteAst } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
 type UsageInfo = {
@@ -20,37 +20,50 @@ type EnvImport =
 			type: 'static';
 			scope: EnvScope;
 			importNode: AstTypes.ImportDeclaration;
+			importNames: string[];
 	  };
+
+type EnvVar = {
+	type: EnvImport['type'];
+	scope: EnvScope;
+	name: string;
+};
 
 export default defineMigrationTask({
 	id: 'env-vars',
 	description: 'tbd - migrate environment variables to the new format',
 	run: ({ sv, language }) => {
+		const envVars = new Map<string, EnvVar>();
+
 		sv.files(
 			{ include: '**/*.{ts,js,svelte}', where: (content) => content.includes('$env/') },
 			(content, path) => {
 				if (path.endsWith('.svelte')) {
 					return transforms.svelteScript({ language }, ({ ast }) => {
-						return runMigration(ast.instance.content, ast.fragment);
+						return runMigration(ast.instance.content, envVars, ast.fragment);
 					})(content);
 				}
 
 				return transforms.script(({ ast }) => {
-					return runMigration(ast);
+					return runMigration(ast, envVars);
 				})(content);
 			}
 		);
 
-		// if (declaredVars.size > 0) {
-		// 	sv.file(
-		// 		'src/env.ts',
-		// 		transforms.script(({ ast }) => addEnvDeclarations(ast, declaredVars))
-		// 	);
-		// }
+		if (envVars.size > 0) {
+			sv.file(
+				'src/env.ts',
+				transforms.script(({ ast }) => addEnvDeclarationFile(ast, envVars))
+			);
+		}
 	}
 });
 
-function runMigration(ast: AstTypes.Program, template?: SvelteAst.Fragment): void | false {
+function runMigration(
+	ast: AstTypes.Program,
+	envVars: Map<string, EnvVar>,
+	template?: SvelteAst.Fragment
+): void | false {
 	const envImports = collectEnvImports(ast, template);
 
 	if (envImports.length === 0) {
@@ -59,6 +72,7 @@ function runMigration(ast: AstTypes.Program, template?: SvelteAst.Fragment): voi
 
 	changeEnvImports(ast, envImports);
 	replaceEnvUsages(envImports);
+	collectEnvVars(envImports, envVars);
 }
 
 function collectEnvImports(ast: AstTypes.Program, template?: SvelteAst.Fragment): EnvImport[] {
@@ -112,10 +126,19 @@ function collectEnvImports(ast: AstTypes.Program, template?: SvelteAst.Fragment)
 				usages
 			});
 		} else {
+			const importNames = importNode.specifiers.flatMap((specifier) => {
+				if (specifier.type !== 'ImportSpecifier') return [];
+				if (specifier.imported.type !== 'Identifier') return [];
+
+				return [specifier.imported.name];
+			});
+			if (importNames.length === 0) continue;
+
 			envImports.push({
 				type,
 				scope,
-				importNode
+				importNode,
+				importNames
 			});
 		}
 	}
@@ -274,5 +297,67 @@ function replaceChildNode(
 				return;
 			}
 		}
+	}
+}
+function collectEnvVars(envImports: EnvImport[], envVars: Map<string, EnvVar>): void {
+	const collectedEnvVars: EnvVar[] = [
+		...envImports
+			.filter((envImport) => envImport.type === 'static')
+			.flatMap((envImport) =>
+				envImport.importNames.map((name) => ({
+					type: envImport.type,
+					scope: envImport.scope,
+					name
+				}))
+			),
+		...envImports
+			.filter((envImport) => envImport.type === 'dynamic')
+			.flatMap((envImport) =>
+				envImport.usages.map((usage) => ({
+					type: envImport.type,
+					scope: envImport.scope,
+					name: usage.name
+				}))
+			)
+	];
+
+	for (const envVar of collectedEnvVars) {
+		envVars.set(envVar.name, envVar);
+	}
+}
+
+function addEnvDeclarationFile(ast: AstTypes.Program, envVars: Map<string, EnvVar>): false | void {
+	if (envVars.size === 0) return false;
+
+	js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });
+
+	const defineCall = js.functions.createCall({
+		name: 'defineEnvVars',
+		args: []
+	});
+	const variablesObject = js.functions.getArgument(defineCall, {
+		index: 0,
+		fallback: js.object.create({})
+	});
+	const variablesIdentifier = js.variables.declaration(ast, {
+		kind: 'const',
+		name: 'variables',
+		value: defineCall
+	});
+	js.exports.createNamed(ast, {
+		name: 'variables',
+		fallback: variablesIdentifier
+	});
+
+	for (const envVar of envVars.values()) {
+		const value = js.object.property(variablesObject, {
+			name: envVar.name,
+			fallback: js.object.create({})
+		}) as AstTypes.ObjectExpression;
+
+		js.object.overrideProperties(value, {
+			public: envVar.scope === 'public' ? true : undefined,
+			static: envVar.type === 'static' ? true : undefined
+		});
 	}
 }
