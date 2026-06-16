@@ -98,52 +98,62 @@ function collectEnvImports(ast: AstTypes.Program, template?: SvelteAst.Fragment)
 		const type = match[1] as EnvImport['type'];
 		const scope = match[2] as EnvImport['scope'];
 
-		if (type === 'dynamic') {
-			const envSpecifier = importNode.specifiers.find(
-				(specifier) =>
-					specifier.type === 'ImportSpecifier' &&
-					specifier.imported.type === 'Identifier' &&
-					specifier.imported.name === 'env' &&
-					specifier.local?.type === 'Identifier'
-			);
-			if (!envSpecifier || envSpecifier.type !== 'ImportSpecifier') continue;
-			if (
-				envSpecifier.imported.type !== 'Identifier' ||
-				envSpecifier.local?.type !== 'Identifier'
-			) {
-				continue;
-			}
-
-			const usages = getDynamicEnvUsages(ast, importNode);
-			if (template) {
-				usages.push(...getDynamicEnvUsages(template, importNode));
-			}
-
-			envImports.push({
-				type,
-				scope,
-				importNode,
-				usages
-			});
-		} else {
-			const importNames = importNode.specifiers.flatMap((specifier) => {
-				if (specifier.type !== 'ImportSpecifier') return [];
-				if (specifier.imported.type !== 'Identifier') return [];
-
-				return [specifier.imported.name];
-			});
-			if (importNames.length === 0) continue;
-
-			envImports.push({
-				type,
-				scope,
-				importNode,
-				importNames
-			});
-		}
+		const envImport =
+			type === 'dynamic'
+				? collectDynamicEnvImport(ast, importNode, scope, template)
+				: collectStaticEnvImport(importNode, scope);
+		if (envImport) envImports.push(envImport);
 	}
 
 	return envImports;
+}
+
+function collectDynamicEnvImport(
+	ast: AstTypes.Program,
+	importNode: AstTypes.ImportDeclaration,
+	scope: EnvScope,
+	template?: SvelteAst.Fragment
+): EnvImport | undefined {
+	const hasEnvImport = importNode.specifiers.some(
+		(specifier) =>
+			specifier.type === 'ImportSpecifier' &&
+			specifier.imported.type === 'Identifier' &&
+			specifier.imported.name === 'env' &&
+			specifier.local?.type === 'Identifier'
+	);
+	if (!hasEnvImport) return;
+
+	const usages = getDynamicEnvUsages(ast, importNode);
+	if (template) {
+		usages.push(...getDynamicEnvUsages(template, importNode));
+	}
+
+	return {
+		type: 'dynamic',
+		scope,
+		importNode,
+		usages
+	};
+}
+
+function collectStaticEnvImport(
+	importNode: AstTypes.ImportDeclaration,
+	scope: EnvScope
+): EnvImport | undefined {
+	const importNames = importNode.specifiers.flatMap((specifier) => {
+		if (specifier.type !== 'ImportSpecifier') return [];
+		if (specifier.imported.type !== 'Identifier') return [];
+
+		return [specifier.imported.name];
+	});
+	if (importNames.length === 0) return;
+
+	return {
+		type: 'static',
+		scope,
+		importNode,
+		importNames
+	};
 }
 
 function getDynamicEnvUsages(
@@ -300,29 +310,24 @@ function replaceChildNode(
 	}
 }
 function collectEnvVars(envImports: EnvImport[], envVars: Map<string, EnvVar>): void {
-	const collectedEnvVars: EnvVar[] = [
-		...envImports
-			.filter((envImport) => envImport.type === 'static')
-			.flatMap((envImport) =>
-				envImport.importNames.map((name) => ({
+	for (const envImport of envImports) {
+		if (envImport.type === 'static') {
+			for (const name of envImport.importNames) {
+				envVars.set(name, {
 					type: envImport.type,
 					scope: envImport.scope,
 					name
-				}))
-			),
-		...envImports
-			.filter((envImport) => envImport.type === 'dynamic')
-			.flatMap((envImport) =>
-				envImport.usages.map((usage) => ({
+				});
+			}
+		} else {
+			for (const usage of envImport.usages) {
+				envVars.set(usage.name, {
 					type: envImport.type,
 					scope: envImport.scope,
 					name: usage.name
-				}))
-			)
-	];
-
-	for (const envVar of collectedEnvVars) {
-		envVars.set(envVar.name, envVar);
+				});
+			}
+		}
 	}
 }
 
