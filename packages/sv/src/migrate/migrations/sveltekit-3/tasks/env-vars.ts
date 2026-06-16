@@ -200,7 +200,38 @@ function changeEnvImports(ast: AstTypes.Program, envImports: EnvImport[]): void 
 			});
 		}
 	}
+
+	mergeEnvImports(ast);
 }
+
+/**
+ * If we initially have two imports from $env/static/public and $env/dynamic/public
+ * they will produce two separate imports which is not totally clean.
+ * This function merges multiple imports from the same new source into a single import.
+ *
+ * Specifiers of duplicated imports are assumed to be unique and are merged together.
+ */
+function mergeEnvImports(ast: AstTypes.Program): void {
+	const seenImports = new Map<string, AstTypes.ImportDeclaration>();
+
+	for (let i = 0; i < ast.body.length; i += 1) {
+		const node = ast.body[i];
+		if (node.type !== 'ImportDeclaration') continue;
+		const source = node.source.value;
+		if (typeof source !== 'string' || !source.startsWith('$app/env/')) continue;
+
+		const existingImport = seenImports.get(source);
+		if (!existingImport) {
+			seenImports.set(source, node);
+			continue;
+		}
+
+		existingImport.specifiers.push(...node.specifiers);
+		ast.body.splice(i, 1);
+		i -= 1;
+	}
+}
+
 function replaceEnvUsages(envImports: EnvImport[]): void {
 	// not relevant for static imports
 	const dynamicImports = envImports.filter((x) => x.type === 'dynamic');
