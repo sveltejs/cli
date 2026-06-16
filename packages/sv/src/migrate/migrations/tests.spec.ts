@@ -24,8 +24,19 @@ for (const migrationDirectory of migrationDirectories) {
 		for (const testName of testNames) {
 			test(testName, async () => {
 				const cwd = path.join(baseDir, migrationDirectory, testsDirectoryName, testName);
+
+				// cleanup old test run by deleting old actual files
+				const oldActualFiles = fs.globSync('**/*.actual.*', {
+					cwd
+				});
+				for (const oldActualFile of oldActualFiles) {
+					fs.rmSync(path.join(cwd, oldActualFile));
+				}
+
+				// copy template files to non template files.
 				copyTemplateFiles(cwd);
 
+				// prepare the workspace
 				const workspace = await createWorkspace({
 					cwd,
 					packageManager: 'pnpm',
@@ -37,10 +48,16 @@ for (const migrationDirectory of migrationDirectories) {
 				});
 				const modifiedFiles = new Set<string>();
 				const { sv, updateDependencies } = prepareSvApi(workspace, modifiedFiles, {
-					saveFileInfix: '.actual'
+					saveFileInfix: '.actual',
+					// exclude snapshot and actual files to avoid them being modified by the migration
+					additionalExcludes: ['**/*.snapshot.*', '**/*.actual.*']
 				});
 
-				const module = await import(`./${migrationDirectory}/${tasksDirectoryName}/${testName}`);
+				// run the migration task
+				const module = await import(
+					// file extension must be static for the dynamic imports to work, so we remove it from the test name and add it back here.
+					`./${migrationDirectory}/${tasksDirectoryName}/${testName.replace('.ts', '')}.ts`
+				);
 				await module.default.run({
 					sv,
 					...workspace
@@ -52,11 +69,28 @@ for (const migrationDirectory of migrationDirectories) {
 					throw new Error('No files were modified by the migration.');
 				}
 
+				const remainingSnapshotFiles = fs.globSync('**/*.snapshot.*', {
+					cwd
+				});
+
+				// compare modified files against snapshots
 				for (const file of modifiedFiles) {
-					const actual = fs.readFileSync(path.join(cwd, file), 'utf-8');
+					const actualPath = path.join(cwd, file);
+					const actual = fs.readFileSync(actualPath, 'utf-8');
+
 					const expectedFileName = file.replace('.actual', '.snapshot');
 					const expectedPath = path.join(cwd, expectedFileName);
 					await expect(actual).toMatchFileSnapshot(expectedPath, expectedFileName);
+
+					remainingSnapshotFiles.splice(remainingSnapshotFiles.indexOf(expectedFileName), 1);
+				}
+
+				// if we have any snapshots remaining that were not tested against, fail the test to make sure all snapshots are up to date and tested against.
+				// Either delete the snapshot if it's no longer needed, or add a test file that modifies it if it's still needed.
+				if (remainingSnapshotFiles.length > 0) {
+					throw new Error(
+						`The following snapshot files were not tested against: ${remainingSnapshotFiles.join(', ')}`
+					);
 				}
 			});
 		}

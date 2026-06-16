@@ -290,9 +290,11 @@ export function prepareSvApi(
 	options: {
 		executeOutputPrefix?: string | undefined;
 		saveFileInfix?: string | undefined;
+		additionalExcludes?: string[] | undefined;
 	} = {
 		executeOutputPrefix: undefined,
-		saveFileInfix: undefined
+		saveFileInfix: undefined,
+		additionalExcludes: undefined
 	}
 ): { sv: SvApi; updateDependencies: () => void } {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
@@ -305,7 +307,14 @@ export function prepareSvApi(
 			const { include, exclude } = opts;
 			const globbedFiles = fs.globSync(include, {
 				cwd: workspace.cwd,
-				exclude: ['node_modules/**', '**/node_modules/**', '.*/**', '**/.*/**', ...(exclude ?? [])]
+				exclude: [
+					'node_modules/**',
+					'**/node_modules/**',
+					'.*/**',
+					'**/.*/**',
+					...(options.additionalExcludes ?? []),
+					...(exclude ?? [])
+				]
 			});
 
 			for (const file of globbedFiles) {
