@@ -1,8 +1,7 @@
 import { before } from './before';
-import { ENV_PUBLIC_STATIC_ORDERED } from '$env/static/public';
+import { ENV_PUBLIC_STATIC_ORDERED, ENV_PUBLIC_DYNAMIC_ORDERED } from '$app/env/public';
 import { between } from './between';
-import { env as publicEnv } from '$env/dynamic/public';
-import { env as privateEnv } from '$env/dynamic/private';
+import { ENV_PRIVATE_DYNAMIC_ORDERED } from '$app/env/private';
 import { after } from './after';
 
 export function getOrderedEnvValues() {
@@ -10,8 +9,8 @@ export function getOrderedEnvValues() {
 		before,
 		static: ENV_PUBLIC_STATIC_ORDERED,
 		between,
-		dynamicPublic: publicEnv.ENV_PUBLIC_DYNAMIC_ORDERED,
-		dynamicPrivate: privateEnv.ENV_PRIVATE_DYNAMIC_ORDERED,
+		dynamicPublic: ENV_PUBLIC_DYNAMIC_ORDERED,
+		dynamicPrivate: ENV_PRIVATE_DYNAMIC_ORDERED,
 		after
 	};
 }
