@@ -2,7 +2,7 @@
 title: sv migrate
 ---
 
-`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate) package.
+`sv migrate` migrates Svelte(Kit) codebases. Some migrations are built into `sv`; older migrations are run through [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate).
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
@@ -12,12 +12,33 @@ Some migrations may annotate your codebase with tasks for completion that you ca
 npx sv migrate
 ```
 
+When no migration is specified, `sv migrate` prompts you to pick one.
+
 You can also specify a migration directly via the CLI:
+
 ```sh
 npx sv migrate [migration]
 ```
 
+By default, `sv migrate` checks for a dirty git working tree before applying changes. Use `--no-git-check` to skip that check.
+
+```sh
+npx sv migrate [migration] --no-git-check
+```
+
+You can run the migration in another directory with `--cwd`:
+
+```sh
+npx sv migrate [migration] --cwd ./my-app
+```
+
+For built-in migrations, `sv migrate` shows the migration steps before applying them. Required steps always run, and optional steps can be selected interactively. After a successful built-in migration, `sv` formats changed files when Prettier is installed and prompts to install any updated dependencies.
+
 ## Migrations
+
+### `sveltekit-3`
+
+Upgrades a SvelteKit 2 app to SvelteKit 3.
 
 ### `app-state`
 
