@@ -3,11 +3,11 @@ import {
 	color,
 	fileExists,
 	loadFile,
-	loadPackageJson,
-	parse,
 	saveFile,
 	resolveCommand,
-	type AgentName
+	type AgentName,
+	transforms,
+	type Package
 } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,27 +39,28 @@ function alphabetizeRecord(obj: Record<string, string>) {
 
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	cwd: string,
-	saveFileInfix?: string
-): string {
-	const { source } = loadPackageJson(cwd);
-	const { data, generateCode } = parse.json(source);
+	sv: SvApi
+) {
+	const pkgPath = filePaths.packageJson;
+	sv.file(
+		pkgPath,
+		transforms.json<Package>(({ content, data }) => {
+			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
-	for (const dependency of dependencies) {
-		if (dependency.dev) {
-			data.devDependencies ??= {};
-			data.devDependencies[dependency.pkg] = dependency.version;
-		} else {
-			data.dependencies ??= {};
-			data.dependencies[dependency.pkg] = dependency.version;
-		}
-	}
+			for (const dependency of dependencies) {
+				if (dependency.dev) {
+					data.devDependencies ??= {};
+					data.devDependencies[dependency.pkg] = dependency.version;
+				} else {
+					data.dependencies ??= {};
+					data.dependencies[dependency.pkg] = dependency.version;
+				}
+			}
 
-	if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
-	if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
-
-	const filePath = saveFile(cwd, filePaths.packageJson, generateCode(), saveFileInfix);
-	return filePath;
+			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
+			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
+		})
+	);
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -366,8 +367,7 @@ export function prepareSvApi(
 		updateDependencies: () => {
 			if (dependencies.length === 0) return;
 
-			const filePath = updatePackages(dependencies, workspace.cwd, options?.saveFileInfix);
-			files.add(filePath);
+			updatePackages(dependencies, sv);
 		}
 	};
 }
