@@ -31,5 +31,7 @@ export function addFixture(cwd: string, variant: string) {
 		: path.resolve(cwd, 'src', 'App.svelte');
 
 	const content = fs.readFileSync(page, 'utf8');
-	fs.writeFileSync(page, addMarkup(content), 'utf8');
+	const result = addMarkup(content);
+	if (result === false) throw new Error('Failed to add markup - it may already be present');
+	fs.writeFileSync(page, result, 'utf8');
 }

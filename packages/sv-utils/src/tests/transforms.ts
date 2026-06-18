@@ -8,6 +8,8 @@ describe('transforms', () => {
 			const result = transforms.json(({ data }) => {
 				data.name = 'new';
 			})(input);
+			expect(result).not.toBe(false);
+			if (result === false) return;
 			expect(JSON.parse(result)).toEqual({ name: 'new' });
 		});
 

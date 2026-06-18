@@ -167,7 +167,7 @@ function editContent(
 	content: string,
 	location: SvelteConfigLocation,
 	editFn: SvelteConfEdit
-): string {
+): string | false {
 	return transforms.script(({ ast, comments, js }) => {
 		const config = getConfigRoot(ast, location.kind);
 		// the `kit` object is only materialized when a kit-level option is actually edited, so a

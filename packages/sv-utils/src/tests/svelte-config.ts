@@ -171,6 +171,7 @@ describe('svelteConfig.edit routing', () => {
 				alias: js.object.create({ $lib: js.common.createLiteral('./src/lib') })
 			});
 		});
+		if (!result) throw new Error('Edit failed or not required');
 		// `extensions` is svelte-level (root), `alias` is kit-level (under kit)
 		expect(result).toMatch(/extensions:/);
 		expect(result).toMatch(/kit:[\s\S]*alias:/);
@@ -190,6 +191,7 @@ describe('svelteConfig.edit routing', () => {
 
 	test('edits the sveltekit() in the exported plugins, not a stray call', () => {
 		const result = applyEdit(VITE_CONFIG_TWO_CALLS, 'vite', addAlias);
+		if (!result) throw new Error('Edit failed or not required');
 		// the alias must land in the exported config, after `const unused`, not in the dead const
 		expect(result.indexOf('alias:')).toBeGreaterThan(result.indexOf('export default'));
 		// the unused const stays a bare sveltekit()

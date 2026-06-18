@@ -56,6 +56,8 @@ function addFixture(cwd: string, variant: string) {
 	}
 
 	const src = fs.readFileSync(page, 'utf8');
-	fs.writeFileSync(page, addMarkup(src), 'utf8');
+	const result = addMarkup(src);
+	if (result === false) throw new Error('Failed to add markup - it may already be present');
+	fs.writeFileSync(page, result, 'utf8');
 	fs.writeFileSync(svx, svxFile, 'utf8');
 }
