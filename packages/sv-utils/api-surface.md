@@ -642,7 +642,7 @@ declare function addFragment(
 		language?: 'ts' | 'js';
 	}
 ): void;
-type TransformFn = (content: string) => string;
+type TransformFn = (content: string) => string | false;
 type TransformOptions = {
 	onError?: (error: unknown) => void;
 };
@@ -656,7 +656,7 @@ declare const transforms: {
 			js: typeof index_d_exports$3;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string;
+	): TransformFn;
 
 	svelte(
 		cb: (file: {
@@ -666,7 +666,7 @@ declare const transforms: {
 			js: typeof index_d_exports$3;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string;
+	): TransformFn;
 
 	svelteScript(
 		scriptOptions: {
