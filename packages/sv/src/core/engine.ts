@@ -41,21 +41,26 @@ function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
 	sv: SvApi
 ) {
+	if (dependencies.length === 0) return;
+
 	const pkgPath = filePaths.packageJson;
 	sv.file(
 		pkgPath,
 		transforms.json<Package>(({ content, data }) => {
 			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
+			let modified = false;
 			for (const dependency of dependencies) {
-				if (dependency.dev) {
-					data.devDependencies ??= {};
-					data.devDependencies[dependency.pkg] = dependency.version;
-				} else {
-					data.dependencies ??= {};
-					data.dependencies[dependency.pkg] = dependency.version;
+				let dependencies = dependency.dev ? data.devDependencies : data.dependencies;
+				dependencies ??= {};
+
+				if (!dependencies[dependency.pkg] || dependencies[dependency.pkg] !== dependency.version) {
+					modified = true;
+					dependencies[dependency.pkg] = dependency.version;
 				}
 			}
+
+			if (!modified) return false; // do not edit the file if no changes were made
 
 			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
 			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
@@ -213,7 +218,7 @@ type RunAddon = {
 	multiple: boolean;
 };
 async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }: RunAddon) {
-	const files = new Set<string>();
+	let modifiedFiles = new Set<string>();
 
 	// apply default addon options
 	const options: OptionValues<any> = { ...workspaceOptions };
@@ -224,7 +229,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		}
 	}
 
-	const { sv, updateDependencies } = prepareSvApi(workspace, files, {
+	const { sv, finalize } = prepareSvApi(workspace, {
 		executeOutputPrefix: multiple ? `${addon.id}: ` : ''
 	});
 
@@ -247,11 +252,11 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	}
 
 	if (cancels.length === 0) {
-		updateDependencies();
+		({ modifiedFiles } = finalize());
 	}
 
 	return {
-		files: Array.from(files),
+		files: Array.from(modifiedFiles),
 		cancels
 	};
 }
@@ -260,9 +265,10 @@ function editFile(
 	file: string,
 	edit: FileEdit,
 	workspace: Workspace,
-	files: Set<string>,
-	include?: (content: string) => boolean,
-	saveFileInfix?: string
+	modifiedFiles: Set<string>,
+	unmodifiedFiles: Set<string>,
+	options: PrepareSvApiOptions,
+	include?: (content: string) => boolean
 ) {
 	try {
 		const exists = fileExists(workspace.cwd, file);
@@ -275,8 +281,13 @@ function editFile(
 		const editedContent = edit(content);
 		if (editedContent === '' || editedContent === false) return;
 
-		file = saveFile(workspace.cwd, file, editedContent, saveFileInfix);
-		files.add(file);
+		if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) {
+			unmodifiedFiles.add(file);
+			return;
+		}
+
+		file = saveFile(workspace.cwd, file, editedContent, options.saveFileInfix);
+		modifiedFiles.add(file);
 	} catch (e) {
 		if (e instanceof Error) {
 			e.message = `Unable to process '${file}'. Reason: ${e.message}`;
@@ -285,24 +296,29 @@ function editFile(
 	}
 }
 
+type PrepareSvApiOptions = {
+	filesFilter?: string | undefined;
+	executeOutputPrefix?: string | undefined;
+	saveFileInfix?: string | undefined;
+	additionalExcludes?: string[] | undefined;
+};
+
 export function prepareSvApi(
 	workspace: Workspace,
-	files: Set<string>,
-	options: {
-		executeOutputPrefix?: string | undefined;
-		saveFileInfix?: string | undefined;
-		additionalExcludes?: string[] | undefined;
-	} = {
+	options: PrepareSvApiOptions = {
+		filesFilter: undefined,
 		executeOutputPrefix: undefined,
 		saveFileInfix: undefined,
 		additionalExcludes: undefined
 	}
-): { sv: SvApi; updateDependencies: () => void } {
+): { sv: SvApi; finalize: () => { modifiedFiles: Set<string>; unmodifiedFiles: Set<string> } } {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+	const modifiedFiles = new Set<string>();
+	const unmodifiedFiles = new Set<string>();
 
 	const sv: SvApi = {
 		file: (path, edit) => {
-			editFile(path, edit, workspace, files, undefined, options?.saveFileInfix);
+			editFile(path, edit, workspace, modifiedFiles, unmodifiedFiles, options);
 		},
 		files: (opts, edit) => {
 			const { include, exclude } = opts;
@@ -319,8 +335,18 @@ export function prepareSvApi(
 			});
 
 			for (const file of globbedFiles) {
+				if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) continue;
+
 				const singleFileEdit = (content: string) => edit(content, file);
-				editFile(file, singleFileEdit, workspace, files, opts.where, options?.saveFileInfix);
+				editFile(
+					file,
+					singleFileEdit,
+					workspace,
+					modifiedFiles,
+					unmodifiedFiles,
+					options,
+					opts.where
+				);
 			}
 		},
 		execute: async (commandArgs, stdio) => {
@@ -364,10 +390,13 @@ export function prepareSvApi(
 	};
 	return {
 		sv,
-		updateDependencies: () => {
-			if (dependencies.length === 0) return;
-
+		finalize: () => {
 			updatePackages(dependencies, sv);
+
+			return {
+				modifiedFiles,
+				unmodifiedFiles
+			};
 		}
 	};
 }

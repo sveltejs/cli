@@ -19,7 +19,7 @@ import { type RootWithInstance, ensureScript } from './svelte/index.ts';
 import * as svelteNs from './svelte/index.ts';
 import * as textNs from './text.ts';
 
-export type TransformFn = (content: string) => string;
+export type TransformFn = (content: string) => string | false;
 
 type TransformOptions = {
 	/** Called when parsing fails. If provided, the original content is returned unchanged. */
@@ -79,12 +79,12 @@ export const transforms = {
 			js: typeof jsNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseScript(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, comments: parsed.comments, content, js: jsNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -102,12 +102,12 @@ export const transforms = {
 			js: typeof jsNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseSvelte(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, content, svelte: svelteNs, js: jsNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -140,7 +140,7 @@ export const transforms = {
 				svelte: svelteNs,
 				js: jsNs
 			});
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -162,7 +162,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseCss(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, content, css: cssNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -180,7 +180,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseJson(content), options);
 			if (!parsed) return content;
 			const result = cb({ data: parsed.data as T, content, json: jsonNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -198,7 +198,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseYaml(content), options);
 			if (!parsed) return content;
 			const result = cb({ data: parsed.data, content });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -216,7 +216,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseToml(content), options);
 			if (!parsed) return content;
 			const result = cb({ data: parsed.data, content });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -234,7 +234,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseHtml(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, content, html: htmlNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -248,7 +248,7 @@ export const transforms = {
 	text(cb: (file: { content: string; text: typeof textNs }) => string | false): TransformFn {
 		return (content) => {
 			const result = cb({ content, text: textNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return result;
 		};
 	}

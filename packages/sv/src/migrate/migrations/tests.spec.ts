@@ -46,8 +46,7 @@ for (const migrationDirectory of migrationDirectories) {
 						? {}
 						: { override: { dependencies: defaultDependencies } })
 				});
-				const modifiedFiles = new Set<string>();
-				const { sv, updateDependencies } = prepareSvApi(workspace, modifiedFiles, {
+				const { sv, finalize } = prepareSvApi(workspace, {
 					saveFileInfix: '.actual',
 					// exclude snapshot and actual files to avoid them being modified by the migration
 					additionalExcludes: ['**/*.snapshot.*', '**/*.actual.*']
@@ -63,7 +62,7 @@ for (const migrationDirectory of migrationDirectories) {
 					...workspace
 				});
 
-				updateDependencies();
+				const { modifiedFiles } = finalize();
 
 				if (modifiedFiles.size === 0) {
 					throw new Error('No files were modified by the migration.');

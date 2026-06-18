@@ -20,18 +20,6 @@ You can also specify a migration directly via the CLI:
 npx sv migrate [migration]
 ```
 
-By default, `sv migrate` checks for a dirty git working tree before applying changes. Use `--no-git-check` to skip that check.
-
-```sh
-npx sv migrate [migration] --no-git-check
-```
-
-You can run the migration in another directory with `--cwd`:
-
-```sh
-npx sv migrate [migration] --cwd ./my-app
-```
-
 For built-in migrations, `sv migrate` shows the migration steps before applying them. Required steps always run, and optional steps can be selected interactively. After a successful built-in migration, `sv` formats changed files when Prettier is installed and prompts to install any updated dependencies.
 
 ## Migrations
@@ -67,3 +55,19 @@ Upgrades a library using `@sveltejs/package` version 1 to version 2. See the [pu
 ### `routes`
 
 Upgrades a pre-release SvelteKit app to use the filesystem routing conventions in SvelteKit 1. See the [pull request](https://github.com/sveltejs/kit/discussions/5774) for more details.
+
+## Options
+
+### `--cwd <path>`
+
+Run the migration in a different working directory.
+
+### `--no-git-check`
+
+By default, `sv migrate` prompts before making changes when the git working tree is dirty. Use `--no-git-check` to skip this check.
+
+### `--files <glob>`
+
+Limit the files considered for migration to those matching a glob. A migration may still try to edit or create files outside the glob, in which case `sv migrate` will show a warning.
+
+When used with `--cwd`, the glob is relative to the working directory.

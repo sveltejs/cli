@@ -24,6 +24,7 @@ const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 
 const OptionsSchema = v.strictObject({
 	cwd: v.optional(v.string(), process.cwd()),
+	files: v.optional(v.string()),
 	gitCheck: v.boolean()
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
@@ -32,6 +33,10 @@ export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')
 	.argument('[migration]', `migration to run`)
 	.option('--cwd <path>', 'working directory to run the migration in')
+	.option(
+		'--files <glob>',
+		'only run the migration on a subset of files matching the provided glob pattern'
+	)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
 	.action((migrationName, options) => {
 		let verifiedMigrationName: string | symbol | undefined = v.parse(
@@ -205,7 +210,8 @@ async function determineTasks(
 }
 
 async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigration: boolean) {
-	const files = new Set<string>();
+	let allModifiedFiles = new Set<string>();
+	let allUnmodifiedFiles = new Set<string>();
 	const { start, stop, message, error } = p.spinner();
 
 	if (!legacyMigration) start('Applying migration tasks...');
@@ -216,13 +222,18 @@ async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigr
 		try {
 			// reload workspace for each task to ensure a clean state, as tasks might make changes to the file system that affect subsequent tasks
 			const workspace = await createWorkspace({ cwd: options.cwd });
-			const { sv, updateDependencies } = prepareSvApi(workspace, files, {
-				executeOutputPrefix: `${task.id}:`
+			const { sv, finalize } = prepareSvApi(workspace, {
+				executeOutputPrefix: `${task.id}:`,
+				filesFilter: options.files
 			});
 
 			await task.run({ sv, ...workspace });
 
-			updateDependencies();
+			if (!legacyMigration) {
+				const { modifiedFiles, unmodifiedFiles } = finalize();
+				allModifiedFiles = allModifiedFiles.union(modifiedFiles);
+				allUnmodifiedFiles = allUnmodifiedFiles.union(unmodifiedFiles);
+			}
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : String(err);
 			const message = `Task '${task.id}' failed: ${errorMessage}`;
@@ -235,5 +246,15 @@ async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigr
 
 	if (!legacyMigration) stop('All tasks applied successfully!');
 
-	return files;
+	if (allUnmodifiedFiles.size > 0) {
+		p.note(
+			`The following files were modified by the migration,\nbut their content was not saved:\n- ${Array.from(
+				allUnmodifiedFiles
+			).join('\n- ')}`,
+			'Unmodified files',
+			{ format: (line) => line }
+		);
+	}
+
+	return allModifiedFiles;
 }
