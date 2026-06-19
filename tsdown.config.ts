@@ -3,6 +3,53 @@ import process from 'node:process';
 import { defineConfig } from 'tsdown';
 import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
 
+/**
+ * Throwaway output dir for the single-entry DTS builds that feed
+ * `scripts/generate-api-surface.js`. Gitignored; never published.
+ */
+const API_SURFACE_DIR = 'dts-api-surface';
+
+/** Shared `deps` settings for every `sv` build (runtime + DTS-only api-surface). */
+const svDeps = {
+	// These are root-level devDependencies used only by testing.ts.
+	// Without this, the DTS plugin inlines their entire type trees
+	// (vitest pulls in postcss, vite, chai, etc.) bloating testing.d.mts.
+	neverBundle: [/^vitest/, /^@vitest\//, /^@playwright\//, /^vite$/, /^postcss$/],
+	onlyBundle: [
+		'@clack/core',
+		'@clack/prompts',
+		'commander',
+		'empathic',
+		'event-stream',
+		'events-universal',
+		'fast-string-truncated-width',
+		'fast-string-width',
+		'fast-wrap-ansi',
+		'from',
+		'duplexer',
+		'map-stream',
+		'pause-stream',
+		'split',
+		'stream-combiner',
+		'through',
+		'b4a',
+		'fast-fifo',
+		'text-decoder',
+		'streamx',
+		'tar-stream',
+		'tar-fs',
+		'once',
+		'wrappy',
+		'end-of-stream',
+		'pump',
+		'picocolors',
+		'sisteransi',
+		'ps-tree',
+		'tinyexec',
+		'valibot'
+	]
+};
+
 export default defineConfig([
 	{
 		cwd: path.resolve('packages/sv'),
@@ -12,45 +59,7 @@ export default defineConfig([
 			oxc: true
 		},
 		failOnWarn: true,
-		deps: {
-			// These are root-level devDependencies used only by testing.ts.
-			// Without this, the DTS plugin inlines their entire type trees
-			// (vitest pulls in postcss, vite, chai, etc.) bloating testing.d.mts.
-			neverBundle: [/^vitest/, /^@vitest\//, /^@playwright\//, /^vite$/, /^postcss$/],
-			onlyBundle: [
-				'@clack/core',
-				'@clack/prompts',
-				'commander',
-				'empathic',
-				'event-stream',
-				'events-universal',
-				'fast-string-truncated-width',
-				'fast-string-width',
-				'fast-wrap-ansi',
-				'from',
-				'duplexer',
-				'map-stream',
-				'pause-stream',
-				'split',
-				'stream-combiner',
-				'through',
-				'b4a',
-				'fast-fifo',
-				'text-decoder',
-				'streamx',
-				'tar-stream',
-				'tar-fs',
-				'once',
-				'wrappy',
-				'end-of-stream',
-				'pump',
-				'picocolors',
-				'sisteransi',
-				'ps-tree',
-				'tinyexec',
-				'valibot'
-			]
-		},
+		deps: svDeps,
 		plugins: [],
 		inputOptions: {
 			experimental: {
@@ -60,6 +69,44 @@ export default defineConfig([
 		hooks: {
 			async 'build:before'() {
 				await buildCliTemplates();
+			}
+		}
+	},
+	// sv: DTS-only single-entry builds for the api-surface snapshots.
+	// The runtime build above code-splits shared declarations into an `engine-*.d.mts`
+	// chunk, so its entry `.d.mts` files only re-export names without signatures.
+	// Building each public entry on its own emits a self-contained `.d.ts` with every
+	// referenced declaration inlined (no shared chunk), which `generate-api-surface.js`
+	// reads instead. Output goes to a throwaway, gitignored dir.
+	{
+		cwd: path.resolve('packages/sv'),
+		entry: ['src/index.ts'],
+		outDir: `${API_SURFACE_DIR}/index`,
+		dts: {
+			oxc: true,
+			emitDtsOnly: true
+		},
+		failOnWarn: true,
+		deps: svDeps,
+		inputOptions: {
+			experimental: {
+				resolveNewUrlToAsset: false
+			}
+		}
+	},
+	{
+		cwd: path.resolve('packages/sv'),
+		entry: ['src/testing.ts'],
+		outDir: `${API_SURFACE_DIR}/testing`,
+		dts: {
+			oxc: true,
+			emitDtsOnly: true
+		},
+		failOnWarn: true,
+		deps: svDeps,
+		inputOptions: {
+			experimental: {
+				resolveNewUrlToAsset: false
 			}
 		}
 	},
