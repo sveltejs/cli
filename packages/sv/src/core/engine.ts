@@ -52,6 +52,9 @@ function updatePackages(
 
 			let modified = false;
 			for (const dependency of dependencies) {
+				if (dependency.dev && !data.devDependencies) data.devDependencies = {};
+				if (!dependency.dev && !data.dependencies) data.dependencies = {};
+
 				let dependencies = dependency.dev ? data.devDependencies : data.dependencies;
 				dependencies ??= {};
 
