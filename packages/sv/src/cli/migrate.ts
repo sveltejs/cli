@@ -28,7 +28,7 @@ const migrations = [kit3, ...legacyMigrations] as const;
 const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 
 const OptionsSchema = v.strictObject({
-	cwd: v.optional(v.string(), process.cwd()),
+	cwd: v.optional(v.string(), './'),
 	files: v.optional(v.string()),
 	gitCheck: v.boolean(),
 	tasks: v.optional(v.array(v.string())),
@@ -111,10 +111,10 @@ export const migrate = new Command('migrate')
 			const tasks = await determineTasks(migration, verifiedOptions, pkg);
 			if (!tasks) return;
 
-			const modifiedFiles = await applyTasks(options, tasks, legacyMigration);
+			const modifiedFiles = await applyTasks(verifiedOptions, tasks, legacyMigration);
 			if (legacyMigration) return;
 
-			const workspace = await createWorkspace({ cwd: options.cwd });
+			const workspace = await createWorkspace({ cwd: verifiedOptions.cwd });
 			const hasFormatter = !!workspace.dependencyVersion('prettier');
 			if (hasFormatter) {
 				await formatFiles({
