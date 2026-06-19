@@ -64,6 +64,14 @@ export default defineConfig([
 		inputOptions: {
 			experimental: {
 				resolveNewUrlToAsset: false
+			},
+			// rolldown-plugin-dts:fake-js transforms the dts entry without emitting a
+			// sourcemap, which rolldown >=1.1 flags as SOURCEMAP_BROKEN. The warning is
+			// spurious (it only concerns the generated .d.mts), so ignore just that code;
+			// failOnWarn: true still applies to every other warning.
+			onLog(level, log, defaultHandler) {
+				if (log.code === 'SOURCEMAP_BROKEN') return;
+				defaultHandler(level, log);
 			}
 		},
 		hooks: {
