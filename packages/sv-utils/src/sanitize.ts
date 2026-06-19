@@ -34,7 +34,7 @@ export function sanitizeName(name: string, style: 'package' | 'wrangler'): strin
  * This helps reduce formatting-only diffs from tools like `esrap` without restoring deleted code.
  */
 export function preserveOriginalNewlines(old: string, updated: string): string {
-	const diff = diffLines(old, updated, { newlineIsToken: true });
+	const diff = diffLines(old, updated);
 	let newContent = '';
 	const isOnlyWhitespace = (value: string) => {
 		return value.trim() === '';

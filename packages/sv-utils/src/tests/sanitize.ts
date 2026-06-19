@@ -152,12 +152,52 @@ describe('preserveOriginalNewlines', () => {
 	});
 
 	it('uses updated content when it replaces an original blank line', () => {
+		const old = dedent`
+			console.log('line1');
+			
+			console.log('line3');
+		`;
+
 		const updated = dedent`
 			console.log('line1');
+			
 			console.log('inserted');
 			console.log('line3');
 		`;
-		const old = updated.replace("console.log('inserted');", '');
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+	});
+
+	it('keeps one separator after newly inserted imports', () => {
+		const old = dedent`
+			import a from 'a';
+
+			export default {};
+		`;
+
+		const updated = dedent`
+			import a from 'a';
+			import b from 'b';
+
+			export default {};
+		`;
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+	});
+
+	it('does not duplicate the separator after a replaced import block', () => {
+		const old = dedent`
+			import a from 'a';
+
+			export default {};
+		`;
+
+		const updated = dedent`
+			import b from 'b';
+			import c from 'c';
+
+			export default {};
+		`;
 
 		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
 	});
