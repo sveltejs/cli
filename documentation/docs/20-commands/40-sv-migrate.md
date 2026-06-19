@@ -20,7 +20,7 @@ You can also specify a migration directly via the CLI:
 npx sv migrate [migration]
 ```
 
-For built-in migrations, `sv migrate` shows the migration steps before applying them. Required steps always run, and optional steps can be selected interactively. After a successful built-in migration, `sv` formats changed files when Prettier is installed and prompts to install any updated dependencies.
+For built-in migrations, `sv migrate` shows the migration steps before applying them. Required steps always run, and additional steps can be selected interactively or with `--tasks`. After a successful built-in migration, `sv` formats changed files when Prettier is installed and prompts to install any updated dependencies.
 
 ## Migrations
 
@@ -71,3 +71,27 @@ By default, `sv migrate` prompts before making changes when the git working tree
 Limit the files considered for migration to those matching a glob. A migration may still try to edit or create files outside the glob, in which case `sv migrate` will show a warning.
 
 When used with `--cwd`, the glob is relative to the working directory.
+
+### `--tasks <task...>`
+
+Select migration tasks without the interactive prompt. Required tasks always run.
+
+Use `--tasks all` to run every task, or `--tasks required` to run only the required tasks.
+
+### `--confirm`
+
+Skip the final confirmation prompt before applying the migration.
+
+### `--install <package-manager>`
+
+Install dependencies with a specified package manager:
+
+- `npm`
+- `pnpm`
+- `yarn`
+- `bun`
+- `deno`
+
+### `--no-install`
+
+Skip installing dependencies.

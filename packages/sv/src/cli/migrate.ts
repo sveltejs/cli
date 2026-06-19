@@ -6,7 +6,12 @@ import * as v from 'valibot';
 import * as common from '../core/common.ts';
 import { prepareSvApi } from '../core/engine.ts';
 import { formatFiles } from '../core/formatFiles.ts';
-import { installDependencies, packageManagerPrompt } from '../core/package-manager.ts';
+import {
+	AGENT_NAMES,
+	installDependencies,
+	installOption,
+	packageManagerPrompt
+} from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory } from '../core/verifiers.ts';
 import { createWorkspace } from '../core/workspace.ts';
 import type {
@@ -25,7 +30,10 @@ const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 const OptionsSchema = v.strictObject({
 	cwd: v.optional(v.string(), process.cwd()),
 	files: v.optional(v.string()),
-	gitCheck: v.boolean()
+	gitCheck: v.boolean(),
+	tasks: v.optional(v.array(v.string())),
+	confirm: v.optional(v.boolean(), false),
+	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true)
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
@@ -38,7 +46,20 @@ export const migrate = new Command('migrate')
 		'only run the migration on a subset of files matching the provided glob pattern'
 	)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.option('--tasks <task...>', 'migration tasks to run')
+	.option('--confirm', 'skip the final confirmation prompt')
+	.option('--no-install', 'skip installing dependencies')
+	.addOption(installOption)
 	.action((migrationName, options) => {
+		if (hasInstallConflict(process.argv)) {
+			common.errorAndExit(
+				`The ${color.command('--install')} and ${color.command(
+					'--no-install'
+				)} options cannot be used together.`
+			);
+			return;
+		}
+
 		let verifiedMigrationName: string | symbol | undefined = v.parse(
 			MigrationScheme,
 			migrationName
@@ -76,6 +97,10 @@ export const migrate = new Command('migrate')
 				return;
 			}
 			const legacyMigration = migration.legacy ?? false;
+			if (legacyMigration && verifiedOptions.tasks) {
+				common.errorAndExit(`The migration ${migration.id} does not support task selection.`);
+				return;
+			}
 
 			if (migration.changelog) {
 				p.log.warn(
@@ -99,8 +124,15 @@ export const migrate = new Command('migrate')
 				});
 			}
 
-			const packageManager = await packageManagerPrompt(workspace.cwd);
-			await installDependencies(packageManager || workspace.packageManager, workspace.cwd);
+			const packageManager =
+				verifiedOptions.install === false
+					? null
+					: verifiedOptions.install === true
+						? await packageManagerPrompt(workspace.cwd)
+						: verifiedOptions.install;
+			if (packageManager) {
+				await installDependencies(packageManager, workspace.cwd);
+			}
 		});
 	});
 
@@ -165,7 +197,9 @@ async function determineTasks(
 	const optionalTasks = allTasks.filter((t) => !t.required);
 
 	const tasksToRun = [...requiredTasks];
-	if (optionalTasks.length > 0) {
+	if (options.tasks) {
+		tasksToRun.push(...selectOptionalTasksFromArgs(options.tasks, optionalTasks));
+	} else if (optionalTasks.length > 0) {
 		const optionalTaskIdsToRun = await p.multiselect({
 			message: 'Select the tasks to run',
 			options: optionalTasks.map((t) => ({
@@ -196,17 +230,61 @@ async function determineTasks(
 		.join('\n- ');
 	p.note(`- ${tasksMessage}`, 'Migration steps', { format: (line) => line });
 
-	const proceed = await p.confirm({
-		message: 'Do you want to proceed?',
-		initialValue: false
-	});
+	if (!options.confirm) {
+		const proceed = await p.confirm({
+			message: 'Do you want to proceed?',
+			initialValue: false
+		});
 
-	if (!proceed) {
-		common.errorAndExit('Migration cancelled by the user.');
-		return;
+		if (!proceed) {
+			common.errorAndExit('Migration cancelled by the user.');
+			return;
+		}
 	}
 
 	return tasksToRun;
+}
+
+export function selectOptionalTasksFromArgs(
+	selectedTaskIds: string[],
+	optionalTasks: TaskWithOptions[]
+) {
+	if (
+		selectedTaskIds.length > 1 &&
+		(selectedTaskIds.includes('all') || selectedTaskIds.includes('required'))
+	) {
+		common.errorAndExit(
+			`The ${color.command('--tasks')} values ${color.command('all')} and ${color.command(
+				'required'
+			)} cannot be combined with other tasks.`
+		);
+	}
+
+	if (selectedTaskIds[0] === 'required') {
+		return [];
+	}
+
+	if (selectedTaskIds[0] === 'all') {
+		return optionalTasks;
+	}
+
+	const invalidTasks = selectedTaskIds.filter((id) => !optionalTasks.some((t) => t.id === id));
+	if (invalidTasks.length > 0) {
+		common.errorAndExit(
+			`Unknown migration task${invalidTasks.length === 1 ? '' : 's'}: ${invalidTasks
+				.map((id) => color.command(id))
+				.join(', ')}\nAvailable tasks: ${optionalTasks.map((t) => color.command(t.id)).join(', ')}`
+		);
+	}
+
+	return optionalTasks.filter((task) => selectedTaskIds.includes(task.id));
+}
+
+export function hasInstallConflict(argv: string[]) {
+	return (
+		argv.some((arg) => arg === '--install' || arg.startsWith('--install=')) &&
+		argv.includes('--no-install')
+	);
 }
 
 async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigration: boolean) {
