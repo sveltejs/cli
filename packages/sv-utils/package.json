@@ -29,6 +29,7 @@
 		"@types/semver": "^7.7.1",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.2",
+		"diff": "^9.0.0",
 		"esrap": "^2.2.11",
 		"package-manager-detector": "^1.6.0",
 		"semver": "^7.8.1",

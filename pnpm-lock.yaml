@@ -137,6 +137,9 @@ importers:
       dedent:
         specifier: ^1.7.2
         version: 1.7.2
+      diff:
+        specifier: ^9.0.0
+        version: 9.0.0
       esrap:
         specifier: ^2.2.11
         version: 2.2.11(@typescript-eslint/types@8.60.1)
@@ -1183,6 +1186,10 @@ packages:
 
   devalue@5.8.1:
     resolution: {integrity: sha512-4CXDYRBGqN+57wVJkuXBYmpAVUSg3L6JAQa/DFqm238G73E1wuyc/JhGQJzN7vUf/CMphYau2zXbfWzDR5aTEw==}
+
+  diff@9.0.0:
+    resolution: {integrity: sha512-svtcdpS8CgJyqAjEQIXdb3OjhFVVYjzGAPO8WGCmRbrml64SPw/jJD4GoE98aR7r25A0XcgrK3F02yw9R/vhQw==}
+    engines: {node: '>=0.3.1'}
 
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
@@ -3338,6 +3345,8 @@ snapshots:
   detect-newline@4.0.1: {}
 
   devalue@5.8.1: {}
+
+  diff@9.0.0: {}
 
   dir-glob@3.0.1:
     dependencies:

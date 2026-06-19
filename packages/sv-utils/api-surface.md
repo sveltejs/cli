@@ -747,6 +747,8 @@ type Printer = (content: string, alt?: string) => string;
 declare function createPrinter(...conditions: boolean[]): Printer[];
 
 declare function sanitizeName(name: string, style: 'package' | 'wrangler'): string;
+
+declare function preserveOriginalNewlines(old: string, updated: string): string;
 declare const downloadJson: (url: string) => Promise<any>;
 type Package = {
 	name: string;
@@ -917,6 +919,7 @@ export {
 	minVersion,
 	parse,
 	pnpm_d_exports as pnpm,
+	preserveOriginalNewlines,
 	resolveCommand,
 	resolveCommandArray,
 	sanitizeName,

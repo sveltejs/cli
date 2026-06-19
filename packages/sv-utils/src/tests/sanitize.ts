@@ -1,5 +1,6 @@
+import dedent from 'dedent';
 import { describe, it, expect } from 'vitest';
-import { sanitizeName } from '../sanitize.ts';
+import { preserveOriginalNewlines, sanitizeName } from '../sanitize.ts';
 
 const testCases: Array<{ input: string; expected: string; expectedPackage?: string }> = [
 	// Basic cases
@@ -74,5 +75,90 @@ describe('sanitizeName wrangler', () => {
 describe('sanitizeName package', () => {
 	it.each(testCases)('sanitizes $input to $expected', ({ input, expected, expectedPackage }) => {
 		expect(sanitizeName(input, 'package')).toBe(expectedPackage ?? expected);
+	});
+});
+
+describe('preserveOriginalNewlines', () => {
+	it('preserves blank lines from the original content', () => {
+		const old = dedent`
+			console.log('line1');
+
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(old);
+	});
+
+	it('drops blank lines introduced by the updated content', () => {
+		const old = dedent`
+			console.log('line1');
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(old);
+	});
+
+	it('keeps content replacements from the updated content', () => {
+		const old = dedent`
+			console.log('line1');
+			console.log('old');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+			console.log('updated');
+			console.log('line3');
+		`;
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+	});
+
+	it('does not restore deleted nonblank lines', () => {
+		const old = dedent`
+			console.log('line1');
+			console.log('deleted');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+			console.log('line3');
+		`;
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+	});
+
+	it('drops multiple added whitespace-only blank lines', () => {
+		const old = "console.log('line1');\nconsole.log('line2');";
+		const updated = "console.log('line1');\n\n\t\n \nconsole.log('line2');";
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(old);
+	});
+
+	it('uses updated content when it replaces an original blank line', () => {
+		const updated = dedent`
+			console.log('line1');
+			console.log('inserted');
+			console.log('line3');
+		`;
+		const old = updated.replace("console.log('inserted');", '');
+
+		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
 	});
 });
