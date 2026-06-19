@@ -24,7 +24,7 @@ export default defineMigrationTask({
 });
 
 function renameAppEnvironmentImports(ast: AstTypes.Program): false | void {
-	let didRename = false;
+	let modified = false;
 
 	for (const node of ast.body) {
 		if (node.type !== 'ImportDeclaration') continue;
@@ -32,8 +32,8 @@ function renameAppEnvironmentImports(ast: AstTypes.Program): false | void {
 
 		node.source.value = NEW_SOURCE;
 		node.source.raw = undefined;
-		didRename = true;
+		modified = true;
 	}
 
-	if (!didRename) return false;
+	if (!modified) return false;
 }
