@@ -47,7 +47,7 @@ function withParseError<T>(parseFn: () => T, options?: TransformOptions): T | un
  * The parser choice is baked into the transform type - you can't accidentally
  * parse a vite config as svelte because you never call a parser yourself.
  *
- * Transforms are curried: call with the callback to get a `(content: string) => string`
+ * Transforms are curried: call with the callback to get a `(content: string) => string | false`
  * function that plugs directly into `sv.file()`.
  *
  * @example
@@ -69,7 +69,7 @@ export const transforms = {
 	/**
 	 * Transform a JavaScript/TypeScript file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	script(
 		cb: (file: {
@@ -92,7 +92,7 @@ export const transforms = {
 	/**
 	 * Transform a Svelte component file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	svelte(
 		cb: (file: {
@@ -118,7 +118,7 @@ export const transforms = {
 	 * Calls `ensureScript` before invoking your callback, so `ast.instance` is always non-null.
 	 * Pass `{ language }` as the first argument to set the script language.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	svelteScript(
 		scriptOptions: { language: 'ts' | 'js' },
@@ -148,7 +148,7 @@ export const transforms = {
 	/**
 	 * Transform a CSS file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	css(
 		cb: (file: {
@@ -170,7 +170,7 @@ export const transforms = {
 	/**
 	 * Transform a JSON file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	json<T = any>(
 		cb: (file: { data: T; content: string; json: typeof jsonNs }) => void | false,
@@ -188,7 +188,7 @@ export const transforms = {
 	/**
 	 * Transform a YAML file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	yaml(
 		cb: (file: { data: YamlDocument; content: string }) => void | false,
@@ -206,7 +206,7 @@ export const transforms = {
 	/**
 	 * Transform a TOML file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	toml(
 		cb: (file: { data: TomlTable; content: string }) => void | false,
@@ -224,7 +224,7 @@ export const transforms = {
 	/**
 	 * Transform an HTML file (e.g. app.html).
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	html(
 		cb: (file: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,

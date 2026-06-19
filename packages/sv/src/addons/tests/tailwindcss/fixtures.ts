@@ -32,6 +32,9 @@ export function addFixture(cwd: string, variant: string) {
 
 	const content = fs.readFileSync(page, 'utf8');
 	const result = addMarkup(content);
-	if (result === false) throw new Error('Failed to add markup - it may already be present');
+	if (result === false) {
+		// markup already added
+		return;
+	}
 	fs.writeFileSync(page, result, 'utf8');
 }
