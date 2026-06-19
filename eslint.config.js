@@ -27,6 +27,7 @@ export default defineConfig(
 			'**/temp/*',
 			'**/.test-output/*',
 			'**/dist/*',
+			'**/dts-api-surface/**',
 			'packages/sv/src/create/shared/**/*',
 			'packages/sv/src/create/scripts/**/*',
 			'packages/sv/src/create/templates/**/*',
