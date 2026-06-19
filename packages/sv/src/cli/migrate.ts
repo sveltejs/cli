@@ -137,16 +137,14 @@ export const migrate = new Command('migrate')
 	});
 
 function ensureValidWorkspace(cwd: string) {
-	const { data: pkg, source } = loadPackageJson(cwd);
+	const { data: pkg } = loadPackageJson(cwd);
 	if (!pkg) {
-		common.errorAndExit(`Failed to load package.json at ${source}.`);
+		common.errorAndExit(`Failed to load package.json at ${cwd}.`);
 		return;
 	}
 
 	if (!pkg.devDependencies?.['svelte'] && !pkg.devDependencies?.['@sveltejs/kit']) {
-		common.errorAndExit(
-			`No svelte or @sveltejs/kit dependency found in package.json at ${source}.`
-		);
+		common.errorAndExit(`No svelte or @sveltejs/kit dependency found in package.json at ${cwd}.`);
 	}
 
 	return pkg;
