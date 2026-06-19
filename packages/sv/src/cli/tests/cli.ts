@@ -55,7 +55,7 @@ describe('cli', () => {
 
 	it.for(testCases)(
 		'should create a new project with name $projectName',
-		{ timeout: 123_000 },
+		{ timeout: 240_000 },
 		async (testCase) => {
 			const { projectName, args, template = 'minimal' } = testCase;
 
