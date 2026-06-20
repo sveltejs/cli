@@ -58,7 +58,10 @@ export function minimizeDiff(old: string, updated: string): string {
 	const diff = diffLines(old.replace(/\r\n/g, '\n'), updated.replace(/\r\n/g, '\n'));
 
 	// blank lines are layout, not content: keep the original's, drop the ones printers insert
-	const realContent = (value: string) => toLines(value).filter((l) => !isOnlyWhitespace(l)).join('');
+	const realContent = (value: string) =>
+		toLines(value)
+			.filter((l) => !isOnlyWhitespace(l))
+			.join('');
 	const blankLines = (value: string) => toLines(value).filter(isOnlyWhitespace).join('');
 
 	let out = '';
