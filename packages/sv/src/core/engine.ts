@@ -8,7 +8,7 @@ import {
 	type AgentName,
 	transforms,
 	type Package,
-	preserveOriginalNewlines
+	minimizeDiff
 } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -290,7 +290,7 @@ function editFile(
 			return;
 		}
 
-		const diffMinimizedEditedContent = preserveOriginalNewlines(content, editedContent);
+		const diffMinimizedEditedContent = minimizeDiff(content, editedContent);
 		file = saveFile(workspace.cwd, file, diffMinimizedEditedContent, options.saveFileInfix);
 		modifiedFiles.add(file);
 	} catch (e) {

@@ -1,6 +1,6 @@
 import dedent from 'dedent';
 import { describe, it, expect } from 'vitest';
-import { preserveOriginalNewlines, sanitizeName } from '../sanitize.ts';
+import { minimizeDiff, sanitizeName } from '../sanitize.ts';
 
 const testCases: Array<{ input: string; expected: string; expectedPackage?: string }> = [
 	// Basic cases
@@ -78,7 +78,7 @@ describe('sanitizeName package', () => {
 	});
 });
 
-describe('preserveOriginalNewlines', () => {
+describe('minimizeDiff', () => {
 	it('preserves blank lines from the original content', () => {
 		const old = dedent`
 			console.log('line1');
@@ -93,7 +93,7 @@ describe('preserveOriginalNewlines', () => {
 			console.log('line3');
 		`;
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(old);
+		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
 	it('drops blank lines introduced by the updated content', () => {
@@ -110,7 +110,7 @@ describe('preserveOriginalNewlines', () => {
 			console.log('line3');
 		`;
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(old);
+		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
 	it('keeps content replacements from the updated content', () => {
@@ -126,7 +126,7 @@ describe('preserveOriginalNewlines', () => {
 			console.log('line3');
 		`;
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+		expect(minimizeDiff(old, updated)).toBe(updated);
 	});
 
 	it('does not restore deleted nonblank lines', () => {
@@ -141,14 +141,14 @@ describe('preserveOriginalNewlines', () => {
 			console.log('line3');
 		`;
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+		expect(minimizeDiff(old, updated)).toBe(updated);
 	});
 
 	it('drops multiple added whitespace-only blank lines', () => {
 		const old = "console.log('line1');\nconsole.log('line2');";
 		const updated = "console.log('line1');\n\n\t\n \nconsole.log('line2');";
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(old);
+		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
 	it('uses updated content when it replaces an original blank line', () => {
@@ -165,7 +165,7 @@ describe('preserveOriginalNewlines', () => {
 			console.log('line3');
 		`;
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+		expect(minimizeDiff(old, updated)).toBe(updated);
 	});
 
 	it('keeps one separator after newly inserted imports', () => {
@@ -182,7 +182,7 @@ describe('preserveOriginalNewlines', () => {
 			export default {};
 		`;
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+		expect(minimizeDiff(old, updated)).toBe(updated);
 	});
 
 	it('does not duplicate the separator after a replaced import block', () => {
@@ -199,6 +199,112 @@ describe('preserveOriginalNewlines', () => {
 			export default {};
 		`;
 
-		expect(preserveOriginalNewlines(old, updated)).toBe(updated);
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('restores a hunk that only collapsed whitespace', () => {
+		const old = dedent`
+			type RequestAuthContext = {
+				authToken?: string;
+				hasValidAuthToken: boolean;
+			};
+
+			const requestAuthContextStorage = new AsyncLocalStorage<RequestAuthContext>();
+		`;
+
+		const updated = dedent`
+			type RequestAuthContext = { authToken?: string; hasValidAuthToken: boolean; };
+
+			const requestAuthContextStorage = new AsyncLocalStorage<RequestAuthContext>();
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when only statement semicolons changed', () => {
+		const old = dedent`
+			const first = 1
+			const second = 2
+		`;
+
+		const updated = dedent`
+			const first = 1;
+			const second = 2;
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when only trailing commas changed', () => {
+		const old = dedent`
+			const config = {
+				extensions: [
+					'.svelte',
+					'.svx'
+				]
+			};
+		`;
+
+		const updated = dedent`
+			const config = {
+				extensions: [
+					'.svelte',
+					'.svx',
+				],
+			};
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when an object literal is expanded', () => {
+		const old = dedent`
+			export function getStaticEnvValues() {
+				return { private: ENV_PRIVATE_STATIC_1, public: publicStaticEnv };
+			}
+		`;
+
+		const updated = dedent`
+			export function getStaticEnvValues() {
+				return {
+					private: ENV_PRIVATE_STATIC_1,
+					public: publicStaticEnv
+				};
+			}
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('keeps updated hunks when non-trailing commas change the meaning', () => {
+		const old = dedent`
+			const values = ['a' + 'b'];
+		`;
+
+		const updated = dedent`
+			const values = ['a', 'b'];
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('keeps updated hunks with non-whitespace changes', () => {
+		const old = dedent`
+			import { env } from '$env/dynamic/private';
+
+			if (env.API_BASE_URL) {
+				client.setConfig({ baseUrl: env.API_BASE_URL });
+			}
+		`;
+
+		const updated = dedent`
+			import { API_BASE_URL } from '$app/env/private';
+
+			if (API_BASE_URL) {
+				client.setConfig({ baseUrl: API_BASE_URL });
+			}
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
 	});
 });
