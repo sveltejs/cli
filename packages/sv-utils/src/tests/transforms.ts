@@ -13,7 +13,7 @@ describe('transforms', () => {
 			expect(JSON.parse(result)).toEqual({ name: 'new' });
 		});
 
-		it('abort: returns fals if transform is cacelled', () => {
+		it('abort: returns false if transform is cacelled', () => {
 			const input = '{"name":"old"}';
 			expect(transforms.json(() => false)(input)).toBe(false);
 		});
