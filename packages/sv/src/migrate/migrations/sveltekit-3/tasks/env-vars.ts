@@ -217,10 +217,7 @@ function getDynamicEnvUsages(
 				const name = getDynamicEnvUsageName(node);
 				if (!name) {
 					hasUnsupportedUsage = true;
-					addUnsupportedDynamicEnvComment(
-						comments,
-						findCommentTarget(walkContext.path) ?? node
-					);
+					addUnsupportedDynamicEnvComment(comments, findCommentTarget(walkContext.path) ?? node);
 					walkContext.next();
 					return;
 				}
@@ -241,7 +238,10 @@ function getDynamicEnvUsages(
 	return usages;
 }
 
-function addUnsupportedDynamicEnvComment(comments: Comments | undefined, node: AstTypes.Node): void {
+function addUnsupportedDynamicEnvComment(
+	comments: Comments | undefined,
+	node: AstTypes.Node
+): void {
 	if (!comments) return;
 
 	comments.add(node, {
