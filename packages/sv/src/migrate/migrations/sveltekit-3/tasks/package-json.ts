@@ -9,7 +9,7 @@ export default defineMigrationTask({
 		// migrates kit to it's 'next' version.
 		experimentalAddon.run({
 			...args,
-			options: { versions: ['kit'], features: [] },
+			options: { versions: ['kit-3-next'], features: [] },
 			cancel: () => {}
 		});
 	}

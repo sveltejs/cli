@@ -14,7 +14,7 @@ const { test, testCases } = setupTest(
 				type: 'next-all',
 				options: {
 					[addonId]: {
-						versions: ['kit'],
+						versions: ['kit-3-next'],
 						features: [
 							'async',
 							'remoteFunctions',
