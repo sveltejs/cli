@@ -411,7 +411,16 @@ declare function getArgument<T extends estree.Expression>(
 	}
 ): T;
 declare namespace imports_d_exports {
-	export { addDefault, addEmpty, addNamed, addNamespace$1 as addNamespace, find, remove };
+	export {
+		FoundImport,
+		addDefault,
+		addEmpty,
+		addNamed,
+		addNamespace$1 as addNamespace,
+		find,
+		findAll,
+		remove
+	};
 }
 declare function addEmpty(
 	node: estree.Program,
@@ -441,6 +450,27 @@ declare function addNamed(
 		isType?: boolean;
 	}
 ): void;
+type FoundImportBase = {
+	source: string;
+	sourceNode: estree.Literal;
+	path: estree.Node[];
+};
+type FoundImport =
+	| ({
+			kind: 'static';
+			node: estree.ImportDeclaration;
+	  } & FoundImportBase)
+	| ({
+			kind: 'dynamic';
+			node: estree.ImportExpression;
+	  } & FoundImportBase);
+
+declare function findAll(
+	ast: estree.Node,
+	options?: {
+		from?: string | RegExp;
+	}
+): FoundImport[];
 declare function find(
 	ast: estree.Program,
 	options: {

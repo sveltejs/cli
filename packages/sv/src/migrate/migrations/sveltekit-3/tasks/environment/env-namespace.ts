@@ -1,4 +1,4 @@
-import { type AstTypes } from '@sveltejs/sv-utils';
+import { js, type AstTypes } from '@sveltejs/sv-utils';
 
 const OLD_SOURCE = '$app/environment';
 const NEW_SOURCE = '$app/env';
@@ -7,12 +7,9 @@ const NEW_SOURCE = '$app/env';
 export function renameEnvNamespace(ast: AstTypes.Program): boolean {
 	let modified = false;
 
-	for (const node of ast.body) {
-		if (node.type !== 'ImportDeclaration') continue;
-		if (node.source.value !== OLD_SOURCE) continue;
-
-		node.source.value = NEW_SOURCE;
-		node.source.raw = undefined;
+	for (const { sourceNode } of js.imports.findAll(ast, { from: OLD_SOURCE })) {
+		sourceNode.value = NEW_SOURCE;
+		sourceNode.raw = undefined;
 		modified = true;
 	}
 

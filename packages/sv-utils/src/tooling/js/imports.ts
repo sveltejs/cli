@@ -150,6 +150,66 @@ function addImportIfNecessary(
 	}
 }
 
+type FoundImportBase = { source: string; sourceNode: AstTypes.Literal; path: AstTypes.Node[] };
+export type FoundImport =
+	| ({ kind: 'static'; node: AstTypes.ImportDeclaration } & FoundImportBase)
+	| ({ kind: 'dynamic'; node: AstTypes.ImportExpression } & FoundImportBase);
+
+/**
+ * Find every import of a module - both static `import ... from '...'` declarations and dynamic
+ * `import('...')` expressions, anywhere in the tree. Optionally filtered by source (exact string
+ * or `RegExp`). Dynamic imports whose source is not a string literal are skipped. Each match
+ * exposes the source `Literal` (`sourceNode`) for rewriting and its ancestor `path` so callers
+ * can inspect the surrounding code (e.g. destructuring).
+ */
+export function findAll(
+	ast: AstTypes.Node,
+	options: { from?: string | RegExp } = {}
+): FoundImport[] {
+	const matches: FoundImport[] = [];
+
+	const matchesSource = (source: string): boolean => {
+		if (options.from === undefined) return true;
+		if (typeof options.from === 'string') return source === options.from;
+		return options.from.test(source);
+	};
+
+	Walker.walk(ast, null, {
+		ImportDeclaration(node, { path, next }) {
+			const sourceNode = node.source;
+			if (typeof sourceNode.value === 'string' && matchesSource(sourceNode.value)) {
+				matches.push({
+					kind: 'static',
+					node,
+					source: sourceNode.value,
+					sourceNode,
+					path: [...path]
+				});
+			}
+			next();
+		},
+		ImportExpression(node, { path, next }) {
+			const sourceNode = node.source;
+			if (
+				sourceNode.type === 'Literal' &&
+				typeof sourceNode.value === 'string' &&
+				matchesSource(sourceNode.value)
+			) {
+				matches.push({
+					kind: 'dynamic',
+					node,
+					source: sourceNode.value,
+					sourceNode,
+					path: [...path]
+				});
+			}
+			next();
+		}
+	});
+
+	return matches;
+}
+
 export function find(
 	ast: AstTypes.Program,
 	options: { name: string; from: string }

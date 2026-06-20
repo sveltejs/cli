@@ -30,6 +30,8 @@ type EnvImport =
 
 type EnvImportResult = EnvImport | 'migration-task';
 
+const ENV_MODULE = /^\$env\/(dynamic|static)\/(public|private)$/;
+
 /** Migrate `$env/*` imports/usages to `$app/env/*` for one program. Returns whether it mutated `ast`. */
 export function migrateExplicitEnvVars(
 	ast: AstTypes.Program,
@@ -67,39 +69,24 @@ function migrateDynamicEnvImports(
 ): boolean {
 	let mutated = false;
 
-	Walker.walk(node as AstTypes.Node, null, {
-		ImportExpression(
-			importExpression: AstTypes.ImportExpression,
-			walkContext: Walker.Context<AstTypes.Node, null>
-		) {
-			const source = importExpression.source;
-			if (source.type === 'Literal' && typeof source.value === 'string') {
-				const match = source.value.match(/^\$env\/(dynamic|static)\/(public|private)$/);
-				if (match) {
-					const type = match[1] as EnvImport['type'];
-					const scope = match[2] as EnvScope;
+	for (const found of js.imports.findAll(node as AstTypes.Node, { from: ENV_MODULE })) {
+		if (found.kind !== 'dynamic') continue;
 
-					source.value = `$app/env/${scope}`;
-					source.raw = undefined;
-					mutated = true;
+		const [, type, scope] = found.source.match(ENV_MODULE) as [string, EnvImport['type'], EnvScope];
 
-					const names = getDestructuredEnvNames(walkContext.path);
-					if (names) {
-						for (const name of names) {
-							envVars.set(name, { type, scope, name });
-						}
-					} else {
-						addUnsupportedDynamicImportComment(
-							comments,
-							findCommentTarget(walkContext.path) ?? importExpression
-						);
-					}
-				}
+		found.sourceNode.value = `$app/env/${scope}`;
+		found.sourceNode.raw = undefined;
+		mutated = true;
+
+		const names = getDestructuredEnvNames(found.path);
+		if (names) {
+			for (const name of names) {
+				envVars.set(name, { type, scope, name });
 			}
-
-			walkContext.next();
+		} else {
+			addUnsupportedDynamicImportComment(comments, findCommentTarget(found.path) ?? found.node);
 		}
-	});
+	}
 
 	return mutated;
 }
@@ -142,12 +129,10 @@ function collectEnvImports(
 	const envImports: EnvImport[] = [];
 	let hasMigrationTask = false;
 
-	const relevantImports = ast.body
-		.filter((x) => x.type === 'ImportDeclaration')
-		.filter(
-			(x) =>
-				x.source?.value && typeof x.source.value === 'string' && x.source.value.startsWith('$env/')
-		);
+	const relevantImports = js.imports
+		.findAll(ast, { from: /^\$env\// })
+		.filter((found) => found.kind === 'static')
+		.map((found) => found.node);
 
 	if (relevantImports.length === 0) {
 		return envImports;
@@ -156,7 +141,7 @@ function collectEnvImports(
 	for (const importNode of relevantImports) {
 		const source = importNode.source.value as string;
 
-		const match = source.match(/^\$env\/(dynamic|static)\/(public|private)$/);
+		const match = source.match(ENV_MODULE);
 		if (!match) continue;
 
 		const type = match[1] as EnvImport['type'];
