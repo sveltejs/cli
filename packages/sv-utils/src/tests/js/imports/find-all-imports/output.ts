@@ -1,5 +1,5 @@
-import { a } from 'MIGRATED/static/pkg-a';
 import def from 'other';
+import { a } from 'MIGRATED/static/pkg-a';
 
 export async function load() {
 	const { c } = await import('MIGRATED/dynamic/pkg-c');

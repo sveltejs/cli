@@ -1,5 +1,5 @@
-import { a } from 'pkg-a';
 import def from 'other';
+import { a } from 'pkg-a';
 
 export async function load() {
 	const { c } = await import('pkg-c');
