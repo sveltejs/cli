@@ -1,4 +1,4 @@
-import { coerceVersion } from '@sveltejs/sv-utils';
+import { coerceVersion, color } from '@sveltejs/sv-utils';
 import { defineMigration } from '../../index.ts';
 import environment from './tasks/environment.ts';
 import packageJson from './tasks/package-json.ts';
@@ -12,7 +12,10 @@ export default defineMigration({
 		const kitPackageName = '@sveltejs/kit';
 
 		if (!pkg.devDependencies?.[kitPackageName])
-			throw new Error(`${kitPackageName} is not listed as a devDependency in package.json`);
+			throw new Error(
+				`${color.command(kitPackageName)} is not a devDependency in package.json - this doesn't look like a SvelteKit project.\n` +
+					`Point to one with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
+			);
 
 		const kitVersion = coerceVersion(pkg.devDependencies[kitPackageName]);
 		if (kitVersion.major && kitVersion.major < 2) {

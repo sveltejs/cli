@@ -138,19 +138,16 @@ export const migrate = new Command('migrate')
 	});
 
 function ensureValidWorkspace(cwd: string): Package | undefined {
-	// loadPackageJson throws when there's no package.json at all
-	let pkg: Package | undefined;
+	// each migration's `setup` decides what it actually needs; here we only
+	// require a package.json to exist (loadPackageJson throws when it doesn't)
 	try {
-		pkg = loadPackageJson(cwd).data;
-	} catch {}
-
-	const deps = pkg?.devDependencies ?? {};
-	if (deps['svelte'] || deps['@sveltejs/kit']) return pkg;
-
-	common.errorAndExit(
-		`${path.resolve(cwd)} is not a Svelte(Kit) project.\n` +
-			`Point to one with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
-	);
+		return loadPackageJson(cwd).data;
+	} catch {
+		common.errorAndExit(
+			`No package.json found in ${path.resolve(cwd)}.\n` +
+				`Point to a project with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
+		);
+	}
 }
 
 async function determineTasks(
