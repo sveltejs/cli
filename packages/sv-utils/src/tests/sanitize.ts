@@ -151,6 +151,55 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
+	it('keeps an original blank line that is bundled into a real change', () => {
+		// The diff groups the leading blank line together with the changed line. The blank line is
+		// layout, not content, so it must survive even though the adjacent line really changed.
+		const old = dedent`
+			const x = 1;
+
+			const y = 2;
+		`;
+
+		const updated = dedent`
+			const x = 1;
+			const y = 3;
+		`;
+
+		const expected = dedent`
+			const x = 1;
+
+			const y = 3;
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(expected);
+	});
+
+	it('drops printer-inserted blank lines even when the whole region is one changed hunk', () => {
+		// When every line differs (e.g. semicolons added throughout) the diff collapses into a single
+		// changed hunk. Printer-inserted blank lines must still be dropped, keeping the real change.
+		const old = dedent`
+			const p = samples[env.KEY]
+			if (!p) return null
+			return view.project(p.lat, p.lon)
+		`;
+
+		const updated = dedent`
+			const p = samples[ENV_KEY];
+
+			if (!p) return null;
+
+			return view.project(p.lat, p.lon);
+		`;
+
+		const expected = dedent`
+			const p = samples[ENV_KEY];
+			if (!p) return null;
+			return view.project(p.lat, p.lon);
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(expected);
+	});
+
 	it('restores formatting-only hunks when the original uses CRLF line endings', () => {
 		// On Windows the original file is often checked out with CRLF while the printer emits LF.
 		// Without normalization the diff collapses into a single hunk and the formatting-only

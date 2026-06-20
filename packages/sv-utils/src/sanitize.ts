@@ -38,42 +38,51 @@ function isOnlyWhitespace(value: string): boolean {
 	return value.trim() === '';
 }
 
+/** Splits content into lines, each keeping its trailing newline (matches the diff line tokenizer). */
+function toLines(value: string): string[] {
+	return value.match(/[^\n]*\n|[^\n]+$/g) ?? [];
+}
+
 /**
  * Minimizes formatting churn in generated output.
- * If a changed hunk only differs by formatting-only characters, the original hunk is restored.
- * Hunks with real content changes keep the updated content.
+ *
+ * A line whose content is unchanged - ignoring whitespace, semicolons, commas and parentheses - is
+ * restored verbatim from the original. This reverts everything a printer reformats but doesn't
+ * meaningfully change: re-indentation, added semicolons, rewrapped punctuation and, crucially, the
+ * blank lines printers like to insert between statements. Only lines with real content changes keep
+ * the printer's output (printer-inserted blank lines among them are dropped).
  */
 export function minimizeDiff(old: string, updated: string): string {
-	// Normalize line endings before diffing. On Windows the original file is often checked out with
-	// CRLF while the printer emits LF, which would make every line differ and collapse the diff into
-	// a single hunk, defeating the formatting-only restoration below.
+	// Normalize line endings first: on Windows the original is often CRLF while the printer emits LF,
+	// which would make every line differ and collapse the diff, defeating the restoration below.
 	const diff = diffLines(old.replace(/\r\n/g, '\n'), updated.replace(/\r\n/g, '\n'));
-	let newContent = '';
 
+	// blank lines are layout, not content: keep the original's, drop the ones printers insert
+	const realContent = (value: string) => toLines(value).filter((l) => !isOnlyWhitespace(l)).join('');
+	const blankLines = (value: string) => toLines(value).filter(isOnlyWhitespace).join('');
+
+	let out = '';
 	for (let i = 0; i < diff.length; i += 1) {
 		const part = diff[i];
 		const next = diff[i + 1];
 
-		// A changed line range is represented as a removed hunk followed by an added hunk.
 		if (part.removed && next?.added) {
-			const normalizedPart = normalizeWhitespace(part.value);
-			const normalizedNextPart = normalizeWhitespace(next.value);
-			const sameContent = normalizedPart === normalizedNextPart;
-			newContent += sameContent ? part.value : next.value;
+			// a changed range. If it differs only by formatting (whitespace, semicolons, rewrapping)
+			// restore the original verbatim; otherwise keep the new content, minus inserted blanks but
+			// keeping the original's blank lines.
+			out +=
+				normalizeWhitespace(part.value) === normalizeWhitespace(next.value)
+					? part.value
+					: blankLines(part.value) + realContent(next.value);
 			i += 1;
-			continue;
-		}
-
-		// Drop formatting-only additions, such as blank lines introduced by a printer.
-		if (part.added && isOnlyWhitespace(part.value)) {
-			continue;
-		}
-
-		// Keep unchanged content and removed whitespace. Drop removed non-whitespace content.
-		if (!part.removed || isOnlyWhitespace(part.value)) {
-			newContent += part.value;
+		} else if (part.removed) {
+			out += blankLines(part.value); // keep original blank lines, drop removed content
+		} else if (part.added) {
+			out += realContent(part.value); // real new content, minus printer-inserted blanks
+		} else {
+			out += part.value; // unchanged
 		}
 	}
 
-	return newContent;
+	return out;
 }
