@@ -1,10 +1,4 @@
-import {
-	Walker,
-	js,
-	type AstTypes,
-	type Comments,
-	type SvelteAst
-} from '@sveltejs/sv-utils';
+import { Walker, js, type AstTypes, type Comments, type SvelteAst } from '@sveltejs/sv-utils';
 
 type UsageInfo = {
 	node: AstTypes.Expression;
@@ -376,7 +370,10 @@ function collectEnvVars(envImports: EnvImport[], envVars: Map<string, EnvVar>): 
 	}
 }
 
-export function addEnvDeclarationFile(ast: AstTypes.Program, envVars: Map<string, EnvVar>): false | void {
+export function addEnvDeclarationFile(
+	ast: AstTypes.Program,
+	envVars: Map<string, EnvVar>
+): false | void {
 	if (envVars.size === 0) return false;
 
 	js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });

@@ -22,11 +22,7 @@ export default defineMigrationTask({
 				if (path.endsWith('.svelte')) {
 					return transforms.svelteScript({ language }, ({ ast }) => {
 						const renamed = renameEnvNamespace(ast.instance.content);
-						const migrated = migrateExplicitEnvVars(
-							ast.instance.content,
-							envVars,
-							ast.fragment
-						);
+						const migrated = migrateExplicitEnvVars(ast.instance.content, envVars, ast.fragment);
 						if (!renamed && !migrated) return false;
 					})(content);
 				}
