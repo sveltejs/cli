@@ -44,7 +44,10 @@ function isOnlyWhitespace(value: string): boolean {
  * Hunks with real content changes keep the updated content.
  */
 export function minimizeDiff(old: string, updated: string): string {
-	const diff = diffLines(old, updated);
+	// Normalize line endings before diffing. On Windows the original file is often checked out with
+	// CRLF while the printer emits LF, which would make every line differ and collapse the diff into
+	// a single hunk, defeating the formatting-only restoration below.
+	const diff = diffLines(old.replace(/\r\n/g, '\n'), updated.replace(/\r\n/g, '\n'));
 	let newContent = '';
 
 	for (let i = 0; i < diff.length; i += 1) {

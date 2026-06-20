@@ -151,6 +151,44 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
+	it('restores formatting-only hunks when the original uses CRLF line endings', () => {
+		// On Windows the original file is often checked out with CRLF while the printer emits LF.
+		// Without normalization the diff collapses into a single hunk and the formatting-only
+		// restoration never fires. The result is always normalized to LF.
+		const oldLf = dedent`
+			import { x } from './old.ts';
+			function load() {
+				return {
+					a,
+					b
+				};
+			}
+		`;
+		const oldCrlf = oldLf.replace(/\n/g, '\r\n');
+
+		// printer rewrites the import (real change) and collapses the object (formatting only)
+		const updated = dedent`
+			import { x } from './new.ts';
+			function load() {
+				return { a, b };
+			}
+		`;
+
+		const expected = dedent`
+			import { x } from './new.ts';
+			function load() {
+				return {
+					a,
+					b
+				};
+			}
+		`;
+
+		expect(minimizeDiff(oldCrlf, updated)).toBe(expected);
+		// CRLF and LF originals must produce identical output
+		expect(minimizeDiff(oldCrlf, updated)).toBe(minimizeDiff(oldLf, updated));
+	});
+
 	it('uses updated content when it replaces an original blank line', () => {
 		const old = dedent`
 			console.log('line1');
