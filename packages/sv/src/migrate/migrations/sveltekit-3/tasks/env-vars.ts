@@ -1,4 +1,11 @@
-import { Walker, js, transforms, type AstTypes, type SvelteAst } from '@sveltejs/sv-utils';
+import {
+	Walker,
+	js,
+	transforms,
+	type AstTypes,
+	type Comments,
+	type SvelteAst
+} from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
 type UsageInfo = {
@@ -29,6 +36,8 @@ type EnvVar = {
 	name: string;
 };
 
+type EnvImportResult = EnvImport | 'migration-task';
+
 export default defineMigrationTask({
 	id: 'env-vars',
 	description: 'tbd - migrate environment variables to the new format',
@@ -44,8 +53,8 @@ export default defineMigrationTask({
 					})(content);
 				}
 
-				return transforms.script(({ ast }) => {
-					return runMigration(ast, envVars);
+				return transforms.script(({ ast, comments }) => {
+					return runMigration(ast, envVars, undefined, comments);
 				})(content);
 			}
 		);
@@ -62,9 +71,14 @@ export default defineMigrationTask({
 function runMigration(
 	ast: AstTypes.Program,
 	envVars: Map<string, EnvVar>,
-	template?: SvelteAst.Fragment
+	template?: SvelteAst.Fragment,
+	comments?: Comments
 ): void | false {
-	const envImports = collectEnvImports(ast, template);
+	const envImports = collectEnvImports(ast, template, comments);
+
+	if (envImports === 'migration-task') {
+		return;
+	}
 
 	if (envImports.length === 0) {
 		return false; // no env imports, skip;
@@ -75,8 +89,13 @@ function runMigration(
 	collectEnvVars(envImports, envVars);
 }
 
-function collectEnvImports(ast: AstTypes.Program, template?: SvelteAst.Fragment): EnvImport[] {
+function collectEnvImports(
+	ast: AstTypes.Program,
+	template?: SvelteAst.Fragment,
+	comments?: Comments
+): EnvImport[] | 'migration-task' {
 	const envImports: EnvImport[] = [];
+	let hasMigrationTask = false;
 
 	const relevantImports = ast.body
 		.filter((x) => x.type === 'ImportDeclaration')
@@ -100,11 +119,16 @@ function collectEnvImports(ast: AstTypes.Program, template?: SvelteAst.Fragment)
 
 		const envImport =
 			type === 'dynamic'
-				? collectDynamicEnvImport(ast, importNode, scope, template)
+				? collectDynamicEnvImport(ast, importNode, scope, template, comments)
 				: collectStaticEnvImport(importNode, scope);
+		if (envImport === 'migration-task') {
+			hasMigrationTask = true;
+			continue;
+		}
 		if (envImport) envImports.push(envImport);
 	}
 
+	if (envImports.length === 0 && hasMigrationTask) return 'migration-task';
 	return envImports;
 }
 
@@ -112,8 +136,9 @@ function collectDynamicEnvImport(
 	ast: AstTypes.Program,
 	importNode: AstTypes.ImportDeclaration,
 	scope: EnvScope,
-	template?: SvelteAst.Fragment
-): EnvImport | undefined {
+	template?: SvelteAst.Fragment,
+	comments?: Comments
+): EnvImportResult | undefined {
 	const hasEnvImport = importNode.specifiers.some(
 		(specifier) =>
 			specifier.type === 'ImportSpecifier' &&
@@ -123,10 +148,19 @@ function collectDynamicEnvImport(
 	);
 	if (!hasEnvImport) return;
 
-	const usages = getDynamicEnvUsages(ast, importNode);
-	if (template) {
-		usages.push(...getDynamicEnvUsages(template, importNode));
+	const usages = getDynamicEnvUsages(ast, importNode, comments);
+	if (!usages) {
+		return 'migration-task';
 	}
+	if (template) {
+		const templateUsages = getDynamicEnvUsages(template, importNode, comments);
+		if (!templateUsages) {
+			return 'migration-task';
+		}
+
+		usages.push(...templateUsages);
+	}
+	if (usages.length === 0) return;
 
 	return {
 		type: 'dynamic',
@@ -158,8 +192,9 @@ function collectStaticEnvImport(
 
 function getDynamicEnvUsages(
 	node: AstTypes.Node | SvelteAst.SvelteNode,
-	importNode: AstTypes.ImportDeclaration
-): UsageInfo[] {
+	importNode: AstTypes.ImportDeclaration,
+	comments?: Comments
+): UsageInfo[] | undefined {
 	const importNames = new Set<string>();
 
 	for (const specifier of importNode.specifiers) {
@@ -172,29 +207,81 @@ function getDynamicEnvUsages(
 	}
 
 	const usages: UsageInfo[] = [];
+	let hasUnsupportedUsage = false;
 	Walker.walk(node as AstTypes.Node, null, {
 		MemberExpression(
 			node: AstTypes.MemberExpression,
-			context: Walker.Context<AstTypes.Node, null>
+			walkContext: Walker.Context<AstTypes.Node, null>
 		) {
-			if (
-				node.object.type === 'Identifier' &&
-				importNames.has(node.object.name) &&
-				!node.computed &&
-				node.property.type === 'Identifier'
-			) {
+			if (node.object.type === 'Identifier' && importNames.has(node.object.name)) {
+				const name = getDynamicEnvUsageName(node);
+				if (!name) {
+					hasUnsupportedUsage = true;
+					addUnsupportedDynamicEnvComment(
+						comments,
+						findCommentTarget(walkContext.path) ?? node
+					);
+					walkContext.next();
+					return;
+				}
+
 				usages.push({
 					node,
-					parent: context.path[context.path.length - 1],
-					name: node.property.name
+					parent: walkContext.path[walkContext.path.length - 1],
+					name
 				});
 			}
 
-			context.next();
+			walkContext.next();
 		}
 	});
 
+	if (hasUnsupportedUsage) return;
+
 	return usages;
+}
+
+function addUnsupportedDynamicEnvComment(comments: Comments | undefined, node: AstTypes.Node): void {
+	if (!comments) return;
+
+	comments.add(node, {
+		type: 'Line',
+		value: ' @migration-task Rewrite dynamic env lookup manually.'
+	});
+}
+
+function findCommentTarget(
+	path: Array<AstTypes.Node | SvelteAst.SvelteNode>
+): AstTypes.Node | undefined {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (
+			node.type === 'VariableDeclaration' ||
+			node.type === 'ExpressionStatement' ||
+			node.type === 'ReturnStatement'
+		) {
+			return node as AstTypes.Node;
+		}
+	}
+}
+
+function getDynamicEnvUsageName(node: AstTypes.MemberExpression): string | undefined {
+	if (!node.computed && node.property.type === 'Identifier') {
+		return node.property.name;
+	}
+
+	if (
+		node.computed &&
+		node.property.type === 'Literal' &&
+		typeof node.property.value === 'string' &&
+		isValidIdentifierName(node.property.value)
+	) {
+		return node.property.value;
+	}
+}
+
+function isValidIdentifierName(name: string): boolean {
+	return /^[$A-Z_a-z][$\w]*$/.test(name);
 }
 
 function changeEnvImports(ast: AstTypes.Program, envImports: EnvImport[]): void {
