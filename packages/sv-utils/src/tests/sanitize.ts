@@ -79,6 +79,20 @@ describe('sanitizeName package', () => {
 });
 
 describe('minimizeDiff', () => {
+	it('keeps a brand-new file verbatim, including its blank lines', () => {
+		const updated = dedent`
+			# Section
+
+			content line
+
+			## Subsection
+
+			more content
+		`;
+
+		expect(minimizeDiff('', updated)).toBe(updated);
+	});
+
 	it('preserves blank lines from the original content', () => {
 		const old = dedent`
 			console.log('line1');

@@ -14,7 +14,6 @@
 </svelte:head>
 
 {@render children()}
-
 <div style="display:none">
 	{#each locales as locale (locale)}
 		<a

@@ -51,8 +51,13 @@ function toLines(value: string): string[] {
  * meaningfully change: re-indentation, added semicolons, rewrapped punctuation and, crucially, the
  * blank lines printers like to insert between statements. Only lines with real content changes keep
  * the printer's output (printer-inserted blank lines among them are dropped).
+ *
+ * Brand-new files (no original to diff against) are kept verbatim: their blank lines are authored
+ * layout, not printer churn, so stripping them would mangle generated markdown, env files, etc.
  */
 export function minimizeDiff(old: string, updated: string): string {
+	if (isOnlyWhitespace(old)) return updated;
+
 	// Normalize line endings first: on Windows the original is often CRLF while the printer emits LF,
 	// which would make every line differ and collapse the diff, defeating the restoration below.
 	const diff = diffLines(old.replace(/\r\n/g, '\n'), updated.replace(/\r\n/g, '\n'));
