@@ -1,7 +1,6 @@
 import { coerceVersion } from '@sveltejs/sv-utils';
 import { defineMigration } from '../../index.ts';
-import appEnv from './tasks/app-env.ts';
-import envVars from './tasks/env-vars.ts';
+import environment from './tasks/environment.ts';
 import packageJson from './tasks/package-json.ts';
 import svelteConfig from './tasks/svelte-config.ts';
 
@@ -23,7 +22,6 @@ export default defineMigration({
 	collect: ({ tasks }) => {
 		tasks.add(packageJson, { required: true });
 		tasks.add(svelteConfig, { required: false });
-		tasks.add(envVars, { required: false });
-		tasks.add(appEnv, { required: false });
+		tasks.add(environment, { required: false });
 	}
 });

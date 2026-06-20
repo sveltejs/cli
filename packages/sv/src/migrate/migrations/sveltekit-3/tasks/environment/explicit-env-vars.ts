@@ -1,12 +1,10 @@
 import {
 	Walker,
 	js,
-	transforms,
 	type AstTypes,
 	type Comments,
 	type SvelteAst
 } from '@sveltejs/sv-utils';
-import { defineMigrationTask } from '../../../index.ts';
 
 type UsageInfo = {
 	node: AstTypes.Expression;
@@ -14,7 +12,13 @@ type UsageInfo = {
 	name: string;
 };
 
-type EnvScope = 'private' | 'public';
+export type EnvScope = 'private' | 'public';
+
+export type EnvVar = {
+	type: EnvImport['type'];
+	scope: EnvScope;
+	name: string;
+};
 
 type EnvImport =
 	| {
@@ -30,63 +34,23 @@ type EnvImport =
 			importNames: string[];
 	  };
 
-type EnvVar = {
-	type: EnvImport['type'];
-	scope: EnvScope;
-	name: string;
-};
-
 type EnvImportResult = EnvImport | 'migration-task';
 
-export default defineMigrationTask({
-	id: 'env-vars',
-	description: 'tbd - migrate environment variables to the new format',
-	run: ({ sv, language }) => {
-		const envVars = new Map<string, EnvVar>();
-
-		sv.files(
-			{ include: '**/*.{ts,js,svelte}', where: (content) => content.includes('$env/') },
-			(content, path) => {
-				if (path.endsWith('.svelte')) {
-					return transforms.svelteScript({ language }, ({ ast }) => {
-						return runMigration(ast.instance.content, envVars, ast.fragment);
-					})(content);
-				}
-
-				return transforms.script(({ ast, comments }) => {
-					return runMigration(ast, envVars, undefined, comments);
-				})(content);
-			}
-		);
-
-		if (envVars.size > 0) {
-			sv.file(
-				'src/env.ts',
-				transforms.script(({ ast }) => addEnvDeclarationFile(ast, envVars))
-			);
-		}
-	}
-});
-
-function runMigration(
+/** Migrate `$env/*` imports/usages to `$app/env/*` for one program. Returns whether it mutated `ast`. */
+export function migrateExplicitEnvVars(
 	ast: AstTypes.Program,
 	envVars: Map<string, EnvVar>,
 	template?: SvelteAst.Fragment,
 	comments?: Comments
-): void | false {
+): boolean {
 	const envImports = collectEnvImports(ast, template, comments);
-
-	if (envImports === 'migration-task') {
-		return;
-	}
-
-	if (envImports.length === 0) {
-		return false; // no env imports, skip;
-	}
+	if (envImports === 'migration-task') return true; // comments were added as a side effect
+	if (envImports.length === 0) return false;
 
 	changeEnvImports(ast, envImports);
 	replaceEnvUsages(envImports);
 	collectEnvVars(envImports, envVars);
+	return true;
 }
 
 function collectEnvImports(
@@ -285,24 +249,22 @@ function isValidIdentifierName(name: string): boolean {
 }
 
 function changeEnvImports(ast: AstTypes.Program, envImports: EnvImport[]): void {
-	// change the import source for static imports. Nothing else to do
 	const staticImports = envImports.filter((x) => x.type === 'static');
 	for (const { scope, importNode } of staticImports) {
 		if (!importNode.source.value) continue;
 
 		const newSource = `$app/env/${scope}`;
 		importNode.source.value = newSource;
-		importNode.source.raw = undefined; // let the printer decide the raw value
+		importNode.source.raw = undefined;
 	}
 
-	// change the import source for dynamic imports and change all usages
 	const dynamicImports = envImports.filter((x) => x.type === 'dynamic');
 	for (const { scope, importNode, usages } of dynamicImports) {
 		if (!importNode.source.value) continue;
 
 		const newSource = `$app/env/${scope}`;
 		importNode.source.value = newSource;
-		importNode.source.raw = undefined; // let the printer decide the raw value
+		importNode.source.raw = undefined;
 
 		importNode.specifiers = [];
 		const uniqueUsages = new Set(usages.map((usage) => usage.name));
@@ -353,7 +315,6 @@ function mergeEnvImports(ast: AstTypes.Program): void {
 }
 
 function replaceEnvUsages(envImports: EnvImport[]): void {
-	// not relevant for static imports
 	const dynamicImports = envImports.filter((x) => x.type === 'dynamic');
 
 	for (const { usages } of dynamicImports) {
@@ -373,10 +334,6 @@ function replaceChildNode(
 	node: AstTypes.Node,
 	replacement: AstTypes.Node
 ): void {
-	// The matched member expression can sit in many different JS or Svelte-template fields
-	// (`init`, `expression`, `value`, event/attribute expressions, array entries, etc.).
-	// Since zimmerframe already gives us the exact parent, replacing by object identity here is
-	// more robust than trying to statically enumerate every possible parent shape.
 	const record = parent as unknown as Record<string, unknown>;
 
 	for (const key in record) {
@@ -396,6 +353,7 @@ function replaceChildNode(
 		}
 	}
 }
+
 function collectEnvVars(envImports: EnvImport[], envVars: Map<string, EnvVar>): void {
 	for (const envImport of envImports) {
 		if (envImport.type === 'static') {
@@ -418,7 +376,7 @@ function collectEnvVars(envImports: EnvImport[], envVars: Map<string, EnvVar>): 
 	}
 }
 
-function addEnvDeclarationFile(ast: AstTypes.Program, envVars: Map<string, EnvVar>): false | void {
+export function addEnvDeclarationFile(ast: AstTypes.Program, envVars: Map<string, EnvVar>): false | void {
 	if (envVars.size === 0) return false;
 
 	js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });
