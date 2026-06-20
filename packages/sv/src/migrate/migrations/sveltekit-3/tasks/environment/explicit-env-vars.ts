@@ -37,14 +37,101 @@ export function migrateExplicitEnvVars(
 	template?: SvelteAst.Fragment,
 	comments?: Comments
 ): boolean {
-	const envImports = collectEnvImports(ast, template, comments);
-	if (envImports === 'migration-task') return true; // comments were added as a side effect
-	if (envImports.length === 0) return false;
+	let mutated = false;
 
-	changeEnvImports(ast, envImports);
-	replaceEnvUsages(envImports);
-	collectEnvVars(envImports, envVars);
-	return true;
+	const envImports = collectEnvImports(ast, template, comments);
+	if (envImports === 'migration-task') {
+		mutated = true; // comments were added as a side effect
+	} else if (envImports.length > 0) {
+		changeEnvImports(ast, envImports);
+		replaceEnvUsages(envImports);
+		collectEnvVars(envImports, envVars);
+		mutated = true;
+	}
+
+	if (migrateDynamicEnvImports(ast, envVars, comments)) mutated = true;
+	if (template && migrateDynamicEnvImports(template, envVars, comments)) mutated = true;
+
+	return mutated;
+}
+
+/**
+ * Rewrite dynamic `import('$env/*')` expressions to `import('$app/env/*')`.
+ * Names destructured from the result are collected for the `src/env.ts` declaration;
+ * other shapes (namespace binding, rest element, computed keys) are flagged for manual work.
+ */
+function migrateDynamicEnvImports(
+	node: AstTypes.Node | SvelteAst.SvelteNode,
+	envVars: Map<string, EnvVar>,
+	comments?: Comments
+): boolean {
+	let mutated = false;
+
+	Walker.walk(node as AstTypes.Node, null, {
+		ImportExpression(
+			importExpression: AstTypes.ImportExpression,
+			walkContext: Walker.Context<AstTypes.Node, null>
+		) {
+			const source = importExpression.source;
+			if (source.type === 'Literal' && typeof source.value === 'string') {
+				const match = source.value.match(/^\$env\/(dynamic|static)\/(public|private)$/);
+				if (match) {
+					const type = match[1] as EnvImport['type'];
+					const scope = match[2] as EnvScope;
+
+					source.value = `$app/env/${scope}`;
+					source.raw = undefined;
+					mutated = true;
+
+					const names = getDestructuredEnvNames(walkContext.path);
+					if (names) {
+						for (const name of names) {
+							envVars.set(name, { type, scope, name });
+						}
+					} else {
+						addUnsupportedDynamicImportComment(
+							comments,
+							findCommentTarget(walkContext.path) ?? importExpression
+						);
+					}
+				}
+			}
+
+			walkContext.next();
+		}
+	});
+
+	return mutated;
+}
+
+function getDestructuredEnvNames(
+	path: Array<AstTypes.Node | SvelteAst.SvelteNode>
+): string[] | undefined {
+	for (let i = path.length - 1; i >= 0; i -= 1) {
+		const node = path[i];
+		if (node.type !== 'VariableDeclarator') continue;
+		if (node.id.type !== 'ObjectPattern') return;
+
+		const names: string[] = [];
+		for (const property of node.id.properties) {
+			if (property.type !== 'Property') return; // RestElement
+			if (property.key.type !== 'Identifier' || property.computed) return;
+			names.push(property.key.name);
+		}
+		return names;
+	}
+}
+
+function addUnsupportedDynamicImportComment(
+	comments: Comments | undefined,
+	node: AstTypes.Node
+): void {
+	if (!comments) return;
+
+	comments.add(node, {
+		type: 'Line',
+		value: ' @migration-task Declare the imported env variables in src/env.ts manually.'
+	});
 }
 
 function collectEnvImports(
