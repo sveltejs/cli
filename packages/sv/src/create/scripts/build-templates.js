@@ -98,8 +98,22 @@ async function generate_templates(dist, shared) {
 			// to be able to develop and deploy the app from here, but have a different
 			// package.json in newly created projects (based on package.template.json)
 			if (name === 'package.template.json') {
+				const packagesDir = path.resolve(pkgRoot, '..', '..', '..');
+				const getVersion = (/** @type {string} */ pkgDir) => {
+					const pkgPath = path.join(packagesDir, pkgDir, 'package.json');
+					return JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version;
+				};
+				const replaceWorkspace = (
+					/** @type {string} */ str,
+					/** @type {string} */ key,
+					/** @type {string} */ version
+				) => {
+					return str.replaceAll(`"${key}": "workspace:*"`, `"${key}": "^${version}"`);
+				};
+
 				let contents = fs.readFileSync(path.join(cwd, name), 'utf8');
-				contents = contents.replace(/workspace:\*/g, 'latest');
+				contents = replaceWorkspace(contents, 'sv', getVersion('sv'));
+				contents = replaceWorkspace(contents, '@sveltejs/sv-utils', getVersion('sv-utils'));
 
 				fs.writeFileSync(path.join(dir, 'package.json'), contents);
 				continue;

@@ -53,11 +53,14 @@ export function createNamed(
 ): AstTypes.ExportNamedDeclaration {
 	const namedExports = node.body.filter((item) => item.type === 'ExportNamedDeclaration');
 	let namedExport = namedExports.find((exportNode) => {
-		if (!exportNode.declaration) return false;
-		const variableDeclaration = exportNode.declaration as AstTypes.VariableDeclaration;
-		const variableDeclarator = variableDeclaration.declarations[0] as AstTypes.VariableDeclarator;
-		const identifier = variableDeclarator.id as AstTypes.Identifier;
-		return identifier.name === options.name;
+		const declaration = exportNode.declaration;
+		if (!declaration) return false;
+		if (declaration.type === 'VariableDeclaration') {
+			const variableDeclarator = declaration.declarations[0] as AstTypes.VariableDeclarator;
+			const identifier = variableDeclarator.id as AstTypes.Identifier;
+			return identifier.name === options.name;
+		}
+		return declaration.id?.name === options.name;
 	});
 
 	if (namedExport) return namedExport;

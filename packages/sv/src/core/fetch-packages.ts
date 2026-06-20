@@ -1,4 +1,4 @@
-import { color, downloadJson, splitVersion } from '@sveltejs/sv-utils';
+import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
@@ -33,13 +33,12 @@ function verifyPackage(addonPkg: Record<string, any>, specifier: string): string
 	}
 
 	// Check version compatibility and warn if there's a major version mismatch
-	const cleanedAddonVersion = addonSvVersion.replace(/^[\^~>=<]+/, '');
-	const addon_major = splitVersion(cleanedAddonVersion).major;
-	const sv_major = splitVersion(pkg.version).major;
+	const addon = coerceVersion(addonSvVersion);
+	const sv_major = coerceVersion(pkg.version).major;
 
-	if (sv_major !== addon_major) {
+	if (sv_major !== addon.major) {
 		return (
-			`${color.addon(specifier)} was built for ${color.warning(`sv@${cleanedAddonVersion}`)} but you're running ${color.addon(`sv@${pkg.version}`)}.\n` +
+			`${color.addon(specifier)} was built for ${color.warning(`sv@${addon.version ?? addonSvVersion}`)} but you're running ${color.addon(`sv@${pkg.version}`)}.\n` +
 			`This may cause compatibility issues. ${color.optional('Run it with the same sv version to avoid issues.')}`
 		);
 	}

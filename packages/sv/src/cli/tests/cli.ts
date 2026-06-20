@@ -37,6 +37,16 @@ describe('cli', () => {
 			]
 		},
 		{
+			projectName: 'create-experimental',
+			args: [
+				'--add',
+				'sveltekit-adapter=adapter:cloudflare+cfTarget:workers',
+				'drizzle=database:sqlite+sqlite:libsql',
+				'better-auth=demo:password,github',
+				'experimental=versions:+features:explicitEnvironmentVariables'
+			]
+		},
+		{
 			projectName: '@my-org/sv',
 			template: 'addon',
 			args: []
@@ -45,7 +55,7 @@ describe('cli', () => {
 
 	it.for(testCases)(
 		'should create a new project with name $projectName',
-		{ timeout: 123_000 },
+		{ timeout: 240_000 },
 		async (testCase) => {
 			const { projectName, args, template = 'minimal' } = testCase;
 
@@ -102,6 +112,15 @@ describe('cli', () => {
 					const { data: generatedPackageJson } = parse.json(generated);
 					// remove @types/node from generated package.json as we test on different node versions
 					delete generatedPackageJson.devDependencies['@types/node'];
+					// Normalize workspace package versions to avoid snapshot drift on version bumps
+					for (const pkg of ['sv', '@sveltejs/sv-utils']) {
+						if (generatedPackageJson.peerDependencies?.[pkg]) {
+							generatedPackageJson.peerDependencies[pkg] = '^0.0.0';
+						}
+						if (generatedPackageJson.devDependencies?.[pkg]) {
+							generatedPackageJson.devDependencies[pkg] = '^0.0.0';
+						}
+					}
 					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
 				}
 
@@ -113,6 +132,14 @@ describe('cli', () => {
 					generated = generated.replace(/sv@\d+\.\d+\.\d+/g, 'sv@0.0.0');
 				}
 
+				// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift
+				if (relativeFile === 'wrangler.jsonc') {
+					generated = generated.replace(
+						/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
+						'"compatibility_date": "2020-01-01"'
+					);
+				}
+
 				await expect(generated).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
@@ -120,9 +147,13 @@ describe('cli', () => {
 			}
 
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
-				await exec('pnpm', ['install', '--no-frozen-lockfile'], {
+				const installResult = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
 					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 				});
+				expect(
+					installResult.exitCode,
+					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`
+				).toBe(0);
 				await exec('pnpm', ['build'], {
 					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
 				});
@@ -138,13 +169,23 @@ describe('cli', () => {
 				).toBe(0);
 			}
 
+			if (projectName === 'create-experimental') {
+				const read = (p: string) => fs.readFileSync(path.resolve(testOutputPath, p), 'utf-8');
+				const envFile = read('src/env.ts');
+				expect(envFile).toContain('defineEnvVars');
+				expect(envFile).toContain('DATABASE_URL');
+				expect(read('src/lib/server/db/index.ts')).toContain("from '$app/env/private'");
+				expect(read('src/lib/server/auth.ts')).toContain("from '$app/env/private'");
+				expect(read('src/lib/server/db/index.ts')).not.toContain('$env/dynamic/private');
+			}
+
 			if (template === 'addon') {
 				// replace sv and sv-utils versions in package.json for tests
 				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
 				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 				packageJson.peerDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['sv'] = 'file:../../../..';
-				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../sv-utils';
+				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../../sv-utils';
 				fs.writeFileSync(
 					packageJsonPath,
 					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
@@ -158,8 +199,18 @@ describe('cli', () => {
 					['run', 'test']
 				];
 				for (const cmd of cmds) {
+					// use npm here so the install doesn't walk up into the monorepo's
+					// pnpm workspace and try to resolve packages from there
 					const res = await exec('npm', cmd, {
-						nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
+						nodeOptions: {
+							stdio: 'pipe',
+							cwd: testOutputPath,
+							env: {
+								...process.env,
+								// allow npm under a repo whose packageManager is pnpm
+								COREPACK_ENABLE_STRICT: '0'
+							}
+						}
 					});
 					expect(
 						res.exitCode,

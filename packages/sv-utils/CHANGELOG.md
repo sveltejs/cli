@@ -1,5 +1,41 @@
 # @sveltejs/sv-utils
 
+## 0.3.0
+### Minor Changes
+
+
+- Add `defineEnv` helper for version-aware environment variable access (`$app/env` or legacy `$env`) ([#1122](https://github.com/sveltejs/cli/pull/1122))
+
+
+- Add `svelteConfig` helper (`find`, `read`, `edit`) to locate and edit the svelte config whether it lives in `svelte.config.{js,ts}` or the `sveltekit()` call in `vite.config.{js,ts}` ([#1119](https://github.com/sveltejs/cli/pull/1119))
+
+## 0.2.2
+### Patch Changes
+
+
+- fix: `js.common.appendFromString` no longer corrupts the output when called multiple times with comments ([#1081](https://github.com/sveltejs/cli/pull/1081))
+
+
+- fix: prevent `js.exports.createNamed` from crashing when the AST contains an exported function or class declaration ([#1084](https://github.com/sveltejs/cli/pull/1084))
+
+
+- fix: `js.imports.addNamed` now respects `isType` when merging into an existing import declaration ([#1080](https://github.com/sveltejs/cli/pull/1080))
+
+
+- fix: `js.object.create` no longer corrupts the AST when an object value contains a `type` property ([#1082](https://github.com/sveltejs/cli/pull/1082))
+
+## 0.2.1
+### Patch Changes
+
+
+- add `minVersion` & `coerceVersion` from `semver`. Deprecate `splitVersion` ([#1069](https://github.com/sveltejs/cli/pull/1069))
+
+
+- handle `pnpm@11`: add `pnpm.allowBuilds` helper that auto-detects the installed pnpm version and writes to `allowBuilds` (pnpm 11+) or the legacy `onlyBuiltDependencies` list (pnpm 10). Deprecate `pnpm.onlyBuiltDependencies` ([#1074](https://github.com/sveltejs/cli/pull/1074))
+
+
+- improve `svelte` version detection ([#1075](https://github.com/sveltejs/cli/pull/1075))
+
 ## 0.2.0
 ### Minor Changes
 

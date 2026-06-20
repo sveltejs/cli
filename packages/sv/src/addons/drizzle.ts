@@ -6,7 +6,9 @@ import {
 	pnpm,
 	resolveCommandArray,
 	fileExists,
-	createPrinter
+	createPrinter,
+	svelteConfig,
+	defineEnv
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -87,6 +89,7 @@ export default defineAddon({
 	setup: ({ isKit, unsupported, runsAfter }) => {
 		runsAfter('prettier');
 		runsAfter('sveltekitAdapter');
+		runsAfter('experimental');
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
@@ -101,10 +104,6 @@ export default defineAddon({
 		file,
 		packageManager
 	}) => {
-		if (options.database === 'd1' && !dependencyVersion('@sveltejs/adapter-cloudflare')) {
-			return cancel('Cloudflare D1 requires @sveltejs/adapter-cloudflare - add the adapter first');
-		}
-
 		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
@@ -123,25 +122,25 @@ export default defineAddon({
 		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// MySQL
-		if (options.mysql === 'mysql2') sv.devDependency('mysql2', '^3.20.0');
+		if (options.mysql === 'mysql2') sv.devDependency('mysql2', '^3.22.4');
 		if (options.mysql === 'planetscale') sv.devDependency('@planetscale/database', '^1.20.1');
 
 		// PostgreSQL
-		if (options.postgresql === 'neon') sv.devDependency('@neondatabase/serverless', '^1.0.2');
+		if (options.postgresql === 'neon') sv.devDependency('@neondatabase/serverless', '^1.1.0');
 		if (options.postgresql === 'postgres.js') sv.devDependency('postgres', '^3.4.9');
 
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
 			// not a devDependency due to bundling issues
-			sv.dependency('better-sqlite3', '^12.8.0');
+			sv.dependency('better-sqlite3', '^12.10.0');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
 			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.onlyBuiltDependencies('better-sqlite3'));
+				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('better-sqlite3'));
 			}
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
-			sv.devDependency('@libsql/client', '^0.17.2');
+			sv.devDependency('@libsql/client', '^0.17.3');
 
 		sv.file('.env', generateEnv(options, false));
 		sv.file('.env.example', generateEnv(options, true));
@@ -301,23 +300,15 @@ export default defineAddon({
 			})
 		);
 
-		sv.file(
-			file.svelteConfig,
-			transforms.script(({ ast, js }) => {
-				const { value: config } = js.exports.createDefault(ast, {
-					fallback: js.object.create({})
-				});
-				js.object.overrideProperties(config, {
-					kit: {
-						typescript: {
-							config: js.common.parseExpression(
-								`(config) => ({ ...config, include: [...config.include, '../drizzle.config.${language}'] })`
-							)
-						}
-					}
-				});
-			})
-		);
+		svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
+			override({
+				typescript: {
+					config: js.common.parseExpression(
+						`(config) => ({ ...config, include: [...config.include, '../drizzle.config.${language}'] })`
+					)
+				}
+			});
+		});
 
 		sv.file(
 			paths['database schema'],
@@ -373,6 +364,17 @@ export default defineAddon({
 			})
 		);
 
+		const env = defineEnv({ sv, cwd, dependencyVersion });
+		if (options.database !== 'd1') {
+			env.define({ name: 'DATABASE_URL', description: 'The database connection string.' });
+			if (options.sqlite === 'turso') {
+				env.define({
+					name: 'DATABASE_AUTH_TOKEN',
+					description: 'Auth token for the [Turso](https://turso.tech) database.'
+				});
+			}
+		}
+
 		sv.file(
 			paths.database,
 			transforms.script(({ ast, js }) => {
@@ -389,14 +391,12 @@ export default defineAddon({
 					return;
 				}
 
-				js.imports.addNamed(ast, { from: '$env/dynamic/private', imports: ['env'] });
+				const dbUrl = env.reference(ast, js, { name: 'DATABASE_URL' });
 				js.imports.addNamespace(ast, { from: './schema', as: 'schema' });
 
-				// env var checks
-				const dbURLCheck = js.common.parseStatement(
-					"if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');"
+				ast.body.push(
+					js.common.parseStatement(`if (!${dbUrl}) throw new Error('DATABASE_URL is not set');`)
 				);
-				ast.body.push(dbURLCheck);
 
 				let clientExpression;
 				// SQLite
@@ -407,7 +407,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('new Database(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`new Database(${dbUrl})`);
 				}
 				if (options.sqlite === 'libsql' || options.sqlite === 'turso') {
 					js.imports.addNamed(ast, {
@@ -420,16 +420,17 @@ export default defineAddon({
 					});
 
 					if (options.sqlite === 'turso') {
+						const dbToken = env.reference(ast, js, { name: 'DATABASE_AUTH_TOKEN' });
 						ast.body.push(
 							js.common.parseStatement(
-								"if (!env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');"
+								`if (!${dbToken}) throw new Error('DATABASE_AUTH_TOKEN is not set');`
 							)
 						);
 						clientExpression = js.common.parseExpression(
-							'createClient({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN })'
+							`createClient({ url: ${dbUrl}, authToken: ${dbToken} })`
 						);
 					} else {
-						clientExpression = js.common.parseExpression('createClient({ url: env.DATABASE_URL })');
+						clientExpression = js.common.parseExpression(`createClient({ url: ${dbUrl} })`);
 					}
 				}
 				// MySQL
@@ -440,7 +441,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('mysql.createPool(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`mysql.createPool(${dbUrl})`);
 				}
 				// PostgreSQL
 				if (options.postgresql === 'neon') {
@@ -453,7 +454,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('neon(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`neon(${dbUrl})`);
 				}
 				if (options.postgresql === 'postgres.js') {
 					js.imports.addDefault(ast, { from: 'postgres', as: 'postgres' });
@@ -462,7 +463,7 @@ export default defineAddon({
 						imports: ['drizzle']
 					});
 
-					clientExpression = js.common.parseExpression('postgres(env.DATABASE_URL)');
+					clientExpression = js.common.parseExpression(`postgres(${dbUrl})`);
 				}
 
 				if (!clientExpression) throw new Error('unreachable state...');
@@ -508,15 +509,20 @@ export default defineAddon({
 		);
 	},
 
-	nextSteps: ({ options, packageManager, cwd }) => {
+	nextSteps: ({ options, packageManager, cwd, dependencyVersion }) => {
 		const steps: string[] = [];
 		if (options.database === 'd1') {
+			if (!dependencyVersion('@sveltejs/adapter-cloudflare')) {
+				steps.push(
+					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${color.command(resolveCommandArray(packageManager, 'execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare']))} to add it`
+				);
+			}
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
 			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+				`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
 

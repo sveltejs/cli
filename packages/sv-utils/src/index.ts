@@ -67,13 +67,25 @@ export const parse = {
 };
 
 // Utilities
-export { splitVersion, isVersionUnsupportedBelow } from './common.ts';
+export { splitVersion, coerceVersion, isVersionUnsupportedBelow, minVersion } from './semver.ts';
 export { createPrinter } from './utils.ts';
 export { sanitizeName } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
 
 // File system helpers (sync, workspace-relative paths)
 export { fileExists, loadFile, loadPackageJson, saveFile, type Package } from './files.ts';
+
+// Svelte/kit config (abstracts over `svelte.config.{js,ts}` vs `sveltekit()` in `vite.config.{js,ts}`)
+export {
+	svelteConfig,
+	type ConfigFileReader,
+	type SvelteConfigKind,
+	type SvelteConfigLocation,
+	type SvelteConfigObjects
+} from './svelte-config.ts';
+
+// Env access (abstracts over legacy `$env/dynamic/*` vs declared `$app/env/*` + `src/env.ts`)
+export { defineEnv } from './env.ts';
 
 // Terminal styling
 export { color } from './color.ts';
