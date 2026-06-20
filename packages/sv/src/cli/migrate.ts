@@ -1,6 +1,7 @@
 import * as p from '@clack/prompts';
 import { color, loadPackageJson, type Package } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
+import path from 'node:path';
 import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
@@ -136,18 +137,20 @@ export const migrate = new Command('migrate')
 		});
 	});
 
-function ensureValidWorkspace(cwd: string) {
-	const { data: pkg } = loadPackageJson(cwd);
-	if (!pkg) {
-		common.errorAndExit(`Failed to load package.json at ${cwd}.`);
-		return;
-	}
+function ensureValidWorkspace(cwd: string): Package | undefined {
+	// loadPackageJson throws when there's no package.json at all
+	let pkg: Package | undefined;
+	try {
+		pkg = loadPackageJson(cwd).data;
+	} catch {}
 
-	if (!pkg.devDependencies?.['svelte'] && !pkg.devDependencies?.['@sveltejs/kit']) {
-		common.errorAndExit(`No svelte or @sveltejs/kit dependency found in package.json at ${cwd}.`);
-	}
+	const deps = pkg?.devDependencies ?? {};
+	if (deps['svelte'] || deps['@sveltejs/kit']) return pkg;
 
-	return pkg;
+	common.errorAndExit(
+		`${path.resolve(cwd)} is not a Svelte(Kit) project.\n` +
+			`Point to one with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
+	);
 }
 
 async function determineTasks(
@@ -164,7 +167,12 @@ async function determineTasks(
 		}
 	};
 
-	migration.setup(setupOptions);
+	try {
+		migration.setup(setupOptions);
+	} catch (err) {
+		common.errorAndExit(err instanceof Error ? err.message : String(err));
+		return;
+	}
 
 	if (requiredMigrations.length > 0) {
 		common.errorAndExit(
