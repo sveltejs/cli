@@ -18,11 +18,10 @@ export default defineConfig({
 			preprocess: [mdsvex({ extensions: ['.svx', '.md'] })],
 			extensions: ['.svelte', '.svx', '.md'],
 			typescript: {
-				config: (config) => ({
-					...config,
-					include: [...config.include, '../drizzle.config.ts']
-				})
-			}
+				config: (config) => {
+					config.include.push('../drizzle.config.ts');
+				}
+			}// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 		}),
 		paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide' })
 	],

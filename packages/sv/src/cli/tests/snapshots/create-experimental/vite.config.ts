@@ -12,11 +12,10 @@ export default defineConfig({
 			adapter: adapter(),
 			experimental: { explicitEnvironmentVariables: true },
 			typescript: {
-				config: (config) => ({
-					...config,
-					include: [...config.include, '../drizzle.config.ts']
-				})
-			}
+				config: (config) => {
+					config.include.push('../drizzle.config.ts');
+				}
+			}// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 		})
 	]
 });
