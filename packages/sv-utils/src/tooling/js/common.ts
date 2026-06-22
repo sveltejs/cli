@@ -153,7 +153,8 @@ function maxLine(node: AstTypes.Node, comments: AstTypes.Comment[]): number {
 
 export function parseExpression(code: string): AstTypes.Expression {
 	const { ast } = parseScript(dedent(code));
-	stripAst(ast, ['raw']);
+	// Drop positions: this node is spliced elsewhere, so its `loc` only makes esrap mis-bind comments.
+	stripAst(ast, ['raw', 'loc', 'start', 'end', 'range']);
 	const statement = ast.body[0]!;
 	if (statement.type !== 'ExpressionStatement') {
 		throw new Error('Code provided was not an expression');

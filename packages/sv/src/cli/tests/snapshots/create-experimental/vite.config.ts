@@ -15,7 +15,7 @@ export default defineConfig({
 				config: (config) => {
 					config.include.push('../drizzle.config.ts');
 				}
-			}// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+			}
 		})
 	]
 });
