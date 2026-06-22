@@ -1,4 +1,4 @@
-import { svelteConfig, transforms } from '@sveltejs/sv-utils';
+import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineMigrationTask } from '../../../index.ts';
@@ -21,7 +21,7 @@ export default defineMigrationTask({
 		// delete the original config file, so that the we will use the vite config afterwards
 		fs.unlinkSync(path.join(cwd, configSource.path));
 
-		svelteConfig.edit({ sv, cwd }, ({ ast, override }) => {
+		svelteConfig.edit({ sv, cwd }, ({ ast, override, comments }) => {
 			// detect original imports and preserve them in the new config
 			const originalImports = originalConfigObject.ast.body.filter(
 				(node) => node.type === 'ImportDeclaration'
@@ -35,16 +35,41 @@ export default defineMigrationTask({
 				...originalConfigObject.kit.properties
 			];
 			const keyedConfig: Record<string, any> = [];
+			let trustsAllOrigins = false;
 
 			for (const prop of newConfigProperties) {
 				if (prop.type !== 'Property') continue;
 				if (prop.key.type !== 'Identifier') continue;
 				if (prop.key.name === 'kit') continue;
 
+				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now `trustedOrigins: ['*']`
+				if (prop.key.name === 'csrf' && isCheckOriginDisabled(prop.value)) {
+					keyedConfig['trustedOrigins'] = ['*'];
+					trustsAllOrigins = true;
+					continue;
+				}
+
 				keyedConfig[prop.key.name] = prop.value;
 			}
 
 			override(keyedConfig);
+
+			// trusting all origins is generally not recommended, so flag the generated property for review.
+			// `override` builds the node, so we locate it afterwards to attach the leading comment
+			if (trustsAllOrigins) {
+				Walker.walk(ast as AstTypes.Node, null, {
+					Property(node: AstTypes.Property, { next }: Walker.Context<AstTypes.Node, null>) {
+						if (node.key.type === 'Identifier' && node.key.name === 'trustedOrigins') {
+							comments.add(node, {
+								type: 'Line',
+								value:
+									" @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf"
+							});
+						}
+						next();
+					}
+				});
+			}
 		});
 
 		// other files may import from the now-deleted svelte.config (e.g. eslint.config.js passing
@@ -73,3 +98,15 @@ export default defineMigrationTask({
 		);
 	}
 });
+
+function isCheckOriginDisabled(value: AstTypes.Property['value']): boolean {
+	if (value.type !== 'ObjectExpression') return false;
+	return value.properties.some(
+		(p) =>
+			p.type === 'Property' &&
+			p.key.type === 'Identifier' &&
+			p.key.name === 'checkOrigin' &&
+			p.value.type === 'Literal' &&
+			p.value.value === false
+	);
+}

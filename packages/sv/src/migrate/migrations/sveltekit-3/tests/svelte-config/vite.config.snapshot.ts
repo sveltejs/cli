@@ -14,6 +14,8 @@ export default defineConfig({
 			compilerOptions: { experimental: { async: true } },
 			vitePlugin: { inspector: {}, onwarn },
 			experimental: { remoteFunctions: true },
+			// @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf
+			trustedOrigins: ['*'],
 			adapter: adapter()
 		}),
 		devtoolsJson()

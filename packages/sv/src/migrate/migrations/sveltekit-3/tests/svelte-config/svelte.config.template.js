@@ -12,6 +12,9 @@ const config = {
 		experimental: {
 			remoteFunctions: true
 		},
+		csrf: {
+			checkOrigin: false
+		},
 		adapter: adapter()
 	},
 	compilerOptions: {
