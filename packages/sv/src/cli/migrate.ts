@@ -232,7 +232,7 @@ async function determineTasks(
 
 	const recapMessage = tasksToRun
 		.map(({ id, description, required }) => {
-			const tag = required ? '' : color.cyan(' (optional)');
+			const tag = required ? '' : color.optional(' (optional)');
 			return `${id}${tag} ${color.dim(`(${description})`)}`;
 		})
 		.join('\n- ');
