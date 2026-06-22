@@ -151,7 +151,7 @@ function ensureValidWorkspace(cwd: string): Package | undefined {
 	} catch {
 		common.errorAndExit(
 			`No package.json found in ${path.resolve(cwd)}.\n` +
-			`Point to a project with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
+				`Point to a project with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
 		);
 	}
 }
