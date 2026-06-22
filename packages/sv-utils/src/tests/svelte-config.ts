@@ -179,6 +179,37 @@ describe('svelteConfig.edit routing', () => {
 		expect(result.indexOf('alias:')).toBeGreaterThan(result.indexOf('kit:'));
 	});
 
+	test('nests onwarn under vitePlugin (vite location)', () => {
+		const result = applyEdit(VITE_CONFIG, 'vite', ({ override }) => {
+			override({ onwarn: { type: 'Identifier', name: 'onwarn' } });
+		});
+		if (!result) throw new Error('Edit failed or not required');
+		expect(result).toMatch(/vitePlugin:\s*\{[\s\S]*onwarn/);
+	});
+
+	test('merges onwarn into an existing vitePlugin object (vite location)', () => {
+		const result = applyEdit(VITE_CONFIG, 'vite', ({ override, js }) => {
+			override({
+				vitePlugin: js.object.create({ inspector: js.object.create({}) }),
+				onwarn: { type: 'Identifier', name: 'onwarn' }
+			});
+		});
+		if (!result) throw new Error('Edit failed or not required');
+		// a single vitePlugin holding both, not two separate ones
+		expect(result.match(/vitePlugin:/g)?.length).toBe(1);
+		expect(result).toContain('inspector');
+		expect(result).toContain('onwarn');
+	});
+
+	test('keeps onwarn at the config root (svelte.config location)', () => {
+		const result = applyEdit(SVELTE_CONFIG, 'svelte', ({ override }) => {
+			override({ onwarn: { type: 'Identifier', name: 'onwarn' } });
+		});
+		if (!result) throw new Error('Edit failed or not required');
+		expect(result).toContain('onwarn');
+		expect(result).not.toContain('vitePlugin');
+	});
+
 	test('edits an aliased sveltekit() in an arrow defineConfig', () => {
 		const result = applyEdit(VITE_CONFIG_ALIASED, 'vite', ({ override, js }) => {
 			override({

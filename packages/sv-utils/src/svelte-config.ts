@@ -174,7 +174,16 @@ function editContent(
 		// svelte-only edit (e.g. mdsvex) doesn't leave a spurious empty `kit: {}` behind
 		let kit: AstTypes.ObjectExpression | undefined;
 		const kitObject = () => (kit ??= getKitObject(config, location.kind));
-		const containerFor = (name: string) => (SVELTE_LEVEL_OPTIONS.has(name) ? config : kitObject());
+
+		// the `sveltekit()` arg omits `onwarn` (`KitConfig & Omit<SvelteConfig, 'onwarn'>`), so in a
+		// `vite.config` it has to be nested under `vitePlugin` instead of the root
+		const onwarnIsNested = (name: string) => name === 'onwarn' && location.kind === 'vite';
+		const vitePluginObject = () =>
+			js.object.property(config, { name: 'vitePlugin', fallback: js.object.create({}) });
+		const containerFor = (name: string) => {
+			if (onwarnIsNested(name)) return vitePluginObject();
+			return SVELTE_LEVEL_OPTIONS.has(name) ? config : kitObject();
+		};
 
 		const property: Parameters<SvelteConfEdit>[0]['property'] = (name, opts) =>
 			js.object.property(containerFor(name), { name, ...opts });
@@ -182,11 +191,16 @@ function editContent(
 		const override: Parameters<SvelteConfEdit>[0]['override'] = (props, opts) => {
 			const svelteProps: ObjectMap = {};
 			const kitProps: ObjectMap = {};
+			let nestedOnwarn: ObjectMap[string] | undefined;
 			for (const [key, value] of Object.entries(props)) {
-				(SVELTE_LEVEL_OPTIONS.has(key) ? svelteProps : kitProps)[key] = value;
+				if (onwarnIsNested(key)) nestedOnwarn = value;
+				else (SVELTE_LEVEL_OPTIONS.has(key) ? svelteProps : kitProps)[key] = value;
 			}
 			if (Object.keys(svelteProps).length) js.object.overrideProperties(config, svelteProps);
 			if (Object.keys(kitProps).length) js.object.overrideProperties(kitObject(), kitProps);
+			// last, so it merges into a `vitePlugin` an earlier prop may have just written
+			if (nestedOnwarn !== undefined)
+				js.object.overrideProperties(vitePluginObject(), { onwarn: nestedOnwarn });
 			for (const name of opts?.dropLeadingComments ?? []) {
 				dropLeadingComments(containerFor(name), name, comments);
 			}
