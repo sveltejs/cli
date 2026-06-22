@@ -1,7 +1,7 @@
 import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineMigrationTask } from '../../../index.ts';
+import { addMigrationTask, defineMigrationTask } from '../../../index.ts';
 
 // matches `svelte.config`, optionally with a (m/c)js/ts extension, at the end of an import source
 const SVELTE_CONFIG_IMPORT = /(^|\/)svelte\.config(\.[mc]?[jt]s)?$/;
@@ -60,11 +60,11 @@ export default defineMigrationTask({
 				Walker.walk(ast as AstTypes.Node, null, {
 					Property(node: AstTypes.Property, { next }: Walker.Context<AstTypes.Node, null>) {
 						if (node.key.type === 'Identifier' && node.key.name === 'trustedOrigins') {
-							comments.add(node, {
-								type: 'Line',
-								value:
-									" @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf"
-							});
+							addMigrationTask(
+								comments,
+								node,
+								"trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf"
+							);
 						}
 						next();
 					}
@@ -84,14 +84,14 @@ export default defineMigrationTask({
 				// eslint no longer needs the config: svelte-eslint-parser falls back to its defaults.
 				// Anything else should read the config at runtime via `@sveltejs/load-config`.
 				const message = /(^|\/)eslint\.config\.[mc]?[jt]s$/.test(filePath)
-					? ' @migration-task svelteConfig should not be needed anymore, see https://github.com/sveltejs/eslint-plugin-svelte/issues/1550'
-					: " @migration-task svelte.config was removed; switch to `import { loadConfig } from '@sveltejs/load-config'` to read your config";
+					? 'svelteConfig should not be needed anymore, see https://github.com/sveltejs/eslint-plugin-svelte/issues/1550'
+					: "svelte.config was removed; switch to `import { loadConfig } from '@sveltejs/load-config'` to read your config";
 
 				return transforms.script(({ ast, comments, js }) => {
 					const found = js.imports.findAll(ast, { from: SVELTE_CONFIG_IMPORT });
 					if (found.length === 0) return false;
 					for (const imp of found) {
-						comments.add(imp.node, { type: 'Line', value: message });
+						addMigrationTask(comments, imp.node, message);
 					}
 				})(content);
 			}

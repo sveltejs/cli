@@ -15,11 +15,14 @@ import {
 } from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory } from '../core/verifiers.ts';
 import { createWorkspace } from '../core/workspace.ts';
-import type {
-	Migration,
-	MigrationCollectOptions,
-	MigrationSetupOptions,
-	TaskWithOptions
+import {
+	MIGRATION_TASK_MARKER,
+	getMigrationTaskCount,
+	resetMigrationTaskCount,
+	type Migration,
+	type MigrationCollectOptions,
+	type MigrationSetupOptions,
+	type TaskWithOptions
 } from '../migrate/index.ts';
 import { legacyMigrations } from '../migrate/migrations/legacy-migrations/index.ts';
 import kit3 from '../migrate/migrations/sveltekit-3/index.ts';
@@ -105,13 +108,14 @@ export const migrate = new Command('migrate')
 
 			if (migration.changelog) {
 				p.log.warn(
-					`Make sure to read the changelog for this migration before running it: ${migration.changelog}`
+					`Make sure to read the changelog for this migration before running it: ${color.website(migration.changelog)}`
 				);
 			}
 
 			const tasks = await determineTasks(migration, verifiedOptions, pkg);
 			if (!tasks) return;
 
+			resetMigrationTaskCount();
 			const modifiedFiles = await applyTasks(verifiedOptions, tasks, legacyMigration);
 			if (legacyMigration) return;
 
@@ -134,6 +138,8 @@ export const migrate = new Command('migrate')
 			if (packageManager) {
 				await installDependencies(packageManager, workspace.cwd);
 			}
+
+			reportNextSteps(migration.changelog);
 		});
 	});
 
@@ -145,7 +151,7 @@ function ensureValidWorkspace(cwd: string): Package | undefined {
 	} catch {
 		common.errorAndExit(
 			`No package.json found in ${path.resolve(cwd)}.\n` +
-				`Point to a project with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
+			`Point to a project with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
 		);
 	}
 }
@@ -286,6 +292,20 @@ export function selectOptionalTasksFromArgs(
 	}
 
 	return optionalTasks.filter((task) => selectedTaskIds.includes(task.id));
+}
+
+/** Prints a summary of the `@migration-task` comments left for the user to resolve, if any. */
+function reportNextSteps(changelog?: string): void {
+	const total = getMigrationTaskCount();
+	if (total === 0) return;
+
+	const body = [
+		`${total} ${total === 1 ? 'comment' : 'comments'} to review.`,
+		`Search for ${color.command(MIGRATION_TASK_MARKER)} to resolve ${total === 1 ? 'it' : 'them'}.`
+	];
+	if (changelog) body.push('', `Changelog: ${color.website(changelog)}`);
+
+	p.note(body.join('\n'), 'Next steps', { format: (line) => line });
 }
 
 export function hasInstallConflict(argv: string[]) {

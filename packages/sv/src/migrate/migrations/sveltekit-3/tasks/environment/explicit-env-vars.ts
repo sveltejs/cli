@@ -1,4 +1,5 @@
 import { Walker, js, type AstTypes, type Comments, type SvelteAst } from '@sveltejs/sv-utils';
+import { addMigrationTask } from '../../../../index.ts';
 
 type UsageInfo = {
 	node: AstTypes.Expression;
@@ -115,10 +116,7 @@ function addUnsupportedDynamicImportComment(
 ): void {
 	if (!comments) return;
 
-	comments.add(node, {
-		type: 'Line',
-		value: ' @migration-task Declare the imported env variables in src/env.ts manually.'
-	});
+	addMigrationTask(comments, node, 'Declare the imported env variables in src/env.ts manually.');
 }
 
 function collectEnvImports(
@@ -274,10 +272,7 @@ function addUnsupportedDynamicEnvComment(
 ): void {
 	if (!comments) return;
 
-	comments.add(node, {
-		type: 'Line',
-		value: ' @migration-task Rewrite dynamic env lookup manually.'
-	});
+	addMigrationTask(comments, node, 'Rewrite dynamic env lookup manually.');
 }
 
 function findCommentTarget(

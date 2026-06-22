@@ -1,6 +1,12 @@
+import type { Comments } from '@sveltejs/sv-utils';
 import process from 'node:process';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { TaskWithOptions } from '../../migrate/index.ts';
+import {
+	addMigrationTask,
+	getMigrationTaskCount,
+	resetMigrationTaskCount,
+	type TaskWithOptions
+} from '../../migrate/index.ts';
 import { hasInstallConflict, selectOptionalTasksFromArgs } from '../migrate.ts';
 
 const optionalTasks: TaskWithOptions[] = [
@@ -56,6 +62,30 @@ describe('selectTasks', () => {
 	it('exits for unknown task ids', () => {
 		mockExit();
 		expect(() => selectOptionalTasksFromArgs(['missing'], optionalTasks)).toThrow('exit 1');
+	});
+});
+
+describe('migration task tally', () => {
+	// a `Comments` stub: addMigrationTask only needs `add`
+	const comments = { add: () => {} } as unknown as Comments;
+	const node = {} as Parameters<typeof addMigrationTask>[1];
+
+	afterEach(() => resetMigrationTaskCount());
+
+	it('increments the count each time a migration task is added', () => {
+		resetMigrationTaskCount();
+		expect(getMigrationTaskCount()).toBe(0);
+
+		addMigrationTask(comments, node, 'do this');
+		addMigrationTask(comments, node, 'do that');
+
+		expect(getMigrationTaskCount()).toBe(2);
+	});
+
+	it('resets the count back to zero', () => {
+		addMigrationTask(comments, node, 'do this');
+		resetMigrationTaskCount();
+		expect(getMigrationTaskCount()).toBe(0);
 	});
 });
 
