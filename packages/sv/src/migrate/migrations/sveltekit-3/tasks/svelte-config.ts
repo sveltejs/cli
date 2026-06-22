@@ -1,7 +1,10 @@
-import { svelteConfig } from '@sveltejs/sv-utils';
+import { svelteConfig, transforms } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineMigrationTask } from '../../../index.ts';
+
+// matches `svelte.config`, optionally with a (m/c)js/ts extension, at the end of an import source
+const SVELTE_CONFIG_IMPORT = /(^|\/)svelte\.config(\.[mc]?[jt]s)?$/;
 
 export default defineMigrationTask({
 	id: 'svelte-config',
@@ -43,5 +46,30 @@ export default defineMigrationTask({
 
 			override(keyedConfig);
 		});
+
+		// other files may import from the now-deleted svelte.config (e.g. eslint.config.js passing
+		// `svelteConfig` to the parser). There's no importable config once it lives in vite.config,
+		// so flag every such import for manual handling.
+		sv.files(
+			{
+				include: '**/*.{js,ts,mjs,mts,cjs,cts}',
+				where: (content) => content.includes('svelte.config')
+			},
+			(content, filePath) => {
+				// eslint no longer needs the config: svelte-eslint-parser falls back to its defaults.
+				// Anything else should read the config at runtime via `@sveltejs/load-config`.
+				const message = /(^|\/)eslint\.config\.[mc]?[jt]s$/.test(filePath)
+					? ' @migration-task svelteConfig should not be needed anymore, see https://github.com/sveltejs/eslint-plugin-svelte/issues/1550'
+					: " @migration-task svelte.config was removed; switch to `import { loadConfig } from '@sveltejs/load-config'` to read your config";
+
+				return transforms.script(({ ast, comments, js }) => {
+					const found = js.imports.findAll(ast, { from: SVELTE_CONFIG_IMPORT });
+					if (found.length === 0) return false;
+					for (const imp of found) {
+						comments.add(imp.node, { type: 'Line', value: message });
+					}
+				})(content);
+			}
+		);
 	}
 });
