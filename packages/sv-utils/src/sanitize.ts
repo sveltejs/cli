@@ -55,8 +55,14 @@ function toLines(value: string): string[] {
  * Brand-new files (no original to diff against) are kept verbatim: their blank lines are authored
  * layout, not printer churn, so stripping them would mangle generated markdown, env files, etc.
  */
+// `diffLines` is O(N·D) in the number of differing lines, which explodes on large, heavily
+// reformatted files (e.g. a minified bundle reprinted by a pretty-printer). Past this size we skip
+// minimization and keep the printer's output verbatim rather than hanging.
+const MAX_DIFF_INPUT_BYTES = 512 * 1024;
+
 export function minimizeDiff(old: string, updated: string): string {
 	if (isOnlyWhitespace(old)) return updated;
+	if (old.length > MAX_DIFF_INPUT_BYTES || updated.length > MAX_DIFF_INPUT_BYTES) return updated;
 
 	// Normalize line endings first: on Windows the original is often CRLF while the printer emits LF,
 	// which would make every line differ and collapse the diff, defeating the restoration below.

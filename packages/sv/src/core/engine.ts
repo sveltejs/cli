@@ -334,6 +334,8 @@ export function prepareSvApi(
 					'**/node_modules/**',
 					'.*/**',
 					'**/.*/**',
+					'build/**',
+					'dist/**',
 					...(options.additionalExcludes ?? []),
 					...(exclude ?? [])
 				]
