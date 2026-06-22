@@ -24,7 +24,7 @@ export default defineMigration({
 	},
 	collect: ({ tasks }) => {
 		tasks.add(packageJson, { required: true });
-		tasks.add(svelteConfig, { required: false });
+		tasks.add(svelteConfig, { required: true });
 		tasks.add(environment, { required: false });
 	}
 });
