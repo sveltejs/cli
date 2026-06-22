@@ -199,18 +199,24 @@ async function determineTasks(
 	const requiredTasks = allTasks.filter((t) => t.required);
 	const optionalTasks = allTasks.filter((t) => !t.required);
 
+	if (requiredTasks.length > 0) {
+		const requiredMessage = requiredTasks
+			.map(({ id, description }) => `${id} ${color.dim(`(${description})`)}`)
+			.join('\n- ');
+		p.note(`- ${requiredMessage}`, 'Mandatory migration tasks', { format: (line) => line });
+	}
+
 	const tasksToRun = [...requiredTasks];
 	if (options.tasks) {
 		tasksToRun.push(...selectOptionalTasksFromArgs(options.tasks, optionalTasks));
 	} else if (optionalTasks.length > 0) {
 		const optionalTaskIdsToRun = await p.multiselect({
-			message: 'Select the tasks to run',
+			message: 'Select the optional tasks to run',
 			options: optionalTasks.map((t) => ({
 				value: t.id,
 				label: t.id,
 				hint: t.description
 			})),
-			initialValues: optionalTasks.filter((t) => t.required).map((t) => t.id),
 			required: false
 		});
 
@@ -227,11 +233,6 @@ async function determineTasks(
 		common.errorAndExit('No tasks selected to run.');
 		return;
 	}
-
-	const tasksMessage = tasksToRun
-		.map(({ id, description }) => `${id} ${color.dim(`(${description})`)}`)
-		.join('\n- ');
-	p.note(`- ${tasksMessage}`, 'Migration steps', { format: (line) => line });
 
 	if (!options.confirm) {
 		const proceed = await p.confirm({
