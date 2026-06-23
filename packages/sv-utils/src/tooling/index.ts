@@ -230,6 +230,11 @@ export class Comments {
 		this.trailing = new WeakMap();
 	}
 
+	/** The raw comments parsed from the source (with positions), in source order. */
+	list(): readonly SvelteAst.JSComment[] {
+		return this.original;
+	}
+
 	add(node: BaseNode, comment: CommentType, options?: { position?: 'leading' | 'trailing' }): void {
 		const { position = 'leading' } = options ?? {};
 		const map = position === 'leading' ? this.leading : this.trailing;

@@ -3,8 +3,9 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { onwarn } from './config.logger.js';
 import { helper } from './my-helper.js';
 
+// derive paths and adapter config from the environment
 const { paths, adapterConfig } = helper(process.env['SOME_ENV_VAR']);
-const base = process.env['VITEST'] ? '' : '/some-base';
+const base = process.env['VITEST'] ? '' : '/some-base'; // empty base while testing
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -14,12 +15,13 @@ const config = {
 	onwarn,
 	kit: {
 		experimental: {
-			remoteFunctions: true
+			remoteFunctions: true // still experimental
 		},
 		csrf: {
 			checkOrigin: false
 		},
 		paths: { ...paths, base },
+		// adapter is selected via the helper above
 		adapter: adapter(adapterConfig)
 	},
 	compilerOptions: {

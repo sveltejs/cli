@@ -153,6 +153,8 @@ declare class Comments {
 	private leading;
 	private trailing;
 	constructor();
+
+	list(): readonly SvelteAst.JSComment[];
 	add(
 		node: BaseNode$1,
 		comment: CommentType,
@@ -822,6 +824,7 @@ type SvelteConfigObjects = {
 	config: estree.ObjectExpression;
 	kit: estree.ObjectExpression;
 	ast: estree.Program;
+	comments: Comments;
 };
 
 type ConfigFileReader = (path: string) => string | null;

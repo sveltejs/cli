@@ -31,6 +31,8 @@ export type SvelteConfigObjects = {
 	kit: AstTypes.ObjectExpression;
 	/** the full config file's AST */
 	ast: AstTypes.Program;
+	/** the comments parsed from the config file, so callers can preserve them when moving nodes */
+	comments: Comments;
 };
 
 /** Reads a workspace file. Returns `null` when the file doesn't exist. (the injected environment) */
@@ -66,11 +68,14 @@ const SVELTE_LEVEL_OPTIONS = new Set([
 const SVELTE_CANDIDATES = ['svelte.config.js', 'svelte.config.ts'] as const;
 const VITE_CANDIDATES = ['vite.config.ts', 'vite.config.js'] as const;
 
-function tryParse(read: ConfigFileReader, path: string): AstTypes.Program | undefined {
+type ParsedConfig = { ast: AstTypes.Program; comments: Comments };
+
+function tryParse(read: ConfigFileReader, path: string): ParsedConfig | undefined {
 	const source = read(path);
 	if (source === null) return undefined;
 	try {
-		return parseScript(source).ast;
+		const { ast, comments } = parseScript(source);
+		return { ast, comments };
 	} catch {
 		return undefined;
 	}
@@ -79,14 +84,18 @@ function tryParse(read: ConfigFileReader, path: string): AstTypes.Program | unde
 /** Detects the config location AND keeps the parsed AST, so callers don't have to parse twice. */
 function locate(
 	read: ConfigFileReader
-): { location: SvelteConfigLocation; ast: AstTypes.Program } | null {
+): { location: SvelteConfigLocation; ast: AstTypes.Program; comments: Comments } | null {
 	for (const path of SVELTE_CANDIDATES) {
-		const ast = tryParse(read, path);
-		if (ast && hasDefaultExport(ast)) return { location: { path, kind: 'svelte' }, ast };
+		const parsed = tryParse(read, path);
+		if (parsed && hasDefaultExport(parsed.ast)) {
+			return { location: { path, kind: 'svelte' }, ...parsed };
+		}
 	}
 	for (const path of VITE_CANDIDATES) {
-		const ast = tryParse(read, path);
-		if (ast && findSveltekitCall(ast)) return { location: { path, kind: 'vite' }, ast };
+		const parsed = tryParse(read, path);
+		if (parsed && findSveltekitCall(parsed.ast)) {
+			return { location: { path, kind: 'vite' }, ...parsed };
+		}
 	}
 	return null;
 }
@@ -111,7 +120,7 @@ function read(source: ConfigSource): SvelteConfigObjects | null {
 	if (!found) return null;
 	const config = getConfigRoot(found.ast, found.location.kind);
 	const kit = getKitObject(config, found.location.kind);
-	return { location: found.location, config, kit, ast: found.ast };
+	return { location: found.location, config, kit, ast: found.ast, comments: found.comments };
 }
 
 export type SvelteConfEdit = (file: {
