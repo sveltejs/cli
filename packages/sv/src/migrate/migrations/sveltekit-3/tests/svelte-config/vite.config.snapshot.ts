@@ -1,11 +1,14 @@
 import adapter from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { onwarn } from './config.logger.js';
+import { helper } from './my-helper.js';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
 
+const { paths, adapterConfig } = helper(process.env['SOME_ENV_VAR']);
+const base = process.env['VITEST'] ? '' : '/some-base';
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
@@ -16,7 +19,8 @@ export default defineConfig({
 			experimental: { remoteFunctions: true },
 			// @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf
 			trustedOrigins: ['*'],
-			adapter: adapter()
+			paths: { ...paths, base },
+			adapter: adapter(adapterConfig)
 		}),
 		devtoolsJson()
 	]

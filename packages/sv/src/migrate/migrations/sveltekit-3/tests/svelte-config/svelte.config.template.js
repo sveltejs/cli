@@ -1,6 +1,10 @@
 import adapter from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { onwarn } from './config.logger.js';
+import { helper } from './my-helper.js';
+
+const { paths, adapterConfig } = helper(process.env['SOME_ENV_VAR']);
+const base = process.env['VITEST'] ? '' : '/some-base';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -15,7 +19,8 @@ const config = {
 		csrf: {
 			checkOrigin: false
 		},
-		adapter: adapter()
+		paths: { ...paths, base },
+		adapter: adapter(adapterConfig)
 	},
 	compilerOptions: {
 		experimental: {

@@ -22,11 +22,32 @@ export default defineMigrationTask({
 		fs.unlinkSync(path.join(cwd, configSource.path));
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, comments }) => {
-			// detect original imports and preserve them in the new config
-			const originalImports = originalConfigObject.ast.body.filter(
-				(node) => node.type === 'ImportDeclaration'
+			// the original `const config = {...}` declaration and its `export default` are replaced
+			// by the generated vite config, so identify them to drop them while keeping everything else
+			const configDeclaration = originalConfigObject.ast.body.find(
+				(node) =>
+					node.type === 'VariableDeclaration' &&
+					node.declarations.some((d) => d.init === originalConfigObject.config)
 			);
+
+			// preserve the original imports and any other top-level statements (e.g. variable or
+			// function declarations the config references), otherwise the generated config would
+			// reference identifiers that were silently left behind
+			const originalImports: AstTypes.ImportDeclaration[] = [];
+			const originalStatements: AstTypes.Program['body'] = [];
+			for (const node of originalConfigObject.ast.body) {
+				if (node.type === 'ImportDeclaration') {
+					originalImports.push(node);
+				} else if (node.type !== 'ExportDefaultDeclaration' && node !== configDeclaration) {
+					originalStatements.push(node);
+				}
+			}
+
+			// imports go to the very top; the remaining statements go after all imports but before
+			// the generated `export default`
 			ast.body.unshift(...originalImports);
+			const exportIndex = ast.body.findIndex((node) => node.type === 'ExportDefaultDeclaration');
+			ast.body.splice(exportIndex, 0, ...originalStatements);
 
 			// kit-level options are flattened into the root of the vite config, so merge the properties
 			// and then move the properties into the new config object, skipping the unflattened `kit` wrapper
