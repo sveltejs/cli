@@ -1,5 +1,5 @@
 import { Walker, js, type AstTypes, type Comments, type SvelteAst } from '@sveltejs/sv-utils';
-import { addMigrationTask } from '../../../../index.ts';
+import { addMigrationTask } from '../../../../migration-task.ts';
 
 type UsageInfo = {
 	node: AstTypes.Expression;
@@ -52,8 +52,8 @@ export function migrateExplicitEnvVars(
 		mutated = true;
 	}
 
-	if (migrateDynamicEnvImports(ast, envVars, comments)) mutated = true;
-	if (template && migrateDynamicEnvImports(template, envVars, comments)) mutated = true;
+	if (migrateDynamicEnvImports(ast, envVars, comments, template)) mutated = true;
+	if (template && migrateDynamicEnvImports(template, envVars, comments, template)) mutated = true;
 
 	return mutated;
 }
@@ -66,7 +66,8 @@ export function migrateExplicitEnvVars(
 function migrateDynamicEnvImports(
 	node: AstTypes.Node | SvelteAst.SvelteNode,
 	envVars: Map<string, EnvVar>,
-	comments?: Comments
+	comments?: Comments,
+	svelteFragment?: SvelteAst.Fragment
 ): boolean {
 	let mutated = false;
 
@@ -85,7 +86,11 @@ function migrateDynamicEnvImports(
 				envVars.set(name, { type, scope, name });
 			}
 		} else {
-			addUnsupportedDynamicImportComment(comments, findCommentTarget(found.path) ?? found.node);
+			addUnsupportedDynamicImportComment(
+				comments,
+				findCommentTarget(found.path) ?? found.node,
+				svelteFragment
+			);
 		}
 	}
 
@@ -112,11 +117,19 @@ function getDestructuredEnvNames(
 
 function addUnsupportedDynamicImportComment(
 	comments: Comments | undefined,
-	node: AstTypes.Node
+	node: AstTypes.Node,
+	svelteFragment?: SvelteAst.Fragment
 ): void {
+	const message = 'Declare the imported env variables in src/env.ts manually.';
+
+	if (svelteFragment) {
+		addMigrationTask(message, { fragment: svelteFragment, anchor: node as SvelteAst.SvelteNode });
+		return;
+	}
+
 	if (!comments) return;
 
-	addMigrationTask(comments, node, 'Declare the imported env variables in src/env.ts manually.');
+	addMigrationTask(message, { comments, node });
 }
 
 function collectEnvImports(
@@ -176,12 +189,12 @@ function collectDynamicEnvImport(
 	);
 	if (!hasEnvImport) return;
 
-	const usages = getDynamicEnvUsages(ast, importNode, comments);
+	const usages = getDynamicEnvUsages(ast, importNode, comments, template);
 	if (!usages) {
 		return 'migration-task';
 	}
 	if (template) {
-		const templateUsages = getDynamicEnvUsages(template, importNode, comments);
+		const templateUsages = getDynamicEnvUsages(template, importNode, comments, template);
 		if (!templateUsages) {
 			return 'migration-task';
 		}
@@ -221,7 +234,8 @@ function collectStaticEnvImport(
 function getDynamicEnvUsages(
 	node: AstTypes.Node | SvelteAst.SvelteNode,
 	importNode: AstTypes.ImportDeclaration,
-	comments?: Comments
+	comments?: Comments,
+	svelteFragment?: SvelteAst.Fragment
 ): UsageInfo[] | undefined {
 	const importNames = new Set<string>();
 
@@ -245,7 +259,11 @@ function getDynamicEnvUsages(
 				const name = getDynamicEnvUsageName(node);
 				if (!name) {
 					hasUnsupportedUsage = true;
-					addUnsupportedDynamicEnvComment(comments, findCommentTarget(walkContext.path) ?? node);
+					addUnsupportedDynamicEnvComment(
+						comments,
+						findCommentTarget(walkContext.path) ?? node,
+						svelteFragment
+					);
 					walkContext.next();
 					return;
 				}
@@ -268,11 +286,19 @@ function getDynamicEnvUsages(
 
 function addUnsupportedDynamicEnvComment(
 	comments: Comments | undefined,
-	node: AstTypes.Node
+	node: AstTypes.Node,
+	svelteFragment?: SvelteAst.Fragment
 ): void {
+	const message = 'Rewrite dynamic env lookup manually.';
+
+	if (svelteFragment) {
+		addMigrationTask(message, { fragment: svelteFragment, anchor: node as SvelteAst.SvelteNode });
+		return;
+	}
+
 	if (!comments) return;
 
-	addMigrationTask(comments, node, 'Rewrite dynamic env lookup manually.');
+	addMigrationTask(message, { comments, node });
 }
 
 function findCommentTarget(
