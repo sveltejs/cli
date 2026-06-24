@@ -1,8 +1,8 @@
 import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
-import { exec } from 'tinyexec';
 import fs from 'node:fs';
 import path from 'node:path';
+import { exec } from 'tinyexec';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
