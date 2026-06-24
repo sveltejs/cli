@@ -1,8 +1,8 @@
 import { svelteConfig, transforms, Walker, type AstTypes, type Comments } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
-import { addMigrationTask } from '../../../migration-task.ts';
 import { defineMigrationTask } from '../../../index.ts';
+import { addMigrationTask } from '../../../migration-task.ts';
 
 // matches `svelte.config`, optionally with a (m/c)js/ts extension, at the end of an import source
 const SVELTE_CONFIG_IMPORT = /(^|\/)svelte\.config(\.[mc]?[jt]s)?$/;
