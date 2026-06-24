@@ -5,6 +5,7 @@ import { parseJson } from './tooling/parsers.ts';
 export type Package = {
 	name: string;
 	version: string;
+	scripts?: Record<string, string>;
 	dependencies?: Record<string, string>;
 	devDependencies?: Record<string, string>;
 	bugs?: string;

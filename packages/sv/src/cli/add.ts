@@ -755,7 +755,12 @@ export async function runAddonsApply({
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 		await installDependencies(packageManager, options.cwd);
-		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
+		await formatFiles({
+			packageManager,
+			cwd: options.cwd,
+			filesToFormat,
+			strategy: 'files-only'
+		});
 	}
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);

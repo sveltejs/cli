@@ -784,6 +784,7 @@ declare const downloadJson: (url: string) => Promise<any>;
 type Package = {
 	name: string;
 	version: string;
+	scripts?: Record<string, string>;
 	dependencies?: Record<string, string>;
 	devDependencies?: Record<string, string>;
 	bugs?: string;
