@@ -16,14 +16,16 @@ import {
 import { verifyCleanWorkingDirectory } from '../core/verifiers.ts';
 import { createWorkspace } from '../core/workspace.ts';
 import {
-	MIGRATION_TASK_MARKER,
-	getMigrationTaskCount,
-	resetMigrationTaskCount,
 	type Migration,
 	type MigrationCollectOptions,
 	type MigrationSetupOptions,
 	type TaskWithOptions
 } from '../migrate/index.ts';
+import {
+	MIGRATION_TASK_MARKER,
+	getMigrationTaskCount,
+	resetMigrationTaskCount
+} from '../migrate/migration-task.ts';
 import { legacyMigrations } from '../migrate/migrations/legacy-migrations/index.ts';
 import kit3 from '../migrate/migrations/sveltekit-3/index.ts';
 

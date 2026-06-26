@@ -1,7 +1,8 @@
 import { svelteConfig, transforms, Walker, type AstTypes, type Comments } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
-import { addMigrationTask, defineMigrationTask } from '../../../index.ts';
+import { defineMigrationTask } from '../../../index.ts';
+import { addMigrationTask } from '../../../migration-task.ts';
 
 // matches `svelte.config`, optionally with a (m/c)js/ts extension, at the end of an import source
 const SVELTE_CONFIG_IMPORT = /(^|\/)svelte\.config(\.[mc]?[jt]s)?$/;
@@ -93,9 +94,8 @@ export default defineMigrationTask({
 					Property(node: AstTypes.Property, { next }: Walker.Context<AstTypes.Node, null>) {
 						if (node.key.type === 'Identifier' && node.key.name === 'trustedOrigins') {
 							addMigrationTask(
-								comments,
-								node,
-								"trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf"
+								"trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf",
+								{ comments, node }
 							);
 						}
 						next();
@@ -154,7 +154,7 @@ export default defineMigrationTask({
 					const found = js.imports.findAll(ast, { from: SVELTE_CONFIG_IMPORT });
 					if (found.length === 0) return false;
 					for (const imp of found) {
-						addMigrationTask(comments, imp.node, message);
+						addMigrationTask(message, { comments, node: imp.node });
 					}
 				})(content);
 			}

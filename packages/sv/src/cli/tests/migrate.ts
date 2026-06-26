@@ -1,12 +1,12 @@
-import type { Comments } from '@sveltejs/sv-utils';
+import type { AstTypes, Comments } from '@sveltejs/sv-utils';
 import process from 'node:process';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type TaskWithOptions } from '../../migrate/index.ts';
 import {
 	addMigrationTask,
 	getMigrationTaskCount,
-	resetMigrationTaskCount,
-	type TaskWithOptions
-} from '../../migrate/index.ts';
+	resetMigrationTaskCount
+} from '../../migrate/migration-task.ts';
 import { hasInstallConflict, selectOptionalTasksFromArgs } from '../migrate.ts';
 
 const optionalTasks: TaskWithOptions[] = [
@@ -68,7 +68,7 @@ describe('selectTasks', () => {
 describe('migration task tally', () => {
 	// a `Comments` stub: addMigrationTask only needs `add`
 	const comments = { add: () => {} } as unknown as Comments;
-	const node = {} as Parameters<typeof addMigrationTask>[1];
+	const node = {} as AstTypes.Node;
 
 	afterEach(() => resetMigrationTaskCount());
 
@@ -76,14 +76,14 @@ describe('migration task tally', () => {
 		resetMigrationTaskCount();
 		expect(getMigrationTaskCount()).toBe(0);
 
-		addMigrationTask(comments, node, 'do this');
-		addMigrationTask(comments, node, 'do that');
+		addMigrationTask('do this', { comments, node });
+		addMigrationTask('do that', { comments, node });
 
 		expect(getMigrationTaskCount()).toBe(2);
 	});
 
 	it('resets the count back to zero', () => {
-		addMigrationTask(comments, node, 'do this');
+		addMigrationTask('do this', { comments, node });
 		resetMigrationTaskCount();
 		expect(getMigrationTaskCount()).toBe(0);
 	});
