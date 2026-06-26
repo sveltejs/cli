@@ -167,7 +167,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 		// minimum version required to run by this add-on
 		"sv": "^0.13.0"
 	},
-	// Add the "sv-add" keyword so users can discover your add-on
+	// Add the "sv-add" keyword so users can discover your add-on with https://www.npmx.dev/search?q=keyword:sv-add
 	"keywords": ["sv-add", "svelte", "sveltekit"]
 }
 ```
