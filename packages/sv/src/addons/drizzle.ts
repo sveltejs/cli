@@ -304,7 +304,7 @@ export default defineAddon({
 			override({
 				typescript: {
 					config: js.common.parseExpression(
-						`(config) => ({ ...config, include: [...config.include, '../drizzle.config.${language}'] })`
+						`(config) => { config.include.push('../drizzle.config.${language}')}`
 					)
 				}
 			});
