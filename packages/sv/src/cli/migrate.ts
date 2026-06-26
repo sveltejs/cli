@@ -122,14 +122,12 @@ export const migrate = new Command('migrate')
 			if (legacyMigration) return;
 
 			const workspace = await createWorkspace({ cwd: verifiedOptions.cwd });
-			const hasFormatter = !!workspace.dependencyVersion('prettier');
-			if (hasFormatter) {
-				await formatFiles({
-					cwd: workspace.cwd,
-					packageManager: workspace.packageManager,
-					filesToFormat: modifiedFiles.values().toArray()
-				});
-			}
+			await formatFiles({
+				cwd: workspace.cwd,
+				packageManager: workspace.packageManager,
+				filesToFormat: modifiedFiles.values().toArray(),
+				strategy: 'project-script-then-files-only'
+			});
 
 			const packageManager =
 				verifiedOptions.install === false
