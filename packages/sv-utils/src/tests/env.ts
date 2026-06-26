@@ -66,6 +66,22 @@ describe('defineEnv.reference', () => {
 	});
 });
 
+describe('defineEnv.importEnv', () => {
+	test('declared: named import from $app/env', () => {
+		const { env } = envFor('declared');
+		const { ast, generateCode } = parseScript('');
+		env.importEnv(ast, js, ['building']);
+		expect(generateCode()).toContain("import { building } from '$app/env';");
+	});
+
+	test('legacy: named import from $app/environment', () => {
+		const { env } = envFor('legacy');
+		const { ast, generateCode } = parseScript('');
+		env.importEnv(ast, js, ['building']);
+		expect(generateCode()).toContain("import { building } from '$app/environment';");
+	});
+});
+
 const reader = (files: Record<string, string>) => (path: string) => files[path] ?? null;
 
 describe('readExplicitEnvFlag', () => {
