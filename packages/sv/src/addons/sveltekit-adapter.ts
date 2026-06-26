@@ -5,7 +5,8 @@ import {
 	fileExists,
 	loadPackageJson,
 	sanitizeName,
-	pnpm
+	pnpm,
+	svelteConfig
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -74,61 +75,42 @@ export default defineAddon({
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		sv.file(
-			file.svelteConfig,
-			transforms.script(({ ast, comments, js }) => {
-				// finds any existing adapter's import declaration
-				const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
-				const adapterImports = imports.find(
-					(importDecl) =>
-						typeof importDecl.source.value === 'string' &&
-						importDecl.source.value.startsWith('@sveltejs/adapter-') &&
-						importDecl.importKind === 'value'
+		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
+			// finds any existing adapter's import declaration
+			const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
+			const adapterImports = imports.find(
+				(importDecl) =>
+					typeof importDecl.source.value === 'string' &&
+					importDecl.source.value.startsWith('@sveltejs/adapter-') &&
+					importDecl.importKind === 'value'
+			);
+
+			let adapterName = 'adapter';
+			if (adapterImports) {
+				// replaces the import's source with the new adapter
+				adapterImports.source.value = adapter.package;
+				// reset raw value, so that the string is re-generated
+				adapterImports.source.raw = undefined;
+
+				const defaultSpecifier = adapterImports.specifiers?.find(
+					(s) => s.type === 'ImportDefaultSpecifier'
 				);
+				adapterName = defaultSpecifier!.local.name;
+			} else {
+				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
+			}
 
-				let adapterName = 'adapter';
-				if (adapterImports) {
-					// replaces the import's source with the new adapter
-					adapterImports.source.value = adapter.package;
-					// reset raw value, so that the string is re-generated
-					adapterImports.source.raw = undefined;
-
-					const defaultSpecifier = adapterImports.specifiers?.find(
-						(s) => s.type === 'ImportDefaultSpecifier'
-					);
-					adapterName = defaultSpecifier!.local.name;
-				} else {
-					js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
-				}
-
-				const { value: config } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
-
-				// override the adapter property
-				js.object.overrideProperties(config, {
-					kit: {
-						adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true })
-					}
-				});
-
-				// reset the comment for non-auto adapters
-				if (adapter.package !== '@sveltejs/adapter-auto') {
-					const fallback = js.object.create({});
-					const cfgKitValue = js.object.property(config, { name: 'kit', fallback });
-
-					// removes any existing adapter auto comments
-					comments.remove(
-						(c) =>
-							c.loc &&
-							cfgKitValue.loc &&
-							c.loc.start.line >= cfgKitValue.loc.start.line &&
-							c.loc.end.line <= cfgKitValue.loc.end.line
-					);
-				}
-			})
-		);
+			// for non-auto adapters, also drop the now-stale adapter-auto explanatory comment
+			override(
+				{ adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true }) },
+				adapter.package === '@sveltejs/adapter-auto'
+					? undefined
+					: { dropLeadingComments: ['adapter'] }
+			);
+		});
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
-			sv.devDependency('wrangler', '^4.81.0');
+			sv.devDependency('wrangler', '^4.97.0');
 
 			if (packageManager === 'pnpm') {
 				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('workerd', 'sharp'));

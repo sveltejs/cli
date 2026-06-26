@@ -1,8 +1,9 @@
-import { type PromiseWithChild, exec } from 'node:child_process';
+import { type PromiseWithChild, exec as nodeExec } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { add, officialAddons } from '../../../../sv/src/index.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
@@ -19,12 +20,17 @@ fs.mkdirSync(test_workspace_dir, { recursive: true });
 
 fs.writeFileSync(path.join(test_workspace_dir, 'pnpm-workspace.yaml'), 'packages:\n  - ./*\n');
 
-const exec_async = promisify(exec);
+const exec_async = promisify(nodeExec);
 
 beforeAll(async () => {
-	await exec_async('pnpm install --no-frozen-lockfile', {
-		cwd: test_workspace_dir
+	const install = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
+		nodeOptions: { cwd: test_workspace_dir, stdio: 'pipe' }
 	});
+	if (install.exitCode !== 0) {
+		throw new Error(
+			`pnpm install failed in ${test_workspace_dir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+		);
+	}
 }, 60000);
 
 /**

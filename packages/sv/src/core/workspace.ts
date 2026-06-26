@@ -1,12 +1,4 @@
-import {
-	type AgentName,
-	type AstTypes,
-	js,
-	parse,
-	loadFile,
-	loadPackageJson,
-	minVersion
-} from '@sveltejs/sv-utils';
+import { type AgentName, js, loadPackageJson, minVersion, svelteConfig } from '@sveltejs/sv-utils';
 import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -32,6 +24,11 @@ export type Workspace = {
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
+		/**
+		 * @deprecated the config no longer necessarily lives in `svelte.config.{js,ts}` (it can be
+		 * passed to `sveltekit()` in `vite.config.{js,ts}`). Use `svelteConfig` from
+		 * `@sveltejs/sv-utils` to edit it wherever it lives.
+		 */
 		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
 		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
 		/** `${directory.routes}/layout.css` or `src/app.css` */
@@ -93,7 +90,8 @@ const deprecatedFiles = {
  * Once we remove these deprecatedFiles, we can get rid of addDeprecatedFileProperties
  */
 function addDeprecatedFileProperties(
-	file: Omit<Workspace['file'], keyof typeof deprecatedFiles>
+	file: Omit<Workspace['file'], keyof typeof deprecatedFiles | 'svelteConfig'>,
+	svelteConfig: Workspace['file']['svelteConfig']
 ): Workspace['file'] {
 	for (const [key, value] of Object.entries(deprecatedFiles)) {
 		Object.defineProperty(file, key, {
@@ -104,6 +102,17 @@ function addDeprecatedFileProperties(
 			enumerable: false
 		});
 	}
+	// `svelteConfig` is dynamic (`.ts` vs `.js`) and points to a file that may not exist anymore,
+	// so it gets its own getter pointing at `svelteConfig` rather than a static "use the string" hint.
+	Object.defineProperty(file, 'svelteConfig', {
+		get() {
+			svDeprecated(
+				'use `svelteConfig` from `@sveltejs/sv-utils` instead of `file.svelteConfig` (the config may live in `vite.config.{js,ts}`)'
+			);
+			return svelteConfig;
+		},
+		enumerable: false
+	});
 	return file as Workspace['file'];
 }
 
@@ -166,7 +175,7 @@ export async function createWorkspace({
 	const directory = override?.directory
 		? override.directory
 		: isKit
-			? { src: 'src', ...parseKitOptions(resolvedCwd, svelteConfig) }
+			? { src: 'src', ...parseKitOptions(resolvedCwd) }
 			: { src: 'src', lib: 'src/lib', kitRoutes: 'src/routes' };
 
 	const stylesheet: `${string}/layout.css` | 'src/app.css' = isKit
@@ -177,32 +186,34 @@ export async function createWorkspace({
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detectPackageManager(cwd)),
 		language: typescript ? 'ts' : 'js',
-		file: addDeprecatedFileProperties({
-			viteConfig,
-			svelteConfig,
-			typeConfig,
-			stylesheet,
-			package: 'package.json',
-			gitignore: '.gitignore',
-			getRelative({ from, to }) {
-				from = from ?? '';
-				let relativePath = path.posix.relative(path.posix.dirname(from), to);
-				// Ensure relative paths start with ./ for proper relative path syntax
-				if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
-					relativePath = `./${relativePath}`;
+		file: addDeprecatedFileProperties(
+			{
+				viteConfig,
+				typeConfig,
+				stylesheet,
+				package: 'package.json',
+				gitignore: '.gitignore',
+				getRelative({ from, to }) {
+					from = from ?? '';
+					let relativePath = path.posix.relative(path.posix.dirname(from), to);
+					// Ensure relative paths start with ./ for proper relative path syntax
+					if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
+						relativePath = `./${relativePath}`;
+					}
+					return relativePath;
+				},
+				findUp(filename) {
+					const found = find.up(filename, { cwd: resolvedCwd });
+					if (!found) return filename;
+					// don't escape .test-output during tests
+					if (resolvedCwd.includes('.test-output') && !found.includes('.test-output')) {
+						return filename;
+					}
+					return path.relative(resolvedCwd, found);
 				}
-				return relativePath;
 			},
-			findUp(filename) {
-				const found = find.up(filename, { cwd: resolvedCwd });
-				if (!found) return filename;
-				// don't escape .test-output during tests
-				if (resolvedCwd.includes('.test-output') && !found.includes('.test-output')) {
-					return filename;
-				}
-				return path.relative(resolvedCwd, found);
-			}
-		}),
+			svelteConfig
+		),
 		isKit,
 		directory,
 		dependencyVersion: (pkg) => dependencies[pkg]
@@ -234,44 +245,25 @@ function findWorkspaceRoot(cwd: string): string {
 	return cwd;
 }
 
-function parseKitOptions(cwd: string, svelteConfigPath: string) {
-	const configSource = loadFile(cwd, svelteConfigPath);
-	const { ast } = parse.script(configSource);
+/**
+ * Reads `kit.files.lib` / `kit.files.routes` from wherever the config lives - a
+ * `svelte.config.{js,ts}` default export, or the object passed to `sveltekit()` in a
+ * `vite.config.{js,ts}`. Falls back to the SvelteKit defaults when no config is found
+ * (e.g. a freshly created project that keeps its config in `vite.config.js`).
+ */
+function parseKitOptions(cwd: string): { lib: string; kitRoutes: string } {
+	const fallback = { lib: 'src/lib', kitRoutes: 'src/routes' };
 
-	const defaultExport = ast.body.find((s) => s.type === 'ExportDefaultDeclaration');
-	if (!defaultExport) throw Error(`Missing default export in \`${svelteConfigPath}\``);
-
-	let objectExpression: AstTypes.ObjectExpression | undefined;
-	if (defaultExport.declaration.type === 'Identifier') {
-		// e.g. `export default config;`
-		const identifier = defaultExport.declaration;
-		for (const declaration of ast.body) {
-			if (declaration.type !== 'VariableDeclaration') continue;
-
-			const declarator = declaration.declarations.find(
-				(d): d is AstTypes.VariableDeclarator =>
-					d.type === 'VariableDeclarator' &&
-					d.id.type === 'Identifier' &&
-					d.id.name === identifier.name
-			);
-
-			if (declarator?.init?.type !== 'ObjectExpression') continue;
-
-			objectExpression = declarator.init;
-		}
-
-		if (!objectExpression)
-			throw Error(`Unable to find svelte config object expression from \`${svelteConfigPath}\``);
-	} else if (defaultExport.declaration.type === 'ObjectExpression') {
-		// e.g. `export default { ... };`
-		objectExpression = defaultExport.declaration;
+	let kit;
+	try {
+		// `read` locates + parses in one pass (no double parse); tolerate a malformed/odd config
+		const config = svelteConfig.read(cwd);
+		if (!config) return fallback;
+		kit = config.kit;
+	} catch {
+		return fallback;
 	}
 
-	// We'll error out since we can't safely determine the config object
-	if (!objectExpression)
-		throw new Error(`Unexpected svelte config shape from \`${svelteConfigPath}\``);
-
-	const kit = js.object.property(objectExpression, { name: 'kit', fallback: js.object.create({}) });
 	const files = js.object.property(kit, { name: 'files', fallback: js.object.create({}) });
 	const routes = js.object.property(files, {
 		name: 'routes',
@@ -280,7 +272,7 @@ function parseKitOptions(cwd: string, svelteConfigPath: string) {
 	const lib = js.object.property(files, { name: 'lib', fallback: js.common.createLiteral('') });
 
 	return {
-		lib: (lib.value as string) || 'src/lib',
-		kitRoutes: (routes.value as string) || 'src/routes'
+		lib: (lib.value as string) || fallback.lib,
+		kitRoutes: (routes.value as string) || fallback.kitRoutes
 	};
 }

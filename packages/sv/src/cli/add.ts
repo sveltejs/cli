@@ -37,7 +37,7 @@ const addonOptions = getAddonOptionFlags();
 
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
-	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
+	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
 	gitCheck: v.boolean(),
 	downloadCheck: v.boolean(),
 	addons: v.record(v.string(), v.optional(v.array(v.string())))

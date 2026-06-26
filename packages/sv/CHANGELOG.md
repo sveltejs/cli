@@ -1,5 +1,47 @@
 # sv
 
+## 0.16.1
+### Patch Changes
+
+
+- fix(cli): restore `sv create` and `sv add` when neither `--install` nor `--no-install` is passed ([#1128](https://github.com/sveltejs/cli/pull/1128))
+
+## 0.16.0
+### Minor Changes
+
+
+- chore: bump templates to `@sveltejs/kit` `^2.62.0` and move svelte config to vite plugin (info: https://github.com/sveltejs/kit/pull/15944) ([#1119](https://github.com/sveltejs/cli/pull/1119))
+
+
+### Patch Changes
+
+
+- chore(sv): demo template uses the new `{const ...}` declaration tags ([sveltejs/svelte#18282](https://github.com/sveltejs/svelte/pull/18282)) ([#1110](https://github.com/sveltejs/cli/pull/1110))
+
+
+- chore: support kit's explicit environment variables in `drizzle` and `better-auth` ([#1122](https://github.com/sveltejs/cli/pull/1122))
+
+
+- add(experimental): new add-on to toggle experimental flags and opt into `@next` versions ([#1121](https://github.com/sveltejs/cli/pull/1121))
+
+- Updated dependencies [[`fbdb1a0`](https://github.com/sveltejs/cli/commit/fbdb1a06b67809d43ce57ef8d53bcca6a287643f), [`20f6cf7`](https://github.com/sveltejs/cli/commit/20f6cf7eff575ed953deeaaabb5a32dca60a716d)]:
+  - @sveltejs/sv-utils@0.3.0
+
+## 0.15.4
+### Patch Changes
+
+
+- fix(better-auth): import `User`/`Session` types from `better-auth` instead of `better-auth/minimal` ([#1107](https://github.com/sveltejs/cli/pull/1107))
+
+
+- chore(eslint): drop `@eslint/compat`. Now using `includeIgnoreFile` of `eslint` directly ([#1094](https://github.com/sveltejs/cli/pull/1094))
+
+
+- fix: community add-on template imports `expect` from `vitest` ([#1090](https://github.com/sveltejs/cli/pull/1090))
+
+
+- fix(sv): community add-on template now pins `sv` and `@sveltejs/sv-utils` to a version range instead of `latest` ([#1108](https://github.com/sveltejs/cli/pull/1108))
+
 ## 0.15.3
 ### Patch Changes
 

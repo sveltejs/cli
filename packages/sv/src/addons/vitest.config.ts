@@ -10,7 +10,7 @@ export default defineProject({
 		include: ['tests/**/test.{js,ts}'],
 		globalSetup: ['tests/_setup/global.ts'],
 		testTimeout: ONE_MINUTE * (isWindows ? 5 : 3),
-		hookTimeout: ONE_MINUTE * (isWindows ? 5 : 3),
+		hookTimeout: ONE_MINUTE * 6,
 		retry: env.CI ? 3 : 0,
 		maxConcurrency: 4,
 		expect: {

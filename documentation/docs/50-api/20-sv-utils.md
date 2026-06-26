@@ -5,7 +5,7 @@ title: sv-utils
 > [!NOTE]
 > `@sveltejs/sv-utils` is currently **experimental**. The API may change.
 
-`@sveltejs/sv-utils` is an add-on utilty for parsing, transforming, and generating code..
+`@sveltejs/sv-utils` is an add-on utility for parsing, transforming, and generating code..
 
 ```sh
 npm install -D @sveltejs/sv-utils
@@ -229,6 +229,45 @@ Namespaced helpers for AST manipulation:
 - **`json.*`** - arrayUpsert, packageScriptsUpsert
 - **`html.*`** - attribute manipulation
 - **`text.*`** - upsert lines in flat files (.env, .gitignore)
+
+## Svelte config
+
+The svelte/kit config can live in two places: passed straight to the `sveltekit()` plugin in `vite.config.{js,ts}`, or as a default export in a separate `svelte.config.{js,ts}`. Projects created by `sv` keep their config inside `vite.config.js` and ship no `svelte.config.js`.
+
+`svelteConfig` lets add-ons read and edit that config wherever it lives - the `sveltekit()` argument in `vite.config.{js,ts}`, or a `svelte.config.{js,ts}` default export - without having to know which.
+
+### `svelteConfig.edit`
+
+You address options by name and the helper writes each one to the right place, so you never deal with the `kit` nesting yourself. Svelte-level options (`compilerOptions`, `preprocess`, `extensions`, `vitePlugin`) sit on the config object; everything else (`adapter`, `alias`, `files`, `typescript`, …) is a kit option, which means flattened onto the `sveltekit()` argument in a vite config, or nested under `kit` in a `svelte.config`.
+
+```js
+// @noErrors
+import { svelteConfig } from '@sveltejs/sv-utils';
+
+// inside an add-on's `run({ sv, cwd })`:
+svelteConfig.edit({ sv, cwd }, ({ ast, property, override, js }) => {
+	// svelte-level option - get-or-create its value, then mutate in place:
+	js.array.append(property('extensions', { fallback: js.array.create() }), '.svx');
+
+	// kit option - routed automatically, no `kit` nesting to think about:
+	js.imports.addDefault(ast, { from: '@sveltejs/adapter-node', as: 'adapter' });
+	override({
+		adapter: js.functions.createCall({ name: 'adapter', args: [], useIdentifiers: true })
+	});
+});
+```
+
+- **`property(name, { fallback })`** - get-or-create an option's value to mutate in place (arrays, nested objects).
+- **`override(props, { dropLeadingComments })`** - set/replace options; `dropLeadingComments` clears a now-stale leading comment (e.g. the adapter-auto note when switching adapters).
+
+It writes through `sv.file`, so the edit is tracked like any other. If the project has neither config file, a `svelte.config.js` is created.
+
+### `svelteConfig.find` / `svelteConfig.read`
+
+Lower-level building blocks, both reading candidate files through an injected `read(path)` (returns the file contents or `null`) so detection stays static - the config is never executed:
+
+- **`svelteConfig.find(read)`** - returns `{ path, kind }` or `null` (`kind` is `'vite'` or `'svelte'`; `svelte.config` wins when both are present).
+- **`svelteConfig.read(read)`** - locates and parses in one pass, returning `{ location, config, kit }` (the object expressions) or `null`.
 
 ## Package manager helpers
 

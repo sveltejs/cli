@@ -3,6 +3,7 @@ import aiTools from './ai-tools.ts';
 import betterAuth from './better-auth.ts';
 import drizzle from './drizzle.ts';
 import eslint from './eslint.ts';
+import experimental from './experimental.ts';
 import mdsvex from './mdsvex.ts';
 import paraglide from './paraglide.ts';
 import playwright from './playwright.ts';
@@ -25,6 +26,7 @@ type OfficialAddons = {
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
 	aiTools: Addon<any>;
+	experimental: Addon<any>;
 };
 
 // The order of addons here determines the order they are displayed inside the CLI
@@ -41,7 +43,8 @@ export const officialAddons: OfficialAddons = {
 	mdsvex,
 	paraglide,
 	storybook,
-	aiTools
+	aiTools,
+	experimental
 };
 
 export function getAddonDetails(id: string): AddonDefinition {

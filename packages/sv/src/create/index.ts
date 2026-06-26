@@ -46,8 +46,14 @@ export function create({ cwd, ...options }: Options): void {
 
 	// Files that are not relevant for 'addon' template
 	if (options.template === 'addon') {
-		fs.rmSync(path.join(cwd, 'svelte.config.js'));
-		fs.rmSync(path.join(cwd, 'vite.config.js'));
+		for (const name of [
+			'svelte.config.js',
+			'svelte.config.ts',
+			'vite.config.js',
+			'vite.config.ts'
+		]) {
+			fs.rmSync(path.join(cwd, name), { force: true });
+		}
 	}
 }
 

@@ -1,5 +1,14 @@
 # @sveltejs/sv-utils
 
+## 0.3.0
+### Minor Changes
+
+
+- Add `defineEnv` helper for version-aware environment variable access (`$app/env` or legacy `$env`) ([#1122](https://github.com/sveltejs/cli/pull/1122))
+
+
+- Add `svelteConfig` helper (`find`, `read`, `edit`) to locate and edit the svelte config whether it lives in `svelte.config.{js,ts}` or the `sveltekit()` call in `vite.config.{js,ts}` ([#1119](https://github.com/sveltejs/cli/pull/1119))
+
 ## 0.2.2
 ### Patch Changes
 

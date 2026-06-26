@@ -194,9 +194,9 @@ test('real world download and convert playground async', async () => {
 	expect(packageJsonContent).toContain('"change-case": "latest"');
 	expect(packageJsonContent).toContain('"svelte": "5.38.7"');
 
-	const svelteConfigPath = path.join(directory, 'svelte.config.js');
-	const svelteConfigContent = fs.readFileSync(svelteConfigPath, 'utf-8');
-	expect(svelteConfigContent).toContain('experimental: { async: true }');
+	const viteConfigPath = path.join(directory, 'vite.config.ts');
+	const viteConfigContent = fs.readFileSync(viteConfigPath, 'utf-8');
+	expect(viteConfigContent).toContain('experimental: { async: true }');
 });
 
 test('real world download and convert playground without async', async () => {
@@ -229,7 +229,7 @@ test('real world download and convert playground without async', async () => {
 	const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
 	expect(packageJsonContent).toContain('"svelte": "5.0.5"');
 
-	const svelteConfigPath = path.join(directory, 'svelte.config.js');
-	const svelteConfigContent = fs.readFileSync(svelteConfigPath, 'utf-8');
-	expect(svelteConfigContent).not.toContain('experimental: { async: true }');
+	const viteConfigPath = path.join(directory, 'vite.config.ts');
+	const viteConfigContent = fs.readFileSync(viteConfigPath, 'utf-8');
+	expect(viteConfigContent).not.toContain('experimental: { async: true }');
 });

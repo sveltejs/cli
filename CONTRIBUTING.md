@@ -194,3 +194,8 @@ pnpm changeset
 ```
 
 - Do not edit `packages/*/CHANGELOG.md` manually.
+
+## Updating dependencies
+
+Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
+After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.

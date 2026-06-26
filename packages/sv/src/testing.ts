@@ -206,6 +206,12 @@ export type PrepareServerOptions = {
 	page: Page;
 	buildCommand?: string;
 	previewCommand?: string;
+	/**
+	 * Vitest's `expect`, injected by `createSetupTest`. Used to make a Vitest-counted
+	 * assertion that the preview loaded, which also satisfies `requireAssertions` for
+	 * tests that otherwise only assert through Playwright's (untracked) `expect`.
+	 */
+	expect?: VitestContext['expect'];
 };
 
 export type PrepareServerReturn = {
@@ -218,7 +224,8 @@ export async function prepareServer({
 	cwd,
 	page,
 	buildCommand = 'pnpm build',
-	previewCommand = 'pnpm preview'
+	previewCommand = 'pnpm preview',
+	expect
 }: PrepareServerOptions): Promise<PrepareServerReturn> {
 	// build project
 	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
@@ -229,9 +236,20 @@ export async function prepareServer({
 	// increases timeout as 30s is not always enough when running the full suite
 	page.setDefaultNavigationTimeout(62_000);
 
+	// Newer Chrome (Chrome for Testing, bundled with Playwright >= 1.57) automatically
+	// requests this DevTools endpoint on navigation; the preview server never answers it,
+	// so the page's `load` event never fires and `page.goto` times out. Short-circuit it.
+	await page.route('**/.well-known/appspecific/com.chrome.devtools.json', (route) =>
+		route.fulfill({ status: 404, body: '' })
+	);
+
 	try {
 		// navigate to the page
-		await page.goto(url);
+		const response = await page.goto(url);
+		// assert the preview server actually served the page. this also acts as the
+		// Vitest-counted assertion required by `requireAssertions` for tests that
+		// otherwise only assert through Playwright's (untracked) `expect`
+		expect?.(response?.ok(), `preview server did not serve ${url}`)?.toBe(true);
 	} catch (e) {
 		// cleanup in the instance of a timeout
 		await close();
@@ -245,7 +263,7 @@ export type PlaywrightContext = Pick<typeof import('@playwright/test'), 'chromiu
 
 export type VitestContext = Pick<
 	typeof import('vitest'),
-	'inject' | 'test' | 'beforeAll' | 'beforeEach'
+	'inject' | 'test' | 'beforeAll' | 'beforeEach' | 'expect'
 >;
 
 export function createSetupTest(
@@ -263,7 +281,7 @@ export function createSetupTest(
 		addons: Addons,
 		options?: SetupTestOptions<Addons>
 	) {
-		const { inject, test: vitestTest, beforeAll, beforeEach } = vitest;
+		const { inject, test: vitestTest, beforeAll, beforeEach, expect } = vitest;
 
 		const test = vitestTest.extend({}) as unknown as import('vitest').TestAPI<Fixtures>;
 
@@ -346,7 +364,15 @@ export function createSetupTest(
 				addPnpmAllowBuilds(cwd, 'pnpm', 'esbuild');
 			}
 
-			execSync('pnpm install', { cwd: path.resolve(cwd, testName), stdio: 'pipe' });
+			const installDir = path.resolve(cwd, testName);
+			const install = await exec('pnpm', ['install'], {
+				nodeOptions: { cwd: installDir, stdio: 'pipe' }
+			});
+			if (install.exitCode !== 0) {
+				throw new Error(
+					`pnpm install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+				);
+			}
 		});
 
 		beforeEach<Fixtures>(async (ctx) => {
@@ -367,6 +393,11 @@ export function createSetupTest(
 			};
 		});
 
-		return { test, testCases, prepareServer };
+		return {
+			test,
+			testCases,
+			// inject vitest's `expect` so the preview navigation makes a tracked assertion
+			prepareServer: (options) => prepareServer({ expect, ...options })
+		};
 	};
 }
