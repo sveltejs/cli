@@ -13,8 +13,9 @@ const { test, testCases } = setupTest(
 				options: {
 					'ai-tools': {
 						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
-						setup: 'local',
-						skills: 'files'
+						mcpSetup: 'local',
+						delivery: 'tools',
+						tools: ['mcp', 'svelte-code-writer', 'svelte-core-bestpractices', 'svelte-file-editor']
 					}
 				}
 			},
@@ -23,8 +24,18 @@ const { test, testCases } = setupTest(
 				options: {
 					'ai-tools': {
 						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
-						setup: 'remote',
-						skills: 'files'
+						mcpSetup: 'remote',
+						delivery: 'tools',
+						tools: ['mcp', 'svelte-code-writer', 'svelte-core-bestpractices', 'svelte-file-editor']
+					}
+				}
+			},
+			{
+				type: 'plugin',
+				options: {
+					'ai-tools': {
+						ide: ['claude-code', 'opencode'],
+						delivery: 'plugin'
 					}
 				}
 			}
@@ -60,6 +71,25 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		const fullPath = path.resolve(cwd, filePath);
 		return fs.readFileSync(fullPath, 'utf8');
 	};
+
+	if (testCase.kind.type === 'plugin') {
+		// Claude Code: the plugin is enabled via a committed `.claude/settings.json`
+		const settings = JSON.parse(getContent('.claude/settings.json'));
+		expect(settings.enabledPlugins).toEqual({ 'svelte@svelte': true });
+		expect(settings.extraKnownMarketplaces.svelte.source).toEqual({
+			source: 'github',
+			repo: 'sveltejs/ai-tools'
+		});
+		// the plugin bundles everything, so no individual files are written for Claude
+		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude/skills'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude/agents'))).toBe(false);
+		// opencode stays configured through its own plugin
+		expect(JSON.parse(getContent('.opencode/opencode.json')).plugin).toEqual([
+			'@sveltejs/opencode'
+		]);
+		return;
+	}
 
 	const cursorMcpContent = getContent(`.cursor/mcp.json`);
 

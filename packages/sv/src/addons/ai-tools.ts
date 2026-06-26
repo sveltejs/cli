@@ -3,45 +3,149 @@ import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
+const RX_MD = /\.md$/;
+
+type Client = {
+	label: string;
+	// committing this settings file enables the Svelte plugin for the client (Claude Code)
+	pluginSettings?: { path: string; marketplace: string; repo: string; id: string };
+	// always delivered through its own plugin/config, never loose files (opencode)
+	pluginOnly?: boolean;
+	schema?: string;
+	mcpOptions?: {
+		serversKey?: string;
+		typeLocal?: 'stdio' | 'local';
+		typeRemote?: 'http' | 'remote';
+		env?: boolean;
+		command?: string | string[];
+		args?: string[];
+	};
+	agentPath?: string;
+	configPath?: string;
+	skillsPath?: string;
+	agentsPath?: string;
+	agentExtension?: string;
+	customData?: Record<string, any>;
+	extraFiles?: Array<{ path: string; data: Record<string, any> }>;
+};
+
+// Single source of truth per client - drives the `ide` prompt, the conditions and the `run` logic.
+const CLIENTS: Record<string, Client> = {
+	'claude-code': {
+		label: 'claude code',
+		pluginSettings: {
+			path: '.claude/settings.json',
+			marketplace: 'svelte',
+			repo: 'sveltejs/ai-tools',
+			id: 'svelte@svelte'
+		},
+		agentPath: '.claude/CLAUDE.md',
+		configPath: '.mcp.json',
+		skillsPath: '.claude/skills',
+		agentsPath: '.claude/agents',
+		mcpOptions: {
+			typeLocal: 'stdio',
+			typeRemote: 'http',
+			env: true
+		}
+	},
+	cursor: {
+		label: 'Cursor',
+		agentPath: 'AGENTS.md',
+		configPath: '.cursor/mcp.json',
+		agentsPath: '.cursor/agents',
+		mcpOptions: {}
+	},
+	gemini: {
+		label: 'Gemini',
+		agentPath: 'GEMINI.md',
+		configPath: '.gemini/settings.json',
+		agentsPath: '.gemini/agents',
+		schema:
+			'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
+		mcpOptions: {}
+	},
+	opencode: {
+		label: 'opencode',
+		pluginOnly: true,
+		agentPath: 'AGENTS.md',
+		configPath: '.opencode/opencode.json',
+		schema: 'https://opencode.ai/config.json',
+		customData: { plugin: ['@sveltejs/opencode'] },
+		extraFiles: [
+			{
+				path: '.opencode/svelte.json',
+				data: {
+					$schema: 'https://svelte.dev/opencode/schema.json'
+				}
+			}
+		]
+	},
+	vscode: {
+		label: 'VSCode',
+		agentPath: 'AGENTS.md',
+		configPath: '.vscode/mcp.json',
+		agentsPath: '.github/agents',
+		agentExtension: '.agent.md',
+		mcpOptions: {
+			serversKey: 'servers'
+		}
+	},
+	other: {
+		label: 'Other'
+	}
+};
+
+const hasPlugin = (client?: Client) =>
+	Boolean(client && (client.pluginSettings || client.pluginOnly));
+const isFileOnly = (client?: Client) => Boolean(client && client.agentPath && !hasPlugin(client));
+
+// Static for curated labels; derive from getSharedFiles() (include 'skills'/'agents') to go dynamic.
+const TOOLS: Record<string, { label: string; kind: 'mcp' | 'skill' | 'agent'; hint?: string }> = {
+	mcp: { label: 'MCP server', kind: 'mcp' },
+	'svelte-code-writer': { label: 'svelte-code-writer', kind: 'skill', hint: 'skill' },
+	'svelte-core-bestpractices': { label: 'svelte-core-bestpractices', kind: 'skill', hint: 'skill' },
+	'svelte-file-editor': { label: 'svelte-file-editor', kind: 'agent', hint: 'sub-agent' }
+};
+
 const options = defineAddonOptions()
 	.add('ide', {
 		question: 'Which client would you like to use?',
 		type: 'multiselect',
 		default: [],
-		options: [
-			{ value: 'claude-code', label: 'claude code' },
-			{ value: 'cursor', label: 'Cursor' },
-			{ value: 'gemini', label: 'Gemini' },
-			{ value: 'opencode', label: 'opencode' },
-			{ value: 'vscode', label: 'VSCode' },
-			{ value: 'other', label: 'Other' }
-		],
+		options: Object.entries(CLIENTS).map(([value, client]) => ({ value, label: client.label })),
 		required: true
 	})
-	.add('setup', {
-		question: 'What setup would you like to use?',
+	.add('delivery', {
+		question: 'How would you like to add the Svelte tools?',
+		type: 'select',
+		default: 'plugin',
+		options: [
+			{ value: 'plugin', label: 'Svelte plugin', hint: 'recommended, auto-installs & updates' },
+			{ value: 'tools', label: 'Individual tools', hint: 'choose exactly what to add' }
+		],
+		condition: ({ ide }) => ide.some((i) => hasPlugin(CLIENTS[i]))
+	})
+	.add('tools', {
+		question: 'Which tools would you like to add?',
+		type: 'multiselect',
+		default: Object.keys(TOOLS),
+		options: Object.entries(TOOLS).map(([value, t]) => ({ value, label: t.label, hint: t.hint })),
+		required: false,
+		condition: ({ ide, delivery }) =>
+			delivery !== 'plugin' || ide.some((i) => isFileOnly(CLIENTS[i]))
+	})
+	.add('mcpSetup', {
+		question: 'Which MCP setup would you like to use?',
 		type: 'select',
 		default: 'remote',
 		options: [
 			{ value: 'local', label: 'Local', hint: 'will use stdio' },
 			{ value: 'remote', label: 'Remote', hint: 'will use a remote endpoint' }
 		],
-		required: true,
-		condition: ({ ide }) => !(ide.length === 1 && ide.includes('opencode'))
-	})
-	.add('skills', {
-		question: 'Do you want to install skills?',
-		type: 'select',
-		default: 'files',
-		options: [
-			{ value: 'files', label: 'Add files to the project' },
-			{
-				value: 'none',
-				label: 'Skip',
-				hint: 'for Claude Code you can install the plugin instead: /plugin install svelte'
-			}
-		],
-		condition: ({ ide }) => ide.some((i) => i !== 'opencode' && i !== 'other')
+		condition: ({ ide, delivery }) =>
+			ide.some((i) => isFileOnly(CLIENTS[i])) ||
+			(delivery !== 'plugin' && ide.some((i) => Boolean(CLIENTS[i]?.mcpOptions)))
 	})
 	.build();
 
@@ -51,6 +155,14 @@ export default defineAddon({
 	homepage: 'https://svelte.dev/docs/ai',
 	options,
 	run: ({ sv, options }) => {
+		const usePlugin = options.delivery === 'plugin';
+
+		// pure-plugin path skips the tools question; file-only clients then fall back to all
+		const selected = options.tools ?? Object.keys(TOOLS);
+		const selectedSkills = selected.filter((t) => TOOLS[t]?.kind === 'skill');
+		const selectedAgents = selected.filter((t) => TOOLS[t]?.kind === 'agent');
+		const wantsMcp = selected.includes('mcp');
+
 		const getLocalConfig = (o?: {
 			typeLocal?: 'stdio' | 'local';
 			env?: boolean;
@@ -72,81 +184,6 @@ export default defineAddon({
 			};
 		};
 
-		const configurator: Record<
-			(typeof options.ide)[number],
-			| {
-					schema?: string;
-					mcpOptions?: {
-						serversKey?: string;
-						typeLocal?: 'stdio' | 'local';
-						typeRemote?: 'http' | 'remote';
-						env?: boolean;
-						command?: string | string[];
-						args?: string[];
-					};
-					agentPath: string;
-					configPath: string;
-					skillsPath?: string;
-					agentsPath?: string;
-					agentExtension?: string;
-					customData?: Record<string, any>;
-					extraFiles?: Array<{ path: string; data: Record<string, any> }>;
-			  }
-			| { other: true }
-		> = {
-			'claude-code': {
-				agentPath: '.claude/CLAUDE.md',
-				configPath: '.mcp.json',
-				skillsPath: '.claude/skills',
-				agentsPath: '.claude/agents',
-				mcpOptions: {
-					typeLocal: 'stdio',
-					typeRemote: 'http',
-					env: true
-				}
-			},
-			cursor: {
-				agentPath: 'AGENTS.md',
-				configPath: '.cursor/mcp.json',
-				agentsPath: '.cursor/agents',
-				mcpOptions: {}
-			},
-			gemini: {
-				agentPath: 'GEMINI.md',
-				configPath: '.gemini/settings.json',
-				agentsPath: '.gemini/agents',
-				schema:
-					'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
-				mcpOptions: {}
-			},
-			opencode: {
-				agentPath: 'AGENTS.md',
-				configPath: '.opencode/opencode.json',
-				schema: 'https://opencode.ai/config.json',
-				customData: { plugin: ['@sveltejs/opencode'] },
-				extraFiles: [
-					{
-						path: '.opencode/svelte.json',
-						data: {
-							$schema: 'https://svelte.dev/opencode/schema.json'
-						}
-					}
-				]
-			},
-			vscode: {
-				agentPath: 'AGENTS.md',
-				configPath: '.vscode/mcp.json',
-				agentsPath: '.github/agents',
-				agentExtension: '.agent.md',
-				mcpOptions: {
-					serversKey: 'servers'
-				}
-			},
-			other: {
-				other: true
-			}
-		};
-
 		const filesAdded: string[] = [];
 		const filesExistingAlready: string[] = [];
 
@@ -156,11 +193,39 @@ export default defineAddon({
 		const agentFiles = sharedFiles.filter((file) => file.include.includes('agents'));
 		const agentFile = mcpFiles.find((file) => file.name === 'AGENTS.md');
 
-		for (const ide of options.ide) {
-			const value = configurator[ide];
+		const addFile = (path: string, contents: string) => {
+			sv.file(path, (content) => {
+				if (content) {
+					filesExistingAlready.push(path);
+					return false;
+				}
+				if (!filesAdded.includes(path)) filesAdded.push(path);
+				return contents;
+			});
+		};
 
-			if (value === undefined) continue;
-			if ('other' in value) continue;
+		for (const ide of options.ide) {
+			const client = CLIENTS[ide];
+			if (!client) continue;
+
+			// plugin mode: write only the settings file (the plugin bundles MCP + skills + sub-agents)
+			if (client.pluginSettings && usePlugin) {
+				const plugin = client.pluginSettings;
+				sv.file(
+					plugin.path,
+					transforms.json(({ data }) => {
+						data.extraKnownMarketplaces ??= {};
+						data.extraKnownMarketplaces[plugin.marketplace] ??= {
+							source: { source: 'github', repo: plugin.repo }
+						};
+						data.enabledPlugins ??= {};
+						data.enabledPlugins[plugin.id] = true;
+					})
+				);
+				continue;
+			}
+
+			if (!client.agentPath) continue;
 
 			const {
 				mcpOptions,
@@ -172,9 +237,8 @@ export default defineAddon({
 				schema,
 				customData,
 				extraFiles
-			} = value;
+			} = client;
 
-			// We only add the agent file if it's not already added
 			if (!filesAdded.includes(agentPath)) {
 				sv.file(agentPath, (content) => {
 					if (content) {
@@ -186,27 +250,32 @@ export default defineAddon({
 				});
 			}
 
-			sv.file(
-				configPath,
-				transforms.json(({ data }) => {
-					if (schema) {
-						data['$schema'] = schema;
-					}
-
-					if (customData) {
-						for (const [key, value] of Object.entries(customData)) {
-							data[key] = value;
+			const writeMcp = Boolean(mcpOptions) && wantsMcp;
+			if (configPath && (writeMcp || customData)) {
+				sv.file(
+					configPath,
+					transforms.json(({ data }) => {
+						if (schema) {
+							data['$schema'] = schema;
 						}
-					}
 
-					if (mcpOptions) {
-						const key = mcpOptions.serversKey ?? 'mcpServers';
-						data[key] ??= {};
-						data[key].svelte =
-							options.setup === 'local' ? getLocalConfig(mcpOptions) : getRemoteConfig(mcpOptions);
-					}
-				})
-			);
+						if (customData) {
+							for (const [key, value] of Object.entries(customData)) {
+								data[key] = value;
+							}
+						}
+
+						if (writeMcp) {
+							const key = mcpOptions!.serversKey ?? 'mcpServers';
+							data[key] ??= {};
+							data[key].svelte =
+								options.mcpSetup === 'local'
+									? getLocalConfig(mcpOptions)
+									: getRemoteConfig(mcpOptions);
+						}
+					})
+				);
+			}
 
 			if (extraFiles) {
 				for (const extra of extraFiles) {
@@ -221,33 +290,19 @@ export default defineAddon({
 				}
 			}
 
-			// Add skills for clients that support them (not opencode - plugin handles it)
-			if (skillsPath && options.skills === 'files') {
+			if (skillsPath) {
 				for (const file of skillFiles) {
-					const filePath = `${skillsPath}/${file.name}`;
-					sv.file(filePath, (content) => {
-						if (content) {
-							filesExistingAlready.push(filePath);
-							return false;
-						}
-						return file.contents;
-					});
+					if (!selectedSkills.includes(file.name.split('/')[0])) continue;
+					addFile(`${skillsPath}/${file.name}`, file.contents);
 				}
 			}
 
-			// Add sub-agents for clients that support them (not opencode - plugin handles it)
 			if (agentsPath) {
 				for (const file of agentFiles) {
+					if (!selectedAgents.includes(file.name.replace(RX_MD, ''))) continue;
 					const ext = agentExtension ?? '.md';
-					const name = file.name.replace(/\.md$/, ext);
-					const filePath = `${agentsPath}/${name}`;
-					sv.file(filePath, (content) => {
-						if (content) {
-							filesExistingAlready.push(filePath);
-							return false;
-						}
-						return file.contents;
-					});
+					const name = file.name.replace(RX_MD, ext);
+					addFile(`${agentsPath}/${name}`, file.contents);
 				}
 			}
 		}
@@ -263,9 +318,15 @@ export default defineAddon({
 	nextSteps({ options }) {
 		const steps = [];
 
+		if (options.delivery === 'plugin' && options.ide.includes('claude-code')) {
+			steps.push(
+				`Open the project in Claude Code and trust the workspace - the Svelte plugin installs automatically.`
+			);
+		}
+
 		if (options.ide.includes('other')) {
 			steps.push(
-				`For other clients: ${color.website(`https://svelte.dev/docs/ai/${options.setup}-setup#Other-clients`)}`
+				`For other clients: ${color.website(`https://svelte.dev/docs/ai/${options.mcpSetup ?? 'remote'}-setup#Other-clients`)}`
 			);
 		}
 

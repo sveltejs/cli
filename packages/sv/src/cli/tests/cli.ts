@@ -32,7 +32,7 @@ describe('cli', () => {
 				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local+skills:files'
+				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local'
 				// 'storybook' // No storybook addon during tests!
 			]
 		},
