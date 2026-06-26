@@ -288,7 +288,7 @@ export function updateAgent(
 	packageManager: string,
 	loadedAddons: LoadedAddon[]
 ): void {
-	const agentFiles = ['AGENTS.md', 'GEMINI.md', 'CLAUDE.md'];
+	const agentFiles = ['AGENTS.md', 'GEMINI.md', '.claude/CLAUDE.md'];
 
 	const languageLabel =
 		language === 'typescript'

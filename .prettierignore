@@ -1,2 +1,3 @@
 packages/sv/src/cli/tests/snapshots/*
 packages/sv-utils/src/tests/**/output.ts
+packages/sv/src/create/shared/+skills/*
