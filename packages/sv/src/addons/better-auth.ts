@@ -55,8 +55,8 @@ export default defineAddon({
 		let drizzleDialect: Dialect;
 		let d1 = false;
 
-		sv.devDependency('better-auth', '~1.4.21');
-		sv.devDependency('@better-auth/cli', '~1.4.21');
+		sv.devDependency('auth', '^1.6.19');
+		sv.devDependency('better-auth', '^1.6.19');
 
 		// Read-only: extract dialect info from drizzle config without modifying it
 		sv.file(
@@ -223,6 +223,7 @@ export default defineAddon({
 				if (content) return false;
 				return dedent`
 					// If you see this file, you have not run the auth:schema script yet, but you should!
+					export {};
 				`;
 			})
 		);
