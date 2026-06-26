@@ -1,5 +1,17 @@
 # @sveltejs/sv-utils
 
+## 0.4.0
+### Minor Changes
+
+
+- feat(env): add `defineEnv().importEnv` to import from the environment module (`$app/env` declared, `$app/environment` legacy) without branching on mode ([#1150](https://github.com/sveltejs/cli/pull/1150))
+
+
+### Patch Changes
+
+
+- fix: prevent `parseExpression` from duplicating nearby comments ([#1146](https://github.com/sveltejs/cli/pull/1146))
+
 ## 0.3.0
 ### Minor Changes
 
