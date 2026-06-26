@@ -984,7 +984,7 @@ export async function resolveNonOfficialAddons(
 		}
 
 		p.log.warn(
-			'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
+			'Svelte maintainers have not reviewed community add-ons for malicious code! Use at your discretion.'
 		);
 
 		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
