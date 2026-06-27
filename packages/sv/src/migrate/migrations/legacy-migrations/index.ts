@@ -25,7 +25,6 @@ function legacyMigration(name: string, description: string) {
 }
 
 export const legacyMigrations = [
-	legacyMigration('app-state', 'Migrate from "$app/stores" to "$app/state"'),
 	legacyMigration('svelte-5', 'Migrate from Svelte 4 to Svelte 5'),
 	legacyMigration('self-closing-tags', 'Migrate to the new self-closing tag syntax'),
 	legacyMigration('svelte-4', 'Migrate from Svelte 3 to Svelte 4'),

@@ -26,11 +26,12 @@ import {
 	getMigrationTaskCount,
 	resetMigrationTaskCount
 } from '../migrate/migration-task.ts';
+import appState from '../migrate/migrations/app-state/index.ts';
 import { legacyMigrations } from '../migrate/migrations/legacy-migrations/index.ts';
 import kit3 from '../migrate/migrations/sveltekit-3/index.ts';
 
 // TODO: support historic migrations from `svelte-migrate` by handing over to `svelte-migrate`
-const migrations = [kit3, ...legacyMigrations] as const;
+const migrations = [kit3, appState, ...legacyMigrations] as const;
 const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 
 const OptionsSchema = v.strictObject({

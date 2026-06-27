@@ -1,5 +1,6 @@
 import { coerceVersion, color } from '@sveltejs/sv-utils';
 import { defineMigration } from '../../index.ts';
+import appState from '../app-state/tasks/app-state.ts';
 import environment from './tasks/environment.ts';
 import packageJson from './tasks/package-json.ts';
 import svelteConfig from './tasks/svelte-config.ts';
@@ -26,5 +27,6 @@ export default defineMigration({
 		tasks.add(packageJson, { required: true });
 		tasks.add(svelteConfig, { required: true });
 		tasks.add(environment, { required: false });
+		tasks.add(appState, { required: true });
 	}
 });
