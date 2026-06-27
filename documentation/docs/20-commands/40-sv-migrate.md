@@ -74,9 +74,9 @@ When used with `--cwd`, the glob is relative to the working directory.
 
 ### `--tasks <task...>`
 
-Select migration tasks without the interactive prompt. Required tasks always run.
+Select migration tasks without the interactive prompt. Prerequisite tasks always run because they lay the foundation for the remaining migration tasks.
 
-Use `--tasks all` to run every task, or `--tasks required` to run only the required tasks.
+Use `--tasks all` to run every task, or `--tasks prerequisite` to run only the prerequisite tasks.
 
 ### `--confirm`
 

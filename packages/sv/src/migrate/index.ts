@@ -25,7 +25,7 @@ export type MigrationCollectOptions = {
 };
 
 export type TaskOptions = {
-	required: boolean;
+	prerequisite: boolean;
 };
 
 export type Task = {
