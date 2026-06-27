@@ -15,6 +15,6 @@ export default defineMigration({
 			);
 	},
 	collect: ({ tasks }) => {
-		tasks.add(appState, { required: true });
+		tasks.add(appState, { prerequisite: true });
 	}
 });

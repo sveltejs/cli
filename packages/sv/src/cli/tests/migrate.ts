@@ -13,13 +13,13 @@ const optionalTasks: TaskWithOptions[] = [
 	{
 		id: 'svelte-config',
 		description: 'migrate svelte.config.js',
-		required: false,
+		prerequisite: false,
 		run: () => {}
 	},
 	{
 		id: 'env-vars',
 		description: 'migrate environment variables',
-		required: false,
+		prerequisite: false,
 		run: () => {}
 	}
 ];
@@ -39,8 +39,8 @@ describe('selectTasks', () => {
 		expect(selectOptionalTasksFromArgs(['all'], optionalTasks)).toEqual(optionalTasks);
 	});
 
-	it('selects only required tasks', () => {
-		expect(selectOptionalTasksFromArgs(['required'], optionalTasks)).toEqual([]);
+	it('selects only prerequisite tasks', () => {
+		expect(selectOptionalTasksFromArgs(['prerequisite'], optionalTasks)).toEqual([]);
 	});
 
 	it('selects specific optional tasks', () => {
@@ -52,9 +52,9 @@ describe('selectTasks', () => {
 		expect(() => selectOptionalTasksFromArgs(['all', 'env-vars'], optionalTasks)).toThrow('exit 1');
 	});
 
-	it('exits when required is combined with a task', () => {
+	it('exits when prerequisite is combined with a task', () => {
 		mockExit();
-		expect(() => selectOptionalTasksFromArgs(['required', 'env-vars'], optionalTasks)).toThrow(
+		expect(() => selectOptionalTasksFromArgs(['prerequisite', 'env-vars'], optionalTasks)).toThrow(
 			'exit 1'
 		);
 	});
