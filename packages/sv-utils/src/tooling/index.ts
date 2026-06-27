@@ -240,10 +240,15 @@ export class Comments {
 		const map = position === 'leading' ? this.leading : this.trailing;
 		const list = map.get(node) ?? [];
 		// Let's not add 2 times the same comment to one node!
-		if (!list.find((c) => c.value === comment.value)) {
-			list.push(comment);
-			map.set(node, list);
-		}
+		if (list.find((c) => c.value === comment.value)) return;
+		list.push(comment);
+		map.set(node, list);
+
+		// now attached to a node: drop one positional copy so esrap doesn't print it twice
+		const index = this.original.findIndex(
+			(c) => c.type === comment.type && c.value === comment.value
+		);
+		if (index !== -1) this.original.splice(index, 1);
 	}
 
 	remove(predicate: (comment: TsEstree.Comment) => boolean | undefined | null): void {
