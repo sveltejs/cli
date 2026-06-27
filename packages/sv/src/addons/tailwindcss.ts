@@ -125,7 +125,7 @@ export default defineAddon({
 
 		if (prettierInstalled) {
 			sv.file(
-				prettierConfigPath(language),
+				prettierConfigPath(),
 				addPrettierTailwind({ stylesheet: file.getRelative({ to: file.stylesheet }) })
 			);
 		}

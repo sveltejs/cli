@@ -1,11 +1,5 @@
 import { log } from '@clack/prompts';
-import {
-	type AstTypes,
-	color,
-	type SvelteAst,
-	type TransformFn,
-	transforms
-} from '@sveltejs/sv-utils';
+import { color, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
 // This is in common because the eslint addon installs this version,
@@ -98,17 +92,20 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	}
 });
 
-/** Path of the prettier config file we generate, based on the project language. */
-export function prettierConfigPath(language: 'ts' | 'js'): string {
-	return language === 'ts' ? 'prettier.config.ts' : 'prettier.config.js';
+/**
+ * Path of the prettier config file we generate. We always emit a `.js` file (with a JSDoc `@type`)
+ * rather than `.ts`, since the VSCode prettier extension can't load a `.ts` config without a recent
+ * enough Node in its extension host (see prettier/prettier-vscode#3989).
+ */
+export function prettierConfigPath(): string {
+	return 'prettier.config.js';
 }
 
 /**
- * Creates a `prettier.config.{js,ts}` file with our defaults. Bails (leaving the file untouched)
+ * Creates a `prettier.config.js` file with our defaults. Bails (leaving the file untouched)
  * if a config is already defined.
  */
 export const createPrettierConfig = (opts: {
-	typescript: boolean;
 	tailwind: boolean;
 	stylesheet?: string;
 }): TransformFn =>
@@ -121,40 +118,33 @@ export const createPrettierConfig = (opts: {
 		const plugins = ['prettier-plugin-svelte'];
 		if (opts.tailwind) plugins.push('prettier-plugin-tailwindcss');
 
-		const data: Record<string, any> = {
-			useTabs: true,
-			singleQuote: true,
-			trailingComma: 'none',
-			printWidth: 100,
-			plugins,
-			overrides: [{ files: '*.svelte', options: { parser: 'svelte' } }]
-		};
-		if (opts.tailwind && opts.stylesheet) data.tailwindStylesheet = opts.stylesheet;
-
-		const configObject = js.object.create(data);
-		const declaration = js.variables.declaration(ast, {
-			kind: 'const',
-			name: 'config',
-			value: configObject
-		});
-		const declarator = declaration.declarations[0] as AstTypes.VariableDeclarator;
-
-		if (opts.typescript) {
-			js.variables.typeAnnotateDeclarator(declarator, { typeName: 'Config' });
-			js.imports.addNamed(ast, { from: 'prettier', imports: ['Config'], isType: true });
-		} else {
-			js.common.addJsDocTypeComment(declaration, comments, { type: 'import("prettier").Config' });
+		const properties = [
+			'useTabs: true',
+			'singleQuote: true',
+			`trailingComma: 'none'`,
+			'printWidth: 100',
+			`plugins: [${plugins.map((p) => `'${p}'`).join(', ')}]`,
+			`overrides: [{ files: '*.svelte', options: { parser: 'svelte' } }]`
+		];
+		if (opts.tailwind && opts.stylesheet) {
+			properties.push(`tailwindStylesheet: '${opts.stylesheet}'`);
 		}
 
-		ast.body.push(declaration);
-		ast.body.push({
-			type: 'ExportDefaultDeclaration',
-			declaration: js.variables.createIdentifier('config')
-		} as AstTypes.ExportDefaultDeclaration);
+		// parsed from source (rather than built node-by-node) so the JSDoc `@type` keeps its own line
+		// above `const config`; esrap inlines programmatically-added comments but honors parsed ones.
+		// indentation here is irrelevant - esrap reprints the parsed AST from scratch.
+		js.common.appendFromString(ast, {
+			comments,
+			code: `
+				/** @type {import("prettier").Config} */
+				const config = { ${properties.join(', ')} };
+				export default config;
+			`
+		});
 	});
 
 /**
- * Augments an existing `prettier.config.{js,ts}` config object with the tailwindcss plugin and
+ * Augments an existing `prettier.config.js` config object with the tailwindcss plugin and
  * stylesheet. Used when prettier was added before tailwindcss.
  */
 export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =>

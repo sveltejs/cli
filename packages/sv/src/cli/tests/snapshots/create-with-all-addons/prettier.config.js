@@ -1,6 +1,5 @@
-import type { Config } from 'prettier';
-
-const config: Config = {
+/** @type {import("prettier").Config} */
+const config = {
 	useTabs: true,
 	singleQuote: true,
 	trailingComma: 'none',

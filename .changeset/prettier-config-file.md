@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat(prettier): generate a `prettier.config.{js,ts}` file instead of `.prettierrc`, giving type-checked config and editor autocompletion
+feat(prettier): generate a `prettier.config.js` file (with a JSDoc `@type`) instead of `.prettierrc`, giving editor autocompletion

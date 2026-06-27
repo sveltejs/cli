@@ -13,7 +13,7 @@ export default defineAddon({
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
-	run: ({ sv, language, dependencyVersion, file }) => {
+	run: ({ sv, dependencyVersion, file }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.0');
 
@@ -39,9 +39,8 @@ export default defineAddon({
 		);
 
 		sv.file(
-			prettierConfigPath(language),
+			prettierConfigPath(),
 			createPrettierConfig({
-				typescript: language === 'ts',
 				tailwind: tailwindcssInstalled,
 				stylesheet: tailwindcssInstalled ? file.getRelative({ to: file.stylesheet }) : undefined
 			})
