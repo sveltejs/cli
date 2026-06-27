@@ -73,12 +73,19 @@ export default defineMigrationTask({
 
 				const propAttachment = attachments.get(prop);
 
-				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now `trustedOrigins: ['*']`
-				if (prop.key.name === 'csrf' && isCheckOriginDisabled(prop.value)) {
-					keyedConfig['trustedOrigins'] = ['*'];
-					trustsAllOrigins = true;
-					if (propAttachment) propComments.set('trustedOrigins', propAttachment);
-					continue;
+				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now
+				// `csrf: { trustedOrigins: ['*'] }`. Rewrite the property in place so any sibling
+				// `csrf` options are preserved and `trustedOrigins` stays nested under `csrf`.
+				if (prop.key.name === 'csrf' && prop.value.type === 'ObjectExpression') {
+					const checkOrigin = findDisabledCheckOrigin(prop.value);
+					if (checkOrigin) {
+						checkOrigin.key.name = 'trustedOrigins';
+						checkOrigin.value = {
+							type: 'ArrayExpression',
+							elements: [{ type: 'Literal', value: '*' }]
+						};
+						trustsAllOrigins = true;
+					}
 				}
 
 				keyedConfig[prop.key.name] = prop.value;
@@ -236,10 +243,12 @@ function collectComments(
 	return map;
 }
 
-function isCheckOriginDisabled(value: AstTypes.Property['value']): boolean {
-	if (value.type !== 'ObjectExpression') return false;
-	return value.properties.some(
-		(p) =>
+/** Returns the `checkOrigin: false` property of a `csrf` object, if present. */
+function findDisabledCheckOrigin(
+	value: AstTypes.ObjectExpression
+): (AstTypes.Property & { key: AstTypes.Identifier }) | undefined {
+	return value.properties.find(
+		(p): p is AstTypes.Property & { key: AstTypes.Identifier } =>
 			p.type === 'Property' &&
 			p.key.type === 'Identifier' &&
 			p.key.name === 'checkOrigin' &&

@@ -20,8 +20,10 @@ export default defineConfig({
 			compilerOptions: { experimental: { async: true } },
 			vitePlugin: { inspector: {}, onwarn },
 			experimental: { remoteFunctions: true /* still experimental */ },
-			// @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf
-			trustedOrigins: ['*'],
+			csrf: {
+				// @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf
+				trustedOrigins: ['*']
+			},
 			paths: { ...paths, base },
 			// adapter is selected via the helper above
 			adapter: adapter(adapterConfig)
