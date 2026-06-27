@@ -220,7 +220,7 @@ export async function createWorkspace({
 	};
 }
 
-function findWorkspaceRoot(cwd: string): string {
+export function findWorkspaceRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {

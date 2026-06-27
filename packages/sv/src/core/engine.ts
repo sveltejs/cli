@@ -3,12 +3,15 @@ import {
 	color,
 	fileExists,
 	loadFile,
-	loadPackageJson,
-	parse,
 	saveFile,
 	resolveCommand,
-	type AgentName
+	type AgentName,
+	transforms,
+	type Package,
+	minimizeDiff
 } from '@sveltejs/sv-utils';
+import fs from 'node:fs';
+import path from 'node:path';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import { filePaths } from './common.ts';
@@ -16,6 +19,7 @@ import {
 	getErrorHint,
 	type Addon,
 	type AddonDefinition,
+	type FileEdit,
 	type LoadedAddon,
 	type OptionValues,
 	type SetupResult,
@@ -36,26 +40,36 @@ function alphabetizeRecord(obj: Record<string, string>) {
 
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	cwd: string
-): string {
-	const { source } = loadPackageJson(cwd);
-	const { data, generateCode } = parse.json(source);
+	sv: SvApi
+) {
+	if (dependencies.length === 0) return;
 
-	for (const dependency of dependencies) {
-		if (dependency.dev) {
-			data.devDependencies ??= {};
-			data.devDependencies[dependency.pkg] = dependency.version;
-		} else {
-			data.dependencies ??= {};
-			data.dependencies[dependency.pkg] = dependency.version;
-		}
-	}
+	const pkgPath = filePaths.packageJson;
+	sv.file(
+		pkgPath,
+		transforms.json<Package>(({ content, data }) => {
+			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
-	if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
-	if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
+			let modified = false;
+			for (const dependency of dependencies) {
+				if (dependency.dev && !data.devDependencies) data.devDependencies = {};
+				if (!dependency.dev && !data.dependencies) data.dependencies = {};
 
-	saveFile(cwd, filePaths.packageJson, generateCode());
-	return filePaths.packageJson;
+				let dependencies = dependency.dev ? data.devDependencies : data.dependencies;
+				dependencies ??= {};
+
+				if (!dependencies[dependency.pkg] || dependencies[dependency.pkg] !== dependency.version) {
+					modified = true;
+					dependencies[dependency.pkg] = dependency.version;
+				}
+			}
+
+			if (!modified) return false; // do not edit the file if no changes were made
+
+			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
+			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
+		})
+	);
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -208,7 +222,7 @@ type RunAddon = {
 	multiple: boolean;
 };
 async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }: RunAddon) {
-	const files = new Set<string>();
+	let modifiedFiles = new Set<string>();
 
 	// apply default addon options
 	const options: OptionValues<any> = { ...workspaceOptions };
@@ -219,32 +233,136 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		}
 	}
 
+	const { sv, finalize } = prepareSvApi(workspace, {
+		executeOutputPrefix: multiple ? `${addon.id}: ` : ''
+	});
+
+	const cancels: string[] = [];
+	try {
+		await addon.run({
+			cancel: (reason) => {
+				cancels.push(reason);
+			},
+			...workspace,
+			options,
+			sv
+		});
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		throw new Error(
+			`Add-on '${addon.id}' failed during run: ${msg}\n\n${getErrorHint(loaded.reference.source)}`,
+			{ cause: err }
+		);
+	}
+
+	if (cancels.length === 0) {
+		({ modifiedFiles } = finalize());
+	}
+
+	return {
+		files: Array.from(modifiedFiles),
+		cancels
+	};
+}
+
+function editFile(
+	file: string,
+	edit: FileEdit,
+	workspace: Workspace,
+	modifiedFiles: Set<string>,
+	unmodifiedFiles: Set<string>,
+	options: PrepareSvApiOptions,
+	include?: (content: string) => boolean
+) {
+	try {
+		const exists = fileExists(workspace.cwd, file);
+		if (exists && !fs.statSync(path.resolve(workspace.cwd, file)).isFile()) return;
+
+		const content = exists ? loadFile(workspace.cwd, file) : '';
+		const skip = include === undefined ? false : !include(content);
+		if (skip) return;
+
+		const editedContent = edit(content);
+		if (editedContent === '' || editedContent === false) return;
+
+		if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) {
+			unmodifiedFiles.add(file);
+			return;
+		}
+
+		const diffMinimizedEditedContent = minimizeDiff(content, editedContent);
+		file = saveFile(workspace.cwd, file, diffMinimizedEditedContent, options.saveFileInfix);
+		modifiedFiles.add(file);
+	} catch (e) {
+		if (e instanceof Error) {
+			e.message = `Unable to process '${file}'. Reason: ${e.message}`;
+		}
+		throw e;
+	}
+}
+
+type PrepareSvApiOptions = {
+	filesFilter?: string | undefined;
+	executeOutputPrefix?: string | undefined;
+	saveFileInfix?: string | undefined;
+	additionalExcludes?: string[] | undefined;
+};
+
+export function prepareSvApi(
+	workspace: Workspace,
+	options: PrepareSvApiOptions = {
+		filesFilter: undefined,
+		executeOutputPrefix: undefined,
+		saveFileInfix: undefined,
+		additionalExcludes: undefined
+	}
+): { sv: SvApi; finalize: () => { modifiedFiles: Set<string>; unmodifiedFiles: Set<string> } } {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+	const modifiedFiles = new Set<string>();
+	const unmodifiedFiles = new Set<string>();
+
 	const sv: SvApi = {
 		file: (path, edit) => {
-			try {
-				const content = fileExists(workspace.cwd, path) ? loadFile(workspace.cwd, path) : '';
-				const editedContent = edit(content);
-				if (editedContent === '' || editedContent === false) return content;
+			editFile(path, edit, workspace, modifiedFiles, unmodifiedFiles, options);
+		},
+		files: (opts, edit) => {
+			const { include, exclude } = opts;
+			const globbedFiles = fs.globSync(include, {
+				cwd: workspace.cwd,
+				exclude: [
+					'node_modules/**',
+					'**/node_modules/**',
+					'.*/**',
+					'**/.*/**',
+					'build/**',
+					'dist/**',
+					...(options.additionalExcludes ?? []),
+					...(exclude ?? [])
+				]
+			});
 
-				saveFile(workspace.cwd, path, editedContent);
-				files.add(path);
-			} catch (e) {
-				if (e instanceof Error) {
-					e.message = `Unable to process '${path}'. Reason: ${e.message}`;
-					throw e;
-				}
-				throw e;
+			for (const file of globbedFiles) {
+				if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) continue;
+
+				const singleFileEdit = (content: string) => edit(content, file);
+				editFile(
+					file,
+					singleFileEdit,
+					workspace,
+					modifiedFiles,
+					unmodifiedFiles,
+					options,
+					opts.where
+				);
 			}
 		},
 		execute: async (commandArgs, stdio) => {
 			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
-			const addonPrefix = multiple ? `${addon.id}: ` : '';
 			const executedCommand = [command, ...args].join(' ');
 			if (!TESTING) {
 				p.log.step(
-					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
+					`${options?.executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
 				);
 			}
 
@@ -277,33 +395,16 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
-
-	const cancels: string[] = [];
-	try {
-		await addon.run({
-			cancel: (reason) => {
-				cancels.push(reason);
-			},
-			...workspace,
-			options,
-			sv
-		});
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		throw new Error(
-			`Add-on '${addon.id}' failed during run: ${msg}\n\n${getErrorHint(loaded.reference.source)}`,
-			{ cause: err }
-		);
-	}
-
-	if (cancels.length === 0) {
-		const pkgPath = updatePackages(dependencies, workspace.cwd);
-		files.add(pkgPath);
-	}
-
 	return {
-		files: Array.from(files),
-		cancels
+		sv,
+		finalize: () => {
+			updatePackages(dependencies, sv);
+
+			return {
+				modifiedFiles,
+				unmodifiedFiles
+			};
+		}
 	};
 }
 

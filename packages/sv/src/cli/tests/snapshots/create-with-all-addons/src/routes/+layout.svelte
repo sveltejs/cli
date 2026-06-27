@@ -9,9 +9,11 @@
 	let { children } = $props();
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
-{@render children()}
+<svelte:head>
+	<link rel="icon" href={favicon} />
+</svelte:head>
 
+{@render children()}
 <div style="display:none">
 	{#each locales as locale (locale)}
 		<a
