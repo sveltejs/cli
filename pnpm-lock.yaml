@@ -141,8 +141,8 @@ importers:
         specifier: ^9.0.0
         version: 9.0.0
       esrap:
-        specifier: ^2.2.11
-        version: 2.2.11(@typescript-eslint/types@8.60.1)
+        specifier: ^2.2.13
+        version: 2.2.13(@typescript-eslint/types@8.60.1)
       package-manager-detector:
         specifier: ^1.6.0
         version: 1.6.0
@@ -1325,8 +1325,8 @@ packages:
       '@typescript-eslint/types':
         optional: true
 
-  esrap@2.2.11:
-    resolution: {integrity: sha512-gPdx+I+BjYEinNMQaBXFjbaJVyoPMU4ZODg5mE+M4DqVG9VusAVHHjcBX+zqyITlI0DIARwDMMzZwAWj36dRoQ==}
+  esrap@2.2.13:
+    resolution: {integrity: sha512-m8jH5hZgJE2RRUK/jjkGPcJEDAV+dYnZYFkosQaPTcE+Yw4xynXHOo6FUdwaWBtdR3b1MMa7wEDTSHeR2VWsGA==}
     peerDependencies:
       '@typescript-eslint/types': ^8.2.0
     peerDependenciesMeta:
@@ -3506,7 +3506,7 @@ snapshots:
     optionalDependencies:
       '@typescript-eslint/types': 8.60.1
 
-  esrap@2.2.11(@typescript-eslint/types@8.60.1):
+  esrap@2.2.13(@typescript-eslint/types@8.60.1):
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
     optionalDependencies:
