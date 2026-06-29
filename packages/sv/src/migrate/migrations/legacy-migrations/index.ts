@@ -19,7 +19,7 @@ function legacyMigration(name: string, description: string) {
 		legacy: true,
 		setup: () => {},
 		collect: ({ tasks }) => {
-			tasks.add(legacyTask(name, description), { required: true });
+			tasks.add(legacyTask(name, description), { prerequisite: true });
 		}
 	});
 }

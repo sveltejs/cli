@@ -203,17 +203,17 @@ async function determineTasks(
 		return;
 	}
 
-	const requiredTasks = allTasks.filter((t) => t.required);
-	const optionalTasks = allTasks.filter((t) => !t.required);
+	const prerequisiteTasks = allTasks.filter((t) => t.prerequisite);
+	const optionalTasks = allTasks.filter((t) => !t.prerequisite);
 
-	const tasksToRun = [...requiredTasks];
+	const tasksToRun = [...prerequisiteTasks];
 	if (options.tasks) {
 		tasksToRun.push(...selectOptionalTasksFromArgs(options.tasks, optionalTasks));
 	} else if (optionalTasks.length > 0) {
-		const requiredIds = requiredTasks.map((t) => t.id).join(', ');
+		const prerequisiteIds = prerequisiteTasks.map((t) => t.id).join(', ');
 		const optionalTaskIdsToRun = await p.multiselect({
-			message: requiredTasks.length
-				? `Select optional tasks to run, in addition to ${color.dim(requiredIds)}`
+			message: prerequisiteTasks.length
+				? `Select optional tasks to run, in addition to ${color.dim(prerequisiteIds)}`
 				: 'Select the tasks to run',
 			options: optionalTasks.map((t) => ({
 				value: t.id,
@@ -238,8 +238,8 @@ async function determineTasks(
 	}
 
 	const recapMessage = tasksToRun
-		.map(({ id, description, required }) => {
-			const tag = required ? '' : color.optional(' (optional)');
+		.map(({ id, description, prerequisite }) => {
+			const tag = prerequisite ? '' : color.optional(' (optional)');
 			return `${id}${tag} ${color.dim(`(${description})`)}`;
 		})
 		.join('\n- ');
@@ -266,16 +266,16 @@ export function selectOptionalTasksFromArgs(
 ) {
 	if (
 		selectedTaskIds.length > 1 &&
-		(selectedTaskIds.includes('all') || selectedTaskIds.includes('required'))
+		(selectedTaskIds.includes('all') || selectedTaskIds.includes('prerequisite'))
 	) {
 		common.errorAndExit(
 			`The ${color.command('--tasks')} values ${color.command('all')} and ${color.command(
-				'required'
+				'prerequisite'
 			)} cannot be combined with other tasks.`
 		);
 	}
 
-	if (selectedTaskIds[0] === 'required') {
+	if (selectedTaskIds[0] === 'prerequisite') {
 		return [];
 	}
 
