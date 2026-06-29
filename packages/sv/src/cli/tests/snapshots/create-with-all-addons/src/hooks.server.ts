@@ -16,13 +16,10 @@ const handleParaglide: Handle = ({ event, resolve }) => paraglideMiddleware(even
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
 	const session = await auth.api.getSession({ headers: event.request.headers });
-
 	if (session) {
 		event.locals.session = session.session;
 		event.locals.user = session.user;
 	}
-
 	return svelteKitHandler({ event, resolve, auth, building });
 };
-
 export const handle: Handle = sequence(handleParaglide, handleBetterAuth);

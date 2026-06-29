@@ -2,7 +2,7 @@
 title: sv migrate
 ---
 
-`sv migrate` migrates Svelte(Kit) codebases. It delegates to the [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate) package.
+`sv migrate` migrates Svelte(Kit) codebases. Some migrations are built into `sv`; older migrations are run through [`svelte-migrate`](https://www.npmjs.com/package/svelte-migrate).
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
@@ -12,12 +12,21 @@ Some migrations may annotate your codebase with tasks for completion that you ca
 npx sv migrate
 ```
 
+When no migration is specified, `sv migrate` prompts you to pick one.
+
 You can also specify a migration directly via the CLI:
+
 ```sh
 npx sv migrate [migration]
 ```
 
+For built-in migrations, `sv migrate` shows the migration steps before applying them. Required steps always run, and additional steps can be selected interactively or with `--tasks`. After a successful built-in migration, `sv` formats changed files when Prettier is installed and prompts to install any updated dependencies.
+
 ## Migrations
+
+### `sveltekit-3`
+
+Upgrades a SvelteKit 2 app to SvelteKit 3.
 
 ### `app-state`
 
@@ -46,3 +55,43 @@ Upgrades a library using `@sveltejs/package` version 1 to version 2. See the [pu
 ### `routes`
 
 Upgrades a pre-release SvelteKit app to use the filesystem routing conventions in SvelteKit 1. See the [pull request](https://github.com/sveltejs/kit/discussions/5774) for more details.
+
+## Options
+
+### `--cwd <path>`
+
+Run the migration in a different working directory.
+
+### `--no-git-check`
+
+By default, `sv migrate` prompts before making changes when the git working tree is dirty. Use `--no-git-check` to skip this check.
+
+### `--files <glob>`
+
+Limit the files considered for migration to those matching a glob. A migration may still try to edit or create files outside the glob, in which case `sv migrate` will show a warning.
+
+When used with `--cwd`, the glob is relative to the working directory.
+
+### `--tasks <task...>`
+
+Select migration tasks without the interactive prompt. Prerequisite tasks always run because they lay the foundation for the remaining migration tasks.
+
+Use `--tasks all` to run every task, or `--tasks prerequisite` to run only the prerequisite tasks.
+
+### `--confirm`
+
+Skip the final confirmation prompt before applying the migration.
+
+### `--install <package-manager>`
+
+Install dependencies with a specified package manager:
+
+- `npm`
+- `pnpm`
+- `yarn`
+- `bun`
+- `deno`
+
+### `--no-install`
+
+Skip installing dependencies.

@@ -6,6 +6,9 @@ export type { OptionValues } from './options.ts';
 
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
+export type FileEdit = (content: string) => string | false;
+export type FileEditMultiple = (content: string, path: string) => string | false;
+
 export type SvApi = {
 	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
 	pnpmBuildDependency: (pkg: string) => void;
@@ -20,7 +23,29 @@ export type SvApi = {
 	 *
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
-	file: (path: string, edit: (content: string) => string | false) => void;
+	file: (path: string, edit: FileEdit) => void;
+	/**
+	 * Edits matching files in the workspace.
+	 * The `include` and `exclude` patterns are glob patterns relative to the workspace root.
+	 * For each matching file, the `edit` callback is called with the file content,
+	 * and should return the new content (or `false` to abort editing that file).
+	 *
+	 * Note: always adds excludes for `node_modules` and dot-prefixed directories
+	 */
+	files: (
+		options: {
+			/** Glob patterns to include */
+			include: string | string[];
+			/** Glob patterns to exclude */
+			exclude?: string[];
+			/**
+			 * Only run `edit` for files whose current content matches this predicate.
+			 * Useful for avoiding expensive transforms on unrelated files.
+			 */
+			where?: (content: string) => boolean;
+		},
+		edit: FileEditMultiple
+	) => void;
 };
 
 export type Addon<Args extends OptionDefinition, Id extends string = string> = {
