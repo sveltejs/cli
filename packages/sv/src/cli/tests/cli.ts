@@ -32,7 +32,8 @@ describe('cli', () => {
 				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
+				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local',
+				'valibot'
 				// 'storybook' // No storybook addon during tests!
 			]
 		},

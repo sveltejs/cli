@@ -45,8 +45,13 @@ export default defineAddon({
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const svelteVersion = dependencyVersion('svelte');
-		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
-		const [ts, s5] = createPrinter(language === 'ts', svelte5);
+
+		const [ts, s5, tw, v] = createPrinter(
+			language === 'ts',
+			!!svelteVersion && coerceVersion(svelteVersion).major === 5,
+			Boolean(dependencyVersion('@tailwindcss/vite')),
+			Boolean(dependencyVersion('valibot'))
+		);
 
 		const demoPassword = options.demo.includes('password');
 		const demoGithub = options.demo.includes('github');
@@ -322,25 +327,31 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
+			const [pw, gh] = createPrinter(demoPassword, demoGithub);
+
 			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
-				(content) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
+			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`, () => {
+				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
-					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
-
-					const signInEmailAction = demoPassword
-						? `
+				const signInEmailAction = pw(`
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
+						${v(
+							`const parsed = v.safeParse(loginSchema, Object.fromEntries(formData));
+
+							if (!parsed.success) {
+								const flat = v.flatten(parsed.issues);
+								const messages = Object.entries(flat.nested ?? {}).flatMap(([key, value]) =>
+									value ? value.map((v) => \`\${key}: \${v}\`) : []
+								);
+								return fail(400, { message: messages.join(', ') || 'Validation failed' });
+							}
+
+							const { email, password } = parsed.output;`,
+							`const email = formData.get('email')?.toString() ?? '';
+							const password = formData.get('password')?.toString() ?? '';`
+						)}
 
 							try {
 								await auth.api.signInEmail({
@@ -361,9 +372,22 @@ export default defineAddon({
 						},
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
+						${v(
+							`const parsed = v.safeParse(registerSchema, Object.fromEntries(formData));
+
+							if (!parsed.success) {
+								const flat = v.flatten(parsed.issues);
+								const messages = Object.entries(flat.nested ?? {}).flatMap(([key, value]) =>
+									value ? value.map((v) => \`\${key}: \${v}\`) : []
+								);
+								return fail(400, { message: messages.join(', ') || 'Validation failed' });
+							}
+
+							const { email, password, name } = parsed.output;`,
+							`const email = formData.get('email')?.toString() ?? '';
 							const password = formData.get('password')?.toString() ?? '';
-							const name = formData.get('name')?.toString() ?? '';
+							const name = formData.get('name')?.toString() ?? '';`
+						)}
 
 							try {
 								await auth.api.signUpEmail({
@@ -382,19 +406,33 @@ export default defineAddon({
 							}
 
 							return redirect(302, '/demo/better-auth');
-						},`
-						: '';
-
-					const signInSocialAction = demoGithub
-						? `
+						},`);
+				const signInSocialAction = gh(`
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+						${v(
+							`const socialSchema = v.object({
+								provider: v.picklist(['github', 'google'], 'Invalid provider'),
+								callbackURL: v.optional(v.pipe(v.string(), v.url()), '/demo/better-auth')
+							});
+
+							const parsed = v.safeParse(socialSchema, Object.fromEntries(formData));
+							if (!parsed.success) {
+								const flat = v.flatten(parsed.issues);
+								const messages = Object.entries(flat.nested ?? {}).flatMap(([key, value]) =>
+									value ? value.map((v) => \`\${key}: \${v}\`) : []
+								);
+								return fail(400, { message: messages.join(', ') || 'Validation failed' });
+							}
+
+							const { provider, callbackURL } = parsed.output;`,
+							`const provider = formData.get('provider')?.toString() ?? 'github';
+							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';`
+						)}
 
 							const result = await auth.api.signInSocial({
 								body: {
-									provider: provider${ts(' as "github"')},
+									provider: provider${ts(v('', ' as "github"'))},
 									callbackURL
 								}
 							});
@@ -403,18 +441,28 @@ export default defineAddon({
 								return redirect(302, result.url);
 							}
 							return fail(400, { message: 'Social sign-in failed' });
-						},`
-						: '';
+					},`);
+				const needsAPIError = demoPassword;
 
-					const needsAPIError = demoPassword;
-
-					return dedent`
+				return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
-					${ts("import type { Actions } from './$types';")}
-					${ts("import type { PageServerLoad } from './$types';")}
+					${ts("import type { Actions, PageServerLoad } from './$types';")}
 					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
+					${v(
+						`
+					import * as v from 'valibot';
 
+					const loginSchema = v.object({
+						email: v.pipe(v.string(), v.nonEmpty('Email is required'), v.email('Invalid email format')),
+						password: v.pipe(v.string(), v.nonEmpty('Password is required'), v.minLength(8, 'Password must be at least 8 characters'))
+					});
+
+					const registerSchema = v.object({
+						...loginSchema.entries,
+						name: v.pipe(v.string(), v.nonEmpty('Name is required'))
+					});\n`
+					)}
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
 							return redirect(302, '/demo/better-auth');
@@ -425,63 +473,48 @@ export default defineAddon({
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
 				`;
-				}
-			);
+			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
-				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
-					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-					return false;
-				}
+			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, () => {
+				const input =
+					' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"';
 
-				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
-				const input = tailwind
-					? ' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"'
-					: '';
-				const btn = tailwind
-					? ' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"'
-					: '';
+				const btn =
+					' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
-				const passwordForm = demoPassword
-					? `
+				const passwordForm = pw(`
 					<form method="post" action="?/signInEmail" use:enhance>
 						<label>
 							Email
-							<input type="email" name="email"${input} />
+							<input type="email" name="email"${tw(input)} />
 						</label>
 						<label>
 							Password
-							<input type="password" name="password"${input} />
+							<input type="password" name="password"${tw(input)} />
 						</label>
 						<label>
 							Name (for registration)
-							<input name="name"${input} />
+							<input type="text" name="name"${tw(input)} />
 						</label>
-						<button${btn}>Login</button>
-						<button formaction="?/signUpEmail"${btn}>Register</button>
+						<button${tw(btn)}>Login</button>
+						<button formaction="?/signUpEmail"${tw(btn)}>Register</button>
 					</form>
-					${tailwind ? `<p class="text-red-500">{form?.message ?? ''}</p>` : `<p style="color: red">{form?.message ?? ''}</p>`}`
-					: '';
+					<p ${tw(`class="text-red-500"`, `style="color: red"`)}>{form?.message ?? ''}</p>`);
 
-				const separator =
-					demoPassword && demoGithub
-						? `\n\n\t\t\t\t\t<hr ${tailwind ? 'class="my-4"' : ''} />\n`
-						: '';
+				const separator = pw(gh(`\n\n\t\t\t\t\t<hr ${tw('class="my-4"')} />\n`));
 
-				const githubForm = demoGithub
-					? `
+				const githubForm = gh(`
 					<form method="post" action="?/signInSocial" use:enhance>
 						<input type="hidden" name="provider" value="github" />
 						<input type="hidden" name="callbackURL" value="/demo/better-auth" />
-						<button${btn}>Sign in with GitHub</button>
-					</form>`
-					: '';
+						<button${tw(btn)}>Sign in with GitHub</button>
+					</form>`);
 
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
-						${ts("import type { ActionData } from './$types';\n")}
+						${ts("import type { ActionData } from './$types';")}
+
 						${s5(`let { form }${ts(': { form: ActionData }')} = $props();`, `export let form${ts(': ActionData')};`)}
 					</script>
 
@@ -528,8 +561,7 @@ export default defineAddon({
 					return false;
 				}
 
-				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
-				const twBtnClasses =
+				const btn =
 					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
 				return dedent`
@@ -542,7 +574,7 @@ export default defineAddon({
 					<h1>Hi, {data.user.name}!</h1>
 					<p>Your user ID is {data.user.id}.</p>
 					<form method="post" action="?/signOut" use:enhance>
-						<button ${tailwind ? twBtnClasses : ''}>Sign out</button>
+						<button ${tw(btn)}>Sign out</button>
 					</form>
 				`;
 			});
