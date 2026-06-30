@@ -338,8 +338,7 @@ export default defineAddon({
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 						${v(
-							`
-							const parsed = v.safeParse(loginSchema, Object.fromEntries(formData));
+							`const parsed = v.safeParse(loginSchema, Object.fromEntries(formData));
 
 							if (!parsed.success) {
 								const flat = v.flatten(parsed.issues);
@@ -350,8 +349,7 @@ export default defineAddon({
 							}
 
 							const { email, password } = parsed.output;`,
-							`
-							const email = formData.get('email')?.toString() ?? '';
+							`const email = formData.get('email')?.toString() ?? '';
 							const password = formData.get('password')?.toString() ?? '';`
 						)}
 
@@ -375,8 +373,7 @@ export default defineAddon({
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 						${v(
-							`
-							const parsed = v.safeParse(registerSchema, Object.fromEntries(formData));
+							`const parsed = v.safeParse(registerSchema, Object.fromEntries(formData));
 
 							if (!parsed.success) {
 								const flat = v.flatten(parsed.issues);
@@ -387,8 +384,7 @@ export default defineAddon({
 							}
 
 							const { email, password, name } = parsed.output;`,
-							`
-							const email = formData.get('email')?.toString() ?? '';
+							`const email = formData.get('email')?.toString() ?? '';
 							const password = formData.get('password')?.toString() ?? '';
 							const name = formData.get('name')?.toString() ?? '';`
 						)}
@@ -415,8 +411,7 @@ export default defineAddon({
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 						${v(
-							`
-							const socialSchema = v.object({
+							`const socialSchema = v.object({
 								provider: v.picklist(['github', 'google'], 'Invalid provider'),
 								callbackURL: v.optional(v.pipe(v.string(), v.url()), '/demo/better-auth')
 							});
@@ -431,8 +426,7 @@ export default defineAddon({
 							}
 
 							const { provider, callbackURL } = parsed.output;`,
-							`
-							const provider = formData.get('provider')?.toString() ?? 'github';
+							`const provider = formData.get('provider')?.toString() ?? 'github';
 							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';`
 						)}
 
@@ -455,13 +449,6 @@ export default defineAddon({
 					${ts("import type { Actions, PageServerLoad } from './$types';")}
 					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
-
-					export const load${ts(': PageServerLoad')} = (event) => {
-						if (event.locals.user) {
-							return redirect(302, '/demo/better-auth');
-						}
-						return {};
-					};
 					${v(
 						`
 					import * as v from 'valibot';
@@ -474,8 +461,14 @@ export default defineAddon({
 					const registerSchema = v.object({
 						...loginSchema.entries,
 						name: v.pipe(v.string(), v.nonEmpty('Name is required'))
-					});`
+					});\n`
 					)}
+					export const load${ts(': PageServerLoad')} = (event) => {
+						if (event.locals.user) {
+							return redirect(302, '/demo/better-auth');
+						}
+						return {};
+					};
 
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
@@ -516,10 +509,11 @@ export default defineAddon({
 						<input type="hidden" name="callbackURL" value="/demo/better-auth" />
 						<button${tw(btn)}>Sign in with GitHub</button>
 					</form>`);
+
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
-						${ts("import type { ActionData } from './$types';\n")}
+						${ts("import type { ActionData } from './$types';")}
 
 						${s5(`let { form }${ts(': { form: ActionData }')} = $props();`, `export let form${ts(': ActionData')};`)}
 					</script>
