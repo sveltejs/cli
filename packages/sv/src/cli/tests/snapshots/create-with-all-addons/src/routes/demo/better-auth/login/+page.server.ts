@@ -1,8 +1,19 @@
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { auth } from '$lib/server/auth';
 import { APIError } from 'better-auth/api';
+
+import * as v from 'valibot';
+
+const loginSchema = v.object({
+	email: v.pipe(v.string(), v.nonEmpty('Email is required'), v.email('Invalid email format')),
+	password: v.pipe(v.string(), v.nonEmpty('Password is required'), v.minLength(8, 'Password must be at least 8 characters'))
+});
+
+const registerSchema = v.object({
+	...loginSchema.entries,
+	name: v.pipe(v.string(), v.nonEmpty('Name is required'))
+});
 
 export const load: PageServerLoad = (event) => {
 	if (event.locals.user) {
@@ -14,8 +25,17 @@ export const load: PageServerLoad = (event) => {
 export const actions: Actions = {
 	signInEmail: async (event) => {
 		const formData = await event.request.formData();
-		const email = formData.get('email')?.toString() ?? '';
-		const password = formData.get('password')?.toString() ?? '';
+	const parsed = v.safeParse(loginSchema, Object.fromEntries(formData));
+
+		if (!parsed.success) {
+			const flat = v.flatten(parsed.issues);
+			const messages = Object.entries(flat.nested ?? {}).flatMap(([key, value]) =>
+				value ? value.map((v) => `${key}: ${v}`) : []
+			);
+			return fail(400, { message: messages.join(', ') || 'Validation failed' });
+		}
+
+		const { email, password } = parsed.output;
 
 		try {
 			await auth.api.signInEmail({
@@ -36,9 +56,17 @@ export const actions: Actions = {
 	},
 	signUpEmail: async (event) => {
 		const formData = await event.request.formData();
-		const email = formData.get('email')?.toString() ?? '';
-		const password = formData.get('password')?.toString() ?? '';
-		const name = formData.get('name')?.toString() ?? '';
+	const parsed = v.safeParse(registerSchema, Object.fromEntries(formData));
+
+		if (!parsed.success) {
+			const flat = v.flatten(parsed.issues);
+			const messages = Object.entries(flat.nested ?? {}).flatMap(([key, value]) =>
+				value ? value.map((v) => `${key}: ${v}`) : []
+			);
+			return fail(400, { message: messages.join(', ') || 'Validation failed' });
+		}
+
+		const { email, password, name } = parsed.output;
 
 		try {
 			await auth.api.signUpEmail({
@@ -60,12 +88,25 @@ export const actions: Actions = {
 	},
 	signInSocial: async (event) => {
 		const formData = await event.request.formData();
-		const provider = formData.get('provider')?.toString() ?? 'github';
-		const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+	const socialSchema = v.object({
+			provider: v.picklist(['github', 'google'], 'Invalid provider'),
+			callbackURL: v.optional(v.pipe(v.string(), v.url()), '/demo/better-auth')
+		});
+
+		const parsed = v.safeParse(socialSchema, Object.fromEntries(formData));
+		if (!parsed.success) {
+			const flat = v.flatten(parsed.issues);
+			const messages = Object.entries(flat.nested ?? {}).flatMap(([key, value]) =>
+				value ? value.map((v) => `${key}: ${v}`) : []
+			);
+			return fail(400, { message: messages.join(', ') || 'Validation failed' });
+		}
+
+		const { provider, callbackURL } = parsed.output;
 
 		const result = await auth.api.signInSocial({
 			body: {
-				provider: provider as "github",
+				provider: provider,
 				callbackURL
 			}
 		});
@@ -74,5 +115,5 @@ export const actions: Actions = {
 			return redirect(302, result.url);
 		}
 		return fail(400, { message: 'Social sign-in failed' });
-	},
+},
 };

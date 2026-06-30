@@ -17,7 +17,7 @@
 	</label>
 	<label>
 		Name (for registration)
-		<input name="name" />
+		<input type="text" name="name" />
 	</label>
 	<button>Login</button>
 	<button formaction="?/signUpEmail">Register</button>

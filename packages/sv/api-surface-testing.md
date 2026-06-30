@@ -17,6 +17,7 @@ type OfficialAddons = {
 	storybook: Addon<any>;
 	mcp: Addon<any>;
 	experimental: Addon<any>;
+	valibot: Addon<any>;
 };
 declare const officialAddons: OfficialAddons;
 type BooleanQuestion = {
