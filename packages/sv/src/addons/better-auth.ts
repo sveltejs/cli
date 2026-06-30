@@ -327,13 +327,14 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
+			const [pw, gh] = createPrinter(demoPassword, demoGithub);
+
 			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
 
 			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`, () => {
 				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
-				const signInEmailAction = demoPassword
-					? `
+				const signInEmailAction = pw(`
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 						${v(
@@ -409,11 +410,8 @@ export default defineAddon({
 							}
 
 							return redirect(302, '/demo/better-auth');
-						},`
-					: '';
-
-				const signInSocialAction = demoGithub
-					? `
+						},`);
+				const signInSocialAction = gh(`
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 						${v(
@@ -449,9 +447,7 @@ export default defineAddon({
 								return redirect(302, result.url);
 							}
 							return fail(400, { message: 'Social sign-in failed' });
-					},`
-					: '';
-
+					},`);
 				const needsAPIError = demoPassword;
 
 				return dedent`
@@ -493,8 +489,7 @@ export default defineAddon({
 				const btn =
 					' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
-				const passwordForm = demoPassword
-					? `
+				const passwordForm = pw(`
 					<form method="post" action="?/signInEmail" use:enhance>
 						<label>
 							Email
@@ -511,21 +506,16 @@ export default defineAddon({
 						<button${tw(btn)}>Login</button>
 						<button formaction="?/signUpEmail"${tw(btn)}>Register</button>
 					</form>
-					<p ${tw(`class="text-red-500"`, `style="color: red"`)}>{form?.message ?? ''}</p>`
-					: '';
+					<p ${tw(`class="text-red-500"`, `style="color: red"`)}>{form?.message ?? ''}</p>`);
 
-				const separator =
-					demoPassword && demoGithub ? `\n\n\t\t\t\t\t<hr ${tw('class="my-4"')} />\n` : '';
+				const separator = pw(gh(`\n\n\t\t\t\t\t<hr ${tw('class="my-4"')} />\n`));
 
-				const githubForm = demoGithub
-					? `
+				const githubForm = gh(`
 					<form method="post" action="?/signInSocial" use:enhance>
 						<input type="hidden" name="provider" value="github" />
 						<input type="hidden" name="callbackURL" value="/demo/better-auth" />
 						<button${tw(btn)}>Sign in with GitHub</button>
-					</form>`
-					: '';
-
+					</form>`);
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
