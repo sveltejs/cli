@@ -328,15 +328,7 @@ export default defineAddon({
 		if (hasDemo) {
 			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
-				(content) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
-
+			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`, () => {
 					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
 					const signInEmailAction = demoPassword
@@ -429,16 +421,9 @@ export default defineAddon({
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
 				`;
-				}
-			);
+			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
-				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
-					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-					return false;
-				}
-
+			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, () => {
 				const input =
 					' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"';
 
