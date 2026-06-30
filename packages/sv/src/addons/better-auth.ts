@@ -506,12 +506,12 @@ export default defineAddon({
 						</label>
 						<label>
 							Name (for registration)
-							<input name="name"${tw(input)} />
+							<input type="text" name="name"${tw(input)} />
 						</label>
 						<button${tw(btn)}>Login</button>
 						<button formaction="?/signUpEmail"${tw(btn)}>Register</button>
 					</form>
-					${tw(`<p class="text-red-500">{form?.message ?? ''}</p>`, `<p style="color: red">{form?.message ?? ''}</p>`)}`
+					<p ${tw(`class="text-red-500"`, `style="color: red"`)}>{form?.message ?? ''}</p>`
 					: '';
 
 				const separator =
@@ -529,8 +529,7 @@ export default defineAddon({
 				return dedent`
 					<script ${ts("lang='ts'")}>
 						import { enhance } from '$app/forms';
-						${ts("import type { Actions } from './$types';")}
-						${ts("import type { PageServerLoad } from './$types';")}
+						${ts("import type { ActionData } from './$types';\n")}
 
 						${s5(`let { form }${ts(': { form: ActionData }')} = $props();`, `export let form${ts(': ActionData')};`)}
 					</script>
