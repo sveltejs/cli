@@ -45,8 +45,12 @@ export default defineAddon({
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const svelteVersion = dependencyVersion('svelte');
-		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
-		const [ts, s5] = createPrinter(language === 'ts', svelte5);
+
+		const [ts, s5, tw] = createPrinter(
+			language === 'ts',
+			!!svelteVersion && coerceVersion(svelteVersion).major === 5,
+			Boolean(dependencyVersion('@tailwindcss/vite'))
+		);
 
 		const demoPassword = options.demo.includes('password');
 		const demoGithub = options.demo.includes('github');
@@ -435,46 +439,42 @@ export default defineAddon({
 					return false;
 				}
 
-				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
-				const input = tailwind
-					? ' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"'
-					: '';
-				const btn = tailwind
-					? ' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"'
-					: '';
+				const input =
+					' class="mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"';
+
+				const btn =
+					' class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
 				const passwordForm = demoPassword
 					? `
 					<form method="post" action="?/signInEmail" use:enhance>
 						<label>
 							Email
-							<input type="email" name="email"${input} />
+							<input type="email" name="email"${tw(input)} />
 						</label>
 						<label>
 							Password
-							<input type="password" name="password"${input} />
+							<input type="password" name="password"${tw(input)} />
 						</label>
 						<label>
 							Name (for registration)
-							<input name="name"${input} />
+							<input name="name"${tw(input)} />
 						</label>
-						<button${btn}>Login</button>
-						<button formaction="?/signUpEmail"${btn}>Register</button>
+						<button${tw(btn)}>Login</button>
+						<button formaction="?/signUpEmail"${tw(btn)}>Register</button>
 					</form>
-					${tailwind ? `<p class="text-red-500">{form?.message ?? ''}</p>` : `<p style="color: red">{form?.message ?? ''}</p>`}`
+					${tw(`<p class="text-red-500">{form?.message ?? ''}</p>`, `<p style="color: red">{form?.message ?? ''}</p>`)}`
 					: '';
 
 				const separator =
-					demoPassword && demoGithub
-						? `\n\n\t\t\t\t\t<hr ${tailwind ? 'class="my-4"' : ''} />\n`
-						: '';
+					demoPassword && demoGithub ? `\n\n\t\t\t\t\t<hr ${tw('class="my-4"')} />\n` : '';
 
 				const githubForm = demoGithub
 					? `
 					<form method="post" action="?/signInSocial" use:enhance>
 						<input type="hidden" name="provider" value="github" />
 						<input type="hidden" name="callbackURL" value="/demo/better-auth" />
-						<button${btn}>Sign in with GitHub</button>
+						<button${tw(btn)}>Sign in with GitHub</button>
 					</form>`
 					: '';
 
@@ -528,8 +528,7 @@ export default defineAddon({
 					return false;
 				}
 
-				const tailwind = dependencyVersion('@tailwindcss/vite') !== undefined;
-				const twBtnClasses =
+				const btn =
 					'class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"';
 
 				return dedent`
@@ -542,7 +541,7 @@ export default defineAddon({
 					<h1>Hi, {data.user.name}!</h1>
 					<p>Your user ID is {data.user.id}.</p>
 					<form method="post" action="?/signOut" use:enhance>
-						<button ${tailwind ? twBtnClasses : ''}>Sign out</button>
+						<button ${tw(btn)}>Sign out</button>
 					</form>
 				`;
 			});
