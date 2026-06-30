@@ -11,6 +11,7 @@ import prettier from './prettier.ts';
 import storybook from './storybook.ts';
 import sveltekitAdapter from './sveltekit-adapter.ts';
 import tailwindcss from './tailwindcss.ts';
+import valibot from './valibot.ts';
 import vitest from './vitest-addon.ts';
 
 type OfficialAddons = {
@@ -27,6 +28,7 @@ type OfficialAddons = {
 	storybook: Addon<any>;
 	mcp: Addon<any>;
 	experimental: Addon<any>;
+	valibot: Addon<any>;
 };
 
 // The order of addons here determines the order they are displayed inside the CLI
@@ -44,7 +46,8 @@ export const officialAddons: OfficialAddons = {
 	paraglide,
 	storybook,
 	mcp,
-	experimental
+	experimental,
+	valibot
 };
 
 export function getAddonDetails(id: string): AddonDefinition {
