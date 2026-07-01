@@ -3,6 +3,7 @@ minimumReleaseAge: 1440
 # This Exclude list is for "sv-utils" that we trust & bundle.
 # But keep in mind that sv users may not have any exclude list!
 minimumReleaseAgeExclude:
+  - '@changesets/*'
   - '@sveltejs/*'
   - svelte
   - esrap

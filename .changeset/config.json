@@ -1,6 +1,6 @@
 {
 	"$schema": "https://unpkg.com/@changesets/config@3.0.3/schema.json",
-	"changelog": ["@svitejs/changesets-changelog-github-compact", { "repo": "sveltejs/cli" }],
+	"changelog": ["@changesets/changelog-github", { "repo": "sveltejs/cli", "template": "\n- {summary} {ref}" }],
 	"commit": false,
 	"fixed": [],
 	"linked": [],
