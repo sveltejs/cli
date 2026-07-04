@@ -1,15 +1,10 @@
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
+import ApiSnapshot from 'tsnapi/rolldown';
 import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
 
-/**
- * Throwaway output dir for the single-entry DTS builds that feed
- * `scripts/generate-api-surface.js`. Gitignored; never published.
- */
-const API_SURFACE_DIR = 'dts-api-surface';
-
-/** Shared `deps` settings for every `sv` build (runtime + DTS-only api-surface). */
+/** Shared `deps` settings for the `sv` build. */
 const svDeps = {
 	// These are root-level devDependencies used only by testing.ts.
 	// Without this, the DTS plugin inlines their entire type trees
@@ -60,7 +55,8 @@ export default defineConfig([
 		},
 		failOnWarn: true,
 		deps: svDeps,
-		plugins: [],
+		// Always rewrite snapshots; CI catches uncommitted changes via git diff.
+		plugins: [ApiSnapshot({ update: true })],
 		inputOptions: {
 			experimental: {
 				resolveNewUrlToAsset: false
@@ -77,44 +73,6 @@ export default defineConfig([
 		hooks: {
 			async 'build:before'() {
 				await buildCliTemplates();
-			}
-		}
-	},
-	// sv: DTS-only single-entry builds for the api-surface snapshots.
-	// The runtime build above code-splits shared declarations into an `engine-*.d.mts`
-	// chunk, so its entry `.d.mts` files only re-export names without signatures.
-	// Building each public entry on its own emits a self-contained `.d.ts` with every
-	// referenced declaration inlined (no shared chunk), which `generate-api-surface.js`
-	// reads instead. Output goes to a throwaway, gitignored dir.
-	{
-		cwd: path.resolve('packages/sv'),
-		entry: ['src/index.ts'],
-		outDir: `${API_SURFACE_DIR}/index`,
-		dts: {
-			oxc: true,
-			emitDtsOnly: true
-		},
-		failOnWarn: true,
-		deps: svDeps,
-		inputOptions: {
-			experimental: {
-				resolveNewUrlToAsset: false
-			}
-		}
-	},
-	{
-		cwd: path.resolve('packages/sv'),
-		entry: ['src/testing.ts'],
-		outDir: `${API_SURFACE_DIR}/testing`,
-		dts: {
-			oxc: true,
-			emitDtsOnly: true
-		},
-		failOnWarn: true,
-		deps: svDeps,
-		inputOptions: {
-			experimental: {
-				resolveNewUrlToAsset: false
 			}
 		}
 	},

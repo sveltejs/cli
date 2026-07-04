@@ -1,7 +1,6 @@
 .DS_Store
 node_modules
 dist
-dts-api-surface/
 temp/
 package-lock.json
 yarn.lock

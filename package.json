@@ -9,7 +9,7 @@
 	},
 	"scripts": {
 		"build": "tsdown",
-		"postbuild": "node scripts/generate-api-surface.js",
+		"postbuild": "tsnapi -u packages/sv-utils",
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
 		"dev": "tsdown -w & pnpm --parallel check -w & wait",
@@ -38,6 +38,7 @@
 		"sv": "workspace:*",
 		"svelte": "^5.56.1",
 		"tsdown": "^0.22.3",
+		"tsnapi": "^1.0.0",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vitest": "4.1.8"
