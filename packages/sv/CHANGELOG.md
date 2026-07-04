@@ -1,5 +1,23 @@
 # sv
 
+## 0.16.2
+### Patch Changes
+
+
+- fix(better-auth): import `building` from `$app/env` when explicit environment variables are enabled ([#1150](https://github.com/sveltejs/cli/pull/1150))
+
+
+- fix: use the detected package manager in add-on next steps (playwright, drizzle d1) ([#1133](https://github.com/sveltejs/cli/pull/1133))
+
+
+- feat(prettier): generate a `prettier.config.js` file (with a JSDoc `@type`) instead of `.prettierrc`, giving editor autocompletion ([#1145](https://github.com/sveltejs/cli/pull/1145))
+
+
+- fix: improve syntax for drizzle config ([#1146](https://github.com/sveltejs/cli/pull/1146))
+
+- Updated dependencies [[`feff120`](https://github.com/sveltejs/cli/commit/feff12096e48ed92879a09660a67230baa3c3cd4), [`f85a0ea`](https://github.com/sveltejs/cli/commit/f85a0ea2a8f2b31b46eae86aea4d64cd0be3d254)]:
+  - @sveltejs/sv-utils@0.3.1
+
 ## 0.16.1
 ### Patch Changes
 
