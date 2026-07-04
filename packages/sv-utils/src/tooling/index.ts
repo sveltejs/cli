@@ -30,7 +30,14 @@ export function parseScript(content: string): {
 
 	const comments = new Comments();
 	const internal = transformToInternal(comments);
-	internal.original.push(...ast.comments);
+	// the parser can report the same comment twice when it backtracks over
+	// TS type annotations, so dedupe by source position
+	const seen = new Set<number>();
+	for (const comment of ast.comments) {
+		if (seen.has(comment.start)) continue;
+		seen.add(comment.start);
+		internal.original.push(comment);
+	}
 
 	return {
 		ast: ast.instance.content,
