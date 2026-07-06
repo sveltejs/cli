@@ -201,7 +201,7 @@ npx sv add @my-org/sv@1.2.3
 
 ### Entry points
 
-The CLI will look for the `./sv` entry point, and a fallback to `.` if not found. This means you have two options:
+The CLI looks for `./sv` first. If that is not found, it defaults to the `.` entry point. This means you have two options:
 
 1. **Default export** (for a dedicated add-on package):
 
