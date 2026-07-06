@@ -218,7 +218,7 @@ The CLI will look for the `./sv` entry point, and a fallback to `.` if not found
 
 ```json
 {
-	"name": "@my-org",
+	"name": "@my-org/sveltekit-addon",
 	"exports": {
 		".": "./dist/main.mjs",
 		"./sv": "./dist/addon.mjs"
