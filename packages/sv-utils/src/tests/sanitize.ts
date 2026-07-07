@@ -580,6 +580,37 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
 	});
 
+	it('restores original formatting when a call with trailing commas is collapsed onto one line', () => {
+		const old = dedent`
+			const version = 'old';
+
+			const sha = await canonicalize(
+				opts.owner,
+				opts.repo,
+				opts.commit,
+			);
+		`;
+
+		const updated = dedent`
+			const version = 'new';
+
+			const sha = await canonicalize(opts.owner, opts.repo, opts.commit);
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
+	});
+
+	it('keeps oversized inputs verbatim instead of diffing them', () => {
+		// worst case for diffLines is O(N·D); past the size cap the updated content is returned as-is
+		const line = (i: number) => `const value_${i} = compute(${i});`;
+		const old = Array.from({ length: 20_000 }, (_, i) => line(i)).join('\n');
+		const updated = Array.from({ length: 20_000 }, (_, i) => `\t${line(i)}\n`).join('');
+
+		const start = performance.now();
+		expect(minimizeDiff(old, updated)).toBe(updated);
+		expect(performance.now() - start).toBeLessThan(1000);
+	});
+
 	it('keeps updated hunks when non-trailing commas change the meaning', () => {
 		const old = dedent`
 			const values = ['a' + 'b'];
