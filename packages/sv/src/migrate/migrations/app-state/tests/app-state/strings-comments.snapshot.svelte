@@ -6,4 +6,5 @@
 	 * This is a page
 	 */
 </script>
+
 Nice page! <div>{page.url}</div>
