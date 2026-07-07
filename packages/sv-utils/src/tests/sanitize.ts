@@ -182,6 +182,83 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
+	it('restores original layout when blank lines move within a function', () => {
+		// The reindentation is what makes diffLines misalign the otherwise unchanged statements. The
+		// behavior under test is that the blank lines must still stay in their original positions.
+		const old = dedent`
+			function parse(value: string) {
+				let parsed: URL;
+				try {
+					parsed = new URL(value, 'http://safe-next.invalid');
+				} catch {
+					return null;
+				}
+				if (parsed.origin !== 'http://safe-next.invalid') return null;
+
+				for (const prefix of BLOCKLIST) {
+					if (parsed.pathname === prefix) return null;
+				}
+
+				return parsed.pathname;
+			}
+		`;
+
+		const updated = dedent`
+			function parse(value: string) {
+			        let parsed: URL;
+
+			        try {
+			                parsed = new URL(value, 'http://safe-next.invalid');
+			        } catch {
+			                return null;
+			        }
+
+			        if (parsed.origin !== 'http://safe-next.invalid') return null;
+			        for (const prefix of BLOCKLIST) {
+			                if (parsed.pathname === prefix) return null;
+			        }
+			        return parsed.pathname;
+			}
+		`;
+
+		const blankLineLayout = (value: string) =>
+			value
+				.split('\n')
+				.map((line) => (line.trim() ? 'content' : ''))
+				.join('\n');
+		expect(blankLineLayout(minimizeDiff(old, updated))).toBe(blankLineLayout(old));
+	});
+
+	it('restores blank lines around a rewrapped statement', () => {
+		const old = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+
+			const sha = await canonicalize_commit_sha({
+				owner: opts.owner,
+				repo: opts.repo,
+				commit: opts.commit
+			});
+
+			// validate sha
+			const immutable = true;
+		`;
+
+		const updated = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+			const sha = await canonicalize_commit_sha({ owner: opts.owner, repo: opts.repo, commit: opts.commit });
+
+			// validate sha
+
+			const immutable = true;
+		`;
+
+		const result = minimizeDiff(old, updated);
+		expect(result).toContain('const host_key = get_host_key();\n\nconst sha');
+		expect(result).toContain('});\n\n// validate sha\nconst immutable = true;');
+	});
+
 	it('restores blank lines shifted within a formatting-only hunk', () => {
 		const old = dedent`
 			const parts = state.split('.');

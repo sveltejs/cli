@@ -43,6 +43,47 @@ function toLines(value: string): string[] {
 	return value.match(/[^\n]*\n|[^\n]+$/g) ?? [];
 }
 
+function restoreBlankLineLayout(old: string, updated: string): string {
+	const gaps = new Map<string, string | null>();
+	let previous: string | undefined;
+	let gap = '';
+
+	for (const line of toLines(old)) {
+		if (isOnlyWhitespace(line)) {
+			gap += line;
+			continue;
+		}
+
+		const current = normalizeWhitespace(line);
+		if (previous !== undefined) {
+			const key = `${previous}\0${current}`;
+			const existing = gaps.get(key);
+			if (existing === undefined || existing === gap) gaps.set(key, gap);
+			else gaps.set(key, null);
+		}
+		previous = current;
+		gap = '';
+	}
+
+	let out = '';
+	previous = undefined;
+	gap = '';
+	for (const line of toLines(updated)) {
+		if (isOnlyWhitespace(line)) {
+			gap += line;
+			continue;
+		}
+
+		const current = normalizeWhitespace(line);
+		const original = previous === undefined ? undefined : gaps.get(`${previous}\0${current}`);
+		out += (original ?? gap) + line;
+		previous = current;
+		gap = '';
+	}
+
+	return out + gap;
+}
+
 /**
  * Minimizes formatting churn in generated output.
  *
@@ -55,14 +96,8 @@ function toLines(value: string): string[] {
  * Brand-new files (no original to diff against) are kept verbatim: their blank lines are authored
  * layout, not printer churn, so stripping them would mangle generated markdown, env files, etc.
  */
-// `diffLines` is O(N·D) in the number of differing lines, which explodes on large, heavily
-// reformatted files (e.g. a minified bundle reprinted by a pretty-printer). Past this size we skip
-// minimization and keep the printer's output verbatim rather than hanging.
-const MAX_DIFF_INPUT_BYTES = 512 * 1024;
-
 export function minimizeDiff(old: string, updated: string): string {
 	if (isOnlyWhitespace(old)) return updated;
-	if (old.length > MAX_DIFF_INPUT_BYTES || updated.length > MAX_DIFF_INPUT_BYTES) return updated;
 
 	// Normalize line endings first: on Windows the original is often CRLF while the printer emits LF,
 	// which would make every line differ and collapse the diff, defeating the restoration below.
@@ -82,6 +117,17 @@ export function minimizeDiff(old: string, updated: string): string {
 		const afterNext = diff[i + 2];
 
 		if (
+			part.added &&
+			next &&
+			!next.added &&
+			!next.removed &&
+			isOnlyWhitespace(next.value) &&
+			afterNext?.removed &&
+			normalizeWhitespace(part.value) === normalizeWhitespace(afterNext.value)
+		) {
+			out += next.value + afterNext.value;
+			i += 2;
+		} else if (
 			part.removed &&
 			next &&
 			!next.added &&
@@ -112,5 +158,5 @@ export function minimizeDiff(old: string, updated: string): string {
 		}
 	}
 
-	return out;
+	return restoreBlankLineLayout(old.replace(/\r\n/g, '\n'), out);
 }
