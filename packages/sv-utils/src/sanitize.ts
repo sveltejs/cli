@@ -79,8 +79,22 @@ export function minimizeDiff(old: string, updated: string): string {
 	for (let i = 0; i < diff.length; i += 1) {
 		const part = diff[i];
 		const next = diff[i + 1];
+		const afterNext = diff[i + 2];
 
-		if (part.removed && next?.added) {
+		if (
+			part.removed &&
+			next &&
+			!next.added &&
+			!next.removed &&
+			isOnlyWhitespace(next.value) &&
+			afterNext?.added &&
+			normalizeWhitespace(part.value) === normalizeWhitespace(afterNext.value)
+		) {
+			// diffLines represents a blank line moving across otherwise unchanged content as the
+			// content being removed, the blank line staying put, and the content being added again.
+			out += part.value + next.value;
+			i += 2;
+		} else if (part.removed && next?.added) {
 			// a changed range. If it differs only by formatting (whitespace, semicolons, rewrapping)
 			// restore the original verbatim; otherwise keep the new content, minus inserted blanks but
 			// keeping the original's blank lines.

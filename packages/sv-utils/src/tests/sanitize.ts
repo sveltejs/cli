@@ -165,6 +165,67 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
+	it('restores a blank line removed between unchanged statements', () => {
+		const old = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+
+			const sha = await canonicalize_commit_sha();
+		`;
+
+		const updated = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+			const sha = await canonicalize_commit_sha();
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores blank lines shifted within a formatting-only hunk', () => {
+		const old = dedent`
+			const parts = state.split('.');
+			if (parts.length !== 2) return null;
+			const [body_b64, sig_b64] = parts;
+
+			let body_bytes: Uint8Array;
+			let sig_bytes: Uint8Array;
+			try {
+				body_bytes = b64url_decode(body_b64);
+				sig_bytes = b64url_decode(sig_b64);
+			} catch {
+				return null;
+			}
+
+			const expected = await hmac_sha256(require_state_secret(), body_bytes);
+			if (!timing_safe_equal(expected, sig_bytes)) return null;
+
+			try {
+		`;
+
+		const updated = dedent`
+			const parts = state.split('.');
+
+			if (parts.length !== 2) return null;
+
+			const [body_b64, sig_b64] = parts;
+			let body_bytes: Uint8Array;
+			let sig_bytes: Uint8Array;
+
+			try {
+				body_bytes = b64url_decode(body_b64);
+				sig_bytes = b64url_decode(sig_b64);
+			} catch {
+				return null;
+			}
+			const expected = await hmac_sha256(require_state_secret(), body_bytes);
+			if (!timing_safe_equal(expected, sig_bytes)) return null;
+			try {
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
 	it('keeps an original blank line that is bundled into a real change', () => {
 		// The diff groups the leading blank line together with the changed line. The blank line is
 		// layout, not content, so it must survive even though the adjacent line really changed.
