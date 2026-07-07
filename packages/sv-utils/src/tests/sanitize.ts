@@ -93,6 +93,12 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff('', updated)).toBe(updated);
 	});
 
+	it('treats a whitespace-only original as a brand-new file', () => {
+		const updated = 'first\n\nsecond\n';
+
+		expect(minimizeDiff(' \n\t\n', updated)).toBe(updated);
+	});
+
 	it('preserves blank lines from the original content', () => {
 		const old = dedent`
 			console.log('line1');
@@ -261,6 +267,8 @@ describe('minimizeDiff', () => {
 
 	it('restores blank lines shifted within a formatting-only hunk', () => {
 		const old = dedent`
+			const algorithm = 'old';
+
 			const parts = state.split('.');
 			if (parts.length !== 2) return null;
 			const [body_b64, sig_b64] = parts;
@@ -281,6 +289,8 @@ describe('minimizeDiff', () => {
 		`;
 
 		const updated = dedent`
+			const algorithm = 'new';
+
 			const parts = state.split('.');
 
 			if (parts.length !== 2) return null;
@@ -300,7 +310,7 @@ describe('minimizeDiff', () => {
 			try {
 		`;
 
-		expect(minimizeDiff(old, updated)).toBe(old);
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
 	});
 
 	it('keeps an original blank line that is bundled into a real change', () => {
@@ -347,6 +357,38 @@ describe('minimizeDiff', () => {
 			const p = samples[ENV_KEY];
 			if (!p) return null;
 			return view.project(p.lat, p.lon);
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(expected);
+	});
+
+	it('drops printer-inserted blank lines around a newly inserted line', () => {
+		const old = dedent`
+			function require_env(name: string): string {
+				const value = env[name];
+				if (!value) throw new Error(name);
+				return value;
+			}
+		`;
+
+		const updated = dedent`
+			function require_env(name: string): string {
+				// @migration-task Rewrite dynamic env lookup manually.
+				const value = env[name];
+
+				if (!value) throw new Error(name);
+
+				return value;
+			}
+		`;
+
+		const expected = dedent`
+			function require_env(name: string): string {
+				// @migration-task Rewrite dynamic env lookup manually.
+				const value = env[name];
+				if (!value) throw new Error(name);
+				return value;
+			}
 		`;
 
 		expect(minimizeDiff(old, updated)).toBe(expected);
@@ -513,6 +555,29 @@ describe('minimizeDiff', () => {
 		`;
 
 		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when a typed property is collapsed onto one line', () => {
+		const old = dedent`
+			type Version = 'old';
+
+			type Connection = {
+				pageInfo: {
+					hasPreviousPage: boolean;
+					startCursor: string | null;
+				};
+			};
+		`;
+
+		const updated = dedent`
+			type Version = 'new';
+
+			type Connection = {
+				pageInfo: { hasPreviousPage: boolean; startCursor: string | null };
+			};
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
 	});
 
 	it('keeps updated hunks when non-trailing commas change the meaning', () => {
