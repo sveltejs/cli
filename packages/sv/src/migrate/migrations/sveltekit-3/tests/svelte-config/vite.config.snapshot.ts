@@ -9,7 +9,9 @@ import devtoolsJson from 'vite-plugin-devtools-json';
 
 // derive paths and adapter config from the environment
 const { paths, adapterConfig } = helper(process.env['SOME_ENV_VAR']);
+
 const base = process.env['VITEST'] ? '' : '/some-base'; // empty base while testing
+
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
