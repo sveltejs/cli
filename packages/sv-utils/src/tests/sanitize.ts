@@ -93,6 +93,12 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff('', updated)).toBe(updated);
 	});
 
+	it('treats a whitespace-only original as a brand-new file', () => {
+		const updated = 'first\n\nsecond\n';
+
+		expect(minimizeDiff(' \n\t\n', updated)).toBe(updated);
+	});
+
 	it('preserves blank lines from the original content', () => {
 		const old = dedent`
 			console.log('line1');
@@ -165,6 +171,148 @@ describe('minimizeDiff', () => {
 		expect(minimizeDiff(old, updated)).toBe(old);
 	});
 
+	it('restores a blank line removed between unchanged statements', () => {
+		const old = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+
+			const sha = await canonicalize_commit_sha();
+		`;
+
+		const updated = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+			const sha = await canonicalize_commit_sha();
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original layout when blank lines move within a function', () => {
+		// The reindentation is what makes diffLines misalign the otherwise unchanged statements. The
+		// behavior under test is that the blank lines must still stay in their original positions.
+		const old = dedent`
+			function parse(value: string) {
+				let parsed: URL;
+				try {
+					parsed = new URL(value, 'http://safe-next.invalid');
+				} catch {
+					return null;
+				}
+				if (parsed.origin !== 'http://safe-next.invalid') return null;
+
+				for (const prefix of BLOCKLIST) {
+					if (parsed.pathname === prefix) return null;
+				}
+
+				return parsed.pathname;
+			}
+		`;
+
+		const updated = dedent`
+			function parse(value: string) {
+			        let parsed: URL;
+
+			        try {
+			                parsed = new URL(value, 'http://safe-next.invalid');
+			        } catch {
+			                return null;
+			        }
+
+			        if (parsed.origin !== 'http://safe-next.invalid') return null;
+			        for (const prefix of BLOCKLIST) {
+			                if (parsed.pathname === prefix) return null;
+			        }
+			        return parsed.pathname;
+			}
+		`;
+
+		const blankLineLayout = (value: string) =>
+			value
+				.split('\n')
+				.map((line) => (line.trim() ? 'content' : ''))
+				.join('\n');
+		expect(blankLineLayout(minimizeDiff(old, updated))).toBe(blankLineLayout(old));
+	});
+
+	it('restores blank lines around a rewrapped statement', () => {
+		const old = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+
+			const sha = await canonicalize_commit_sha({
+				owner: opts.owner,
+				repo: opts.repo,
+				commit: opts.commit
+			});
+
+			// validate sha
+			const immutable = true;
+		`;
+
+		const updated = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+			const sha = await canonicalize_commit_sha({ owner: opts.owner, repo: opts.repo, commit: opts.commit });
+
+			// validate sha
+
+			const immutable = true;
+		`;
+
+		const result = minimizeDiff(old, updated);
+		expect(result).toContain('const host_key = get_host_key();\n\nconst sha');
+		expect(result).toContain('});\n\n// validate sha\nconst immutable = true;');
+	});
+
+	it('restores blank lines shifted within a formatting-only hunk', () => {
+		const old = dedent`
+			const algorithm = 'old';
+
+			const parts = state.split('.');
+			if (parts.length !== 2) return null;
+			const [body_b64, sig_b64] = parts;
+
+			let body_bytes: Uint8Array;
+			let sig_bytes: Uint8Array;
+			try {
+				body_bytes = b64url_decode(body_b64);
+				sig_bytes = b64url_decode(sig_b64);
+			} catch {
+				return null;
+			}
+
+			const expected = await hmac_sha256(require_state_secret(), body_bytes);
+			if (!timing_safe_equal(expected, sig_bytes)) return null;
+
+			try {
+		`;
+
+		const updated = dedent`
+			const algorithm = 'new';
+
+			const parts = state.split('.');
+
+			if (parts.length !== 2) return null;
+
+			const [body_b64, sig_b64] = parts;
+			let body_bytes: Uint8Array;
+			let sig_bytes: Uint8Array;
+
+			try {
+				body_bytes = b64url_decode(body_b64);
+				sig_bytes = b64url_decode(sig_b64);
+			} catch {
+				return null;
+			}
+			const expected = await hmac_sha256(require_state_secret(), body_bytes);
+			if (!timing_safe_equal(expected, sig_bytes)) return null;
+			try {
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
+	});
+
 	it('keeps an original blank line that is bundled into a real change', () => {
 		// The diff groups the leading blank line together with the changed line. The blank line is
 		// layout, not content, so it must survive even though the adjacent line really changed.
@@ -209,6 +357,38 @@ describe('minimizeDiff', () => {
 			const p = samples[ENV_KEY];
 			if (!p) return null;
 			return view.project(p.lat, p.lon);
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(expected);
+	});
+
+	it('drops printer-inserted blank lines around a newly inserted line', () => {
+		const old = dedent`
+			function require_env(name: string): string {
+				const value = env[name];
+				if (!value) throw new Error(name);
+				return value;
+			}
+		`;
+
+		const updated = dedent`
+			function require_env(name: string): string {
+				// @migration-task Rewrite dynamic env lookup manually.
+				const value = env[name];
+
+				if (!value) throw new Error(name);
+
+				return value;
+			}
+		`;
+
+		const expected = dedent`
+			function require_env(name: string): string {
+				// @migration-task Rewrite dynamic env lookup manually.
+				const value = env[name];
+				if (!value) throw new Error(name);
+				return value;
+			}
 		`;
 
 		expect(minimizeDiff(old, updated)).toBe(expected);
@@ -375,6 +555,60 @@ describe('minimizeDiff', () => {
 		`;
 
 		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when a typed property is collapsed onto one line', () => {
+		const old = dedent`
+			type Version = 'old';
+
+			type Connection = {
+				pageInfo: {
+					hasPreviousPage: boolean;
+					startCursor: string | null;
+				};
+			};
+		`;
+
+		const updated = dedent`
+			type Version = 'new';
+
+			type Connection = {
+				pageInfo: { hasPreviousPage: boolean; startCursor: string | null };
+			};
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
+	});
+
+	it('restores original formatting when a call with trailing commas is collapsed onto one line', () => {
+		const old = dedent`
+			const version = 'old';
+
+			const sha = await canonicalize(
+				opts.owner,
+				opts.repo,
+				opts.commit,
+			);
+		`;
+
+		const updated = dedent`
+			const version = 'new';
+
+			const sha = await canonicalize(opts.owner, opts.repo, opts.commit);
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
+	});
+
+	it('keeps oversized inputs verbatim instead of diffing them', () => {
+		// worst case for diffLines is O(N·D); past the size cap the updated content is returned as-is
+		const line = (i: number) => `const value_${i} = compute(${i});`;
+		const old = Array.from({ length: 20_000 }, (_, i) => line(i)).join('\n');
+		const updated = Array.from({ length: 20_000 }, (_, i) => `\t${line(i)}\n`).join('');
+
+		const start = performance.now();
+		expect(minimizeDiff(old, updated)).toBe(updated);
+		expect(performance.now() - start).toBeLessThan(1000);
 	});
 
 	it('keeps updated hunks when non-trailing commas change the meaning', () => {

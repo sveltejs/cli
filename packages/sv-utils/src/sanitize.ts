@@ -28,75 +28,143 @@ export function sanitizeName(name: string, style: 'package' | 'wrangler'): strin
 	return sanitized || 'undefined-sv-name';
 }
 
-function normalizeWhitespace(value: string): string {
-	// Ignore formatting-only characters that commonly differ between source code and generated
-	// output: whitespace, semicolons, commas, and parentheses.
-	return value.replace(/[\s;,()]+/g, '');
-}
-
-function isOnlyWhitespace(value: string): boolean {
-	return value.trim() === '';
-}
-
-/** Splits content into lines, each keeping its trailing newline (matches the diff line tokenizer). */
-function toLines(value: string): string[] {
-	return value.match(/[^\n]*\n|[^\n]+$/g) ?? [];
-}
-
-/**
- * Minimizes formatting churn in generated output.
- *
- * A line whose content is unchanged - ignoring whitespace, semicolons, commas and parentheses - is
- * restored verbatim from the original. This reverts everything a printer reformats but doesn't
- * meaningfully change: re-indentation, added semicolons, rewrapped punctuation and, crucially, the
- * blank lines printers like to insert between statements. Only lines with real content changes keep
- * the printer's output (printer-inserted blank lines among them are dropped).
- *
- * Brand-new files (no original to diff against) are kept verbatim: their blank lines are authored
- * layout, not printer churn, so stripping them would mangle generated markdown, env files, etc.
- */
-// `diffLines` is O(N·D) in the number of differing lines, which explodes on large, heavily
-// reformatted files (e.g. a minified bundle reprinted by a pretty-printer). Past this size we skip
-// minimization and keep the printer's output verbatim rather than hanging.
+// `diffLines` is O(N·D); past this size we keep the printer output rather than hanging.
 const MAX_DIFF_INPUT_BYTES = 512 * 1024;
 
+/**
+ * Minimizes formatting churn in reprinted output: formatting-only hunks are restored verbatim from
+ * the original, real changes keep the updated content but reuse the original blank-line layout.
+ */
 export function minimizeDiff(old: string, updated: string): string {
-	if (isOnlyWhitespace(old)) return updated;
+	if (isBlank(old)) return updated;
 	if (old.length > MAX_DIFF_INPUT_BYTES || updated.length > MAX_DIFF_INPUT_BYTES) return updated;
 
-	// Normalize line endings first: on Windows the original is often CRLF while the printer emits LF,
-	// which would make every line differ and collapse the diff, defeating the restoration below.
-	const diff = diffLines(old.replace(/\r\n/g, '\n'), updated.replace(/\r\n/g, '\n'));
+	const original = normalizeLineEndings(old);
+	const replacement = normalizeLineEndings(updated);
 
-	// blank lines are layout, not content: keep the original's, drop the ones printers insert
-	const realContent = (value: string) =>
-		toLines(value)
-			.filter((l) => !isOnlyWhitespace(l))
-			.join('');
-	const blankLines = (value: string) => toLines(value).filter(isOnlyWhitespace).join('');
+	const formattingMinimized = restoreFormattingOnlyChanges(original, replacement);
+	return restoreBlankLineLayout(original, formattingMinimized);
+}
 
-	let out = '';
-	for (let i = 0; i < diff.length; i += 1) {
-		const part = diff[i];
-		const next = diff[i + 1];
+type LineChange = ReturnType<typeof diffLines>[number];
 
-		if (part.removed && next?.added) {
-			// a changed range. If it differs only by formatting (whitespace, semicolons, rewrapping)
-			// restore the original verbatim; otherwise keep the new content, minus inserted blanks but
-			// keeping the original's blank lines.
-			out +=
-				normalizeWhitespace(part.value) === normalizeWhitespace(next.value)
-					? part.value
-					: blankLines(part.value) + realContent(next.value);
+function restoreFormattingOnlyChanges(original: string, replacement: string): string {
+	// exact matching keeps reformatted punctuation inside the hunk instead of becoming a false anchor
+	const changes = diffLines(original, replacement);
+	let result = '';
+
+	for (let i = 0; i < changes.length; i += 1) {
+		const change = changes[i];
+		const next = changes[i + 1];
+
+		if (change.removed && next?.added) {
+			result +=
+				normalizeForComparison(change.value) === normalizeForComparison(next.value)
+					? change.value
+					: next.value;
 			i += 1;
-		} else if (part.removed) {
-			out += blankLines(part.value); // keep original blank lines, drop removed content
-		} else if (part.added) {
-			out += realContent(part.value); // real new content, minus printer-inserted blanks
-		} else {
-			out += part.value; // unchanged
+		} else if (!change.removed) {
+			result += change.value;
 		}
 	}
 
-	return out;
+	return result;
+}
+
+function restoreBlankLineLayout(original: string, replacement: string): string {
+	// ignoring whitespace keeps reindented lines as anchors so only blank-line moves show up
+	const changes = diffLines(original, replacement, { ignoreWhitespace: true });
+	let result = '';
+
+	for (let i = 0; i < changes.length; ) {
+		const change = changes[i];
+		const next = changes[i + 1];
+		const afterNext = changes[i + 2];
+
+		if (isChange(change) && next && isOppositeChange(change, next)) {
+			result += resolveReplacement([change, next]);
+			i += 2;
+			continue;
+		}
+
+		// a blank line can anchor between the removed and added sides; treat it as part of the hunk
+		if (
+			isChange(change) &&
+			next &&
+			!isChange(next) &&
+			isBlank(next.value) &&
+			afterNext &&
+			isOppositeChange(change, afterNext)
+		) {
+			result += resolveReplacement([change, next, afterNext]);
+			i += 3;
+			continue;
+		}
+
+		if (!isChange(change)) {
+			result += change.value;
+		} else if (isBlank(change.value)) {
+			if (change.removed) result += change.value;
+		} else if (change.added) {
+			result += change.value;
+		}
+
+		i += 1;
+	}
+
+	return result;
+}
+
+function normalizeLineEndings(value: string): string {
+	return value.replace(/\r\n?/g, '\n');
+}
+
+function isChange(change: LineChange): boolean {
+	return change.added === true || change.removed === true;
+}
+
+function isOppositeChange(a: LineChange, b: LineChange): boolean {
+	return (a.added === true && b.removed === true) || (a.removed === true && b.added === true);
+}
+
+function isBlank(value: string): boolean {
+	return value.trim() === '';
+}
+
+function resolveReplacement(changes: LineChange[]): string {
+	let original = '';
+	let replacement = '';
+
+	for (const change of changes) {
+		if (!change.added) original += change.value;
+		if (!change.removed) replacement += change.value;
+	}
+
+	if (normalizeForComparison(original) === normalizeForComparison(replacement)) return original;
+
+	return preserveBlankLineLayout(original, replacement);
+}
+
+function normalizeForComparison(value: string): string {
+	return value
+		.replace(/\s/g, '')
+		.replace(/;/g, '')
+		.replace(/,([}\])])/g, '$1')
+		.replace(/,$/, '');
+}
+
+function preserveBlankLineLayout(original: string, replacement: string): string {
+	const originalLines = original.split('\n');
+	const replacementLines = replacement.split('\n');
+	const replacementContent = replacementLines.filter((line) => line.trim() !== '');
+
+	// positional pairing is only safe when content line counts match
+	if (originalLines.filter((line) => line.trim() !== '').length !== replacementContent.length) {
+		return replacement;
+	}
+
+	let contentIndex = 0;
+	return originalLines
+		.map((line) => (line.trim() === '' ? line : replacementContent[contentIndex++]))
+		.join('\n');
 }
