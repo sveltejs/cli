@@ -30,6 +30,7 @@
 		"@playwright/test": "^1.60.0",
 		"@types/node": "^25.9.1",
 		"tsdown": "^0.22.1",
+		"unrun": "^0.2.39",
 		"vitest": "^4.1.8"
 	},
 	"keywords": ["sv-add", "svelte", "sveltekit"]
