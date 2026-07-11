@@ -4,6 +4,7 @@ import { page } from '$app/state';
 import type { Locale as _Locale } from '$lib/paraglide/runtime';
 
 import {
+	baseLocale,
 	localizeUrl,
 	overwriteGetLocale,
 	overwriteSetLocale,
@@ -11,7 +12,7 @@ import {
 } from '$lib/paraglide/runtime';
 
 export class Locale {
-	#current: _Locale = $state(toLocale(browser && document.querySelector('html')?.lang) ?? 'en');
+	#current: _Locale = $state(toLocale(browser && document.querySelector('html')?.lang) ?? baseLocale);
 
 	constructor() {
 		overwriteGetLocale(() => this.#current);
