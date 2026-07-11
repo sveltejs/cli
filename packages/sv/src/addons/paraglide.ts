@@ -207,11 +207,13 @@ export default defineAddon({
 			`src/hooks.client.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, { imports: ['Locale'], from: '$lib/paraglide.svelte' });
-				js.imports.addNamed(ast, {
-					imports: ['ClientInit'],
-					from: '@sveltejs/kit',
-					isType: true
-				});
+				if (language === 'ts') {
+					js.imports.addNamed(ast, {
+						imports: ['ClientInit'],
+						from: '@sveltejs/kit',
+						isType: true
+					});
+				}
 
 				const init = dedent`
 					export const init${ts(': ClientInit')} = () => {
