@@ -9,7 +9,7 @@ export async function formatFiles(options: {
 }): Promise<void> {
 	if (options.filesToFormat.length === 0) return;
 	const { start, stop } = p.spinner();
-	start('Formatting modified files');
+	start('Formatting files');
 
 	const args = ['prettier', '--write', '--ignore-unknown', ...options.filesToFormat];
 	const cmd = resolveCommand(options.packageManager, 'execute-local', args)!;
@@ -30,5 +30,5 @@ export async function formatFiles(options: {
 		p.log.error(e?.output?.stderr || 'unknown error');
 		return;
 	}
-	stop('Successfully formatted modified files');
+	stop('Successfully formatted files');
 }
