@@ -175,7 +175,13 @@ export default defineAddon({
 			`${directory.lib}/paraglide.svelte.${language}`,
 			transforms.script(({ ast, js, comments }) => {
 				js.imports.addNamed(ast, {
-					imports: ['localizeUrl', 'overwriteGetLocale', 'overwriteSetLocale', 'toLocale'],
+					imports: [
+						'baseLocale',
+						'localizeUrl',
+						'overwriteGetLocale',
+						'overwriteSetLocale',
+						'toLocale'
+					],
 					from: '$lib/paraglide/runtime'
 				});
 				js.imports.addNamed(ast, {
