@@ -224,18 +224,6 @@ export default defineAddon({
 		);
 
 		sv.file(
-			file.gitignore,
-			transforms.text(({ content, text }) => {
-				if (!content) return false;
-
-				content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
-				content = text.upsert(content, 'project.inlang/cache/');
-
-				return content;
-			})
-		);
-
-		sv.file(
 			'project.inlang/settings.json',
 			transforms.json(({ data }) => {
 				if (Object.keys(data).length > 0) return false;
