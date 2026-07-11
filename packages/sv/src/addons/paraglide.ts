@@ -184,14 +184,15 @@ export default defineAddon({
 					],
 					from: '$lib/paraglide/runtime'
 				});
-				js.imports.addNamed(ast, {
-					imports: { Locale: '_Locale' },
-					from: '$lib/paraglide/runtime',
-					isType: true
-				});
 				js.imports.addNamed(ast, { imports: ['page'], from: '$app/state' });
 				js.imports.addNamed(ast, { imports: ['goto'], from: '$app/navigation' });
 				env.importEnv(ast, js, ['browser']);
+				if (language === 'ts')
+					js.imports.addNamed(ast, {
+						imports: { Locale: '_Locale' },
+						from: '$lib/paraglide/runtime',
+						isType: true
+					});
 
 				const codeBlock = dedent`
 				export class Locale {
@@ -213,13 +214,12 @@ export default defineAddon({
 			`src/hooks.client.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, { imports: ['Locale'], from: '$lib/paraglide.svelte' });
-				if (language === 'ts') {
+				if (language === 'ts')
 					js.imports.addNamed(ast, {
 						imports: ['ClientInit'],
 						from: '@sveltejs/kit',
 						isType: true
 					});
-				}
 
 				const init = dedent`
 					export const init${ts(': ClientInit')} = () => {
