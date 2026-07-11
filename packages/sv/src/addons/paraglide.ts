@@ -189,7 +189,7 @@ export default defineAddon({
 
 				const codeBlock = dedent`
 				export class Locale {
-					#current${ts(': _Locale')} = $state(toLocale(browser && document.querySelector('html')?.lang) ?? 'en');
+					#current${ts(': _Locale')} = $state(toLocale(browser && document.querySelector('html')?.lang) ?? baseLocale);
 					constructor() {
 						overwriteGetLocale(() => this.#current);
 						overwriteSetLocale((locale) => {
