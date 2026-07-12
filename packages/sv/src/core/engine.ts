@@ -55,8 +55,7 @@ function updatePackages(
 				if (dependency.dev && !data.devDependencies) data.devDependencies = {};
 				if (!dependency.dev && !data.dependencies) data.dependencies = {};
 
-				let dependencies = dependency.dev ? data.devDependencies : data.dependencies;
-				dependencies ??= {};
+				const dependencies = dependency.dev ? data.devDependencies! : data.dependencies!;
 
 				if (!dependencies[dependency.pkg] || dependencies[dependency.pkg] !== dependency.version) {
 					modified = true;
