@@ -31,6 +31,7 @@
 		"@sveltejs/sv-utils": "^0.0.0",
 		"sv": "^0.0.0",
 		"tsdown": "^0.22.1",
+		"unrun": "^0.2.39",
 		"vitest": "^4.1.8"
 	},
 	"keywords": [
