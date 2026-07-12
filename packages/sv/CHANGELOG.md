@@ -1,5 +1,11 @@
 # sv
 
+## 0.16.3
+### Patch Changes
+
+
+- fix: add reactivity to paraglide ([#1168](https://github.com/sveltejs/cli/pull/1168))
+
 ## 0.16.2
 ### Patch Changes
 
