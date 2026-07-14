@@ -13,7 +13,7 @@ npx sv add paraglide
 ## What you get
 
 - Inlang project settings
-- paraglide Vite plugin
+- paraglide Vite plugin configured to emit TypeScript declarations
 - SvelteKit `reroute` and `handle` hooks
 - `text-direction` and `lang` attributes in `app.html`
 - an optional demo page showing how to use paraglide

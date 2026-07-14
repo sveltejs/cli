@@ -28,4 +28,8 @@ test.concurrent.for(testCases)('paraglide $variant', async (testCase, { page, ..
 		const fileContent = fs.readFileSync(filePath, 'utf8');
 		expect(fileContent).toContain(`hello_world`);
 	}
+
+	const declarationsPath = path.resolve(cwd, 'src/lib/paraglide/messages/_index.d.ts');
+	const declarations = fs.readFileSync(declarationsPath, 'utf8');
+	expect(declarations).toContain('hello_world');
 });
