@@ -47,7 +47,7 @@ export default defineAddon({
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, packageManager, file, cwd }) => {
+	run: ({ sv, options, packageManager, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -100,14 +100,46 @@ export default defineAddon({
 				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
 
+			const adapterCall = js.functions.createCall({
+				name: adapterName,
+				args: [],
+				useIdentifiers: true
+			});
+
+			if (adapter.package === '@sveltejs/adapter-static') {
+				adapterCall.arguments.push(
+					js.object.create({
+						pages: 'build',
+						assets: 'build',
+						fallback: js.variables.createIdentifier('undefined'),
+						precompress: false,
+						strict: true
+					})
+				);
+			}
+
 			// for non-auto adapters, also drop the now-stale adapter-auto explanatory comment
 			override(
-				{ adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true }) },
+				{ adapter: adapterCall },
 				adapter.package === '@sveltejs/adapter-auto'
 					? undefined
 					: { dropLeadingComments: ['adapter'] }
 			);
 		});
+
+		if (adapter.package === '@sveltejs/adapter-static') {
+			sv.file(
+				`routes/+layout.${language}`,
+				transforms.script(({ ast, js }) => {
+					const prerender = js.variables.declaration(ast, {
+						kind: 'const',
+						name: 'prerender',
+						value: js.common.createLiteral(true)
+					});
+					js.exports.createNamed(ast, { name: 'prerender', fallback: prerender });
+				})
+			);
+		}
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.97.0');
