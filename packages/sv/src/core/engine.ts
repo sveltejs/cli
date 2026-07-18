@@ -51,15 +51,13 @@ function updatePackages(
 			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
 			let modified = false;
-			for (const dependency of dependencies) {
-				if (dependency.dev && !data.devDependencies) data.devDependencies = {};
-				if (!dependency.dev && !data.dependencies) data.dependencies = {};
+			for (const { dev, pkg, version } of dependencies) {
+				const dependency = dev ? 'devDependencies' : 'dependencies';
+				data[dependency] ??= {};
 
-				const dependencies = dependency.dev ? data.devDependencies! : data.dependencies!;
-
-				if (!dependencies[dependency.pkg] || dependencies[dependency.pkg] !== dependency.version) {
+				if (data[dependency][pkg] !== version) {
 					modified = true;
-					dependencies[dependency.pkg] = dependency.version;
+					data[dependency][pkg] = version;
 				}
 			}
 
