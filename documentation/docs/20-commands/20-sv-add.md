@@ -24,14 +24,14 @@ Path to the root of your Svelte(Kit) project.
 
 ### `--no-git-check`
 
-Even if some files are dirty, no prompt will be shown
+Do not warn about uncommitted changes.
 
 ### `--no-download-check`
 
-Skip all download confirmation prompts
+Do not warn about downloads from community add-ons.
 
-> [!IMPORTANT]
-> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion
+> [!NOTE]
+> Svelte maintainers have not reviewed community add-ons for malicious code! Use at your discretion.
 
 ### `--install <package-manager>`
 
@@ -45,7 +45,7 @@ Installs dependencies with a specified package manager:
 
 ### `--no-install`
 
-Prevents installing dependencies
+Do not prompt to install dependencies.
 
 ## Official add-ons
 
