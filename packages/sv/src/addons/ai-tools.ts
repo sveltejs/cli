@@ -21,6 +21,8 @@ type Client = {
 		args?: string[];
 	};
 	agentPath?: string;
+	// pointer file importing agentPath, keeps a single source of truth (CLAUDE.md -> @AGENTS.md)
+	agentLink?: { path: string; contents: string };
 	configPath?: string;
 	skillsPath?: string;
 	agentsPath?: string;
@@ -39,7 +41,8 @@ const CLIENTS: Record<string, Client> = {
 			repo: 'sveltejs/ai-tools',
 			id: 'svelte@svelte'
 		},
-		agentPath: '.claude/CLAUDE.md',
+		agentPath: 'AGENTS.md',
+		agentLink: { path: '.claude/CLAUDE.md', contents: '@../AGENTS.md\n' },
 		configPath: '.mcp.json',
 		skillsPath: '.claude/skills',
 		agentsPath: '.claude/agents',
@@ -233,6 +236,7 @@ export default defineAddon({
 			const {
 				mcpOptions,
 				agentPath,
+				agentLink,
 				configPath,
 				skillsPath,
 				agentsPath,
@@ -252,6 +256,8 @@ export default defineAddon({
 					return agentFile?.contents ?? '';
 				});
 			}
+
+			if (agentLink) addFile(agentLink.path, agentLink.contents);
 
 			const writeMcp = Boolean(mcpOptions) && wantsMcp;
 			if (configPath && (writeMcp || customData)) {

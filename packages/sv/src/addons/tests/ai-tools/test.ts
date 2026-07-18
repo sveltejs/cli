@@ -253,6 +253,10 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		`);
 	}
 
+	// CLAUDE.md is a pointer to the shared AGENTS.md
+	expect(getContent('.claude/CLAUDE.md')).toBe('@../AGENTS.md\n');
+	expect(fs.existsSync(path.resolve(cwd, 'AGENTS.md'))).toBe(true);
+
 	// skills should be installed for all clients except opencode (plugin handles it)
 	const skillDirs = ['.claude/skills', '.cursor/skills', '.gemini/skills', '.github/skills'];
 	for (const dir of skillDirs) {

@@ -13,6 +13,9 @@ import pkg from '../../package.json' with { type: 'json' };
 import type { LoadedAddon } from './config.ts';
 import { UnsupportedError } from './errors.ts';
 
+// a file whose whole content is a single @import (e.g. CLAUDE.md -> @../AGENTS.md)
+const RX_IMPORT_ONLY = /^\s*@\S+\s*$/;
+
 const NO_PREFIX = '--no-';
 let options: readonly Option[] = [];
 
@@ -319,6 +322,8 @@ export function updateAgent(
 		if (!fs.existsSync(agentPath)) continue;
 
 		let content = fs.readFileSync(agentPath, 'utf-8');
+		// pointer files (e.g. CLAUDE.md -> @AGENTS.md) get the config through their import
+		if (RX_IMPORT_ONLY.test(content)) continue;
 		content = content.replace(existingSectionPattern, '');
 		content = configSection + content;
 		fs.writeFileSync(agentPath, content);
