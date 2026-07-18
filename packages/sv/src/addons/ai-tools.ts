@@ -53,6 +53,7 @@ const CLIENTS: Record<string, Client> = {
 		label: 'Cursor',
 		agentPath: 'AGENTS.md',
 		configPath: '.cursor/mcp.json',
+		skillsPath: '.cursor/skills',
 		agentsPath: '.cursor/agents',
 		mcpOptions: {}
 	},
@@ -60,6 +61,7 @@ const CLIENTS: Record<string, Client> = {
 		label: 'Gemini',
 		agentPath: 'GEMINI.md',
 		configPath: '.gemini/settings.json',
+		skillsPath: '.gemini/skills',
 		agentsPath: '.gemini/agents',
 		schema:
 			'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
@@ -85,6 +87,7 @@ const CLIENTS: Record<string, Client> = {
 		label: 'VSCode',
 		agentPath: 'AGENTS.md',
 		configPath: '.vscode/mcp.json',
+		skillsPath: '.github/skills',
 		agentsPath: '.github/agents',
 		agentExtension: '.agent.md',
 		mcpOptions: {

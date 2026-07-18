@@ -253,13 +253,12 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		`);
 	}
 
-	// skills should be installed for claude-code only (opencode uses plugin)
-	const claudeSkillsDir = path.resolve(cwd, '.claude/skills');
-	expect(fs.existsSync(claudeSkillsDir)).toBe(true);
-	expect(fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-code-writer/SKILL.md'))).toBe(true);
-	expect(fs.existsSync(path.resolve(claudeSkillsDir, 'svelte-core-bestpractices/SKILL.md'))).toBe(
-		true
-	);
+	// skills should be installed for all clients except opencode (plugin handles it)
+	const skillDirs = ['.claude/skills', '.cursor/skills', '.gemini/skills', '.github/skills'];
+	for (const dir of skillDirs) {
+		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-code-writer/SKILL.md'))).toBe(true);
+		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-core-bestpractices/SKILL.md'))).toBe(true);
+	}
 
 	// opencode should NOT have skills (plugin handles it)
 	expect(fs.existsSync(path.resolve(cwd, '.opencode/skills'))).toBe(false);
