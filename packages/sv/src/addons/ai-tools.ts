@@ -3,7 +3,7 @@ import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
-const RX_MD = /\.md$/;
+const REGEX_MD = /\.md$/;
 
 type Client = {
 	label: string;
@@ -308,9 +308,9 @@ export default defineAddon({
 
 			if (agentsPath) {
 				for (const file of agentFiles) {
-					if (!selectedAgents.includes(file.name.replace(RX_MD, ''))) continue;
+					if (!selectedAgents.includes(file.name.replace(REGEX_MD, ''))) continue;
 					const ext = agentExtension ?? '.md';
-					const name = file.name.replace(RX_MD, ext);
+					const name = file.name.replace(REGEX_MD, ext);
 					addFile(`${agentsPath}/${name}`, file.contents);
 				}
 			}
