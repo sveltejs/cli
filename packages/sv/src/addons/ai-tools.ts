@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { log } from '@clack/prompts';
 import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -324,8 +326,42 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps({ options }) {
+	nextSteps({ options, cwd }) {
 		const steps = [];
+
+		// plugin enabled + loose files -> the client would see skills/sub-agents twice
+		for (const ide of options.ide) {
+			const client = CLIENTS[ide];
+			if (!client?.pluginSettings) continue;
+
+			const plugin = client.pluginSettings;
+			const settingsPath = path.resolve(cwd, plugin.path);
+			if (!fs.existsSync(settingsPath)) continue;
+
+			let pluginEnabled = false;
+			try {
+				pluginEnabled = Boolean(
+					JSON.parse(fs.readFileSync(settingsPath, 'utf8')).enabledPlugins?.[plugin.id]
+				);
+			} catch {
+				// ignore unparsable settings
+			}
+			if (!pluginEnabled) continue;
+
+			const looseDirs = [client.skillsPath, client.agentsPath].filter(
+				(dir): dir is string =>
+					Boolean(dir) &&
+					fs.existsSync(path.resolve(cwd, dir!)) &&
+					fs
+						.readdirSync(path.resolve(cwd, dir!))
+						.some((entry) => Object.keys(TOOLS).includes(entry.replace(REGEX_MD, '')))
+			);
+			if (looseDirs.length === 0) continue;
+
+			steps.push(
+				`${client.label}: the Svelte plugin is enabled and ${looseDirs.map((d) => color.path(d)).join(' + ')} also exist${looseDirs.length > 1 ? '' : 's'} - remove ${looseDirs.length > 1 ? 'them' : 'it'} (or disable the plugin) to avoid duplicate skills/sub-agents.`
+			);
+		}
 
 		if (options.delivery === 'plugin' && options.ide.includes('claude-code')) {
 			steps.push(
