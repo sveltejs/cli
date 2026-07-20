@@ -68,8 +68,8 @@ export default defineAddon({
 				js.vite.addPlugin(ast, {
 					code: `${vitePluginName}({
 					project: './project.inlang',
-					outdir: './${paraglideOutDir}'
-					emitTsDeclarations: true,
+					outdir: './${paraglideOutDir}',
+					emitTsDeclarations: true
 				})`
 				});
 			})
