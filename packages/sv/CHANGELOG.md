@@ -1,5 +1,14 @@
 # sv
 
+## 0.16.4
+### Patch Changes
+
+
+- fix: emit Paraglide TypeScript declarations for reliable language-server updates ([#1172](https://github.com/sveltejs/cli/pull/1172))
+
+
+- revert: remove paraglide reactive class ([#1168](https://github.com/sveltejs/cli/issues/1168)) ([#1176](https://github.com/sveltejs/cli/pull/1176))
+
 ## 0.16.3
 ### Patch Changes
 
