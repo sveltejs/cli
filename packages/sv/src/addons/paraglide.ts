@@ -162,6 +162,7 @@ export default defineAddon({
 			})
 		);
 
+		// reused by prettier and eslint
 		sv.file(
 			file.gitignore,
 			transforms.text(({ content, text }) => {
