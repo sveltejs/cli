@@ -1,12 +1,5 @@
 import { log } from '@clack/prompts';
-import {
-	color,
-	createPrinter,
-	dedent,
-	defineEnv,
-	type SvelteAst,
-	transforms
-} from '@sveltejs/sv-utils';
+import { color, createPrinter, dedent, type SvelteAst, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -60,10 +53,9 @@ export default defineAddon({
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, file, language, directory, cwd, dependencyVersion }) => {
+	run: ({ sv, options, file, language, directory }) => {
 		const [ts] = createPrinter(language === 'ts');
 		const paraglideOutDir = `${directory.lib}/paraglide`;
-		const env = defineEnv({ sv, cwd, dependencyVersion });
 
 		sv.devDependency('@inlang/paraglide-js', '^2.18.2');
 
@@ -75,10 +67,9 @@ export default defineAddon({
 				js.imports.addNamed(ast, { imports: [vitePluginName], from: '@inlang/paraglide-js' });
 				js.vite.addPlugin(ast, {
 					code: `${vitePluginName}({
-				project: './project.inlang',
-				outdir: './${paraglideOutDir}',
-				strategy: ['url']
-			})`
+					project: './project.inlang',
+					outdir: './${paraglideOutDir}'
+				})`
 				});
 			})
 		);
@@ -170,64 +161,15 @@ export default defineAddon({
 			})
 		);
 
-		// paraglide locale class
 		sv.file(
-			`${directory.lib}/paraglide.svelte.${language}`,
-			transforms.script(({ ast, js, comments }) => {
-				js.imports.addNamed(ast, {
-					imports: [
-						'baseLocale',
-						'localizeUrl',
-						'overwriteGetLocale',
-						'overwriteSetLocale',
-						'toLocale'
-					],
-					from: '$lib/paraglide/runtime'
-				});
-				js.imports.addNamed(ast, { imports: ['page'], from: '$app/state' });
-				js.imports.addNamed(ast, { imports: ['goto'], from: '$app/navigation' });
-				env.importEnv(ast, js, ['browser']);
-				if (language === 'ts')
-					js.imports.addNamed(ast, {
-						imports: { Locale: '_Locale' },
-						from: '$lib/paraglide/runtime',
-						isType: true
-					});
+			file.gitignore,
+			transforms.text(({ content, text }) => {
+				if (!content) return false;
 
-				const codeBlock = dedent`
-				export class Locale {
-					#current${ts(': _Locale')} = $state(toLocale(browser && document.querySelector('html')?.lang) ?? baseLocale);
-					constructor() {
-						overwriteGetLocale(() => this.#current);
-						overwriteSetLocale((locale) => {
-							this.#current = locale;
-							goto(localizeUrl(page.url.pathname, { locale }).href);
-						});
-					}
-				}`;
-				js.common.appendFromString(ast, { code: codeBlock, comments });
-			})
-		);
+				content = text.upsert(content, paraglideOutDir, { comment: 'Paraglide' });
+				content = text.upsert(content, 'project.inlang/cache/');
 
-		// client init hook
-		sv.file(
-			`src/hooks.client.${language}`,
-			transforms.script(({ ast, comments, js }) => {
-				js.imports.addNamed(ast, { imports: ['Locale'], from: '$lib/paraglide.svelte' });
-				if (language === 'ts')
-					js.imports.addNamed(ast, {
-						imports: ['ClientInit'],
-						from: '@sveltejs/kit',
-						isType: true
-					});
-
-				const init = dedent`
-					export const init${ts(': ClientInit')} = () => {
-						new Locale()
-					}
-				`;
-
-				js.common.appendFromString(ast, { code: init, comments });
+				return content;
 			})
 		);
 
