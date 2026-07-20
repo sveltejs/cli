@@ -23,7 +23,12 @@ export default defineConfig({
 				}
 			}
 		}),
-		paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide' })
+
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+			emitTsDeclarations: true
+		})
 	],
 	test: {
 		expect: { requireAssertions: true },

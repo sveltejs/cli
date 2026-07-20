@@ -69,6 +69,7 @@ export default defineAddon({
 					code: `${vitePluginName}({
 					project: './project.inlang',
 					outdir: './${paraglideOutDir}'
+					emitTsDeclarations: true,
 				})`
 				});
 			})
