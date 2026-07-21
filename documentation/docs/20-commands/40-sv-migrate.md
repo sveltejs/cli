@@ -2,7 +2,7 @@
 title: sv migrate
 ---
 
-`sv migrate` migrates Svelte(Kit) codebases. Some migrations are built into `sv`; older migrations are run through [`svelte-migrate@1`](https://www.npmjs.com/package/svelte-migrate).
+`sv migrate` migrates Svelte(Kit) codebases. Some migrations are built into `sv`; older migrations are automatically delegated to run through [`svelte-migrate@1`](https://www.npmjs.com/package/svelte-migrate).
 
 Some migrations may annotate your codebase with tasks for completion that you can find by searching for `@migration`.
 
