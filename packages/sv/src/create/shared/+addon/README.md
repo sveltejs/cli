@@ -1,7 +1,7 @@
 # [sv](https://svelte.dev/docs/cli/overview) community add-on: [~SV-NAME-TODO~](https://github.com/~SV-NAME-TODO~)
 
 > [!IMPORTANT]
-> Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion
+> Svelte maintainers have not reviewed community add-ons for malicious code! Use at your discretion.
 
 ## Usage
 

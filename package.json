@@ -21,10 +21,10 @@
 		"update-deps": "node ./scripts/update-dependencies.js && pnpm format"
 	},
 	"devDependencies": {
+		"@changesets/changelog-github": "1.0.0-next.6",
 		"@changesets/cli": "^2.31.0",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/eslint-config": "^10.0.1",
-		"@svitejs/changesets-changelog-github-compact": "^1.2.0",
 		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
 		"@types/node": "^25.9.1",
 		"@typescript/native-preview": "7.0.0-dev.20260601.1",

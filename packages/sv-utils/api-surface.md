@@ -891,6 +891,8 @@ type DefineEnv = {
 	mode: EnvMode;
 	define: (spec: EnvVarSpec) => void;
 	reference: (ast: estree.Program, js: typeof index_d_exports$3, opts: ReferenceOpts) => string;
+
+	importEnv: (ast: estree.Program, js: typeof index_d_exports$3, imports: string[]) => void;
 };
 
 declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
