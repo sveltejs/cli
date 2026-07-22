@@ -208,7 +208,10 @@ describe('cli', () => {
 							env: {
 								...process.env,
 								// allow npm under a repo whose packageManager is pnpm
-								COREPACK_ENABLE_STRICT: '0'
+								COREPACK_ENABLE_STRICT: '0',
+								// tsdown's optional `*` peers crash npm's arborist peer resolver
+								// (`edgesOut` null); skip strict peer resolution for this install
+								npm_config_legacy_peer_deps: 'true'
 							}
 						}
 					});
