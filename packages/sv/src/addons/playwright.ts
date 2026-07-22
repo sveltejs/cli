@@ -1,7 +1,7 @@
 import { log } from '@clack/prompts';
 import { color, dedent, resolveCommandArray, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
+import { createDemoPage } from './common.ts';
 
 export default defineAddon({
 	id: 'playwright',
@@ -28,11 +28,12 @@ export default defineAddon({
 			})
 		);
 
-		const testDir = isKit ? `${directory.kitRoutes}/addon/playwright` : directory.src;
-		const testRoute = isKit ? '/addon/playwright' : '/';
+		const demo = createDemoPage('playwright', language);
+		const testDir = isKit ? `${directory.kitRoutes}${demo.addonPath}` : directory.src;
+		const testRoute = isKit ? demo.addonPath : '/';
 
 		if (isKit) {
-			sv.file(`${directory.kitRoutes}/addon/+page.svelte`, addToDemoPage('playwright', language));
+			sv.file(`${directory.kitRoutes}${demo.listingPath}/+page.svelte`, demo.transform);
 
 			sv.file(
 				`${testDir}/+page.svelte`,

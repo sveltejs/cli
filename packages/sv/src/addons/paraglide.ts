@@ -1,7 +1,7 @@
 import { log } from '@clack/prompts';
 import { color, createPrinter, dedent, type SvelteAst, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
+import { createDemoPage } from './common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -224,11 +224,12 @@ export default defineAddon<{ demo: boolean }>()({
 		);
 
 		if (options.demo) {
-			sv.file(`${directory.kitRoutes}/addon/+page.svelte`, addToDemoPage('paraglide', language));
+			const demo = createDemoPage('paraglide', language);
+			sv.file(`${directory.kitRoutes}${demo.listingPath}/+page.svelte`, demo.transform);
 
 			// add usage example
 			sv.file(
-				`${directory.kitRoutes}/addon/paraglide/+page.svelte`,
+				`${directory.kitRoutes}${demo.addonPath}/+page.svelte`,
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
@@ -272,10 +273,12 @@ export default defineAddon<{ demo: boolean }>()({
 		}
 	},
 
-	nextSteps: ({ options }) => {
+	nextSteps: ({ options, language }) => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (options.demo) {
-			steps.push(`Visit ${color.route('/addon/paraglide')} route to view the demo`);
+			steps.push(
+				`Visit ${color.route(createDemoPage('paraglide', language).addonPath)} route to view the demo`
+			);
 		}
 
 		return steps;

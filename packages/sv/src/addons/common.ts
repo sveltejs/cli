@@ -169,9 +169,14 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 		}
 	});
 
-type AddToDemoPage = (path: string, language: 'ts' | 'js') => TransformFn;
-export const addToDemoPage: AddToDemoPage = (path, language) =>
-	transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
+type CreateDemoPage = (
+	name: string,
+	language: 'ts' | 'js'
+) => { transform: TransformFn; listingPath: string; addonPath: string };
+export const createDemoPage: CreateDemoPage = (name, language) => ({
+	listingPath: '/addon',
+	addonPath: `/addon/${name}`,
+	transform: transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
 		for (const node of ast.fragment.nodes) {
 			if (node.type === 'RegularElement') {
 				const hrefAttribute = node.attributes.find(
@@ -182,8 +187,8 @@ export const addToDemoPage: AddToDemoPage = (path, language) =>
 				if (!Array.isArray(hrefAttribute.value)) continue;
 
 				const hasDemo = hrefAttribute.value.some(
-					// we use includes as it could be "/addon/${path}" or "resolve("addon/${path}")" or "resolve('addon/${path}')"
-					(x) => x.type === 'Text' && x.data.includes(`/addon/${path}`)
+					// we use includes as it could be "/addon/${name}" or "resolve("addon/${name}")" or "resolve('addon/${name}')"
+					(x) => x.type === 'Text' && x.data.includes(`/addon/${name}`)
 				);
 				if (hasDemo) {
 					return false;
@@ -193,8 +198,9 @@ export const addToDemoPage: AddToDemoPage = (path, language) =>
 
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
-		svelte.addFragment(ast, `<a href={resolve('/addon/${path}')}>${path}</a>`, { mode: 'prepend' });
-	});
+		svelte.addFragment(ast, `<a href={resolve('/addon/${name}')}>${name}</a>`, { mode: 'prepend' });
+	})
+});
 
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.
