@@ -138,6 +138,7 @@ export async function applyAddons({
 			cwd: workspace.cwd,
 			packageManager: workspace.packageManager
 		});
+		addonWorkspace.template = workspace.template;
 		// If we don't have a formatter yet, check if the addon adds one
 		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
