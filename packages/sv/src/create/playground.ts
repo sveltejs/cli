@@ -100,6 +100,7 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	// Prefixes for packages that should be excluded (built-in or framework packages)
 	const excludedPrefixes = [
 		'$', // SvelteKit framework imports
+		'#', // subpath imports from the project itself
 		'node:', // Node.js built-in modules
 		'svelte', // Svelte core packages
 		'@sveltejs/' // All SvelteKit packages
