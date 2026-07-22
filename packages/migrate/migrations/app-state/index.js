@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import process from 'node:process';
 import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
-import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
+import { isGreaterThanRange, isValidRange } from 'verkit';
 import { bail, check_git, migration_succeeded, update_svelte_file } from '../../utils.js';
 import { transform_svelte_code, update_pkg_json } from './migrate.js';
 
@@ -16,7 +16,7 @@ export async function migrate() {
 	const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
-	if (svelte_dep && semver.validRange(svelte_dep) && semver.gtr('5.0.0', svelte_dep)) {
+	if (svelte_dep && isValidRange(svelte_dep) && isGreaterThanRange('5.0.0', svelte_dep)) {
 		p.log.error(
 			pc.bold(pc.red('You need to upgrade to Svelte version 5 first (`npx sv migrate svelte-5`).'))
 		);
@@ -24,7 +24,7 @@ export async function migrate() {
 	}
 
 	const kit_dep = pkg.devDependencies?.['@sveltejs/kit'] ?? pkg.dependencies?.['@sveltejs/kit'];
-	if (kit_dep && semver.validRange(kit_dep) && semver.gtr('2.0.0', kit_dep)) {
+	if (kit_dep && isValidRange(kit_dep) && isGreaterThanRange('2.0.0', kit_dep)) {
 		p.log.error(
 			pc.bold(
 				pc.red('You need to upgrade to SvelteKit version 2 first (`npx sv migrate sveltekit-2`).')

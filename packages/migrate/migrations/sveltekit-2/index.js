@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import process from 'node:process';
 import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
-import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
+import { isGreaterThanRange, isValidRange } from 'verkit';
 import {
 	bail,
 	check_git,
@@ -57,7 +57,7 @@ export async function migrate() {
 		bail('Please install Svelte before continuing');
 	}
 
-	if (semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
+	if (isValidRange(svelte_dep) && isGreaterThanRange('4.0.0', svelte_dep)) {
 		p.log.warning(
 			pc.bold(
 				pc.yellow(

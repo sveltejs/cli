@@ -7,8 +7,8 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { detect, resolveCommand } from 'package-manager-detector';
 import pc from 'picocolors';
-import semver from 'semver';
 import glob from 'tiny-glob/sync.js';
+import { isGreaterThanRange, isValidRange } from 'verkit';
 import {
 	bail,
 	check_git,
@@ -29,7 +29,7 @@ export async function migrate() {
 	const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
 	const svelte_dep = pkg.devDependencies?.svelte ?? pkg.dependencies?.svelte;
-	if (svelte_dep && semver.validRange(svelte_dep) && semver.gtr('4.0.0', svelte_dep)) {
+	if (svelte_dep && isValidRange(svelte_dep) && isGreaterThanRange('4.0.0', svelte_dep)) {
 		p.log.warning(
 			pc.bold(
 				pc.yellow(
@@ -57,7 +57,7 @@ export async function migrate() {
 	}
 
 	const kit_dep = pkg.devDependencies?.['@sveltejs/kit'] ?? pkg.dependencies?.['@sveltejs/kit'];
-	if (kit_dep && semver.validRange(kit_dep) && semver.gtr('2.0.0', kit_dep)) {
+	if (kit_dep && isValidRange(kit_dep) && isGreaterThanRange('2.0.0', kit_dep)) {
 		p.log.warning(
 			pc.bold(
 				pc.yellow(

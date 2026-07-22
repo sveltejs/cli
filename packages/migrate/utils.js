@@ -5,8 +5,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import pc from 'picocolors';
-import semver from 'semver';
 import ts from 'typescript';
+import { findMinimumForRange, isGreater, isRangeSubset, isValidRange } from 'verkit';
 
 /** @param {string} message */
 export function bail(message) {
@@ -223,16 +223,12 @@ export function update_pkg(content, updates) {
 		const updateVersion = (type) => {
 			const existingRange = pkg[type]?.[name];
 
-			if (
-				existingRange &&
-				semver.validRange(existingRange) &&
-				!semver.subset(existingRange, version)
-			) {
+			if (existingRange && isValidRange(existingRange) && !isRangeSubset(existingRange, version)) {
 				// Check if the new version range is an upgrade
-				const minExistingVersion = semver.minVersion(existingRange);
-				const minNewVersion = semver.minVersion(version);
+				const minExistingVersion = findMinimumForRange(existingRange);
+				const minNewVersion = findMinimumForRange(version);
 
-				if (minExistingVersion && minNewVersion && semver.gt(minNewVersion, minExistingVersion)) {
+				if (minExistingVersion && minNewVersion && isGreater(minNewVersion, minExistingVersion)) {
 					log_migration(`Updated ${name} to ${version}`);
 					pkg[type][name] = version;
 				}
