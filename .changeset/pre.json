@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "svelte-migrate": "1.10.2",
+    "sv": "0.16.4",
+    "@sveltejs/sv-utils": "0.3.1"
+  },
+  "changesets": []
+}
