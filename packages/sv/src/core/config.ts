@@ -2,6 +2,7 @@ import type { officialAddons } from '../addons/index.ts';
 import type {
 	BaseQuestion,
 	BooleanQuestion,
+	MultiSelectQuestion,
 	NumberQuestion,
 	OptionDefinition,
 	OptionValues,
@@ -90,7 +91,9 @@ export type SetupOptions<T extends Record<string, unknown>> = {
 				? StringQuestion
 				: T[K] extends number
 					? NumberQuestion
-					: Question<any>);
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
 };
 
 /**
