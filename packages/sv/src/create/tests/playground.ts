@@ -108,7 +108,7 @@ test('detect dependencies from playground files', () => {
 				import Component from './Component.svelte';
 				import { page } from '$app/stores';
 				import { browser } from '$app/environment';
-				import utils from '$lib/utils';
+				import utils from '#lib/utils';
 			</script>`
 		},
 		{
@@ -117,7 +117,7 @@ test('detect dependencies from playground files', () => {
 				import lodash from 'lodash@1.0.0';
 				import './local-file.js';
 				import fs from 'node:fs';
-				import { someUtil } from '$lib/utils';
+				import { someUtil } from '#lib/utils';
 				import kit from '@sveltejs/kit';
 			`
 		}
@@ -139,7 +139,7 @@ test('detect dependencies from playground files', () => {
 	expect(dependencies).not.toContain(['svelte', 'latest']);
 	expect(dependencies).not.toContain(['$app/stores', 'latest']);
 	expect(dependencies).not.toContain(['$app/environment', 'latest']);
-	expect(dependencies).not.toContain(['$lib/utils', 'latest']);
+	expect(dependencies).not.toContain(['#lib/utils', 'latest']);
 	expect(dependencies).not.toContain(['node:fs', 'latest']);
 	expect(dependencies).not.toContain(['@sveltejs/kit', 'latest']);
 

@@ -80,7 +80,7 @@ export default defineAddon({
 			`src/hooks.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, {
-					from: '$lib/paraglide/runtime',
+					from: '#lib/paraglide/runtime',
 					imports: ['deLocalizeUrl']
 				});
 
@@ -120,11 +120,11 @@ export default defineAddon({
 			`src/hooks.server.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, {
-					from: '$lib/paraglide/server',
+					from: '#lib/paraglide/server',
 					imports: ['paraglideMiddleware']
 				});
 				js.imports.addNamed(ast, {
-					from: '$lib/paraglide/runtime',
+					from: '#lib/paraglide/runtime',
 					imports: ['getTextDirection']
 				});
 
@@ -196,7 +196,7 @@ export default defineAddon({
 			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addNamed(ast.instance.content, {
 					imports: ['locales', 'localizeHref'],
-					from: '$lib/paraglide/runtime'
+					from: '#lib/paraglide/runtime'
 				});
 				js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
 				js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
@@ -229,13 +229,13 @@ export default defineAddon({
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
-						from: '$lib/paraglide/messages.js'
+						from: '#lib/paraglide/messages.js'
 					});
 					js.imports.addNamed(ast.instance.content, {
 						imports: {
 							setLocale: 'setLocale'
 						},
-						from: '$lib/paraglide/runtime'
+						from: '#lib/paraglide/runtime'
 					});
 
 					// add localized message
