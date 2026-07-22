@@ -38,21 +38,23 @@ const options = defineAddonOptions()
 			return undefined;
 		}
 	})
-	.add('demo', {
-		type: 'boolean',
-		default: true,
-		question: 'Do you want to include a demo?',
-		condition: (_options, _cwd, template) => template !== 'demo'
-	})
 	.build();
 
-export default defineAddon({
+export default defineAddon<{ demo: boolean }>()({
 	id: 'paraglide',
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ isKit, unsupported }) => {
+	setup: ({ isKit, unsupported, addOption, template }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
+
+		if (template !== 'demo') {
+			addOption('demo', {
+				type: 'boolean',
+				default: true,
+				question: 'Do you want to include a demo?'
+			});
+		}
 	},
 	run: ({ sv, options, file, language, directory }) => {
 		const [ts] = createPrinter(language === 'ts');
@@ -270,7 +272,7 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: () => {
+	nextSteps: ({ options }) => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (options.demo) {
 			steps.push(`Visit ${color.route('/addon/paraglide')} route to view the demo`);

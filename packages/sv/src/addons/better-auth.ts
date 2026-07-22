@@ -17,40 +17,39 @@ import { addToDemoPage } from './common.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
-const options = defineAddonOptions()
-	.add('demo', {
-		question: 'Which demo would you like to include?',
-		type: 'multiselect',
-		default: ['password'],
-		options: [
-			{ value: 'password', label: 'Email & Password' },
-			{ value: 'github', label: 'GitHub OAuth' }
-		],
-		required: false,
-		condition: (_options, _cwd, template) => template !== 'demo'
-	})
-	.build();
-
-export default defineAddon({
+export default defineAddon<{ demo: Array<'password' | 'github'> }>()({
 	id: 'better-auth',
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
-	options,
-	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
+	options: defineAddonOptions().build(),
+	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter, addOption, template }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
 
 		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
 		runsAfter('experimental');
+
+		if (template !== 'demo') {
+			addOption('demo', {
+				question: 'Which demo would you like to include?',
+				type: 'multiselect',
+				default: ['password'],
+				options: [
+					{ value: 'password', label: 'Email & Password' },
+					{ value: 'github', label: 'GitHub OAuth' }
+				],
+				required: false
+			});
+		}
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
-		const demoPassword = options.demo?.includes('password') ?? true;
-		const demoGithub = options.demo?.includes('github') ?? false;
+		const demoPassword = options.demo.includes('password');
+		const demoGithub = options.demo.includes('github');
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
@@ -556,7 +555,7 @@ export default defineAddon({
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
-		if (options.demo?.includes('github')) {
+		if (options.demo.includes('github')) {
 			steps.push(
 				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
 			);
