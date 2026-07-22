@@ -558,29 +558,7 @@ export async function promptAddonQuestions({
 		...verifyCleanWorkingDirectory(options.cwd, options.gitCheck),
 		...verifyUnsupportedAddons(addonDefinitions, setupResults)
 	];
-
-	const fails: Array<{ name: string; message?: string }> = [];
-	for (const verification of verifications) {
-		const { message, success } = await verification.run();
-		if (!success) fails.push({ name: verification.name, message });
-	}
-
-	if (fails.length > 0) {
-		const message = fails
-			.map(({ name, message }) => color.warning(`${name} (${message})`))
-			.join('\n- ');
-
-		p.note(`- ${message}`, 'Verifications not met', { format: (line) => line });
-
-		const force = await p.confirm({
-			message: 'Verifications failed. Do you wish to continue?',
-			initialValue: false
-		});
-		if (p.isCancel(force) || !force) {
-			p.cancel('Operation cancelled.');
-			process.exit(1);
-		}
-	}
+	await common.runAndValidateVerifications(verifications);
 
 	// ask remaining questions
 	for (const loaded of addons) {
@@ -777,7 +755,12 @@ export async function runAddonsApply({
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 		await installDependencies(packageManager, options.cwd);
-		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
+		await formatFiles({
+			packageManager,
+			cwd: options.cwd,
+			filesToFormat,
+			strategy: 'files-only'
+		});
 	}
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);

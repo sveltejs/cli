@@ -92,8 +92,8 @@ export function parseHtml(content: string): SvelteAst.Fragment {
 	return parseSvelte(content).fragment;
 }
 
-export function serializeHtml(ast: SvelteAst.Fragment): string {
-	return serializeSvelte(ast);
+export function serializeHtml(ast: SvelteAst.Fragment, previousContent?: string): string {
+	return serializeSvelte(ast, previousContent);
 }
 
 export function stripAst<T>(node: T, propsToRemove: string[]): T {
@@ -230,6 +230,11 @@ export class Comments {
 		this.trailing = new WeakMap();
 	}
 
+	/** The raw comments parsed from the source (with positions), in source order. */
+	list(): readonly SvelteAst.JSComment[] {
+		return this.original;
+	}
+
 	add(node: BaseNode, comment: CommentType, options?: { position?: 'leading' | 'trailing' }): void {
 		const { position = 'leading' } = options ?? {};
 		const map = position === 'leading' ? this.leading : this.trailing;
@@ -260,8 +265,10 @@ export function parseSvelte(content: string): SvelteAst.Root {
 	return svelteParse(content, { modern: true });
 }
 
-export function serializeSvelte(ast: SvelteAst.SvelteNode): string {
-	return sveltePrint(ast).code;
+export function serializeSvelte(ast: SvelteAst.SvelteNode, previousContent?: string): string {
+	return sveltePrint(ast, {
+		indent: guessIndentString(previousContent)
+	}).code;
 }
 
 export function parseToml(content: string): toml.TomlTable {

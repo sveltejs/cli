@@ -22,7 +22,7 @@ for (const categoryDirectory of categoryDirectories) {
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
 				module.run(ast);
 
-				let output = serializeSvelte(ast);
+				let output = serializeSvelte(ast, input);
 				if (!output.endsWith('\n')) output += '\n';
 				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.svelte`);
 			});

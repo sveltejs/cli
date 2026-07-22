@@ -407,7 +407,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
 	if (packageManager) {
 		await installDependencies(packageManager, projectPath);
-		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
+		await formatFiles({
+			packageManager,
+			cwd: projectPath,
+			filesToFormat: addOnFilesToFormat,
+			strategy: 'files-only'
+		});
 	}
 
 	return { directory: projectPath, addOnNextSteps, packageManager };

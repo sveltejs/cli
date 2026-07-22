@@ -117,6 +117,8 @@ type Workspace = {
 	};
 	packageManager: AgentName;
 };
+type FileEdit = (content: string) => string | false;
+type FileEditMultiple = (content: string, path: string) => string | false;
 type SvApi = {
 	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */ pnpmBuildDependency: (
 		pkg: string
@@ -125,7 +127,17 @@ type SvApi = {
 	devDependency: (pkg: string, version: string) => void;
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 
-	file: (path: string, edit: (content: string) => string | false) => void;
+	file: (path: string, edit: FileEdit) => void;
+
+	files: (
+		options: {
+			include: string | string[];
+			exclude?: string[];
+
+			where?: (content: string) => boolean;
+		},
+		edit: FileEditMultiple
+	) => void;
 };
 type Addon<Args extends OptionDefinition, Id extends string = string> = {
 	id: Id;

@@ -171,11 +171,43 @@ describe('svelteConfig.edit routing', () => {
 				alias: js.object.create({ lib: js.common.createLiteral('./src/lib') })
 			});
 		});
+		if (!result) throw new Error('Edit failed or not required');
 		// `extensions` is svelte-level (root), `alias` is kit-level (under kit)
 		expect(result).toMatch(/extensions:/);
 		expect(result).toMatch(/kit:[\s\S]*alias:/);
 		// alias must NOT be a root-level sibling of kit
 		expect(result.indexOf('alias:')).toBeGreaterThan(result.indexOf('kit:'));
+	});
+
+	test('nests onwarn under vitePlugin (vite location)', () => {
+		const result = applyEdit(VITE_CONFIG, 'vite', ({ override }) => {
+			override({ onwarn: { type: 'Identifier', name: 'onwarn' } });
+		});
+		if (!result) throw new Error('Edit failed or not required');
+		expect(result).toMatch(/vitePlugin:\s*\{[\s\S]*onwarn/);
+	});
+
+	test('merges onwarn into an existing vitePlugin object (vite location)', () => {
+		const result = applyEdit(VITE_CONFIG, 'vite', ({ override, js }) => {
+			override({
+				vitePlugin: js.object.create({ inspector: js.object.create({}) }),
+				onwarn: { type: 'Identifier', name: 'onwarn' }
+			});
+		});
+		if (!result) throw new Error('Edit failed or not required');
+		// a single vitePlugin holding both, not two separate ones
+		expect(result.match(/vitePlugin:/g)?.length).toBe(1);
+		expect(result).toContain('inspector');
+		expect(result).toContain('onwarn');
+	});
+
+	test('keeps onwarn at the config root (svelte.config location)', () => {
+		const result = applyEdit(SVELTE_CONFIG, 'svelte', ({ override }) => {
+			override({ onwarn: { type: 'Identifier', name: 'onwarn' } });
+		});
+		if (!result) throw new Error('Edit failed or not required');
+		expect(result).toContain('onwarn');
+		expect(result).not.toContain('vitePlugin');
 	});
 
 	test('edits an aliased sveltekit() in an arrow defineConfig', () => {
@@ -190,6 +222,7 @@ describe('svelteConfig.edit routing', () => {
 
 	test('edits the sveltekit() in the exported plugins, not a stray call', () => {
 		const result = applyEdit(VITE_CONFIG_TWO_CALLS, 'vite', addAlias);
+		if (!result) throw new Error('Edit failed or not required');
 		// the alias must land in the exported config, after `const unused`, not in the dead const
 		expect(result.indexOf('alias:')).toBeGreaterThan(result.indexOf('export default'));
 		// the unused const stays a bare sveltekit()
