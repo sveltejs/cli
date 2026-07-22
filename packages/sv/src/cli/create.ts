@@ -177,6 +177,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		);
 	}
 
+	if (options.template === 'addon' && options.types === 'typescript') {
+		p.log.warn(
+			`The addon template does not support TypeScript. The ${color.command('--types')} flag will be ignored.`
+		);
+	}
+
 	const promptGroupResult = await p.group(
 		{
 			directory: () => {
@@ -231,8 +237,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				});
 			},
 			language: (o) => {
-				if (options.types) return Promise.resolve(options.types);
 				if (o.results.template === 'addon') return Promise.resolve<LanguageType>('none');
+				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
 					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
