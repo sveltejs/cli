@@ -34,6 +34,7 @@ export default defineAddon({
 
 		if (isKit) {
 			sv.file(`${demo.listingPath}/+page.svelte`, demo.transform);
+			sv.file(`${directory.kitRoutes}/Header.svelte`, demo.transformHeader);
 
 			sv.file(
 				`${testDir}/+page.svelte`,

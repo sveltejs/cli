@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import { color, parse, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
 // This is in common because the eslint addon installs this version,
@@ -173,7 +173,12 @@ type CreateDemoPage = (
 	name: string,
 	language: 'ts' | 'js',
 	kitRoutes: string
-) => { transform: TransformFn; listingPath: string; addonPath: string };
+) => {
+	transform: TransformFn;
+	transformHeader: TransformFn;
+	listingPath: string;
+	addonPath: string;
+};
 export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => ({
 	listingPath: `${kitRoutes}/addon`,
 	addonPath: `${kitRoutes}/addon/${name}`,
@@ -200,6 +205,47 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => ({
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 		svelte.addFragment(ast, `<a href={resolve('/addon/${name}')}>${name}</a>`, { mode: 'prepend' });
+	}),
+	transformHeader: transforms.svelteScript({ language }, ({ ast, js }) => {
+		const header = ast.fragment.nodes.find(
+			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'header'
+		);
+		if (!header) return false;
+
+		const nav = header.fragment.nodes.find(
+			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'nav'
+		);
+		if (!nav) return false;
+
+		const ul = nav.fragment.nodes.find(
+			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'ul'
+		);
+		if (!ul) return false;
+
+		for (const node of ul.fragment.nodes) {
+			if (node.type === 'RegularElement') {
+				const hrefAttribute = node.attributes.find(
+					(x) => x.type === 'Attribute' && x.name === 'href'
+				) as SvelteAst.Attribute;
+				if (!hrefAttribute || !hrefAttribute.value) continue;
+
+				if (!Array.isArray(hrefAttribute.value)) continue;
+
+				const hasDemo = hrefAttribute.value.some(
+					(x) => x.type === 'Text' && x.data.includes(`/addon/${name}`)
+				);
+				if (hasDemo) {
+					return false;
+				}
+			}
+		}
+
+		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
+
+		const { ast: liAst } = parse.svelte(
+			`<li aria-current={page.url.pathname.startsWith('/addon/${name}') ? 'page' : undefined}><a href={resolve('/addon/${name}')}>${name}</a></li>`
+		);
+		ul.fragment.nodes.push(...liAst.fragment.nodes);
 	})
 });
 
