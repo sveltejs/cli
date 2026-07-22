@@ -31,6 +31,15 @@ const { test, testCases } = setupTest(
 				}
 			},
 			{
+				type: 'other',
+				options: {
+					'ai-tools': {
+						ide: ['other'],
+						mcpSetup: 'remote'
+					}
+				}
+			},
+			{
 				type: 'plugin',
 				options: {
 					'ai-tools': {
@@ -71,6 +80,14 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		const fullPath = path.resolve(cwd, filePath);
 		return fs.readFileSync(fullPath, 'utf8');
 	};
+
+	if (testCase.kind.type === 'other') {
+		// only AGENTS.md is written, everything else is handled via the docs link
+		expect(fs.existsSync(path.resolve(cwd, 'AGENTS.md'))).toBe(true);
+		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude'))).toBe(false);
+		return;
+	}
 
 	if (testCase.kind.type === 'plugin') {
 		// Claude Code: the plugin is enabled via a committed `.claude/settings.json`

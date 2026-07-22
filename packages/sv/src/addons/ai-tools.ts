@@ -99,14 +99,18 @@ const CLIENTS: Record<string, Client> = {
 			serversKey: 'servers'
 		}
 	},
+	// no known config location: only writes AGENTS.md, next steps link to the docs
 	other: {
-		label: 'Other'
+		label: 'Other',
+		agentPath: 'AGENTS.md'
 	}
 };
 
 const hasPlugin = (client?: Client) =>
 	Boolean(client && (client.pluginSettings || client.pluginOnly));
 const isFileOnly = (client?: Client) => Boolean(client && client.agentPath && !hasPlugin(client));
+const acceptsTools = (client?: Client) =>
+	isFileOnly(client) && Boolean(client?.skillsPath || client?.agentsPath || client?.configPath);
 
 // Static for curated labels; derive from getSharedFiles() (include 'skills'/'agents') to go dynamic.
 const TOOLS: Record<string, { label: string; kind: 'mcp' | 'skill' | 'agent'; hint?: string }> = {
@@ -141,7 +145,7 @@ const options = defineAddonOptions()
 		options: Object.entries(TOOLS).map(([value, t]) => ({ value, label: t.label, hint: t.hint })),
 		required: false,
 		condition: ({ ide, delivery }) =>
-			delivery !== 'plugin' || ide.some((i) => isFileOnly(CLIENTS[i]))
+			delivery !== 'plugin' || ide.some((i) => acceptsTools(CLIENTS[i]))
 	})
 	.add('mcpSetup', {
 		question: 'Which MCP setup would you like to use?',
