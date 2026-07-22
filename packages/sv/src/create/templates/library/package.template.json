@@ -8,8 +8,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"prepack": "svelte-kit sync && svelte-package && publint"
 	},
-	"files": [ "dist", "!dist/**/*.test.*", "!dist/**/*.spec.*" ],
-	"sideEffects": [ "**/*.css" ],
+	"files": ["dist", "!dist/**/*.test.*", "!dist/**/*.spec.*"],
+	"sideEffects": ["**/*.css"],
 	"svelte": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"type": "module",
@@ -32,7 +32,7 @@
 		"typescript": "^6.0.3",
 		"vite": "^8.1.5"
 	},
-	"keywords": [ "svelte" ],
+	"keywords": ["svelte"],
 	"imports": {
 		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*"

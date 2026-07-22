@@ -168,7 +168,7 @@ describe('svelteConfig.edit routing', () => {
 		const result = applyEdit(SVELTE_CONFIG, 'svelte', ({ override, js }) => {
 			override({
 				extensions: js.array.create(),
-				alias: js.object.create({ #lib: js.common.createLiteral('./src/lib') })
+				alias: js.object.create({ lib: js.common.createLiteral('./src/lib') })
 			});
 		});
 		// `extensions` is svelte-level (root), `alias` is kit-level (under kit)

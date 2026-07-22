@@ -31,5 +31,6 @@ export function addFixture(cwd: string, variant: string) {
 		: path.resolve(cwd, 'src', 'App.svelte');
 
 	const content = fs.readFileSync(page, 'utf8');
-	fs.writeFileSync(page, addMarkup(content), 'utf8');
+	const newContent = addMarkup(content);
+	if (newContent) fs.writeFileSync(page, newContent, 'utf8');
 }
