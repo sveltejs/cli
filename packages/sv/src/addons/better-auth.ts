@@ -26,7 +26,8 @@ const options = defineAddonOptions()
 			{ value: 'password', label: 'Email & Password' },
 			{ value: 'github', label: 'GitHub OAuth' }
 		],
-		required: false
+		required: false,
+		condition: (_options, _cwd, template) => template !== 'demo'
 	})
 	.build();
 
@@ -48,8 +49,8 @@ export default defineAddon({
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
-		const demoPassword = options.demo.includes('password');
-		const demoGithub = options.demo.includes('github');
+		const demoPassword = options.demo?.includes('password') ?? true;
+		const demoGithub = options.demo?.includes('github') ?? false;
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
@@ -322,13 +323,13 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
+			sv.file(`${directory.kitRoutes}/addon/+page.svelte`, addToDemoPage('better-auth', language));
 
 			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
+				`${directory.kitRoutes}/addon/better-auth/login/+page.server.${language}`,
 				(content) => {
 					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
+						const filePath = `${directory.kitRoutes}/addon/better-auth/login/+page.server.${language}`;
 						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 						return false;
 					}
@@ -357,7 +358,7 @@ export default defineAddon({
 								return fail(500, { message: 'Unexpected error' });
 							}
 
-							return redirect(302, '/demo/better-auth');
+							return redirect(302, '/addon/better-auth');
 						},
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
@@ -381,7 +382,7 @@ export default defineAddon({
 								return fail(500, { message: 'Unexpected error' });
 							}
 
-							return redirect(302, '/demo/better-auth');
+							return redirect(302, '/addon/better-auth');
 						},`
 						: '';
 
@@ -390,7 +391,7 @@ export default defineAddon({
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+							const callbackURL = formData.get('callbackURL')?.toString() ?? '/addon/better-auth';
 
 							const result = await auth.api.signInSocial({
 								body: {
@@ -417,7 +418,7 @@ export default defineAddon({
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
-							return redirect(302, '/demo/better-auth');
+							return redirect(302, '/addon/better-auth');
 						}
 						return {};
 					};
@@ -428,9 +429,9 @@ export default defineAddon({
 				}
 			);
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/addon/better-auth/login/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
+					const filePath = `${directory.kitRoutes}/addon/better-auth/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -473,7 +474,7 @@ export default defineAddon({
 					? `
 					<form method="post" action="?/signInSocial" use:enhance>
 						<input type="hidden" name="provider" value="github" />
-						<input type="hidden" name="callbackURL" value="/demo/better-auth" />
+						<input type="hidden" name="callbackURL" value="/addon/better-auth" />
 						<button${btn}>Sign in with GitHub</button>
 					</form>`
 					: '';
@@ -489,9 +490,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`, (content) => {
+			sv.file(`${directory.kitRoutes}/addon/better-auth/+page.server.${language}`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
+					const filePath = `${directory.kitRoutes}/addon/better-auth/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -505,7 +506,7 @@ export default defineAddon({
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
-							return redirect(302, '/demo/better-auth/login');
+							return redirect(302, '/addon/better-auth/login');
 						}
 						return { user: event.locals.user };
 					};
@@ -515,15 +516,15 @@ export default defineAddon({
 							await auth.api.signOut({
 								headers: event.request.headers
 							});
-							return redirect(302, '/demo/better-auth/login');
+							return redirect(302, '/addon/better-auth/login');
 						}
 					};
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.svelte`, (content) => {
+			sv.file(`${directory.kitRoutes}/addon/better-auth/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
+					const filePath = `${directory.kitRoutes}/addon/better-auth/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -555,13 +556,13 @@ export default defineAddon({
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
-		if (options.demo.includes('github')) {
+		if (options.demo?.includes('github')) {
 			steps.push(
 				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
 			);
 		}
-		if (options.demo.length > 0) {
-			steps.push(`Visit ${color.route('/demo/better-auth')} route to view the demo`);
+		if (options.demo && options.demo.length > 0) {
+			steps.push(`Visit ${color.route('/addon/better-auth')} route to view the demo`);
 		}
 
 		return steps;

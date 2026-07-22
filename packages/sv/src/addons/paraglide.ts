@@ -41,7 +41,8 @@ const options = defineAddonOptions()
 	.add('demo', {
 		type: 'boolean',
 		default: true,
-		question: 'Do you want to include a demo?'
+		question: 'Do you want to include a demo?',
+		condition: (_options, _cwd, template) => template !== 'demo'
 	})
 	.build();
 
@@ -221,11 +222,11 @@ export default defineAddon({
 		);
 
 		if (options.demo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('paraglide', language));
+			sv.file(`${directory.kitRoutes}/addon/+page.svelte`, addToDemoPage('paraglide', language));
 
 			// add usage example
 			sv.file(
-				`${directory.kitRoutes}/demo/paraglide/+page.svelte`,
+				`${directory.kitRoutes}/addon/paraglide/+page.svelte`,
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
@@ -272,7 +273,7 @@ export default defineAddon({
 	nextSteps: () => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (options.demo) {
-			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
+			steps.push(`Visit ${color.route('/addon/paraglide')} route to view the demo`);
 		}
 
 		return steps;

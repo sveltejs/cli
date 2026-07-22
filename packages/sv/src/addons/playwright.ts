@@ -28,11 +28,11 @@ export default defineAddon({
 			})
 		);
 
-		const testDir = isKit ? `${directory.kitRoutes}/demo/playwright` : directory.src;
-		const testRoute = isKit ? '/demo/playwright' : '/';
+		const testDir = isKit ? `${directory.kitRoutes}/addon/playwright` : directory.src;
+		const testRoute = isKit ? '/addon/playwright' : '/';
 
 		if (isKit) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('playwright', language));
+			sv.file(`${directory.kitRoutes}/addon/+page.svelte`, addToDemoPage('playwright', language));
 
 			sv.file(
 				`${testDir}/+page.svelte`,
@@ -99,7 +99,7 @@ export default defineAddon({
 		);
 
 		if (isKit) {
-			steps.push(`Visit ${color.route('/demo/playwright')} to see the demo page`);
+			steps.push(`Visit ${color.route('/addon/playwright')} to see the demo page`);
 		}
 
 		steps.push(

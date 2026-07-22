@@ -182,8 +182,8 @@ export const addToDemoPage: AddToDemoPage = (path, language) =>
 				if (!Array.isArray(hrefAttribute.value)) continue;
 
 				const hasDemo = hrefAttribute.value.some(
-					// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
-					(x) => x.type === 'Text' && x.data.includes(`/demo/${path}`)
+					// we use includes as it could be "/addon/${path}" or "resolve("addon/${path}")" or "resolve('addon/${path}')"
+					(x) => x.type === 'Text' && x.data.includes(`/addon/${path}`)
 				);
 				if (hasDemo) {
 					return false;
@@ -193,7 +193,7 @@ export const addToDemoPage: AddToDemoPage = (path, language) =>
 
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
-		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
+		svelte.addFragment(ast, `<a href={resolve('/addon/${path}')}>${path}</a>`, { mode: 'prepend' });
 	});
 
 /**

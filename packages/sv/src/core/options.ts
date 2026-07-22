@@ -37,7 +37,7 @@ export type BaseQuestion<Args extends OptionDefinition> = {
 	 * When this condition explicitly returns `false`, the question's value will
 	 * always be `undefined` and will not fallback to the specified `default` value.
 	 */
-	condition?: (options: OptionValues<Args>) => boolean;
+	condition?: (options: OptionValues<Args>, cwd?: string, template?: string) => boolean;
 };
 
 export type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &

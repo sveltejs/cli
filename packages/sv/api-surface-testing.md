@@ -58,7 +58,7 @@ type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
 
-	condition?: (options: OptionValues<Args>) => boolean;
+	condition?: (options: OptionValues<Args>, cwd?: string, template?: string) => boolean;
 };
 type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
 	(
@@ -118,6 +118,7 @@ type Workspace = {
 		kitRoutes: string;
 	};
 	packageManager: AgentName;
+	template?: string;
 };
 type SvApi = {
 	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */ pnpmBuildDependency: (

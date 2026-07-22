@@ -138,6 +138,7 @@ export async function applyAddons({
 			cwd: workspace.cwd,
 			packageManager: workspace.packageManager
 		});
+		addonWorkspace.template = workspace.template;
 		// If we don't have a formatter yet, check if the addon adds one
 		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
@@ -226,7 +227,7 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 	const options: OptionValues<any> = { ...workspaceOptions };
 	for (const [id, question] of Object.entries(addon.options)) {
 		// we'll only apply defaults to options that don't explicitly fail their conditions
-		if (question.condition?.(options) !== false) {
+		if (question.condition?.(options, workspace.cwd, workspace.template) !== false) {
 			options[id] ??= question.default;
 		}
 	}
