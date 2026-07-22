@@ -1,5 +1,5 @@
 ---
-'sv': minor
+'sv': major
 ---
 
-feat(migrate): initial `sveltekit-3` migration
+feat(migrate): `sveltekit-3` migration
