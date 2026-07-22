@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
 	test: {
 		projects: [
-			'packages/migrate',
+			'packages/sv/src/migrate/vitest.config.ts',
 			'packages/sv/src/cli/vitest.config.ts',
 			'packages/sv/src/core/vitest.config.ts',
 			'packages/sv/src/addons/vitest.config.ts',

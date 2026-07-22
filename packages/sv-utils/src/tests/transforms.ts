@@ -8,12 +8,14 @@ describe('transforms', () => {
 			const result = transforms.json(({ data }) => {
 				data.name = 'new';
 			})(input);
+			expect(result).not.toBe(false);
+			if (result === false) return;
 			expect(JSON.parse(result)).toEqual({ name: 'new' });
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns false if transform is cacelled', () => {
 			const input = '{"name":"old"}';
-			expect(transforms.json(() => false)(input)).toBe(input);
+			expect(transforms.json(() => false)(input)).toBe(false);
 		});
 
 		it('onError: calls handler and returns original content', () => {
@@ -40,9 +42,9 @@ describe('transforms', () => {
 			);
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns fals if transform is cacelled', () => {
 			const input = 'original';
-			expect(transforms.text(() => false)(input)).toBe(input);
+			expect(transforms.text(() => false)(input)).toBe(false);
 		});
 	});
 
@@ -61,9 +63,9 @@ describe('transforms', () => {
 			expect(result).toContain('const y = 1');
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns fals if transform is cacelled', () => {
 			const input = 'const x = 1;';
-			expect(transforms.script(() => false)(input)).toBe(input);
+			expect(transforms.script(() => false)(input)).toBe(false);
 		});
 
 		it('onError: calls handler and returns original content', () => {
@@ -93,9 +95,9 @@ describe('transforms', () => {
 			expect(result).toContain('world');
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns fals if transform is cacelled', () => {
 			const input = '<p>hello</p>';
-			expect(transforms.svelte(() => false)(input)).toBe(input);
+			expect(transforms.svelte(() => false)(input)).toBe(false);
 		});
 	});
 
@@ -109,9 +111,9 @@ describe('transforms', () => {
 			expect(result).toContain('body');
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns fals if transform is cacelled', () => {
 			const input = 'body { color: red; }';
-			expect(transforms.css(() => false)(input)).toBe(input);
+			expect(transforms.css(() => false)(input)).toBe(false);
 		});
 	});
 
@@ -130,9 +132,9 @@ describe('transforms', () => {
 			expect(result).toContain('world');
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns fals if transform is cacelled', () => {
 			const input = '<div>hello</div>';
-			expect(transforms.html(() => false)(input)).toBe(input);
+			expect(transforms.html(() => false)(input)).toBe(false);
 		});
 	});
 
@@ -145,9 +147,9 @@ describe('transforms', () => {
 			expect(result).toContain('name: new');
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns fals if transform is cacelled', () => {
 			const input = 'name: old\n';
-			expect(transforms.yaml(() => false)(input)).toBe(input);
+			expect(transforms.yaml(() => false)(input)).toBe(false);
 		});
 	});
 
@@ -160,9 +162,9 @@ describe('transforms', () => {
 			expect(result).toContain('name = "new"');
 		});
 
-		it('abort: returns original content on false', () => {
+		it('abort: returns fals if transform is cacelled', () => {
 			const input = 'name = "old"\n';
-			expect(transforms.toml(() => false)(input)).toBe(input);
+			expect(transforms.toml(() => false)(input)).toBe(false);
 		});
 	});
 });
