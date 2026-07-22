@@ -171,11 +171,12 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 
 type CreateDemoPage = (
 	name: string,
-	language: 'ts' | 'js'
+	language: 'ts' | 'js',
+	kitRoutes: string
 ) => { transform: TransformFn; listingPath: string; addonPath: string };
-export const createDemoPage: CreateDemoPage = (name, language) => ({
-	listingPath: '/addon',
-	addonPath: `/addon/${name}`,
+export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => ({
+	listingPath: `${kitRoutes}/addon`,
+	addonPath: `${kitRoutes}/addon/${name}`,
 	transform: transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
 		for (const node of ast.fragment.nodes) {
 			if (node.type === 'RegularElement') {

@@ -224,12 +224,12 @@ export default defineAddon<{ demo: boolean }>()({
 		);
 
 		if (options.demo) {
-			const demo = createDemoPage('paraglide', language);
-			sv.file(`${directory.kitRoutes}${demo.listingPath}/+page.svelte`, demo.transform);
+			const demo = createDemoPage('paraglide', language, directory.kitRoutes);
+			sv.file(`${demo.listingPath}/+page.svelte`, demo.transform);
 
 			// add usage example
 			sv.file(
-				`${directory.kitRoutes}${demo.addonPath}/+page.svelte`,
+				`${demo.addonPath}/+page.svelte`,
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
@@ -273,12 +273,10 @@ export default defineAddon<{ demo: boolean }>()({
 		}
 	},
 
-	nextSteps: ({ options, language }) => {
+	nextSteps: ({ options }) => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (options.demo) {
-			steps.push(
-				`Visit ${color.route(createDemoPage('paraglide', language).addonPath)} route to view the demo`
-			);
+			steps.push(`Visit ${color.route('src/routes/addon/paraglide')} route to view the demo`);
 		}
 
 		return steps;

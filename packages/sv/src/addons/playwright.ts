@@ -28,12 +28,12 @@ export default defineAddon({
 			})
 		);
 
-		const demo = createDemoPage('playwright', language);
-		const testDir = isKit ? `${directory.kitRoutes}${demo.addonPath}` : directory.src;
+		const demo = createDemoPage('playwright', language, directory.kitRoutes);
+		const testDir = isKit ? demo.addonPath : directory.src;
 		const testRoute = isKit ? demo.addonPath : '/';
 
 		if (isKit) {
-			sv.file(`${directory.kitRoutes}${demo.listingPath}/+page.svelte`, demo.transform);
+			sv.file(`${demo.listingPath}/+page.svelte`, demo.transform);
 
 			sv.file(
 				`${testDir}/+page.svelte`,
