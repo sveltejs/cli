@@ -10,7 +10,7 @@ import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmOnlyBuiltDependencies,
+	addPnpmAllowBuilds,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -71,7 +71,7 @@ const OptionsSchema = v.strictObject({
 	),
 	addOns: v.boolean(),
 	add: v.array(v.string()),
-	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
+	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
 	dirCheck: v.boolean(),
@@ -173,7 +173,7 @@ export const create = new Command('create')
 async function createProject(cwd: ProjectPath, options: Options) {
 	if (options.fromPlayground) {
 		p.log.warn(
-			'Svelte maintainers have not reviewed playgrounds for malicious code. Use at your discretion.'
+			'Svelte maintainers have not reviewed playgrounds for malicious code! Use at your discretion.'
 		);
 	}
 
@@ -337,6 +337,18 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	p.log.success('Project created');
 
+	// Resolve the package manager early in case it's used in an add-on.
+	const packageManager =
+		options.install === false
+			? null
+			: options.install === true
+				? await packageManagerPrompt(projectPath)
+				: options.install;
+
+	if (packageManager) {
+		workspace.packageManager = packageManager;
+	}
+
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
@@ -368,13 +380,6 @@ async function createProject(cwd: ProjectPath, options: Options) {
 		addonSetupResults = setupResults;
 	}
 
-	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(projectPath)
-				: options.install;
-
 	// Build args for next time based on non-default options
 	const argsFormatted: string[] = [];
 
@@ -391,12 +396,9 @@ async function createProject(cwd: ProjectPath, options: Options) {
 
 	common.updateAgent(directory, language, packageManager ?? 'npm', loadedAddons);
 
-	if (packageManager) {
-		workspace.packageManager = packageManager;
-	}
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
-	addPnpmOnlyBuiltDependencies(projectPath, packageManager, 'esbuild');
+	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
 	if (packageManager) {
 		await installDependencies(packageManager, projectPath);
 		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });

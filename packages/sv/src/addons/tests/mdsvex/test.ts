@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { js, svelte, parse } from '@sveltejs/sv-utils';
+import { transforms } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
 import mdsvex from '../../mdsvex.ts';
@@ -26,6 +26,24 @@ test.concurrent.for(testCases)('mdsvex $variant', async (testCase, { page, ...ct
 	expect(page.locator('.mdsvex p')).toBeTruthy();
 });
 
+const addMarkup = transforms.svelteScript({ language: 'js' }, ({ ast, svelte, js }) => {
+	const alreadyAdded = ast.fragment.nodes.some(
+		(node) =>
+			node.type === 'RegularElement' &&
+			node.attributes.some(
+				(attr) =>
+					attr.type === 'Attribute' &&
+					attr.name === 'class' &&
+					Array.isArray(attr.value) &&
+					attr.value.some((v) => v.type === 'Text' && v.data === 'mdsvex')
+			)
+	);
+	if (alreadyAdded) return false;
+
+	js.imports.addDefault(ast.instance.content, { from: './Demo.svx', as: 'Demo' });
+	svelte.addFragment(ast, '<div class="mdsvex"><Demo /></div>');
+});
+
 function addFixture(cwd: string, variant: string) {
 	let page;
 	let svx;
@@ -38,14 +56,6 @@ function addFixture(cwd: string, variant: string) {
 	}
 
 	const src = fs.readFileSync(page, 'utf8');
-	const { ast, generateCode } = parse.svelte(src);
-	svelte.ensureScript(ast);
-	js.imports.addDefault(ast.instance.content, { from: './Demo.svx', as: 'Demo' });
-
-	svelte.addFragment(ast, '<div class="mdsvex"><Demo /></div>');
-
-	const content = generateCode();
-
-	fs.writeFileSync(page, content, 'utf8');
+	fs.writeFileSync(page, addMarkup(src), 'utf8');
 	fs.writeFileSync(svx, svxFile, 'utf8');
 }

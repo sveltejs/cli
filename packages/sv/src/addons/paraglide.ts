@@ -57,7 +57,7 @@ export default defineAddon({
 		const [ts] = createPrinter(language === 'ts');
 		const paraglideOutDir = `${directory.lib}/paraglide`;
 
-		sv.devDependency('@inlang/paraglide-js', '^2.15.2');
+		sv.devDependency('@inlang/paraglide-js', '^2.18.2');
 
 		// add the vite plugin
 		sv.file(
@@ -68,7 +68,8 @@ export default defineAddon({
 				js.vite.addPlugin(ast, {
 					code: `${vitePluginName}({
 					project: './project.inlang',
-					outdir: './${paraglideOutDir}'
+					outdir: './${paraglideOutDir}',
+					emitTsDeclarations: true
 				})`
 				});
 			})
@@ -161,6 +162,7 @@ export default defineAddon({
 			})
 		);
 
+		// reused by prettier and eslint
 		sv.file(
 			file.gitignore,
 			transforms.text(({ content, text }) => {

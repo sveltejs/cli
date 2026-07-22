@@ -21,13 +21,16 @@ const PRETTIER_CONFIG = path.join(ROOT, 'prettier.config.js');
 
 const packages = [
 	{
+		// Self-contained DTS from the single-entry api-surface build (see tsdown.config.ts).
+		// The published `dist/src/index.d.mts` only re-exports names from a shared chunk,
+		// so it would not capture signatures for `defineAddon`, `officialAddons`, etc.
 		name: 'sv',
-		dts: 'packages/sv/dist/src/index.d.mts',
+		dts: 'packages/sv/dts-api-surface/index/index.d.mts',
 		out: 'packages/sv/api-surface.md'
 	},
 	{
 		name: 'sv (testing)',
-		dts: 'packages/sv/dist/src/testing.d.mts',
+		dts: 'packages/sv/dts-api-surface/testing/testing.d.mts',
 		out: 'packages/sv/api-surface-testing.md'
 	},
 	{

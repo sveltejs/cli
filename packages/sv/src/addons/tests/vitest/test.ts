@@ -25,8 +25,9 @@ test.concurrent.for(testCases)('vitest $variant', (testCase, { expect, ...ctx })
 		spawnSync('pnpm test', { cwd, stdio: 'pipe', shell: true, timeout: 2 * 60_000 }).status
 	).toBe(0);
 
-	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
-	const viteFile = path.resolve(cwd, `vite.config.${language}`);
+	const viteFile = ['vite.config.ts', 'vite.config.js']
+		.map((name) => path.resolve(cwd, name))
+		.find((file) => fs.existsSync(file))!;
 	const viteContent = fs.readFileSync(viteFile, 'utf8');
 
 	expect(viteContent).toContain(`vitest/config`);

@@ -48,8 +48,6 @@ export function serializeScript(
 
 	const internal = transformToInternal(comments);
 	const { code } = esrapPrint(
-		// @ts-expect-error we are still using `estree` while `esrap` is using `@typescript-eslint/types`
-		// which is causing these errors. But they are similar enough to work together.
 		ast,
 		ts({
 			// @ts-expect-error see above
@@ -248,13 +246,13 @@ export class Comments {
 	}
 }
 
-interface CommentsInternal {
+export interface CommentsInternal {
 	original: TsEstree.Comment[];
 	leading: WeakMap<BaseNode, CommentType[]>;
 	trailing: WeakMap<BaseNode, CommentType[]>;
 }
 
-function transformToInternal(comments: Comments | undefined): CommentsInternal {
+export function transformToInternal(comments: Comments | undefined): CommentsInternal {
 	return (comments ?? new Comments()) as unknown as CommentsInternal;
 }
 

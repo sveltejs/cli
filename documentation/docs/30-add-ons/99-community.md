@@ -5,7 +5,7 @@ title: [create your own]
 > [!NOTE]
 > Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
 
-This guide covers how to create, test, and publish community add-ons for `sv`.
+This guide covers how to create, test, and publish community add-ons for the Svelte CLI.
 
 ## Quick start
 
@@ -59,7 +59,7 @@ export default defineAddon({
 });
 ```
 
-The Svelte CLI is split into two packages with a clear boundary:
+The CLI is split into two packages with a clear boundary:
 
 - [**`sv`**](sv) = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
 - [**`@sveltejs/sv-utils`**](sv-utils) = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
@@ -157,7 +157,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 	"name": "@my-org/sv",
 	"version": "1.0.0",
 	"type": "module",
-	// bundled entrypoint (tsdown outputs .mjs for ESM)
+	// bundled entry point (tsdown outputs .mjs for ESM)
 	"exports": {
 		".": { "default": "./dist/index.mjs" }
 	},
@@ -170,61 +170,64 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 		// minimum version required to run by this add-on
 		"sv": "^0.13.0"
 	},
-	// Add the "sv-add" keyword so users can discover your add-on
+	// Add the "sv-add" keyword so users can discover your add-on with https://www.npmx.dev/search?q=keyword:sv-add
 	"keywords": ["sv-add", "svelte", "sveltekit"]
 }
 ```
 
-### Naming convention
+### Package names
 
-#### packages names
+Packages must be published under an npm org:
 
-If you name your package `@my-org/sv`, users can install it by typing just the org handle:
+```sh
+# ✓ GOOD
+npx sv add @my-org/sv
+npx sv add @my-org/core
+
+# ✗ BAD
+npx sv add my-lib
+```
+
+If your package is published with the `sv` scope, it can be omitted. The following all resolves to the same package:
 
 ```sh
 npx sv add @my-org
+npx sv add @my-org/sv
+npx sv add @my-org/sv@latest
 ```
 
-It's also possible to publish like `@my-org/core`, just users will need to type the full package name.
-
-```sh
-npx sv add @my-org/core
-```
-
-Users can also ask for a specific version:
+For a specific version, append `@<version>`:
 
 ```sh
 npx sv add @my-org/sv@1.2.3
 ```
 
-When no version is specified, `latest` is used.
+### Entry points
 
-> [!NOTE]
-> Unscoped packages are not supported yet
+The CLI looks for `./sv` first. If that is not found, it defaults to the `.` entry point. This means you have two options:
 
-#### export options
+1. **Default export** (for a dedicated add-on package):
 
-`sv` first tries to import `your-package/sv`, then falls back to the default export. This means you have two options:
-
-1. **Default export** (for dedicated add-on packages):
-
-   ```json
-   {
-   	"exports": {
-   		".": "./src/index.js"
-   	}
-   }
-   ```
+```json
+{
+	"name": "@my-org/sveltekit-addon",
+	"exports": {
+		".": "./dist/addon.mjs"
+	}
+}
+```
 
 2. **`./sv` export** (for packages that also export other functionality):
-   ```json
-   {
-   	"exports": {
-   		".": "./src/main.js",
-   		"./sv": "./src/addon.js"
-   	}
-   }
-   ```
+
+```json
+{
+	"name": "@my-org/sveltekit-addon",
+	"exports": {
+		".": "./dist/main.mjs",
+		"./sv": "./dist/addon.mjs"
+	}
+}
+```
 
 ### Publish to npm
 

@@ -1,5 +1,11 @@
-import { type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import { log } from '@clack/prompts';
+import { color, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
+
+// This is in common because the eslint addon installs this version,
+// and the prettier addon uses this to check if the installed major version of
+// eslint is supported by `addEslintConfigPrettier(...)`.
+export const ESLINT_VERSION = /* update-deps: eslint */ '^10.4.1';
 
 export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
@@ -85,6 +91,83 @@ export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 		elements.push(...nodesToInsert);
 	}
 });
+
+/**
+ * Path of the prettier config file we generate. We always emit a `.js` file (with a JSDoc `@type`)
+ * rather than `.ts`, since the VSCode prettier extension can't load a `.ts` config without a recent
+ * enough Node in its extension host (see prettier/prettier-vscode#3989).
+ */
+export function prettierConfigPath(): string {
+	return 'prettier.config.js';
+}
+
+/**
+ * Creates a `prettier.config.js` file with our defaults. Bails (leaving the file untouched)
+ * if a config is already defined.
+ */
+export const createPrettierConfig = (opts: {
+	tailwind: boolean;
+	stylesheet?: string;
+}): TransformFn =>
+	transforms.script(({ ast, comments, js }) => {
+		if (ast.body.some((node) => node.type === 'ExportDefaultDeclaration')) {
+			log.warn(`A ${color.warning('prettier')} config already exists. Skipping initialization.`);
+			return false;
+		}
+
+		const plugins = ['prettier-plugin-svelte'];
+		if (opts.tailwind) plugins.push('prettier-plugin-tailwindcss');
+
+		const properties = [
+			'useTabs: true',
+			'singleQuote: true',
+			`trailingComma: 'none'`,
+			'printWidth: 100',
+			`plugins: [${plugins.map((p) => `'${p}'`).join(', ')}]`,
+			`overrides: [{ files: '*.svelte', options: { parser: 'svelte' } }]`
+		];
+		if (opts.tailwind && opts.stylesheet) {
+			properties.push(`tailwindStylesheet: '${opts.stylesheet}'`);
+		}
+
+		// parsed from source (rather than built node-by-node) so the JSDoc `@type` keeps its own line
+		// above `const config`; esrap inlines programmatically-added comments but honors parsed ones.
+		// indentation here is irrelevant - esrap reprints the parsed AST from scratch.
+		js.common.appendFromString(ast, {
+			comments,
+			code: `
+				/** @type {import("prettier").Config} */
+				const config = { ${properties.join(', ')} };
+				export default config;
+			`
+		});
+	});
+
+/**
+ * Augments an existing `prettier.config.js` config object with the tailwindcss plugin and
+ * stylesheet. Used when prettier was added before tailwindcss.
+ */
+export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =>
+	transforms.script(({ ast, js }) => {
+		if (!ast.body.some((node) => node.type === 'ExportDefaultDeclaration')) return false;
+
+		const { value } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
+		if (value.type !== 'ObjectExpression') return false;
+
+		const plugins = js.object.property(value, { name: 'plugins', fallback: js.array.create() });
+		if (plugins.type === 'ArrayExpression') js.array.append(plugins, 'prettier-plugin-tailwindcss');
+
+		const hasStylesheet = value.properties.some(
+			(p) =>
+				p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'tailwindStylesheet'
+		);
+		if (!hasStylesheet) {
+			js.object.property(value, {
+				name: 'tailwindStylesheet',
+				fallback: js.common.createLiteral(opts.stylesheet)
+			});
+		}
+	});
 
 type AddToDemoPage = (path: string, language: 'ts' | 'js') => TransformFn;
 export const addToDemoPage: AddToDemoPage = (path, language) =>

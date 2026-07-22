@@ -13,6 +13,268 @@ type Options = {
 	template: TemplateType;
 	types: LanguageType;
 };
+type OfficialAddons = {
+	prettier: Addon<any>;
+	eslint: Addon<any>;
+	vitest: Addon<any>;
+	playwright: Addon<any>;
+	tailwindcss: Addon<any>;
+	sveltekitAdapter: Addon<any>;
+	drizzle: Addon<any>;
+	betterAuth: Addon<any>;
+	mdsvex: Addon<any>;
+	paraglide: Addon<any>;
+	storybook: Addon<any>;
+	mcp: Addon<any>;
+	experimental: Addon<any>;
+};
+declare const officialAddons: OfficialAddons;
+type BooleanQuestion = {
+	type: 'boolean';
+	default: boolean;
+};
+type StringQuestion = {
+	type: 'string';
+	default: string;
+	validate?: (value: string | undefined) => string | Error | undefined;
+	placeholder?: string;
+};
+type NumberQuestion = {
+	type: 'number';
+	default: number;
+	validate?: (value: string | undefined) => string | Error | undefined;
+	placeholder?: string;
+};
+type SelectQuestion<Value> = {
+	type: 'select';
+	default: NoInfer<Value>;
+	options: Array<{
+		value: Value;
+		label?: string;
+		hint?: string;
+	}>;
+};
+type MultiSelectQuestion<Value> = {
+	type: 'multiselect';
+	default: NoInfer<Value[]>;
+	options: Array<{
+		value: Value;
+		label?: string;
+		hint?: string;
+	}>;
+	required: boolean;
+};
+type BaseQuestion<Args extends OptionDefinition> = {
+	question: string;
+	group?: string;
+
+	condition?: (options: OptionValues<Args>) => boolean;
+};
+type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
+	(
+		| BooleanQuestion
+		| StringQuestion
+		| NumberQuestion
+		| SelectQuestion<any>
+		| MultiSelectQuestion<any>
+	);
+type OptionDefinition = Record<string, Question<any>>;
+type OptionValues<Args extends OptionDefinition> = {
+	[K in keyof Args]: Args[K] extends StringQuestion
+		? string
+		: Args[K] extends BooleanQuestion
+			? boolean
+			: Args[K] extends NumberQuestion
+				? number
+				: Args[K] extends SelectQuestion<infer Value>
+					? Value
+					: Args[K] extends MultiSelectQuestion<infer Value>
+						? Value[]
+						: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
+};
+type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
+type Workspace = {
+	cwd: string;
+
+	dependencyVersion: (pkg: string) => string | undefined;
+	language: 'ts' | 'js';
+	file: {
+		viteConfig: 'vite.config.js' | 'vite.config.ts';
+		/**
+		 * @deprecated the config no longer necessarily lives in `svelte.config.{js,ts}` (it can be
+		 * passed to `sveltekit()` in `vite.config.{js,ts}`). Use `svelteConfig` from
+		 * `@sveltejs/sv-utils` to edit it wherever it lives.
+		 */
+		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
+		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
+		stylesheet: `${string}/layout.css` | 'src/app.css';
+		package: 'package.json';
+		gitignore: '.gitignore'; /** @deprecated use the string `.prettierignore` instead. */
+		prettierignore: '.prettierignore'; /** @deprecated use the string `.prettierrc` instead. */
+		prettierrc: '.prettierrc'; /** @deprecated use the string `eslint.config.js` instead. */
+		eslintConfig: 'eslint.config.js'; /** @deprecated use the string `.vscode/settings.json` instead. */
+		vscodeSettings: '.vscode/settings.json'; /** @deprecated use the string `.vscode/extensions.json` instead. */
+		vscodeExtensions: '.vscode/extensions.json';
+		getRelative: ({ from, to }: { from?: string; to: string }) => string;
+
+		findUp: (filename: string) => string;
+	};
+	isKit: boolean;
+	directory: {
+		src: string;
+		lib: string;
+		kitRoutes: string;
+	};
+	packageManager: AgentName;
+};
+type ConditionDefinition = (Workspace: Workspace) => boolean;
+type SvApi = {
+	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */ pnpmBuildDependency: (
+		pkg: string
+	) => void;
+	dependency: (pkg: string, version: string) => void;
+	devDependency: (pkg: string, version: string) => void;
+	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
+
+	file: (path: string, edit: (content: string) => string | false) => void;
+};
+type Addon<Args extends OptionDefinition, Id extends string = string> = {
+	id: Id;
+	alias?: string;
+	shortDescription?: string;
+	homepage?: string;
+	hidden?: boolean;
+	options: Args;
+	setup?: (
+		workspace: Workspace & {
+			dependsOn: (name: keyof typeof officialAddons) => void;
+
+			unsupported: (reason: string) => void;
+			runsAfter: (name: keyof typeof officialAddons) => void;
+		}
+	) => MaybePromise<void>;
+	run: (
+		workspace: Workspace & {
+			options: WorkspaceOptions<Args>;
+			sv: SvApi;
+
+			cancel: (reason: string) => void;
+		}
+	) => MaybePromise<void>;
+	nextSteps?: (
+		workspace: Workspace & {
+			options: WorkspaceOptions<Args>;
+		}
+	) => string[];
+};
+
+declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
+	config: Addon<Args, Id>
+): Addon<Args, Id>;
+
+type AddonInput = {
+	readonly specifier: string;
+	readonly options: string[];
+};
+
+type AddonSource =
+	| {
+			readonly kind: 'official';
+			readonly id: string;
+	  }
+	| {
+			readonly kind: 'file';
+			readonly path: string;
+	  }
+	| {
+			readonly kind: 'npm';
+			readonly packageName: string;
+			readonly npmUrl: string;
+			readonly registryUrl: string;
+			readonly tag: string;
+	  };
+type AddonReference = {
+	readonly specifier: string;
+	readonly options: string[];
+	readonly source: AddonSource;
+};
+
+type LoadedAddon = {
+	readonly reference: AddonReference;
+	readonly addon: AddonDefinition;
+};
+
+type PreparedAddon = LoadedAddon & {
+	readonly setupResult: SetupResult;
+};
+
+type ConfiguredAddon = PreparedAddon & {
+	readonly answers: OptionValues<any>;
+};
+
+type AddonResult = {
+	readonly id: string;
+	readonly status:
+		| 'success'
+		| {
+				canceled: string[];
+		  };
+	readonly files: string[];
+};
+type SetupResult = {
+	dependsOn: string[];
+	unsupported: string[];
+	runsAfter: string[];
+};
+type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
+type MaybePromise<T> = Promise<T> | T;
+type Prettify<T> = { [K in keyof T]: T[K] } & unknown;
+type OptionBuilder<T extends OptionDefinition> = {
+	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
+		key: K,
+		question: Q
+	): OptionBuilder<T & Record<K, Q>>;
+	build(): Prettify<T>;
+};
+
+declare function defineAddonOptions(): OptionBuilder<{}>;
+type InstallOptions<Addons extends AddonMap> = {
+	cwd: string;
+	addons: Addons;
+	options: OptionMap<Addons>;
+	packageManager?: AgentName;
+};
+type AddonMap = Record<string, Addon<any, any>>;
+type AddonById<Addons extends AddonMap, Id extends string> = Extract<
+	Addons[keyof Addons],
+	{
+		id: Id;
+	}
+>;
+type OptionMap<Addons extends AddonMap> = {
+	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
+};
+declare function add<Addons extends AddonMap>({
+	addons,
+	cwd,
+	options,
+	packageManager
+}: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>>;
+type ApplyAddonOptions = {
+	loadedAddons: LoadedAddon[];
+	options: OptionMap<AddonMap>;
+	workspace: Workspace;
+	setupResults: Record<string, SetupResult>;
+};
+declare function applyAddons({
+	loadedAddons,
+	workspace,
+	setupResults,
+	options
+}: ApplyAddonOptions): Promise<{
+	filesToFormat: string[];
+	status: Record<string, string[] | 'success'>;
+}>;
 type FileEditor = Workspace & {
 	content: string;
 };
@@ -21,9 +283,9 @@ type FileType = {
 	condition?: ConditionDefinition;
 	content: (editor: FileEditor) => string;
 };
+declare function create(options: Options): void;
 /** @deprecated use `create({ cwd, ...options })` instead. */
 declare function create(cwd: string, options: Omit<Options, 'cwd'>): void;
-declare function create(options: Options): void;
 export {
 	type Addon,
 	type AddonDefinition,

@@ -23,7 +23,7 @@ import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmOnlyBuiltDependencies,
+	addPnpmAllowBuilds,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
@@ -37,7 +37,7 @@ const addonOptions = getAddonOptionFlags();
 
 const OptionsSchema = v.strictObject({
 	cwd: v.string(),
-	install: v.union([v.boolean(), v.picklist(AGENT_NAMES)]),
+	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
 	gitCheck: v.boolean(),
 	downloadCheck: v.boolean(),
 	addons: v.record(v.string(), v.optional(v.array(v.string())))
@@ -697,8 +697,14 @@ export async function runAddonsApply({
 	const successfulAddons = loadedAddons.filter((a) => !canceledAddonIds.includes(a.addon.id));
 
 	if (addonSuccess.length === 0) {
-		p.cancel('All selected add-ons were canceled.');
-		process.exit(1);
+		// `create` already scaffolded the project on disk - exiting here would hide
+		// the "Project created" success and the next-steps. Just warn instead.
+		if (fromCommand === 'create') {
+			p.log.warn('All selected add-ons were canceled.');
+		} else {
+			p.cancel('All selected add-ons were canceled.');
+			process.exit(1);
+		}
 	} else {
 		p.log.success(
 			`Successfully setup add-ons: ${addonSuccess.map((c) => color.addon(c)).join(', ')}`
@@ -712,7 +718,7 @@ export async function runAddonsApply({
 				? await packageManagerPrompt(options.cwd)
 				: options.install;
 
-	addPnpmOnlyBuiltDependencies(workspace.cwd, packageManager, 'esbuild');
+	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
 
 	const argsFormattedAddons: string[] = [];
 	for (const loaded of successfulAddons) {
@@ -978,7 +984,7 @@ export async function resolveNonOfficialAddons(
 		}
 
 		p.log.warn(
-			'Svelte maintainers have not reviewed community add-ons for malicious code. Use at your discretion.'
+			'Svelte maintainers have not reviewed community add-ons for malicious code! Use at your discretion.'
 		);
 
 		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));

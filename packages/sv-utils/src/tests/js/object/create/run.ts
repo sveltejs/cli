@@ -39,4 +39,20 @@ export function run(ast: AstTypes.Program): void {
 		value: createdObject2
 	});
 	ast.body.push(createdVariable2);
+
+	// objects with a `type` property must not be mistaken for AST nodes
+	const createdObject3 = object.create({
+		type: '123',
+		nested: {
+			type: 'something',
+			value: 'inside'
+		},
+		array: [{ type: 'item', id: 1 }]
+	});
+	const createdVariable3 = variables.declaration(ast, {
+		kind: 'const',
+		name: 'created3',
+		value: createdObject3
+	});
+	ast.body.push(createdVariable3);
 }
