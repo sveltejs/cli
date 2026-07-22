@@ -479,7 +479,6 @@ export async function createVirtualWorkspace({
 	const virtualWorkspace: Workspace = {
 		...tentativeWorkspace,
 		language: type === 'typescript' ? 'ts' : 'js',
-		template,
 		file: {
 			...tentativeWorkspace.file,
 			viteConfig:

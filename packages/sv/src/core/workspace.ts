@@ -66,8 +66,6 @@ export type Workspace = {
 	};
 	/** The package manager used to install dependencies */
 	packageManager: AgentName;
-	/** The template used to create the project (only available during `sv create`) */
-	template?: string;
 };
 
 type CreateWorkspaceOptions = {
