@@ -23,7 +23,7 @@ export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 					});
 
 					if (stdout) {
-						return { success: false, message: 'Found modified files' };
+						return { success: false, message: 'Uncommited changes found' };
 					}
 
 					return { success: true, message: undefined };

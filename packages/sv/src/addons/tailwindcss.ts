@@ -1,5 +1,6 @@
 import { pnpm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { addPrettierTailwind, prettierConfigPath } from './common.ts';
 
 const plugins = [
 	{
@@ -124,11 +125,8 @@ export default defineAddon({
 
 		if (prettierInstalled) {
 			sv.file(
-				'.prettierrc',
-				transforms.json(({ data, json }) => {
-					json.arrayUpsert(data, 'plugins', 'prettier-plugin-tailwindcss');
-					data.tailwindStylesheet ??= file.getRelative({ to: file.stylesheet });
-				})
+				prettierConfigPath(),
+				addPrettierTailwind({ stylesheet: file.getRelative({ to: file.stylesheet }) })
 			);
 		}
 	}

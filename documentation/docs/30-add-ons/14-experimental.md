@@ -2,7 +2,7 @@
 title: experimental
 ---
 
-Enables [Svelte](https://svelte.dev/docs/svelte/compiler-options) and [SvelteKit](https://svelte.dev/docs/kit/configuration#experimental) experimental features, and can opt your project into their `next` pre-release versions.
+Enables Svelte and [SvelteKit](https://svelte.dev/docs/kit/configuration#experimental) experimental features, and can opt your project into their `next` pre-release versions.
 
 ## Usage
 

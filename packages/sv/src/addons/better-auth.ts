@@ -288,7 +288,7 @@ export default defineAddon({
 					imports: [d1 ? 'createAuth' : 'auth'],
 					from: '$lib/server/auth'
 				});
-				js.imports.addNamed(ast, { imports: ['building'], from: '$app/environment' });
+				env.importEnv(ast, js, ['building']);
 
 				const d1HandleSetup = d1
 					? dedent`

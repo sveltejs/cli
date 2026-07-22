@@ -45,6 +45,12 @@ export type DefineEnv = {
 	mode: EnvMode;
 	define: (spec: EnvVarSpec) => void;
 	reference: (ast: AstTypes.Program, js: typeof jsNs, opts: ReferenceOpts) => string;
+	/**
+	 * Adds a named import from the environment module (`building`, `dev`, `browser`, ...),
+	 * resolving the right namespace (`$app/env` declared, `$app/environment` legacy) so add-ons
+	 * never branch on {@link mode} themselves.
+	 */
+	importEnv: (ast: AstTypes.Program, js: typeof jsNs, imports: string[]) => void;
 };
 
 function findProp(obj: AstTypes.ObjectExpression, name: string): AstTypes.Property | undefined {
@@ -161,6 +167,12 @@ export function _bindEnv({
 			}
 			js.imports.addNamed(ast, { from: `$env/dynamic/${scope}`, imports: ['env'] });
 			return `env.${opts.name}`;
+		},
+		importEnv(ast, js, imports) {
+			js.imports.addNamed(ast, {
+				from: mode === 'declared' ? '$app/env' : '$app/environment',
+				imports
+			});
 		}
 	};
 }
