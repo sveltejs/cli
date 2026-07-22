@@ -90,7 +90,9 @@ type OptionValues<Args extends OptionDefinition> = {
 					? Value
 					: Args[K] extends MultiSelectQuestion<infer Value>
 						? Value[]
-						: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
+						: Args[K] extends Question<any>
+							? unknown
+							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
@@ -151,11 +153,12 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 
 			unsupported: (reason: string) => void;
 			runsAfter: (name: keyof typeof officialAddons) => void;
+			addOption: (key: string, question: Question) => void;
 		}
 	) => MaybePromise<void>;
 	run: (
 		workspace: Workspace & {
-			options: WorkspaceOptions<Args>;
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			sv: SvApi;
 
 			cancel: (reason: string) => void;
@@ -163,14 +166,33 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 	) => MaybePromise<void>;
 	nextSteps?: (
 		workspace: Workspace & {
-			options: WorkspaceOptions<Args>;
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 		}
 	) => string[];
+};
+
+type SetupOptions<T extends Record<string, unknown>> = {
+	[K in keyof T]: BaseQuestion<any> &
+		(T[K] extends boolean
+			? BooleanQuestion
+			: T[K] extends string
+				? StringQuestion
+				: T[K] extends number
+					? NumberQuestion
+					: Question<any>);
 };
 
 declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
 	config: Addon<Args, Id>
 ): Addon<Args, Id>;
+declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
+	const Id extends string,
+	Args extends OptionDefinition
+>(
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options'> & {
+		options: Args;
+	}
+) => Addon<Args & SetupOptions<SetupValues>, Id>;
 
 type AddonInput = {
 	readonly specifier: string;
@@ -225,6 +247,7 @@ type SetupResult = {
 	dependsOn: string[];
 	unsupported: string[];
 	runsAfter: string[];
+	additionalOptions: Record<string, Question>;
 };
 type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 type MaybePromise<T> = Promise<T> | T;

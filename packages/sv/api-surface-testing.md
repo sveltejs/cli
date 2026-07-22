@@ -80,7 +80,9 @@ type OptionValues<Args extends OptionDefinition> = {
 					? Value
 					: Args[K] extends MultiSelectQuestion<infer Value>
 						? Value[]
-						: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
+						: Args[K] extends Question<any>
+							? unknown
+							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
@@ -140,11 +142,12 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 
 			unsupported: (reason: string) => void;
 			runsAfter: (name: keyof typeof officialAddons) => void;
+			addOption: (key: string, question: Question) => void;
 		}
 	) => MaybePromise<void>;
 	run: (
 		workspace: Workspace & {
-			options: WorkspaceOptions<Args>;
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			sv: SvApi;
 
 			cancel: (reason: string) => void;
@@ -152,7 +155,7 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 	) => MaybePromise<void>;
 	nextSteps?: (
 		workspace: Workspace & {
-			options: WorkspaceOptions<Args>;
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 		}
 	) => string[];
 };
