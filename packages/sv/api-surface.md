@@ -128,6 +128,7 @@ type Workspace = {
 		kitRoutes: string;
 	};
 	packageManager: AgentName;
+	template?: string;
 };
 type ConditionDefinition = (Workspace: Workspace) => boolean;
 type SvApi = {
@@ -200,6 +201,17 @@ declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
 >(
 	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>, 'options'> & {
 		options: Args;
+		setup?: (
+			workspace: Workspace & {
+				dependsOn: (name: keyof typeof officialAddons) => void;
+				unsupported: (reason: string) => void;
+				runsAfter: (name: keyof typeof officialAddons) => void;
+				addOption: <K extends keyof SetupValues & string>(
+					key: K,
+					question: SetupOptions<SetupValues>[K]
+				) => void;
+			}
+		) => MaybePromise<void>;
 	}
 ) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
 

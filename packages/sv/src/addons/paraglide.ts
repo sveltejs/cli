@@ -9,7 +9,7 @@ import {
 	transforms
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
+import { createDemoPage } from './common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -46,22 +46,23 @@ const options = defineAddonOptions()
 			return undefined;
 		}
 	})
-	.add('demo', {
-		type: 'boolean',
-		default: true,
-		question: 'Do you want to include a demo?'
-	})
 	.build();
 
-export default defineAddon({
+export default defineAddon<{ demo: boolean }>()({
 	id: 'paraglide',
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ isKit, unsupported, runsAfter }) => {
+	setup: ({ isKit, unsupported, addOption, template }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
-		// it picks the kit-3 shape off the version `experimental` writes
-		runsAfter('experimental');
+
+		if (template !== 'demo') {
+			addOption('demo', {
+				type: 'boolean',
+				default: true,
+				question: 'Do you want to include a demo?'
+			});
+		}
 	},
 	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
 		const [ts] = createPrinter(language === 'ts');
@@ -235,11 +236,13 @@ export default defineAddon({
 		);
 
 		if (options.demo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('paraglide', language));
+			const demo = createDemoPage('paraglide', language, directory.kitRoutes);
+			sv.file(`${demo.listingPath}/+page.svelte`, demo.transform);
+			sv.file(`${directory.kitRoutes}/Header.svelte`, demo.transformHeader);
 
 			// add usage example
 			sv.file(
-				`${directory.kitRoutes}/demo/paraglide/+page.svelte`,
+				`${demo.addonPath}/+page.svelte`,
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
@@ -283,10 +286,10 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: () => {
+	nextSteps: ({ options }) => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (options.demo) {
-			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
+			steps.push(`Visit ${color.route('src/routes/addon/paraglide')} route to view the demo`);
 		}
 
 		return steps;

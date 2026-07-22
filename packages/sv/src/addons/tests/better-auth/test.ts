@@ -27,7 +27,7 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	const language = testCase.variant.includes('ts') ? 'ts' : 'js';
 
 	// Verify that we have a demo login
-	const loginPage = path.resolve(cwd, `src/routes/demo/better-auth/login/+page.svelte`);
+	const loginPage = path.resolve(cwd, `src/routes/addon/better-auth/login/+page.svelte`);
 	expect(fs.existsSync(loginPage)).toBe(true);
 
 	// For Turso, update .env to use local SQLite file instead of remote URL

@@ -118,6 +118,7 @@ type Workspace = {
 		kitRoutes: string;
 	};
 	packageManager: AgentName;
+	template?: string;
 };
 type SvApi = {
 	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */ pnpmBuildDependency: (
