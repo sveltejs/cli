@@ -55,8 +55,8 @@ export default defineAddon({
 		let drizzleDialect: Dialect;
 		let d1 = false;
 
-		sv.devDependency('auth', '^1.6.23');
-		sv.devDependency('better-auth', '^1.6.23');
+		sv.devDependency('auth', '^1.6.24');
+		sv.devDependency('better-auth', '^1.6.24');
 
 		// Read-only: extract dialect info from drizzle config without modifying it
 		sv.file(
