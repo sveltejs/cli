@@ -1,5 +1,14 @@
 # sv
 
+## 0.16.5
+### Patch Changes
+
+
+- chore(better-auth): bump better-auth to 1.6 and migrate CLI to the `auth` package ([#1058](https://github.com/sveltejs/cli/pull/1058))
+
+
+- fix: ignore `types` flag when using the `addon` template ([#1177](https://github.com/sveltejs/cli/pull/1177))
+
 ## 0.16.4
 ### Patch Changes
 
