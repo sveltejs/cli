@@ -76,10 +76,3 @@ function writeLegacy(packages: string[]): TransformFn {
 		data.set('onlyBuiltDependencies', items);
 	});
 }
-
-/**
- * @deprecated Use {@link allowBuilds} instead.
- */
-export function onlyBuiltDependencies(...packages: string[]): TransformFn {
-	return allowBuilds(...packages);
-}

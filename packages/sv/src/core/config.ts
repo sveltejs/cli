@@ -10,8 +10,6 @@ export type FileEdit = (content: string) => string | false;
 export type FileEditMultiple = (content: string, path: string) => string | false;
 
 export type SvApi = {
-	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
-	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
 	/** Add a package to the dev dependencies. */

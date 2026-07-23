@@ -25,9 +25,7 @@ import {
 	type SetupResult,
 	type SvApi
 } from './config.ts';
-import { svDeprecated } from './deprecated.ts';
 import { TESTING } from './env.ts';
-import { addPnpmAllowBuilds } from './package-manager.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 function alphabetizeRecord(obj: Record<string, string>) {
@@ -383,13 +381,6 @@ export function prepareSvApi(
 		},
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
-		},
-		/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
-		pnpmBuildDependency: (pkg) => {
-			svDeprecated(
-				'use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
-			);
-			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
 	return {
