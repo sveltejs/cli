@@ -17,12 +17,7 @@ import { exec, execSync } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
-	// put `pnpm` first
-).sort((a, b) => {
-	if (a === 'pnpm') return -1;
-	if (b === 'pnpm') return 1;
-	return a.localeCompare(b);
-});
+);
 
 export const installOption: Option = new Option(
 	'--install <package-manager>',
