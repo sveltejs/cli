@@ -39,8 +39,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	const detected = await detect({ cwd });
 	const detectedAgent = detected?.name ?? getUserAgent();
 	const installedAgents = AGENT_NAMES.filter(isInstalled);
-	const initialAgent =
-		detectedAgent && installedAgents.includes(detectedAgent) ? detectedAgent : installedAgents[0];
+	const agent = detectedAgent ?? installedAgents[0];
 
 	const options: PackageManagerOptions = AGENT_NAMES.map((agent) => ({
 		value: agent,
@@ -57,12 +56,20 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 
 	// If we are in a non interactive environment just go with the detected package manager.
 	// There is no need to prompt in that case.
-	if (!process.stdout.isTTY) return initialAgent;
+	if (!process.stdout.isTTY) {
+		if (detectedAgent && !installedAgents.includes(detectedAgent)) {
+			p.cancel(
+				`This project uses ${color.command(detectedAgent)}, please install it and try again.`
+			);
+			process.exit(1);
+		}
+		return agent;
+	}
 
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
 		options,
-		initialValue: initialAgent
+		initialValue: agent
 	});
 	if (p.isCancel(pm)) {
 		p.cancel('Operation cancelled.');
@@ -74,11 +81,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
 	if (!isInstalled(agent)) {
-		p.log.error(
-			`Package manager ${color.command(agent)} is not installed. Please install it first.`
-		);
-		p.log.message();
-		p.cancel('Operation failed.');
+		p.cancel(`${color.command(agent)} is not installed. Please install it and try again.`);
 		process.exit(1);
 	}
 
