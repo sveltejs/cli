@@ -140,10 +140,8 @@ function getUserAgent(): AgentName | undefined {
 
 function isInstalled(agent: AgentName): boolean {
 	try {
-		const result = execSync('sh', ['-c', `command -v ${agent}`], {
-			nodeOptions: { stdio: 'pipe' }
-		});
-		return result.stdout.trim().length > 0;
+		execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
+		return true;
 	} catch {
 		return false;
 	}
