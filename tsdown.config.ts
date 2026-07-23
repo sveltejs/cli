@@ -137,6 +137,7 @@ export default defineConfig([
 				'axobject-query',
 				'decircular',
 				'dedent',
+				'diff',
 				'esrap',
 				'locate-character',
 				'package-manager-detector',

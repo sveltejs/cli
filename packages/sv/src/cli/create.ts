@@ -407,7 +407,12 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
 	if (packageManager) {
 		await installDependencies(packageManager, projectPath);
-		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
+		await formatFiles({
+			packageManager,
+			cwd: projectPath,
+			filesToFormat: addOnFilesToFormat,
+			strategy: 'files-only'
+		});
 	}
 
 	return { directory: projectPath, addOnNextSteps, packageManager };
@@ -488,8 +493,7 @@ export async function createVirtualWorkspace({
 		file: {
 			...tentativeWorkspace.file,
 			viteConfig:
-				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig,
-			svelteConfig: common.filePaths.svelteConfig // currently we always use js files, never typescript files
+				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig
 		}
 	};
 

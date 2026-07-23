@@ -153,6 +153,8 @@ declare class Comments {
 	private leading;
 	private trailing;
 	constructor();
+
+	list(): readonly SvelteAst.JSComment[];
 	add(
 		node: BaseNode$1,
 		comment: CommentType,
@@ -411,7 +413,16 @@ declare function getArgument<T extends estree.Expression>(
 	}
 ): T;
 declare namespace imports_d_exports {
-	export { addDefault, addEmpty, addNamed, addNamespace$1 as addNamespace, find, remove };
+	export {
+		FoundImport,
+		addDefault,
+		addEmpty,
+		addNamed,
+		addNamespace$1 as addNamespace,
+		find,
+		findAll,
+		remove
+	};
 }
 declare function addEmpty(
 	node: estree.Program,
@@ -441,6 +452,27 @@ declare function addNamed(
 		isType?: boolean;
 	}
 ): void;
+type FoundImportBase = {
+	source: string;
+	sourceNode: estree.Literal;
+	path: estree.Node[];
+};
+type FoundImport =
+	| ({
+			kind: 'static';
+			node: estree.ImportDeclaration;
+	  } & FoundImportBase)
+	| ({
+			kind: 'dynamic';
+			node: estree.ImportExpression;
+	  } & FoundImportBase);
+
+declare function findAll(
+	ast: estree.Node,
+	options?: {
+		from?: string | RegExp;
+	}
+): FoundImport[];
 declare function find(
 	ast: estree.Program,
 	options: {
@@ -642,7 +674,7 @@ declare function addFragment(
 		language?: 'ts' | 'js';
 	}
 ): void;
-type TransformFn = (content: string) => string;
+type TransformFn = (content: string) => string | false;
 type TransformOptions = {
 	onError?: (error: unknown) => void;
 };
@@ -656,7 +688,7 @@ declare const transforms: {
 			js: typeof index_d_exports$3;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string;
+	): TransformFn;
 
 	svelte(
 		cb: (file: {
@@ -666,7 +698,7 @@ declare const transforms: {
 			js: typeof index_d_exports$3;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string;
+	): TransformFn;
 
 	svelteScript(
 		scriptOptions: {
@@ -717,14 +749,10 @@ declare const transforms: {
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
 declare namespace pnpm_d_exports {
-	export { allowBuilds, onlyBuiltDependencies };
+	export { allowBuilds };
 }
 
 declare function allowBuilds(...packages: string[]): TransformFn;
-/**
- * @deprecated Use {@link allowBuilds} instead.
- */
-declare function onlyBuiltDependencies(...packages: string[]): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
@@ -733,10 +761,6 @@ type Version = {
 };
 
 declare function minVersion(range: string): string;
-/**
- * @deprecated Use `coerceVersion` instead.
- */
-declare function splitVersion(str: string): Version;
 
 declare function coerceVersion(str: string): Version;
 declare function isVersionUnsupportedBelow(
@@ -747,10 +771,13 @@ type Printer = (content: string, alt?: string) => string;
 declare function createPrinter(...conditions: boolean[]): Printer[];
 
 declare function sanitizeName(name: string, style: 'package' | 'wrangler'): string;
+
+declare function minimizeDiff(old: string, updated: string): string;
 declare const downloadJson: (url: string) => Promise<any>;
 type Package = {
 	name: string;
 	version: string;
+	scripts?: Record<string, string>;
 	dependencies?: Record<string, string>;
 	devDependencies?: Record<string, string>;
 	bugs?: string;
@@ -766,7 +793,12 @@ declare function fileExists(cwd: string, filePath: string): boolean;
 
 declare function loadFile(cwd: string, filePath: string): string;
 
-declare function saveFile(cwd: string, filePath: string, content: string): void;
+declare function saveFile(
+	cwd: string,
+	filePath: string,
+	content: string,
+	saveFileInfix?: string
+): string;
 
 declare function loadPackageJson(cwd: string): {
 	source: string;
@@ -785,6 +817,8 @@ type SvelteConfigObjects = {
 	location: SvelteConfigLocation;
 	config: estree.ObjectExpression;
 	kit: estree.ObjectExpression;
+	ast: estree.Program;
+	comments: Comments;
 };
 
 type ConfigFileReader = (path: string) => string | null;
@@ -911,13 +945,13 @@ export {
 	loadFile,
 	loadPackageJson,
 	minVersion,
+	minimizeDiff,
 	parse,
 	pnpm_d_exports as pnpm,
 	resolveCommand,
 	resolveCommandArray,
 	sanitizeName,
 	saveFile,
-	splitVersion,
 	index_d_exports$4 as svelte,
 	svelteConfig,
 	text_d_exports as text,
