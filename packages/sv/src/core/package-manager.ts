@@ -41,7 +41,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	const installedAgents = AGENT_NAMES.filter(isInstalled);
 	const agent = detectedAgent ?? installedAgents[0];
 
-	const options: PackageManagerOptions = AGENT_NAMES.map((agent) => ({
+	const agentOptions: PackageManagerOptions = AGENT_NAMES.map((agent) => ({
 		value: agent,
 		label: agent,
 		disabled: !installedAgents.includes(agent),
@@ -51,8 +51,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 		if (!a.disabled && b.disabled) return -1;
 		return 0;
 	});
-
-	options.unshift({ label: 'None', value: undefined, disabled: false });
+	agentOptions.unshift({ label: 'None', value: undefined, disabled: false });
 
 	// If we are in a non interactive environment just go with the detected package manager.
 	// There is no need to prompt in that case.
@@ -68,7 +67,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
-		options,
+		options: agentOptions,
 		initialValue: agent
 	});
 	if (p.isCancel(pm)) {
