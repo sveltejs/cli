@@ -1,5 +1,14 @@
 # sv
 
+## 0.16.6
+### Patch Changes
+
+
+- feat: smart(er) package manager selection ([#1190](https://github.com/sveltejs/cli/pull/1190))
+
+- Updated dependencies [[`580c2f7`](https://github.com/sveltejs/cli/commit/580c2f7ae34d733393c4e5c185feffe0f1fe9f8e)]:
+  - @sveltejs/sv-utils@0.3.2
+
 ## 0.16.5
 ### Patch Changes
 

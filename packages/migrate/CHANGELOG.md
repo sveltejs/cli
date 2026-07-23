@@ -1,5 +1,11 @@
 # svelte-migrate
 
+## 1.10.3
+### Patch Changes
+
+
+- fix: recognize the `nub` package manager ([#1187](https://github.com/sveltejs/cli/pull/1187))
+
 ## 1.10.2
 ### Patch Changes
 
