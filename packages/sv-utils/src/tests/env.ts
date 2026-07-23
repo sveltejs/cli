@@ -106,7 +106,7 @@ describe('defineEnv.define', () => {
 		const { env, files } = envFor('declared');
 		env.define({ name: 'DATABASE_URL', description: 'db url' });
 		const out = files['src/env.ts'];
-		expect(out).toContain("import { defineEnvVars } from '@sveltejs/kit/hooks';");
+		expect(out).toContain("import { defineEnvVars } from '@sveltejs/kit/env';");
 		expect(out).toContain('export const variables = defineEnvVars({');
 		expect(out).toContain('DATABASE_URL');
 		expect(out).toContain("description: 'db url'");

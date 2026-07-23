@@ -55,8 +55,8 @@ export default defineAddon({
 		let drizzleDialect: Dialect;
 		let d1 = false;
 
-		sv.devDependency('auth', '^1.6.23');
-		sv.devDependency('better-auth', '^1.6.23');
+		sv.devDependency('auth', '^1.6.24');
+		sv.devDependency('better-auth', '^1.6.24');
 
 		// Read-only: extract dialect info from drizzle config without modifying it
 		sv.file(
@@ -122,7 +122,7 @@ export default defineAddon({
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,
 			transforms.script(({ ast, comments, js }) => {
-				js.imports.addNamed(ast, { from: '$lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
+				js.imports.addNamed(ast, { from: '#lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
 				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
 				js.imports.addNamed(ast, {
 					from: 'better-auth/svelte-kit',
@@ -238,7 +238,7 @@ export default defineAddon({
 		sv.file(
 			'src/app.d.ts',
 			transforms.script(({ ast, comments, js }) => {
-				if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '$lib/server/auth' });
+				if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '#lib/server/auth' });
 				js.imports.addNamed(ast, {
 					imports: ['User', 'Session'],
 					from: 'better-auth',
@@ -286,7 +286,7 @@ export default defineAddon({
 				});
 				js.imports.addNamed(ast, {
 					imports: [d1 ? 'createAuth' : 'auth'],
-					from: '$lib/server/auth'
+					from: '#lib/server/auth'
 				});
 				env.importEnv(ast, js, ['building']);
 
@@ -413,7 +413,7 @@ export default defineAddon({
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
+					${!d1 ? "import { auth } from '#lib/server/auth';" : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
@@ -502,7 +502,7 @@ export default defineAddon({
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? "import { auth } from '$lib/server/auth';" : ''}
+					${!d1 ? "import { auth } from '#lib/server/auth';" : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {

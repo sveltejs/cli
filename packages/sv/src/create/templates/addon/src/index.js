@@ -43,7 +43,7 @@ export default defineAddon({
 			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addDefault(ast.instance.content, {
 					as: 'HelloComponent',
-					from: `$lib/~SV-NAME-TODO~/HelloComponent.svelte`
+					from: `#lib/~SV-NAME-TODO~/HelloComponent.svelte`
 				});
 
 				svelte.addFragment(ast, '<HelloComponent />');

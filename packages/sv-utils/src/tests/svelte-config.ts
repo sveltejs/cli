@@ -18,7 +18,7 @@ const applyEdit = (content: string, kind: SvelteConfigKind, edit: SvelteConfEdit
 	);
 
 const addAlias: SvelteConfEdit = ({ override, js }) =>
-	override({ alias: js.object.create({ $lib: js.common.createLiteral('./src/lib') }) });
+	override({ alias: js.object.create({ lib: js.common.createLiteral('./src/lib') }) });
 const addExtension: SvelteConfEdit = ({ property, js }) =>
 	js.array.append(property('extensions', { fallback: js.array.create() }), '.svx');
 
@@ -168,7 +168,7 @@ describe('svelteConfig.edit routing', () => {
 		const result = applyEdit(SVELTE_CONFIG, 'svelte', ({ override, js }) => {
 			override({
 				extensions: js.array.create(),
-				alias: js.object.create({ $lib: js.common.createLiteral('./src/lib') })
+				alias: js.object.create({ lib: js.common.createLiteral('./src/lib') })
 			});
 		});
 		if (!result) throw new Error('Edit failed or not required');

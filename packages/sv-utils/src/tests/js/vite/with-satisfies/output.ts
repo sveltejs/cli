@@ -9,10 +9,10 @@ import { defineConfig, type UserConfig } from 'vite';
 import { kitRoutes } from 'vite-plugin-kit-routes';
 
 const $root = path.resolve(__dirname, './src');
-const $lib = path.resolve($root, './lib');
+const lib = path.resolve($root, './lib');
 const $routes = path.resolve($root, './routes');
-const $scripts = path.resolve($lib, './scripts');
-const $actions = path.resolve($lib, './actions');
+const $scripts = path.resolve(lib, './scripts');
+const $actions = path.resolve(lib, './actions');
 
 const config = defineConfig({
 	plugins: [
@@ -23,7 +23,7 @@ const config = defineConfig({
 		kitRoutes(),
 		myPlugin()
 	],
-	resolve: { alias: { $lib, $routes, $scripts, $actions } },
+	resolve: { alias: { lib, $routes, $scripts, $actions } },
 	build: { sourcemap: true, target: 'esnext', cssMinify: 'lightningcss' },
 	css: {
 		transformer: 'lightningcss',

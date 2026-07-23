@@ -134,8 +134,8 @@ export function addHooksHandle(
 
 	// Normalize re-export cases into `export const handle = handleExisting`
 	// so the existing logic below can handle them.
-	// Case 1: `export { handle } from '$lib/auth.server'`
-	// Case 2: `import { handle } from '$lib/auth.server'; export { handle }`
+	// Case 1: `export { handle } from '#lib/auth.server'`
+	// Case 2: `import { handle } from '#lib/auth.server'; export { handle }`
 	if (isSpecifier && exportDecl && !originalHandleDecl) {
 		const ALIAS = 'handleExisting';
 

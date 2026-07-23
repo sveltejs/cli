@@ -138,7 +138,7 @@ export function _bindEnv({
 			const envPath = `src/env.${language}`;
 			sv.file(envPath, (content) =>
 				transforms.script(({ ast, js }) => {
-					js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });
+					js.imports.addNamed(ast, { from: '@sveltejs/kit/env', imports: ['defineEnvVars'] });
 					const variables = getOrCreateVariablesObject(ast, js);
 					const entry = js.object.property(variables, {
 						name: spec.name,
