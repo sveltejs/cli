@@ -140,7 +140,11 @@ type SvApi = {
 
 	file: (path: string, edit: (content: string) => string | false) => void;
 };
-type Addon<Args extends OptionDefinition, Id extends string = string> = {
+type Addon<
+	Args extends OptionDefinition,
+	Id extends string = string,
+	Setup extends Record<string, unknown> = Record<string, unknown>
+> = {
 	id: Id;
 	alias?: string;
 	shortDescription?: string;
@@ -153,7 +157,10 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 
 			unsupported: (reason: string) => void;
 			runsAfter: (name: keyof typeof officialAddons) => void;
-			addOption: (key: string, question: Question) => void;
+			addOption: <K extends Extract<keyof Setup, string>>(
+				key: K,
+				question: SetupOptions<Setup>[K]
+			) => void;
 		}
 	) => MaybePromise<void>;
 	run: (
@@ -179,7 +186,9 @@ type SetupOptions<T extends Record<string, unknown>> = {
 				? StringQuestion
 				: T[K] extends number
 					? NumberQuestion
-					: Question<any>);
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
 };
 
 declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
@@ -189,10 +198,10 @@ declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
 	const Id extends string,
 	Args extends OptionDefinition
 >(
-	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options'> & {
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>, 'options'> & {
 		options: Args;
 	}
-) => Addon<Args & SetupOptions<SetupValues>, Id>;
+) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
 
 type AddonInput = {
 	readonly specifier: string;

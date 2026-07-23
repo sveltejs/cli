@@ -32,7 +32,11 @@ export type SvApi = {
 	file: (path: string, edit: (content: string) => string | false) => void;
 };
 
-export type Addon<Args extends OptionDefinition, Id extends string = string> = {
+export type Addon<
+	Args extends OptionDefinition,
+	Id extends string = string,
+	Setup extends Record<string, unknown> = Record<string, unknown>
+> = {
 	id: Id;
 	alias?: string;
 	/** one-liner shown in prompts  */
@@ -59,7 +63,10 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 			runsAfter: (name: keyof typeof officialAddons) => void;
 
 			/** Dynamically add an option to be prompted to the user */
-			addOption: (key: string, question: Question) => void;
+			addOption: <K extends Extract<keyof Setup, string>>(
+				key: K,
+				question: SetupOptions<Setup>[K]
+			) => void;
 		}
 	) => MaybePromise<void>;
 	/** Run the addon. The actual execution of the addon... Add files, edit files, etc. */
@@ -112,8 +119,10 @@ export function defineAddon<SetupValues extends Record<string, unknown>>(): <
 	const Id extends string,
 	Args extends OptionDefinition
 >(
-	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options'> & { options: Args }
-) => Addon<Args & SetupOptions<SetupValues>, Id>;
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>, 'options'> & {
+		options: Args;
+	}
+) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
 export function defineAddon(...args: any[]): any {
 	if (args.length === 0) {
 		return (config: any) => config;

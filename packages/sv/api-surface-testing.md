@@ -129,7 +129,11 @@ type SvApi = {
 
 	file: (path: string, edit: (content: string) => string | false) => void;
 };
-type Addon<Args extends OptionDefinition, Id extends string = string> = {
+type Addon<
+	Args extends OptionDefinition,
+	Id extends string = string,
+	Setup extends Record<string, unknown> = Record<string, unknown>
+> = {
 	id: Id;
 	alias?: string;
 	shortDescription?: string;
@@ -142,7 +146,10 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 
 			unsupported: (reason: string) => void;
 			runsAfter: (name: keyof typeof officialAddons) => void;
-			addOption: (key: string, question: Question) => void;
+			addOption: <K extends Extract<keyof Setup, string>>(
+				key: K,
+				question: SetupOptions<Setup>[K]
+			) => void;
 		}
 	) => MaybePromise<void>;
 	run: (
@@ -158,6 +165,19 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 		}
 	) => string[];
+};
+
+type SetupOptions<T extends Record<string, unknown>> = {
+	[K in keyof T]: BaseQuestion<any> &
+		(T[K] extends boolean
+			? BooleanQuestion
+			: T[K] extends string
+				? StringQuestion
+				: T[K] extends number
+					? NumberQuestion
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
 };
 type MaybePromise<T> = Promise<T> | T;
 type AddonMap = Record<string, Addon<any, any>>;
