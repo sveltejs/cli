@@ -26,23 +26,6 @@ export function minVersion(range: string): string {
 }
 
 /**
- * @deprecated Use `coerceVersion` instead.
- */
-export function splitVersion(str: string): Version {
-	const [major, minor, patch] = str?.split('.') ?? [];
-
-	function toVersionNumber(val: string | undefined): number | undefined {
-		return val !== undefined && val !== '' && !isNaN(Number(val)) ? Number(val) : undefined;
-	}
-
-	return {
-		major: toVersionNumber(major),
-		minor: toVersionNumber(minor),
-		patch: toVersionNumber(patch)
-	};
-}
-
-/**
  * Parses a version-ish string into `{ major, minor, patch, version }` using `semver.coerce`.
  * `version` is the clean `major.minor.patch` string (e.g. `"9.0.0"` for `^9.0.0`).
  * Understands ranges (`^9.0.0`), partial versions (`18.13`), and `workspace:` prefixes.

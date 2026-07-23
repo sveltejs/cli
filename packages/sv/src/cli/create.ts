@@ -493,8 +493,7 @@ export async function createVirtualWorkspace({
 		file: {
 			...tentativeWorkspace.file,
 			viteConfig:
-				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig,
-			svelteConfig: common.filePaths.svelteConfig // currently we always use js files, never typescript files
+				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig
 		}
 	};
 
