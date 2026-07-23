@@ -73,6 +73,15 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
+	if (!isInstalled(agent)) {
+		p.log.error(
+			`Package manager ${color.command(agent)} is not installed. Please install it first.`
+		);
+		p.log.message();
+		p.cancel('Operation failed.');
+		process.exit(1);
+	}
+
 	const task = p.taskLog({
 		title: `Installing dependencies with ${color.command(agent)}...`,
 		limit: Math.ceil(process.stdout.rows / 2),
