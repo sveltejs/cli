@@ -13,32 +13,56 @@ import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { exec } from 'tinyexec';
+import { exec, execSync } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
-);
-const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
-agentOptions.unshift({ label: 'None', value: undefined });
+	// put `pnpm` first
+).sort((a, b) => {
+	if (a === 'pnpm') return -1;
+	if (b === 'pnpm') return 1;
+	return a.localeCompare(b);
+});
 
 export const installOption: Option = new Option(
 	'--install <package-manager>',
 	'installs dependencies with a specified package manager'
 ).choices(AGENT_NAMES);
+type PackageManagerOptions = Array<{
+	value: AgentName | undefined;
+	label: AgentName | 'None';
+	disabled?: boolean;
+	hint?: string;
+}>;
 
-type PackageManagerOptions = Array<{ value: AgentName | undefined; label: AgentName | 'None' }>;
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
 	const detected = await detect({ cwd });
-	const agent = detected?.name ?? getUserAgent();
+	const detectedAgent = detected?.name ?? getUserAgent();
+	const installedAgents = AGENT_NAMES.filter(isInstalled);
+	const initialAgent =
+		detectedAgent && installedAgents.includes(detectedAgent) ? detectedAgent : installedAgents[0];
+
+	const options: PackageManagerOptions = AGENT_NAMES.map((agent) => ({
+		value: agent,
+		label: agent,
+		disabled: !installedAgents.includes(agent),
+		hint: installedAgents.includes(agent) ? undefined : 'not installed'
+	})).sort((a, b) => {
+		if (a.disabled && !b.disabled) return 1;
+		if (!a.disabled && b.disabled) return -1;
+		return 0;
+	});
+
+	options.unshift({ label: 'None', value: undefined, disabled: false });
 
 	// If we are in a non interactive environment just go with the detected package manager.
 	// There is no need to prompt in that case.
-	if (!process.stdout.isTTY) return agent;
+	if (!process.stdout.isTTY) return initialAgent;
 
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
-		options: agentOptions,
-		initialValue: agent
+		options,
+		initialValue: initialAgent
 	});
 	if (p.isCancel(pm)) {
 		p.cancel('Operation cancelled.');
@@ -98,7 +122,7 @@ export async function detectPackageManager(cwd: string): Promise<AgentName> {
 	return detected?.name ?? getUserAgent() ?? 'npm';
 }
 
-export function getUserAgent(): AgentName | undefined {
+function getUserAgent(): AgentName | undefined {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;
 
@@ -106,6 +130,17 @@ export function getUserAgent(): AgentName | undefined {
 	const separatorPos = pmSpec.lastIndexOf('/');
 	const name = pmSpec.substring(0, separatorPos) as AgentName;
 	return AGENTS.includes(name) ? name : undefined;
+}
+
+function isInstalled(agent: AgentName): boolean {
+	try {
+		const result = execSync('sh', ['-c', `command -v ${agent}`], {
+			nodeOptions: { stdio: 'pipe' }
+		});
+		return result.stdout.trim().length > 0;
+	} catch {
+		return false;
+	}
 }
 
 export function addPnpmAllowBuilds(
