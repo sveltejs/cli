@@ -132,7 +132,10 @@ export const create = new Command('create')
 		}
 
 		common.runCommand(async () => {
-			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
+			const { directory, addOnNextSteps, packageManager, depsInstalled } = await createProject(
+				cwd,
+				options
+			);
 
 			let i = 1;
 			const initialSteps: string[] = ['📁 Project steps', ''];
@@ -144,7 +147,10 @@ export const create = new Command('create')
 					`  ${i++}: ${color.command(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
 				);
 			}
-			if (!packageManager) {
+			if (packageManager && !depsInstalled) {
+				initialSteps.push(`  ${i++}: Install ${color.command(pm)}`);
+			}
+			if (!packageManager || !depsInstalled) {
 				initialSteps.push(`  ${i++}: ${color.command(resolveCommandArray(pm, 'install', []))}`);
 			}
 
@@ -405,12 +411,15 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
 	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
+	let depsInstalled = false;
 	if (packageManager) {
-		await installDependencies(packageManager, projectPath);
-		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
+		depsInstalled = await installDependencies(packageManager, projectPath);
+		if (depsInstalled) {
+			await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
+		}
 	}
 
-	return { directory: projectPath, addOnNextSteps, packageManager };
+	return { directory: projectPath, addOnNextSteps, packageManager, depsInstalled };
 }
 
 async function createProjectFromPlayground(url: string, cwd: string): Promise<void> {

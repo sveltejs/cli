@@ -23,12 +23,6 @@ export const installOption: Option = new Option(
 	'--install <package-manager>',
 	'installs dependencies with a specified package manager'
 ).choices(AGENT_NAMES);
-type PackageManagerOptions = Array<{
-	value: AgentName | undefined;
-	label: AgentName | 'None';
-	disabled?: boolean;
-	hint?: string;
-}>;
 
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
 	const detected = await detect({ cwd });
@@ -36,29 +30,22 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	const installedAgents = AGENT_NAMES.filter(isInstalled);
 	const agent = detectedAgent ?? installedAgents[0];
 
-	const agentOptions: PackageManagerOptions = AGENT_NAMES.map((agent) => ({
-		value: agent,
-		label: agent,
-		disabled: !installedAgents.includes(agent),
-		hint: installedAgents.includes(agent) ? undefined : 'not installed'
-	})).sort((a, b) => {
-		if (a.disabled && !b.disabled) return 1;
-		if (!a.disabled && b.disabled) return -1;
-		return 0;
-	});
-	agentOptions.unshift({ label: 'None', value: undefined, disabled: false });
+	const agentOptions = [
+		{ label: 'None', value: undefined },
+		...AGENT_NAMES.map((agent) => {
+			const installed = installedAgents.includes(agent);
+			return {
+				value: agent,
+				label: installed ? agent : color.dim(`${agent} (not installed)`),
+				installed
+			};
+			// installed ones first
+		}).sort((a, b) => Number(b.installed) - Number(a.installed))
+	];
 
 	// If we are in a non interactive environment just go with the detected package manager.
 	// There is no need to prompt in that case.
-	if (!process.stdout.isTTY) {
-		if (detectedAgent && !installedAgents.includes(detectedAgent)) {
-			p.cancel(
-				`This project uses ${color.command(detectedAgent)}, please install it and try again.`
-			);
-			process.exit(1);
-		}
-		return agent;
-	}
+	if (!process.stdout.isTTY) return agent;
 
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
@@ -73,10 +60,11 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	return pm;
 }
 
-export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
+/** Returns `false` when the package manager isn't installed and the install was skipped. */
+export async function installDependencies(agent: AgentName, cwd: string): Promise<boolean> {
 	if (!isInstalled(agent)) {
-		p.cancel(`${color.command(agent)} is not installed. Please install it and try again.`);
-		process.exit(1);
+		p.log.warn(`${color.command(agent)} is not installed, skipping dependency installation.`);
+		return false;
 	}
 
 	const task = p.taskLog({
@@ -107,7 +95,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 	const exitCode = proc.exitCode ?? 0;
 	if (exitCode === 0) {
 		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
-		return;
+		return true;
 	}
 
 	if (agent === 'pnpm' && output.join('\n').includes('ERR_PNPM_IGNORED_BUILDS')) {
@@ -115,7 +103,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		p.log.warn(
 			`Some build scripts were skipped. Run ${color.command(`${agent} approve-builds`)} to approve them.`
 		);
-		return;
+		return true;
 	}
 
 	task.error('Failed to install dependencies');
