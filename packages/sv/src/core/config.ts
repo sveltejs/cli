@@ -2,6 +2,7 @@ import type { officialAddons } from '../addons/index.ts';
 import type {
 	BaseQuestion,
 	BooleanQuestion,
+	MultiSelectQuestion,
 	NumberQuestion,
 	OptionDefinition,
 	OptionValues,
@@ -90,7 +91,9 @@ export type SetupOptions<T extends Record<string, unknown>> = {
 				? StringQuestion
 				: T[K] extends number
 					? NumberQuestion
-					: Question<any>);
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
 };
 
 /**
@@ -109,7 +112,20 @@ export function defineAddon<SetupValues extends Record<string, unknown>>(): <
 	const Id extends string,
 	Args extends OptionDefinition
 >(
-	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options'> & { options: Args }
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options' | 'setup'> & {
+		options: Args;
+		setup?: (
+			workspace: Workspace & {
+				dependsOn: (name: keyof typeof officialAddons) => void;
+				unsupported: (reason: string) => void;
+				runsAfter: (name: keyof typeof officialAddons) => void;
+				addOption: <K extends keyof SetupValues & string>(
+					key: K,
+					question: SetupOptions<SetupValues>[K]
+				) => void;
+			}
+		) => MaybePromise<void>;
+	}
 ) => Addon<Args & SetupOptions<SetupValues>, Id>;
 export function defineAddon(...args: any[]): any {
 	if (args.length === 0) {
