@@ -128,9 +128,6 @@ importers:
       '@types/estree':
         specifier: ^1.0.9
         version: 1.0.9
-      '@types/semver':
-        specifier: ^7.7.1
-        version: 7.7.1
       decircular:
         specifier: ^1.0.0
         version: 1.0.0
@@ -146,9 +143,6 @@ importers:
       package-manager-detector:
         specifier: ^1.6.0
         version: 1.6.0
-      semver:
-        specifier: ^7.8.1
-        version: 7.8.1
       silver-fleece:
         specifier: ^1.2.1
         version: 1.2.1
@@ -158,6 +152,9 @@ importers:
       svelte:
         specifier: ^5.56.7
         version: 5.56.7(@typescript-eslint/types@8.65.0)
+      verkit:
+        specifier: ^0.2.0
+        version: 0.2.0
       yaml:
         specifier: ^2.9.0
         version: 2.9.0
@@ -830,9 +827,6 @@ packages:
 
   '@types/ps-tree@1.1.6':
     resolution: {integrity: sha512-PtrlVaOaI44/3pl3cvnlK+GxOM3re2526TJvPvh7W+keHIXdV4TE0ylpPBAcvFQCbGitaTXwL9u+RF7qtVeazQ==}
-
-  '@types/semver@7.7.1':
-    resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
 
   '@types/tar-fs@2.0.4':
     resolution: {integrity: sha512-ipPec0CjTmVDWE+QKr9cTmIIoTl7dFG/yARCM5MqK8i6CNLIG1P8x4kwDsOQY1ChZOZjH0wO9nvfgBvWl4R3kA==}
@@ -2276,6 +2270,10 @@ packages:
       typescript:
         optional: true
 
+  verkit@0.2.0:
+    resolution: {integrity: sha512-6M8R2xSKplkQ+0mAm07IMh548GLLPUnRQZJCCe/W4rfk/SXW2bs8ZJSWa5kjdIdsx3hLG5oLWROJ4+N5hpX08g==}
+    engines: {node: '>=18.12.0'}
+
   vite@8.0.1:
     resolution: {integrity: sha512-wt+Z2qIhfFt85uiyRt5LPU4oVEJBXj8hZNWKeqFG4gRG/0RaRGJ7njQCwzFVjO+v4+Ipmf5CY7VdmZRAYYBPHw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -3040,8 +3038,6 @@ snapshots:
       undici-types: 7.24.6
 
   '@types/ps-tree@1.1.6': {}
-
-  '@types/semver@7.7.1': {}
 
   '@types/tar-fs@2.0.4':
     dependencies:
@@ -4408,6 +4404,8 @@ snapshots:
   valibot@1.4.1(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
+
+  verkit@0.2.0: {}
 
   vite@8.0.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@25.9.1)(yaml@2.9.0):
     dependencies:

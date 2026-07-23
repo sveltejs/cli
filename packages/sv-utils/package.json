@@ -26,16 +26,15 @@
 	},
 	"devDependencies": {
 		"@types/estree": "^1.0.9",
-		"@types/semver": "^7.7.1",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.2",
 		"diff": "^9.0.0",
 		"esrap": "^2.2.13",
 		"package-manager-detector": "^1.6.0",
-		"semver": "^7.8.1",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.6.1",
 		"svelte": "^5.56.7",
+		"verkit": "^0.2.0",
 		"yaml": "^2.9.0",
 		"zimmerframe": "^1.1.4"
 	},
