@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import fs from 'node:fs';
@@ -774,13 +774,21 @@ export async function runAddonsApply({
 		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
 	}
 
+	let depsInstalled = true;
 	if (packageManager) {
 		workspace.packageManager = packageManager;
-		await installDependencies(packageManager, options.cwd);
-		await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
+		depsInstalled = await installDependencies(packageManager, options.cwd);
+		if (depsInstalled) {
+			await formatFiles({ packageManager, cwd: options.cwd, filesToFormat });
+		}
 	}
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);
+	if (packageManager && !depsInstalled) {
+		nextSteps.unshift(
+			`Install ${color.command(packageManager)}, then run ${color.command(resolveCommandArray(packageManager, 'install', []))}`
+		);
+	}
 
 	return { nextSteps, argsFormattedAddons, filesToFormat, successfulAddons, setupResults };
 }

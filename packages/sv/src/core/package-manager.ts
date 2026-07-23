@@ -13,20 +13,17 @@ import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { exec } from 'tinyexec';
+import { exec, execSync } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
 );
-const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
-agentOptions.unshift({ label: 'None', value: undefined });
 
 export const installOption: Option = new Option(
 	'--install <package-manager>',
 	'installs dependencies with a specified package manager'
 ).choices(AGENT_NAMES);
 
-type PackageManagerOptions = Array<{ value: AgentName | undefined; label: AgentName | 'None' }>;
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
 	const detected = await detect({ cwd });
 	const agent = detected?.name ?? getUserAgent();
@@ -34,6 +31,19 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	// If we are in a non interactive environment just go with the detected package manager.
 	// There is no need to prompt in that case.
 	if (!process.stdout.isTTY) return agent;
+
+	// installed ones first
+	const agentOptions = [
+		{ label: 'None', value: undefined },
+		...AGENT_NAMES.map((agent) => {
+			const installed = isInstalled(agent);
+			return {
+				value: agent,
+				label: installed ? agent : color.dim(`${agent} (not installed)`),
+				installed
+			};
+		}).sort((a, b) => Number(b.installed) - Number(a.installed))
+	];
 
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
@@ -48,7 +58,13 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	return pm;
 }
 
-export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
+/** Returns `false` when the package manager isn't installed and the install was skipped. */
+export async function installDependencies(agent: AgentName, cwd: string): Promise<boolean> {
+	if (!isInstalled(agent)) {
+		p.log.warn(`${color.command(agent)} is not installed, skipping dependency installation.`);
+		return false;
+	}
+
 	const task = p.taskLog({
 		title: `Installing dependencies with ${color.command(agent)}...`,
 		limit: Math.ceil(process.stdout.rows / 2),
@@ -77,7 +93,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 	const exitCode = proc.exitCode ?? 0;
 	if (exitCode === 0) {
 		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
-		return;
+		return true;
 	}
 
 	if (agent === 'pnpm' && output.join('\n').includes('ERR_PNPM_IGNORED_BUILDS')) {
@@ -85,7 +101,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		p.log.warn(
 			`Some build scripts were skipped. Run ${color.command(`${agent} approve-builds`)} to approve them.`
 		);
-		return;
+		return true;
 	}
 
 	task.error('Failed to install dependencies');
@@ -98,7 +114,7 @@ export async function detectPackageManager(cwd: string): Promise<AgentName> {
 	return detected?.name ?? getUserAgent() ?? 'npm';
 }
 
-export function getUserAgent(): AgentName | undefined {
+function getUserAgent(): AgentName | undefined {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;
 
@@ -106,6 +122,21 @@ export function getUserAgent(): AgentName | undefined {
 	const separatorPos = pmSpec.lastIndexOf('/');
 	const name = pmSpec.substring(0, separatorPos) as AgentName;
 	return AGENTS.includes(name) ? name : undefined;
+}
+
+const installedCache = new Map<AgentName, boolean>();
+function isInstalled(agent: AgentName): boolean {
+	let installed = installedCache.get(agent);
+	if (installed === undefined) {
+		try {
+			execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
+			installed = true;
+		} catch {
+			installed = false;
+		}
+		installedCache.set(agent, installed);
+	}
+	return installed;
 }
 
 export function addPnpmAllowBuilds(
