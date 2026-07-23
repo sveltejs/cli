@@ -180,7 +180,9 @@ type SetupOptions<T extends Record<string, unknown>> = {
 				? StringQuestion
 				: T[K] extends number
 					? NumberQuestion
-					: Question<any>);
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
 };
 
 declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
@@ -190,8 +192,19 @@ declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
 	const Id extends string,
 	Args extends OptionDefinition
 >(
-	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options'> & {
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id>, 'options' | 'setup'> & {
 		options: Args;
+		setup?: (
+			workspace: Workspace & {
+				dependsOn: (name: keyof typeof officialAddons) => void;
+				unsupported: (reason: string) => void;
+				runsAfter: (name: keyof typeof officialAddons) => void;
+				addOption: <K extends keyof SetupValues & string>(
+					key: K,
+					question: SetupOptions<SetupValues>[K]
+				) => void;
+			}
+		) => MaybePromise<void>;
 	}
 ) => Addon<Args & SetupOptions<SetupValues>, Id>;
 
