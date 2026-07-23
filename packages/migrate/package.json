@@ -1,6 +1,6 @@
 {
 	"name": "svelte-migrate",
-	"version": "1.10.2",
+	"version": "1.10.3-next.0",
 	"type": "module",
 	"description": "A CLI for migrating Svelte(Kit) codebases",
 	"license": "MIT",
@@ -16,10 +16,8 @@
 	"bin": {
 		"svelte-migrate": "./bin.js"
 	},
-	"dependencies": {
-	},
-	"devDependencies": {
-	},
+	"dependencies": {},
+	"devDependencies": {},
 	"keywords": [
 		"migration",
 		"upgrade",

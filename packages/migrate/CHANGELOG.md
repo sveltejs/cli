@@ -1,5 +1,11 @@
 # svelte-migrate
 
+## 1.10.3-next.0
+### Patch Changes
+
+
+- chore: replace `semver` with `verkit` ([#1186](https://github.com/sveltejs/cli/pull/1186))
+
 ## 1.10.2
 ### Patch Changes
 
