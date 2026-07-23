@@ -26,26 +26,24 @@ export const installOption: Option = new Option(
 
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
 	const detected = await detect({ cwd });
-	const detectedAgent = detected?.name ?? getUserAgent();
-	const installedAgents = AGENT_NAMES.filter(isInstalled);
-	const agent = detectedAgent ?? installedAgents[0];
+	const agent = detected?.name ?? getUserAgent();
 
+	// If we are in a non interactive environment just go with the detected package manager.
+	// There is no need to prompt in that case.
+	if (!process.stdout.isTTY) return agent;
+
+	// installed ones first
 	const agentOptions = [
 		{ label: 'None', value: undefined },
 		...AGENT_NAMES.map((agent) => {
-			const installed = installedAgents.includes(agent);
+			const installed = isInstalled(agent);
 			return {
 				value: agent,
 				label: installed ? agent : color.dim(`${agent} (not installed)`),
 				installed
 			};
-			// installed ones first
 		}).sort((a, b) => Number(b.installed) - Number(a.installed))
 	];
-
-	// If we are in a non interactive environment just go with the detected package manager.
-	// There is no need to prompt in that case.
-	if (!process.stdout.isTTY) return agent;
 
 	const pm = await p.select({
 		message: 'Which package manager do you want to install dependencies with?',
@@ -126,13 +124,19 @@ function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
+const installedCache = new Map<AgentName, boolean>();
 function isInstalled(agent: AgentName): boolean {
-	try {
-		execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
-		return true;
-	} catch {
-		return false;
+	let installed = installedCache.get(agent);
+	if (installed === undefined) {
+		try {
+			execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
+			installed = true;
+		} catch {
+			installed = false;
+		}
+		installedCache.set(agent, installed);
 	}
+	return installed;
 }
 
 export function addPnpmAllowBuilds(
