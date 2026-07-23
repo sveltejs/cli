@@ -1,23 +1,51 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect } from 'vitest';
-import mcp from '../../mcp.ts';
+import aiTools from '../../ai-tools.ts';
 import { setupTest } from '../_setup/suite.ts';
 
 const { test, testCases } = setupTest(
-	{ mcp },
+	{ 'ai-tools': aiTools },
 	{
 		kinds: [
 			{
 				type: 'default-local',
 				options: {
-					mcp: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'local' }
+					'ai-tools': {
+						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
+						mcpSetup: 'local',
+						delivery: 'tools',
+						tools: ['mcp', 'svelte-code-writer', 'svelte-core-bestpractices', 'svelte-file-editor']
+					}
 				}
 			},
 			{
 				type: 'default-remote',
 				options: {
-					mcp: { ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'], setup: 'remote' }
+					'ai-tools': {
+						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
+						mcpSetup: 'remote',
+						delivery: 'tools',
+						tools: ['mcp', 'svelte-code-writer', 'svelte-core-bestpractices', 'svelte-file-editor']
+					}
+				}
+			},
+			{
+				type: 'other',
+				options: {
+					'ai-tools': {
+						ide: ['other'],
+						mcpSetup: 'remote'
+					}
+				}
+			},
+			{
+				type: 'plugin',
+				options: {
+					'ai-tools': {
+						ide: ['claude-code', 'opencode'],
+						delivery: 'plugin'
+					}
 				}
 			}
 		],
@@ -45,13 +73,40 @@ const { test, testCases } = setupTest(
 	}
 );
 
-test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
+test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) => {
 	const cwd = ctx.cwd(testCase);
 
 	const getContent = (filePath: string) => {
-		const cursorPath = path.resolve(cwd, filePath);
-		return fs.readFileSync(cursorPath, 'utf8');
+		const fullPath = path.resolve(cwd, filePath);
+		return fs.readFileSync(fullPath, 'utf8');
 	};
+
+	if (testCase.kind.type === 'other') {
+		// only AGENTS.md is written, everything else is handled via the docs link
+		expect(fs.existsSync(path.resolve(cwd, 'AGENTS.md'))).toBe(true);
+		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude'))).toBe(false);
+		return;
+	}
+
+	if (testCase.kind.type === 'plugin') {
+		// Claude Code: the plugin is enabled via a committed `.claude/settings.json`
+		const settings = JSON.parse(getContent('.claude/settings.json'));
+		expect(settings.enabledPlugins).toEqual({ 'svelte@svelte': true });
+		expect(settings.extraKnownMarketplaces.svelte.source).toEqual({
+			source: 'github',
+			repo: 'sveltejs/ai-tools'
+		});
+		// the plugin bundles everything, so no individual files are written for Claude
+		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude/skills'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude/agents'))).toBe(false);
+		// opencode stays configured through its own plugin
+		expect(JSON.parse(getContent('.opencode/opencode.json')).plugin).toEqual([
+			'@sveltejs/opencode'
+		]);
+		return;
+	}
 
 	const cursorMcpContent = getContent(`.cursor/mcp.json`);
 
@@ -214,4 +269,25 @@ test.concurrent.for(testCases)('mcp $kind.type $variant', (testCase, ctx) => {
 			}
 		`);
 	}
+
+	// CLAUDE.md is a pointer to the shared AGENTS.md
+	expect(getContent('.claude/CLAUDE.md')).toBe('@../AGENTS.md\n');
+	expect(fs.existsSync(path.resolve(cwd, 'AGENTS.md'))).toBe(true);
+
+	// skills should be installed for all clients except opencode (plugin handles it)
+	const skillDirs = ['.claude/skills', '.cursor/skills', '.gemini/skills', '.github/skills'];
+	for (const dir of skillDirs) {
+		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-code-writer/SKILL.md'))).toBe(true);
+		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-core-bestpractices/SKILL.md'))).toBe(true);
+	}
+
+	// opencode should NOT have skills (plugin handles it)
+	expect(fs.existsSync(path.resolve(cwd, '.opencode/skills'))).toBe(false);
+
+	// sub-agents should be installed for all clients except opencode
+	expect(fs.existsSync(path.resolve(cwd, '.claude/agents/svelte-file-editor.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(cwd, '.cursor/agents/svelte-file-editor.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(cwd, '.gemini/agents/svelte-file-editor.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(cwd, '.github/agents/svelte-file-editor.agent.md'))).toBe(true);
+	expect(fs.existsSync(path.resolve(cwd, '.opencode/agents'))).toBe(false);
 });

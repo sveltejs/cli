@@ -1,0 +1,11 @@
+svelte-code-writer/SKILL.md
+svelte-core-bestpractices/SKILL.md
+svelte-core-bestpractices/references/$inspect.md
+svelte-core-bestpractices/references/@attach.md
+svelte-core-bestpractices/references/@render.md
+svelte-core-bestpractices/references/await-expressions.md
+svelte-core-bestpractices/references/bind.md
+svelte-core-bestpractices/references/each.md
+svelte-core-bestpractices/references/hydratable.md
+svelte-core-bestpractices/references/snippet.md
+svelte-core-bestpractices/references/svelte-reactivity.md
