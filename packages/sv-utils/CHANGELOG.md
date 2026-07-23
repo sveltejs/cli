@@ -1,5 +1,23 @@
 # @sveltejs/sv-utils
 
+## 1.0.0-next.0
+### Major Changes
+
+
+- breaking: remove deprecated utils and properties ([#1184](https://github.com/sveltejs/cli/pull/1184))
+
+
+### Patch Changes
+
+
+- chore: replace `semver` with `verkit` ([#1186](https://github.com/sveltejs/cli/pull/1186))
+
+
+- chore(svelte-config): `svelteConfig.read` now additinally exports full `ast` ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- docs(svelte-config): fix incorrect documentation about default config file ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
 ## 0.3.1
 ### Patch Changes
 

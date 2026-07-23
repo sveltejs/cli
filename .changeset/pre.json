@@ -6,5 +6,13 @@
     "sv": "0.16.4",
     "@sveltejs/sv-utils": "0.3.1"
   },
-  "changesets": []
+  "changesets": [
+    "big-balloons-peel",
+    "format-strategy-script",
+    "hot-taxis-happen",
+    "moody-pears-tickle",
+    "purple-glasses-appear",
+    "sixty-bottles-work",
+    "sweet-horses-share"
+  ]
 }

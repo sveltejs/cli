@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "0.16.5",
+	"version": "1.0.0-next.0",
 	"type": "module",
 	"description": "A command line interface (CLI) for creating and maintaining Svelte applications",
 	"license": "MIT",

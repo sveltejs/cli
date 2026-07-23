@@ -1,5 +1,29 @@
 # sv
 
+## 1.0.0-next.0
+### Major Changes
+
+
+- feat(migrate): `sveltekit-3` migration ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- breaking: remove deprecated utils and properties ([#1184](https://github.com/sveltejs/cli/pull/1184))
+
+
+### Minor Changes
+
+
+- feat(migrate): defer formatting to the project's own `format`/`fmt` script when present, falling back to `prettier` on modified files ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+### Patch Changes
+
+
+- chore(addons): rename `experimental` addon’s SvelteKit option to `kit-3-next` ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+- Updated dependencies [[`86e4195`](https://github.com/sveltejs/cli/commit/86e419546ab931e14f2038fc2bdc9c6b4048defd), [`c7e7473`](https://github.com/sveltejs/cli/commit/c7e7473df952c295a93bcc8c2af36e0bca2fead1), [`c7e7473`](https://github.com/sveltejs/cli/commit/c7e7473df952c295a93bcc8c2af36e0bca2fead1), [`ffa9807`](https://github.com/sveltejs/cli/commit/ffa98070cfd5c4b27398419a0243e464d9998311)]:
+  - @sveltejs/sv-utils@1.0.0-next.0
+
 ## 0.16.5
 ### Patch Changes
 
