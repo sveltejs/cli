@@ -2,6 +2,7 @@ import type { officialAddons } from '../addons/index.ts';
 import type {
 	BaseQuestion,
 	BooleanQuestion,
+	MultiSelectQuestion,
 	NumberQuestion,
 	OptionDefinition,
 	OptionValues,
