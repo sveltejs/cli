@@ -37,7 +37,7 @@ const svDeps = {
 		'text-decoder',
 		'streamx',
 		'tar-stream',
-		'tar-fs',
+		'modern-tar',
 		'once',
 		'wrappy',
 		'end-of-stream',
