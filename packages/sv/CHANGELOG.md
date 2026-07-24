@@ -1,5 +1,29 @@
 # sv
 
+## 0.16.5
+### Patch Changes
+
+
+- chore(better-auth): bump better-auth to 1.6 and migrate CLI to the `auth` package ([#1058](https://github.com/sveltejs/cli/pull/1058))
+
+
+- fix: ignore `types` flag when using the `addon` template ([#1177](https://github.com/sveltejs/cli/pull/1177))
+
+## 0.16.4
+### Patch Changes
+
+
+- fix: emit Paraglide TypeScript declarations for reliable language-server updates ([#1172](https://github.com/sveltejs/cli/pull/1172))
+
+
+- revert: remove paraglide reactive class ([#1168](https://github.com/sveltejs/cli/issues/1168)) ([#1176](https://github.com/sveltejs/cli/pull/1176))
+
+## 0.16.3
+### Patch Changes
+
+
+- fix: add reactivity to paraglide ([#1168](https://github.com/sveltejs/cli/pull/1168))
+
 ## 0.16.2
 ### Patch Changes
 

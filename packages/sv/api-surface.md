@@ -13,6 +13,7 @@ type Options = {
 	template: TemplateType;
 	types: LanguageType;
 };
+declare function create({ cwd, ...options }: Options): void;
 type OfficialAddons = {
 	prettier: Addon<any>;
 	eslint: Addon<any>;
@@ -100,21 +101,10 @@ type Workspace = {
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
-		/**
-		 * @deprecated the config no longer necessarily lives in `svelte.config.{js,ts}` (it can be
-		 * passed to `sveltekit()` in `vite.config.{js,ts}`). Use `svelteConfig` from
-		 * `@sveltejs/sv-utils` to edit it wherever it lives.
-		 */
-		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
 		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
-		gitignore: '.gitignore'; /** @deprecated use the string `.prettierignore` instead. */
-		prettierignore: '.prettierignore'; /** @deprecated use the string `.prettierrc` instead. */
-		prettierrc: '.prettierrc'; /** @deprecated use the string `eslint.config.js` instead. */
-		eslintConfig: 'eslint.config.js'; /** @deprecated use the string `.vscode/settings.json` instead. */
-		vscodeSettings: '.vscode/settings.json'; /** @deprecated use the string `.vscode/extensions.json` instead. */
-		vscodeExtensions: '.vscode/extensions.json';
+		gitignore: '.gitignore';
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 
 		findUp: (filename: string) => string;
@@ -128,15 +118,24 @@ type Workspace = {
 	packageManager: AgentName;
 };
 type ConditionDefinition = (Workspace: Workspace) => boolean;
+type FileEdit = (content: string) => string | false;
+type FileEditMultiple = (content: string, path: string) => string | false;
 type SvApi = {
-	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */ pnpmBuildDependency: (
-		pkg: string
-	) => void;
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 
-	file: (path: string, edit: (content: string) => string | false) => void;
+	file: (path: string, edit: FileEdit) => void;
+
+	files: (
+		options: {
+			include: string | string[];
+			exclude?: string[];
+
+			where?: (content: string) => boolean;
+		},
+		edit: FileEditMultiple
+	) => void;
 };
 type Addon<Args extends OptionDefinition, Id extends string = string> = {
 	id: Id;
@@ -283,9 +282,6 @@ type FileType = {
 	condition?: ConditionDefinition;
 	content: (editor: FileEditor) => string;
 };
-declare function create(options: Options): void;
-/** @deprecated use `create({ cwd, ...options })` instead. */
-declare function create(cwd: string, options: Omit<Options, 'cwd'>): void;
 export {
 	type Addon,
 	type AddonDefinition,

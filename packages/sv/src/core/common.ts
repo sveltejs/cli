@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import pkg from '../../package.json' with { type: 'json' };
-import type { LoadedAddon } from './config.ts';
+import type { LoadedAddon, Verification } from './config.ts';
 import { UnsupportedError } from './errors.ts';
 
 const NO_PREFIX = '--no-';
@@ -334,3 +334,28 @@ export const filePaths = {
 	viteConfig: 'vite.config.js',
 	viteConfigTS: 'vite.config.ts'
 } as const;
+
+export async function runAndValidateVerifications(verifications: Verification[]) {
+	const fails: Array<{ name: string; message?: string }> = [];
+	for (const verification of verifications) {
+		const { message, success } = await verification.run();
+		if (!success) fails.push({ name: verification.name, message });
+	}
+
+	if (fails.length > 0) {
+		const message = fails
+			.map(({ name, message }) => color.warning(`${name} (${message})`))
+			.join('\n- ');
+
+		p.note(`- ${message}`, 'Verifications not met', { format: (line) => line });
+
+		const force = await p.confirm({
+			message: 'Verifications failed. Do you wish to continue?',
+			initialValue: false
+		});
+		if (p.isCancel(force) || !force) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
+		}
+	}
+}

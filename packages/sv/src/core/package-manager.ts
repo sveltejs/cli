@@ -119,5 +119,5 @@ export function addPnpmAllowBuilds(
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
 	const newContent = pnpm.allowBuilds(...packages)(content);
-	if (newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
+	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }

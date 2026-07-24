@@ -19,7 +19,7 @@ import { type RootWithInstance, ensureScript } from './svelte/index.ts';
 import * as svelteNs from './svelte/index.ts';
 import * as textNs from './text.ts';
 
-export type TransformFn = (content: string) => string;
+export type TransformFn = (content: string) => string | false;
 
 type TransformOptions = {
 	/** Called when parsing fails. If provided, the original content is returned unchanged. */
@@ -47,7 +47,7 @@ function withParseError<T>(parseFn: () => T, options?: TransformOptions): T | un
  * The parser choice is baked into the transform type - you can't accidentally
  * parse a vite config as svelte because you never call a parser yourself.
  *
- * Transforms are curried: call with the callback to get a `(content: string) => string`
+ * Transforms are curried: call with the callback to get a `(content: string) => string | false`
  * function that plugs directly into `sv.file()`.
  *
  * @example
@@ -69,7 +69,7 @@ export const transforms = {
 	/**
 	 * Transform a JavaScript/TypeScript file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	script(
 		cb: (file: {
@@ -79,12 +79,12 @@ export const transforms = {
 			js: typeof jsNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseScript(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, comments: parsed.comments, content, js: jsNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -92,7 +92,7 @@ export const transforms = {
 	/**
 	 * Transform a Svelte component file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	svelte(
 		cb: (file: {
@@ -102,12 +102,12 @@ export const transforms = {
 			js: typeof jsNs;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string {
+	): TransformFn {
 		return (content) => {
 			const parsed = withParseError(() => parseSvelte(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, content, svelte: svelteNs, js: jsNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -118,7 +118,7 @@ export const transforms = {
 	 * Calls `ensureScript` before invoking your callback, so `ast.instance` is always non-null.
 	 * Pass `{ language }` as the first argument to set the script language.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	svelteScript(
 		scriptOptions: { language: 'ts' | 'js' },
@@ -140,7 +140,7 @@ export const transforms = {
 				svelte: svelteNs,
 				js: jsNs
 			});
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -148,7 +148,7 @@ export const transforms = {
 	/**
 	 * Transform a CSS file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	css(
 		cb: (file: {
@@ -162,7 +162,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseCss(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, content, css: cssNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -170,7 +170,7 @@ export const transforms = {
 	/**
 	 * Transform a JSON file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	json<T = any>(
 		cb: (file: { data: T; content: string; json: typeof jsonNs }) => void | false,
@@ -180,7 +180,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseJson(content), options);
 			if (!parsed) return content;
 			const result = cb({ data: parsed.data as T, content, json: jsonNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -188,7 +188,7 @@ export const transforms = {
 	/**
 	 * Transform a YAML file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	yaml(
 		cb: (file: { data: YamlDocument; content: string }) => void | false,
@@ -198,7 +198,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseYaml(content), options);
 			if (!parsed) return content;
 			const result = cb({ data: parsed.data, content });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -206,7 +206,7 @@ export const transforms = {
 	/**
 	 * Transform a TOML file.
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	toml(
 		cb: (file: { data: TomlTable; content: string }) => void | false,
@@ -216,7 +216,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseToml(content), options);
 			if (!parsed) return content;
 			const result = cb({ data: parsed.data, content });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -224,7 +224,7 @@ export const transforms = {
 	/**
 	 * Transform an HTML file (e.g. app.html).
 	 *
-	 * Return `false` from the callback to abort - the original content is returned unchanged.
+	 * Return `false` from the callback to abort.
 	 */
 	html(
 		cb: (file: { ast: SvelteAst.Fragment; content: string; html: typeof htmlNs }) => void | false,
@@ -234,7 +234,7 @@ export const transforms = {
 			const parsed = withParseError(() => parseHtml(content), options);
 			if (!parsed) return content;
 			const result = cb({ ast: parsed.ast, content, html: htmlNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return parsed.generateCode();
 		};
 	},
@@ -248,7 +248,7 @@ export const transforms = {
 	text(cb: (file: { content: string; text: typeof textNs }) => string | false): TransformFn {
 		return (content) => {
 			const result = cb({ content, text: textNs });
-			if (result === false) return content;
+			if (result === false) return false;
 			return result;
 		};
 	}

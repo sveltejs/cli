@@ -177,6 +177,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		);
 	}
 
+	if (options.template === 'addon' && options.types === 'typescript') {
+		p.log.warn(
+			`The addon template does not support TypeScript. The ${color.command('--types')} flag will be ignored.`
+		);
+	}
+
 	const promptGroupResult = await p.group(
 		{
 			directory: () => {
@@ -231,8 +237,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 				});
 			},
 			language: (o) => {
-				if (options.types) return Promise.resolve(options.types);
 				if (o.results.template === 'addon') return Promise.resolve<LanguageType>('none');
+				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
 					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
@@ -404,7 +410,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
 			? ['.']
 			: addOnFilesToFormat;
-		await formatFiles({ packageManager, cwd: projectPath, filesToFormat });
+		await formatFiles({
+			packageManager,
+			cwd: projectPath,
+			filesToFormat,
+			strategy: 'files-only'
+		});
 	}
 
 	return { directory: projectPath, addOnNextSteps, packageManager };
@@ -485,8 +496,7 @@ export async function createVirtualWorkspace({
 		file: {
 			...tentativeWorkspace.file,
 			viteConfig:
-				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig,
-			svelteConfig: common.filePaths.svelteConfig // currently we always use js files, never typescript files
+				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig
 		}
 	};
 
