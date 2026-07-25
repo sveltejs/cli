@@ -37,9 +37,12 @@ export default defineAddon({
 		})
 		.build(),
 
-	setup: ({ dependsOn, isKit, unsupported }) => {
+	setup: ({ dependsOn, isKit, unsupported, addOption }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 		dependsOn('vitest');
+
+		// dynamically add options (e.g. based on workspace state or fetched data)
+		// addOption('key', { question: '...', type: 'boolean', default: true });
 	},
 
 	run: ({ isKit, cancel, sv, options, file, language, directory }) => {

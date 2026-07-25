@@ -34,7 +34,7 @@ describe('applyAddons cancel propagation', () => {
 		const { status } = await applyAddons({
 			loadedAddons: addons,
 			workspace,
-			setupResults: setupAddons(addons, workspace),
+			setupResults: await setupAddons(addons, workspace),
 			options: { dep: {}, child: {} }
 		});
 		expect(status.dep).toEqual(['nope']);
@@ -56,7 +56,7 @@ describe('applyAddons cancel propagation', () => {
 		const { status } = await applyAddons({
 			loadedAddons: addons,
 			workspace,
-			setupResults: setupAddons(addons, workspace),
+			setupResults: await setupAddons(addons, workspace),
 			options: { dep: {}, child: {} }
 		});
 		expect(status.child).toBe('success');
