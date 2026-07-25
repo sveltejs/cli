@@ -74,7 +74,7 @@ export function parseJson(source: string): { data: any } & ParseBase {
 export function parseYaml(source: string): { data: YamlDocument } & ParseBase {
 	if (!source) source = '';
 	const data = utils.parseYaml(source);
-	const generateCode = () => utils.serializeYaml(data as Parameters<typeof utils.serializeYaml>[0]);
+	const generateCode = () => utils.serializeYaml(data);
 
 	return { data: data as YamlDocument, source, generateCode };
 }
@@ -105,19 +105,12 @@ export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & Par
 		return code;
 	};
 
-	return {
-		ast,
-		source,
-		generateCode
-	};
+	return { ast, source, generateCode };
 }
 
 export function parseToml(source: string): { data: TomlTable } & ParseBase {
 	const data = utils.parseToml(source);
+	const generateCode = () => utils.serializeToml(data);
 
-	return {
-		data,
-		source,
-		generateCode: () => utils.serializeToml(data)
-	};
+	return { data, source, generateCode };
 }
