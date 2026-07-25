@@ -58,7 +58,7 @@ After editing, ALWAYS call `svelte-autofixer` with the updated code to check for
 
 If the autofixer reports problems, fix them and re-validate until no issues remain.
 
-## Output Format
+## Output format
 
 After completing your work, provide:
 
