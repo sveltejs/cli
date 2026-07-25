@@ -50,7 +50,7 @@ Read the file to understand the current implementation.
 
 Apply edits following Svelte 5 best practices:
 
-### 4. Validate Changes
+### 4. Validate changes
 
 After editing, ALWAYS call `svelte-autofixer` with the updated code to check for issues.
 
