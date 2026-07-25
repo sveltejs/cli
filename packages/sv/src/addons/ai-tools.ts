@@ -106,11 +106,16 @@ const CLIENTS: Record<string, Client> = {
 	}
 };
 
-const hasPlugin = (client?: Client) =>
-	Boolean(client && (client.pluginSettings || client.pluginOnly));
-const isFileOnly = (client?: Client) => Boolean(client && client.agentPath && !hasPlugin(client));
+// a client can only receive loose tool files if it has somewhere to put them
 const acceptsTools = (client?: Client) =>
-	isFileOnly(client) && Boolean(client?.skillsPath || client?.agentsPath || client?.configPath);
+	Boolean(
+		client && !client.pluginOnly && (client.skillsPath || client.agentsPath || client.configPath)
+	);
+// clients whose plugin replaces loose files only skip them when the plugin is chosen
+const wantsLooseTools = (client: Client | undefined, delivery: string | undefined) =>
+	acceptsTools(client) && (!client!.pluginSettings || delivery !== 'plugin');
+const wantsMcpConfig = (client: Client | undefined, delivery: string | undefined) =>
+	Boolean(client?.mcpOptions) && wantsLooseTools(client, delivery);
 
 // Static for curated labels; derive from getSharedFiles() (include 'skills'/'agents') to go dynamic.
 const TOOLS: Record<string, { label: string; kind: 'mcp' | 'skill' | 'agent'; hint?: string }> = {
@@ -136,7 +141,7 @@ const options = defineAddonOptions()
 			{ value: 'plugin', label: 'Svelte plugin', hint: 'recommended, auto-installs & updates' },
 			{ value: 'tools', label: 'Individual tools', hint: 'choose exactly what to add' }
 		],
-		condition: ({ ide }) => ide.some((i) => hasPlugin(CLIENTS[i]))
+		condition: ({ ide }) => ide.some((i) => CLIENTS[i]?.pluginSettings)
 	})
 	.add('tools', {
 		question: 'Which tools would you like to add?',
@@ -144,8 +149,7 @@ const options = defineAddonOptions()
 		default: Object.keys(TOOLS),
 		options: Object.entries(TOOLS).map(([value, t]) => ({ value, label: t.label, hint: t.hint })),
 		required: false,
-		condition: ({ ide, delivery }) =>
-			delivery !== 'plugin' || ide.some((i) => acceptsTools(CLIENTS[i]))
+		condition: ({ ide, delivery }) => ide.some((i) => wantsLooseTools(CLIENTS[i], delivery))
 	})
 	.add('mcpSetup', {
 		question: 'Which MCP setup would you like to use?',
@@ -155,9 +159,9 @@ const options = defineAddonOptions()
 			{ value: 'local', label: 'Local', hint: 'will use stdio' },
 			{ value: 'remote', label: 'Remote', hint: 'will use a remote endpoint' }
 		],
-		condition: ({ ide, delivery }) =>
-			ide.some((i) => isFileOnly(CLIENTS[i])) ||
-			(delivery !== 'plugin' && ide.some((i) => Boolean(CLIENTS[i]?.mcpOptions)))
+		condition: ({ ide, delivery, tools }) =>
+			(tools === undefined || tools.includes('mcp')) &&
+			ide.some((i) => wantsMcpConfig(CLIENTS[i], delivery))
 	})
 	.build();
 

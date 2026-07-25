@@ -34,8 +34,7 @@ const { test, testCases } = setupTest(
 				type: 'other',
 				options: {
 					'ai-tools': {
-						ide: ['other'],
-						mcpSetup: 'remote'
+						ide: ['other']
 					}
 				}
 			},
