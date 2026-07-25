@@ -167,7 +167,7 @@ const options = defineAddonOptions()
 
 export default defineAddon({
 	id: 'ai-tools',
-	shortDescription: 'Svelte AI Tools',
+	shortDescription: 'Svelte AI tools',
 	homepage: 'https://svelte.dev/docs/ai',
 	options,
 	run: ({ sv, options }) => {
