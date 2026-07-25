@@ -1,17 +1,18 @@
 import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import path from 'node:path';
+import type { SvApi } from '../../../../core/config.ts';
 import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
 
 const GENERATED_CONFIG = /(^|\/)\.svelte-kit\/tsconfig\.json$/;
 const LEADING_PARENT = /^\.\.\//;
 
-/** The id of the config SvelteKit now generates into `node_modules`. */
+/** The config SvelteKit now generates into `node_modules`, replacing `.svelte-kit/tsconfig.json`. */
 const PARENT_CONFIG = '$app/tsconfig';
 
 /**
- * Compiler options the generated config already sets. A local copy of the same value is noise, but
- * a different value is a deliberate override and stays.
+ * Options the generated config already sets. A local copy of the same value is noise, but a
+ * different value is a deliberate override and stays.
  */
 const INHERITED_OPTIONS: Record<string, unknown> = {
 	allowImportingTsExtensions: true,
@@ -30,26 +31,34 @@ const INHERITED_OPTIONS: Record<string, unknown> = {
 	verbatimModuleSyntax: true
 };
 
+type TypeConfig = {
+	extends?: string | string[];
+	include?: string[];
+	compilerOptions?: Record<string, unknown>;
+};
+
 export default defineMigrationTask({
 	id: 'tsconfig',
 	description: 'Extend the generated $app/tsconfig instead of .svelte-kit/tsconfig.json',
 	run: ({ sv, cwd, file }) => {
 		if (!file.typeConfig) return;
 
-		// paths the deprecated `typescript.config` hook used to add, so they can move to `include`
-		const extraIncludes = migrateTypescriptOption({ sv, cwd });
+		const moved = dropTypescriptOption(sv, cwd);
 
 		sv.file(
 			// `typeConfig` is resolved by walking up from `cwd`, so it can sit outside the project
 			path.relative(cwd, file.typeConfig),
 			transforms.json<TypeConfig>(({ data }) => {
-				if (!retarget(data)) return false;
+				const extended = Array.isArray(data.extends) ? [...data.extends] : [data.extends];
+				const index = extended.findIndex((entry) => entry && GENERATED_CONFIG.test(entry));
+				if (index === -1) return false;
+
+				extended[index] = PARENT_CONFIG;
+				data.extends = Array.isArray(data.extends) ? (extended as string[]) : PARENT_CONFIG;
 
 				// the generated config no longer carries `include`, so the project owns it now
 				const include = (data.include ??= ['src']);
-				for (const entry of extraIncludes) {
-					if (!include.includes(entry)) include.push(entry);
-				}
+				include.push(...moved.filter((entry) => !include.includes(entry)));
 
 				for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
 					if (INHERITED_OPTIONS[key] === value) delete data.compilerOptions![key];
@@ -59,102 +68,54 @@ export default defineMigrationTask({
 	}
 });
 
-type TypeConfig = {
-	extends?: string | string[];
-	include?: string[];
-	compilerOptions?: Record<string, unknown>;
-};
-
-/** Points `extends` at the new parent config. Returns `false` when there was nothing to retarget. */
-function retarget(data: TypeConfig): boolean {
-	if (typeof data.extends === 'string') {
-		if (!GENERATED_CONFIG.test(data.extends)) return false;
-		data.extends = PARENT_CONFIG;
-		return true;
-	}
-
-	if (!Array.isArray(data.extends)) return false;
-
-	const index = data.extends.findIndex((entry) => GENERATED_CONFIG.test(entry));
-	if (index === -1) return false;
-	data.extends[index] = PARENT_CONFIG;
-	return true;
-}
-
 /**
- * Drops the deprecated `typescript.config` option, returning the paths its hook pushed onto
- * `include` so the caller can write them to the project's own config. Hooks that do anything else
- * are left in place and flagged, since their intent can't be expressed as `include` entries.
+ * Removes the deprecated `typescript.config` option, returning the paths its hook pushed onto
+ * `include` so they can move to the project's own config. Hooks that do anything else are left in
+ * place and flagged, since their intent can't be expressed as `include` entries.
  */
-function migrateTypescriptOption({ sv, cwd }: { sv: SvApi; cwd: string }): string[] {
-	const location = svelteConfig.find(cwd);
-	if (!location) return [];
+function dropTypescriptOption(sv: SvApi, cwd: string): string[] {
+	if (!svelteConfig.find(cwd)) return [];
 
-	const includes: string[] = [];
+	const moved: string[] = [];
 
 	svelteConfig.edit({ sv, cwd }, ({ ast, comments }) => {
-		const option = findTypescriptOption(ast);
-		if (!option) return false;
+		const found = findProperty(ast, 'typescript');
+		if (!found) return false;
 
-		const pushed = collectIncludePushes(option.value);
+		const pushed = includePushes(found.property.value);
 		if (!pushed) {
 			addMigrationTask(
 				'`typescript.config` is deprecated; configure TypeScript in tsconfig.json directly',
-				{ comments, node: option.property }
+				{ comments, node: found.property }
 			);
 			return;
 		}
 
 		// pushed paths were relative to `.svelte-kit/`, the project config sits one level up
-		includes.push(...pushed.map((entry) => entry.replace(LEADING_PARENT, '')));
-		option.container.properties.splice(
-			option.container.properties.indexOf(option.property as never),
-			1
-		);
-		if (option.container.properties.length === 0) dropEmptySveltekitArgument(ast);
+		moved.push(...pushed.map((entry) => entry.replace(LEADING_PARENT, '')));
+		found.remove();
 	});
 
-	return includes;
+	return moved;
 }
 
-type SvApi = Parameters<typeof svelteConfig.edit>[0]['sv'];
+type FoundProperty = { property: AstTypes.Property; remove: () => void };
 
-/** Turns a `sveltekit({})` left behind by the removed option back into `sveltekit()`. */
-function dropEmptySveltekitArgument(ast: AstTypes.Program): void {
-	Walker.walk(ast as AstTypes.Node, null, {
-		CallExpression(node: AstTypes.CallExpression, { next }: Walker.Context<never, null>) {
-			const [argument] = node.arguments;
-			if (
-				node.callee.type === 'Identifier' &&
-				node.callee.name === 'sveltekit' &&
-				node.arguments.length === 1 &&
-				argument.type === 'ObjectExpression' &&
-				argument.properties.length === 0
-			) {
-				node.arguments = [];
-			}
-			next();
-		}
-	});
-}
-
-type TypescriptOption = {
-	container: AstTypes.ObjectExpression;
-	property: AstTypes.Property;
-	value: AstTypes.ObjectExpression;
-};
-
-/** Locates the kit-level `typescript: { config }` option, wherever the config keeps it. */
-function findTypescriptOption(ast: AstTypes.Program): TypescriptOption | undefined {
-	let found: TypescriptOption | undefined;
+/** Finds a property by name anywhere in the config, wherever the config keeps it. */
+function findProperty(ast: AstTypes.Program, name: string): FoundProperty | undefined {
+	let found: FoundProperty | undefined;
 
 	Walker.walk(ast as AstTypes.Node, null, {
 		ObjectExpression(node: AstTypes.ObjectExpression, { next }: Walker.Context<never, null>) {
-			for (const property of node.properties) {
-				if (property.type !== 'Property') continue;
-				if (property.key.type !== 'Identifier' || property.key.name !== 'typescript') continue;
-				if (property.value.type !== 'ObjectExpression') continue;
-				found ??= { container: node, property, value: property.value };
+			const property = node.properties.find(
+				(p): p is AstTypes.Property =>
+					p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === name
+			);
+			if (property) {
+				found ??= {
+					property,
+					remove: () => node.properties.splice(node.properties.indexOf(property), 1)
+				};
 			}
 			next();
 		}
@@ -163,48 +124,42 @@ function findTypescriptOption(ast: AstTypes.Program): TypescriptOption | undefin
 	return found;
 }
 
-/**
- * Returns the string literals a `config` hook pushes onto `config.include`, or `undefined` when the
- * hook does anything beyond those pushes.
- */
-function collectIncludePushes(option: AstTypes.ObjectExpression): string[] | undefined {
-	const config = option.properties.find(
-		(p): p is AstTypes.Property =>
-			p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'config'
-	);
-	if (!config || option.properties.length > 1) return undefined;
+/** The literal paths a `typescript.config` hook pushes onto `include`, if that's all it does. */
+function includePushes(option: AstTypes.Node): string[] | undefined {
+	if (option.type !== 'ObjectExpression' || option.properties.length !== 1) return undefined;
+
+	const [config] = option.properties;
+	if (config.type !== 'Property' || config.key.type !== 'Identifier') return undefined;
+	if (config.key.name !== 'config') return undefined;
 
 	const fn = config.value;
 	if (fn.type !== 'ArrowFunctionExpression' && fn.type !== 'FunctionExpression') return undefined;
 	if (fn.body.type !== 'BlockStatement') return undefined;
 
-	const includes: string[] = [];
+	const paths: string[] = [];
 	for (const statement of fn.body.body) {
 		if (statement.type !== 'ExpressionStatement') return undefined;
-		const args = includePushArguments(statement.expression);
-		if (!args) return undefined;
-		includes.push(...args);
+		const call = statement.expression;
+		if (call.type !== 'CallExpression' || !isIncludePush(call.callee)) return undefined;
+
+		for (const argument of call.arguments) {
+			if (argument.type !== 'Literal' || typeof argument.value !== 'string') return undefined;
+			paths.push(argument.value);
+		}
 	}
 
-	return includes;
+	return paths;
 }
 
-/** Returns the string arguments of a `config.include.push(...)` call, if that's what `node` is. */
-function includePushArguments(node: AstTypes.Expression): string[] | undefined {
-	if (node.type !== 'CallExpression') return undefined;
-	const callee = node.callee;
-	if (callee.type !== 'MemberExpression' || callee.property.type !== 'Identifier') return undefined;
-	if (callee.property.name !== 'push') return undefined;
+const memberName = (node: AstTypes.MemberExpression) =>
+	node.property.type === 'Identifier' ? node.property.name : undefined;
 
-	const include = callee.object;
-	if (include.type !== 'MemberExpression' || include.property.type !== 'Identifier')
-		return undefined;
-	if (include.property.name !== 'include') return undefined;
-
-	const args: string[] = [];
-	for (const arg of node.arguments) {
-		if (arg.type !== 'Literal' || typeof arg.value !== 'string') return undefined;
-		args.push(arg.value);
-	}
-	return args;
+/** Matches the callee of `config.include.push(...)`. */
+function isIncludePush(callee: AstTypes.Node): boolean {
+	return (
+		callee.type === 'MemberExpression' &&
+		memberName(callee) === 'push' &&
+		callee.object.type === 'MemberExpression' &&
+		memberName(callee.object) === 'include'
+	);
 }

@@ -28,7 +28,7 @@ export default defineMigration({
 		tasks.add(packageJson, { prerequisite: true });
 		tasks.add(svelteConfig, { prerequisite: false });
 		tasks.add(environment, { prerequisite: false });
-		tasks.add(tsconfig, { prerequisite: false });
+		tasks.add(tsconfig, { prerequisite: true });
 		tasks.add(appState, { prerequisite: false });
 	}
 });
