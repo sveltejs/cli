@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color } from '@sveltejs/sv-utils';
+import { type AgentName, color } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import fs from 'node:fs';
@@ -690,12 +690,11 @@ export async function runAddonsApply({
 	}
 
 	// nothing new landed in `package.json`, so there is nothing to install and nothing to ask about
-	const skipInstall = options.install === false || !installNeeded;
-	const packageManager = skipInstall
-		? null
-		: options.install === true
-			? await packageManagerPrompt(options.cwd)
-			: options.install;
+	let packageManager: AgentName | null | undefined = null;
+	if (options.install !== false && installNeeded) {
+		packageManager =
+			options.install === true ? await packageManagerPrompt(options.cwd) : options.install;
+	}
 
 	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
 
