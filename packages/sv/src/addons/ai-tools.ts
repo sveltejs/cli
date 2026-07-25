@@ -73,7 +73,7 @@ const CLIENTS: Record<string, Client> = {
 		mcpOptions: {}
 	},
 	opencode: {
-		label: 'opencode',
+		label: 'OpenCode',
 		pluginOnly: true,
 		agentPath: 'AGENTS.md',
 		configPath: '.opencode/opencode.json',
