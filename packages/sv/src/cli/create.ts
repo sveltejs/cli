@@ -176,7 +176,7 @@ export const create = new Command('create')
 	})
 	.showHelpAfterError(true);
 
-async function createProject(cwd: ProjectPath, options: Options) {
+export async function createProject(cwd: ProjectPath, options: Options) {
 	if (options.fromPlayground) {
 		p.log.warn(
 			'Svelte maintainers have not reviewed playgrounds for malicious code! Use at your discretion.'
@@ -415,7 +415,10 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	if (packageManager) {
 		depsInstalled = await installDependencies(packageManager, projectPath);
 		if (depsInstalled) {
-			await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
+			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
+				? ['.']
+				: addOnFilesToFormat;
+			await formatFiles({ packageManager, cwd: projectPath, filesToFormat });
 		}
 	}
 

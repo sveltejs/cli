@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { add, officialAddons } from '../../../../sv/src/index.ts';
+import { createProject } from '../../cli/create.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 
 // Resolve the given path relative to the current file
@@ -48,8 +49,31 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 
-		create({ cwd, name: `create-svelte-test-${template}-${types}`, template, types });
-		await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+		if (template === 'demo' && types === 'typescript') {
+			const ignoredArtifact = path.join(cwd, 'static', 'ignored.json');
+			fs.mkdirSync(path.dirname(ignoredArtifact), { recursive: true });
+			fs.writeFileSync(ignoredArtifact, '{"ignored":true}');
+
+			await createProject(cwd, {
+				types,
+				addOns: true,
+				add: ['prettier', 'eslint'],
+				install: 'pnpm',
+				template,
+				fromPlayground: undefined,
+				dirCheck: false,
+				downloadCheck: false
+			});
+
+			describe('prettier ignore', () => {
+				test(`${template}-${types}`, () => {
+					expect(fs.readFileSync(ignoredArtifact, 'utf-8')).toBe('{"ignored":true}');
+				});
+			});
+		} else {
+			create({ cwd, name: `create-svelte-test-${template}-${types}`, template, types });
+			await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+		}
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
 
