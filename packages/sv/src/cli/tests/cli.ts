@@ -147,9 +147,12 @@ describe('cli', () => {
 			}
 
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
-				const installResult = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
+				// the generated project lives inside this repo, so it must not join its workspace
+				const installResult = await exec(
+					'pnpm',
+					['install', '--no-frozen-lockfile', '--ignore-workspace'],
+					{ nodeOptions: { stdio: 'pipe', cwd: testOutputPath } }
+				);
 				expect(
 					installResult.exitCode,
 					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`
