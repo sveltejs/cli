@@ -46,7 +46,7 @@ If you're uncertain about Svelte 5 syntax or patterns, use the MCP tools:
 
 Read the file to understand the current implementation.
 
-### 3. Make Changes
+### 3. Make changes
 
 Apply edits following Svelte 5 best practices:
 
