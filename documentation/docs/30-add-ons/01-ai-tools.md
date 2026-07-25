@@ -14,7 +14,7 @@ npx sv add ai-tools
 
 You can add the tooling either through the official Svelte plugin or as individual tools.
 
-- The **Svelte plugin** bundles everything (MCP server, [skills](https://svelte.dev/docs/ai/skills) and sub-agents) and keeps itself up to date. It's available for Claude Code and opencode. For Claude Code it's enabled through a committed `.claude/settings.json` - the first time you open the project you'll be asked to trust the workspace, then it installs automatically (no `/plugin install` needed).
+- The Svelte plugin bundles everything (MCP server, [skills](https://svelte.dev/docs/ai/skills) and sub-agents) and keeps itself up to date. It's available for Claude Code and OpenCode. For Claude Code it's enabled through a committed `.claude/settings.json` - the first time you open the project you'll be asked to trust the workspace, then it installs automatically (no `/plugin install` needed).
 - **Individual tools**, for clients without a plugin (or when you want to pick exactly what to add):
   - An MCP configuration for [local](https://svelte.dev/docs/ai/local-setup) or [remote](https://svelte.dev/docs/ai/remote-setup) setup
   - A [README for agents](https://agents.md/) to help you use the MCP server effectively
