@@ -7,7 +7,7 @@ description: CLI tools for Svelte 5 documentation lookup and code analysis. MUST
 
 You have access to `@sveltejs/mcp` CLI for Svelte-specific assistance. Use these commands via `npx`:
 
-### List Documentation Sections
+### List documentation sections
 
 ```bash
 npx @sveltejs/mcp list-sections
