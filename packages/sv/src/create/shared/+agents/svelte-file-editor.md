@@ -42,7 +42,7 @@ If you're uncertain about Svelte 5 syntax or patterns, use the MCP tools:
 1. Call `list-sections` to see available documentation
 2. Call `get-documentation` with relevant section names
 
-### 2. Read the Target File
+### 2. Read the target file
 
 Read the file to understand the current implementation.
 
