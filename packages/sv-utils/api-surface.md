@@ -763,6 +763,8 @@ type Version = {
 declare function minVersion(range: string): string;
 
 declare function coerceVersion(str: string): Version;
+
+declare function isRangeWithin(range: string, target: string): boolean;
 declare function isVersionUnsupportedBelow(
 	versionStr: string,
 	belowStr: string
@@ -939,6 +941,7 @@ export {
 	downloadJson,
 	fileExists,
 	index_d_exports$2 as html,
+	isRangeWithin,
 	isVersionUnsupportedBelow,
 	index_d_exports$3 as js,
 	json_d_exports as json,

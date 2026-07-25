@@ -655,7 +655,7 @@ export async function runAddonsApply({
 			setupResults: {}
 		};
 
-	const { filesToFormat, status } = await applyAddons({
+	const { filesToFormat, status, installNeeded } = await applyAddons({
 		loadedAddons,
 		workspace,
 		setupResults,
@@ -689,12 +689,13 @@ export async function runAddonsApply({
 		);
 	}
 
-	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(options.cwd)
-				: options.install;
+	// nothing new landed in `package.json`, so there is nothing to install and nothing to ask about
+	const skipInstall = options.install === false || !installNeeded;
+	const packageManager = skipInstall
+		? null
+		: options.install === true
+			? await packageManagerPrompt(options.cwd)
+			: options.install;
 
 	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
 
@@ -755,8 +756,12 @@ export async function runAddonsApply({
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 		await installDependencies(packageManager, options.cwd);
+	}
+
+	// still format when the install was skipped only because no new dependency was added
+	if (packageManager || (!installNeeded && options.install !== false)) {
 		await formatFiles({
-			packageManager,
+			packageManager: packageManager ?? workspace.packageManager,
 			cwd: options.cwd,
 			filesToFormat,
 			strategy: 'files-only'
