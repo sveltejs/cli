@@ -14,14 +14,21 @@ type ParseBase = {
 	source: string;
 	/**
 	 * Generate the code after manipulating the `ast`.
+	 * Regenerate code from the modified AST
+	 * Output source code from the manipulated ast
 	 *
+	 * @example
 	 * ```ts
-	 * import { svelte } from 'sv/core';
+	 * // or '@sveltejs/sv-utils' — undecided
+	 * import { parse, svelte } from './sv-utils.js';
+	 *
+	 * const content = '<p>Hello World</p>';
+	 *
 	 * const { ast, generateCode } = parse.svelte(content);
-	 *
-	 * svelte.addFragment(ast, '<p>Hello World</p>');
-	 *
+	 * svelte.addFragment(ast, '<p>Goodbye World</p>');
 	 * const code = generateCode();
+	 *
+	 * console.log(code); // `<div><p>Hello World</p></div><p>Goodbye World</p>`
 	 * ```
 	 */
 	generateCode(): string;
