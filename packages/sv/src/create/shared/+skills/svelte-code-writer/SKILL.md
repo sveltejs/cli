@@ -29,7 +29,7 @@ Retrieves full documentation for specified sections. Use after `list-sections` t
 npx @sveltejs/mcp get-documentation "$state,$derived,$effect"
 ```
 
-### Svelte Autofixer
+### Svelte autofixer
 
 ```bash
 npx @sveltejs/mcp svelte-autofixer "<code_or_path>" [options]
