@@ -132,7 +132,10 @@ export const create = new Command('create')
 		}
 
 		common.runCommand(async () => {
-			const { directory, addOnNextSteps, packageManager } = await createProject(cwd, options);
+			const { directory, addOnNextSteps, packageManager, depsInstalled } = await createProject(
+				cwd,
+				options
+			);
 
 			let i = 1;
 			const initialSteps: string[] = ['📁 Project steps', ''];
@@ -144,7 +147,10 @@ export const create = new Command('create')
 					`  ${i++}: ${color.command(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
 				);
 			}
-			if (!packageManager) {
+			if (packageManager && !depsInstalled) {
+				initialSteps.push(`  ${i++}: Install ${color.command(pm)}`);
+			}
+			if (!packageManager || !depsInstalled) {
 				initialSteps.push(`  ${i++}: ${color.command(resolveCommandArray(pm, 'install', []))}`);
 			}
 
@@ -170,10 +176,16 @@ export const create = new Command('create')
 	})
 	.showHelpAfterError(true);
 
-async function createProject(cwd: ProjectPath, options: Options) {
+export async function createProject(cwd: ProjectPath, options: Options) {
 	if (options.fromPlayground) {
 		p.log.warn(
 			'Svelte maintainers have not reviewed playgrounds for malicious code! Use at your discretion.'
+		);
+	}
+
+	if (options.template === 'addon' && options.types === 'typescript') {
+		p.log.warn(
+			`The addon template does not support TypeScript. The ${color.command('--types')} flag will be ignored.`
 		);
 	}
 
@@ -231,8 +243,8 @@ async function createProject(cwd: ProjectPath, options: Options) {
 				});
 			},
 			language: (o) => {
-				if (options.types) return Promise.resolve(options.types);
 				if (o.results.template === 'addon') return Promise.resolve<LanguageType>('none');
+				if (options.types) return Promise.resolve(options.types);
 				return p.select<LanguageType>({
 					message: 'Add type checking with TypeScript?',
 					initialValue: 'typescript',
@@ -399,12 +411,18 @@ async function createProject(cwd: ProjectPath, options: Options) {
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
 	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
+	let depsInstalled = false;
 	if (packageManager) {
-		await installDependencies(packageManager, projectPath);
-		await formatFiles({ packageManager, cwd: projectPath, filesToFormat: addOnFilesToFormat });
+		depsInstalled = await installDependencies(packageManager, projectPath);
+		if (depsInstalled) {
+			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
+				? ['.']
+				: addOnFilesToFormat;
+			await formatFiles({ packageManager, cwd: projectPath, filesToFormat });
+		}
 	}
 
-	return { directory: projectPath, addOnNextSteps, packageManager };
+	return { directory: projectPath, addOnNextSteps, packageManager, depsInstalled };
 }
 
 async function createProjectFromPlayground(url: string, cwd: string): Promise<void> {

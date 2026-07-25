@@ -30,7 +30,7 @@
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.2",
 		"esrap": "^2.2.11",
-		"package-manager-detector": "^1.6.0",
+		"package-manager-detector": "^1.8.0",
 		"semver": "^7.8.1",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.6.1",
