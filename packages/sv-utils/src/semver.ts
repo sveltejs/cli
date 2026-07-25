@@ -20,7 +20,7 @@ export function minVersion(range: string): string {
 	}
 	const min = findMinimumForRange(cleaned);
 	if (!min) throw new Error(`Cannot determine min version from range: ${range}`);
-	return min.version;
+	return min;
 }
 
 /**
