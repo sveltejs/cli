@@ -9,7 +9,7 @@ If the MCP tools are not available you can use the `svelte-code-writer` skill to
 
 If the skill is not available you can run `npx @sveltejs/mcp@latest -y --help` to learn how to use it.
 
-## Available MCP Tools
+## Available MCP tools
 
 ### 1. list-sections
 
