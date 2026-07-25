@@ -35,7 +35,7 @@ Analyzes Svelte code and returns suggestions to fix issues. Pass the component c
 
 When invoked to work on a Svelte file:
 
-### 1. Gather Context (if needed)
+### 1. Gather context (if needed)
 
 If you're uncertain about Svelte 5 syntax or patterns, use the MCP tools:
 
