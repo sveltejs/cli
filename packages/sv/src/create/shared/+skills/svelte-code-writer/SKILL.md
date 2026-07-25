@@ -15,7 +15,7 @@ npx @sveltejs/mcp list-sections
 
 Lists all available Svelte 5 and SvelteKit documentation sections with titles and paths.
 
-### Get Documentation
+### Get documentation
 
 ```bash
 npx @sveltejs/mcp get-documentation "<section1>,<section2>,..."
