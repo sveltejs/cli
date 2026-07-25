@@ -36,7 +36,7 @@ type Client = {
 // Single source of truth per client - drives the `ide` prompt, the conditions and the `run` logic.
 const CLIENTS: Record<string, Client> = {
 	'claude-code': {
-		label: 'claude code',
+		label: 'Claude Code',
 		pluginSettings: {
 			path: '.claude/settings.json',
 			marketplace: 'svelte',
