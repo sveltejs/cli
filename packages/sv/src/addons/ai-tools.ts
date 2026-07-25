@@ -36,7 +36,7 @@ type Client = {
 // Single source of truth per client - drives the `ide` prompt, the conditions and the `run` logic.
 const CLIENTS: Record<string, Client> = {
 	'claude-code': {
-		label: 'claude code',
+		label: 'Claude Code',
 		pluginSettings: {
 			path: '.claude/settings.json',
 			marketplace: 'svelte',
@@ -73,7 +73,7 @@ const CLIENTS: Record<string, Client> = {
 		mcpOptions: {}
 	},
 	opencode: {
-		label: 'opencode',
+		label: 'OpenCode',
 		pluginOnly: true,
 		agentPath: 'AGENTS.md',
 		configPath: '.opencode/opencode.json',
@@ -89,7 +89,7 @@ const CLIENTS: Record<string, Client> = {
 		]
 	},
 	vscode: {
-		label: 'VSCode',
+		label: 'VS Code',
 		agentPath: 'AGENTS.md',
 		configPath: '.vscode/mcp.json',
 		skillsPath: '.github/skills',
@@ -167,7 +167,7 @@ const options = defineAddonOptions()
 
 export default defineAddon({
 	id: 'ai-tools',
-	shortDescription: 'Svelte AI Tools',
+	shortDescription: 'Svelte AI tools',
 	homepage: 'https://svelte.dev/docs/ai',
 	options,
 	run: ({ sv, options }) => {
