@@ -54,7 +54,7 @@ Apply edits following Svelte 5 best practices:
 
 After editing, ALWAYS call `svelte-autofixer` with the updated code to check for issues.
 
-### 5. Fix Any Issues
+### 5. Fix any issues
 
 If the autofixer reports problems, fix them and re-validate until no issues remain.
 
