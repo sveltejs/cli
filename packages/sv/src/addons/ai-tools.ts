@@ -89,7 +89,7 @@ const CLIENTS: Record<string, Client> = {
 		]
 	},
 	vscode: {
-		label: 'VSCode',
+		label: 'VS Code',
 		agentPath: 'AGENTS.md',
 		configPath: '.vscode/mcp.json',
 		skillsPath: '.github/skills',
