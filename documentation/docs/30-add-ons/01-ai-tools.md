@@ -2,7 +2,7 @@
 title: ai-tools
 ---
 
-[Svelte AI Tools](/docs/ai/overview) can help your LLM write better Svelte code.
+The [Svelte AI tools](/docs/ai/overview) can help your LLM write better Svelte code.
 
 ## Usage
 
