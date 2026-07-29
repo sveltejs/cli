@@ -8,7 +8,8 @@ import {
 	fileExists,
 	createPrinter,
 	svelteConfig,
-	defineEnv
+	defineEnv,
+	isKit3
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -300,15 +301,32 @@ export default defineAddon({
 			})
 		);
 
-		svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
-			override({
-				typescript: {
-					config: js.common.parseExpression(
-						`(config) => { config.include.push('../drizzle.config.${language}')}`
-					)
-				}
+		// kit 3 dropped the `typescript.config` hook's `include` (and deprecates the hook itself),
+		// so the project's own ts/jsconfig has to cover the drizzle config
+		if (isKit3(dependencyVersion('@sveltejs/kit'))) {
+			const configFile = language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+			if (fileExists(cwd, configFile)) {
+				sv.file(
+					configFile,
+					transforms.json(({ data }) => {
+						const include: string[] = (data.include ??= ['src']);
+						if (!include.includes(`drizzle.config.${language}`)) {
+							include.push(`drizzle.config.${language}`);
+						}
+					})
+				);
+			}
+		} else {
+			svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
+				override({
+					typescript: {
+						config: js.common.parseExpression(
+							`(config) => { config.include.push('../drizzle.config.${language}')}`
+						)
+					}
+				});
 			});
-		});
+		}
 
 		sv.file(
 			paths['database schema'],
