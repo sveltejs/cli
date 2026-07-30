@@ -84,7 +84,9 @@ export default defineAddon({
 
 				const globalsConfig = js.object.create({
 					languageOptions: {
-						parserOptions: typescript ? { projectService: true } : undefined,
+						parserOptions: typescript
+							? { projectService: { allowDefaultProject: ['*.js'] } }
+							: undefined,
 						globals: globalsObjLiteral
 					},
 					rules: typescript ? rules : undefined

@@ -94,10 +94,10 @@ export default defineAddon({
 					if (content) return false;
 
 					return dedent`
-						<script>
+						<script${ts(' lang="ts"')}>
 							import { greet } from './greet';
 
-							let { host = 'SvelteKit', guest = 'Vitest' } = $props();
+							let { host = 'SvelteKit', guest = 'Vitest' }${ts(': { host: string; guest: string }')} = $props();
 						</script>
 
 						<h1>{greet(host)}</h1>
