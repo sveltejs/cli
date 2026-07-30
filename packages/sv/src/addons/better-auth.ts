@@ -32,7 +32,7 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon()({
+export default defineAddon({
 	id: 'better-auth',
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
@@ -564,7 +564,7 @@ export default defineAddon()({
 			);
 		}
 		if (options.demo && options.demo.length > 0) {
-			steps.push(`Visit ${color.route('src/routes/addon/better-auth')} route to view the demo`);
+			steps.push(`Visit ${color.route('/addon/better-auth')} route to view the demo`);
 		}
 
 		return steps;

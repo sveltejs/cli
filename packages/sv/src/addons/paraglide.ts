@@ -54,13 +54,15 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon()({
+export default defineAddon({
 	id: 'paraglide',
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ isKit, unsupported }) => {
+	setup: ({ isKit, unsupported, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
+		// it picks the kit-3 shape off the version `experimental` writes
+		runsAfter('experimental');
 	},
 	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
 		const [ts] = createPrinter(language === 'ts');
@@ -284,10 +286,10 @@ export default defineAddon()({
 		}
 	},
 
-	nextSteps: ({ options }) => {
+	nextSteps: () => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (options.demo) {
-			steps.push(`Visit ${color.route('src/routes/addon/paraglide')} route to view the demo`);
+			steps.push(`Visit ${color.route('/addon/paraglide')} route to view the demo`);
 		}
 
 		return steps;
