@@ -174,15 +174,12 @@ type CreateDemoPage = (
 	language: 'ts' | 'js',
 	kitRoutes: string
 ) => {
-	transform: TransformFn;
-	transformHeader: TransformFn;
-	listingPath: string;
 	addonPath: string;
+	listing: [path: string, transform: TransformFn];
+	header: [path: string, transform: TransformFn];
 };
-export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => ({
-	listingPath: `${kitRoutes}/addon`,
-	addonPath: `${kitRoutes}/addon/${name}`,
-	transform: transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
+export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
+	const listingTransform = transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
 		for (const node of ast.fragment.nodes) {
 			if (node.type === 'RegularElement') {
 				const hrefAttribute = node.attributes.find(
@@ -205,8 +202,9 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => ({
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 		svelte.addFragment(ast, `<a href={resolve('/addon/${name}')}>${name}</a>`, { mode: 'prepend' });
-	}),
-	transformHeader: transforms.svelteScript({ language }, ({ ast, js }) => {
+	});
+
+	const headerTransform = transforms.svelteScript({ language }, ({ ast, js }) => {
 		const header = ast.fragment.nodes.find(
 			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'header'
 		);
@@ -246,8 +244,14 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => ({
 			`<li aria-current={page.url.pathname.startsWith('/addon/${name}') ? 'page' : undefined}><a href={resolve('/addon/${name}')}>${name}</a></li>`
 		);
 		ul.fragment.nodes.push(...liAst.fragment.nodes);
-	})
-});
+	});
+
+	return {
+		addonPath: `${kitRoutes}/addon/${name}`,
+		listing: [`${kitRoutes}/addon/+page.svelte`, listingTransform],
+		header: [`${kitRoutes}/Header.svelte`, headerTransform]
+	};
+};
 
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.

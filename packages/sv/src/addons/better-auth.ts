@@ -327,8 +327,8 @@ export default defineAddon({
 
 		if (hasDemo) {
 			const demo = createDemoPage('better-auth', language, directory.kitRoutes);
-			sv.file(`${demo.listingPath}/+page.svelte`, demo.transform);
-			sv.file(`${directory.kitRoutes}/Header.svelte`, demo.transformHeader);
+			sv.file(...demo.listing);
+			sv.file(...demo.header);
 
 			sv.file(`${demo.addonPath}/login/+page.server.${language}`, (content) => {
 				if (content) {

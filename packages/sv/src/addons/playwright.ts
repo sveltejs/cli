@@ -33,8 +33,8 @@ export default defineAddon({
 		const testRoute = isKit ? demo.addonPath : '/';
 
 		if (isKit) {
-			sv.file(`${demo.listingPath}/+page.svelte`, demo.transform);
-			sv.file(`${directory.kitRoutes}/Header.svelte`, demo.transformHeader);
+			sv.file(...demo.listing);
+			sv.file(...demo.header);
 
 			sv.file(
 				`${testDir}/+page.svelte`,

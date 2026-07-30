@@ -237,8 +237,8 @@ export default defineAddon({
 
 		if (options.demo) {
 			const demo = createDemoPage('paraglide', language, directory.kitRoutes);
-			sv.file(`${demo.listingPath}/+page.svelte`, demo.transform);
-			sv.file(`${directory.kitRoutes}/Header.svelte`, demo.transformHeader);
+			sv.file(...demo.listing);
+			sv.file(...demo.header);
 
 			// add usage example
 			sv.file(
