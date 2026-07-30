@@ -25,7 +25,7 @@ export const KIT3_TSCONFIG = '$app/tsconfig';
  * Options `$app/tsconfig` already sets. A local copy of the same value is noise, but a different
  * value is a deliberate override and must stay - so only drop keys whose value matches.
  */
-export const KIT3_TSCONFIG_INHERITED: Record<string, unknown> = {
+export const KIT3_TSCONFIG_DEFAULT: Record<string, unknown> = {
 	allowImportingTsExtensions: true,
 	allowJs: true,
 	checkJs: true,
