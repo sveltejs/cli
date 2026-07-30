@@ -52,7 +52,7 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	const { url, close } = await prepareServer({ cwd, page });
 	ctx.onTestFinished(async () => await close());
 
-	await page.goto(`${url}demo/better-auth`);
+	await page.goto(`${url}addon/better-auth`);
 
 	// Verify login page loaded (contains email input)
 	const emailInput = page.locator('input[type="email"]');
