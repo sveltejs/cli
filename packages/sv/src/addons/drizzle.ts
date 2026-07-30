@@ -317,6 +317,7 @@ export default defineAddon({
 				);
 			}
 		} else {
+		// prior to kit 3
 			svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
 				override({
 					typescript: {
