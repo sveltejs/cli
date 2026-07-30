@@ -149,7 +149,8 @@ const options = defineAddonOptions()
 		default: Object.keys(TOOLS),
 		options: Object.entries(TOOLS).map(([value, t]) => ({ value, label: t.label, hint: t.hint })),
 		required: false,
-		condition: ({ values }) => values.ide.some((i: string) => wantsLooseTools(CLIENTS[i], values.delivery))
+		condition: ({ values }) =>
+			values.ide.some((i: string) => wantsLooseTools(CLIENTS[i], values.delivery))
 	})
 	.add('mcpSetup', {
 		question: 'Which MCP setup would you like to use?',
