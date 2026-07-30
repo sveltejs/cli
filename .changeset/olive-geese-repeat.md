@@ -2,4 +2,4 @@
 '@sveltejs/sv-utils': patch
 ---
 
-feat: add SvelteKit 3 helpers
+feat: add SvelteKit 3 helpers - `isKit3`, `resolveLibPrefix`, `libSubpathImports`
