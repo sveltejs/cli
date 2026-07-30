@@ -322,7 +322,7 @@ export default defineAddon({
 				override({
 					typescript: {
 						config: js.common.parseExpression(
-							`(config) => { (config.include as string[]).push('../drizzle.config.${language}')}`
+							`(config) => { (config.include${ts(' as string[]')}).push('../drizzle.config.${language}')}`
 						)
 					}
 				});
