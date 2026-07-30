@@ -58,7 +58,7 @@ type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
 
-	condition?: (options: OptionValues<Args>) => boolean;
+	condition?: (context: { values: OptionValues<Args>; template?: string }) => boolean;
 };
 type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
 	(

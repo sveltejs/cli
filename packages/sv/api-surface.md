@@ -68,7 +68,7 @@ type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
 
-	condition?: (options: OptionValues<Args>) => boolean;
+	condition?: (context: { values: OptionValues<Args>; template?: string }) => boolean;
 };
 type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
 	(
@@ -201,17 +201,6 @@ declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
 >(
 	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>, 'options'> & {
 		options: Args;
-		setup?: (
-			workspace: Workspace & {
-				dependsOn: (name: keyof typeof officialAddons) => void;
-				unsupported: (reason: string) => void;
-				runsAfter: (name: keyof typeof officialAddons) => void;
-				addOption: <K extends keyof SetupValues & string>(
-					key: K,
-					question: SetupOptions<SetupValues>[K]
-				) => void;
-			}
-		) => MaybePromise<void>;
 	}
 ) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
 

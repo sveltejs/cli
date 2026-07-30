@@ -18,31 +18,32 @@ import { createDemoPage } from './common.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
-export default defineAddon<{ demo: Array<'password' | 'github'> }>()({
+const options = defineAddonOptions()
+	.add('demo', {
+		question: 'Which demo would you like to include?',
+		type: 'multiselect',
+		default: ['password'],
+		options: [
+			{ value: 'password', label: 'Email & Password' },
+			{ value: 'github', label: 'GitHub OAuth' }
+		],
+		required: false,
+		condition: ({ template }) => template !== 'demo'
+	})
+	.build();
+
+export default defineAddon()({
 	id: 'better-auth',
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
-	options: defineAddonOptions().build(),
-	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter, addOption, template }) => {
+	options,
+	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
 
 		runsAfter('sveltekitAdapter');
 		runsAfter('tailwindcss');
 		runsAfter('experimental');
-
-		if (template !== 'demo') {
-			addOption('demo', {
-				question: 'Which demo would you like to include?',
-				type: 'multiselect',
-				default: ['password'],
-				options: [
-					{ value: 'password', label: 'Email & Password' },
-					{ value: 'github', label: 'GitHub OAuth' }
-				],
-				required: false
-			});
-		}
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));

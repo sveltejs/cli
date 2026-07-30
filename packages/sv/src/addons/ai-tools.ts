@@ -141,7 +141,7 @@ const options = defineAddonOptions()
 			{ value: 'plugin', label: 'Svelte plugin', hint: 'recommended, auto-installs & updates' },
 			{ value: 'tools', label: 'Individual tools', hint: 'choose exactly what to add' }
 		],
-		condition: ({ ide }) => ide.some((i) => CLIENTS[i]?.pluginSettings)
+		condition: ({ values }) => values.ide.some((i: string) => CLIENTS[i]?.pluginSettings)
 	})
 	.add('tools', {
 		question: 'Which tools would you like to add?',
@@ -149,7 +149,7 @@ const options = defineAddonOptions()
 		default: Object.keys(TOOLS),
 		options: Object.entries(TOOLS).map(([value, t]) => ({ value, label: t.label, hint: t.hint })),
 		required: false,
-		condition: ({ ide, delivery }) => ide.some((i) => wantsLooseTools(CLIENTS[i], delivery))
+		condition: ({ values }) => values.ide.some((i: string) => wantsLooseTools(CLIENTS[i], values.delivery))
 	})
 	.add('mcpSetup', {
 		question: 'Which MCP setup would you like to use?',
@@ -159,9 +159,9 @@ const options = defineAddonOptions()
 			{ value: 'local', label: 'Local', hint: 'will use stdio' },
 			{ value: 'remote', label: 'Remote', hint: 'will use a remote endpoint' }
 		],
-		condition: ({ ide, delivery, tools }) =>
-			(tools === undefined || tools.includes('mcp')) &&
-			ide.some((i) => wantsMcpConfig(CLIENTS[i], delivery))
+		condition: ({ values }) =>
+			(values.tools === undefined || values.tools.includes('mcp')) &&
+			values.ide.some((i: string) => wantsMcpConfig(CLIENTS[i], values.delivery))
 	})
 	.build();
 

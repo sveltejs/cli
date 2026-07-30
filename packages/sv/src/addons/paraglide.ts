@@ -46,23 +46,21 @@ const options = defineAddonOptions()
 			return undefined;
 		}
 	})
+	.add('demo', {
+		type: 'boolean',
+		default: true,
+		question: 'Do you want to include a demo?',
+		condition: ({ template }) => template !== 'demo'
+	})
 	.build();
 
-export default defineAddon<{ demo: boolean }>()({
+export default defineAddon()({
 	id: 'paraglide',
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ isKit, unsupported, addOption, template }) => {
+	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
-
-		if (template !== 'demo') {
-			addOption('demo', {
-				type: 'boolean',
-				default: true,
-				question: 'Do you want to include a demo?'
-			});
-		}
 	},
 	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
 		const [ts] = createPrinter(language === 'ts');
