@@ -26,7 +26,7 @@ type OfficialAddons = {
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
-	mcp: Addon<any>;
+	aiTools: Addon<any>;
 	experimental: Addon<any>;
 };
 declare const officialAddons: OfficialAddons;

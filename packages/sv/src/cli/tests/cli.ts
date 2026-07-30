@@ -32,7 +32,7 @@ describe('cli', () => {
 				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
+				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local'
 				// 'storybook' // No storybook addon during tests!
 			]
 		},
@@ -47,6 +47,17 @@ describe('cli', () => {
 			]
 		},
 		{
+			// guards the `kit@next` shape against upstream churn: no snapshot (the point is that it
+			// installs, builds and type-checks, not what it looks like)
+			projectName: 'create-experimental-next',
+			snapshot: false,
+			args: [
+				'--add',
+				'drizzle=database:sqlite+sqlite:libsql',
+				'experimental=versions:kit-3-next+features:async,remoteFunctions'
+			]
+		},
+		{
 			projectName: '@my-org/sv',
 			template: 'addon',
 			args: []
@@ -57,7 +68,17 @@ describe('cli', () => {
 		'should create a new project with name $projectName',
 		{ timeout: 240_000 },
 		async (testCase) => {
-			const { projectName, args, template = 'minimal' } = testCase;
+			const {
+				projectName,
+				args,
+				template = 'minimal',
+				snapshot = true
+			} = testCase as {
+				projectName: string;
+				args: string[];
+				template?: string;
+				snapshot?: boolean;
+			};
 
 			const testOutputPath = path.relative(
 				monoRepoPath,
@@ -102,10 +123,31 @@ describe('cli', () => {
 				'snapshots',
 				projectName
 			);
-			const relativeFiles = fs.readdirSync(testOutputPath, { recursive: true }) as string[];
+			const relativeFiles = snapshot
+				? (fs.readdirSync(testOutputPath, { recursive: true }) as string[])
+				: [];
+
+			// Files from ai-tools repo (skills, agents) change independently -
+			// snapshot only file listings, not content
+			const aiToolsFiles: Record<string, string[]> = {};
+			const aiToolsPattern = /[\\/](skills|agents)[\\/]/;
+
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
 				if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
+
+				const normalized = relativeFile.replace(/\\/g, '/');
+
+				// Group ai-tools files by directory for manifest comparison
+				if (aiToolsPattern.test(normalized)) {
+					const match = normalized.match(/(.+\/(?:skills|agents))\/(.*)/);
+					if (match) {
+						const [, base, rest] = match;
+						aiToolsFiles[base] ??= [];
+						aiToolsFiles[base].push(rest);
+					}
+					continue;
+				}
 
 				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
@@ -146,10 +188,22 @@ describe('cli', () => {
 				);
 			}
 
+			// Compare ai-tools file listings against sv-files-snapshots.md manifests
+			for (const [dir, files] of Object.entries(aiToolsFiles)) {
+				const manifest = files.sort().join('\n') + '\n';
+				await expect(manifest).toMatchFileSnapshot(
+					path.resolve(snapPath, dir, 'sv-files-snapshots.md'),
+					`ai-tools manifest "${dir}" does not match snapshot`
+				);
+			}
+
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
-				const installResult = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
+				// the generated project lives inside this repo, so it must not join its workspace
+				const installResult = await exec(
+					'pnpm',
+					['install', '--no-frozen-lockfile', '--ignore-workspace'],
+					{ nodeOptions: { stdio: 'pipe', cwd: testOutputPath } }
+				);
 				expect(
 					installResult.exitCode,
 					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`
@@ -166,6 +220,38 @@ describe('cli', () => {
 				expect(
 					check.exitCode,
 					`svelte-check failed:\n  stdout: ${check.stdout}\n  stderr: ${check.stderr}`
+				).toBe(0);
+			}
+
+			// `kit@next` moves fast - only a real install/build/check catches options it removed
+			if (projectName === 'create-experimental-next' && process.platform !== 'win32') {
+				const run = (cmd: string, cmdArgs: string[]) =>
+					exec(cmd, cmdArgs, { nodeOptions: { stdio: 'pipe', cwd: testOutputPath } });
+
+				const install = await run('pnpm', [
+					'install',
+					'--no-frozen-lockfile',
+					// without this pnpm walks up and installs the sv monorepo instead of this project
+					'--ignore-workspace',
+					// ...which also loses the workspace's `minimumReleaseAgeExclude`, so a prerelease
+					// published in the last day would be refused
+					'--config.minimumReleaseAge=0'
+				]);
+				expect(
+					install.exitCode,
+					`pnpm install failed:\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+				).toBe(0);
+
+				const build = await run('pnpm', ['build']);
+				expect(
+					build.exitCode,
+					`build failed on kit@next:\n  stdout: ${build.stdout}\n  stderr: ${build.stderr}`
+				).toBe(0);
+
+				const check = await run('pnpm', ['check']);
+				expect(
+					check.exitCode,
+					`svelte-check failed on kit@next:\n  stdout: ${check.stdout}\n  stderr: ${check.stderr}`
 				).toBe(0);
 			}
 

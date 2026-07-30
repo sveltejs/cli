@@ -49,10 +49,10 @@ Do not prompt to install dependencies.
 
 ## Official add-ons
 
+- [`ai-tools`](ai-tools)
 - [`better-auth`](better-auth)
 - [`drizzle`](drizzle)
 - [`eslint`](eslint)
-- [`mcp`](mcp)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
 - [`playwright`](playwright)

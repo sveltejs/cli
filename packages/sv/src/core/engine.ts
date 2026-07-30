@@ -408,14 +408,38 @@ export function prepareSvApi(
 	};
 }
 
-// orders addons by putting addons that don't require any other addon in the front.
-// This is a drastic simplification, as this could still cause some inconvenient circumstances,
-// but works for now in contrary to the previous implementation
+/**
+ * Orders add-ons so every `runsAfter` is honoured, keeping the original order between add-ons that
+ * don't constrain each other. Cycles and unknown ids are ignored rather than fatal - an add-on that
+ * can't be placed simply keeps its position.
+ */
 export function orderAddons(
 	addons: Array<Addon<any>>,
 	setupResults: Record<string, SetupResult>
 ): Array<Addon<any>> {
-	return addons.sort((a, b) => {
-		return setupResults[a.id]?.runsAfter?.length - setupResults[b.id]?.runsAfter?.length;
-	});
+	const byId = new Map(addons.map((addon) => [addon.id, addon]));
+	const ordered: Array<Addon<any>> = [];
+	const placed = new Set<string>();
+	const visiting = new Set<string>();
+
+	const place = (addon: Addon<any>) => {
+		if (placed.has(addon.id) || visiting.has(addon.id)) return;
+		visiting.add(addon.id);
+		for (const id of setupResults[addon.id]?.runsAfter ?? []) {
+			const dependency = byId.get(id);
+			if (dependency) place(dependency);
+		}
+		visiting.delete(addon.id);
+		placed.add(addon.id);
+		ordered.push(addon);
+	};
+
+	// seeded with the "fewest constraints first" order this used to rely on, so add-ons that don't
+	// constrain each other keep the relative order they already had
+	const seeded = [...addons].sort(
+		(a, b) =>
+			(setupResults[a.id]?.runsAfter?.length ?? 0) - (setupResults[b.id]?.runsAfter?.length ?? 0)
+	);
+	for (const addon of seeded) place(addon);
+	return ordered;
 }

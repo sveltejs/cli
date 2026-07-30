@@ -1,4 +1,15 @@
-import { isVersionUnsupportedBelow, loadPackageJson, svelteConfig } from '@sveltejs/sv-utils';
+import {
+	KIT3_TSCONFIG,
+	KIT3_TSCONFIG_DEFAULT,
+	fileExists,
+	isVersionUnsupportedBelow,
+	libSubpathImports,
+	loadPackageJson,
+	svelteConfig,
+	transforms
+} from '@sveltejs/sv-utils';
+import fs from 'node:fs';
+import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 // Single source of truth, keyed by flag name. `path` defaults to `experimental.<name>`; `off` opts out
@@ -8,9 +19,12 @@ const FEATURES: Record<string, Feature> = {
 	async: { label: 'async', hint: 'await in components', path: 'compilerOptions.experimental.async' }, // prettier-ignore
 	remoteFunctions: { label: 'remote functions' },
 	explicitEnvironmentVariables: { label: 'explicit environment variables', hint: 'kit ^2 only', inNext: false }, // prettier-ignore
-	handleRenderingErrors: { label: 'rendering error boundaries' },
+	handleRenderingErrors: { label: 'rendering error boundaries', hint: 'kit ^2 only', inNext: false }, // prettier-ignore
 	forkPreloads: { label: 'forked preloading', off: true }
 };
+
+// files whose `$lib` imports are rewritten to `#lib`
+const SOURCE_EXTENSIONS = ['.svelte', '.svelte.ts', '.svelte.js', '.ts', '.js', '.svx', '.md'];
 
 // kit 3 raises these peer floors; bump only when the project is below them (never downgrade).
 const KIT3_PEERS = {
@@ -47,7 +61,7 @@ export default defineAddon({
 
 	setup: ({ runsAfter }) => runsAfter('sveltekitAdapter'),
 
-	run: ({ sv, cwd, options, language, dependencyVersion }) => {
+	run: ({ sv, cwd, options, language, directory, dependencyVersion }) => {
 		const kitNext = options.versions.includes('kit-3-next');
 
 		if (kitNext) {
@@ -65,6 +79,38 @@ export default defineAddon({
 			}
 		}
 
+		if (kitNext) {
+			// kit 3 serves the generated config from `$app/tsconfig` and no longer supplies `include`
+			for (const name of ['tsconfig.json', 'jsconfig.json']) {
+				if (!fileExists(cwd, name)) continue;
+				sv.file(
+					name,
+					transforms.json(({ data }) => {
+						data.extends = KIT3_TSCONFIG;
+						data.include ??= [directory.src];
+						for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
+							// a differing value is a deliberate override and stays
+							if (KIT3_TSCONFIG_DEFAULT[key] === value) delete data.compilerOptions[key];
+						}
+					})
+				);
+			}
+
+			// `$lib` is gone in favour of `#lib` subpath imports, which Vite resolves from `package.json`
+			sv.file(
+				'package.json',
+				transforms.json(({ data }) => {
+					data.imports = { ...libSubpathImports(directory.lib), ...data.imports };
+				})
+			);
+			// safe here: templates are already written and every add-on emitting `$lib` runs later
+			for (const relative of sourceFiles(cwd, directory.src)) {
+				sv.file(relative, (content) =>
+					content.includes('$lib') ? content.replaceAll('$lib', '#lib') : false
+				);
+			}
+		}
+
 		const config: Record<string, any> = {};
 		for (const [name, f] of Object.entries(FEATURES)) {
 			if (!options.features.includes(name)) continue;
@@ -79,3 +125,17 @@ export default defineAddon({
 			svelteConfig.edit({ sv, cwd }, ({ override }) => override(config));
 	}
 });
+
+/** Workspace-relative source files under `src`, for the `$lib` -> `#lib` rewrite. */
+function sourceFiles(cwd: string, src: string): string[] {
+	const root = path.resolve(cwd, src);
+	if (!fs.existsSync(root)) return [];
+	return fs
+		.readdirSync(root, { recursive: true })
+		.map((entry) => path.join(src, entry as string))
+		.filter(
+			(relative) =>
+				SOURCE_EXTENSIONS.some((ext) => relative.endsWith(ext)) &&
+				fs.statSync(path.resolve(cwd, relative)).isFile()
+		);
+}
