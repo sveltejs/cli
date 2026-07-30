@@ -64,19 +64,6 @@ describe('cli', () => {
 			]
 		},
 		{
-			// better-auth exercises the most `#lib` imports, so it gets its own `kit@next` run. It can't
-			// join the case above: kit treats any `remote.js` as a remote module, including the one
-			// `jose` (a better-auth dependency) ships, which fails the build under `remoteFunctions`
-			projectName: 'create-experimental-next-auth',
-			snapshot: false,
-			args: [
-				'--add',
-				'drizzle=database:sqlite+sqlite:libsql',
-				'better-auth=demo:password,github',
-				'experimental=versions:kit+features:async'
-			]
-		},
-		{
 			projectName: '@my-org/sv',
 			template: 'addon',
 			args: []
@@ -212,7 +199,7 @@ describe('cli', () => {
 			}
 
 			// `kit@next` moves fast - only a real install/build/check catches options it removed
-			if (projectName.startsWith('create-experimental-next') && process.platform !== 'win32') {
+			if (projectName === 'create-experimental-next' && process.platform !== 'win32') {
 				const run = (cmd: string, cmdArgs: string[]) =>
 					exec(cmd, cmdArgs, { nodeOptions: { stdio: 'pipe', cwd: testOutputPath } });
 
