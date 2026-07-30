@@ -9,12 +9,6 @@ const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
 const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
 const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
 
-/** The `next` prereleases the `kit@next` cases run against. Bump by hand. */
-const NEXT_PINS: Record<string, string> = {
-	'@sveltejs/kit': '3.0.0-next.13',
-	'@sveltejs/adapter-auto': '8.0.0-next.1'
-};
-
 beforeAll(() => {
 	if (fs.existsSync(testOutputCliPath)) {
 		fs.rmSync(testOutputCliPath, { force: true, recursive: true });
@@ -202,16 +196,6 @@ describe('cli', () => {
 			if (projectName === 'create-experimental-next' && process.platform !== 'win32') {
 				const run = (cmd: string, cmdArgs: string[]) =>
 					exec(cmd, cmdArgs, { nodeOptions: { stdio: 'pipe', cwd: testOutputPath } });
-
-				// the add-on writes the floating `next` tag, which would make this test fail on upstream
-				// prereleases nobody here has seen yet - bump these deliberately instead
-				const pkgPath = path.resolve(testOutputPath, 'package.json');
-				const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-				for (const [name, range] of Object.entries(NEXT_PINS)) {
-					if (pkg.devDependencies?.[name]) pkg.devDependencies[name] = range;
-					if (pkg.dependencies?.[name]) pkg.dependencies[name] = range;
-				}
-				fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, '\t') + '\n');
 
 				const install = await run('pnpm', [
 					'install',
