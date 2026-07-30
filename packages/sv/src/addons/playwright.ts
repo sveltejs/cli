@@ -29,7 +29,7 @@ export default defineAddon({
 		);
 
 		const demo = createDemoPage('playwright', language, directory.kitRoutes);
-		const testDir = isKit ? demo.addonPath : directory.src;
+		const testDir = isKit ? '/addon/playwright' : directory.src;
 		const testRoute = isKit ? demo.addonPath : '/';
 
 		if (isKit) {
