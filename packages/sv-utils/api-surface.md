@@ -863,7 +863,7 @@ declare function libSubpathImports(libDir: string): Record<string, string>;
 
 declare const KIT3_TSCONFIG = '$app/tsconfig';
 
-declare const KIT3_TSCONFIG_INHERITED: Record<string, unknown>;
+declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
 type ColorInput = string | string[];
 declare const color: {
 	addon: (str: ColorInput) => string;
@@ -897,7 +897,7 @@ export {
 	type Comments,
 	type ConfigFileReader,
 	KIT3_TSCONFIG,
-	KIT3_TSCONFIG_INHERITED,
+	KIT3_TSCONFIG_DEFAULT,
 	type Package,
 	type SvelteAst,
 	type SvelteConfigKind,

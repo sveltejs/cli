@@ -90,7 +90,7 @@ export { defineEnv } from './env.ts';
 // Kit 3 specifics (version detection, `$lib` -> `#lib`, the generated tsconfig)
 export {
 	KIT3_TSCONFIG,
-	KIT3_TSCONFIG_INHERITED,
+	KIT3_TSCONFIG_DEFAULT,
 	isKit3,
 	libSubpathImports,
 	resolveLibPrefix

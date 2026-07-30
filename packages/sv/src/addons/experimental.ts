@@ -1,6 +1,6 @@
 import {
 	KIT3_TSCONFIG,
-	KIT3_TSCONFIG_INHERITED,
+	KIT3_TSCONFIG_DEFAULT,
 	fileExists,
 	isVersionUnsupportedBelow,
 	libSubpathImports,
@@ -90,7 +90,7 @@ export default defineAddon({
 						data.include ??= [directory.src];
 						for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
 							// a differing value is a deliberate override and stays
-							if (KIT3_TSCONFIG_INHERITED[key] === value) delete data.compilerOptions[key];
+							if (KIT3_TSCONFIG_DEFAULT[key] === value) delete data.compilerOptions[key];
 						}
 					})
 				);
