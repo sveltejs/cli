@@ -342,8 +342,8 @@ export default defineAddon({
 						? `
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')${ts(' as string')} ?? '';
-							const password = formData.get('password')${ts(' as string')} ?? '';
+							const email = (formData.get('email')${ts(' as string')}) ?? '';
+							const password = (formData.get('password')${ts(' as string')}) ?? '';
 
 							try {
 								await auth.api.signInEmail({
@@ -364,9 +364,9 @@ export default defineAddon({
 						},
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')${ts(' as string')} ?? '';
-							const password = formData.get('password')${ts(' as string')} ?? '';
-							const name = formData.get('name')${ts(' as string')} ?? '';
+							const email = (formData.get('email')${ts(' as string')}) ?? '';
+							const password = (formData.get('password')${ts(' as string')}) ?? '';
+							const name = (formData.get('name')${ts(' as string')}) ?? '';
 
 							try {
 								await auth.api.signUpEmail({
