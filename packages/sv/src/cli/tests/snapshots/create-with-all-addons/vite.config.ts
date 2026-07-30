@@ -19,7 +19,7 @@ export default defineConfig({
 			extensions: ['.svelte', '.svx', '.md'],
 			typescript: {
 				config: (config) => {
-					config.include.push('../drizzle.config.ts');
+					(config.include as string[]).push('../drizzle.config.ts');
 				}
 			}
 		}),

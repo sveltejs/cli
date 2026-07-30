@@ -14,8 +14,8 @@ export const load: PageServerLoad = (event) => {
 export const actions: Actions = {
 	signInEmail: async (event) => {
 		const formData = await event.request.formData();
-		const email = formData.get('email')?.toString() ?? '';
-		const password = formData.get('password')?.toString() ?? '';
+		const email = (formData.get('email') as string) ?? '';
+		const password = (formData.get('password') as string) ?? '';
 
 		try {
 			await auth.api.signInEmail({
@@ -36,9 +36,9 @@ export const actions: Actions = {
 	},
 	signUpEmail: async (event) => {
 		const formData = await event.request.formData();
-		const email = formData.get('email')?.toString() ?? '';
-		const password = formData.get('password')?.toString() ?? '';
-		const name = formData.get('name')?.toString() ?? '';
+		const email = (formData.get('email') as string) ?? '';
+		const password = (formData.get('password') as string) ?? '';
+		const name = (formData.get('name') as string) ?? '';
 
 		try {
 			await auth.api.signUpEmail({

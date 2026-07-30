@@ -13,7 +13,7 @@ export default defineConfig({
 			experimental: { explicitEnvironmentVariables: true },
 			typescript: {
 				config: (config) => {
-					config.include.push('../drizzle.config.ts');
+					(config.include as string[]).push('../drizzle.config.ts');
 				}
 			}
 		})
