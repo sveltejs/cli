@@ -32,7 +32,7 @@ describe('cli', () => {
 				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'mcp=ide:claude-code,cursor,gemini,opencode,vscode,other+setup:local'
+				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local'
 				// 'storybook' // No storybook addon during tests!
 			]
 		},
@@ -126,9 +126,28 @@ describe('cli', () => {
 			const relativeFiles = snapshot
 				? (fs.readdirSync(testOutputPath, { recursive: true }) as string[])
 				: [];
+
+			// Files from ai-tools repo (skills, agents) change independently -
+			// snapshot only file listings, not content
+			const aiToolsFiles: Record<string, string[]> = {};
+			const aiToolsPattern = /[\\/](skills|agents)[\\/]/;
+
 			for (const relativeFile of relativeFiles) {
 				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
 				if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
+
+				const normalized = relativeFile.replace(/\\/g, '/');
+
+				// Group ai-tools files by directory for manifest comparison
+				if (aiToolsPattern.test(normalized)) {
+					const match = normalized.match(/(.+\/(?:skills|agents))\/(.*)/);
+					if (match) {
+						const [, base, rest] = match;
+						aiToolsFiles[base] ??= [];
+						aiToolsFiles[base].push(rest);
+					}
+					continue;
+				}
 
 				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
@@ -169,10 +188,22 @@ describe('cli', () => {
 				);
 			}
 
+			// Compare ai-tools file listings against sv-files-snapshots.md manifests
+			for (const [dir, files] of Object.entries(aiToolsFiles)) {
+				const manifest = files.sort().join('\n') + '\n';
+				await expect(manifest).toMatchFileSnapshot(
+					path.resolve(snapPath, dir, 'sv-files-snapshots.md'),
+					`ai-tools manifest "${dir}" does not match snapshot`
+				);
+			}
+
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
-				const installResult = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
+				// the generated project lives inside this repo, so it must not join its workspace
+				const installResult = await exec(
+					'pnpm',
+					['install', '--no-frozen-lockfile', '--ignore-workspace'],
+					{ nodeOptions: { stdio: 'pipe', cwd: testOutputPath } }
+				);
 				expect(
 					installResult.exitCode,
 					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`
