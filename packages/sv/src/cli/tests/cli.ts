@@ -213,11 +213,14 @@ describe('cli', () => {
 				}
 				fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, '\t') + '\n');
 
-				// without this pnpm walks up and installs the sv monorepo instead of the generated project
 				const install = await run('pnpm', [
 					'install',
 					'--no-frozen-lockfile',
-					'--ignore-workspace'
+					// without this pnpm walks up and installs the sv monorepo instead of this project
+					'--ignore-workspace',
+					// ...which also loses the workspace's `minimumReleaseAgeExclude`, so a prerelease
+					// published in the last day would be refused
+					'--config.minimumReleaseAge=0'
 				]);
 				expect(
 					install.exitCode,
