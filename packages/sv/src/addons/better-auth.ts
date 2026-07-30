@@ -361,7 +361,7 @@ export default defineAddon({
 								return fail(500, { message: 'Unexpected error' });
 							}
 
-							return redirect(302, '${demo.addonPath}');
+							return redirect(302, '/addon/better-auth');
 						},
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
@@ -385,7 +385,7 @@ export default defineAddon({
 								return fail(500, { message: 'Unexpected error' });
 							}
 
-							return redirect(302, '${demo.addonPath}');
+							return redirect(302, '/addon/better-auth');
 						},`
 					: '';
 
@@ -394,7 +394,7 @@ export default defineAddon({
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '${demo.addonPath}';
+							const callbackURL = formData.get('callbackURL')?.toString() ?? '/addon/better-auth';
 
 							const result = await auth.api.signInSocial({
 								body: {
@@ -421,7 +421,7 @@ export default defineAddon({
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
-							return redirect(302, '${demo.addonPath}');
+							return redirect(302, '/addon/better-auth');
 						}
 						return {};
 					};
@@ -431,9 +431,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}${demo.addonPath}/login/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/login/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}${demo.addonPath}/login/+page.svelte`;
+					const filePath = `${demo.addonPath}/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -476,7 +476,7 @@ export default defineAddon({
 					? `
 					<form method="post" action="?/signInSocial" use:enhance>
 						<input type="hidden" name="provider" value="github" />
-						<input type="hidden" name="callbackURL" value="${demo.addonPath}" />
+						<input type="hidden" name="callbackURL" value="/addon/better-auth" />
 						<button${btn}>Sign in with GitHub</button>
 					</form>`
 					: '';
@@ -492,9 +492,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}${demo.addonPath}/+page.server.${language}`, (content) => {
+			sv.file(`${demo.addonPath}/+page.server.${language}`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}${demo.addonPath}/+page.server.${language}`;
+					const filePath = `${demo.addonPath}/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -508,7 +508,7 @@ export default defineAddon({
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
-							return redirect(302, '${demo.addonPath}/login');
+							return redirect(302, '/addon/better-auth/login');
 						}
 						return { user: event.locals.user };
 					};
@@ -518,15 +518,15 @@ export default defineAddon({
 							await auth.api.signOut({
 								headers: event.request.headers
 							});
-							return redirect(302, '${demo.addonPath}/login');
+							return redirect(302, '/addon/better-auth/login');
 						}
 					};
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}${demo.addonPath}/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}${demo.addonPath}/+page.svelte`;
+					const filePath = `${demo.addonPath}/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
