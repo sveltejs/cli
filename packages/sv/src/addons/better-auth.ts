@@ -181,7 +181,7 @@ export default defineAddon({
 					/**
 					 * DO NOT USE!
 					 *
-					 * This instance is used by the \`better-auth\` CLI for schema generation ONLY.
+					 * This instance is used by the \`auth\` CLI for schema generation ONLY.
 					 * To access \`auth\` at runtime, use \`event.locals.auth\`.
 					 */
 					export const auth = createAuth(null${ts('!')});`;
@@ -212,7 +212,7 @@ export default defineAddon({
 				json.packageScriptsUpsert(
 					data,
 					'auth:schema',
-					`better-auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
+					`auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
 				);
 			})
 		);
