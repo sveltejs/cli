@@ -51,8 +51,8 @@ export default defineAddon({
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
-		const demoPassword = template === 'demo' || options.demo.includes('password');
-		const demoGithub = template === 'demo' || options.demo.includes('github');
+		const demoPassword = template === 'demo' || options.demo?.includes('password');
+		const demoGithub = template === 'demo' || options.demo?.includes('github');
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
@@ -558,7 +558,7 @@ export default defineAddon({
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
-		if (options.demo.includes('github')) {
+		if (options.demo?.includes('github')) {
 			steps.push(
 				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
 			);

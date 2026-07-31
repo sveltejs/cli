@@ -169,6 +169,22 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 		}
 	});
 
+const find = (
+	nodes: SvelteAst.SvelteNode[],
+	name: string
+): SvelteAst.RegularElement | undefined => {
+	for (const node of nodes) {
+		if (node.type === 'RegularElement' && node.name === name) {
+			return node;
+		}
+		if ('fragment' in node && node.fragment && 'nodes' in node.fragment) {
+			const result = find(node.fragment.nodes, name);
+			if (result) return result;
+		}
+	}
+	return undefined;
+};
+
 const hasDemoLink = (nodes: SvelteAst.Fragment['nodes'], addonName: string): boolean => {
 	for (const node of nodes) {
 		if (node.type !== 'RegularElement') continue;
@@ -206,9 +222,7 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
 	});
 
 	const headerTransform = transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
-		const ul = ast.fragment.nodes.find(
-			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'ul'
-		);
+		const ul = find(ast.fragment.nodes, 'ul');
 		if (!ul) return false;
 		if (hasDemoLink(ul.fragment.nodes, name)) return false;
 
