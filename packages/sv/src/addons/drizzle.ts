@@ -3,7 +3,6 @@ import {
 	dedent,
 	type TransformFn,
 	transforms,
-	pnpm,
 	resolveCommandArray,
 	fileExists,
 	createPrinter,
@@ -94,17 +93,7 @@ export default defineAddon({
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
-	run: ({
-		sv,
-		language,
-		options,
-		directory,
-		dependencyVersion,
-		cwd,
-		cancel,
-		file,
-		packageManager
-	}) => {
+	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file }) => {
 		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
@@ -133,11 +122,8 @@ export default defineAddon({
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
 			// not a devDependency due to bundling issues
-			sv.dependency('better-sqlite3', '^12.10.0');
+			sv.dependency('better-sqlite3', '^13.0.2');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
-			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('better-sqlite3'));
-			}
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
