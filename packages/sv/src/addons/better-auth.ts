@@ -361,7 +361,7 @@ export default defineAddon({
 								return fail(500, { message: 'Unexpected error' });
 							}
 
-							return redirect(302, '/addon/better-auth');
+							return redirect(302, '/demo/better-auth');
 						},
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
@@ -385,7 +385,7 @@ export default defineAddon({
 								return fail(500, { message: 'Unexpected error' });
 							}
 
-							return redirect(302, '/addon/better-auth');
+							return redirect(302, '/demo/better-auth');
 						},`
 					: '';
 
@@ -394,7 +394,7 @@ export default defineAddon({
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '/addon/better-auth';
+							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
 
 							const result = await auth.api.signInSocial({
 								body: {
@@ -421,7 +421,7 @@ export default defineAddon({
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
-							return redirect(302, '/addon/better-auth');
+							return redirect(302, '/demo/better-auth');
 						}
 						return {};
 					};
@@ -476,7 +476,7 @@ export default defineAddon({
 					? `
 					<form method="post" action="?/signInSocial" use:enhance>
 						<input type="hidden" name="provider" value="github" />
-						<input type="hidden" name="callbackURL" value="/addon/better-auth" />
+						<input type="hidden" name="callbackURL" value="/demo/better-auth" />
 						<button${btn}>Sign in with GitHub</button>
 					</form>`
 					: '';
@@ -508,7 +508,7 @@ export default defineAddon({
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
-							return redirect(302, '/addon/better-auth/login');
+							return redirect(302, '/demo/better-auth/login');
 						}
 						return { user: event.locals.user };
 					};
@@ -518,7 +518,7 @@ export default defineAddon({
 							await auth.api.signOut({
 								headers: event.request.headers
 							});
-							return redirect(302, '/addon/better-auth/login');
+							return redirect(302, '/demo/better-auth/login');
 						}
 					};
 				`;
@@ -564,7 +564,7 @@ export default defineAddon({
 			);
 		}
 		if (template === 'demo' || (options.demo && options.demo.length > 0)) {
-			steps.push(`Visit ${color.route('/addon/better-auth')} route to view the demo`);
+			steps.push(`Visit ${color.route('/demo/better-auth')} route to view the demo`);
 		}
 
 		return steps;

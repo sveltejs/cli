@@ -30,7 +30,7 @@ export default defineAddon({
 
 		const demo = createDemoPage('playwright', language, directory.kitRoutes);
 		const testDir = isKit ? demo.addonPath : directory.src;
-		const testRoute = isKit ? '/addon/playwright' : '/';
+		const testRoute = isKit ? '/demo/playwright' : '/';
 
 		if (isKit) {
 			sv.file(...demo.listing);
@@ -101,7 +101,7 @@ export default defineAddon({
 		);
 
 		if (isKit) {
-			steps.push(`Visit ${color.route('/addon/playwright')} to see the demo page`);
+			steps.push(`Visit ${color.route('/demo/playwright')} to see the demo page`);
 		}
 
 		steps.push(

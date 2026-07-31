@@ -289,7 +289,7 @@ export default defineAddon({
 	nextSteps: ({ template: t }) => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
 		if (t === 'demo' || options.demo) {
-			steps.push(`Visit ${color.route('/addon/paraglide')} route to view the demo`);
+			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
 		}
 
 		return steps;

@@ -190,8 +190,8 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
 				if (!Array.isArray(hrefAttribute.value)) continue;
 
 				const hasDemo = hrefAttribute.value.some(
-					// we use includes as it could be "/addon/${name}" or "resolve("addon/${name}")" or "resolve('addon/${name}')"
-					(x) => x.type === 'Text' && x.data.includes(`/addon/${name}`)
+					// we use includes as it could be "/demo/${name}" or "resolve("demo/${name}")" or "resolve('demo/${name}')"
+					(x) => x.type === 'Text' && x.data.includes(`/demo/${name}`)
 				);
 				if (hasDemo) {
 					return false;
@@ -201,7 +201,7 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
 
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
-		svelte.addFragment(ast, `<a href={resolve('/addon/${name}')}>${name}</a>`, { mode: 'prepend' });
+		svelte.addFragment(ast, `<a href={resolve('/demo/${name}')}>${name}</a>`, { mode: 'prepend' });
 	});
 
 	const headerTransform = transforms.svelteScript({ language }, ({ ast, js }) => {
@@ -230,7 +230,7 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
 				if (!Array.isArray(hrefAttribute.value)) continue;
 
 				const hasDemo = hrefAttribute.value.some(
-					(x) => x.type === 'Text' && x.data.includes(`/addon/${name}`)
+					(x) => x.type === 'Text' && x.data.includes(`/demo/${name}`)
 				);
 				if (hasDemo) {
 					return false;
@@ -241,14 +241,14 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
 		const { ast: liAst } = parse.svelte(
-			`<li aria-current={page.url.pathname.startsWith('/addon/${name}') ? 'page' : undefined}><a href={resolve('/addon/${name}')}>${name}</a></li>`
+			`<li aria-current={page.url.pathname.startsWith('/demo/${name}') ? 'page' : undefined}><a href={resolve('/demo/${name}')}>${name}</a></li>`
 		);
 		ul.fragment.nodes.push(...liAst.fragment.nodes);
 	});
 
 	return {
-		addonPath: `${kitRoutes}/addon/${name}`,
-		listing: [`${kitRoutes}/addon/+page.svelte`, listingTransform],
+		addonPath: `${kitRoutes}/demo/${name}`,
+		listing: [`${kitRoutes}/demo/+page.svelte`, listingTransform],
 		header: [`${kitRoutes}/Header.svelte`, headerTransform]
 	};
 };
