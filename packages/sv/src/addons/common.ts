@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { color, parse, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import { color, dedent, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
 import process from 'node:process';
 
 // This is in common because the eslint addon installs this version,
@@ -169,81 +169,58 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 		}
 	});
 
+const hasDemoLink = (nodes: SvelteAst.Fragment['nodes'], addonName: string): boolean => {
+	for (const node of nodes) {
+		if (node.type !== 'RegularElement') continue;
+		const hrefAttribute = node.attributes.find(
+			(x): x is SvelteAst.Attribute => x.type === 'Attribute' && x.name === 'href'
+		);
+		if (!hrefAttribute) continue;
+		if (!hrefAttribute.value) continue;
+		if (!Array.isArray(hrefAttribute.value)) continue;
+		return hrefAttribute.value.some(
+			(x) => x.type === 'Text' && x.data.includes(`/demo/${addonName}`)
+		);
+	}
+	return false;
+};
+
+type KitRoutes = string & {};
+type AddonName = string & {};
 type CreateDemoPage = (
 	name: string,
 	language: 'ts' | 'js',
 	kitRoutes: string
 ) => {
-	addonPath: string;
-	listing: [path: string, transform: TransformFn];
-	header: [path: string, transform: TransformFn];
+	addonPath: `${KitRoutes}/demo/${AddonName}`;
+	listing: [path: `${KitRoutes}/demo/+page.svelte`, transform: TransformFn];
+	header: [path: `${KitRoutes}/Header.svelte`, transform: TransformFn];
 };
+
 export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
 	const listingTransform = transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
-		for (const node of ast.fragment.nodes) {
-			if (node.type === 'RegularElement') {
-				const hrefAttribute = node.attributes.find(
-					(x) => x.type === 'Attribute' && x.name === 'href'
-				) as SvelteAst.Attribute;
-				if (!hrefAttribute || !hrefAttribute.value) continue;
-
-				if (!Array.isArray(hrefAttribute.value)) continue;
-
-				const hasDemo = hrefAttribute.value.some(
-					// we use includes as it could be "/demo/${name}" or "resolve("demo/${name}")" or "resolve('demo/${name}')"
-					(x) => x.type === 'Text' && x.data.includes(`/demo/${name}`)
-				);
-				if (hasDemo) {
-					return false;
-				}
-			}
-		}
+		if (hasDemoLink(ast.fragment.nodes, name)) return false;
 
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-
 		svelte.addFragment(ast, `<a href={resolve('/demo/${name}')}>${name}</a>`, { mode: 'prepend' });
 	});
 
-	const headerTransform = transforms.svelteScript({ language }, ({ ast, js }) => {
-		const header = ast.fragment.nodes.find(
-			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'header'
-		);
-		if (!header) return false;
-
-		const nav = header.fragment.nodes.find(
-			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'nav'
-		);
-		if (!nav) return false;
-
-		const ul = nav.fragment.nodes.find(
+	const headerTransform = transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
+		const ul = ast.fragment.nodes.find(
 			(n): n is SvelteAst.RegularElement => n.type === 'RegularElement' && n.name === 'ul'
 		);
 		if (!ul) return false;
-
-		for (const node of ul.fragment.nodes) {
-			if (node.type === 'RegularElement') {
-				const hrefAttribute = node.attributes.find(
-					(x) => x.type === 'Attribute' && x.name === 'href'
-				) as SvelteAst.Attribute;
-				if (!hrefAttribute || !hrefAttribute.value) continue;
-
-				if (!Array.isArray(hrefAttribute.value)) continue;
-
-				const hasDemo = hrefAttribute.value.some(
-					(x) => x.type === 'Text' && x.data.includes(`/demo/${name}`)
-				);
-				if (hasDemo) {
-					return false;
-				}
-			}
-		}
+		if (hasDemoLink(ul.fragment.nodes, name)) return false;
 
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 
-		const { ast: liAst } = parse.svelte(
-			`<li aria-current={page.url.pathname.startsWith('/demo/${name}') ? 'page' : undefined}><a href={resolve('/demo/${name}')}>${name}</a></li>`
+		svelte.addFragment(
+			ul,
+			dedent`
+				<li aria-current={page.url.pathname.startsWith('/demo/${name}') ? 'page' : undefined}>
+					<a href={resolve('/demo/${name}')}>${name}</a>
+				</li>`
 		);
-		ul.fragment.nodes.push(...liAst.fragment.nodes);
 	});
 
 	return {
