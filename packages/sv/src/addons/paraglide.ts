@@ -50,7 +50,7 @@ const options = defineAddonOptions()
 		type: 'boolean',
 		default: true,
 		question: 'Do you want to include a demo?',
-		condition: ({ template }) => template !== 'demo'
+		condition: (_, t) => t !== 'demo'
 	})
 	.build();
 

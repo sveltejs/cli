@@ -27,7 +27,7 @@ const options = defineAddonOptions()
 		options: adapters.map((p) => ({ value: p.id, label: p.id, hint: p.package }))
 	})
 	.add('cfTarget', {
-		condition: ({ values }) => values.adapter === 'cloudflare',
+		condition: (options) => options.adapter === 'cloudflare',
 		type: 'select',
 		question: 'Are you deploying to Workers (assets) or Pages?',
 		default: 'workers',

@@ -28,7 +28,7 @@ const options = defineAddonOptions()
 			{ value: 'github', label: 'GitHub OAuth' }
 		],
 		required: false,
-		condition: ({ template }) => template !== 'demo'
+		condition: (_, t) => t !== 'demo'
 	})
 	.build();
 

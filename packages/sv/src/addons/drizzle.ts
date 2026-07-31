@@ -47,7 +47,7 @@ const options = defineAddonOptions()
 			{ value: 'postgres.js', label: 'Postgres.JS', hint: 'recommended for most users' },
 			{ value: 'neon', label: 'Neon', hint: 'popular hosted platform' }
 		],
-		condition: ({ values }) => values.database === 'postgresql'
+		condition: ({ database }) => database === 'postgresql'
 	})
 	.add('mysql', {
 		question: 'Which MySQL client would you like to use?',
@@ -58,7 +58,7 @@ const options = defineAddonOptions()
 			{ value: 'mysql2', hint: 'recommended for most users' },
 			{ value: 'planetscale', label: 'PlanetScale', hint: 'popular hosted platform' }
 		],
-		condition: ({ values }) => values.database === 'mysql'
+		condition: ({ database }) => database === 'mysql'
 	})
 	.add('sqlite', {
 		question: 'Which SQLite client would you like to use?',
@@ -70,15 +70,15 @@ const options = defineAddonOptions()
 			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
 		],
-		condition: ({ values }) => values.database === 'sqlite'
+		condition: ({ database }) => database === 'sqlite'
 	})
 	.add('docker', {
 		question: 'Do you want to run the database locally with docker-compose?',
 		default: false,
 		type: 'boolean',
-		condition: ({ values }) =>
-			(values.database === 'mysql' && values.mysql === 'mysql2') ||
-			(values.database === 'postgresql' && values.postgresql === 'postgres.js')
+		condition: ({ database, mysql, postgresql }) =>
+			(database === 'mysql' && mysql === 'mysql2') ||
+			(database === 'postgresql' && postgresql === 'postgres.js')
 	})
 	.build();
 
