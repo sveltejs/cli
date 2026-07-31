@@ -128,7 +128,7 @@ export function findShadowedIdentifiers(roots: Root[], names: string[]): Set<Ast
 	};
 
 	for (const root of roots) {
-		Walker.walk(root as unknown as AstTypes.Node, new Set<string>(), visitors);
+		Walker.walk(root as AstTypes.Node, new Set<string>(), visitors);
 	}
 	return shadowed;
 }
