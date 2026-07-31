@@ -89,6 +89,8 @@ export default defineAddon({
 						data.extends = KIT3_TSCONFIG;
 						data.include ??= [directory.src];
 						for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
+							if (key === 'types' && Array.isArray(value) && !value.includes('$app/types'))
+								value.push('$app/types');
 							// a differing value is a deliberate override and stays
 							if (KIT3_TSCONFIG_DEFAULT[key] === value) delete data.compilerOptions[key];
 						}
