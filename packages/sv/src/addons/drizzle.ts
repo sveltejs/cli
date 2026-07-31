@@ -66,6 +66,7 @@ const options = defineAddonOptions()
 		group: 'client',
 		default: 'libsql',
 		options: [
+			{ value: 'node-sqlite', hint: 'for traditional Node enviroments (built-in)' },
 			{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
 			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
@@ -452,6 +453,12 @@ export default defineAddon({
 						clientExpression = js.common.parseExpression(`createClient({ url: ${dbUrl} })`);
 					}
 				}
+				if (options.sqlite === 'node-sqlite') {
+					js.imports.addNamed(ast, { from: 'node:sqlite', imports: ['DatabaseSync'] });
+					js.imports.addNamed(ast, { from: 'drizzle-orm/node-sqlite', imports: ['drizzle'] });
+
+					clientExpression = js.common.parseExpression(`new DatabaseSync(${dbUrl})`);
+				}
 				// MySQL
 				if (options.mysql === 'mysql2' || options.mysql === 'planetscale') {
 					js.imports.addDefault(ast, { from: 'mysql2/promise', as: 'mysql' });
@@ -587,7 +594,7 @@ const generateEnv: GenerateEnv = (opts, isExample) =>
 			const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
 			const port = PORTS[opts.database];
 			value = `"${protocol}://root:mysecretpassword@localhost:${port}/local"`;
-		} else if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
+		} else if (['better-sqlite3', 'libsql', 'node-sqlite'].includes(opts.sqlite)) {
 			value = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
 		} else if (opts.sqlite === 'turso') {
 			if (isExample) {
