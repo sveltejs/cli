@@ -45,14 +45,14 @@ export default defineAddon({
 		runsAfter('tailwindcss');
 		runsAfter('experimental');
 	},
-	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
+	run: ({ sv, cwd, language, options, directory, dependencyVersion, file, template }) => {
 		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
-		const demoPassword = options.demo.includes('password');
-		const demoGithub = options.demo.includes('github');
+		const demoPassword = template === 'demo' || options.demo.includes('password');
+		const demoGithub = template === 'demo' || options.demo.includes('github');
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
@@ -552,7 +552,7 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: ({ options, packageManager }) => {
+	nextSteps: ({ options, packageManager, template }) => {
 		const steps = [
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['auth:schema']))} to generate the auth schema`,
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
@@ -563,7 +563,7 @@ export default defineAddon({
 				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
 			);
 		}
-		if (options.demo && options.demo.length > 0) {
+		if (template === 'demo' || (options.demo && options.demo.length > 0)) {
 			steps.push(`Visit ${color.route('/addon/better-auth')} route to view the demo`);
 		}
 

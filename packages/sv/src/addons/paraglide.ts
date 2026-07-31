@@ -64,7 +64,7 @@ export default defineAddon({
 		// it picks the kit-3 shape off the version `experimental` writes
 		runsAfter('experimental');
 	},
-	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
+	run: ({ sv, options, file, language, directory, dependencyVersion, template }) => {
 		const [ts] = createPrinter(language === 'ts');
 		const kitRange = dependencyVersion('@sveltejs/kit');
 		const lib = resolveLibPrefix(kitRange);
@@ -235,7 +235,7 @@ export default defineAddon({
 			})
 		);
 
-		if (options.demo) {
+		if (template === 'demo' || options.demo) {
 			const demo = createDemoPage('paraglide', language, directory.kitRoutes);
 			sv.file(...demo.listing);
 			sv.file(...demo.header);
@@ -286,9 +286,9 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: () => {
+	nextSteps: ({ template: t }) => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
-		if (options.demo) {
+		if (t === 'demo' || options.demo) {
 			steps.push(`Visit ${color.route('/addon/paraglide')} route to view the demo`);
 		}
 
