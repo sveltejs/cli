@@ -1,5 +1,29 @@
 # sv
 
+## 0.17.0
+### Minor Changes
+
+
+- feat(ai-tools): replace `mcp` add-on with `ai-tools` add-on - set up the Svelte plugin (Claude Code, opencode) or pick individual tools (MCP server, skills, sub-agents) per client ([#1050](https://github.com/sveltejs/cli/pull/1050))
+
+
+### Patch Changes
+
+
+- fix: run prettier directly instead of through the package manager, and stop allowing builds for packages that no longer have install scripts (`@tailwindcss/oxide`, `sharp`) ([#1198](https://github.com/sveltejs/cli/pull/1198))
+
+
+- fix(experimental): `@sveltejs/kit@next` projects now install, build and type-check - `#lib` imports instead of `$lib`, a `tsconfig` extending `$app/tsconfig`, and no options kit 3 removed ([#1199](https://github.com/sveltejs/cli/pull/1199))
+
+
+- fix(drizzle): `remove better-sqlite3` from `allowBuilds` ([#1205](https://github.com/sveltejs/cli/pull/1205))
+  chore(drizzle): bump `better-sqlite3` to `^13.0.2`
+
+- fix(better-auth): use the `auth` CLI binary in the `auth:schema` script ([#1201](https://github.com/sveltejs/cli/pull/1201))
+
+- Updated dependencies [[`86a4cce`](https://github.com/sveltejs/cli/commit/86a4cced4b8be35cff5b46d67a09839fa6eca775)]:
+  - @sveltejs/sv-utils@0.3.3
+
 ## 0.16.6
 ### Patch Changes
 
