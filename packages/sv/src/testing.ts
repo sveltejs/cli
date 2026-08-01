@@ -75,11 +75,11 @@ function createProject({ cwd, testName, templatesDir }: CreateOptions): CreatePr
 	};
 }
 
-type PreviewOptions = { cwd: string; command?: string };
+type PreviewOptions = { cwd: string; command: string };
 
 async function startPreview({
 	cwd,
-	command = 'npm run preview'
+	command
 }: PreviewOptions): Promise<{ url: string; close: () => Promise<void> }> {
 	const [cmd, ...args] = command.split(' ');
 	const proc = exec(cmd, args, {
@@ -199,6 +199,8 @@ export type SetupTestOptions<Addons extends AddonMap> = {
 	filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
 	browser?: boolean;
 	preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
+	/** @default 'pnpm' */
+	packageManager?: 'pnpm' | 'npm' | 'yarn' | (string & {});
 };
 
 export type PrepareServerOptions = {
@@ -290,6 +292,7 @@ export function createSetupTest(
 		const variants = inject('variants');
 
 		const withBrowser = options?.browser ?? true;
+		const packageManager = options?.packageManager ?? 'pnpm';
 
 		let create: ReturnType<typeof createProject>;
 		let browser: Awaited<ReturnType<typeof import('@playwright/test').chromium.launch>>;
@@ -304,7 +307,7 @@ export function createSetupTest(
 						({ chromium } = await import('@playwright/test'));
 					} catch {
 						throw new Error(
-							'Browser testing requires @playwright/test. Install it with: pnpm add -D @playwright/test'
+							`Browser testing requires @playwright/test. Install it with: ${packageManager} add -D @playwright/test`
 						);
 					}
 				}
@@ -359,18 +362,18 @@ export function createSetupTest(
 					cwd,
 					addons,
 					options: kind.options,
-					packageManager: 'pnpm'
+					packageManager
 				});
-				addPnpmAllowBuilds(cwd, 'pnpm', 'esbuild');
+				addPnpmAllowBuilds(cwd, packageManager, 'esbuild');
 			}
 
 			const installDir = path.resolve(cwd, testName);
-			const install = await exec('pnpm', ['install'], {
+			const install = await exec(packageManager, ['install'], {
 				nodeOptions: { cwd: installDir, stdio: 'pipe' }
 			});
 			if (install.exitCode !== 0) {
 				throw new Error(
-					`pnpm install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+					`${packageManager} install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
 				);
 			}
 		});
