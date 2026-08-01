@@ -97,10 +97,15 @@ describe('cli', () => {
 			];
 
 			/**
-			 * Same as `exec`. Defaults `cwd` to `testOutputPath`
+			 * Same as `exec`. but `cwd` defaults to `testOutputPath`
 			 */
-			const run = (...args: Parameters<typeof exec>) =>
-				exec(args[0], args[1], { nodeOptions: { cwd: testOutputPath }, ...args[2] });
+			const run = (...args: Parameters<typeof exec>) => {
+				const opts = args[2] ?? {};
+				return exec(args[0], args[1], {
+					nodeOptions: { cwd: testOutputPath, ...opts.nodeOptions },
+					...opts
+				});
+			};
 
 			// useful for debugging
 			// console.log(`command`, `node ${allArgs.join(' ')}`);
