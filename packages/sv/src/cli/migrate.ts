@@ -1,7 +1,7 @@
 import { resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
-import { execSync } from 'node:child_process';
 import process from 'node:process';
+import { execSync } from 'tinyexec';
 import { forwardExitCode } from '../core/common.ts';
 import { detectPackageManager } from '../core/package-manager.ts';
 
@@ -23,7 +23,8 @@ async function runMigrate(cwd: string, args: string[]) {
 		// skips the download confirmation prompt for `npx`
 		if (pm === 'npm') cmdArgs.unshift('--yes');
 
-		execSync(resolveCommandArray(pm, 'execute', cmdArgs).join(' '), { stdio: 'inherit', cwd });
+		const cmd = resolveCommand(pm, 'execute', cmdArgs)!;
+		execSync(cmd.command, cmd.args, { nodeOptions: { cwd, stdio: 'inherit' } });
 	} catch (error) {
 		forwardExitCode(error);
 	}
