@@ -106,9 +106,9 @@
 	action="?/enter"
 	use:enhance={() => {
 		// prevent default callback from resetting the form
-		return async ({ result, update }) => {
+		return ({ result, update }) => {
 			shake = result.type === 'failure';
-			await update({ reset: false });
+			void update({ reset: false });
 		};
 	}}
 >
