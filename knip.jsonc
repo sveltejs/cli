@@ -1,0 +1,28 @@
+{
+	"$schema": "https://unpkg.com/knip@6/schema.json",
+	"tags": ["-lintignore"],
+	"workspaces": {
+		".": {
+			"entry": ["scripts/*.js"]
+		},
+		"packages/sv-utils": {
+			"entry": ["src/index.ts", "src/tests/*.ts"],
+			"ignore": ["src/tests/**"]
+		},
+		"packages/sv": {
+			"entry": [
+				"bin.ts",
+				"src/index.ts",
+				"src/testing.ts",
+				"src/cli/*.ts",
+				"src/create/scripts/*.js"
+			],
+			"ignore": ["src/**/tests/**", "src/create/templates/**", "src/create/shared/**"]
+		},
+		"packages/migrate": {
+			"entry": ["migrations/**/index.js"]
+		}
+	},
+	"ignoreExportsUsedInFile": { "type": true },
+	"ignoreBinaries": ["wait"]
+}
