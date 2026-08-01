@@ -552,23 +552,14 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: ({ options, packageManager }) => {
-		const steps = [
-			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['auth:schema']))} to generate the auth schema`,
-			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
-			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
-		];
-		if (options.demo.includes('github')) {
-			steps.push(
-				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
-			);
-		}
-		if (options.demo.length > 0) {
-			steps.push(`Visit ${color.route('/demo/better-auth')} route to view the demo`);
-		}
-
-		return steps;
-	}
+	nextSteps: ({ options, packageManager }) => [
+		`Run ${color.command(resolveCommandArray(packageManager, 'run', ['auth:schema']))} to generate the auth schema`,
+		`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
+		`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`,
+		options.demo.includes('github') &&
+			`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`,
+		options.demo.length > 0 && `Visit ${color.route('/demo/better-auth')} route to view the demo`
+	]
 });
 type GenerateEnv = (demoGithub: boolean, isExample: boolean) => TransformFn;
 const generateEnv: GenerateEnv = (demoGithub, isExample) =>

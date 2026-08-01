@@ -206,13 +206,8 @@ export default defineAddon({
 			}
 		}
 	},
-	nextSteps({ options, packageManager }) {
-		const steps: string[] = [];
-		if (options.adapter === 'cloudflare') {
-			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['gen']))} to update ${color.addon('cloudflare')} types`
-			);
-		}
-		return steps;
-	}
+	nextSteps: ({ options, packageManager }) => [
+		options.adapter === 'cloudflare' &&
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['gen']))} to update ${color.addon('cloudflare')} types`
+	]
 });

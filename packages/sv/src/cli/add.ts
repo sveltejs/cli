@@ -811,9 +811,11 @@ export function getNextSteps(
 				.filter((s) => s !== null && s !== undefined && s !== '' && s !== false);
 			if (addonNextSteps.length === 0) return;
 
-			let addonMessage = `${color.addon(addon.id)}:\n`;
-			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
-			return addonMessage;
+			return [
+				//
+				`${color.addon(addon.id)}:`,
+				...addonNextSteps.map((step) => `  - ${step}`)
+			].join('\n');
 		})
 		.filter((msg): msg is string => msg !== undefined);
 }
