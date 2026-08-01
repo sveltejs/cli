@@ -101,9 +101,10 @@ describe('cli', () => {
 			 */
 			const run = (...args: Parameters<typeof exec>) => {
 				const opts = args[2] ?? {};
+				const { nodeOptions, ...rest } = opts;
 				return exec(args[0], args[1], {
-					nodeOptions: { cwd: testOutputPath, ...opts.nodeOptions },
-					...opts
+					nodeOptions: { cwd: testOutputPath, ...nodeOptions },
+					...rest
 				});
 			};
 
