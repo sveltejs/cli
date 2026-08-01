@@ -32,6 +32,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	// There is no need to prompt in that case.
 	if (!process.stdout.isTTY) return agent;
 
+	const maxAgentLength = AGENT_NAMES.reduce((a, c) => (c.length > a ? c.length : a), 0);
 	// installed ones first
 	const agentOptions = [
 		{ label: 'None', value: undefined },
@@ -39,7 +40,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 			const installed = isInstalled(agent);
 			return {
 				value: agent,
-				label: installed ? agent : color.dim(`${agent} (not installed)`),
+				label: installed ? agent : `${agent.padEnd(maxAgentLength)} (not installed)`,
 				installed
 			};
 		}).sort((a, b) => Number(b.installed) - Number(a.installed))
