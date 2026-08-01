@@ -15,9 +15,18 @@ test.concurrent.for(testCases)('eslint $variant', (testCase, { expect, ...ctx })
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');
 
-	expect(() => execSync('pnpm', ['lint'], { nodeOptions: { cwd } })).toThrow();
+	expect(
+		execSync('pnpm', ['lint'], { nodeOptions: { cwd } }).exitCode,
+		'lint should fail on unlinted file'
+	).not.toBe(0);
 
-	expect(() => execSync('pnpm', ['eslint', '--fix', '.'], { nodeOptions: { cwd } })).not.toThrow();
+	expect(
+		execSync('pnpm', ['eslint', '--fix', '.'], { nodeOptions: { cwd } }).exitCode,
+		'eslint --fix should succeed'
+	).toBe(0);
 
-	expect(() => execSync('pnpm', ['lint'], { nodeOptions: { cwd } })).not.toThrow();
+	expect(
+		execSync('pnpm', ['lint'], { nodeOptions: { cwd } }).exitCode,
+		'lint should pass after fix'
+	).toBe(0);
 });

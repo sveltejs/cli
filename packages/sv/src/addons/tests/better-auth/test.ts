@@ -37,7 +37,7 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	fs.writeFileSync(envPath, envContent, 'utf8');
 
 	// Generate auth schema using better-auth CLI
-	execSync('npm', ['run', 'auth:schema'], { nodeOptions: { cwd } });
+	execSync('npm', ['run', 'auth:schema'], { nodeOptions: { cwd }, throwOnError: true });
 
 	// Verify schema has auth tables
 	const schemaPath = path.resolve(cwd, `src/lib/server/db/schema.${language}`);
@@ -46,7 +46,10 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	expect(schemaContent).toContain('./auth.schema');
 
 	// Push schema to DB
-	execSync('npm', ['run', 'db:push', '--', '--force'], { nodeOptions: { cwd } });
+	execSync('npm', ['run', 'db:push', '--', '--force'], {
+		nodeOptions: { cwd },
+		throwOnError: true
+	});
 
 	/** ----- BROWSER SECTION ----- */
 	const { url, close } = await prepareServer({ cwd, page });

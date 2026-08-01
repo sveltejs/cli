@@ -1,8 +1,8 @@
-import { execSync } from 'tinyexec';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'tinyexec';
 import { beforeAll, expect } from 'vitest';
 import drizzle from '../../drizzle.ts';
 import { setupTest } from '../_setup/suite.ts';
@@ -42,21 +42,28 @@ beforeAll(() => {
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 
 	try {
-		execSync('docker', ['--version'], { nodeOptions: { cwd } });
+		execSync('docker', ['--version'], { nodeOptions: { cwd }, throwOnError: true });
 		dockerInstalled = true;
 	} catch {
 		dockerInstalled = false;
 	}
 
-	if (dockerInstalled) execSync('docker', ['compose', 'up', '--detach'], { nodeOptions: { cwd } });
+	if (dockerInstalled) {
+		execSync('docker', ['compose', 'up', '--detach'], {
+			nodeOptions: { cwd },
+			throwOnError: true
+		});
+	}
 
 	// cleans up the containers on interrupts (ctrl+c)
 	process.addListener('SIGINT', () => {
-		if (dockerInstalled) execSync('docker', ['compose', 'down', '--volumes'], { nodeOptions: { cwd } });
+		if (dockerInstalled)
+			execSync('docker', ['compose', 'down', '--volumes'], { nodeOptions: { cwd } });
 	});
 
 	return () => {
-		if (dockerInstalled) execSync('docker', ['compose', 'down', '--volumes'], { nodeOptions: { cwd } });
+		if (dockerInstalled)
+			execSync('docker', ['compose', 'down', '--volumes'], { nodeOptions: { cwd } });
 	};
 });
 
@@ -92,7 +99,7 @@ test.concurrent.for(testCases)(
 			const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
 			fs.writeFileSync(pageServerPath, pageServer(ts ? 'ts' : 'js'), 'utf8');
 
-			execSync('npm', ['run', 'db:push'], { nodeOptions: { cwd } });
+			execSync('npm', ['run', 'db:push'], { nodeOptions: { cwd }, throwOnError: true });
 
 			const { close } = await prepareServer({ cwd, page });
 			// kill server process when we're done

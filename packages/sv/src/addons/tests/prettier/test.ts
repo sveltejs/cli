@@ -48,11 +48,20 @@ test.concurrent.for(testCases)('prettier $kind.type $variant', (testCase, { expe
 		const unformattedFile = 'const foo = "bar"';
 		fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unformattedFile, 'utf8');
 
-		expect(() => execSync('pnpm', ['lint'], { nodeOptions: { cwd } })).toThrow();
+		expect(
+			execSync('pnpm', ['lint'], { nodeOptions: { cwd } }).exitCode,
+			'lint should fail on unformatted file'
+		).not.toBe(0);
 
-		expect(() => execSync('pnpm', ['format'], { nodeOptions: { cwd } })).not.toThrow();
+		expect(
+			execSync('pnpm', ['format'], { nodeOptions: { cwd } }).exitCode,
+			'format should succeed'
+		).toBe(0);
 
-		expect(() => execSync('pnpm', ['lint'], { nodeOptions: { cwd } })).not.toThrow();
+		expect(
+			execSync('pnpm', ['lint'], { nodeOptions: { cwd } }).exitCode,
+			'lint should pass after format'
+		).toBe(0);
 	} else if (testCase.kind.type === 'supported-eslint') {
 		expect(fs.existsSync(path.resolve(cwd, 'eslint.config.js'))).toBe(true);
 

@@ -1,4 +1,4 @@
-import { color, resolveCommandArray } from '@sveltejs/sv-utils';
+import { color, resolveCommand, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
 import process from 'node:process';
@@ -39,8 +39,11 @@ async function runCheck(cwd: string, args: string[]) {
 
 	// avoids printing the stack trace for `sv` when `svelte-check` exits with an error code
 	try {
-		const [cmd, ...cmdArgs] = resolveCommandArray(pm, 'execute-local', ['svelte-check', ...args]);
-		execSync(cmd, cmdArgs, { nodeOptions: { cwd, stdio: 'inherit' } });
+		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
+		execSync(cmd.command, cmd.args, {
+			nodeOptions: { cwd, stdio: 'inherit' },
+			throwOnError: true
+		});
 	} catch (error) {
 		forwardExitCode(error);
 	} finally {
