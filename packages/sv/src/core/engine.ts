@@ -250,10 +250,10 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			}
 		},
 		execute: async (commandArgs, stdio) => {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
+			const cmd = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
-			const executedCommand = [command, ...args].join(' ');
+			const executedCommand = [cmd.command, ...cmd.args].join(' ');
 			if (!TESTING) {
 				p.log.step(
 					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
@@ -261,10 +261,10 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			}
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') args.unshift('--yes');
+			if (workspace.packageManager === 'npm') cmd.args.unshift('--yes');
 
 			try {
-				await exec(command, args, {
+				await exec(cmd.command, cmd.args, {
 					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
 					throwOnError: true
 				});
