@@ -9,26 +9,17 @@ export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 		verifications.push({
 			name: 'clean working directory',
 			run: async () => {
-				try {
-					// If a user has pending git changes the output of the following command will list
-					// all files that have been added/modified/deleted and thus the output will not be empty.
-					// In case the output of the command below is an empty text, we can safely assume
-					// there are no pending changes. If the below command is run outside of a git repository,
-					// git will exit with a failing exit code, which will trigger the catch statement.
-					// also see https://remarkablemark.org/blog/2017/10/12/check-git-dirty/#git-status
-					const { stdout } = await exec('git', ['status', '--short'], {
-						nodeOptions: { cwd },
-						throwOnError: true
-					});
+				// If a user has pending git changes the output of the following command will list
+				// all files that have been added/modified/deleted and thus the output will not be empty.
+				// In case the output of the command below is an empty text, we can safely assume
+				// there are no pending changes. If the below command is run outside of a git repository,
+				// git will exit with a failing exit code, which will trigger the catch statement.
+				// also see https://remarkablemark.org/blog/2017/10/12/check-git-dirty/#git-status
+				const result = await exec('git', ['status', '--short'], { nodeOptions: { cwd } });
 
-					if (stdout) {
-						return { success: false, message: 'Uncommited changes found' };
-					}
-
-					return { success: true, message: undefined };
-				} catch {
-					return { success: true, message: 'Not a git repository' };
-				}
+				if (result.exitCode !== 0) return { success: true, message: 'Not a git repository' };
+				if (result.stdout) return { success: false, message: 'Uncommited changes found' };
+				return { success: true, message: undefined };
 			}
 		});
 	}
@@ -49,10 +40,7 @@ export function verifyUnsupportedAddons(
 				setupResults[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
 			);
 
-			if (reasons.length === 0) {
-				return { success: true, message: undefined };
-			}
-
+			if (reasons.length === 0) return { success: true, message: undefined };
 			throw new UnsupportedError(reasons);
 		}
 	});
