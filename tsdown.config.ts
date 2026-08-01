@@ -27,6 +27,7 @@ const svDeps = {
 		'fast-wrap-ansi',
 		'from',
 		'map-stream',
+		'modern-tar',
 		'pause-stream',
 		'ps-tree',
 		'sisteransi',

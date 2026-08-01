@@ -125,14 +125,9 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 	await pipeline(
 		data.body,
 		createGunzip(),
-		unpackTar(NODE_MODULES, {
-			map: (header) => {
-				// file paths from the tarball will always have a `package/` prefix,
-				// so we'll need to replace it with the name of the package
-				header.name = header.name.replace('package', pkg.name);
-				return header;
-			}
-		})
+		// file paths from the tarball will always have a `package/` prefix,
+		// so we'll need to replace it with the name of the package
+		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
 	);
 
 	return await importAddonCode(pkg.name, pkg.version);
