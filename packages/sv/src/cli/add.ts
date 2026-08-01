@@ -806,7 +806,9 @@ export function getNextSteps(
 			const { addon } = loadedAddons.find((l) => l.addon.id === loaded.id)!;
 			if (!addon.nextSteps) return;
 			const addonOptions = answers[addon.id];
-			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions });
+			const addonNextSteps = addon
+				.nextSteps({ ...workspace, options: addonOptions })
+				.filter((s) => s !== null && s !== undefined && s !== '' && s !== false);
 			if (addonNextSteps.length === 0) return;
 
 			let addonMessage = `${color.addon(addon.id)}:\n`;
