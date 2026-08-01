@@ -272,29 +272,56 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	const parentDirName = path.basename(path.dirname(projectPath));
 	let projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
-	if (template === 'addon' && !projectName.startsWith('@')) {
-		// At this stage, we don't support un-scoped add-ons
-		// FYI: a demo exists for `npx sv add my-cool-addon`
-		const org = await p.text({
-			message: `Community add-ons must be published under an npm org. Enter the name of your npm org:`,
-			placeholder: '  @my-org',
+	if (template === 'addon') {
+		if (options.add.length > 0) {
+			common.errorAndExit(
+				`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
+			);
+		}
+
+		const namePrompt = await p.text({
+			message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>')}, ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
+			initialValue: projectName,
 			validate: (value) => {
-				if (!value) return 'Organization name is required';
-				if (!value.startsWith('@')) return 'Must start with @';
-				if (value.includes('/')) return 'Just the org, not the full package name';
+				// https://npmx.dev/package/validate-npm-package-name#user-content-naming-rules
+				if (!value) return 'Package name is required.';
+				if (/\s/.test(value)) return 'Package name cannot contain spaces';
+				if (value.startsWith('.')) return 'Package name cannot start with a period';
+				if (value.startsWith('-')) return 'Package name cannot start with a hyphen';
+				if (value.match(/^_/)) return 'Package name cannot start with an underscore';
+				if (value.toLowerCase() !== value) return 'Package name cannot contain capital letters';
+				if (value.length > 214) return 'Package name cannot contain more than 214 characters';
+				// No funny business
+				for (const excluded in ['node_modules', 'favicon.ico']) {
+					if (value === excluded) return `${excluded} is not a valid package name`;
+				}
+
+				// scoped package name handling
+				if (encodeURIComponent(value) !== value) {
+					const scopedPackagePattern = new RegExp('^(?:@([^/]+?)[/])?([^/]+?)$');
+					const nameMatch = value.match(scopedPackagePattern);
+					if (nameMatch) {
+						const [, org, pkg] = nameMatch;
+						if (pkg.startsWith('.')) return 'Package name cannot start with a period';
+						if (/[~'!()*]/.test(pkg))
+							return 'Package name cannot contain special characters ("~\'!()*")';
+						if (encodeURIComponent(org) !== org || encodeURIComponent(pkg) !== pkg) {
+							return `Package name can only contain URL-friendly characters: ${encodeURIComponent(org)}/${encodeURIComponent(pkg)}`;
+						}
+						return;
+					}
+				}
+				return `Package name can only contain URL-friendly characters: ${encodeURIComponent(value)}`;
 			}
 		});
-		if (p.isCancel(org)) {
+		if (p.isCancel(namePrompt)) {
 			p.cancel('Operation cancelled.');
 			process.exit(0);
 		}
-		projectName = `${org}/${basename}`;
-	}
-
-	if (template === 'addon' && options.add.length > 0) {
-		common.errorAndExit(
-			`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
-		);
+		// @org/ or @org — needs post process: add package name
+		const cleanPkg = namePrompt.endsWith('/') ? namePrompt.slice(0, -1) : namePrompt;
+		const isScopeOnly = cleanPkg.startsWith('@') && !cleanPkg.includes('/');
+		projectName = isScopeOnly ? `${cleanPkg}/${basename}` : namePrompt;
 	}
 
 	let loadedAddons: LoadedAddon[] = [];

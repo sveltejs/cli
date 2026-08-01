@@ -61,6 +61,11 @@ describe('cli', () => {
 			projectName: '@my-org/sv',
 			template: 'addon',
 			args: []
+		},
+		{
+			projectName: 'my-addon',
+			template: 'addon',
+			args: []
 		}
 	];
 
