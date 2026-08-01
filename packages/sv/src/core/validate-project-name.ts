@@ -9,6 +9,8 @@ export const validateProjectName = (value: string | undefined): string | undefin
 	if (value.startsWith('-')) return 'Package name cannot start with a hyphen';
 	if (value.match(/^_/)) return 'Package name cannot start with an underscore';
 	if (value.toLowerCase() !== value) return 'Package name cannot contain capital letters';
+	if (/[~'!()*]/.test(value.split('/').slice(-1)[0]))
+		return 'Package name cannot contain special characters ("~\'!()*")';
 	if (value.length > 214) return 'Package name cannot contain more than 214 characters';
 	for (const excluded of ['node_modules', 'favicon.ico']) {
 		if (value === excluded) return `${excluded} is not a valid package name`;
@@ -19,12 +21,12 @@ export const validateProjectName = (value: string | undefined): string | undefin
 		if (nameMatch) {
 			const [, org, pkg] = nameMatch;
 			if (pkg.startsWith('.')) return 'Package name cannot start with a period';
-			if (/[~'!()*]/.test(pkg)) return 'Package name cannot contain special characters ("~\'!()*")';
-			if (encodeURIComponent(org!) !== org || encodeURIComponent(pkg) !== pkg) {
-				return `Package name can only contain URL-friendly characters: ${encodeURIComponent(org)}/${encodeURIComponent(pkg)}`;
+			if (encodeURIComponent(org) !== org || encodeURIComponent(pkg) !== pkg) {
+				return `Package name can only contain URL-friendly characters: ${org ? `${encodeURIComponent(org)}/` : ''}${encodeURIComponent(pkg)}`;
 			}
 			return;
 		}
+		return `Package name can only contain URL-friendly characters: ${encodeURIComponent(value)}`;
 	}
-	return `Package name can only contain URL-friendly characters: ${encodeURIComponent(value)}`;
+	return;
 };

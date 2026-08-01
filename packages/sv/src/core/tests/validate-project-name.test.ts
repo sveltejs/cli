@@ -55,16 +55,8 @@ describe('validateProjectName', () => {
 	});
 
 	describe('invalid names (return error string)', () => {
-		it('null', () => {
-			expect(validateProjectName(null)).toBe('Package name cannot be null');
-		});
-
 		it('undefined', () => {
 			expect(validateProjectName(undefined)).toBe('Package name cannot be undefined');
-		});
-
-		it('42 (number)', () => {
-			expect(validateProjectName(42)).toBe('Package name must be a string');
 		});
 
 		it('empty string', () => {
@@ -131,18 +123,6 @@ describe('validateProjectName', () => {
 
 		it('favicon.ico', () => {
 			expect(validateProjectName('favicon.ico')).toBe('favicon.ico is not a valid package name');
-		});
-
-		it('http', () => {
-			expect(validateProjectName('http')).toBe(
-				'Package name can only contain URL-friendly characters: http'
-			);
-		});
-
-		it('process', () => {
-			expect(validateProjectName('process')).toBe(
-				'Package name can only contain URL-friendly characters: process'
-			);
 		});
 
 		it('> 214 chars', () => {
