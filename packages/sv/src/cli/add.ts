@@ -793,7 +793,7 @@ export function getNextSteps(
 			if (addonNextSteps.length === 0) return;
 
 			let addonMessage = `${color.addon(addon.id)}:\n`;
-			addonMessage += `  - ${addonNextSteps.join('\n  - ')}`;
+			addonMessage += addonNextSteps.map((line) => `  - ${line}`).join('\n');
 			return addonMessage;
 		})
 		.filter((msg): msg is string => msg !== undefined);
