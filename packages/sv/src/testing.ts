@@ -124,7 +124,7 @@ async function getProcessTree(pid: number) {
 async function terminate(pid: number) {
 	if (process.platform === 'win32') {
 		// on windows, use taskkill to terminate the process tree
-		await exec('taskkill', ['/PID', `${pid}`, '/T', '/F']);
+		await exec('taskkill', ['/PID', `${pid}`, '/T', '/F'], { throwOnError: true });
 		return;
 	}
 	const children = await getProcessTree(pid);
@@ -363,7 +363,10 @@ export function createSetupTest(
 			}
 
 			const installDir = path.resolve(cwd, testName);
-			const install = await exec('pnpm', ['install'], { nodeOptions: { cwd: installDir } });
+			const install = await exec('pnpm', ['install'], {
+				nodeOptions: { cwd: installDir },
+				throwOnError: true
+			});
 			if (install.exitCode !== 0) {
 				throw new Error(
 					`pnpm install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
