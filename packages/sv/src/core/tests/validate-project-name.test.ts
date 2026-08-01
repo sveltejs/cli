@@ -101,19 +101,19 @@ describe('validateProjectName', () => {
 
 		it(' leading-space', () => {
 			expect(validateProjectName(' leading-space')).toBe(
-				'Package name can only contain URL-friendly characters: %20leading-space'
+				'Package name cannot contain spaces'
 			);
 		});
 
 		it('trailing-space ', () => {
 			expect(validateProjectName('trailing-space ')).toBe(
-				'Package name can only contain URL-friendly characters: trailing-space%20'
+				'Package name cannot contain spaces'
 			);
 		});
 
 		it('s/l/a/s/h/e/s', () => {
 			expect(validateProjectName('s/l/a/s/h/e/s')).toBe(
-				'Package name can only contain URL-friendly characters: s/l/a/s/h/e/s'
+				'Package name can only contain URL-friendly characters: s%2Fl%2Fa%2Fs%2Fh%2Fe%2Fs'
 			);
 		});
 
@@ -141,13 +141,13 @@ describe('validateProjectName', () => {
 
 		it('crazy!', () => {
 			expect(validateProjectName('crazy!')).toBe(
-				'Package name can only contain URL-friendly characters: crazy%21'
+				'Package name cannot contain special characters ("~\'!()*")'
 			);
 		});
 
 		it('@npm-zors/money!time.js', () => {
 			expect(validateProjectName('@npm-zors/money!time.js')).toBe(
-				'Package name can only contain URL-friendly characters: @npm-zors/money%21time.js'
+				'Package name cannot contain special characters ("~\'!()*")'
 			);
 		});
 	});
