@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execSync } from 'tinyexec';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -42,21 +42,21 @@ beforeAll(() => {
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 
 	try {
-		execSync('docker --version', { cwd, stdio: 'pipe' });
+		execSync('docker', ['--version'], { nodeOptions: { cwd } });
 		dockerInstalled = true;
 	} catch {
 		dockerInstalled = false;
 	}
 
-	if (dockerInstalled) execSync('docker compose up --detach', { cwd, stdio: 'pipe' });
+	if (dockerInstalled) execSync('docker', ['compose', 'up', '--detach'], { nodeOptions: { cwd } });
 
 	// cleans up the containers on interrupts (ctrl+c)
 	process.addListener('SIGINT', () => {
-		if (dockerInstalled) execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
+		if (dockerInstalled) execSync('docker', ['compose', 'down', '--volumes'], { nodeOptions: { cwd } });
 	});
 
 	return () => {
-		if (dockerInstalled) execSync('docker compose down --volumes', { cwd, stdio: 'pipe' });
+		if (dockerInstalled) execSync('docker', ['compose', 'down', '--volumes'], { nodeOptions: { cwd } });
 	};
 });
 
@@ -92,7 +92,7 @@ test.concurrent.for(testCases)(
 			const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
 			fs.writeFileSync(pageServerPath, pageServer(ts ? 'ts' : 'js'), 'utf8');
 
-			execSync('npm run db:push', { cwd, stdio: 'pipe' });
+			execSync('npm', ['run', 'db:push'], { nodeOptions: { cwd } });
 
 			const { close } = await prepareServer({ cwd, page });
 			// kill server process when we're done

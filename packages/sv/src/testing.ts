@@ -1,10 +1,9 @@
 import type { Page } from '@playwright/test';
-import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import pstree, { type PS } from 'ps-tree';
-import { exec, x } from 'tinyexec';
+import { exec, execSync, x } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
 import { addPnpmAllowBuilds } from './core/package-manager.ts';
@@ -230,7 +229,10 @@ export async function prepareServer({
 	expect
 }: PrepareServerOptions): Promise<PrepareServerReturn> {
 	// build project
-	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
+	if (buildCommand) {
+		const [cmd, ...args] = buildCommand.split(' ');
+		execSync(cmd, args, { nodeOptions: { cwd }, throwOnError: true });
+	}
 
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });

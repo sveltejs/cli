@@ -85,7 +85,7 @@ async function run(
 	cwd: string
 ): Promise<{ error?: string; notFound?: boolean }> {
 	try {
-		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
+		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
 		return {};
 	} catch (e) {
 		// @ts-expect-error tinyexec rethrows the spawn error as-is
