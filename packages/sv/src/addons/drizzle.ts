@@ -66,8 +66,8 @@ const options = defineAddonOptions()
 		group: 'client',
 		default: 'libsql',
 		options: [
-			{ value: 'node-sqlite', hint: 'for traditional Node enviroments (built-in)' },
-			{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
+			{ value: 'node-sqlite', label: 'node:sqlite', hint: 'built-in to Node.js and Deno' },
+			{ value: 'better-sqlite3', hint: 'for server environments' },
 			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
 		],
