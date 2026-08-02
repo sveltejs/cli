@@ -206,7 +206,9 @@ export type SetupTestOptions<Addons extends AddonMap> = {
 export type PrepareServerOptions = {
 	cwd: string;
 	page: Page;
+	/** @default 'pnpm build' */
 	buildCommand?: string;
+	/** @default 'pnpm preview' */
 	previewCommand?: string;
 	/**
 	 * Vitest's `expect`, injected by `createSetupTest`. Used to make a Vitest-counted
