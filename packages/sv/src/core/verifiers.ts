@@ -13,7 +13,7 @@ export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 				// all files that have been added/modified/deleted and thus the output will not be empty.
 				// In case the output of the command below is an empty text, we can safely assume
 				// there are no pending changes. If the below command is run outside of a git repository,
-				// git will exit with a failing exit code, which will trigger the catch statement.
+				// git will exit with a failing exit code.
 				// also see https://remarkablemark.org/blog/2017/10/12/check-git-dirty/#git-status
 				const result = await exec('git', ['status', '--short'], { nodeOptions: { cwd } });
 
