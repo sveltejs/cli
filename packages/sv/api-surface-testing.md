@@ -229,6 +229,7 @@ type SetupTestOptions<Addons extends AddonMap> = {
 	filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
 	browser?: boolean;
 	preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
+	packageManager?: 'pnpm' | 'npm' | 'yarn' | (string & {});
 };
 type PrepareServerOptions = {
 	cwd: string;
