@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import type { AgentName } from '@sveltejs/sv-utils';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -200,7 +201,7 @@ export type SetupTestOptions<Addons extends AddonMap> = {
 	browser?: boolean;
 	preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
 	/** @default 'pnpm' */
-	packageManager?: 'pnpm' | 'npm' | 'yarn' | (string & {});
+	packageManager?: AgentName | undefined;
 };
 
 export type PrepareServerOptions = {
