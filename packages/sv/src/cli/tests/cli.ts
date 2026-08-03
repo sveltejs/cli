@@ -100,7 +100,7 @@ describe('cli', () => {
 			 * Same as `exec`. but `cwd` defaults to `testOutputPath`
 			 */
 			const run = (...params: Parameters<typeof exec>) => {
-				const [command, args, options = {}] = params ?? [];
+				const [command, args, options = {}] = params;
 				options.nodeOptions ??= {};
 				options.nodeOptions.cwd ??= testOutputPath;
 				return exec(command, args, options);
