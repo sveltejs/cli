@@ -2,4 +2,4 @@
 "sv": patch
 ---
 
-fix(cli): pm can appear invisible
+fix(cli): omit undetected package managers from install prompt

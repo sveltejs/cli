@@ -34,7 +34,7 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 
 	const agentOptions = [
 		{ label: 'None', value: undefined },
-		...AGENT_NAMES.flatMap((agent) => (isInstalled(agent) ? { value: agent } : []))
+		...AGENT_NAMES.filter(isInstalled).map((agent) => ({ value: agent }))
 	];
 
 	const pm = await p.select({
