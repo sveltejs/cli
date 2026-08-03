@@ -48,7 +48,12 @@ beforeAll(() => {
 		dockerInstalled = false;
 	}
 
-	if (dockerInstalled) execSync('docker', ['compose', 'up', '--detach'], { nodeOptions: { cwd } });
+	if (dockerInstalled) {
+		execSync('docker', ['compose', 'up', '--detach'], {
+			nodeOptions: { cwd },
+			throwOnError: true
+		});
+	}
 
 	// cleans up the containers on interrupts (ctrl+c)
 	process.addListener('SIGINT', () => {
