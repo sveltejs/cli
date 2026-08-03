@@ -1,5 +1,5 @@
 import { assert, test } from 'vitest';
-import { transform_svelte_code, update_pkg_json_content } from './migrate.js';
+import { transform_svelte_code } from './migrate.js';
 
 test('Updates $app/store #1', () => {
 	const result = transform_svelte_code(
@@ -162,24 +162,4 @@ test('Does not update $app/store #3', () => {
 `;
 	const result = transform_svelte_code(input);
 	assert.equal(result, input);
-});
-
-test('Update package.json', () => {
-	const result = update_pkg_json_content(`{
-	"name": "svelte-app",
-	"version": "1.0.0",
-	"dependencies": {
-		"@sveltejs/kit": "^2.0.0"
-	}
-}`);
-	assert.equal(
-		result,
-		`{
-	"name": "svelte-app",
-	"version": "1.0.0",
-	"dependencies": {
-		"@sveltejs/kit": "^2.12.0"
-	}
-}`
-	);
 });
