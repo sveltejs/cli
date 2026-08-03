@@ -40,7 +40,10 @@ export function verifyUnsupportedAddons(
 				setupResults[a.id].unsupported.map((reason) => ({ id: a.id, reason }))
 			);
 
-			if (reasons.length === 0) return { success: true, message: undefined };
+			if (reasons.length === 0) {
+				return { success: true, message: undefined };
+			}
+
 			throw new UnsupportedError(reasons);
 		}
 	});
