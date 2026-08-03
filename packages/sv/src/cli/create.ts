@@ -289,10 +289,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			p.cancel('Operation cancelled.');
 			process.exit(0);
 		}
-		// @org/ or @org — needs post process: add package name
-		const cleanPkg = namePrompt.endsWith('/') ? namePrompt.slice(0, -1) : namePrompt;
-		const isScopeOnly = cleanPkg.startsWith('@') && !cleanPkg.includes('/');
-		projectName = isScopeOnly ? `${cleanPkg}/${basename}` : namePrompt;
+		const isScopeOnly = namePrompt.startsWith('@') && !namePrompt.includes('/');
+		projectName = isScopeOnly ? `${namePrompt}/${basename}` : namePrompt;
 	}
 
 	let loadedAddons: LoadedAddon[] = [];
