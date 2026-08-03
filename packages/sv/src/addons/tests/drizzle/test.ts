@@ -42,7 +42,7 @@ beforeAll(() => {
 	const cwd = path.dirname(fileURLToPath(import.meta.url));
 
 	try {
-		execSync('docker', ['--version'], { nodeOptions: { cwd } });
+		execSync('docker', ['--version'], { nodeOptions: { cwd }, throwOnError: true });
 		dockerInstalled = true;
 	} catch {
 		dockerInstalled = false;
@@ -94,7 +94,7 @@ test.concurrent.for(testCases)(
 			const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
 			fs.writeFileSync(pageServerPath, pageServer, 'utf8');
 
-			execSync('npm', ['run', 'db:push'], { nodeOptions: { cwd } });
+			execSync('npm', ['run', 'db:push'], { nodeOptions: { cwd }, throwOnError: true });
 
 			const { close } = await prepareServer({ cwd, page });
 			// kill server process when we're done
