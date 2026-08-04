@@ -16,7 +16,6 @@ import {
 	installOption,
 	packageManagerPrompt
 } from '../core/package-manager.ts';
-import { validateProjectName } from '../core/validate-project-name.ts';
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
 import {
 	type LanguageType,
@@ -283,7 +282,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		const namePrompt = await p.text({
 			message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>')}, ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
 			initialValue: projectName,
-			validate: validateProjectName
+			validate: v.pipe(v.string(), v.nonEmpty())
 		});
 		if (p.isCancel(namePrompt)) {
 			p.cancel('Operation cancelled.');
