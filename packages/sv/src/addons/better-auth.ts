@@ -1,5 +1,6 @@
 import { log } from '@clack/prompts';
 import {
+	resolveLibPrefix,
 	type AstTypes,
 	Walker,
 	color,
@@ -44,6 +45,7 @@ export default defineAddon({
 		runsAfter('experimental');
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
+		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
@@ -122,7 +124,7 @@ export default defineAddon({
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,
 			transforms.script(({ ast, comments, js }) => {
-				js.imports.addNamed(ast, { from: '#lib/server/db', imports: [d1 ? 'getDb' : 'db'] });
+				js.imports.addNamed(ast, { from: `${lib}/server/db`, imports: [d1 ? 'getDb' : 'db'] });
 				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
 				js.imports.addNamed(ast, {
 					from: 'better-auth/svelte-kit',
@@ -181,7 +183,7 @@ export default defineAddon({
 					/**
 					 * DO NOT USE!
 					 *
-					 * This instance is used by the \`better-auth\` CLI for schema generation ONLY.
+					 * This instance is used by the \`auth\` CLI for schema generation ONLY.
 					 * To access \`auth\` at runtime, use \`event.locals.auth\`.
 					 */
 					export const auth = createAuth(null${ts('!')});`;
@@ -212,7 +214,7 @@ export default defineAddon({
 				json.packageScriptsUpsert(
 					data,
 					'auth:schema',
-					`better-auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
+					`auth generate --config ${authConfigPath} --output ${authSchemaPath} --yes`
 				);
 			})
 		);
@@ -238,7 +240,7 @@ export default defineAddon({
 		sv.file(
 			'src/app.d.ts',
 			transforms.script(({ ast, comments, js }) => {
-				if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: '#lib/server/auth' });
+				if (d1) js.imports.addNamed(ast, { imports: ['createAuth'], from: `${lib}/server/auth` });
 				js.imports.addNamed(ast, {
 					imports: ['User', 'Session'],
 					from: 'better-auth',
@@ -286,7 +288,7 @@ export default defineAddon({
 				});
 				js.imports.addNamed(ast, {
 					imports: [d1 ? 'createAuth' : 'auth'],
-					from: '#lib/server/auth'
+					from: `${lib}/server/auth`
 				});
 				env.importEnv(ast, js, ['building']);
 
@@ -413,7 +415,7 @@ export default defineAddon({
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? "import { auth } from '#lib/server/auth';" : ''}
+					${!d1 ? `import { auth } from '${lib}/server/auth';` : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
@@ -502,7 +504,7 @@ export default defineAddon({
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? "import { auth } from '#lib/server/auth';" : ''}
+					${!d1 ? `import { auth } from '${lib}/server/auth';` : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {

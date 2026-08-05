@@ -1,5 +1,17 @@
 # @sveltejs/sv-utils
 
+## 0.3.3
+### Patch Changes
+
+
+- feat: add SvelteKit 3 helpers - `isKit3`, `resolveLibPrefix`, `libSubpathImports` ([#1199](https://github.com/sveltejs/cli/pull/1199))
+
+## 0.3.2
+### Patch Changes
+
+
+- fix: recognize the `nub` package manager ([#1187](https://github.com/sveltejs/cli/pull/1187))
+
 ## 0.3.1
 ### Patch Changes
 

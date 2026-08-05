@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import fs from 'node:fs';
@@ -431,7 +431,7 @@ export async function promptAddonQuestions({
 
 	// If we have selected addons, run setup on them (regardless of official status)
 	if (addons.length > 0) {
-		setupResults = setupAddons(addons, workspace);
+		setupResults = await setupAddons(addons, workspace);
 	}
 
 	// prompt which addons to apply (only when no addons were specified)
@@ -439,7 +439,7 @@ export async function promptAddonQuestions({
 	if (addons.length === 0) {
 		// For the prompt, we only show official addons
 		const officialLoaded = officialAddons.map((a) => createLoadedAddon(a));
-		const results = setupAddons(officialLoaded, workspace);
+		const results = await setupAddons(officialLoaded, workspace);
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
 			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
@@ -467,14 +467,14 @@ export async function promptAddonQuestions({
 		}
 
 		// Re-run setup for all selected addons (including any that were added via CLI options)
-		setupResults = setupAddons(addons, workspace);
+		setupResults = await setupAddons(addons, workspace);
 	}
 
 	// Ensure all selected addons have setup results
 	// This should always be the case, but we add a safeguard
 	const missingSetupResults = addons.filter((a) => !setupResults[a.addon.id]);
 	if (missingSetupResults.length > 0) {
-		const additionalSetupResults = setupAddons(missingSetupResults, workspace);
+		const additionalSetupResults = await setupAddons(missingSetupResults, workspace);
 		Object.assign(setupResults, additionalSetupResults);
 	}
 
@@ -547,7 +547,7 @@ export async function promptAddonQuestions({
 		// Run setup for any newly added dependencies
 		const newlyAddedAddons = addons.filter((a) => !setupResults[a.addon.id]);
 		if (newlyAddedAddons.length > 0) {
-			const newSetupResults = setupAddons(newlyAddedAddons, workspace);
+			const newSetupResults = await setupAddons(newlyAddedAddons, workspace);
 			Object.assign(setupResults, newSetupResults);
 		}
 	}
@@ -642,7 +642,7 @@ export async function runAddonsApply({
 		const setups = loadedAddons.length
 			? loadedAddons
 			: officialAddons.map((a) => createLoadedAddon(a));
-		setupResults = setupAddons(setups, workspace);
+		setupResults = await setupAddons(setups, workspace);
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
@@ -752,18 +752,26 @@ export async function runAddonsApply({
 		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
 	}
 
+	let depsInstalled = true;
 	if (packageManager) {
 		workspace.packageManager = packageManager;
-		await installDependencies(packageManager, options.cwd);
-		await formatFiles({
-			packageManager,
-			cwd: options.cwd,
-			filesToFormat,
-			strategy: 'files-only'
-		});
+		depsInstalled = await installDependencies(packageManager, options.cwd);
+		if (depsInstalled) {
+			await formatFiles({
+				packageManager,
+				cwd: options.cwd,
+				filesToFormat,
+				strategy: 'files-only'
+			});
+		}
 	}
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);
+	if (packageManager && !depsInstalled) {
+		nextSteps.unshift(
+			`Install ${color.command(packageManager)}, then run ${color.command(resolveCommandArray(packageManager, 'install', []))}`
+		);
+	}
 
 	return { nextSteps, argsFormattedAddons, filesToFormat, successfulAddons, setupResults };
 }

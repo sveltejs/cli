@@ -1,9 +1,9 @@
 import type { Addon, AddonDefinition } from '../core/config.ts';
+import aiTools from './ai-tools.ts';
 import betterAuth from './better-auth.ts';
 import drizzle from './drizzle.ts';
 import eslint from './eslint.ts';
 import experimental from './experimental.ts';
-import mcp from './mcp.ts';
 import mdsvex from './mdsvex.ts';
 import paraglide from './paraglide.ts';
 import playwright from './playwright.ts';
@@ -25,7 +25,7 @@ type OfficialAddons = {
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
-	mcp: Addon<any>;
+	aiTools: Addon<any>;
 	experimental: Addon<any>;
 };
 
@@ -43,7 +43,7 @@ export const officialAddons: OfficialAddons = {
 	mdsvex,
 	paraglide,
 	storybook,
-	mcp,
+	aiTools,
 	experimental
 };
 
