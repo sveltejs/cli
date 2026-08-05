@@ -1,4 +1,4 @@
-import { color, coerceVersion, dedent, downloadJson } from '@sveltejs/sv-utils';
+import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
 import { unpackTar } from 'modern-tar/fs';
 import fs from 'node:fs';
 import { platform } from 'node:os';
@@ -13,33 +13,14 @@ import type { AddonDefinition, AddonReference } from './config.ts';
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));
 
-function isStandalone(addonPkg: Record<string, any>): boolean {
-	const exports = addonPkg.exports;
-	if (!exports) return true;
-	if (typeof exports === 'string') return true;
-	if (typeof exports === 'object') return Object.keys(exports).length === 1;
-	return true;
-}
-
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };
-	const deps = { ...addonPkg.dependencies };
-	const standalone = isStandalone(addonPkg);
 
 	// valid addons should always have `sv` as a peerDependency
 	const addonSvVersion = peerDeps['sv'];
 	if (!addonSvVersion) {
 		throw new Error(
 			`Invalid add-on package specified: '${specifier}' is missing 'sv' in its 'peerDependencies'`
-		);
-	}
-
-	// standalone addons must not have dependencies (everything should be bundled)
-	if (standalone && Object.keys(deps).length > 0) {
-		throw new Error(
-			dedent`
-				Invalid add-on package detected: '${specifier}'
-				Standalone add-ons must not have 'dependencies' in package.json. Everything should be bundled with your add-on.`
 		);
 	}
 
@@ -123,7 +104,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 			}
 		}
 
-		return await importAddonCode(pkg.name, pkg.version);
+		return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 	}
 
 	const tarballUrl: string = pkg.dist.tarball;
@@ -141,35 +122,63 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
 	);
 
-	return await importAddonCode(pkg.name, pkg.version);
+	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 }
 
-async function importAddonCode(pkgName: string, pkgVersion: string): Promise<AddonDefinition> {
+async function importAddonCode(
+	pkgName: string,
+	pkgVersion: string,
+	exports?: Record<string, string | undefined>
+): Promise<AddonDefinition> {
 	const issues: string[] = [];
 
-	let details: AddonDefinition | undefined;
-	try {
-		({ default: details } = await import(`${pkgName}/sv`));
-	} catch {
-		issues.push(`'/sv' export not found`);
-	}
-
-	if (!details) {
-		try {
-			({ default: details } = await import(pkgName));
-		} catch {
-			issues.push(`default export not found`);
-		}
-	}
-
-	if (!details && issues.length > 0) {
-		throw new Error(
+	const error = () => {
+		return new Error(
 			`Failed to load add-on '${pkgName}@${pkgVersion}':\n- ${issues.join('\n- ')}\n\n` +
 				`Please report this to the add-on author.`
 		);
+	};
+
+	if (!exports) {
+		issues.push(`'exports' field not found in package.json`);
+		throw error();
 	}
 
-	return details!;
+	const svImport = exports['./sv'] ? `${pkgName}/sv` : undefined;
+	const defaultImport = exports['.'] ? pkgName : undefined;
+	if (!svImport && !defaultImport) {
+		issues.push(`export conditions './sv' or '.' are not present in package.json`);
+		throw error();
+	}
+
+	let details: AddonDefinition | undefined;
+
+	for (const importPath of [svImport, defaultImport]) {
+		if (!importPath) continue;
+		try {
+			details ??= await import(importPath).then((m) => m.default);
+		} catch (e) {
+			if (isNodeError(e)) {
+				if (e.code === 'ERR_MODULE_NOT_FOUND') {
+					issues.push('the add-on contains dependencies that are not bundled');
+					throw error();
+				}
+				issues.push(`Failed to import add-on '${importPath}': ${e.message}`);
+			} else {
+				issues.push(`An unknown error has occurred: ${e}`);
+			}
+		}
+	}
+
+	if (!details) {
+		throw error();
+	}
+
+	return details;
+}
+
+function isNodeError(e: unknown): e is Error & { code: string } {
+	return e instanceof Error && 'code' in e && typeof e.code === 'string';
 }
 
 type PackageJSON = {
