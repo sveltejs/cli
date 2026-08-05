@@ -150,7 +150,7 @@ Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single f
 
 ### `package.json`
 
-Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `package.json`:
+Your add-on must have `sv` as a peer dependency. Any `dependencies` declared will **not** be available at runtime, everything must be bundled:
 
 ```jsonc
 {
@@ -164,7 +164,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 	"publishConfig": {
 		"access": "public"
 	},
-	// cannot have dependencies
+	// packages declared here will not be available during runtime, it must be bundled
 	"dependencies": {},
 	"peerDependencies": {
 		// minimum version required to run by this add-on
