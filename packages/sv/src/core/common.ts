@@ -364,3 +364,7 @@ export async function runAndValidateVerifications(verifications: Verification[])
 		}
 	}
 }
+
+export function isNodeError(err: unknown): err is Error & NodeJS.ErrnoException {
+	return err instanceof Error;
+}

@@ -3,6 +3,7 @@ import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-ut
 import fs from 'node:fs';
 import path from 'node:path';
 import { exec, NonZeroExitError } from 'tinyexec';
+import { isNodeError } from './common.ts';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
@@ -88,8 +89,7 @@ async function run(
 		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
 		return {};
 	} catch (e) {
-		// tinyexec rethrows the spawn error as-is
-		if ((e as NodeJS.ErrnoException | null)?.code === 'ENOENT') {
+		if (isNodeError(e) && e.code === 'ENOENT') {
 			return { notFound: true, error: `${command} not found` };
 		}
 		if (e instanceof NonZeroExitError) {
@@ -98,7 +98,9 @@ async function run(
 			const message = [stderr, stdout].filter(Boolean).join('\n').trim();
 			return { error: message || e.message };
 		}
-		if (e instanceof Error) return { error: e.message };
+		if (e instanceof Error) {
+			return { error: e.message };
+		}
 		return { error: 'unknown error' };
 	}
 }
