@@ -3,12 +3,12 @@ import {
 	dedent,
 	type TransformFn,
 	transforms,
-	pnpm,
 	resolveCommandArray,
 	fileExists,
 	createPrinter,
 	svelteConfig,
-	defineEnv
+	defineEnv,
+	isKit3
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -93,17 +93,7 @@ export default defineAddon({
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
-	run: ({
-		sv,
-		language,
-		options,
-		directory,
-		dependencyVersion,
-		cwd,
-		cancel,
-		file,
-		packageManager
-	}) => {
+	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file }) => {
 		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
@@ -132,11 +122,8 @@ export default defineAddon({
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
 			// not a devDependency due to bundling issues
-			sv.dependency('better-sqlite3', '^12.10.0');
+			sv.dependency('better-sqlite3', '^13.0.2');
 			sv.devDependency('@types/better-sqlite3', '^7.6.13');
-			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('better-sqlite3'));
-			}
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
@@ -300,15 +287,33 @@ export default defineAddon({
 			})
 		);
 
-		svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
-			override({
-				typescript: {
-					config: js.common.parseExpression(
-						`(config) => { config.include.push('../drizzle.config.${language}')}`
-					)
-				}
+		// kit 3 dropped the `typescript.config` hook's `include` (and deprecates the hook itself),
+		// so the project's own ts/jsconfig has to cover the drizzle config
+		if (isKit3(dependencyVersion('@sveltejs/kit'))) {
+			const configFile = language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+			if (fileExists(cwd, configFile)) {
+				sv.file(
+					configFile,
+					transforms.json(({ data }) => {
+						const include: string[] = (data.include ??= ['src']);
+						if (!include.includes(`drizzle.config.${language}`)) {
+							include.push(`drizzle.config.${language}`);
+						}
+					})
+				);
+			}
+		} else {
+			// prior to kit 3
+			svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
+				override({
+					typescript: {
+						config: js.common.parseExpression(
+							`(config) => { config.include.push('../drizzle.config.${language}')}`
+						)
+					}
+				});
 			});
-		});
+		}
 
 		sv.file(
 			paths['database schema'],

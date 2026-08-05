@@ -26,6 +26,7 @@ import {
 	type SvApi
 } from './config.ts';
 import { TESTING } from './env.ts';
+import type { Question } from './options.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 function alphabetizeRecord(obj: Record<string, string>) {
@@ -98,7 +99,7 @@ export async function add<Addons extends AddonMap>({
 		createLoadedAddon(addon as AddonDefinition)
 	);
 
-	const setupResults = setupAddons(loadedAddons, workspace);
+	const setupResults = await setupAddons(loadedAddons, workspace);
 
 	return await applyAddons({ loadedAddons, workspace, options, setupResults });
 }
@@ -173,28 +174,33 @@ export async function applyAddons({
 }
 
 /** Setup addons - takes LoadedAddon[] and returns setup results */
-export function setupAddons(
+export async function setupAddons(
 	loadedAddons: LoadedAddon[],
 	workspace: Workspace
-): Record<string, SetupResult> {
+): Promise<Record<string, SetupResult>> {
 	const setupResults: Record<string, SetupResult> = {};
 
 	for (const loaded of loadedAddons) {
 		const addon = loaded.addon;
+		const additionalOptions: Record<string, Question> = {};
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
-			runsAfter: []
+			runsAfter: [],
+			additionalOptions
 		};
 		try {
-			addon.setup?.({
+			await addon.setup?.({
 				...workspace,
 				dependsOn: (name) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
 				},
 				unsupported: (reason) => setupResult.unsupported.push(reason),
-				runsAfter: (name) => setupResult.runsAfter.push(name)
+				runsAfter: (name) => setupResult.runsAfter.push(name),
+				addOption: (key, question) => {
+					additionalOptions[key] = question;
+				}
 			});
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
@@ -203,6 +209,12 @@ export function setupAddons(
 				{ cause: err }
 			);
 		}
+
+		// Merge dynamic options into the addon's options
+		if (Object.keys(additionalOptions).length > 0) {
+			Object.assign(addon.options, additionalOptions);
+		}
+
 		setupResults[addon.id] = setupResult;
 	}
 
@@ -396,14 +408,38 @@ export function prepareSvApi(
 	};
 }
 
-// orders addons by putting addons that don't require any other addon in the front.
-// This is a drastic simplification, as this could still cause some inconvenient circumstances,
-// but works for now in contrary to the previous implementation
+/**
+ * Orders add-ons so every `runsAfter` is honoured, keeping the original order between add-ons that
+ * don't constrain each other. Cycles and unknown ids are ignored rather than fatal - an add-on that
+ * can't be placed simply keeps its position.
+ */
 export function orderAddons(
 	addons: Array<Addon<any>>,
 	setupResults: Record<string, SetupResult>
 ): Array<Addon<any>> {
-	return addons.sort((a, b) => {
-		return setupResults[a.id]?.runsAfter?.length - setupResults[b.id]?.runsAfter?.length;
-	});
+	const byId = new Map(addons.map((addon) => [addon.id, addon]));
+	const ordered: Array<Addon<any>> = [];
+	const placed = new Set<string>();
+	const visiting = new Set<string>();
+
+	const place = (addon: Addon<any>) => {
+		if (placed.has(addon.id) || visiting.has(addon.id)) return;
+		visiting.add(addon.id);
+		for (const id of setupResults[addon.id]?.runsAfter ?? []) {
+			const dependency = byId.get(id);
+			if (dependency) place(dependency);
+		}
+		visiting.delete(addon.id);
+		placed.add(addon.id);
+		ordered.push(addon);
+	};
+
+	// seeded with the "fewest constraints first" order this used to rely on, so add-ons that don't
+	// constrain each other keep the relative order they already had
+	const seeded = [...addons].sort(
+		(a, b) =>
+			(setupResults[a.id]?.runsAfter?.length ?? 0) - (setupResults[b.id]?.runsAfter?.length ?? 0)
+	);
+	for (const addon of seeded) place(addon);
+	return ordered;
 }

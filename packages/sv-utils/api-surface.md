@@ -888,6 +888,16 @@ type DefineEnv = {
 };
 
 declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
+
+declare function isKit3(kitRange: string | undefined): boolean;
+
+declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
+
+declare function libSubpathImports(libDir: string): Record<string, string>;
+
+declare const KIT3_TSCONFIG = '$app/tsconfig';
+
+declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
 type ColorInput = string | string[];
 declare const color: {
 	addon: (str: ColorInput) => string;
@@ -920,6 +930,8 @@ export {
 	COMMANDS,
 	type Comments,
 	type ConfigFileReader,
+	KIT3_TSCONFIG,
+	KIT3_TSCONFIG_DEFAULT,
 	type Package,
 	type SvelteAst,
 	type SvelteConfigKind,
@@ -939,9 +951,11 @@ export {
 	downloadJson,
 	fileExists,
 	index_d_exports$2 as html,
+	isKit3,
 	isVersionUnsupportedBelow,
 	index_d_exports$3 as js,
 	json_d_exports as json,
+	libSubpathImports,
 	loadFile,
 	loadPackageJson,
 	minVersion,
@@ -950,6 +964,7 @@ export {
 	pnpm_d_exports as pnpm,
 	resolveCommand,
 	resolveCommandArray,
+	resolveLibPrefix,
 	sanitizeName,
 	saveFile,
 	index_d_exports$4 as svelte,
