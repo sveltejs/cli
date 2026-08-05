@@ -91,9 +91,21 @@ export default defineAddon({
 		);
 	},
 
-	nextSteps: ({ isKit, packageManager }) => [
-		`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['playwright', 'install']))} to download browsers`,
-		isKit && `Visit ${color.route('/demo/playwright')} to see the demo page`,
-		`Run ${color.command(resolveCommandArray(packageManager, 'run', ['test:e2e']))} to execute the example tests`
-	]
+	nextSteps: ({ isKit, packageManager }) => {
+		const steps: string[] = [];
+
+		steps.push(
+			`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['playwright', 'install']))} to download browsers`
+		);
+
+		if (isKit) {
+			steps.push(`Visit ${color.route('/demo/playwright')} to see the demo page`);
+		}
+
+		steps.push(
+			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['test:e2e']))} to execute the example tests`
+		);
+
+		return steps;
+	}
 });

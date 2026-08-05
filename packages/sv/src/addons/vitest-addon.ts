@@ -193,15 +193,24 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ language, options }) => {
-		if (!vitestV3Installed) return [];
+		const toReturn: string[] = [];
 
-		const components = options.usages.includes('component');
-		return [
-			components && `Uninstall ${color.command('@vitest/browser')} package`,
-			components &&
-				`Update usage from ${color.command("'@vitest/browser...'")} to ${color.command("'vitest/browser'")}`,
-			`${color.optional('Optional')} Check ${color.path('./vite.config.ts')} and remove duplicate project definitions`,
-			`${color.optional('Optional')} Remove ${color.path(`./vitest-setup-client.${language}`)} file`
-		];
+		if (vitestV3Installed) {
+			const componentTesting = options.usages.includes('component');
+			if (componentTesting) {
+				toReturn.push(`Uninstall ${color.command('@vitest/browser')} package`);
+				toReturn.push(
+					`Update usage from ${color.command("'@vitest/browser...'")} to ${color.command("'vitest/browser'")}`
+				);
+			}
+			toReturn.push(
+				`${color.optional('Optional')} Check ${color.path('./vite.config.ts')} and remove duplicate project definitions`
+			);
+			toReturn.push(
+				`${color.optional('Optional')} Remove ${color.path(`./vitest-setup-client.${language}`)} file`
+			);
+		}
+
+		return toReturn;
 	}
 });

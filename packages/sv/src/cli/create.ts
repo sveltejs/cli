@@ -138,12 +138,14 @@ export const create = new Command('create')
 			);
 
 			let i = 1;
-			const steps: string[] = ['📁 Project steps\n'];
-			const relPath = path.relative(process.cwd(), directory);
+			const steps: string[] = ['📁 Project steps', ''];
+			const relative = path.relative(process.cwd(), directory);
 			const pm = packageManager ?? (await detectPackageManager(directory));
-			if (relPath !== '') {
-				const pathHasSpaces = relPath.includes(' ');
-				steps.push(`  ${i++}: ${color.command(`cd ${pathHasSpaces ? `"${relPath}"` : relPath}`)}`);
+			if (relative !== '') {
+				const pathHasSpaces = relative.includes(' ');
+				steps.push(
+					`  ${i++}: ${color.command(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
+				);
 			}
 			if (packageManager && !depsInstalled) {
 				steps.push(`  ${i++}: Install ${color.command(pm)}`);
@@ -155,14 +157,14 @@ export const create = new Command('create')
 			steps.push(`To close the dev server, hit ${color.command('Ctrl-C')}`);
 
 			if (addOnNextSteps.length > 0) {
-				steps.push('\n🧩 Add-on steps\n');
+				steps.push('', '🧩 Add-on steps', '');
 				for (const step of addOnNextSteps) {
 					const indented = step.replaceAll('  -', '    -');
 					steps.push(`  ${indented}`);
 				}
 			}
 
-			steps.push(`\nStuck? Visit us at ${color.website('https://svelte.dev/chat')}`);
+			steps.push('', `Stuck? Visit us at ${color.website('https://svelte.dev/chat')}`);
 
 			p.note(steps.join('\n'), "What's next?", { format: (line) => line });
 		});

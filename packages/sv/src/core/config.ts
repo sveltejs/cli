@@ -86,7 +86,7 @@ export type Addon<
 	/** Next steps to display after the addon is run. */
 	nextSteps?: (
 		workspace: Workspace & { options: WorkspaceOptions<Args> & Record<string, unknown> }
-	) => Array<string | false | null | undefined | ''>;
+	) => string[];
 };
 
 /** Maps value types to question definitions for dynamic setup options */

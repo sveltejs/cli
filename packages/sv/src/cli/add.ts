@@ -806,16 +806,12 @@ export function getNextSteps(
 			const { addon } = loadedAddons.find((l) => l.addon.id === loaded.id)!;
 			if (!addon.nextSteps) return;
 			const addonOptions = answers[addon.id];
-			const addonNextSteps = addon
-				.nextSteps({ ...workspace, options: addonOptions })
-				.filter((s) => s !== null && s !== undefined && s !== '' && s !== false);
+			const addonNextSteps = addon.nextSteps({ ...workspace, options: addonOptions });
 			if (addonNextSteps.length === 0) return;
 
-			return [
-				//
-				`${color.addon(addon.id)}:`,
-				...addonNextSteps.map((step) => `  - ${step}`)
-			].join('\n');
+			let addonMessage = `${color.addon(addon.id)}:\n`;
+			addonMessage += addonNextSteps.map((line) => `  - ${line}`).join('\n');
+			return addonMessage;
 		})
 		.filter((msg): msg is string => msg !== undefined);
 }
