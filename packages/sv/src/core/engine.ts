@@ -268,11 +268,14 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
 					throwOnError: true
 				});
-			} catch (error) {
-				const typedError = error as NonZeroExitError;
-				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
-					cause: error
-				});
+			} catch (e) {
+				let msg;
+				if (e instanceof NonZeroExitError || e instanceof Error) {
+					msg = `Failed to execute scripts '${executedCommand}': ${e.message}`;
+				} else {
+					msg = 'unknown error';
+				}
+				throw new Error(msg, { cause: e });
 			}
 		},
 		dependency: (pkg, version) => {
