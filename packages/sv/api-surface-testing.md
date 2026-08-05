@@ -164,7 +164,7 @@ type Addon<
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 		}
-	) => Array<string | false | null | undefined | ''>;
+	) => string[];
 };
 
 type SetupOptions<T extends Record<string, unknown>> = {
