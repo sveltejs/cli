@@ -26,18 +26,25 @@ export async function formatFiles(options: {
 			// the script owns its scope (whole repo/monorepo) and deps - we don't care what runs under it
 			const packageManager = await detectPackageManager(script.dir);
 			const cmd = resolveCommand(packageManager, 'run', [script.name])!;
-			await run(cmd.command, cmd.args, script.dir, `Running ${packageManager} run ${script.name}`);
+			await withSpinner(`Running ${packageManager} run ${script.name}`, () =>
+				run(cmd.command, cmd.args, script.dir)
+			);
 			return;
 		}
 	}
 
-	const cmd = resolveCommand(options.packageManager, 'execute-local', [
-		'prettier',
-		'--write',
-		'--ignore-unknown',
-		...options.filesToFormat
-	])!;
-	await run(cmd.command, cmd.args, options.cwd, 'Formatting modified files');
+	const args = ['--write', '--ignore-unknown', ...options.filesToFormat];
+	await withSpinner('Formatting modified files', async () => {
+		// tinyexec resolves `prettier` from `node_modules/.bin`; going through the package
+		// manager can fail on unrelated state (e.g. pnpm refusing to run while build scripts
+		// are unapproved), but it's the only way to reach binaries under Yarn PnP
+		let result = await run('prettier', args, options.cwd);
+		if (result.notFound) {
+			const cmd = resolveCommand(options.packageManager, 'execute-local', ['prettier', ...args])!;
+			result = await run(cmd.command, cmd.args, options.cwd);
+		}
+		return result;
+	});
 }
 
 /** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
@@ -57,24 +64,36 @@ function findFormatScript(cwd: string): { dir: string; name: 'format' | 'fmt' } 
 	return undefined;
 }
 
-async function run(command: string, args: string[], cwd: string, startMsg: string): Promise<void> {
+async function withSpinner(
+	startMsg: string,
+	task: () => Promise<{ error?: string }>
+): Promise<void> {
 	const { start, stop } = p.spinner();
 	start(startMsg);
-	try {
-		const result = await exec(command, args, {
-			nodeOptions: { cwd, stdio: 'pipe' },
-			throwOnError: true
-		});
-		if (result.exitCode !== 0) {
-			stop('Failed to format files');
-			p.log.error(result.stderr);
-			return;
-		}
-	} catch (e) {
+	const { error } = await task();
+	if (error !== undefined) {
 		stop('Failed to format files');
-		// @ts-expect-error
-		p.log.error(e?.output?.stderr || 'unknown error');
+		p.log.error(error);
 		return;
 	}
 	stop('Successfully formatted files');
+}
+
+async function run(
+	command: string,
+	args: string[],
+	cwd: string
+): Promise<{ error?: string; notFound?: boolean }> {
+	try {
+		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
+		return {};
+	} catch (e) {
+		// @ts-expect-error tinyexec rethrows the spawn error as-is
+		if (e?.code === 'ENOENT') return { notFound: true, error: `${command} not found` };
+		// @ts-expect-error `output` is only present on tinyexec's `NonZeroExitError`
+		const output = e?.output as { stderr?: string; stdout?: string } | undefined;
+		// failures can land on either stream, so report both
+		const message = [output?.stderr, output?.stdout].filter(Boolean).join('\n').trim();
+		return { error: message || (e instanceof Error ? e.message : 'unknown error') };
+	}
 }
