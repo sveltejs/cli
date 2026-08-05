@@ -1,5 +1,5 @@
 ---
-"sv": patch
+'sv': patch
 ---
 
-fix(addon): Dependencies are allowed in multi-export repos.
+fix(addon): relax dependency fields restriction on community add-ons
