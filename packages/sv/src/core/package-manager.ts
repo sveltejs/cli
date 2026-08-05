@@ -5,7 +5,8 @@ import * as p from '@clack/prompts';
 import { AGENTS, type AgentName, color, detect, pnpm, resolveCommand } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
-import { exec, execSync } from 'tinyexec';
+import { exec } from 'tinyexec';
+import { commandExists } from './command.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -112,16 +113,10 @@ function getUserAgent(): AgentName | undefined {
 
 const installedCache = new Map<AgentName, boolean>();
 function isInstalled(agent: AgentName): boolean {
-	let installed = installedCache.get(agent);
-	if (installed === undefined) {
-		try {
-			execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
-			installed = true;
-		} catch {
-			installed = false;
-		}
-		installedCache.set(agent, installed);
-	}
+	const cached = installedCache.get(agent);
+	if (cached !== undefined) return cached;
+	const installed = commandExists(agent);
+	installedCache.set(agent, installed);
 	return installed;
 }
 

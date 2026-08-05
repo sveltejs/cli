@@ -189,6 +189,7 @@ type AddonById<Addons extends AddonMap, Id extends string> = Extract<
 type OptionMap<Addons extends AddonMap> = {
 	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
 };
+declare function commandExists(command: string): boolean;
 type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 declare const variants: ProjectVariant[];
 type CreateProject = (options: {
@@ -274,6 +275,7 @@ export {
 	ProjectVariant,
 	SetupTestOptions,
 	VitestContext,
+	commandExists,
 	createSetupTest,
 	prepareServer,
 	setupGlobal,

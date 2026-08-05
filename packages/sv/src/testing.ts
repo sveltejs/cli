@@ -9,6 +9,8 @@ import { add, type AddonMap, type OptionMap } from './core/engine.ts';
 import { addPnpmAllowBuilds } from './core/package-manager.ts';
 import { create } from './create/index.ts';
 
+export { commandExists } from './core/command.ts';
+
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
 export const variants: ProjectVariant[] = ['kit-js', 'kit-ts', 'vite-js', 'vite-ts'];
 
