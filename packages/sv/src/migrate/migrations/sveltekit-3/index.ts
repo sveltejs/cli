@@ -4,6 +4,7 @@ import appState from '../app-state/tasks/app-state.ts';
 import environment from './tasks/environment.ts';
 import packageJson from './tasks/package-json.ts';
 import params from './tasks/params.ts';
+import shallowRouting from './tasks/shallow-routing.ts';
 import svelteConfig from './tasks/svelte-config.ts';
 import tsconfig from './tasks/tsconfig.ts';
 
@@ -29,6 +30,7 @@ export default defineMigration({
 		tasks.add(packageJson, { prerequisite: true });
 		tasks.add(svelteConfig, { prerequisite: false });
 		tasks.add(environment, { prerequisite: false });
+		tasks.add(shallowRouting, { prerequisite: false });
 		tasks.add(params, { prerequisite: false });
 		tasks.add(tsconfig, { prerequisite: true });
 		tasks.add(appState, { prerequisite: false });
