@@ -35,7 +35,10 @@ const AST_EXPRESSION_TYPES = new Set([
 	'UpdateExpression',
 	'YieldExpression',
 	'TSAsExpression',
-	'TSSatisfiesExpression'
+	'TSInstantiationExpression',
+	'TSNonNullExpression',
+	'TSSatisfiesExpression',
+	'TSTypeAssertion'
 ]);
 
 export function property<T extends AstTypes.Expression | AstTypes.Identifier>(
