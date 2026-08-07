@@ -11,7 +11,7 @@ export function update_pkg_json() {
 /**
  * @param {string} content
  */
-export function update_pkg_json_content(content) {
+function update_pkg_json_content(content) {
 	return update_pkg(content, [['@sveltejs/kit', '^2.12.0']]);
 }
 
