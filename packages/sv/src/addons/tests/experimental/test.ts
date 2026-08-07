@@ -25,6 +25,16 @@ const { test, testCases } = setupTest(
 						]
 					}
 				}
+			},
+			{
+				// kit@next not selected: no kit 3 rewrites, and the kit ^2 only flags survive
+				type: 'kit3-not-selected',
+				options: {
+					[addonId]: {
+						versions: [],
+						features: ['async', 'remoteFunctions', 'explicitEnvironmentVariables']
+					}
+				}
 			}
 		],
 		filter: (addonTestCase) => addonTestCase.variant.includes('kit'),
@@ -68,5 +78,14 @@ test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { 
 		// removed from experimental in kit 3, so they must be skipped when kit@next is chosen
 		expect(source).not.toMatch('explicitEnvironmentVariables');
 		expect(source).not.toMatch('handleRenderingErrors');
+	} else if (testCase.kind.type === 'kit3-not-selected') {
+		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).not.toBe('next');
+		// the template's own `extends` keeps its `.json` suffix; the add-on would rewrite it to `$app/tsconfig`
+		if (tsconfig) expect(tsconfig.extends).toBe('$app/tsconfig.json');
+		expect(source).toMatch('async: true');
+		expect(source).toMatch('remoteFunctions: true');
+		expect(source).toMatch('explicitEnvironmentVariables: true');
+		// not selected -> absent
+		expect(source).not.toMatch('forkPreloads');
 	}
 });
