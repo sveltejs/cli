@@ -26,6 +26,10 @@ const FEATURES: Record<string, Feature> = {
 // files whose `$lib` imports are rewritten to `#lib`
 const SOURCE_EXTENSIONS = ['.svelte', '.svelte.ts', '.svelte.js', '.ts', '.js', '.svx', '.md'];
 
+// only the alias itself: a bare `$lib` specifier or a `$lib/...` subpath. Without the lookahead this
+// also eats identifiers such as the store auto-subscription `$library`.
+const LIB_ALIAS_REGEX = /\$lib(?=\/|['"`])/g;
+
 // kit 3 raises these peer floors; bump only when the project is below them (never downgrade).
 const KIT3_PEERS = {
 	vite: '^8.0.0',
@@ -105,9 +109,10 @@ export default defineAddon({
 			);
 			// safe here: templates are already written and every add-on emitting `$lib` runs later
 			for (const relative of sourceFiles(cwd, directory.src)) {
-				sv.file(relative, (content) =>
-					content.includes('$lib') ? content.replaceAll('$lib', '#lib') : false
-				);
+				sv.file(relative, (content) => {
+					const rewritten = content.replace(LIB_ALIAS_REGEX, '#lib');
+					return rewritten === content ? false : rewritten;
+				});
 			}
 		}
 
