@@ -62,7 +62,7 @@ export default defineAddon({
 	setup: ({ runsAfter }) => runsAfter('sveltekitAdapter'),
 
 	run: ({ sv, cwd, options, language, directory, dependencyVersion }) => {
-		const kitNext = options.versions.includes('kit-3-next');
+		const kitNext = options.versions.includes('kit-3');
 
 		if (kitNext) {
 			sv.devDependency('@sveltejs/kit', 'next');
