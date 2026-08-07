@@ -97,22 +97,3 @@ async function run(
 		return { error: message || (e instanceof Error ? e.message : 'unknown error') };
 	}
 }
-
-async function run(
-	command: string,
-	args: string[],
-	cwd: string
-): Promise<{ error?: string; notFound?: boolean }> {
-	try {
-		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
-		return {};
-	} catch (e) {
-		// @ts-expect-error tinyexec rethrows the spawn error as-is
-		if (e?.code === 'ENOENT') return { notFound: true, error: `${command} not found` };
-		// @ts-expect-error `output` is only present on tinyexec's `NonZeroExitError`
-		const output = e?.output as { stderr?: string; stdout?: string } | undefined;
-		// failures can land on either stream, so report both
-		const message = [output?.stderr, output?.stdout].filter(Boolean).join('\n').trim();
-		return { error: message || (e instanceof Error ? e.message : 'unknown error') };
-	}
-}
