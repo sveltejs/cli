@@ -93,7 +93,7 @@ export const migrate = new Command('migrate')
 				});
 			}
 
-			if (!verifiedMigrationName || typeof verifiedMigrationName === 'symbol') {
+			if (p.isCancel(verifiedMigrationName)) {
 				p.cancel('Operation cancelled.');
 				process.exit(1);
 			}
@@ -223,7 +223,7 @@ async function determineTasks(
 			required: false
 		});
 
-		if (typeof optionalTaskIdsToRun === 'symbol') {
+		if (p.isCancel(optionalTaskIdsToRun)) {
 			p.cancel('Operation cancelled.');
 			process.exit(1);
 		}
