@@ -252,7 +252,7 @@ async function determineTasks(
 		});
 
 		// a cancel is a truthy symbol, so it has to be checked before the falsy "no"
-		if (isCancel(proceed)) {
+		if (p.isCancel(proceed)) {
 			p.cancel('Operation cancelled.');
 			process.exit(1);
 		}
