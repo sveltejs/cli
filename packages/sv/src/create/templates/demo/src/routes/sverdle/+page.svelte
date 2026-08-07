@@ -108,7 +108,7 @@
 		// prevent default callback from resetting the form
 		return ({ result, update }) => {
 			shake = result.type === 'failure';
-			update({ reset: false });
+			void update({ reset: false });
 		};
 	}}
 >

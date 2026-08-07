@@ -12,6 +12,7 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"types": [
+			"node",
 			"./worker-configuration.d.ts"
 		]
 	}
