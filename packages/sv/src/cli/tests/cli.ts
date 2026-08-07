@@ -96,9 +96,19 @@ describe('cli', () => {
 				...args
 			];
 
+			/**
+			 * Same as `exec`. but `cwd` defaults to `testOutputPath`
+			 */
+			const run = (...params: Parameters<typeof exec>) => {
+				const [command, args, options = {}] = params;
+				options.nodeOptions ??= {};
+				options.nodeOptions.cwd ??= testOutputPath;
+				return exec(command, args, options);
+			};
+
 			// useful for debugging
 			// console.log(`command`, `node ${allArgs.join(' ')}`);
-			const result = await exec('node', allArgs, { nodeOptions: { stdio: 'pipe' } });
+			const result = await exec('node', allArgs);
 
 			// cli finished well
 			expect(
@@ -199,24 +209,18 @@ describe('cli', () => {
 
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
 				// the generated project lives inside this repo, so it must not join its workspace
-				const installResult = await exec(
-					'pnpm',
-					['install', '--no-frozen-lockfile', '--ignore-workspace'],
-					{ nodeOptions: { stdio: 'pipe', cwd: testOutputPath } }
-				);
+				const installResult = await run('pnpm', [
+					'install',
+					'--no-frozen-lockfile',
+					'--ignore-workspace'
+				]);
 				expect(
 					installResult.exitCode,
 					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`
 				).toBe(0);
-				await exec('pnpm', ['build'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
-				await exec('pnpm', ['auth:schema'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
-				const check = await exec('pnpm', ['check'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
+				await run('pnpm', ['build']);
+				await run('pnpm', ['auth:schema']);
+				const check = await run('pnpm', ['check']);
 				expect(
 					check.exitCode,
 					`svelte-check failed:\n  stdout: ${check.stdout}\n  stderr: ${check.stderr}`
@@ -225,9 +229,6 @@ describe('cli', () => {
 
 			// `kit@next` moves fast - only a real install/build/check catches options it removed
 			if (projectName === 'create-experimental-next' && process.platform !== 'win32') {
-				const run = (cmd: string, cmdArgs: string[]) =>
-					exec(cmd, cmdArgs, { nodeOptions: { stdio: 'pipe', cwd: testOutputPath } });
-
 				const install = await run('pnpm', [
 					'install',
 					'--no-frozen-lockfile',
@@ -287,10 +288,8 @@ describe('cli', () => {
 				for (const cmd of cmds) {
 					// use npm here so the install doesn't walk up into the monorepo's
 					// pnpm workspace and try to resolve packages from there
-					const res = await exec('npm', cmd, {
+					const res = await run('npm', cmd, {
 						nodeOptions: {
-							stdio: 'pipe',
-							cwd: testOutputPath,
 							env: {
 								...process.env,
 								// allow npm under a repo whose packageManager is pnpm

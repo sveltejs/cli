@@ -1,6 +1,7 @@
 import * as p from '@clack/prompts';
 import { type AgentName, resolveCommand } from '@sveltejs/sv-utils';
-import { exec } from 'tinyexec';
+import { exec, NonZeroExitError } from 'tinyexec';
+import { isNodeError } from './common.ts';
 
 export async function formatFiles(options: {
 	packageManager: AgentName;
@@ -36,15 +37,21 @@ async function run(
 	cwd: string
 ): Promise<{ error?: string; notFound?: boolean }> {
 	try {
-		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
+		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
 		return {};
 	} catch (e) {
-		// @ts-expect-error tinyexec rethrows the spawn error as-is
-		if (e?.code === 'ENOENT') return { notFound: true, error: `${command} not found` };
-		// @ts-expect-error `output` is only present on tinyexec's `NonZeroExitError`
-		const output = e?.output as { stderr?: string; stdout?: string } | undefined;
-		// failures can land on either stream, so report both
-		const message = [output?.stderr, output?.stdout].filter(Boolean).join('\n').trim();
-		return { error: message || (e instanceof Error ? e.message : 'unknown error') };
+		if (isNodeError(e) && e.code === 'ENOENT') {
+			return { notFound: true, error: `${command} not found` };
+		}
+		if (e instanceof NonZeroExitError) {
+			// failures can land on either stream, so report both
+			const { stderr, stdout } = e.output ?? {};
+			const message = [stderr, stdout].filter(Boolean).join('\n').trim();
+			return { error: message || e.message };
+		}
+		if (e instanceof Error) {
+			return { error: e.message };
+		}
+		return { error: 'unknown error' };
 	}
 }

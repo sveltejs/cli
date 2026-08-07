@@ -250,10 +250,10 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			}
 		},
 		execute: async (commandArgs, stdio) => {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
+			const cmd = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
 			const addonPrefix = multiple ? `${addon.id}: ` : '';
-			const executedCommand = [command, ...args].join(' ');
+			const executedCommand = [cmd.command, ...cmd.args].join(' ');
 			if (!TESTING) {
 				p.log.step(
 					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
@@ -261,18 +261,21 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 			}
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') args.unshift('--yes');
+			if (workspace.packageManager === 'npm') cmd.args.unshift('--yes');
 
 			try {
-				await exec(command, args, {
+				await exec(cmd.command, cmd.args, {
 					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
 					throwOnError: true
 				});
-			} catch (error) {
-				const typedError = error as NonZeroExitError;
-				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
-					cause: error
-				});
+			} catch (e) {
+				let msg;
+				if (e instanceof NonZeroExitError || e instanceof Error) {
+					msg = `Failed to execute scripts '${executedCommand}': ${e.message}`;
+				} else {
+					msg = 'unknown error';
+				}
+				throw new Error(msg, { cause: e });
 			}
 		},
 		dependency: (pkg, version) => {

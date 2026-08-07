@@ -339,3 +339,7 @@ export const filePaths = {
 	viteConfig: 'vite.config.js',
 	viteConfigTS: 'vite.config.ts'
 } as const;
+
+export function isNodeError(e: unknown): e is Error & { code: string } {
+	return e instanceof Error && 'code' in e && typeof e.code === 'string';
+}
