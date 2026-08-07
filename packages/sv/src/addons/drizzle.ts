@@ -522,35 +522,36 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ options, packageManager, cwd, dependencyVersion }) => {
+		const pm = (command: Parameters<typeof resolveCommandArray>[1], args: string[]) =>
+			color.command(resolveCommandArray(packageManager, command, args));
 		const steps: string[] = [];
+
 		if (options.database === 'd1') {
 			if (!dependencyVersion('@sveltejs/adapter-cloudflare')) {
 				steps.push(
-					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${color.command(resolveCommandArray(packageManager, 'execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare']))} to add it`
+					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${pm('execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare'])} to add it`
 				);
 			}
-			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
+
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+				`Run ${pm('execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>'])} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
 
 		if (options.docker) {
-			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:start']))} to start the docker container`
-			);
+			steps.push(`Run ${pm('run', ['db:start'])} to start the docker container`);
 		} else if (options.database !== 'd1') {
 			steps.push(
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
 
-		steps.push(
-			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database schema`
-		);
+		steps.push(`Run ${pm('run', ['db:push'])} to update your database schema`);
 
 		return steps;
 	}

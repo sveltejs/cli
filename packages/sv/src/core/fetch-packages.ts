@@ -1,4 +1,4 @@
-import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
+import { color, coerceVersion, downloadJson, dedent } from '@sveltejs/sv-utils';
 import { unpackTar } from 'modern-tar/fs';
 import fs from 'node:fs';
 import { platform } from 'node:os';
@@ -153,8 +153,12 @@ async function importAddonCode(pkgName: string, pkgVersion: string): Promise<Add
 
 	if (!details && issues.length > 0) {
 		throw new Error(
-			`Failed to load add-on '${pkgName}@${pkgVersion}':\n- ${issues.join('\n- ')}\n\n` +
-				`Please report this to the add-on author.`
+			dedent`
+				Failed to load add-on '${pkgName}@${pkgVersion}':
+				${issues.map((i) => `- ${i}`).join('\n')}
+
+				Please report this to the add-on author.
+				`
 		);
 	}
 
