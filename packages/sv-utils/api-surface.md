@@ -635,7 +635,7 @@ declare function addSlot(
 	}
 ): void;
 declare function addFragment(
-	ast: SvelteAst.Root,
+	ast: SvelteAst.Root | SvelteAst.BaseElement,
 	content: string,
 	options?: {
 		mode?: 'append' | 'prepend';

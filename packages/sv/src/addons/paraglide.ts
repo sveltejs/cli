@@ -9,7 +9,7 @@ import {
 	transforms
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
+import { createDemoPage } from './common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -49,7 +49,8 @@ const options = defineAddonOptions()
 	.add('demo', {
 		type: 'boolean',
 		default: true,
-		question: 'Do you want to include a demo?'
+		question: 'Do you want to include a demo?',
+		condition: (_, t) => t !== 'demo'
 	})
 	.build();
 
@@ -63,7 +64,7 @@ export default defineAddon({
 		// it picks the kit-3 shape off the version `experimental` writes
 		runsAfter('experimental');
 	},
-	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
+	run: ({ sv, options, file, language, directory, dependencyVersion, template }) => {
 		const [ts] = createPrinter(language === 'ts');
 		const kitRange = dependencyVersion('@sveltejs/kit');
 		const lib = resolveLibPrefix(kitRange);
@@ -234,12 +235,14 @@ export default defineAddon({
 			})
 		);
 
-		if (options.demo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('paraglide', language));
+		if (template === 'demo' || options.demo) {
+			const demo = createDemoPage('paraglide', language, directory.kitRoutes);
+			sv.file(...demo.listing);
+			sv.file(...demo.header);
 
 			// add usage example
 			sv.file(
-				`${directory.kitRoutes}/demo/paraglide/+page.svelte`,
+				`${demo.addonPath}/+page.svelte`,
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
@@ -283,9 +286,9 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: () => {
+	nextSteps: ({ template: t }) => {
 		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
-		if (options.demo) {
+		if (t === 'demo' || options.demo) {
 			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
 		}
 

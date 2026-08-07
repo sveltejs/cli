@@ -14,7 +14,7 @@ import {
 } from '@sveltejs/sv-utils';
 import crypto from 'node:crypto';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
+import { createDemoPage } from './common.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
@@ -27,7 +27,8 @@ const options = defineAddonOptions()
 			{ value: 'password', label: 'Email & Password' },
 			{ value: 'github', label: 'GitHub OAuth' }
 		],
-		required: false
+		required: false,
+		condition: (_, t) => t !== 'demo'
 	})
 	.build();
 
@@ -44,14 +45,14 @@ export default defineAddon({
 		runsAfter('tailwindcss');
 		runsAfter('experimental');
 	},
-	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
+	run: ({ sv, cwd, language, options, directory, dependencyVersion, file, template }) => {
 		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
-		const demoPassword = options.demo.includes('password');
-		const demoGithub = options.demo.includes('github');
+		const demoPassword = template === 'demo' || options.demo?.includes('password');
+		const demoGithub = template === 'demo' || options.demo?.includes('github');
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
@@ -325,21 +326,21 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
+			const demo = createDemoPage('better-auth', language, directory.kitRoutes);
+			sv.file(...demo.listing);
+			sv.file(...demo.header);
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
-				(content) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
+			sv.file(`${demo.addonPath}/login/+page.server.${language}`, (content) => {
+				if (content) {
+					const filePath = `${demo.addonPath}/login/+page.server.${language}`;
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
+					return false;
+				}
 
-					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
+				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
-					const signInEmailAction = demoPassword
-						? `
+				const signInEmailAction = demoPassword
+					? `
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const email = formData.get('email')?.toString() ?? '';
@@ -386,10 +387,10 @@ export default defineAddon({
 
 							return redirect(302, '/demo/better-auth');
 						},`
-						: '';
+					: '';
 
-					const signInSocialAction = demoGithub
-						? `
+				const signInSocialAction = demoGithub
+					? `
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = formData.get('provider')?.toString() ?? 'github';
@@ -407,11 +408,11 @@ export default defineAddon({
 							}
 							return fail(400, { message: 'Social sign-in failed' });
 						},`
-						: '';
+					: '';
 
-					const needsAPIError = demoPassword;
+				const needsAPIError = demoPassword;
 
-					return dedent`
+				return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
@@ -428,12 +429,11 @@ export default defineAddon({
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
 				`;
-				}
-			);
+			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/login/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
+					const filePath = `${demo.addonPath}/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -492,9 +492,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`, (content) => {
+			sv.file(`${demo.addonPath}/+page.server.${language}`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
+					const filePath = `${demo.addonPath}/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -524,9 +524,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
+					const filePath = `${demo.addonPath}/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -552,18 +552,18 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: ({ options, packageManager }) => {
+	nextSteps: ({ options, packageManager, template }) => {
 		const steps = [
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['auth:schema']))} to generate the auth schema`,
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
-		if (options.demo.includes('github')) {
+		if (options.demo?.includes('github')) {
 			steps.push(
 				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
 			);
 		}
-		if (options.demo.length > 0) {
+		if (template === 'demo' || (options.demo && options.demo.length > 0)) {
 			steps.push(`Visit ${color.route('/demo/better-auth')} route to view the demo`);
 		}
 
