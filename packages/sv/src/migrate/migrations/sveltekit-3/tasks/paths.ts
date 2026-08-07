@@ -1,4 +1,4 @@
-import { transforms, Walker, type AstTypes, type SvelteAst } from '@sveltejs/sv-utils';
+import { js, transforms, Walker, type AstTypes, type SvelteAst } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
 const PATHS_MODULE = '$app/paths';
@@ -35,9 +35,6 @@ function migratePaths(programs: AstTypes.Program[], fragment?: SvelteAst.Fragmen
 	const pathImports = importsFrom(programs, PATHS_MODULE);
 	const typeImports = importsFrom(programs, TYPES_MODULE);
 	if (pathImports.length === 0 && typeImports.length === 0) return false;
-	const sideEffectImports = new Set(
-		[...pathImports, ...typeImports].filter((declaration) => declaration.specifiers.length === 0)
-	);
 
 	const skippedIdentifiers = new Set<AstTypes.Identifier>();
 	for (const declaration of [...pathImports, ...typeImports]) {
@@ -51,8 +48,8 @@ function migratePaths(programs: AstTypes.Program[], fragment?: SvelteAst.Fragmen
 	const baseLocals = importedLocals(pathImports, 'base');
 	const assetsLocals = importedLocals(pathImports, 'assets');
 	const resolveRouteLocals = importedLocals(pathImports, 'resolveRoute');
-	const existingResolve = importedLocals(pathImports, 'resolve')[0];
-	const existingAsset = importedLocals(pathImports, 'asset')[0];
+	const existingResolve = importAlias(programs, 'resolve', PATHS_MODULE);
+	const existingAsset = importAlias(programs, 'asset', PATHS_MODULE);
 	const needsResolve = baseLocals.length > 0 || resolveRouteLocals.length > 0;
 	const needsAsset = assetsLocals.length > 0;
 	const resolveLocal =
@@ -104,7 +101,7 @@ function migratePaths(programs: AstTypes.Program[], fragment?: SvelteAst.Fragmen
 			programs,
 			fragment,
 			baseLocals,
-			() => call(resolveLocal, literal('')),
+			() => js.functions.createCall({ name: resolveLocal, args: [''] }),
 			shadowedIdentifiers
 		)
 	) {
@@ -115,7 +112,7 @@ function migratePaths(programs: AstTypes.Program[], fragment?: SvelteAst.Fragmen
 			programs,
 			fragment,
 			assetsLocals,
-			() => call(assetLocal, literal('')),
+			() => js.functions.createCall({ name: assetLocal, args: [''] }),
 			shadowedIdentifiers
 		)
 	) {
@@ -134,30 +131,27 @@ function migratePaths(programs: AstTypes.Program[], fragment?: SvelteAst.Fragmen
 		changed = true;
 	}
 
-	if (rewriteNamedImports(pathImports, 'base', 'resolve', resolveLocal, needsResolve))
-		changed = true;
-	if (rewriteNamedImports(pathImports, 'assets', 'asset', assetLocal, needsAsset)) changed = true;
-	if (rewriteNamedImports(pathImports, 'resolveRoute', 'resolve', resolveLocal, needsResolve)) {
+	if (rewriteNamedImport(programs, PATHS_MODULE, 'assets', 'asset', assetLocal)) changed = true;
+	if (rewriteNamedImport(programs, PATHS_MODULE, 'base', 'resolve', resolveLocal)) changed = true;
+	if (rewriteNamedImport(programs, PATHS_MODULE, 'resolveRoute', 'resolve', resolveLocal)) {
 		changed = true;
 	}
-	removeDuplicateImports(pathImports, 'resolve', resolveLocal);
-	removeDuplicateImports(pathImports, 'asset', assetLocal);
 
-	const renamedPath = renameImportedType(
-		programs,
-		fragment,
-		typeImports,
-		'Pathname',
-		'Path',
-		skippedIdentifiers,
-		shadowedIdentifiers
-	);
 	const renamedAsset = renameImportedType(
 		programs,
 		fragment,
 		typeImports,
 		'Asset',
 		'AssetPath',
+		skippedIdentifiers,
+		shadowedIdentifiers
+	);
+	const renamedPath = renameImportedType(
+		programs,
+		fragment,
+		typeImports,
+		'Pathname',
+		'Path',
 		skippedIdentifiers,
 		shadowedIdentifiers
 	);
@@ -178,19 +172,23 @@ function migratePaths(programs: AstTypes.Program[], fragment?: SvelteAst.Fragmen
 		)
 	)
 		changed = true;
-	removeEmptyImports(programs, pathImports, sideEffectImports);
-	removeEmptyImports(programs, typeImports, sideEffectImports);
 
 	return changed;
 }
 
 function importsFrom(programs: AstTypes.Program[], source: string): AstTypes.ImportDeclaration[] {
 	return programs.flatMap((program) =>
-		program.body.filter(
-			(statement): statement is AstTypes.ImportDeclaration =>
-				statement.type === 'ImportDeclaration' && statement.source.value === source
-		)
+		js.imports
+			.findAll(program, { from: source })
+			.flatMap((found) => (found.kind === 'static' ? [found.node] : []))
 	);
+}
+
+function importAlias(programs: AstTypes.Program[], name: string, from: string): string | undefined {
+	for (const program of programs) {
+		const { alias } = js.imports.find(program, { name, from });
+		if (alias !== undefined) return alias;
+	}
 }
 
 function importedLocals(imports: AstTypes.ImportDeclaration[], name: string): string[] {
@@ -241,9 +239,15 @@ function collapsePathPrefixes(
 			if (baseLocals.includes(node.left.name)) {
 				replacement = isResolveRouteCall(node.right, resolveRouteLocals, shadowedIdentifiers)
 					? node.right
-					: call(resolveLocal, withoutLeadingSlash(node.right));
+					: js.functions.createCall({
+							name: resolveLocal,
+							args: [withoutLeadingSlash(node.right)]
+						});
 			} else if (assetsLocals.includes(node.left.name)) {
-				replacement = call(assetLocal, withoutLeadingSlash(node.right));
+				replacement = js.functions.createCall({
+					name: assetLocal,
+					args: [withoutLeadingSlash(node.right)]
+				});
 			}
 
 			if (!replacement) {
@@ -296,7 +300,11 @@ function collapsePathPrefixes(
 				return;
 			}
 
-			replaceChildNode(parent, node, call(callee, withoutLeadingSlash(rest)));
+			replaceChildNode(
+				parent,
+				node,
+				js.functions.createCall({ name: callee, args: [withoutLeadingSlash(rest)] })
+			);
 			changed = true;
 		}
 	});
@@ -304,60 +312,39 @@ function collapsePathPrefixes(
 	return changed;
 }
 
-function rewriteNamedImports(
-	imports: AstTypes.ImportDeclaration[],
+/** Replace every `oldName` import from `from` with a single `newName as local` import. */
+function rewriteNamedImport(
+	programs: AstTypes.Program[],
+	from: string,
 	oldName: string,
 	newName: string,
-	local: string,
-	needed: boolean
+	local: string
 ): boolean {
-	const oldSpecifiers = imports.flatMap((declaration) =>
-		declaration.specifiers.filter(
-			(specifier): specifier is AstTypes.ImportSpecifier =>
-				specifier.type === 'ImportSpecifier' &&
-				specifier.imported.type === 'Identifier' &&
-				specifier.imported.name === oldName
-		)
-	);
-	if (oldSpecifiers.length === 0) return false;
+	let changed = false;
+	for (const program of programs) {
+		const { statement } = js.imports.find(program, { name: oldName, from });
+		if (!statement) continue;
 
-	const alreadyImported = importedLocals(imports, newName).includes(local);
-	let retained = alreadyImported || !needed;
-	for (const declaration of imports) {
-		declaration.specifiers = declaration.specifiers.filter((specifier) => {
-			if (!oldSpecifiers.includes(specifier as AstTypes.ImportSpecifier)) return true;
-			if (retained) return false;
+		const isType =
+			statement.importKind === 'type' ||
+			statement.specifiers.some(
+				(specifier) =>
+					specifier.type === 'ImportSpecifier' &&
+					specifier.imported.type === 'Identifier' &&
+					specifier.imported.name === oldName &&
+					(specifier as AstTypes.ImportSpecifier & { importKind?: 'type' | 'value' }).importKind ===
+						'type'
+			);
 
-			const named = specifier as AstTypes.ImportSpecifier;
-			named.imported = { type: 'Identifier', name: newName };
-			named.local = { type: 'Identifier', name: local };
-			retained = true;
-			return true;
-		});
+		// add first so the replacement lands in the existing declaration, keeping its position
+		js.imports.addNamed(program, { imports: { [newName]: local }, from, isType });
+		js.imports.remove(program, { name: oldName, from });
+		// the add is skipped when the old import's local collides with the new one
+		// (e.g. `resolveRoute as route` -> `resolve as route`), so retry now that it's gone
+		js.imports.addNamed(program, { imports: { [newName]: local }, from, isType });
+		changed = true;
 	}
-
-	return true;
-}
-
-function removeDuplicateImports(
-	imports: AstTypes.ImportDeclaration[],
-	importedName: string,
-	localName: string
-): void {
-	let found = false;
-	for (const declaration of imports) {
-		declaration.specifiers = declaration.specifiers.filter((specifier) => {
-			const matches =
-				specifier.type === 'ImportSpecifier' &&
-				specifier.imported.type === 'Identifier' &&
-				specifier.imported.name === importedName &&
-				specifier.local.name === localName;
-			if (!matches) return true;
-			if (found) return false;
-			found = true;
-			return true;
-		});
-	}
+	return changed;
 }
 
 function renameImportedType(
@@ -372,7 +359,7 @@ function renameImportedType(
 	const oldLocals = importedLocals(imports, oldName);
 	if (oldLocals.length === 0) return false;
 
-	const existingLocal = importedLocals(imports, newName)[0];
+	const existingLocal = importAlias(programs, newName, TYPES_MODULE);
 	const targetLocal =
 		existingLocal ??
 		(oldLocals[0] === oldName
@@ -386,8 +373,7 @@ function renameImportedType(
 		skippedIdentifiers,
 		shadowedIdentifiers
 	);
-	rewriteNamedImports(imports, oldName, newName, targetLocal, true);
-	removeDuplicateImports(imports, newName, targetLocal);
+	rewriteNamedImport(programs, TYPES_MODULE, oldName, newName, targetLocal);
 	return true;
 }
 
@@ -708,7 +694,7 @@ function withoutLeadingSlash(expression: AstTypes.Expression): AstTypes.Expressi
 			computed: false,
 			optional: false
 		},
-		arguments: [literal(1)],
+		arguments: [js.common.createLiteral(1)],
 		optional: false
 	};
 }
@@ -760,36 +746,6 @@ function isNonComputedProperty(node: AstTypes.Identifier, parent: AstTypes.Node)
 		(parent.type === 'Property' && parent.key === node && !parent.computed) ||
 		(parent.type === 'ExportSpecifier' && parent.exported === node)
 	);
-}
-
-function removeEmptyImports(
-	programs: AstTypes.Program[],
-	imports: AstTypes.ImportDeclaration[],
-	sideEffectImports: Set<AstTypes.ImportDeclaration>
-): void {
-	for (const declaration of imports) {
-		if (declaration.specifiers.length > 0 || sideEffectImports.has(declaration)) continue;
-		for (const program of programs) {
-			const index = program.body.indexOf(declaration);
-			if (index !== -1) {
-				program.body.splice(index, 1);
-				break;
-			}
-		}
-	}
-}
-
-function call(name: string, argument: AstTypes.Expression): AstTypes.CallExpression {
-	return {
-		type: 'CallExpression',
-		callee: { type: 'Identifier', name },
-		arguments: [argument],
-		optional: false
-	};
-}
-
-function literal(value: string | number): AstTypes.Literal {
-	return { type: 'Literal', value };
 }
 
 function replaceChildNode(

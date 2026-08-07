@@ -398,7 +398,7 @@ declare namespace function_d_exports {
 }
 declare function createCall(options: {
 	name: string;
-	args: string[];
+	args: Array<string | estree.Expression>;
 	useIdentifiers?: boolean;
 }): estree.CallExpression;
 declare function createArrow(options: {
@@ -488,6 +488,7 @@ declare function find(
 			statement: undefined;
 			alias: undefined;
 	  };
+
 declare function remove(
 	ast: estree.Program,
 	options: {

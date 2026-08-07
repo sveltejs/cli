@@ -1,5 +1,5 @@
 import { asset, resolve } from '$app/paths';
-import type { AssetPath, Path, RouteId } from '$app/types';
+import type { RouteId, AssetPath, Path } from '$app/types';
 
 declare const slug: string;
 declare const routeId: RouteId;
