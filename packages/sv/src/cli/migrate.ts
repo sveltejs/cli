@@ -172,7 +172,7 @@ async function determineTasks(
 	};
 
 	try {
-		migration.setup(setupOptions);
+		await migration.setup(setupOptions);
 	} catch (err) {
 		common.errorAndExit(err instanceof Error ? err.message : String(err));
 		return;
@@ -196,7 +196,7 @@ async function determineTasks(
 			}
 		}
 	};
-	migration.collect(collectOptions);
+	await migration.collect(collectOptions);
 
 	if (allTasks.length === 0) {
 		common.errorAndExit(`Migration "${migration.id}" did not return any tasks to run.`);
@@ -250,6 +250,12 @@ async function determineTasks(
 			message: 'Do you want to proceed?',
 			initialValue: false
 		});
+
+		// a cancel is a truthy symbol, so it has to be checked before the falsy "no"
+		if (typeof proceed === 'symbol') {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
+		}
 
 		if (!proceed) {
 			common.errorAndExit('Migration cancelled by the user.');
