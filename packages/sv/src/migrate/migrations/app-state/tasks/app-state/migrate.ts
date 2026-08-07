@@ -227,6 +227,13 @@ function derefStores(
 			if (local === undefined) return;
 
 			const parent = ctx.path[ctx.path.length - 1];
+			if (!isReference(node, parent)) return;
+
+			// `{ $page }` shorthand carries the name twice; keep the key and rewrite only the value
+			if (parent.type === 'Property' && parent.shorthand && parent.key === node) {
+				parent.key = { ...node };
+				parent.shorthand = false;
+			}
 
 			if (local.store === 'updated') {
 				// `$updated` -> `updated.current`
@@ -252,6 +259,19 @@ function derefStores(
 			node.name = local.name;
 		}
 	});
+}
+
+/**
+ * Whether `node` is a value reference rather than a property name. `obj.$page` and `{ $page: x }`
+ * only borrow the name, so renaming them would rewrite unrelated members and object keys.
+ */
+function isReference(
+	node: AstTypes.Node,
+	parent: AstTypes.Node | SvelteAst.SvelteNode
+): boolean {
+	if (parent.type === 'MemberExpression') return parent.computed || parent.object === node;
+	if (parent.type === 'Property') return parent.computed || parent.shorthand || parent.key !== node;
+	return true;
 }
 
 /** Whether `node` is the object being accessed in `parent` (e.g. `$navigating` in `$navigating.to`). */
