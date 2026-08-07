@@ -1,4 +1,4 @@
-import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
+import { color, coerceVersion, dedent, downloadJson } from '@sveltejs/sv-utils';
 import { unpackTar } from 'modern-tar/fs';
 import fs from 'node:fs';
 import { platform } from 'node:os';
@@ -13,9 +13,18 @@ import type { AddonDefinition, AddonReference } from './config.ts';
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));
 
+function isStandalone(addonPkg: Record<string, any>): boolean {
+	const exports = addonPkg.exports;
+	if (!exports) return true;
+	if (typeof exports === 'string') return true;
+	if (typeof exports === 'object') return Object.keys(exports).length === 1;
+	return true;
+}
+
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };
 	const deps = { ...addonPkg.dependencies };
+	const standalone = isStandalone(addonPkg);
 
 	// valid addons should always have `sv` as a peerDependency
 	const addonSvVersion = peerDeps['sv'];
@@ -25,10 +34,12 @@ function verifyPackage(addonPkg: Record<string, any>, specifier: string): string
 		);
 	}
 
-	// addons should not have any dependencies (everything should be bundled)
-	if (Object.keys(deps).length > 0) {
+	// standalone addons must not have dependencies (everything should be bundled)
+	if (standalone && Object.keys(deps).length > 0) {
 		throw new Error(
-			`Invalid add-on package detected: '${specifier}'\nCommunity add-ons should not have any 'dependencies'. Use 'peerDependencies' for 'sv' and bundle everything else`
+			dedent`
+				Invalid add-on package detected: '${specifier}'
+				Standalone add-ons must not have 'dependencies' in package.json. Everything should be bundled with your add-on.`
 		);
 	}
 
