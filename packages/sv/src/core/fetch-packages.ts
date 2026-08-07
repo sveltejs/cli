@@ -94,7 +94,8 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		// Try to create a symlink, but fall back to copying on Windows if it fails with EPERM
 		try {
 			fs.symlinkSync(options.path, dest, 'dir');
-		} catch (error: any) {
+		} catch (error) {
+			if (!isNodeError(error)) throw error;
 			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
 			// In that case, fall back to copying the directory
 			if (platform() === 'win32' && (error.code === 'EPERM' || error.code === 'EACCES')) {
@@ -177,8 +178,8 @@ async function importAddonCode(
 	return details;
 }
 
-function isNodeError(e: unknown): e is Error & { code: string } {
-	return e instanceof Error && 'code' in e && typeof e.code === 'string';
+function isNodeError(err: unknown): err is Error & NodeJS.ErrnoException {
+	return err instanceof Error;
 }
 
 type PackageJSON = {
