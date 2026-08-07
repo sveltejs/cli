@@ -1,5 +1,5 @@
 import * as p from '@clack/prompts';
-import { color, resolveCommandArray } from '@sveltejs/sv-utils';
+import { type AgentName, color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import fs from 'node:fs';
@@ -655,7 +655,7 @@ export async function runAddonsApply({
 			setupResults: {}
 		};
 
-	const { filesToFormat, status } = await applyAddons({
+	const { filesToFormat, status, installNeeded } = await applyAddons({
 		loadedAddons,
 		workspace,
 		setupResults,
@@ -689,12 +689,12 @@ export async function runAddonsApply({
 		);
 	}
 
-	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(options.cwd)
-				: options.install;
+	// nothing new landed in `package.json`, so there is nothing to install and nothing to ask about
+	let packageManager: AgentName | null | undefined = null;
+	if (options.install !== false && installNeeded) {
+		packageManager =
+			options.install === true ? await packageManagerPrompt(options.cwd) : options.install;
+	}
 
 	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
 
@@ -758,7 +758,7 @@ export async function runAddonsApply({
 		depsInstalled = await installDependencies(packageManager, options.cwd);
 		if (depsInstalled) {
 			await formatFiles({
-				packageManager,
+				packageManager: packageManager ?? workspace.packageManager,
 				cwd: options.cwd,
 				filesToFormat,
 				strategy: 'files-only'
