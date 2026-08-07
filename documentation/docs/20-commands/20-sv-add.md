@@ -73,7 +73,13 @@ Do not prompt to install dependencies.
 Community add-ons are npm packages published by the community. Look out for add-ons from your favourite libraries and tools. _(soon)_ Many developers are building `sv` add-ons to make their integrations a one-liner. You can find them on [npmx](https://www.npmx.dev/search?q=keyword:sv-add) by searching for the keyword: `sv-add`.
 
 ```sh
-# Install a community add-on by org name (it will look at @org/sv)
+# Install a community addon-on
+npx sv add my-addon
+
+# Also works with org names
+npx sv add @supacool/sv
+
+# As a shorthand, packages named `sv` can be omitted
 npx sv add @supacool
 
 # Use a local add-on (for development or internal use)

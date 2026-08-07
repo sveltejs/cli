@@ -272,29 +272,24 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	const parentDirName = path.basename(path.dirname(projectPath));
 	let projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
-	if (template === 'addon' && !projectName.startsWith('@')) {
-		// At this stage, we don't support un-scoped add-ons
-		// FYI: a demo exists for `npx sv add my-cool-addon`
-		const org = await p.text({
-			message: `Community add-ons must be published under an npm org. Enter the name of your npm org:`,
-			placeholder: '  @my-org',
-			validate: (value) => {
-				if (!value) return 'Organization name is required';
-				if (!value.startsWith('@')) return 'Must start with @';
-				if (value.includes('/')) return 'Just the org, not the full package name';
-			}
+	if (template === 'addon') {
+		if (options.add.length > 0) {
+			common.errorAndExit(
+				`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
+			);
+		}
+
+		const namePrompt = await p.text({
+			message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>')}, ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
+			initialValue: projectName,
+			validate: v.pipe(v.string(), v.nonEmpty())
 		});
-		if (p.isCancel(org)) {
+		if (p.isCancel(namePrompt)) {
 			p.cancel('Operation cancelled.');
 			process.exit(0);
 		}
-		projectName = `${org}/${basename}`;
-	}
-
-	if (template === 'addon' && options.add.length > 0) {
-		common.errorAndExit(
-			`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
-		);
+		const isScopeOnly = namePrompt.startsWith('@') && !namePrompt.includes('/');
+		projectName = isScopeOnly ? `${namePrompt}/${basename}` : namePrompt;
 	}
 
 	let loadedAddons: LoadedAddon[] = [];
