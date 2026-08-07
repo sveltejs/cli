@@ -57,7 +57,7 @@ describe('cli', () => {
 			args: [
 				'--add',
 				'drizzle=database:sqlite+sqlite:libsql',
-				'experimental=versions:kit-3-next+features:async,remoteFunctions'
+				'experimental=versions:kit-3+features:async,remoteFunctions'
 			]
 		},
 		{

@@ -51,10 +51,15 @@ export default defineMigrationTask({
 			transforms.json<TypeConfig>(({ data }) => {
 				const extended = Array.isArray(data.extends) ? [...data.extends] : [data.extends];
 				const index = extended.findIndex((entry) => entry && GENERATED_CONFIG.test(entry));
-				if (index === -1) return false;
 
-				extended[index] = PARENT_CONFIG;
-				data.extends = Array.isArray(data.extends) ? (extended as string[]) : PARENT_CONFIG;
+				// a prerequisite task may have retargeted `extends` already; the `include` paths below
+				// still have to move, so only bail when neither config is referenced
+				if (index === -1 && !extended.includes(PARENT_CONFIG)) return false;
+
+				if (index !== -1) {
+					extended[index] = PARENT_CONFIG;
+					data.extends = Array.isArray(data.extends) ? (extended as string[]) : PARENT_CONFIG;
+				}
 
 				// the generated config no longer carries `include`, so the project owns it now
 				const include = (data.include ??= ['src']);

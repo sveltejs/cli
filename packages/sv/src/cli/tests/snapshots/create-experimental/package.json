@@ -20,16 +20,20 @@
 	"devDependencies": {
 		"@libsql/client": "^0.17.3",
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
-		"@sveltejs/kit": "^2.63.0",
-		"@sveltejs/vite-plugin-svelte": "^7.1.2",
-		"auth": "^1.6.23",
-		"better-auth": "^1.6.23",
+		"@sveltejs/kit": "^3.0.0-next.0",
+		"@sveltejs/vite-plugin-svelte": "^7.2.0",
+		"auth": "^1.6.24",
+		"better-auth": "^1.6.24",
 		"drizzle-kit": "^0.31.10",
 		"drizzle-orm": "^0.45.2",
-		"svelte": "^5.56.1",
+		"svelte": "^5.56.7",
 		"svelte-check": "^4.6.0",
 		"typescript": "^6.0.3",
-		"vite": "^8.0.16",
+		"vite": "^8.1.5",
 		"wrangler": "^4.97.0"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.js",
+		"#lib/*": "./src/lib/*"
 	}
 }
