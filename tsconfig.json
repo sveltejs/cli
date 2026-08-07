@@ -1,5 +1,5 @@
 {
-	"exclude": ["**/dist/**", "**/temp/**"],
+	"exclude": ["**/dist/**", "**/temp/**", "packages/sv/src/migrate/migrations/**/tests/**"],
 	"compilerOptions": {
 		"checkJs": true,
 		"moduleResolution": "NodeNext",

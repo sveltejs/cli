@@ -48,7 +48,7 @@ export function parseCss(
 
 export function parseHtml(source: string): { ast: utils.SvelteAst.Fragment } & ParseBase {
 	const ast = utils.parseHtml(source);
-	const generateCode = () => utils.serializeHtml(ast);
+	const generateCode = () => utils.serializeHtml(ast, source);
 
 	return { ast, source, generateCode };
 }
@@ -72,7 +72,7 @@ export function parseYaml(source: string): { data: YamlDocument } & ParseBase {
 export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & ParseBase {
 	const ast = utils.parseSvelte(source);
 
-	const generateCode = () => utils.serializeSvelte(ast);
+	const generateCode = () => utils.serializeSvelte(ast, source);
 
 	return {
 		ast,

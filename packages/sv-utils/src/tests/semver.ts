@@ -1,23 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import { splitVersion, coerceVersion, isVersionUnsupportedBelow, minVersion } from '../semver.ts';
-
-describe('versionSplit', () => {
-	const combinationsVersionSplit = [
-		{ version: '18.13.0', expected: { major: 18, minor: 13, patch: 0 } },
-		{ version: 'x.13.0', expected: { major: undefined, minor: 13, patch: 0 } },
-		{ version: '18.y.0', expected: { major: 18, minor: undefined, patch: 0 } },
-		{ version: '18.13.z', expected: { major: 18, minor: 13, patch: undefined } },
-		{ version: '18', expected: { major: 18, minor: undefined, patch: undefined } },
-		{ version: '18.13', expected: { major: 18, minor: 13, patch: undefined } },
-		{ version: 'invalid', expected: { major: undefined, minor: undefined, patch: undefined } }
-	];
-	it.each(combinationsVersionSplit)(
-		'should return the correct version for $version',
-		({ version, expected }) => {
-			expect(splitVersion(version)).toEqual(expected);
-		}
-	);
-});
+import { coerceVersion, isVersionUnsupportedBelow, minVersion } from '../semver.ts';
 
 describe('coerceVersion', () => {
 	const combinationsCoerceVersion = [

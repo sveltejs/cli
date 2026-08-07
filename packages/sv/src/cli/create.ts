@@ -418,7 +418,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
 				? ['.']
 				: addOnFilesToFormat;
-			await formatFiles({ packageManager, cwd: projectPath, filesToFormat });
+			await formatFiles({
+				packageManager,
+				cwd: projectPath,
+				filesToFormat,
+				strategy: 'files-only'
+			});
 		}
 	}
 
@@ -500,8 +505,7 @@ export async function createVirtualWorkspace({
 		file: {
 			...tentativeWorkspace.file,
 			viteConfig:
-				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig,
-			svelteConfig: common.filePaths.svelteConfig // currently we always use js files, never typescript files
+				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig
 		}
 	};
 

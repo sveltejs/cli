@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { detectPnpmMajor } from '../pnpm-internals.ts';
-import { allowBuilds, onlyBuiltDependencies } from '../pnpm.ts';
+import { allowBuilds } from '../pnpm.ts';
 
 const major = detectPnpmMajor();
 const isPnpm11 = major === undefined || major >= 11;
@@ -68,10 +68,6 @@ allowBuilds:
 `;
 		expect(allowBuilds('esbuild')(input)).toBe(input);
 	});
-
-	it('deprecated onlyBuiltDependencies delegates to allowBuilds', () => {
-		expect(onlyBuiltDependencies('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
-	});
 });
 
 describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
@@ -94,9 +90,5 @@ describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies 
   - esbuild
 `;
 		expect(allowBuilds('esbuild')(input)).toBe(input);
-	});
-
-	it('deprecated onlyBuiltDependencies delegates to allowBuilds', () => {
-		expect(onlyBuiltDependencies('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
 	});
 });

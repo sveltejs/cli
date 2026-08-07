@@ -3,7 +3,6 @@ import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
 import { filePaths } from './common.ts';
-import { svDeprecated } from './deprecated.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
 
@@ -24,28 +23,11 @@ export type Workspace = {
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
-		/**
-		 * @deprecated the config no longer necessarily lives in `svelte.config.{js,ts}` (it can be
-		 * passed to `sveltekit()` in `vite.config.{js,ts}`). Use `svelteConfig` from
-		 * `@sveltejs/sv-utils` to edit it wherever it lives.
-		 */
-		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
 		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
 		/** `${directory.routes}/layout.css` or `src/app.css` */
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
-
-		/** @deprecated use the string `.prettierignore` instead. */
-		prettierignore: '.prettierignore';
-		/** @deprecated use the string `.prettierrc` instead. */
-		prettierrc: '.prettierrc';
-		/** @deprecated use the string `eslint.config.js` instead. */
-		eslintConfig: 'eslint.config.js';
-		/** @deprecated use the string `.vscode/settings.json` instead. */
-		vscodeSettings: '.vscode/settings.json';
-		/** @deprecated use the string `.vscode/extensions.json` instead. */
-		vscodeExtensions: '.vscode/extensions.json';
 
 		/** Get the relative path between two files */
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
@@ -77,44 +59,6 @@ type CreateWorkspaceOptions = {
 		dependencies: Record<string, string>;
 	};
 };
-const deprecatedFiles = {
-	prettierignore: '.prettierignore',
-	prettierrc: '.prettierrc',
-	eslintConfig: 'eslint.config.js',
-	vscodeSettings: '.vscode/settings.json',
-	vscodeExtensions: '.vscode/extensions.json'
-} as const;
-
-/**
- * Adds deprecated file properties as non-enumerable getters so they don't trigger on spread
- * Once we remove these deprecatedFiles, we can get rid of addDeprecatedFileProperties
- */
-function addDeprecatedFileProperties(
-	file: Omit<Workspace['file'], keyof typeof deprecatedFiles | 'svelteConfig'>,
-	svelteConfig: Workspace['file']['svelteConfig']
-): Workspace['file'] {
-	for (const [key, value] of Object.entries(deprecatedFiles)) {
-		Object.defineProperty(file, key, {
-			get() {
-				svDeprecated(`use the string \`"${value}"\` instead of \`file.${key}\``);
-				return value;
-			},
-			enumerable: false
-		});
-	}
-	// `svelteConfig` is dynamic (`.ts` vs `.js`) and points to a file that may not exist anymore,
-	// so it gets its own getter pointing at `svelteConfig` rather than a static "use the string" hint.
-	Object.defineProperty(file, 'svelteConfig', {
-		get() {
-			svDeprecated(
-				'use `svelteConfig` from `@sveltejs/sv-utils` instead of `file.svelteConfig` (the config may live in `vite.config.{js,ts}`)'
-			);
-			return svelteConfig;
-		},
-		enumerable: false
-	});
-	return file as Workspace['file'];
-}
 
 export async function createWorkspace({
 	cwd,
@@ -130,10 +74,6 @@ export async function createWorkspace({
 	// This is not linked with typescript detection
 	const viteConfigPath = path.join(resolvedCwd, filePaths.viteConfigTS);
 	const viteConfig = fs.existsSync(viteConfigPath) ? filePaths.viteConfigTS : filePaths.viteConfig;
-	const svelteConfigPath = path.join(resolvedCwd, filePaths.svelteConfigTS);
-	const svelteConfig = fs.existsSync(svelteConfigPath)
-		? filePaths.svelteConfigTS
-		: filePaths.svelteConfig;
 
 	let dependencies: Record<string, string> = {};
 	if (override?.dependencies) {
@@ -186,41 +126,38 @@ export async function createWorkspace({
 		cwd: resolvedCwd,
 		packageManager: packageManager ?? (await detectPackageManager(cwd)),
 		language: typescript ? 'ts' : 'js',
-		file: addDeprecatedFileProperties(
-			{
-				viteConfig,
-				typeConfig,
-				stylesheet,
-				package: 'package.json',
-				gitignore: '.gitignore',
-				getRelative({ from, to }) {
-					from = from ?? '';
-					let relativePath = path.posix.relative(path.posix.dirname(from), to);
-					// Ensure relative paths start with ./ for proper relative path syntax
-					if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
-						relativePath = `./${relativePath}`;
-					}
-					return relativePath;
-				},
-				findUp(filename) {
-					const found = find.up(filename, { cwd: resolvedCwd });
-					if (!found) return filename;
-					// don't escape .test-output during tests
-					if (resolvedCwd.includes('.test-output') && !found.includes('.test-output')) {
-						return filename;
-					}
-					return path.relative(resolvedCwd, found);
+		file: {
+			viteConfig,
+			typeConfig,
+			stylesheet,
+			package: 'package.json',
+			gitignore: '.gitignore',
+			getRelative({ from, to }) {
+				from = from ?? '';
+				let relativePath = path.posix.relative(path.posix.dirname(from), to);
+				// Ensure relative paths start with ./ for proper relative path syntax
+				if (!relativePath.startsWith('.') && !relativePath.startsWith('/')) {
+					relativePath = `./${relativePath}`;
 				}
+				return relativePath;
 			},
-			svelteConfig
-		),
+			findUp(filename) {
+				const found = find.up(filename, { cwd: resolvedCwd });
+				if (!found) return filename;
+				// don't escape .test-output during tests
+				if (resolvedCwd.includes('.test-output') && !found.includes('.test-output')) {
+					return filename;
+				}
+				return path.relative(resolvedCwd, found);
+			}
+		},
 		isKit,
 		directory,
 		dependencyVersion: (pkg) => dependencies[pkg]
 	};
 }
 
-function findWorkspaceRoot(cwd: string): string {
+export function findWorkspaceRoot(cwd: string): string {
 	const { root } = path.parse(cwd);
 	let directory = cwd;
 	while (directory && directory !== root) {

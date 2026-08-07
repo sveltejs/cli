@@ -5,6 +5,7 @@ import { parseJson } from './tooling/parsers.ts';
 export type Package = {
 	name: string;
 	version: string;
+	scripts?: Record<string, string>;
 	dependencies?: Record<string, string>;
 	devDependencies?: Record<string, string>;
 	bugs?: string;
@@ -43,7 +44,19 @@ export function loadFile(cwd: string, filePath: string): string {
  * Writes the file. Will make parent directories as needed.
  * @param filePath - Resolves paths relative to the workspace.
  */
-export function saveFile(cwd: string, filePath: string, content: string): void {
+export function saveFile(
+	cwd: string,
+	filePath: string,
+	content: string,
+	saveFileInfix?: string
+): string {
+	if (saveFileInfix) {
+		const dir = path.dirname(filePath);
+		const ext = path.extname(filePath);
+		const base = path.basename(filePath, ext);
+		filePath = path.join(dir, `${base}${saveFileInfix}${ext}`);
+	}
+
 	const fullFilePath = path.resolve(cwd, filePath);
 	const fullDirectoryPath = path.dirname(fullFilePath);
 
@@ -54,6 +67,8 @@ export function saveFile(cwd: string, filePath: string, content: string): void {
 	}
 
 	fs.writeFileSync(fullFilePath, content, 'utf8');
+
+	return filePath;
 }
 
 /**
