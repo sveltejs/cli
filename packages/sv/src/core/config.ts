@@ -266,13 +266,6 @@ export type SetupResult = {
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 
-export type Tests = {
-	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
-	elementExists: (selector: string) => Promise<void>;
-	click: (selector: string, path?: string) => Promise<void>;
-	expectUrlPath: (path: string) => void;
-};
-
 type MaybePromise<T> = Promise<T> | T;
 
 export type Verification = {

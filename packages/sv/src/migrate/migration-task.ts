@@ -63,6 +63,16 @@ export function addMigrationTask(
 	migrationTaskCount++;
 }
 
+/**
+ * Returns a standalone `// @migration-task` line comment for files that are generated from strings
+ * (rather than through an AST), and bumps the running total so the post-migration summary can
+ * report it. Prefer `addMigrationTask` whenever an AST is available.
+ */
+export function createMigrationTaskComment(message: string): string {
+	migrationTaskCount++;
+	return `// ${MIGRATION_TASK_MARKER} ${message}`;
+}
+
 function addSvelteComment(
 	fragment: SvelteAst.Fragment,
 	message: string,

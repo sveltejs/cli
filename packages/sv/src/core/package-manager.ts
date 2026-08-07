@@ -46,10 +46,11 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	];
 
 	const pm = await p.select({
-		message: 'Which package manager do you want to install dependencies with?',
+		message: 'Detected package managers. Which one should we use to install dependencies?',
 		options: agentOptions,
 		initialValue: agent
 	});
+
 	if (p.isCancel(pm)) {
 		p.cancel('Operation cancelled.');
 		process.exit(1);
