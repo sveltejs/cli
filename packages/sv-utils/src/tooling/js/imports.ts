@@ -106,17 +106,19 @@ export function addNamed(
 
 	// merge the specifiers into a single import declaration if they share a source
 	if (importDecl) {
+		const declaration = importDecl;
 		specifiers.forEach((specifierToAdd) => {
-			const sourceExists = importDecl?.specifiers?.every(
+			// skip specifiers whose imported or local name is already taken
+			const conflicts = declaration.specifiers.some(
 				(existingSpecifier) =>
-					existingSpecifier.type === 'ImportSpecifier' &&
-					existingSpecifier.local?.name !== specifierToAdd.local?.name &&
-					existingSpecifier.imported.type === 'Identifier' &&
-					specifierToAdd.imported.type === 'Identifier' &&
-					existingSpecifier.imported.name !== specifierToAdd.imported.name
+					existingSpecifier.local?.name === specifierToAdd.local.name ||
+					(existingSpecifier.type === 'ImportSpecifier' &&
+						existingSpecifier.imported.type === 'Identifier' &&
+						specifierToAdd.imported.type === 'Identifier' &&
+						existingSpecifier.imported.name === specifierToAdd.imported.name)
 			);
-			if (sourceExists) {
-				importDecl?.specifiers?.push(specifierToAdd);
+			if (!conflicts) {
+				declaration.specifiers.push(specifierToAdd);
 			}
 		});
 		return;
@@ -220,7 +222,7 @@ export function find(
 	let statement: AstTypes.ImportDeclaration;
 
 	Walker.walk(ast as AstTypes.Node, null, {
-		ImportDeclaration(node) {
+		ImportDeclaration(node, { stop }) {
 			if (node.specifiers && node.source.value === options.from) {
 				const specifier = node.specifiers.find(
 					(sp) =>
@@ -231,6 +233,7 @@ export function find(
 				if (specifier) {
 					statement = node;
 					alias = (specifier.local?.name ?? alias) as string;
+					stop();
 					return;
 				}
 			}
@@ -244,6 +247,11 @@ export function find(
 	return { statement: undefined, alias: undefined };
 }
 
+/**
+ * Remove every named specifier importing `name` from `from` - across all declarations of that
+ * source (including aliased and repeated imports). Declarations left without specifiers are
+ * deleted; side-effect imports (`import 'x'`) never match and are left untouched.
+ */
 export function remove(
 	ast: AstTypes.Program,
 	options: {
@@ -252,26 +260,27 @@ export function remove(
 		statement?: AstTypes.ImportDeclaration; // Just in case you want to pass the statement directly
 	}
 ): void {
-	const statement =
-		options.statement ?? find(ast, { name: options.name, from: options.from }).statement;
+	const statements = options.statement
+		? [options.statement]
+		: ast.body.filter(
+				(node): node is AstTypes.ImportDeclaration =>
+					node.type === 'ImportDeclaration' && node.source.value === options.from
+			);
 
-	if (!statement) {
-		return;
-	}
-
-	if (statement.specifiers?.length === 1) {
-		const idxToRemove = ast.body.indexOf(statement);
-		ast.body.splice(idxToRemove, 1);
-	} else {
-		// otherwise, just remove the `defineConfig` specifier
-		const idxToRemove = statement.specifiers?.findIndex(
+	for (const statement of statements) {
+		const remaining = statement.specifiers.filter(
 			(s) =>
-				s.type === 'ImportSpecifier' &&
-				s.imported.type === 'Identifier' &&
-				s.imported.name === options.name
+				s.type !== 'ImportSpecifier' ||
+				s.imported.type !== 'Identifier' ||
+				s.imported.name !== options.name
 		);
-		if (idxToRemove !== undefined && idxToRemove !== -1) {
-			statement.specifiers?.splice(idxToRemove, 1);
+		if (remaining.length === statement.specifiers.length) continue;
+
+		if (remaining.length === 0) {
+			const idxToRemove = ast.body.indexOf(statement);
+			if (idxToRemove !== -1) ast.body.splice(idxToRemove, 1);
+		} else {
+			statement.specifiers = remaining;
 		}
 	}
 }
