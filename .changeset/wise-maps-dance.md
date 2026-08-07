@@ -1,5 +1,5 @@
 ---
-'sv': minor
+'sv': patch
 ---
 
-breaking(addons): rename `experimental` addon's SvelteKit option value from `kit-3-next` to `kit-3`
+chore(addons): rename the `experimental` add-on's `versions` option value to `kit-3`
