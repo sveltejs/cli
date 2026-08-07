@@ -156,7 +156,7 @@ export function is_string_like(node) {
 }
 
 /** @param {ts.SourceFile} node */
-export function get_exports(node) {
+function get_exports(node) {
 	/** @type {Map<string, string>} */
 	const map = new Map();
 

@@ -340,7 +340,7 @@ export function update_js_file(file_path, transform_code) {
 /**
  * @param {any} w
  */
-export function buildExtendedLogMessage(w) {
+function buildExtendedLogMessage(w) {
 	const parts = [];
 	if (w.filename) {
 		parts.push(w.filename);

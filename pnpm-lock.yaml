@@ -38,9 +38,6 @@ importers:
       eslint-plugin-svelte:
         specifier: ^3.19.0
         version: 3.19.0(eslint@10.4.1)(svelte@5.56.1(@typescript-eslint/types@8.60.1))
-      magic-string:
-        specifier: ^0.30.21
-        version: 0.30.21
       prettier:
         specifier: ^3.8.3
         version: 3.8.3
@@ -50,9 +47,6 @@ importers:
       prettier-plugin-svelte:
         specifier: ^4.1.0
         version: 4.1.0(prettier@3.8.3)(svelte@5.56.1(@typescript-eslint/types@8.60.1))
-      sv:
-        specifier: workspace:*
-        version: link:packages/sv
       svelte:
         specifier: ^5.56.1
         version: 5.56.1(@typescript-eslint/types@8.60.1)
@@ -105,9 +99,6 @@ importers:
       '@types/node':
         specifier: ^25.9.1
         version: 25.9.1
-      '@types/prompts':
-        specifier: ^2.4.9
-        version: 2.4.9
       '@types/semver':
         specifier: ^7.7.1
         version: 7.7.1
@@ -151,9 +142,6 @@ importers:
       sucrase:
         specifier: ^3.35.1
         version: 3.35.1
-      svelte:
-        specifier: ^5.56.1
-        version: 5.56.1(@typescript-eslint/types@8.60.1)
       tiny-glob:
         specifier: ^0.2.9
         version: 0.2.9
@@ -860,9 +848,6 @@ packages:
   '@types/node@25.9.1':
     resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
 
-  '@types/prompts@2.4.9':
-    resolution: {integrity: sha512-qTxFi6Buiu8+50/+3DGIWLHM6QuWsEKugJnnP6iv2Mc4ncxE4A/OJkjuVOA+5X0X1S/nq5VJRa8Lu+nwcvbrKA==}
-
   '@types/ps-tree@1.1.6':
     resolution: {integrity: sha512-PtrlVaOaI44/3pl3cvnlK+GxOM3re2526TJvPvh7W+keHIXdV4TE0ylpPBAcvFQCbGitaTXwL9u+RF7qtVeazQ==}
 
@@ -1564,10 +1549,6 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
-
-  kleur@3.0.3:
-    resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
-    engines: {node: '>=6'}
 
   known-css-properties@0.37.0:
     resolution: {integrity: sha512-JCDrsP4Z1Sb9JwG0aJ8Eo2r7k4Ou5MwmThS/6lcIe1ICyb7UBJKGRIUUdqc2ASdE/42lgz6zFUnzAIhtXnBVrQ==}
@@ -2969,11 +2950,6 @@ snapshots:
     dependencies:
       undici-types: 7.24.6
 
-  '@types/prompts@2.4.9':
-    dependencies:
-      '@types/node': 25.9.1
-      kleur: 3.0.3
-
   '@types/ps-tree@1.1.6': {}
 
   '@types/semver@7.7.1': {}
@@ -3639,8 +3615,6 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
-
-  kleur@3.0.3: {}
 
   known-css-properties@0.37.0: {}
 
