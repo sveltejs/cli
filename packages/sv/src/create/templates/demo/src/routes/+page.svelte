@@ -1,6 +1,6 @@
 <script lang="ts">
-	import welcomeFallback from '$lib/images/svelte-welcome.png';
-	import welcome from '$lib/images/svelte-welcome.webp';
+	import welcomeFallback from '#lib/images/svelte-welcome.png';
+	import welcome from '#lib/images/svelte-welcome.webp';
 
 	import Counter from './Counter.svelte';
 </script>

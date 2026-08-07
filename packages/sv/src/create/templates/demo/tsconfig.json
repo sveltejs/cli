@@ -1,6 +1,7 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
+	"extends": "$app/tsconfig.json",
 	"compilerOptions": {
-		"rewriteRelativeImportExtensions": true
+		"sourceMap": true,
+		"strict": true
 	}
 }
