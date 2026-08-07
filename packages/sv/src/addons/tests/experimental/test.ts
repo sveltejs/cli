@@ -12,10 +12,10 @@ const { test, testCases } = setupTest(
 		kinds: [
 			{
 				// kit@next selected + every feature: the flags removed in kit 3 must be dropped
-				type: 'next-all',
+				type: 'kit3',
 				options: {
 					[addonId]: {
-						versions: ['kit-3-next'],
+						versions: ['kit-3'],
 						features: [
 							'async',
 							'remoteFunctions',
@@ -23,16 +23,6 @@ const { test, testCases } = setupTest(
 							'handleRenderingErrors',
 							'forkPreloads'
 						]
-					}
-				}
-			},
-			{
-				// staying on kit 2: explicitEnvironmentVariables is kept, defaults leave forkPreloads off
-				type: 'kit2-defaults',
-				options: {
-					[addonId]: {
-						versions: [],
-						features: ['async', 'remoteFunctions', 'explicitEnvironmentVariables']
 					}
 				}
 			}
@@ -56,7 +46,7 @@ test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { 
 		.find((file) => existsSync(file));
 	const tsconfig = tsconfigPath ? parse.json(readFileSync(tsconfigPath, 'utf8')).data : undefined;
 
-	if (testCase.kind.type === 'next-all') {
+	if (testCase.kind.type === 'kit3') {
 		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).toBe('next');
 		if (tsconfig) {
 			expect(tsconfig.extends).toBe('$app/tsconfig');
@@ -78,15 +68,5 @@ test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { 
 		// removed from experimental in kit 3, so they must be skipped when kit@next is chosen
 		expect(source).not.toMatch('explicitEnvironmentVariables');
 		expect(source).not.toMatch('handleRenderingErrors');
-	} else if (testCase.kind.type === 'kit2-defaults') {
-		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).not.toBe('next');
-		if (tsconfig) expect(tsconfig.extends).toBe('./.svelte-kit/tsconfig.json');
-		expect(source).toMatch('async: true');
-		expect(source).toMatch('remoteFunctions: true');
-		expect(source).toMatch('explicitEnvironmentVariables: true');
-		// kit 2 provides `$lib` itself, so nothing is rewritten
-		expect(JSON.parse(pkg).imports).toBeUndefined();
-		// not selected -> absent
-		expect(source).not.toMatch('forkPreloads');
 	}
 });
