@@ -30,6 +30,9 @@ const SOURCE_EXTENSIONS = ['.svelte', '.svelte.ts', '.svelte.js', '.ts', '.js', 
 // also eats identifiers such as the store auto-subscription `$library`.
 const LIB_ALIAS_REGEX = /\$lib(?=\/|['"`])/g;
 
+// the entry this replaces when a project already extends the generated config
+const GENERATED_TSCONFIG_REGEX = /(^|\/)\.svelte-kit\/tsconfig\.json$/;
+
 // kit 3 raises these peer floors; bump only when the project is below them (never downgrade).
 const KIT3_PEERS = {
 	vite: '^8.0.0',
@@ -90,7 +93,7 @@ export default defineAddon({
 				sv.file(
 					name,
 					transforms.json(({ data }) => {
-						data.extends = KIT3_TSCONFIG;
+						data.extends = retargetExtends(data.extends);
 						data.include ??= [directory.src];
 						for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
 							// a differing value is a deliberate override and stays
@@ -130,6 +133,21 @@ export default defineAddon({
 			svelteConfig.edit({ sv, cwd }, ({ override }) => override(config));
 	}
 });
+
+/**
+ * Points `extends` at `$app/tsconfig`. An array form is kept, with only the generated-config entry
+ * swapped, so a project's own base config isn't dropped.
+ */
+function retargetExtends(current: unknown): string | string[] {
+	if (!Array.isArray(current)) return KIT3_TSCONFIG;
+
+	const index = current.findIndex(
+		(entry) => typeof entry === 'string' && GENERATED_TSCONFIG_REGEX.test(entry)
+	);
+	if (index === -1) return [...current, KIT3_TSCONFIG];
+
+	return current.with(index, KIT3_TSCONFIG);
+}
 
 /** Workspace-relative source files under `src`, for the `$lib` -> `#lib` rewrite. */
 function sourceFiles(cwd: string, src: string): string[] {
