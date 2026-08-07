@@ -469,7 +469,7 @@ export function addEnvDeclarationFile(
 ): false | void {
 	if (envVars.size === 0) return false;
 
-	js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });
+	js.imports.addNamed(ast, { from: '@sveltejs/kit/env', imports: ['defineEnvVars'] });
 
 	const defineCall = js.functions.createCall({
 		name: 'defineEnvVars',
