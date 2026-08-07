@@ -15,20 +15,12 @@ const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url
 
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };
-	const deps = { ...addonPkg.dependencies };
 
 	// valid addons should always have `sv` as a peerDependency
 	const addonSvVersion = peerDeps['sv'];
 	if (!addonSvVersion) {
 		throw new Error(
 			`Invalid add-on package specified: '${specifier}' is missing 'sv' in its 'peerDependencies'`
-		);
-	}
-
-	// addons should not have any dependencies (everything should be bundled)
-	if (Object.keys(deps).length > 0) {
-		throw new Error(
-			`Invalid add-on package detected: '${specifier}'\nCommunity add-ons should not have any 'dependencies'. Use 'peerDependencies' for 'sv' and bundle everything else`
 		);
 	}
 
@@ -102,7 +94,8 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		// Try to create a symlink, but fall back to copying on Windows if it fails with EPERM
 		try {
 			fs.symlinkSync(options.path, dest, 'dir');
-		} catch (error: any) {
+		} catch (error) {
+			if (!isNodeError(error)) throw error;
 			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
 			// In that case, fall back to copying the directory
 			if (platform() === 'win32' && (error.code === 'EPERM' || error.code === 'EACCES')) {
@@ -112,7 +105,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 			}
 		}
 
-		return await importAddonCode(pkg.name, pkg.version);
+		return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 	}
 
 	const tarballUrl: string = pkg.dist.tarball;
@@ -130,35 +123,63 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
 	);
 
-	return await importAddonCode(pkg.name, pkg.version);
+	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 }
 
-async function importAddonCode(pkgName: string, pkgVersion: string): Promise<AddonDefinition> {
+async function importAddonCode(
+	pkgName: string,
+	pkgVersion: string,
+	exports?: Record<string, string | undefined>
+): Promise<AddonDefinition> {
 	const issues: string[] = [];
 
-	let details: AddonDefinition | undefined;
-	try {
-		({ default: details } = await import(`${pkgName}/sv`));
-	} catch {
-		issues.push(`'/sv' export not found`);
-	}
-
-	if (!details) {
-		try {
-			({ default: details } = await import(pkgName));
-		} catch {
-			issues.push(`default export not found`);
-		}
-	}
-
-	if (!details && issues.length > 0) {
-		throw new Error(
+	const error = () => {
+		return new Error(
 			`Failed to load add-on '${pkgName}@${pkgVersion}':\n- ${issues.join('\n- ')}\n\n` +
 				`Please report this to the add-on author.`
 		);
+	};
+
+	if (!exports) {
+		issues.push(`'exports' field not found in package.json`);
+		throw error();
 	}
 
-	return details!;
+	const svImport = exports['./sv'] ? `${pkgName}/sv` : undefined;
+	const defaultImport = exports['.'] ? pkgName : undefined;
+	if (!svImport && !defaultImport) {
+		issues.push(`export conditions './sv' or '.' are not present in package.json`);
+		throw error();
+	}
+
+	let details: AddonDefinition | undefined;
+
+	for (const importPath of [svImport, defaultImport]) {
+		if (!importPath) continue;
+		try {
+			details ??= await import(importPath).then((m) => m.default);
+		} catch (e) {
+			if (isNodeError(e)) {
+				if (e.code === 'ERR_MODULE_NOT_FOUND') {
+					issues.push('the add-on contains dependencies that are not bundled');
+					throw error();
+				}
+				issues.push(`Failed to import add-on '${importPath}': ${e.message}`);
+			} else {
+				issues.push(`An unknown error has occurred: ${e}`);
+			}
+		}
+	}
+
+	if (!details) {
+		throw error();
+	}
+
+	return details;
+}
+
+function isNodeError(err: unknown): err is Error & NodeJS.ErrnoException {
+	return err instanceof Error;
 }
 
 type PackageJSON = {
