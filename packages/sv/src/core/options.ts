@@ -62,5 +62,7 @@ export type OptionValues<Args extends OptionDefinition> = {
 					? Value
 					: Args[K] extends MultiSelectQuestion<infer Value>
 						? Value[]
-						: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
+						: Args[K] extends Question<any>
+							? unknown
+							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
