@@ -265,10 +265,7 @@ function derefStores(
  * Whether `node` is a value reference rather than a property name. `obj.$page` and `{ $page: x }`
  * only borrow the name, so renaming them would rewrite unrelated members and object keys.
  */
-function isReference(
-	node: AstTypes.Node,
-	parent: AstTypes.Node | SvelteAst.SvelteNode
-): boolean {
+function isReference(node: AstTypes.Node, parent: AstTypes.Node | SvelteAst.SvelteNode): boolean {
 	if (parent.type === 'MemberExpression') return parent.computed || parent.object === node;
 	if (parent.type === 'Property') return parent.computed || parent.shorthand || parent.key !== node;
 	return true;
