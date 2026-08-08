@@ -1,5 +1,35 @@
 # @sveltejs/sv-utils
 
+## 1.0.0-next.0
+### Major Changes
+
+
+- breaking: remove deprecated utils and properties ([#1184](https://github.com/sveltejs/cli/pull/1184))
+
+
+### Minor Changes
+
+
+- feat: allow `js.function.call` to accept AST expression nodes as arguments ([#1232](https://github.com/sveltejs/cli/pull/1232))
+
+
+### Patch Changes
+
+
+- fix: make named import helpers handle duplicate, aliased, and repeated imports correctly ([#1232](https://github.com/sveltejs/cli/pull/1232))
+
+
+- chore: replace `semver` with `verkit` ([#1186](https://github.com/sveltejs/cli/pull/1186))
+
+
+- feat: more helpers for analyzing and manipulating ASTs ([#1236](https://github.com/sveltejs/cli/pull/1236))
+
+
+- chore(svelte-config): `svelteConfig.read` now additinally exports full `ast` ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- docs(svelte-config): fix incorrect documentation about default config file ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
 ## 0.3.3
 ### Patch Changes
 

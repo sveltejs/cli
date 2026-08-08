@@ -6,5 +6,24 @@
     "sv": "0.17.0",
     "@sveltejs/sv-utils": "0.3.3"
   },
-  "changesets": []
+  "changesets": [
+    "big-balloons-peel",
+    "cozy-ends-film",
+    "format-strategy-script",
+    "fuzzy-cats-smile",
+    "hot-taxis-happen",
+    "light-results-move",
+    "moody-mice-hang",
+    "moody-pears-tickle",
+    "olive-jars-repeat",
+    "purple-glasses-appear",
+    "quiet-moons-smile",
+    "ready-geese-learn",
+    "rich-papayas-hide",
+    "sixty-bottles-work",
+    "sweet-horses-share",
+    "tame-shrimps-clap",
+    "tiny-zoos-add",
+    "wise-maps-dance"
+  ]
 }

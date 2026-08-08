@@ -1,5 +1,53 @@
 # sv
 
+## 1.0.0-next.0
+### Major Changes
+
+
+- feat(migrate): `sveltekit-3` migration ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- breaking: remove deprecated utils and properties ([#1184](https://github.com/sveltejs/cli/pull/1184))
+
+
+### Minor Changes
+
+
+- feat(create): use `#lib` instead of `$lib` ([#1185](https://github.com/sveltejs/cli/pull/1185))
+
+
+- feat(migrate): defer formatting to the project's own `format`/`fmt` script when present, falling back to `prettier` on modified files ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- feat: add a `tsconfig` task to the `sveltekit-3` migration, retargeting `tsconfig.json`/`jsconfig.json` at the generated `$app/tsconfig` ([#1197](https://github.com/sveltejs/cli/pull/1197))
+
+
+### Patch Changes
+
+
+- fix(migrate): correctness fixes in the migrate CLI and sveltekit-3 tasks ([#1231](https://github.com/sveltejs/cli/pull/1231))
+
+
+- chore(addons): rename `experimental` addon’s SvelteKit option to `kit-3-next` ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- chore: replace `tar-fs` with `modern-tar` ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- fix(cli): omit undetected package managers from install prompt ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- feat(drizzle): add `node:sqlite` ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- chore: document default values for `prepareServer` ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- chore(addons): rename the `experimental` add-on's `versions` option value to `kit-3` ([#1185](https://github.com/sveltejs/cli/pull/1185))
+
+- Updated dependencies [[`a4ad77e`](https://github.com/sveltejs/cli/commit/a4ad77ea6ba4cbe9ed356d0982f54154646f33a1), [`86e4195`](https://github.com/sveltejs/cli/commit/86e419546ab931e14f2038fc2bdc9c6b4048defd), [`a4ad77e`](https://github.com/sveltejs/cli/commit/a4ad77ea6ba4cbe9ed356d0982f54154646f33a1), [`0038420`](https://github.com/sveltejs/cli/commit/003842033b10aaa33b515fbfea141be44d0acdd0), [`c7e7473`](https://github.com/sveltejs/cli/commit/c7e7473df952c295a93bcc8c2af36e0bca2fead1), [`c7e7473`](https://github.com/sveltejs/cli/commit/c7e7473df952c295a93bcc8c2af36e0bca2fead1), [`ffa9807`](https://github.com/sveltejs/cli/commit/ffa98070cfd5c4b27398419a0243e464d9998311)]:
+  - @sveltejs/sv-utils@1.0.0-next.0
+
 ## 0.17.0
 ### Minor Changes
 
