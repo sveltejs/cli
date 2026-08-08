@@ -64,7 +64,7 @@
 	 */
 	function update(event: MouseEvent) {
 		event.preventDefault();
-		const key = /** @type {HTMLButtonElement} */ (event.target as HTMLButtonElement).getAttribute(
+		const key = /** @type {HTMLButtonElement} */ ((event.target as HTMLButtonElement)).getAttribute(
 			'data-key'
 		);
 
