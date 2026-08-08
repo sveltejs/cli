@@ -79,7 +79,7 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 
 		// run provided scripts that are non-blocking. All of them should exit with 0
 		// package script requires lib dir
-		const scripts_to_test = ['lint', 'format', 'check', 'build', 'package'].filter(
+		const scripts_to_test = ['format', 'lint', 'check', 'build', 'package'].filter(
 			(s) => s in pkg.scripts
 		);
 
@@ -90,7 +90,7 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 		}
 
 		if (template === 'demo') {
-			describe(`local import with extentions`, () => {
+			describe(`local import with extensions`, () => {
 				test(`${template}-${types}`, () => {
 					const ending = types === 'typescript' ? 'ts' : 'js';
 					const gameFile = path.join(cwd, `src/routes/sverdle/game.${ending}`);
