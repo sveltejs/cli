@@ -2,4 +2,4 @@
 '@sveltejs/sv-utils': patch
 ---
 
-chore(svelte-config): `svelteConfig.read` now additinally exports full `ast`
+feat(utils): expose the full `ast` from `svelteConfig.read`
