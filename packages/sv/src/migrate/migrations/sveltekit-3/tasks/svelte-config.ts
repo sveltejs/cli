@@ -1,6 +1,4 @@
 import { svelteConfig, transforms, Walker, type AstTypes, type Comments } from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
 import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
 
