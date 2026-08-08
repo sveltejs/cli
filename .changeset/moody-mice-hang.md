@@ -2,4 +2,4 @@
 '@sveltejs/sv-utils': patch
 ---
 
-feat: more helpers for analyzing and manipulating ASTs
+feat(utils): add more helpers for analyzing and manipulating ASTs

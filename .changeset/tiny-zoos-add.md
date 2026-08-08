@@ -1,5 +1,5 @@
 ---
-"sv": patch
+'sv': patch
 ---
 
-chore: document default values for `prepareServer`
+chore(addon-tests): document default values for `prepareServer`
