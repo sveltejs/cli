@@ -6,6 +6,7 @@ import externalRedirects from './tasks/external-redirects.ts';
 import packageJson from './tasks/package-json.ts';
 import params from './tasks/params.ts';
 import paths from './tasks/paths.ts';
+import prepareAiMigration from './tasks/prepare-ai-migration.ts';
 import shallowRouting from './tasks/shallow-routing.ts';
 import svelteConfig from './tasks/svelte-config.ts';
 import tsconfig from './tasks/tsconfig.ts';
@@ -38,5 +39,6 @@ export default defineMigration({
 		tasks.add(params, { prerequisite: false });
 		tasks.add(tsconfig, { prerequisite: true });
 		tasks.add(appState, { prerequisite: false });
+		tasks.add(prepareAiMigration, { prerequisite: false });
 	}
 });
