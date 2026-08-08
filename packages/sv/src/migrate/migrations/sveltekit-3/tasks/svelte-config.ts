@@ -20,7 +20,7 @@ export default defineMigrationTask({
 		if (!originalConfigObject) return;
 
 		// delete the original config file, so that the we will use the vite config afterwards
-		fs.unlinkSync(path.join(cwd, configSource.path));
+		sv.removeFile(configSource.path);
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, comments }) => {
 			// the original `const config = {...}` declaration and its `export default` are replaced
