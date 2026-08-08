@@ -17,18 +17,18 @@ const { test, prepareServer, testCases } = setupTest(
 );
 
 test.concurrent.for(testCases)(
-	'~SV-NAME-TODO~ $kind.type $variant',
+	'$SV-NAME-TODO$ $kind.type $variant',
 	async (testCase, { page, ...ctx }) => {
 		const cwd = ctx.cwd(testCase);
 
-		const msg = "Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!";
+		const msg = "Community Addon Template demo for the add-on: '$SV-NAME-TODO$'!";
 
-		const contentPath = path.resolve(cwd, `src/lib/~SV-NAME-TODO~/content.txt`);
+		const contentPath = path.resolve(cwd, `src/lib/$SV-NAME-TODO$/content.txt`);
 		const contentContent = fs.readFileSync(contentPath, 'utf8');
 		// Check if we have the imports
 		expect(contentContent).toContain(msg);
 
-		const helloPath = path.resolve(cwd, `src/lib/~SV-NAME-TODO~/HelloComponent.svelte`);
+		const helloPath = path.resolve(cwd, `src/lib/$SV-NAME-TODO$/HelloComponent.svelte`);
 		const helloContent = fs.readFileSync(helloPath, 'utf8');
 		// Check if we have the imports
 		expect(helloContent).toContain('you');

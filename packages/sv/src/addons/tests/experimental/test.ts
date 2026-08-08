@@ -1,6 +1,6 @@
-import { parse } from '@sveltejs/sv-utils';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parse } from '@sveltejs/sv-utils';
 import { expect } from 'vitest';
 import experimental from '../../experimental.ts';
 import { setupTest } from '../_setup/suite.ts';
@@ -81,7 +81,7 @@ test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { 
 	} else if (testCase.kind.type === 'kit3-not-selected') {
 		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).not.toBe('next');
 		// the template's own `extends` keeps its `.json` suffix; the add-on would rewrite it to `$app/tsconfig`
-		if (tsconfig) expect(tsconfig.extends).toBe('$app/tsconfig.json');
+		if (tsconfig) expect(tsconfig.extends).toBe('$app/tsconfig');
 		expect(source).toMatch('async: true');
 		expect(source).toMatch('remoteFunctions: true');
 		expect(source).toMatch('explicitEnvironmentVariables: true');

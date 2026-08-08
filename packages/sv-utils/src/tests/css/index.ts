@@ -1,18 +1,13 @@
 import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import prettier from 'prettier';
+import { format } from 'oxfmt';
 import { describe, expect, test } from 'vitest';
+import oxfmtConfig from '../../../../../oxfmt.config.ts';
 import { parseCss, serializeCss } from '../../tooling/index.ts';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
 const categoryDirectories = getDirectoryNames(baseDir);
-
-const prettierConfig = await prettier.resolveConfig(import.meta.url);
-if (!prettierConfig) throw new Error('Failed to resolve prettier config');
-prettierConfig.filepath = 'output.css';
-// warm up prettier's lazy plugin loading to avoid timeout on first test (slow on Windows)
-await prettier.format('', prettierConfig);
 
 for (const categoryDirectory of categoryDirectories) {
 	describe(categoryDirectory, () => {
@@ -30,7 +25,7 @@ for (const categoryDirectory of categoryDirectories) {
 				module.run(ast);
 
 				const output = serializeCss(ast);
-				const formattedOutput = await prettier.format(output, prettierConfig);
+				const formattedOutput = (await format('output.css', output, oxfmtConfig)).code;
 				await expect(formattedOutput).toMatchFileSnapshot(`${testDirectoryPath}/output.css`);
 			});
 		}

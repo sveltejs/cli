@@ -1,7 +1,7 @@
-import { type AgentName, js, loadPackageJson, minVersion, svelteConfig } from '@sveltejs/sv-utils';
-import * as find from 'empathic/find';
 import fs from 'node:fs';
 import path from 'node:path';
+import { type AgentName, js, loadPackageJson, minVersion, svelteConfig } from '@sveltejs/sv-utils';
+import * as find from 'empathic/find';
 import { filePaths } from './common.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';

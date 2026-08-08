@@ -84,6 +84,7 @@ npx sv check --compiler-warnings "css_unused_selector:ignore,a11y_missing_attrib
 A quoted, comma-separated list of sources that should run diagnostics on your code. By default, all are active:
 
 <!-- TODO would be nice to have a clearer definition of what these are -->
+
 - `js` (includes TypeScript)
 - `svelte`
 - `css`

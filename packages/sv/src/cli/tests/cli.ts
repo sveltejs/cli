@@ -1,7 +1,7 @@
-import { parse } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { parse } from '@sveltejs/sv-utils';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 

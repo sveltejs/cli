@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
 	KIT3_TSCONFIG,
 	KIT3_TSCONFIG_DEFAULT,
@@ -8,8 +10,6 @@ import {
 	svelteConfig,
 	transforms
 } from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 // Single source of truth, keyed by flag name. `path` defaults to `experimental.<name>`; `off` opts out

@@ -1,12 +1,13 @@
 // @ts-check
-import parser from 'gitignore-parser';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import prettier from 'prettier';
+import parser from 'gitignore-parser';
+import { format } from 'oxfmt';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
+import oxfmtConfig from '../../../../../oxfmt.config.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
 
@@ -27,16 +28,9 @@ async function convert_typescript(content) {
 	// Replace "local import" that ends with ".ts" to ".js"
 	code = code.replace(/import (.+?) from ['"](.+?)\.ts['"]/g, 'import $1 from "$2.js"');
 
-	// Prettier strips 'unnecessary' parens from .ts files, we need to hack them back in
-	code = code.replace(/(\/\*\* @type.+? \*\/) (.+?) \/\*\*\*\//g, '$1($2)');
+	const result = await format('file.js', code, oxfmtConfig);
 
-	return await prettier.format(code, {
-		parser: 'babel',
-		useTabs: true,
-		singleQuote: true,
-		trailingComma: 'none',
-		printWidth: 100
-	});
+	return result.code;
 }
 
 /** @param {string} content */
@@ -184,15 +178,7 @@ async function generate_templates(dist, shared) {
 								disableESTransforms: true
 							}).code.slice(0, -suffix.length);
 
-							const contents = (
-								await prettier.format(transformed, {
-									parser: 'babel',
-									useTabs: true,
-									singleQuote: true,
-									trailingComma: 'none',
-									printWidth: 100
-								})
-							)
+							const contents = (await format('file.js', transformed, oxfmtConfig)).code
 								.trim()
 								.replace(/^(.)/gm, '\t$1');
 

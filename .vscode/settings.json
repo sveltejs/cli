@@ -1,0 +1,12 @@
+{
+	"prettier.enable": false,
+	"editor.defaultFormatter": "oxc.oxc-vscode",
+	// force oxc to be the default for all the file types we use
+	"[typescript][javascript][json][jsonc][toml][markdown]": {
+		"editor.defaultFormatter": "oxc.oxc-vscode"
+	},
+	// for some reason, this has to be defined separately for svelte files
+	"[svelte]": {
+		"editor.defaultFormatter": "oxc.oxc-vscode"
+	}
+}
