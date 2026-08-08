@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { format } from 'oxfmt';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';
+import oxfmtConfig from '../../../../../oxfmt.config.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
 
@@ -27,12 +28,7 @@ async function convert_typescript(content) {
 	// Replace "local import" that ends with ".ts" to ".js"
 	code = code.replace(/import (.+?) from ['"](.+?)\.ts['"]/g, 'import $1 from "$2.js"');
 
-	const result = await format('file.js', code, {
-		useTabs: true,
-		singleQuote: true,
-		trailingComma: 'none',
-		printWidth: 100
-	});
+	const result = await format('file.js', code, oxfmtConfig);
 
 	return result.code;
 }
@@ -182,14 +178,7 @@ async function generate_templates(dist, shared) {
 								disableESTransforms: true
 							}).code.slice(0, -suffix.length);
 
-							const contents = (
-								await format('file.js', transformed, {
-									useTabs: true,
-									singleQuote: true,
-									trailingComma: 'none',
-									printWidth: 100
-								})
-							).code
+							const contents = (await format('file.js', transformed, oxfmtConfig)).code
 								.trim()
 								.replace(/^(.)/gm, '\t$1');
 
