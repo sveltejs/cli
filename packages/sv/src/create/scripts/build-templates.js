@@ -1,9 +1,9 @@
 // @ts-check
-import parser from 'gitignore-parser';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import parser from 'gitignore-parser';
 import { format } from 'oxfmt';
 import { transform } from 'sucrase';
 import glob from 'tiny-glob/sync.js';

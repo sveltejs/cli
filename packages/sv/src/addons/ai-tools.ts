@@ -1,7 +1,7 @@
-import { log } from '@clack/prompts';
-import { color, transforms } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { log } from '@clack/prompts';
+import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
 

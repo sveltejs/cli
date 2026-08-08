@@ -1,8 +1,8 @@
+import path from 'node:path';
+import process from 'node:process';
 import * as p from '@clack/prompts';
 import { color, loadPackageJson, type Package } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
-import path from 'node:path';
-import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
 import { prepareSvApi } from '../core/engine.ts';

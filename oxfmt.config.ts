@@ -6,8 +6,10 @@ export default defineConfig({
 	trailingComma: 'none',
 	printWidth: 100,
 	endOfLine: 'lf',
-	importOrder: ['<THIRD_PARTY_MODULES>', '^[./]'],
 	sortPackageJson: true,
+	sortImports: {
+		newlinesBetween: false
+	},
 	svelte: true,
 	ignorePatterns: [
 		'packages/sv/src/cli/tests/snapshots/*',

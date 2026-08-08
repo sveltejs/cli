@@ -3,7 +3,6 @@
 	import { resolve } from '$app/paths';
 	import { confetti } from '@neoconfetti/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
-
 	import type { PageProps } from './$types';
 
 	/**

@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { format } from 'oxfmt';
-import oxfmtConfig from '../../../../../oxfmt.config.ts';
 import { describe, expect, test } from 'vitest';
+import oxfmtConfig from '../../../../../oxfmt.config.ts';
 import { parseCss, serializeCss } from '../../tooling/index.ts';
 
 const baseDir = resolve(fileURLToPath(import.meta.url), '..');
