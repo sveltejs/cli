@@ -15,7 +15,8 @@ const config = {
 	onwarn,
 	kit: {
 		experimental: {
-			remoteFunctions: true // still experimental
+			remoteFunctions: true, // still experimental
+			handleRenderingErrors: true
 		},
 		csrf: {
 			checkOrigin: false

@@ -71,6 +71,12 @@ export default defineMigrationTask({
 				if (prop.key.type !== 'Identifier') continue;
 				if (prop.key.name === 'kit') continue;
 
+				// Rendering error boundaries are always enabled in SvelteKit 3, and the old opt-in
+				// is rejected by its config validation. Drop it instead of moving it to vite.config.
+				if (prop.key.name === 'experimental' && prop.value.type === 'ObjectExpression') {
+					removeProperty(prop.value, 'handleRenderingErrors');
+				}
+
 				const propAttachment = attachments.get(prop);
 
 				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now
@@ -188,6 +194,14 @@ function forEachNode(root: unknown, visit: (node: AstTypes.Node) => void): void 
 		if (key === 'loc' || key === 'range' || key === 'parent') continue;
 		forEachNode(node[key], visit);
 	}
+}
+
+/** Removes a statically named property from an object literal. */
+function removeProperty(value: AstTypes.ObjectExpression, name: string): void {
+	const index = value.properties.findIndex(
+		(prop) => prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === name
+	);
+	if (index !== -1) value.properties.splice(index, 1);
 }
 
 /**
