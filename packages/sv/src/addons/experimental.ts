@@ -26,6 +26,13 @@ const FEATURES: Record<string, Feature> = {
 // files whose `$lib` imports are rewritten to `#lib`
 const SOURCE_EXTENSIONS = ['.svelte', '.svelte.ts', '.svelte.js', '.ts', '.js', '.svx', '.md'];
 
+// only the alias itself: a bare `$lib` specifier or a `$lib/...` subpath. Without the lookahead this
+// also eats identifiers such as the store auto-subscription `$library`.
+const LIB_ALIAS_REGEX = /\$lib(?=\/|['"`])/g;
+
+// the entry this replaces when a project already extends the generated config
+const GENERATED_TSCONFIG_REGEX = /(^|\/)\.svelte-kit\/tsconfig\.json$/;
+
 // kit 3 raises these peer floors; bump only when the project is below them (never downgrade).
 const KIT3_PEERS = {
 	vite: '^8.0.0',
@@ -38,8 +45,8 @@ const options = defineAddonOptions()
 	.add('versions', {
 		question: 'Which packages should use their `next` (pre-release) version?',
 		type: 'multiselect',
-		default: ['kit-3-next'],
-		options: [{ value: 'kit-3-next', label: '@sveltejs/kit@next' }],
+		default: ['kit-3'],
+		options: [{ value: 'kit-3', label: '@sveltejs/kit@next' }],
 		required: false
 	})
 	.add('features', {
@@ -62,7 +69,7 @@ export default defineAddon({
 	setup: ({ runsAfter }) => runsAfter('sveltekitAdapter'),
 
 	run: ({ sv, cwd, options, language, directory, dependencyVersion }) => {
-		const kitNext = options.versions.includes('kit-3-next');
+		const kitNext = options.versions.includes('kit-3');
 
 		if (kitNext) {
 			sv.devDependency('@sveltejs/kit', 'next');
@@ -86,7 +93,7 @@ export default defineAddon({
 				sv.file(
 					name,
 					transforms.json(({ data }) => {
-						data.extends = KIT3_TSCONFIG;
+						data.extends = retargetExtends(data.extends);
 						data.include ??= [directory.src];
 						for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
 							// a differing value is a deliberate override and stays
@@ -105,9 +112,10 @@ export default defineAddon({
 			);
 			// safe here: templates are already written and every add-on emitting `$lib` runs later
 			for (const relative of sourceFiles(cwd, directory.src)) {
-				sv.file(relative, (content) =>
-					content.includes('$lib') ? content.replaceAll('$lib', '#lib') : false
-				);
+				sv.file(relative, (content) => {
+					const rewritten = content.replace(LIB_ALIAS_REGEX, '#lib');
+					return rewritten === content ? false : rewritten;
+				});
 			}
 		}
 
@@ -125,6 +133,21 @@ export default defineAddon({
 			svelteConfig.edit({ sv, cwd }, ({ override }) => override(config));
 	}
 });
+
+/**
+ * Points `extends` at `$app/tsconfig`. An array form is kept, with only the generated-config entry
+ * swapped, so a project's own base config isn't dropped.
+ */
+function retargetExtends(current: unknown): string | string[] {
+	if (!Array.isArray(current)) return KIT3_TSCONFIG;
+
+	const index = current.findIndex(
+		(entry) => typeof entry === 'string' && GENERATED_TSCONFIG_REGEX.test(entry)
+	);
+	if (index === -1) return [...current, KIT3_TSCONFIG];
+
+	return current.with(index, KIT3_TSCONFIG);
+}
 
 /** Workspace-relative source files under `src`, for the `$lib` -> `#lib` rewrite. */
 function sourceFiles(cwd: string, src: string): string[] {

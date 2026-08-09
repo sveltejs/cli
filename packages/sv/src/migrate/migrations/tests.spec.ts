@@ -81,7 +81,9 @@ for (const migrationDirectory of migrationDirectories) {
 					const expectedPath = path.join(cwd, expectedFileName);
 					await expect(actual).toMatchFileSnapshot(expectedPath, expectedFileName);
 
-					remainingSnapshotFiles.splice(remainingSnapshotFiles.indexOf(expectedFileName), 1);
+					// a snapshot vitest just created isn't in the list; `-1` would drop an unrelated entry
+					const snapshotIndex = remainingSnapshotFiles.indexOf(expectedFileName);
+					if (snapshotIndex !== -1) remainingSnapshotFiles.splice(snapshotIndex, 1);
 				}
 
 				// if we have any snapshots remaining that were not tested against, fail the test to make sure all snapshots are up to date and tested against.

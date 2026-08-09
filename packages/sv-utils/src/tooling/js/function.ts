@@ -2,7 +2,8 @@ import type { AstTypes } from '../index.ts';
 
 export function createCall(options: {
 	name: string;
-	args: string[];
+	/** String args become literals (or identifiers with `useIdentifiers`); expression nodes are passed through as-is. */
+	args: Array<string | AstTypes.Expression>;
 	useIdentifiers?: boolean;
 }): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {
@@ -18,7 +19,9 @@ export function createCall(options: {
 	for (const arg of options.args) {
 		let argNode: AstTypes.Expression;
 
-		if (options.useIdentifiers) {
+		if (typeof arg !== 'string') {
+			argNode = arg;
+		} else if (options.useIdentifiers) {
 			argNode = {
 				type: 'Identifier',
 				name: arg

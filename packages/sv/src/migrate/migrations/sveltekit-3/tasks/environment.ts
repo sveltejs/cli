@@ -37,7 +37,7 @@ export default defineMigrationTask({
 
 		if (envVars.size > 0) {
 			sv.file(
-				'src/env.ts',
+				`src/env.${language}`,
 				transforms.script(({ ast }) => addEnvDeclarationFile(ast, envVars))
 			);
 		}
