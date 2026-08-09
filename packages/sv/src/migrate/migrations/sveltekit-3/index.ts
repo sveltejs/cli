@@ -12,7 +12,7 @@ import tsconfig from './tasks/tsconfig.ts';
 
 export default defineMigration({
 	id: 'sveltekit-3',
-	changelog: 'https://svelte.dev/blog/whatever',
+	changelog: 'https://github.com/sveltejs/kit/blob/version-3/packages/kit/CHANGELOG.md',
 	description: 'A set of migrations for SvelteKit 3.0',
 	setup: ({ pkg, requires }) => {
 		const kitPackageName = '@sveltejs/kit';
