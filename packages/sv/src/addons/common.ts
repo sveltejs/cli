@@ -185,7 +185,7 @@ const find = (
 	return undefined;
 };
 
-const hasDemoLink = (nodes: SvelteAst.Fragment['nodes'], addonName: string): boolean => {
+const hasDemoLink = (nodes: SvelteAst.Fragment['nodes'], addonName?: string): boolean => {
 	for (const node of nodes) {
 		if (node.type !== 'RegularElement') continue;
 		const hrefAttribute = node.attributes.find(
@@ -195,7 +195,7 @@ const hasDemoLink = (nodes: SvelteAst.Fragment['nodes'], addonName: string): boo
 		if (!hrefAttribute.value) continue;
 		if (!Array.isArray(hrefAttribute.value)) continue;
 		return hrefAttribute.value.some(
-			(x) => x.type === 'Text' && x.data.includes(`/demo/${addonName}`)
+			(x) => x.type === 'Text' && x.data.includes(`/demo${addonName ? `/${addonName}` : ''}`)
 		);
 	}
 	return false;
@@ -224,15 +224,14 @@ export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
 	const headerTransform = transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
 		const ul = find(ast.fragment.nodes, 'ul');
 		if (!ul) return false;
-		if (hasDemoLink(ul.fragment.nodes, name)) return false;
+		if (hasDemoLink(ul.fragment.nodes)) return false;
 
 		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-
 		svelte.addFragment(
 			ul,
 			dedent`
-				<li aria-current={page.url.pathname.startsWith('/demo/${name}') ? 'page' : undefined}>
-					<a href={resolve('/demo/${name}')}>${name}</a>
+				<li aria-current={page.url.pathname.startsWith('/demo') ? 'page' : undefined}>
+					<a href={resolve('/demo')}>Demo</a>
 				</li>`
 		);
 	});
