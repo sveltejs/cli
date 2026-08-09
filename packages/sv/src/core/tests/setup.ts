@@ -16,16 +16,10 @@ const workspace: Workspace = {
 	language: 'ts',
 	file: {
 		viteConfig: 'vite.config.ts',
-		svelteConfig: 'svelte.config.ts',
 		typeConfig: 'tsconfig.json',
 		stylesheet: 'src/app.css',
 		package: 'package.json',
 		gitignore: '.gitignore',
-		prettierignore: '.prettierignore',
-		prettierrc: '.prettierrc',
-		eslintConfig: 'eslint.config.js',
-		vscodeSettings: '.vscode/settings.json',
-		vscodeExtensions: '.vscode/extensions.json',
 		getRelative: () => '',
 		findUp: () => ''
 	},

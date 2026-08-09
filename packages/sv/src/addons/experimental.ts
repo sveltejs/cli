@@ -38,8 +38,8 @@ const options = defineAddonOptions()
 	.add('versions', {
 		question: 'Which packages should use their `next` (pre-release) version?',
 		type: 'multiselect',
-		default: ['kit'],
-		options: [{ value: 'kit', label: '@sveltejs/kit@next' }],
+		default: ['kit-3-next'],
+		options: [{ value: 'kit-3-next', label: '@sveltejs/kit@next' }],
 		required: false
 	})
 	.add('features', {
@@ -62,7 +62,7 @@ export default defineAddon({
 	setup: ({ runsAfter }) => runsAfter('sveltekitAdapter'),
 
 	run: ({ sv, cwd, options, language, directory, dependencyVersion }) => {
-		const kitNext = options.versions.includes('kit');
+		const kitNext = options.versions.includes('kit-3-next');
 
 		if (kitNext) {
 			sv.devDependency('@sveltejs/kit', 'next');

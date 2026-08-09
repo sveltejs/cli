@@ -5,7 +5,8 @@
 		"dist/**",
 		"src/create/templates/**",
 		"src/create/shared/vite.config.ts",
-		"src/cli/tests/snapshots/**"
+		"src/cli/tests/snapshots/**",
+		"src/migrate/migrations/**/tests/**"
 	],
 	"compilerOptions": {
 		"checkJs": false

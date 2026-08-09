@@ -5,6 +5,9 @@ import process from 'node:process';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 
+/** Matches `sv@1.2.3`, `sv@0.0.0-next.0`, `sv@1.0.0-rc.1+build.5`. */
+const SV_VERSION_REGEX = /sv@\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?/g;
+
 const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
 const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
 const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
@@ -54,7 +57,7 @@ describe('cli', () => {
 			args: [
 				'--add',
 				'drizzle=database:sqlite+sqlite:libsql',
-				'experimental=versions:kit+features:async,remoteFunctions'
+				'experimental=versions:kit-3-next+features:async,remoteFunctions'
 			]
 		},
 		{
@@ -171,7 +174,7 @@ describe('cli', () => {
 
 				// Normalize sv version in README.md to avoid snapshot drift
 				if (relativeFile === 'README.md') {
-					generated = generated.replace(/sv@\d+\.\d+\.\d+/g, 'sv@0.0.0');
+					generated = generated.replace(SV_VERSION_REGEX, 'sv@0.0.0');
 				}
 
 				// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift

@@ -137,13 +137,14 @@ export default defineConfig([
 				'axobject-query',
 				'decircular',
 				'dedent',
+				'diff',
 				'esrap',
 				'locate-character',
 				'package-manager-detector',
-				'semver',
 				'silver-fleece',
 				'smol-toml',
 				'svelte',
+				'verkit',
 				'yaml',
 				'zimmerframe'
 			]
