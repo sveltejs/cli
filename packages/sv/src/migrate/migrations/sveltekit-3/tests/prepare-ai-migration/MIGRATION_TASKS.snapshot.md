@@ -22,24 +22,6 @@ Also search the project for `@migration-task` comments. They may describe additi
 
 ## Migration tasks
 
-### Remove `experimental.handleRenderingErrors`
-
-SvelteKit 3 removes the `experimental.handleRenderingErrors` feature flag because rendering errors are now handled this way by default.
-
-#### What to do
-
-Remove the `handleRenderingErrors` property from the SvelteKit configuration. If that leaves an empty `experimental` object, remove that object as well. No replacement option is needed — SvelteKit 3 always wraps route components in error boundaries so rendering errors reach the nearest `+error.svelte` page.
-
-#### References
-
-- [SvelteKit PR #16265](https://github.com/sveltejs/kit/pull/16265)
-
-#### Files to review
-
-- [ ] `nested/svelte.config.ts`
-- [ ] `svelte.config.js`
-- [ ] `vite.config.ts`
-
 ### Replace the `$lib` alias with `#lib` and remove `files.lib`
 
 SvelteKit 3 removes the built-in `$lib` alias and the `kit.files.lib` configuration. The replacement is a Node subpath import named `#lib`, configured through the package.json `imports` field.
@@ -57,6 +39,22 @@ Replace remaining `$lib` module references with `#lib`. Add `"#lib": "./src/lib/
 
 - [ ] `src/routes/+page.svelte`
 - [ ] `svelte.config.js`
+
+### Copy `page.url` before mutating it
+
+`page.url` and its search parameters are readonly in SvelteKit 3.
+
+#### What to do
+
+Create a mutable copy with `new URL(page.url.href)`, mutate that copy, and use it for navigation or serialization. Leave readonly accesses unchanged.
+
+#### References
+
+- [Migrating to SvelteKit v3](https://github.com/sveltejs/kit/blob/24a438d23baa049fcd1d6b4b558634f7054de052/documentation/docs/60-appendix/35-migrating-to-sveltekit-3.md#pageurl-is-now-readonly)
+
+#### Files to review
+
+- [ ] `src/routes/+page.svelte`
 
 ## Final verification
 
