@@ -63,7 +63,7 @@ export default defineMigrationTask({
 				...originalConfigObject.config.properties,
 				...originalConfigObject.kit.properties
 			];
-			const keyedConfig: Record<string, any> = [];
+			const keyedConfig: Record<string, AstTypes.Node> = {};
 			let trustsAllOrigins = false;
 
 			for (const prop of newConfigProperties) {
@@ -72,12 +72,66 @@ export default defineMigrationTask({
 				if (prop.key.name === 'kit') continue;
 
 				const propAttachment = attachments.get(prop);
+				keyedConfig[prop.key.name] = prop.value;
+				if (propAttachment) propComments.set(prop.key.name, propAttachment);
+			}
+
+			for (const [key, value] of Object.entries(keyedConfig)) {
+				// Rendering error boundaries are always enabled in SvelteKit 3, and the old opt-in
+				// is rejected by its config validation. Drop it instead of moving it to vite.config.
+				// Tracing is also no longer experimental.
+				if (key === 'experimental' && value.type === 'ObjectExpression') {
+					removeProperty(value, 'handleRenderingErrors');
+					removeProperty(value, 'instrumentation');
+
+					const index = value.properties.findIndex(
+						(prop) =>
+							prop.type === 'Property' &&
+							prop.key.type === 'Identifier' &&
+							prop.key.name === 'tracing'
+					);
+					if (index !== -1) {
+						keyedConfig.tracing = (value.properties[index] as AstTypes.Property).value;
+						value.properties.splice(index, 1);
+					}
+				}
+
+				// prerender.origin is removed in favor of paths.origin
+				if (key === 'prerender' && value.type === 'ObjectExpression') {
+					const originProp = value.properties.find(
+						(prop): prop is AstTypes.Property & { key: AstTypes.Identifier } =>
+							prop.type === 'Property' &&
+							prop.key.type === 'Identifier' &&
+							prop.key.name === 'origin'
+					);
+					if (originProp) {
+						// prerender may come before paths and may be merged so we need to ensure the current object first
+						keyedConfig.paths ??= {
+							type: 'ObjectExpression',
+							properties: []
+						};
+						(keyedConfig.paths as AstTypes.ObjectExpression).properties.push({
+							type: 'Property',
+							key: { type: 'Identifier', name: 'origin' },
+							value: originProp.value,
+							kind: 'init',
+							method: false,
+							shorthand: false,
+							computed: false
+						});
+						removeProperty(value, 'origin');
+						if (value.properties.length === 0) {
+							// drop the empty prerender object entirely
+							delete keyedConfig.prerender;
+						}
+					}
+				}
 
 				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now
 				// `csrf: { trustedOrigins: ['*'] }`. Rewrite the property in place so any sibling
 				// `csrf` options are preserved and `trustedOrigins` stays nested under `csrf`.
-				if (prop.key.name === 'csrf' && prop.value.type === 'ObjectExpression') {
-					const checkOrigin = findDisabledCheckOrigin(prop.value);
+				if (key === 'csrf' && value.type === 'ObjectExpression') {
+					const checkOrigin = findDisabledCheckOrigin(value);
 					if (checkOrigin) {
 						checkOrigin.key.name = 'trustedOrigins';
 						checkOrigin.value = {
@@ -87,10 +141,10 @@ export default defineMigrationTask({
 						trustsAllOrigins = true;
 					}
 				}
-
-				keyedConfig[prop.key.name] = prop.value;
-				if (propAttachment) propComments.set(prop.key.name, propAttachment);
 			}
+
+			// preloadStrategy is removed
+			delete keyedConfig.preloadStrategy;
 
 			override(keyedConfig);
 
@@ -188,6 +242,14 @@ function forEachNode(root: unknown, visit: (node: AstTypes.Node) => void): void 
 		if (key === 'loc' || key === 'range' || key === 'parent') continue;
 		forEachNode(node[key], visit);
 	}
+}
+
+/** Removes a statically named property from an object literal. */
+function removeProperty(value: AstTypes.ObjectExpression, name: string): void {
+	const index = value.properties.findIndex(
+		(prop) => prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === name
+	);
+	if (index !== -1) value.properties.splice(index, 1);
 }
 
 /**
