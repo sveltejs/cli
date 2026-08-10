@@ -1,7 +1,7 @@
 import { transforms } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
-const LIB_ALIAS = /\$lib(?=\/|['"`])/g;
+const LIB_ALIAS = /(?<=['"`])\$lib(?=\/|['"`])/g;
 
 function libSubpathImports(libDir: string): Record<string, string> {
 	return { '#lib': `./${libDir}/index.js`, '#lib/*': `./${libDir}/*` };
