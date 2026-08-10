@@ -29,7 +29,7 @@ const migrationTasks: MigrationTask[] = [
 			{
 				include: CODE_FILES,
 				patterns: [
-					/(?=[\s\S]*['"]\$app\/paths['"])(?=[\s\S]*(?:\bbase\b|\bassets\b|\bresolveRoute\b))/
+					/^(?=[\s\S]*['"]\$app\/paths['"])(?=[\s\S]*(?:\bbase\b|\bassets\b|\bresolveRoute\b))/
 				]
 			}
 		],
@@ -127,7 +127,7 @@ const file = asset('foo.png');\n` +
 		checks: [
 			{
 				include: CODE_FILES,
-				patterns: [/(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\()/]
+				patterns: [/^(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\()/]
 			}
 		],
 		summary: '`goto(...)` now rejects destinations that do not resolve to an application route.',
@@ -141,7 +141,7 @@ const file = asset('foo.png');\n` +
 			{
 				include: CODE_FILES,
 				patterns: [
-					/(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\([\s\S]*(noScroll|keepFocus))/,
+					/^(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\([\s\S]*(noScroll|keepFocus))/,
 					'data-sveltekit-noscroll',
 					'data-sveltekit-keepfocus'
 				]
@@ -159,7 +159,7 @@ const file = asset('foo.png');\n` +
 			{
 				include: CODE_FILES,
 				patterns: [
-					/(?=[\s\S]*['"]@sveltejs\/kit['"])(?=[\s\S]*\berror\s*\([0-9]+,\s*{)/,
+					/^(?=[\s\S]*['"]@sveltejs\/kit['"])(?=[\s\S]*\berror\s*\([0-9]+,\s*{)/,
 					'data-sveltekit-noscroll',
 					'data-sveltekit-keepfocus'
 				]
@@ -175,7 +175,7 @@ const file = asset('foo.png');\n` +
 		checks: [
 			{
 				include: CODE_FILES,
-				patterns: [/(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\()/]
+				patterns: [/^(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\()/]
 			}
 		],
 		summary: '`invalidateAll` is deprecated in favor of `refreshAll`',
@@ -202,7 +202,7 @@ const file = asset('foo.png');\n` +
 			{
 				include: CODE_FILES,
 				patterns: [
-					/(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*(?:\.\s*delta\b|\{[^}]*\bdelta\b))/
+					/^(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*(?:\.\s*delta\b|\{[^}]*\bdelta\b))/
 				]
 			}
 		],
@@ -216,7 +216,7 @@ const file = asset('foo.png');\n` +
 		checks: [
 			{
 				include: CODE_FILES,
-				patterns: [/(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bpreloadData\s*\()/]
+				patterns: [/^(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bpreloadData\s*\()/]
 			}
 		],
 		summary:
@@ -230,7 +230,7 @@ const file = asset('foo.png');\n` +
 		checks: [
 			{
 				include: '**/*.svelte',
-				patterns: [/(?=[\s\S]*\buse:enhance\b)(?=[\s\S]*<form\b[^>]*\baction\s*=)/]
+				patterns: [/^(?=[\s\S]*\buse:enhance\b)(?=[\s\S]*<form\b[^>]*\baction\s*=)/]
 			}
 		],
 		summary: 'Enhanced forms that submit to another page now navigate to that page.',
@@ -277,7 +277,7 @@ const file = asset('foo.png');\n` +
 		checks: [
 			{
 				include: CODE_FILES,
-				patterns: [/(?=[\s\S]*['"]@sveltejs\/kit['"])(?=[\s\S]*\b(json|text)\s*\()/]
+				patterns: [/^(?=[\s\S]*['"]@sveltejs\/kit['"])(?=[\s\S]*\b(json|text)\s*\()/]
 			}
 		],
 		summary:
@@ -304,7 +304,7 @@ const file = asset('foo.png');\n` +
 			{
 				include: CODE_FILES,
 				patterns: [
-					/(?=[\s\S]*['"]@sveltejs\/kit\/node['"])(?=[\s\S]*\bawait\s+(?:\w+\.)?(?:getRequest|setResponse)\s*\()/
+					/^(?=[\s\S]*['"]@sveltejs\/kit\/node['"])(?=[\s\S]*\bawait\s+(?:\w+\.)?(?:getRequest|setResponse)\s*\()/
 				]
 			}
 		],
@@ -420,7 +420,7 @@ const file = asset('foo.png');\n` +
 			{
 				include: '**/*.svelte',
 				patterns: [
-					/(?=[\s\S]*(?:from\s*['"][^'"]+\.remote(?:\.[^'"]+)?['"]|import\(\s*['"][^'"]+\.remote))(?=[\s\S]*\bname\s*=)/
+					/^(?=[\s\S]*(?:from\s*['"][^'"]+\.remote(?:\.[^'"]+)?['"]|import\(\s*['"][^'"]+\.remote))(?=[\s\S]*\bname\s*=)/
 				]
 			}
 		],
