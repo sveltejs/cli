@@ -1,5 +1,6 @@
 {
     "devDependencies": {
+        "@sveltejs/adapter-auto": "next",
         "@sveltejs/kit": "next",
         "@sveltejs/vite-plugin-svelte": "^7.0.0",
         "svelte": "^5.48.0",
