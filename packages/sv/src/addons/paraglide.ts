@@ -144,8 +144,7 @@ export default defineAddon({
 				});
 
 				const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
-		event.request = request;
-		return resolve(event, {
+		return resolve({ ...event, request }, {
 			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale).replace('%paraglide.dir%', getTextDirection(locale))
 		});
 	});`;
