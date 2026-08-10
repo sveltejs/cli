@@ -74,11 +74,11 @@ for (const migrationDirectory of migrationDirectories) {
 
 				// compare modified files against snapshots
 				for (const file of modifiedFiles) {
-					const actualPath = path.join(cwd, file);
+					const actualPath = path.resolve(cwd, file);
 					const actual = fs.readFileSync(actualPath, 'utf-8');
 
 					const expectedFileName = file.replace('.actual', '.snapshot');
-					const expectedPath = path.join(cwd, expectedFileName);
+					const expectedPath = path.resolve(cwd, expectedFileName);
 					await expect(actual).toMatchFileSnapshot(expectedPath, expectedFileName);
 
 					// a snapshot vitest just created isn't in the list; `-1` would drop an unrelated entry
@@ -108,7 +108,7 @@ function copyTemplateFiles(dir: string) {
 
 	const templateFiles = fs.globSync('**/*.template.*', {
 		cwd: dir,
-		exclude: ['node_modules/**', '**/node_modules/**']
+		exclude: ['node_modules/**', '**/node_modules/**'],
 	});
 
 	for (const templateFile of templateFiles) {
