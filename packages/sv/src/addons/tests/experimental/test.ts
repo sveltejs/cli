@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parse } from '@sveltejs/sv-utils';
 import { expect } from 'vitest';
 import experimental from '../../experimental.ts';
 import { setupTest } from '../_setup/suite.ts';

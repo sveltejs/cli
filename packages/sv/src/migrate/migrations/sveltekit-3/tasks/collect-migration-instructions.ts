@@ -1,3 +1,4 @@
+import { normalizePosix } from '../../../../core/common.ts';
 import { defineMigrationTask } from '../../../index.ts';
 
 const REPORT_PATH = 'MIGRATION_TASKS.md';
@@ -468,7 +469,7 @@ function matches(content: string, pattern: string | RegExp): boolean {
 export function renderReport(findings: Finding[]): string {
 	const sections = findings.map(({ task, files }) => {
 		const links = task.links.map(({ label, url }) => `- [${label}](${url})`).join('\n');
-		const locations = files.map((file) => `- [ ] \`${file}\``).join('\n');
+		const locations = files.map((file) => `- [ ] \`${normalizePosix(file)}\``).join('\n');
 
 		return `### ${task.title}
 
