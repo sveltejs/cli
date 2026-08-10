@@ -285,16 +285,6 @@ export const normalizePosix = (dir: string) => {
 	return path.posix.normalize(dir.replace(/\\/g, '/'));
 };
 
-/**
- * Wraps `fs.globSync` but always returns normalized posix-separated paths.
- */
-export function globSync(
-	pattern: string | string[],
-	options: fs.GlobOptionsWithoutFileTypes = {}
-): string[] {
-	return fs.globSync(pattern, options).map(normalizePosix);
-}
-
 export function updateAgent(
 	projectPath: string,
 	language: 'typescript' | 'checkjs' | 'none',
