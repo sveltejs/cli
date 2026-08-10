@@ -109,6 +109,67 @@ const migrationTasks: MigrationTask[] = [
 		links: guideLink('goto-rejects-for-urls-that-dont-resolve-to-a-route')
 	},
 	{
+		title: 'Adjust noScroll/keepFocus usage',
+		checks: [
+			{
+				include: CODE_FILES,
+				patterns: [
+					/(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\([\s\S]*(noScroll|keepFocus))/,
+					'data-sveltekit-noscroll',
+					'data-sveltekit-keepfocus'
+				]
+			}
+		],
+		summary:
+			'The options `noScroll` and `keepFocus` of `goto(...)` are merged into a single `reset` option.',
+		instructions:
+			'replace the `noScroll` and `keepFocus` options of `goto` with a single `reset` option, and the `data-sveltekit-noscroll` and `data-sveltekit-keepfocus` attributes with `data-sveltekit-reset`.',
+		links: guideLink('goto-options-are-updated')
+	},
+	{
+		title: 'Adjust error(...) usage',
+		checks: [
+			{
+				include: CODE_FILES,
+				patterns: [
+					/(?=[\s\S]*['"]@sveltejs\/kit['"])(?=[\s\S]*\berror\s*\([0-9]+,\s*{)/,
+					'data-sveltekit-noscroll',
+					'data-sveltekit-keepfocus'
+				]
+			}
+		],
+		summary: 'Signature of `error(...)` from `@sveltejs/kit` has changed.',
+		instructions:
+			'Replace `error(status, { message, ... })` with `error(status, message, { ... })`.',
+		links: guideLink('Error-handling-error-arguments-changed')
+	},
+	{
+		title: 'Replace `invalidateAll` with `refreshAll`',
+		checks: [
+			{
+				include: CODE_FILES,
+				patterns: [/(?=[\s\S]*['"]\$app\/navigation['"])(?=[\s\S]*\bgoto\s*\()/]
+			}
+		],
+		summary: '`invalidateAll` is deprecated in favor of `refreshAll`',
+		instructions:
+			'Replace `invalidateAll()` with `refreshAll()`. Note that `refreshAll()` will keep `page.state` intact. Check if that has unwanted impact on the application; if yes point this out in a comment with steps to take instead of replacing that instance of `invalidateAll()`.',
+		links: guideLink('Error-handling-error-arguments-changed')
+	},
+	{
+		title: '`data-sveltekit-*` uses `false` instead of `"off"`',
+		checks: [
+			{
+				include: '**/*.{svelte,html}',
+				patterns: [/data-sveltekit-[\w-]+=["']off["']/]
+			}
+		],
+		summary:
+			'The `"off"` value for `data-sveltekit-*` link attributes has been removed in favour of `false`.',
+		instructions: 'Replace `data-sveltekit-...="off"` with `data-sveltekit-...={false}`.',
+		links: guideLink('Miscellaneous-data-sveltekit-uses-false-instead-of-off')
+	},
+	{
 		title: 'Guard navigation `delta` access',
 		checks: [
 			{
