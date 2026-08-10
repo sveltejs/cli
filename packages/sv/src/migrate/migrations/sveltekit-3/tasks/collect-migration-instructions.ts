@@ -123,7 +123,7 @@ const migrationTasks: MigrationTask[] = [
 		summary:
 			'The options `noScroll` and `keepFocus` of `goto(...)` are merged into a single `reset` option.',
 		instructions:
-			'replace the `noScroll` and `keepFocus` options of `goto` with a single `reset` option, and the `data-sveltekit-noscroll` and `data-sveltekit-keepfocus` attributes with `data-sveltekit-reset`.',
+			'replace the `noScroll` and `keepFocus` options of `goto` with a single `reset` option, and the `data-sveltekit-noscroll` and `data-sveltekit-keepfocus` attributes with `data-sveltekit-reset`. `noScroll: false / keepFocus: false` becomes `reset: true` and `noScroll: true / keepFocus: true` becomes `reset: false`.',
 		links: guideLink('goto-options-are-updated')
 	},
 	{
@@ -166,7 +166,7 @@ const migrationTasks: MigrationTask[] = [
 		],
 		summary:
 			'The `"off"` value for `data-sveltekit-*` link attributes has been removed in favour of `false`.',
-		instructions: 'Replace `data-sveltekit-...="off"` with `data-sveltekit-...={false}`.',
+		instructions: 'Replace `data-sveltekit-...="off"` with `data-sveltekit-...="false"`.',
 		links: guideLink('Miscellaneous-data-sveltekit-uses-false-instead-of-off')
 	},
 	{
