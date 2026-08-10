@@ -199,13 +199,12 @@ pnpm changeset
 - Use single quotes around package names in the changeset frontmatter.
 - Do not edit `packages/*/CHANGELOG.md` manually.
 
-Choose a scope that identifies the part of the project affected by the change. Potential scopes include:
+Choose a scope that identifies the part of the project affected by the change. Only relevant for changesets targetting `sv`. Potential scopes include:
 
 - `cli` for command-line parsing, prompts, and command execution
 - `create` for project creation and templates
 - `migrate` for migrations and migration tasks
 - `addons` for behavior shared across add-ons, or the add-on name such as `drizzle`, `eslint`, or `better-auth` for a specific add-on
-- `utils` for AST utilities and AST manipulation
 - `deps` for dependency-only changes
 
 ## Updating dependencies
