@@ -63,7 +63,7 @@ export default defineMigrationTask({
 				...originalConfigObject.config.properties,
 				...originalConfigObject.kit.properties
 			];
-			const keyedConfig: Record<string, any> = [];
+			const keyedConfig: Record<string, AstTypes.Node> = {};
 			let trustsAllOrigins = false;
 
 			for (const prop of newConfigProperties) {
@@ -71,28 +71,34 @@ export default defineMigrationTask({
 				if (prop.key.type !== 'Identifier') continue;
 				if (prop.key.name === 'kit') continue;
 
+				const propAttachment = attachments.get(prop);
+				keyedConfig[prop.key.name] = prop.value;
+				if (propAttachment) propComments.set(prop.key.name, propAttachment);
+			}
+
+			for (const [key, value] of Object.entries(keyedConfig)) {
 				// Rendering error boundaries are always enabled in SvelteKit 3, and the old opt-in
 				// is rejected by its config validation. Drop it instead of moving it to vite.config.
 				// Tracing is also no longer experimental.
-				if (prop.key.name === 'experimental' && prop.value.type === 'ObjectExpression') {
-					removeProperty(prop.value, 'handleRenderingErrors');
-					removeProperty(prop.value, 'instrumentation');
+				if (key === 'experimental' && value.type === 'ObjectExpression') {
+					removeProperty(value, 'handleRenderingErrors');
+					removeProperty(value, 'instrumentation');
 
-					const index = prop.value.properties.findIndex(
+					const index = value.properties.findIndex(
 						(prop) =>
 							prop.type === 'Property' &&
 							prop.key.type === 'Identifier' &&
 							prop.key.name === 'tracing'
 					);
 					if (index !== -1) {
-						keyedConfig.tracing = (prop.value.properties[index] as AstTypes.Property).value;
-						prop.value.properties.splice(index, 1);
+						keyedConfig.tracing = (value.properties[index] as AstTypes.Property).value;
+						value.properties.splice(index, 1);
 					}
 				}
 
 				// prerender.origin is removed in favor of paths.origin
-				if (prop.key.name === 'prerender' && prop.value.type === 'ObjectExpression') {
-					const originProp = prop.value.properties.find(
+				if (key === 'prerender' && value.type === 'ObjectExpression') {
+					const originProp = value.properties.find(
 						(prop): prop is AstTypes.Property & { key: AstTypes.Identifier } =>
 							prop.type === 'Property' &&
 							prop.key.type === 'Identifier' &&
@@ -100,18 +106,7 @@ export default defineMigrationTask({
 					);
 					if (originProp) {
 						// prerender may come before paths and may be merged so we need to ensure the current object first
-						keyedConfig.paths ??= newConfigProperties.find(
-							(
-								prop
-							): prop is AstTypes.Property & {
-								key: AstTypes.Identifier;
-								value: AstTypes.ObjectExpression;
-							} =>
-								prop.type === 'Property' &&
-								prop.key.type === 'Identifier' &&
-								prop.key.name === 'paths' &&
-								prop.value.type === 'ObjectExpression'
-						)?.value ?? {
+						keyedConfig.paths ??= {
 							type: 'ObjectExpression',
 							properties: []
 						};
@@ -124,18 +119,19 @@ export default defineMigrationTask({
 							shorthand: false,
 							computed: false
 						});
-						removeProperty(prop.value, 'origin');
-						if (prop.value.properties.length === 0) continue; // drop the empty prerender object entirely
+						removeProperty(value, 'origin');
+						if (value.properties.length === 0) {
+							// drop the empty prerender object entirely
+							delete keyedConfig.prerender;
+						}
 					}
 				}
-
-				const propAttachment = attachments.get(prop);
 
 				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now
 				// `csrf: { trustedOrigins: ['*'] }`. Rewrite the property in place so any sibling
 				// `csrf` options are preserved and `trustedOrigins` stays nested under `csrf`.
-				if (prop.key.name === 'csrf' && prop.value.type === 'ObjectExpression') {
-					const checkOrigin = findDisabledCheckOrigin(prop.value);
+				if (key === 'csrf' && value.type === 'ObjectExpression') {
+					const checkOrigin = findDisabledCheckOrigin(value);
 					if (checkOrigin) {
 						checkOrigin.key.name = 'trustedOrigins';
 						checkOrigin.value = {
@@ -145,9 +141,6 @@ export default defineMigrationTask({
 						trustsAllOrigins = true;
 					}
 				}
-
-				keyedConfig[prop.key.name] = prop.value;
-				if (propAttachment) propComments.set(prop.key.name, propAttachment);
 			}
 
 			// preloadStrategy is removed

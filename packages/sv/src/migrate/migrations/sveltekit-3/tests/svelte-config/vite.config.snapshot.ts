@@ -21,7 +21,6 @@ export default defineConfig({
 			preprocess: vitePreprocess(),
 			compilerOptions: { experimental: { async: true } },
 			vitePlugin: { inspector: {}, onwarn },
-			tracing: { server: true },
 			experimental: { remoteFunctions: true /* still experimental */ },
 			csrf: {
 				// @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf
@@ -29,7 +28,8 @@ export default defineConfig({
 			},
 			paths: { ...paths, base, origin: 'https://example.com' },
 			// adapter is selected via the helper above
-			adapter: adapter(adapterConfig)
+			adapter: adapter(adapterConfig),
+			tracing: { server: true }
 		}),
 		devtoolsJson()
 	]
