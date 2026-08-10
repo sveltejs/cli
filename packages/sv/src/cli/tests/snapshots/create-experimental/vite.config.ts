@@ -11,7 +11,7 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter(),
-			experimental: { explicitEnvironmentVariables: true }
+			experimental: { remoteFunctions: true }
 		})
 	]
 });
