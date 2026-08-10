@@ -14,7 +14,7 @@ import tsconfig from './tasks/tsconfig.ts';
 
 export default defineMigration({
 	id: 'sveltekit-3',
-	changelog: 'https://github.com/sveltejs/kit/blob/version-3/packages/kit/CHANGELOG.md',
+	changelog: 'https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3',
 	description: 'A set of migrations for SvelteKit 3.0',
 	setup: ({ pkg, requires }) => {
 		const kitPackageName = '@sveltejs/kit';
