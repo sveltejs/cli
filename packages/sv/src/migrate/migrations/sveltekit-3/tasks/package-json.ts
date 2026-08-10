@@ -2,9 +2,9 @@ import { isVersionUnsupportedBelow, loadPackageJson } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
 const KIT3_PEERS = {
-	vite: '^8.0.0',
+	vite: '^8.0.12',
 	'@sveltejs/vite-plugin-svelte': '^7.0.0',
-	svelte: '^5.48.0',
+	svelte: '^5.56.4',
 	typescript: '^6.0.0'
 };
 
