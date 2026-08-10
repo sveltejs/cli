@@ -2,4 +2,4 @@
 '@sveltejs/sv-utils': patch
 ---
 
-chore: replace `semver` with `verkit`
+chore(deps): replace `semver` with `verkit`
