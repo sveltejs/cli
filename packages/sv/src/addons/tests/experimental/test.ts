@@ -80,8 +80,7 @@ test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { 
 		expect(source).not.toMatch('handleRenderingErrors');
 	} else if (testCase.kind.type === 'kit3-not-selected') {
 		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).not.toBe('next');
-		// the template's own `extends` keeps its `.json` suffix; the add-on would rewrite it to `$app/tsconfig`
-		if (tsconfig) expect(tsconfig.extends).toBe('$app/tsconfig.json');
+		if (tsconfig) expect(tsconfig.extends).toBe('$app/tsconfig');
 		expect(source).toMatch('async: true');
 		expect(source).toMatch('remoteFunctions: true');
 		expect(source).toMatch('explicitEnvironmentVariables: true');
