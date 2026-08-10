@@ -474,7 +474,9 @@ type Finding = { task: MigrationTask; files: string[] };
 
 export default defineMigrationTask({
 	id: 'collect-migration-instructions',
-	description: 'Collect instructions for non-automated migration tasks',
+	description:
+		'Collect instructions for non-automated migration tasks; ' +
+		`creates ${REPORT_PATH} whose instructions you should follow to complete the migration`,
 	run: ({ sv }) => {
 		const findings: Finding[] = [];
 
