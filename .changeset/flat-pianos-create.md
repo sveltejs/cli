@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: adjust paraglide add-on
+fix(paraglide): adjust paraglide add-on
