@@ -223,6 +223,7 @@ const migrationTasks: MigrationTask[] = [
 			{
 				include: CODE_FILES,
 				patterns: [
+					// eslint-disable-next-line no-control-regex
 					/\bcookies\s*\.\s*(?:get|getAll|set|delete|serialize)\s*\(\s*['"][^'"]*[^\x00-\x7f][^'"]*['"]/
 				]
 			}
