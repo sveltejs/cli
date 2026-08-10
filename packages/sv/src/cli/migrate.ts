@@ -109,12 +109,6 @@ export const migrate = new Command('migrate')
 				return;
 			}
 
-			if (migration.changelog) {
-				p.log.warn(
-					`Make sure to read the changelog for this migration before running it: ${color.website(migration.changelog)}`
-				);
-			}
-
 			const tasks = await determineTasks(migration, verifiedOptions, pkg);
 			if (!tasks) return;
 
@@ -140,7 +134,7 @@ export const migrate = new Command('migrate')
 				await installDependencies(packageManager, workspace.cwd);
 			}
 
-			reportNextSteps(migration.changelog);
+			reportNextSteps();
 		});
 	});
 
@@ -204,18 +198,34 @@ async function determineTasks(
 	}
 
 	const prerequisiteTasks = allTasks.filter((t) => t.prerequisite);
-	const optionalTasks = allTasks.filter((t) => !t.prerequisite);
+	const selectableTasks = allTasks.filter((t) => !t.prerequisite);
+	if (selectableTasks.length > 0) {
+		const workflow = [];
+		if (migration.changelog) {
+			workflow.push(
+				'Make sure to read the changelog for this migration before running it:',
+				color.website(migration.changelog),
+				''
+			);
+		}
+		workflow.push(
+			`To make migration changes easier to review, run ${color.command('one selectable task at a time')} and ${color.command('commit after each run')}.`,
+			'Tasks are intended to create focused commits, not independent migration paths.',
+			`Most projects need ${color.warning('all applicable tasks')} before they work correctly.`
+		);
+		p.note(workflow.join('\n'), 'Recommended workflow', { format: (line) => line });
+	}
 
 	const tasksToRun = [...prerequisiteTasks];
 	if (options.tasks) {
-		tasksToRun.push(...selectOptionalTasksFromArgs(options.tasks, optionalTasks));
-	} else if (optionalTasks.length > 0) {
+		tasksToRun.push(...selectTasksFromArgs(options.tasks, selectableTasks));
+	} else if (selectableTasks.length > 0) {
 		const prerequisiteIds = prerequisiteTasks.map((t) => t.id).join(', ');
-		const optionalTaskIdsToRun = await p.multiselect({
+		const selectedTaskIds = await p.multiselect({
 			message: prerequisiteTasks.length
-				? `Select optional tasks to run, in addition to ${color.dim(prerequisiteIds)}`
+				? `Select tasks to run; prerequisites always included: ${color.command(prerequisiteIds)}`
 				: 'Select the tasks to run',
-			options: optionalTasks.map((t) => ({
+			options: selectableTasks.map((t) => ({
 				value: t.id,
 				label: t.id,
 				hint: t.description
@@ -223,13 +233,13 @@ async function determineTasks(
 			required: false
 		});
 
-		if (p.isCancel(optionalTaskIdsToRun)) {
+		if (p.isCancel(selectedTaskIds)) {
 			p.cancel('Operation cancelled.');
 			process.exit(1);
 		}
 
-		const optionalTasksToRun = optionalTasks.filter((t) => optionalTaskIdsToRun.includes(t.id));
-		tasksToRun.push(...optionalTasksToRun);
+		const selectedTasks = selectableTasks.filter((t) => selectedTaskIds.includes(t.id));
+		tasksToRun.push(...selectedTasks);
 	}
 
 	if (tasksToRun.length === 0) {
@@ -238,9 +248,8 @@ async function determineTasks(
 	}
 
 	const recapMessage = tasksToRun
-		.map(({ id, description, prerequisite }) => {
-			const tag = prerequisite ? '' : color.optional(' (optional)');
-			return `${id}${tag} ${color.dim(`(${description})`)}`;
+		.map(({ id, description }) => {
+			return `${id} ${color.optional(`(${description})`)}`;
 		})
 		.join('\n- ');
 	p.note(`- ${recapMessage}`, 'Migration steps', { format: (line) => line });
@@ -266,10 +275,7 @@ async function determineTasks(
 	return tasksToRun;
 }
 
-export function selectOptionalTasksFromArgs(
-	selectedTaskIds: string[],
-	optionalTasks: TaskWithOptions[]
-) {
+export function selectTasksFromArgs(selectedTaskIds: string[], selectableTasks: TaskWithOptions[]) {
 	if (
 		selectedTaskIds.length > 1 &&
 		(selectedTaskIds.includes('all') || selectedTaskIds.includes('prerequisite'))
@@ -286,23 +292,25 @@ export function selectOptionalTasksFromArgs(
 	}
 
 	if (selectedTaskIds[0] === 'all') {
-		return optionalTasks;
+		return selectableTasks;
 	}
 
-	const invalidTasks = selectedTaskIds.filter((id) => !optionalTasks.some((t) => t.id === id));
+	const invalidTasks = selectedTaskIds.filter((id) => !selectableTasks.some((t) => t.id === id));
 	if (invalidTasks.length > 0) {
 		common.errorAndExit(
 			`Unknown migration task${invalidTasks.length === 1 ? '' : 's'}: ${invalidTasks
 				.map((id) => color.command(id))
-				.join(', ')}\nAvailable tasks: ${optionalTasks.map((t) => color.command(t.id)).join(', ')}`
+				.join(
+					', '
+				)}\nAvailable tasks: ${selectableTasks.map((t) => color.command(t.id)).join(', ')}`
 		);
 	}
 
-	return optionalTasks.filter((task) => selectedTaskIds.includes(task.id));
+	return selectableTasks.filter((task) => selectedTaskIds.includes(task.id));
 }
 
 /** Prints a summary of the `@migration-task` comments left for the user to resolve, if any. */
-function reportNextSteps(changelog?: string): void {
+function reportNextSteps(): void {
 	const total = getMigrationTaskCount();
 	if (total === 0) return;
 
@@ -310,8 +318,6 @@ function reportNextSteps(changelog?: string): void {
 		`${total} ${total === 1 ? 'comment' : 'comments'} to review.`,
 		`Search for ${color.command(MIGRATION_TASK_MARKER)} to resolve ${total === 1 ? 'it' : 'them'}.`
 	];
-	if (changelog) body.push('', `Changelog: ${color.website(changelog)}`);
-
 	p.note(body.join('\n'), 'Next steps', { format: (line) => line });
 }
 
