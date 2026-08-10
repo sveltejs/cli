@@ -2,4 +2,4 @@
 'sv': minor
 ---
 
-feat: list migration tasks
+feat(migrate): list migration tasks
