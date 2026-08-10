@@ -34,11 +34,18 @@ import kit3 from '../migrate/migrations/sveltekit-3/index.ts';
 const migrations = [kit3, appState, ...legacyMigrations] as const;
 const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 
+export function normalizeTasksOption(tasks: string[] | true | undefined) {
+	return tasks === true ? [] : tasks;
+}
+
 const OptionsSchema = v.strictObject({
 	cwd: v.optional(v.string(), './'),
 	files: v.optional(v.string()),
 	gitCheck: v.boolean(),
-	tasks: v.optional(v.array(v.string())),
+	tasks: v.pipe(
+		v.optional(v.union([v.array(v.string()), v.literal(true)])),
+		v.transform(normalizeTasksOption)
+	),
 	confirm: v.optional(v.boolean(), false),
 	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true)
 });
@@ -53,7 +60,7 @@ export const migrate = new Command('migrate')
 		'only run the migration on a subset of files matching the provided glob pattern'
 	)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
-	.option('--tasks <task...>', 'migration tasks to run')
+	.option('--tasks [task...]', 'migration tasks to run. Omit list of tasks to show available tasks')
 	.option('--confirm', 'skip the final confirmation prompt')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
@@ -79,8 +86,10 @@ export const migrate = new Command('migrate')
 			if (!pkg) return;
 
 			// verifications
-			const verifications = [...verifyCleanWorkingDirectory(options.cwd, options.gitCheck)];
-			await common.runAndValidateVerifications(verifications);
+			if (verifiedOptions.tasks?.length !== 0) {
+				const verifications = [...verifyCleanWorkingDirectory(options.cwd, options.gitCheck)];
+				await common.runAndValidateVerifications(verifications);
+			}
 
 			if (!verifiedMigrationName) {
 				verifiedMigrationName = await p.select({
@@ -104,8 +113,19 @@ export const migrate = new Command('migrate')
 				return;
 			}
 			const legacyMigration = migration.legacy ?? false;
-			if (legacyMigration && verifiedOptions.tasks) {
+			if (legacyMigration && verifiedOptions.tasks !== undefined) {
 				common.errorAndExit(`The migration ${migration.id} does not support task selection.`);
+				return;
+			}
+			if (verifiedOptions.tasks?.length === 0) {
+				const allTasks = await collectMigrationTasks(migration, verifiedOptions.cwd);
+				if (allTasks.length === 0) {
+					common.errorAndExit(`Migration "${migration.id}" did not return any tasks.`);
+					return;
+				}
+				p.note(formatAvailableTasks(allTasks), `Available tasks for ${migration.id}`, {
+					format: (line) => line
+				});
 				return;
 			}
 
@@ -181,16 +201,7 @@ async function determineTasks(
 		return;
 	}
 
-	const allTasks: TaskWithOptions[] = [];
-	const collectOptions: MigrationCollectOptions = {
-		cwd: options.cwd,
-		tasks: {
-			add: (task, options) => {
-				allTasks.push({ ...task, ...options });
-			}
-		}
-	};
-	await migration.collect(collectOptions);
+	const allTasks = await collectMigrationTasks(migration, options.cwd);
 
 	if (allTasks.length === 0) {
 		common.errorAndExit(`Migration "${migration.id}" did not return any tasks to run.`);
@@ -273,6 +284,29 @@ async function determineTasks(
 	}
 
 	return tasksToRun;
+}
+
+async function collectMigrationTasks(migration: Migration, cwd: string) {
+	const allTasks: TaskWithOptions[] = [];
+	const collectOptions: MigrationCollectOptions = {
+		cwd,
+		tasks: {
+			add: (task, options) => {
+				allTasks.push({ ...task, ...options });
+			}
+		}
+	};
+	await migration.collect(collectOptions);
+	return allTasks;
+}
+
+export function formatAvailableTasks(tasks: TaskWithOptions[]) {
+	return tasks
+		.map(
+			({ id, description, prerequisite }) =>
+				`- ${id}${prerequisite ? ' (prerequisite)' : ''}: ${description}`
+		)
+		.join('\n');
 }
 
 export function selectTasksFromArgs(selectedTaskIds: string[], selectableTasks: TaskWithOptions[]) {
