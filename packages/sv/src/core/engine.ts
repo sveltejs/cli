@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
-import { filePaths } from './common.ts';
+import { filePaths, normalizePosix } from './common.ts';
 import {
 	getErrorHint,
 	type Addon,
@@ -346,7 +346,7 @@ export function prepareSvApi(
 					...(options.additionalExcludes ?? []),
 					...(exclude ?? [])
 				]
-			});
+			}).map(normalizePosix);
 
 			for (const file of globbedFiles) {
 				if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) continue;
