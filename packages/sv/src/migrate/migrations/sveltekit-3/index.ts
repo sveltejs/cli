@@ -1,13 +1,13 @@
 import { coerceVersion, color } from '@sveltejs/sv-utils';
 import { defineMigration } from '../../index.ts';
 import appState from '../app-state/tasks/app-state.ts';
+import collectMigrationInstructions from './tasks/collect-migration-instructions.ts';
 import environment from './tasks/environment.ts';
 import externalRedirects from './tasks/external-redirects.ts';
 import libAlias from './tasks/lib-alias.ts';
 import packageJson from './tasks/package-json.ts';
 import params from './tasks/params.ts';
 import paths from './tasks/paths.ts';
-import prepareAiMigration from './tasks/prepare-ai-migration.ts';
 import shallowRouting from './tasks/shallow-routing.ts';
 import svelteConfig from './tasks/svelte-config.ts';
 import tsconfig from './tasks/tsconfig.ts';
@@ -44,6 +44,6 @@ export default defineMigration({
 		tasks.add(params, { prerequisite: false });
 		tasks.add(libAlias, { prerequisite: false });
 		tasks.add(appState, { prerequisite: false });
-		tasks.add(prepareAiMigration, { prerequisite: false });
+		tasks.add(collectMigrationInstructions, { prerequisite: false });
 	}
 });
