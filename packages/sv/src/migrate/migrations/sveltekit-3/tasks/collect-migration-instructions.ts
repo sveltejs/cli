@@ -24,6 +24,33 @@ function guideLink(anchor: string): MigrationTask['links'] {
 
 const migrationTasks: MigrationTask[] = [
 	{
+		title: 'Migrate remaining `base`, `assets`, and `resolveRoute` from `$app/paths` usages',
+		checks: [
+			{
+				include: CODE_FILES,
+				patterns: [
+					/(?=[\s\S]*['"]\$app\/paths['"])(?=[\s\S]*(?:\bbase\b|\bassets\b|\bresolveRoute\b))/
+				]
+			}
+		],
+		summary:
+			'The automatic migration can leave `base`, `assets`, and `resolveRoute` usages from `$app/paths`.',
+		instructions:
+			'The deprecated base, assets, and resolveRoute exports have been removed from $app/paths. Use asset and resolve instead:' +
+			'```diff' +
+			`// instead of this...
+const pathname = base + resolveRoute('/blog/[slug]', { slug });
+const file = assets + '/foo.png';
+
+// ...do this:
+const pathname = resolve('/blog/[slug]', { slug });
+const file = asset('foo.png');\n` +
+			'```\n' +
+			'The `Pathname` and `Asset` types have also been renamed to `Path` and `AssetPath`, ' +
+			"and the leading `/` has been removed from those types — so `asset('/foo.png')` should now be `asset('foo.png')`, and pathnames passed to `resolve` no longer start with `/` (e.g. `resolve('blog/hello-world')`). Only route IDs start with `/` now.",
+		links: guideLink('$app-paths-base-assets-and-resolveRoute-removed')
+	},
+	{
 		title: 'Migrate remaining `$app/stores` usages',
 		checks: [
 			{
