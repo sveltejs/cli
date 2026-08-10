@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path, { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
+import { globSync } from '../../core/common.ts';
 import { prepareSvApi } from '../../core/engine.ts';
 import { createWorkspace } from '../../core/workspace.ts';
 
@@ -26,9 +27,7 @@ for (const migrationDirectory of migrationDirectories) {
 				const cwd = path.join(baseDir, migrationDirectory, testsDirectoryName, testName);
 
 				// cleanup old test run by deleting old actual files
-				const oldActualFiles = fs.globSync('**/*.actual.*', {
-					cwd
-				});
+				const oldActualFiles = globSync('**/*.actual.*', { cwd });
 				for (const oldActualFile of oldActualFiles) {
 					fs.rmSync(path.join(cwd, oldActualFile));
 				}
@@ -68,9 +67,7 @@ for (const migrationDirectory of migrationDirectories) {
 					throw new Error('No files were modified by the migration.');
 				}
 
-				const remainingSnapshotFiles = fs.globSync('**/*.snapshot.*', {
-					cwd
-				});
+				const remainingSnapshotFiles = globSync('**/*.snapshot.*', { cwd });
 
 				// compare modified files against snapshots
 				for (const file of modifiedFiles) {
@@ -106,7 +103,7 @@ for (const migrationDirectory of migrationDirectories) {
 function copyTemplateFiles(dir: string) {
 	if (!fs.existsSync(dir)) return;
 
-	const templateFiles = fs.globSync('**/*.template.*', {
+	const templateFiles = globSync('**/*.template.*', {
 		cwd: dir,
 		exclude: ['node_modules/**', '**/node_modules/**']
 	});
