@@ -90,6 +90,45 @@ export default defineMigrationTask({
 					}
 				}
 
+				// prerender.origin is removed in favor of paths.origin
+				if (prop.key.name === 'prerender' && prop.value.type === 'ObjectExpression') {
+					const originProp = prop.value.properties.find(
+						(prop): prop is AstTypes.Property & { key: AstTypes.Identifier } =>
+							prop.type === 'Property' &&
+							prop.key.type === 'Identifier' &&
+							prop.key.name === 'origin'
+					);
+					if (originProp) {
+						// prerender may come before paths and may be merged so we need to ensure the current object first
+						keyedConfig.paths ??= newConfigProperties.find(
+							(
+								prop
+							): prop is AstTypes.Property & {
+								key: AstTypes.Identifier;
+								value: AstTypes.ObjectExpression;
+							} =>
+								prop.type === 'Property' &&
+								prop.key.type === 'Identifier' &&
+								prop.key.name === 'paths' &&
+								prop.value.type === 'ObjectExpression'
+						)?.value ?? {
+							type: 'ObjectExpression',
+							properties: []
+						};
+						(keyedConfig.paths as AstTypes.ObjectExpression).properties.push({
+							type: 'Property',
+							key: { type: 'Identifier', name: 'origin' },
+							value: originProp.value,
+							kind: 'init',
+							method: false,
+							shorthand: false,
+							computed: false
+						});
+						removeProperty(prop.value, 'origin');
+						if (prop.value.properties.length === 0) continue; // drop the empty prerender object entirely
+					}
+				}
+
 				const propAttachment = attachments.get(prop);
 
 				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now
@@ -110,6 +149,9 @@ export default defineMigrationTask({
 				keyedConfig[prop.key.name] = prop.value;
 				if (propAttachment) propComments.set(prop.key.name, propAttachment);
 			}
+
+			// preloadStrategy is removed
+			delete keyedConfig.preloadStrategy;
 
 			override(keyedConfig);
 

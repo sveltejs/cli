@@ -27,7 +27,9 @@ const config = {
 		csrf: {
 			checkOrigin: false
 		},
+		prerender: { origin: 'https://example.com' },
 		paths: { ...paths, base },
+		preloadStrategy: 'modulepreload',
 		// adapter is selected via the helper above
 		adapter: adapter(adapterConfig)
 	},
