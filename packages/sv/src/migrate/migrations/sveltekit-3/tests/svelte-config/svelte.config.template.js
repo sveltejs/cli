@@ -16,7 +16,13 @@ const config = {
 	kit: {
 		experimental: {
 			remoteFunctions: true, // still experimental
-			handleRenderingErrors: true
+			handleRenderingErrors: true,
+			tracing: {
+				server: true,
+			},
+			instrumentation: {
+				server: true
+			}
 		},
 		csrf: {
 			checkOrigin: false

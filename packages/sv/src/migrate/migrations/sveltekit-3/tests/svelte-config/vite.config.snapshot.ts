@@ -21,6 +21,7 @@ export default defineConfig({
 			preprocess: vitePreprocess(),
 			compilerOptions: { experimental: { async: true } },
 			vitePlugin: { inspector: {}, onwarn },
+			tracing: { server: true },
 			experimental: { remoteFunctions: true /* still experimental */ },
 			csrf: {
 				// @migration-task trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf

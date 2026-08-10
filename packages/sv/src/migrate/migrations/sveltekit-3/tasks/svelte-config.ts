@@ -73,8 +73,21 @@ export default defineMigrationTask({
 
 				// Rendering error boundaries are always enabled in SvelteKit 3, and the old opt-in
 				// is rejected by its config validation. Drop it instead of moving it to vite.config.
+				// Tracing is also no longer experimental.
 				if (prop.key.name === 'experimental' && prop.value.type === 'ObjectExpression') {
 					removeProperty(prop.value, 'handleRenderingErrors');
+					removeProperty(prop.value, 'instrumentation');
+
+					const index = prop.value.properties.findIndex(
+						(prop) =>
+							prop.type === 'Property' &&
+							prop.key.type === 'Identifier' &&
+							prop.key.name === 'tracing'
+					);
+					if (index !== -1) {
+						keyedConfig.tracing = (prop.value.properties[index] as AstTypes.Property).value;
+						prop.value.properties.splice(index, 1);
+					}
 				}
 
 				const propAttachment = attachments.get(prop);
