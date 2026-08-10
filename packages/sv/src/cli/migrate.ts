@@ -210,7 +210,8 @@ async function determineTasks(
 
 	const prerequisiteTasks = allTasks.filter((t) => t.prerequisite);
 	const selectableTasks = allTasks.filter((t) => !t.prerequisite);
-	if (selectableTasks.length > 0) {
+	// Don't show the recommended workflow when the user has already specified which tasks to run
+	if (!options.tasks?.length && selectableTasks.length > 0) {
 		const workflow = [];
 		if (migration.changelog) {
 			workflow.push(
