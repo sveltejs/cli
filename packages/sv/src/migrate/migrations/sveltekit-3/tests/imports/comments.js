@@ -1,4 +1,4 @@
-/** @import { Page, RequestEvent, ActionResult as Result, ParamMatcher } from '@sveltejs/kit' */
+/** @import { Page, RequestEvent, ActionResult as Result, ParamMatcher, Handle, EnvVarConfig, RemoteForm } from '@sveltejs/kit' */
 
 /** @type {Page} */
 export const page = {};
