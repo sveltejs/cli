@@ -1,7 +1,13 @@
 import { defineConfig as config } from 'config';
 import { oldName as other } from 'other';
-import { replacement as existing, type ExistingType } from 'pkg';
-import type { NewType as TypeAlias, RenamedDeclared } from 'pkg';
+
+import {
+	replacement as existing,
+	type ExistingType,
+	type NewType as TypeAlias,
+	type RenamedDeclared
+} from 'pkg';
+
 import * as namespace from 'pkg';
 
 const object = { oldName: existing, aliased: existing };

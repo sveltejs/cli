@@ -1,2 +1,1 @@
-import type { Bar } from 'package';
-import { Foo, Baz } from 'package';
+import { Foo, type Bar, Baz } from 'package';

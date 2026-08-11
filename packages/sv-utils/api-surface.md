@@ -143,6 +143,9 @@ declare module 'estree' {
 	interface ImportDeclaration {
 		importKind: 'type' | 'value';
 	}
+	interface ImportSpecifier {
+		importKind?: 'type' | 'value';
+	}
 }
 type CommentType = {
 	type: 'Line' | 'Block';
