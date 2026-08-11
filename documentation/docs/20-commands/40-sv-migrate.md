@@ -106,9 +106,11 @@ A task may still attempt to edit or create a file outside the glob. `sv migrate`
 
 When used with `--cwd`, the glob is relative to the working directory.
 
-### `--tasks <task...>`
+### `--tasks [task...]`
 
 Select migration tasks without the interactive task prompt. Prerequisite tasks always run because they lay the foundation for the remaining tasks.
+
+Use `--tasks` without any task IDs to print all available tasks for the migration without running them.
 
 Use `--tasks all` to run every task, or `--tasks prerequisite` to run only the prerequisite tasks.
 
