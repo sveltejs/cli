@@ -5,6 +5,7 @@ const KIT3_PEERS = {
 	vite: '^8.0.12',
 	'@sveltejs/vite-plugin-svelte': '^7.0.0',
 	svelte: '^5.56.4',
+	'svelte-check': '^4.7.5',
 	typescript: '^6.0.0'
 };
 
