@@ -91,7 +91,6 @@ export function addNamed(
 	});
 
 	const expectedImportKind = options.isType ? 'type' : 'value';
-	let importDecl: AstTypes.ImportDeclaration | undefined;
 	const matchingDeclarations: AstTypes.ImportDeclaration[] = [];
 
 	Walker.walk(node as AstTypes.Node, null, {
@@ -112,7 +111,7 @@ export function addNamed(
 			declaration.importKind === 'type' &&
 			declaration.specifiers.every((specifier) => specifier.type === 'ImportSpecifier')
 	);
-	importDecl = valueDeclaration ?? typeDeclaration;
+	const importDecl = valueDeclaration ?? typeDeclaration;
 
 	// merge the specifiers into a single import declaration if they share a source
 	if (importDecl) {
