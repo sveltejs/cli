@@ -113,7 +113,8 @@ const file = asset('foo.png');\n` +
 				include: CODE_FILES,
 				patterns: [
 					/\bpage\s*\.\s*url\s*\.\s*searchParams\s*\.\s*(?:append|delete|set|sort)\s*\(/,
-					/\bpage\s*\.\s*url\s*\.\s*(?:hash|host|hostname|href|password|pathname|port|protocol|search|username)\s*(?:=|\+\+|--)/
+					/\bpage\s*\.\s*url\s*\.\s*(?:hash|host|hostname|href|password|pathname|port|protocol|search|username)\s*(?:=|\+\+|--)/,
+					'new URL(page.url)'
 				]
 			}
 		],
