@@ -419,6 +419,7 @@ function collectEnvVars(envImports: EnvImport[], envVars: Map<string, EnvVar>): 
 
 export function addEnvDeclarationFile(
 	ast: AstTypes.Program,
+	comments: Comments,
 	envVars: Map<string, EnvVar>
 ): false | void {
 	if (envVars.size === 0) return false;
@@ -438,10 +439,12 @@ export function addEnvDeclarationFile(
 		name: 'variables',
 		value: defineCall
 	});
-	js.exports.createNamed(ast, {
+	const exportDeclaration = js.exports.createNamed(ast, {
 		name: 'variables',
 		fallback: variablesIdentifier
 	});
+
+	let has_dynamic = false;
 
 	for (const envVar of envVars.values()) {
 		const value = js.object.property(variablesObject, {
@@ -449,9 +452,31 @@ export function addEnvDeclarationFile(
 			fallback: js.object.create({})
 		}) as AstTypes.ObjectExpression;
 
+		has_dynamic ||= envVar.type === 'dynamic';
+
 		js.object.overrideProperties(value, {
 			public: envVar.scope === 'public' ? true : undefined,
-			static: envVar.type === 'static' ? true : undefined
+			static: envVar.type === 'static' ? true : undefined,
+			schema:
+				envVar.type === 'dynamic'
+					? js.functions.createArrow({
+							params: ['input'],
+							body: {
+								type: 'LogicalExpression',
+								operator: '??',
+								left: { type: 'Identifier', name: 'input' },
+								right: { type: 'Literal', value: '', raw: "''" }
+							},
+							async: false
+						})
+					: undefined
 		});
+	}
+
+	if (has_dynamic) {
+		addMigrationTask(
+			'Review usage of dynamic environment variables. They fall back to the empty string if not present, which may not be what you want.',
+			{ comments, node: exportDeclaration }
+		);
 	}
 }
