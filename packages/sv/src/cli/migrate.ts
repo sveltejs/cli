@@ -305,7 +305,7 @@ export function formatAvailableTasks(tasks: TaskWithOptions[]) {
 	return tasks
 		.map(
 			({ id, description, prerequisite }) =>
-				`- ${id}${prerequisite ? ' (prerequisite)' : ''}: ${description}`
+				`- ${id}${prerequisite ? color.warning(' (prerequisite)') : ''}: ${color.optional(description)}`
 		)
 		.join('\n');
 }
