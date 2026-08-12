@@ -5,6 +5,7 @@ declare function getState(): App.PageState;
 declare function cleanup(): void;
 
 goto('/foo', { shallow: true, state });
+goto('/foo', { shallow: true });
 goto('/bar', { shallow: true, replace: true, state: getState() });
 goto('/unchanged');
 
