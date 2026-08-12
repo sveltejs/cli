@@ -61,6 +61,8 @@ const MOVED_EXPORTS = new Map<string, string>([
 	['RemoteResource', '$app/server'],
 	['RequestedEntry', '$app/server'],
 	['RequestedResult', '$app/server'],
+	['RequestEvent', '$app/server'],
+	['Cookies', '$app/server'],
 	['Reroute', '@sveltejs/kit/hooks'],
 	['ResolveOptions', '@sveltejs/kit/hooks'],
 	['ServerInit', '@sveltejs/kit/hooks'],
