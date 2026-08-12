@@ -91,29 +91,40 @@ export function addNamed(
 	});
 
 	const expectedImportKind = options.isType ? 'type' : 'value';
-	let importDecl: AstTypes.ImportDeclaration | undefined;
 	const matchingDeclarations: AstTypes.ImportDeclaration[] = [];
 
 	Walker.walk(node as AstTypes.Node, null, {
 		ImportDeclaration(declaration) {
-			if (
-				declaration.source.value === options.from &&
-				declaration.specifiers &&
-				declaration.importKind === expectedImportKind
-			) {
+			if (declaration.source.value === options.from) {
 				matchingDeclarations.push(declaration);
-				if (
-					!declaration.specifiers.some((specifier) => specifier.type === 'ImportNamespaceSpecifier')
-				) {
-					importDecl = declaration;
-				}
 			}
 		}
 	});
 
+	const valueDeclaration = matchingDeclarations.find(
+		(declaration) =>
+			declaration.importKind === 'value' &&
+			!declaration.specifiers.some((specifier) => specifier.type === 'ImportNamespaceSpecifier')
+	);
+	const typeDeclaration = matchingDeclarations.find(
+		(declaration) =>
+			declaration.importKind === 'type' &&
+			declaration.specifiers.every((specifier) => specifier.type === 'ImportSpecifier')
+	);
+	const importDecl = valueDeclaration ?? typeDeclaration;
+
 	// merge the specifiers into a single import declaration if they share a source
 	if (importDecl) {
 		const declaration = importDecl;
+		if (!options.isType && declaration.importKind === 'type') {
+			declaration.importKind = 'value';
+			for (const specifier of declaration.specifiers) {
+				if (specifier.type === 'ImportSpecifier') specifier.importKind = 'type';
+			}
+		}
+		if (options.isType && declaration.importKind === 'value') {
+			for (const specifier of specifiers) specifier.importKind = 'type';
+		}
 		specifiers.forEach((specifierToAdd) => {
 			// skip specifiers whose imported or local name is already taken
 			const conflicts = matchingDeclarations.some((matchingDeclaration) =>

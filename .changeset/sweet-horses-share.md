@@ -3,4 +3,4 @@
 'sv': major
 ---
 
-breaking: remove deprecated utils and properties
+breaking: remove deprecated utilities and properties
