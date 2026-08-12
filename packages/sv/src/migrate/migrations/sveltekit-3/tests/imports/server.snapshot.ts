@@ -1,6 +1,6 @@
+import type { RequestEvent, InvalidField } from '$app/server';
+
 import type {
-	RequestEvent,
-	InvalidField,
 	LiveQueryRequestedResult,
 	LiveRequestedEntry,
 	QueryRequestedResult,
@@ -25,13 +25,14 @@ import type {
 	RequestedEntry,
 	RequestedResult,
 	ValidationError
-} from '$app/server';
+} from '@sveltejs/kit/remote';
 
-export type { RemoteQuery as Query, RequestEvent } from '$app/server';
+export type { RemoteQuery as Query } from '@sveltejs/kit/remote';
+export type { RequestEvent } from '$app/server';
 
-type Requested = import('$app/server').RequestedResult<string, unknown>;
+type Requested = import('@sveltejs/kit/remote').RequestedResult<string, unknown>;
 
-/** @type {import('$app/server').ValidationError | null} */
+/** @type {import('@sveltejs/kit/remote').ValidationError | null} */
 export const validationError = null;
 
 export type { RemoteForm, Requested };
