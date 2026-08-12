@@ -404,11 +404,12 @@ async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigr
 	if (!legacyMigration) stop('All tasks applied successfully!');
 
 	if (allUnmodifiedFiles.size > 0) {
+		const skippedFiles = Array.from(allUnmodifiedFiles)
+			.map((file) => `- ${color.path(file)}`)
+			.join('\n');
 		p.note(
-			`The following files were modified by the migration,\nbut their content was not saved:\n- ${Array.from(
-				allUnmodifiedFiles
-			).join('\n- ')}`,
-			'Unmodified files',
+			`Changes to these files were skipped because they did not\nmatch the ${color.command('--files')} filter:\n${skippedFiles}`,
+			color.warning('Skipped changes'),
 			{ format: (line) => line }
 		);
 	}
