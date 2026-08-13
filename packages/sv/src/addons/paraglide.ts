@@ -117,13 +117,13 @@ export default defineAddon({
 
 				if (language === 'ts') {
 					js.imports.addNamed(ast, {
-						from: '@sveltejs/kit',
+						from: '@sveltejs/kit/hooks',
 						imports: ['Reroute'],
 						isType: true
 					});
 				} else {
 					js.common.addJsDocTypeComment(existingExport, comments, {
-						type: "import('@sveltejs/kit').Reroute"
+						type: "import('@sveltejs/kit/hooks').Reroute"
 					});
 				}
 			})
