@@ -11,12 +11,12 @@ import {
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.1' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.5.4' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.10' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.3.3' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.8' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^6.0.4' }
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0-next.3' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0-next.10' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0-next.4' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0-next.6' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0-next.6' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0-next.8' }
 ] as const;
 
 const options = defineAddonOptions()
