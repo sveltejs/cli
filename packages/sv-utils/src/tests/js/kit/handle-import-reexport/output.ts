@@ -1,4 +1,4 @@
-import { sequence, type Handle } from '@sveltejs/kit/hooks';
+import { type Handle, sequence } from '@sveltejs/kit/hooks';
 import { handleExisting } from '#lib/auth.server';
 import { i18n } from '#lib/i18n';
 

@@ -1,7 +1,7 @@
-import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
 import { auth } from '#lib/server/auth.ts';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
+import { type Handle, sequence } from '@sveltejs/kit/hooks';
 import { getTextDirection } from '#lib/paraglide/runtime.js';
 import { paraglideMiddleware } from '#lib/paraglide/server.js';
 
