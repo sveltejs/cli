@@ -34,11 +34,18 @@ import kit3 from '../migrate/migrations/sveltekit-3/index.ts';
 const migrations = [kit3, appState, ...legacyMigrations] as const;
 const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 
+export function normalizeTasksOption(tasks: string[] | true | undefined) {
+	return tasks === true ? [] : tasks;
+}
+
 const OptionsSchema = v.strictObject({
 	cwd: v.optional(v.string(), './'),
 	files: v.optional(v.string()),
 	gitCheck: v.boolean(),
-	tasks: v.optional(v.array(v.string())),
+	tasks: v.pipe(
+		v.optional(v.union([v.array(v.string()), v.literal(true)])),
+		v.transform(normalizeTasksOption)
+	),
 	confirm: v.optional(v.boolean(), false),
 	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true)
 });
@@ -53,7 +60,10 @@ export const migrate = new Command('migrate')
 		'only run the migration on a subset of files matching the provided glob pattern'
 	)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
-	.option('--tasks <task...>', 'migration tasks to run')
+	.option(
+		'--tasks [task...]',
+		'migration tasks to run. Omit list of tasks to show available tasks. Use `--task all` to run all migration tasks.'
+	)
 	.option('--confirm', 'skip the final confirmation prompt')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
@@ -79,8 +89,10 @@ export const migrate = new Command('migrate')
 			if (!pkg) return;
 
 			// verifications
-			const verifications = [...verifyCleanWorkingDirectory(options.cwd, options.gitCheck)];
-			await common.runAndValidateVerifications(verifications);
+			if (verifiedOptions.tasks?.length !== 0) {
+				const verifications = [...verifyCleanWorkingDirectory(options.cwd, options.gitCheck)];
+				await common.runAndValidateVerifications(verifications);
+			}
 
 			if (!verifiedMigrationName) {
 				verifiedMigrationName = await p.select({
@@ -104,8 +116,19 @@ export const migrate = new Command('migrate')
 				return;
 			}
 			const legacyMigration = migration.legacy ?? false;
-			if (legacyMigration && verifiedOptions.tasks) {
+			if (legacyMigration && verifiedOptions.tasks !== undefined) {
 				common.errorAndExit(`The migration ${migration.id} does not support task selection.`);
+				return;
+			}
+			if (verifiedOptions.tasks?.length === 0) {
+				const allTasks = await collectMigrationTasks(migration, verifiedOptions.cwd);
+				if (allTasks.length === 0) {
+					common.errorAndExit(`Migration "${migration.id}" did not return any tasks.`);
+					return;
+				}
+				p.note(formatAvailableTasks(allTasks), `Available tasks for ${migration.id}`, {
+					format: (line) => line
+				});
 				return;
 			}
 
@@ -181,16 +204,7 @@ async function determineTasks(
 		return;
 	}
 
-	const allTasks: TaskWithOptions[] = [];
-	const collectOptions: MigrationCollectOptions = {
-		cwd: options.cwd,
-		tasks: {
-			add: (task, options) => {
-				allTasks.push({ ...task, ...options });
-			}
-		}
-	};
-	await migration.collect(collectOptions);
+	const allTasks = await collectMigrationTasks(migration, options.cwd);
 
 	if (allTasks.length === 0) {
 		common.errorAndExit(`Migration "${migration.id}" did not return any tasks to run.`);
@@ -199,7 +213,8 @@ async function determineTasks(
 
 	const prerequisiteTasks = allTasks.filter((t) => t.prerequisite);
 	const selectableTasks = allTasks.filter((t) => !t.prerequisite);
-	if (selectableTasks.length > 0) {
+	// Don't show the recommended workflow when the user has already specified which tasks to run
+	if (!options.tasks?.length && selectableTasks.length > 0) {
 		const workflow = [];
 		if (migration.changelog) {
 			workflow.push(
@@ -273,6 +288,29 @@ async function determineTasks(
 	}
 
 	return tasksToRun;
+}
+
+async function collectMigrationTasks(migration: Migration, cwd: string) {
+	const allTasks: TaskWithOptions[] = [];
+	const collectOptions: MigrationCollectOptions = {
+		cwd,
+		tasks: {
+			add: (task, options) => {
+				allTasks.push({ ...task, ...options });
+			}
+		}
+	};
+	await migration.collect(collectOptions);
+	return allTasks;
+}
+
+export function formatAvailableTasks(tasks: TaskWithOptions[]) {
+	return tasks
+		.map(
+			({ id, description, prerequisite }) =>
+				`- ${id}${prerequisite ? color.warning(' (prerequisite)') : ''}: ${color.optional(description)}`
+		)
+		.join('\n');
 }
 
 export function selectTasksFromArgs(selectedTaskIds: string[], selectableTasks: TaskWithOptions[]) {
@@ -366,11 +404,12 @@ async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigr
 	if (!legacyMigration) stop('All tasks applied successfully!');
 
 	if (allUnmodifiedFiles.size > 0) {
+		const skippedFiles = Array.from(allUnmodifiedFiles)
+			.map((file) => `- ${color.path(file)}`)
+			.join('\n');
 		p.note(
-			`The following files were modified by the migration,\nbut their content was not saved:\n- ${Array.from(
-				allUnmodifiedFiles
-			).join('\n- ')}`,
-			'Unmodified files',
+			`Changes to these files were skipped because they did not\nmatch the ${color.command('--files')} filter:\n${skippedFiles}`,
+			color.warning('Skipped changes'),
 			{ format: (line) => line }
 		);
 	}

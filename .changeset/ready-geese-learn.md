@@ -1,5 +1,5 @@
 ---
-"sv": patch
+'sv': patch
 ---
 
-chore: replace `tar-fs` with `modern-tar`
+chore(deps): replace `tar-fs` with `modern-tar`

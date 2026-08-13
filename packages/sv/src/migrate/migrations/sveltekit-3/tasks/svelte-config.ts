@@ -1,6 +1,12 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { svelteConfig, transforms, Walker, type AstTypes, type Comments } from '@sveltejs/sv-utils';
+import {
+	js,
+	parse,
+	svelteConfig,
+	transforms,
+	Walker,
+	type AstTypes,
+	type Comments
+} from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
 
@@ -20,7 +26,7 @@ export default defineMigrationTask({
 		if (!originalConfigObject) return;
 
 		// delete the original config file, so that the we will use the vite config afterwards
-		fs.unlinkSync(path.join(cwd, configSource.path));
+		sv.removeFile(configSource.path);
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, comments }) => {
 			// the original `const config = {...}` declaration and its `export default` are replaced
@@ -197,34 +203,57 @@ export default defineMigrationTask({
 		});
 
 		// other files may import from the now-deleted svelte.config (e.g. eslint.config.js passing
-		// `svelteConfig` to the parser). There's no importable config once it lives in vite.config,
-		// so flag every such import for manual handling.
+		// `svelteConfig` to the parser). Load the migrated config in eslint, and flag other imports
+		// for manual handling.
+		let addedConfigLoader = false;
 		sv.files(
 			{
 				include: '**/*.{js,ts,mjs,mts,cjs,cts}',
 				where: (content) => content.includes('svelte.config')
 			},
 			(content, filePath) => {
-				// eslint no longer needs the config: svelte-eslint-parser falls back to its defaults.
-				// Anything else should read the config at runtime via `@sveltejs/load-config`.
-				const message = /(^|\/)eslint\.config\.[mc]?[jt]s$/.test(filePath)
-					? 'svelteConfig should not be needed anymore, see https://github.com/sveltejs/eslint-plugin-svelte/issues/1550'
-					: "svelte.config was removed; switch to `import { loadConfig } from '@sveltejs/load-config'` to read your config";
+				if (/(^|\/)eslint\.config\.[mc]?[jt]s$/.test(filePath)) {
+					const { ast } = parse.script(content);
+					const configImport = js.imports
+						.findAll(ast, { from: SVELTE_CONFIG_IMPORT })
+						.find((item) => item.kind === 'static');
+					if (configImport?.node.loc) {
+						const start = offsetAt(content, configImport.node.loc.start);
+						const end = offsetAt(content, configImport.node.loc.end);
+						const replacement =
+							"import { loadConfig } from '@sveltejs/load-config';\n\n" +
+							"const svelteConfig = (await loadConfig('./', { traverse: false }))?.config;";
+						addedConfigLoader = true;
+						return content.slice(0, start) + replacement + content.slice(end);
+					}
+				}
 
 				return transforms.script(({ ast, comments, js }) => {
 					const found = js.imports.findAll(ast, { from: SVELTE_CONFIG_IMPORT });
 					if (found.length === 0) return false;
+
 					for (const imp of found) {
-						addMigrationTask(message, { comments, node: imp.node });
+						addMigrationTask(
+							"svelte.config was removed; switch to `import { loadConfig } from '@sveltejs/load-config'` to read your config",
+							{ comments, node: imp.node }
+						);
 					}
 				})(content);
 			}
 		);
+
+		if (addedConfigLoader) sv.devDependency('@sveltejs/load-config', '^0.2.2');
 	}
 });
 
 type Pos = { line: number; column: number };
 const posKey = (p: Pos) => p.line * 1_000_000 + p.column;
+
+function offsetAt(content: string, pos: Pos): number {
+	let offset = 0;
+	for (let line = 1; line < pos.line; line++) offset = content.indexOf('\n', offset) + 1;
+	return offset + pos.column;
+}
 
 type SourceComment = { type: 'Line' | 'Block'; value: string };
 type CommentRecord = { leading: SourceComment[]; trailing: SourceComment[] };

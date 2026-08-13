@@ -1,6 +1,6 @@
 {
 	"name": "@sveltejs/sv-utils",
-	"version": "0.3.3",
+	"version": "1.0.0-next.1",
 	"description": "Utility functions for sv",
 	"keywords": [
 		"sv",
@@ -32,11 +32,11 @@
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.2",
 		"diff": "^9.0.0",
-		"esrap": "^2.2.13",
+		"esrap": "^2.3.3",
 		"package-manager-detector": "^1.8.0",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.6.1",
-		"svelte": "^5.56.7",
+		"svelte": "^5.56.9",
 		"verkit": "^0.2.0",
 		"yaml": "^2.9.0",
 		"zimmerframe": "^1.1.4"

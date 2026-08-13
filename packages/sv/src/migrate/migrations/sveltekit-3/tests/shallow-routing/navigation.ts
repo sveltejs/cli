@@ -12,6 +12,7 @@ declare function getState(): App.PageState;
 declare function cleanup(): void;
 
 pushState('/foo', state);
+pushState('/foo', {});
 replace('/bar', getState());
 goto('/unchanged');
 

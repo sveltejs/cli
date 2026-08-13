@@ -7,7 +7,13 @@ import {
 	getMigrationTaskCount,
 	resetMigrationTaskCount
 } from '../../migrate/migration-task.ts';
-import { hasInstallConflict, selectTasksFromArgs } from '../migrate.ts';
+import {
+	formatAvailableTasks,
+	hasInstallConflict,
+	migrate,
+	normalizeTasksOption,
+	selectTasksFromArgs
+} from '../migrate.ts';
 
 const selectableTasks: TaskWithOptions[] = [
 	{
@@ -32,6 +38,28 @@ function mockExit() {
 
 afterEach(() => {
 	vi.restoreAllMocks();
+});
+
+describe('--tasks option', () => {
+	it('accepts no task values', () => {
+		const option = migrate.options.find((option) => option.long === '--tasks');
+
+		expect(option).toMatchObject({ optional: true, variadic: true });
+		expect(normalizeTasksOption(true)).toEqual([]);
+	});
+
+	it('preserves explicitly selected tasks', () => {
+		expect(normalizeTasksOption(['environment', 'paths'])).toEqual(['environment', 'paths']);
+	});
+
+	it('formats prerequisite and selectable tasks', () => {
+		expect(formatAvailableTasks(selectableTasks)).toBe(
+			'- svelte-config: migrate svelte.config.js\n- env-vars: migrate environment variables'
+		);
+		expect(formatAvailableTasks([{ ...selectableTasks[0], prerequisite: true }])).toContain(
+			'svelte-config (prerequisite)'
+		);
+	});
 });
 
 describe('selectTasks', () => {

@@ -65,6 +65,12 @@ export default defineMigrationTask({
 				const include = (data.include ??= ['src']);
 				include.push(...moved.filter((entry) => !include.includes(entry)));
 
+				// if types is set we need to add $app/types to it
+				if (data.compilerOptions?.types) {
+					const types = data.compilerOptions.types as string[];
+					if (!types.includes('$app/types')) types.push('$app/types');
+				}
+
 				for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
 					if (INHERITED_OPTIONS[key] === value) delete data.compilerOptions![key];
 				}

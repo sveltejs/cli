@@ -42,12 +42,16 @@ export function createCall(options: {
 export function createArrow(options: {
 	body: AstTypes.Expression | AstTypes.BlockStatement;
 	async: boolean;
+	params?: string[];
 }): AstTypes.ArrowFunctionExpression {
 	const arrowFunction: AstTypes.ArrowFunctionExpression = {
 		type: 'ArrowFunctionExpression',
 		async: options.async,
 		body: options.body,
-		params: [],
+		params: (options.params ?? []).map((param) => ({
+			type: 'Identifier',
+			name: param
+		})),
 		expression: options.body.type !== 'BlockStatement'
 	};
 
