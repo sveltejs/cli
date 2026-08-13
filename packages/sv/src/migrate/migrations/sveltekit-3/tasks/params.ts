@@ -107,7 +107,7 @@ export default defineMigrationTask({
 		// non-matcher files may depend on the matchers (e.g. tests), leave the directory to the user
 		if (foreignEntries.length > 0) return;
 
-		for (const file of matcherFiles) fs.unlinkSync(path.join(cwd, file));
+		for (const file of matcherFiles) sv.removeFile(file);
 		if (fs.readdirSync(absoluteParamsDirectory).length === 0) fs.rmdirSync(absoluteParamsDirectory);
 	}
 });
