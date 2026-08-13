@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-Update adapter versions
+fix(addons): update adapter versions
