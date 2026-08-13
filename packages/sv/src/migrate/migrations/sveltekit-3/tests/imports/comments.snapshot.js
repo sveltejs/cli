@@ -1,5 +1,5 @@
 /** @import { Page } from '$app/state'
- * @import { RequestEvent } from '$app/server'
+ * @import { RequestEvent } from '@sveltejs/kit'
  * @import { ActionResult as Result } from '$app/forms'
  * @import { ParamMatcher } from '@sveltejs/kit/params'
  * @import { Handle } from '@sveltejs/kit/hooks'

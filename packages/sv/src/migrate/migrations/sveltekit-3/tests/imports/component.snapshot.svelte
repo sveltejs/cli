@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import type { Page } from '$app/state';
-	import type { RequestEvent } from '$app/server';
+	import type { RequestEvent } from '@sveltejs/kit';
 
 	export type ModuleTypes = [Page, RequestEvent];
 </script>

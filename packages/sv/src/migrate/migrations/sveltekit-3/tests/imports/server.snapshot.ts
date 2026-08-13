@@ -1,4 +1,5 @@
-import type { RequestEvent, InvalidField } from '$app/server';
+import type { RequestEvent } from '@sveltejs/kit';
+import type { InvalidField } from '$app/server';
 
 import type {
 	LiveQueryRequestedResult,
@@ -27,8 +28,8 @@ import type {
 	ValidationError
 } from '@sveltejs/kit/remote';
 
+export type { RequestEvent } from '@sveltejs/kit';
 export type { RemoteQuery as Query } from '@sveltejs/kit/remote';
-export type { RequestEvent } from '$app/server';
 
 type Requested = import('@sveltejs/kit/remote').RequestedResult<string, unknown>;
 

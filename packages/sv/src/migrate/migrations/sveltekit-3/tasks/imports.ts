@@ -66,8 +66,6 @@ const MOVED_EXPORTS = new Map<string, string>([
 	['RequestedResult', '@sveltejs/kit/remote'],
 	['QueryRequestedResult', '@sveltejs/kit/remote'],
 	['LiveQueryRequestedResult', '@sveltejs/kit/remote'],
-	['RequestEvent', '$app/server'],
-	['Cookies', '$app/server'],
 	['Reroute', '@sveltejs/kit/hooks'],
 	['ResolveOptions', '@sveltejs/kit/hooks'],
 	['ServerInit', '@sveltejs/kit/hooks'],

@@ -21,13 +21,13 @@ import type {
 
 import type { DefinedEnvVars, EnvVarConfig } from '@sveltejs/kit/env';
 
+export type { RequestEvent } from '@sveltejs/kit';
 export type { Page } from '$app/state';
 export type { NavigationTarget } from '$app/navigation';
 export type { ActionResult as Result } from '$app/forms';
 export type { ParamDefinition } from '@sveltejs/kit/params';
 export type { Handle as Hook } from '@sveltejs/kit/hooks';
 export type { EnvVarConfig as VariableConfig } from '@sveltejs/kit/env';
-export type { RequestEvent } from '$app/server';
 
 type NavigationOptions = import('$app/navigation').GotoOptions;
 type URLSearchParams = import('$app/state').ReadonlyURLSearchParams;
