@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 1.0.0-next.1
+### Patch Changes
+
+
+- chore(migrate): bump `svelte` and `esrap` ([#1259](https://github.com/sveltejs/cli/pull/1259))
+
 ## 1.0.0-next.0
 ### Major Changes
 

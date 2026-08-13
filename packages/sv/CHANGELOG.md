@@ -1,5 +1,26 @@
 # sv
 
+## 1.0.0-next.1
+### Patch Changes
+
+
+- chore(migrate): bump `svelte` and `esrap` ([#1259](https://github.com/sveltejs/cli/pull/1259))
+
+
+- fix(create): add explicit file endings ([#1255](https://github.com/sveltejs/cli/pull/1255))
+
+
+- chore(cli): sv.removeFile ([#1238](https://github.com/sveltejs/cli/pull/1238))
+
+
+- fix(addons): update adapter versions ([#1258](https://github.com/sveltejs/cli/pull/1258))
+
+
+- fix(migrate): various tweaks ([#1255](https://github.com/sveltejs/cli/pull/1255))
+
+- Updated dependencies [[`c632951`](https://github.com/sveltejs/cli/commit/c632951e452630591ddc3cc9ad9545e8172322e1)]:
+  - @sveltejs/sv-utils@1.0.0-next.1
+
 ## 1.0.0-next.0
 ### Major Changes
 
