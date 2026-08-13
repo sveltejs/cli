@@ -8,6 +8,7 @@ import {
 	pnpm,
 	svelteConfig
 } from '@sveltejs/sv-utils';
+import pkg from '../../package.json' with { type: 'json' };
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const adapters = [
@@ -73,7 +74,7 @@ export default defineAddon({
 			})
 		);
 
-		sv.devDependency(adapter.package, adapter.version);
+		sv.devDependency(adapter.package, pkg.version.includes('-next.') ? 'next' : adapter.version);
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
 			// finds any existing adapter's import declaration

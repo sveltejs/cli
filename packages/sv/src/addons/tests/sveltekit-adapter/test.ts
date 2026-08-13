@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect } from 'vitest';
+import pkg from '../../../../package.json' with { type: 'json' };
 import sveltekitAdapter from '../../sveltekit-adapter.ts';
 import { setupTest } from '../_setup/suite.ts';
 
@@ -27,6 +28,16 @@ const { test, testCases } = setupTest(
 
 test.concurrent.for(testCases)('adapter $kind.type $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
+	const packageJson = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8'));
+	const adapterPackage = Object.keys(packageJson.devDependencies).find((dependency) =>
+		dependency.startsWith('@sveltejs/adapter-')
+	);
+	expect(adapterPackage).toBeDefined();
+	if (pkg.version.includes('-next.')) {
+		expect(packageJson.devDependencies[adapterPackage!]).toBe('next');
+	} else {
+		expect(packageJson.devDependencies[adapterPackage!]).not.toBe('next');
+	}
 
 	// config lives in vite.config.ts (ts) or vite.config.js (js)
 	const viteConfig = ['vite.config.ts', 'vite.config.js']
