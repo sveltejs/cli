@@ -4,6 +4,6 @@
  * @import { ParamMatcher } from '@sveltejs/kit/params'
  * @import { Handle } from '@sveltejs/kit/hooks'
  * @import { EnvVarConfig } from '@sveltejs/kit/env'
- * @import { RemoteForm } from '@sveltejs/kit/remote' */
+ * @import { RemoteForm } from '$app/server' */
 /** @type {Page} */
 export const page = {};
