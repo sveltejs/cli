@@ -60,14 +60,16 @@ const MOVED_EXPORTS = new Map<string, string>([
 	['RemoteQueryUpdate', '$app/server'],
 	['RemoteResource', '$app/server'],
 	['RequestedEntry', '$app/server'],
+	['LiveRequestedEntry', '$app/server'],
 	['RequestedResult', '$app/server'],
+	['QueryRequestedResult', '$app/server'],
+	['LiveQueryRequestedResult', '$app/server'],
 	['Reroute', '@sveltejs/kit/hooks'],
 	['ResolveOptions', '@sveltejs/kit/hooks'],
 	['ServerInit', '@sveltejs/kit/hooks'],
 	['SubmitFunction', '$app/forms'],
 	['Transport', '@sveltejs/kit/hooks'],
 	['Transporter', '@sveltejs/kit/hooks'],
-	['ValidationError', '$app/server'],
 	['defineParams', '@sveltejs/kit/params']
 ]);
 

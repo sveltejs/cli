@@ -108,7 +108,7 @@ test('detect dependencies from playground files', () => {
 				import Component from './Component.svelte';
 				import { page } from '$app/stores';
 				import { browser } from '$app/env';
-				import utils from '#lib/utils';
+				import utils from '#lib/utils.js';
 			</script>`
 		},
 		{
@@ -117,7 +117,7 @@ test('detect dependencies from playground files', () => {
 				import lodash from 'lodash@1.0.0';
 				import './local-file.js';
 				import fs from 'node:fs';
-				import { someUtil } from '#lib/utils';
+				import { someUtil } from '#lib/utils.js';
 				import kit from '@sveltejs/kit';
 			`
 		}

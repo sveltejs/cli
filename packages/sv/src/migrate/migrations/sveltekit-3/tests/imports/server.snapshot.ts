@@ -1,4 +1,4 @@
-import type { RequestEvent } from '@sveltejs/kit';
+import type { RequestEvent, ValidationError } from '@sveltejs/kit';
 
 import type {
 	InvalidField,
@@ -24,8 +24,7 @@ import type {
 	RemoteQueryUpdate,
 	RemoteResource,
 	RequestedEntry,
-	RequestedResult,
-	ValidationError
+	RequestedResult
 } from '$app/server';
 
 export type { RequestEvent } from '@sveltejs/kit';
@@ -33,7 +32,7 @@ export type { RemoteQuery as Query } from '$app/server';
 
 type Requested = import('$app/server').RequestedResult<string, unknown>;
 
-/** @type {import('$app/server').ValidationError | null} */
+/** @type {import('@sveltejs/kit').ValidationError | null} */
 export const validationError = null;
 
 export type { RemoteForm, Requested };
