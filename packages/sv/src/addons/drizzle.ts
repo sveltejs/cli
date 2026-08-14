@@ -124,7 +124,7 @@ export default defineAddon({
 		if (options.sqlite === 'better-sqlite3') {
 			// not a devDependency due to bundling issues
 			sv.dependency('better-sqlite3', '^13.0.2');
-			sv.devDependency('@types/better-sqlite3', '^7.6.13');
+			sv.devDependency('@types/better-sqlite3', '^9.6.0');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
