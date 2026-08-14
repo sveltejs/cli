@@ -1,5 +1,23 @@
 # sv
 
+## 1.0.0-next.2
+### Patch Changes
+
+
+- fix(migrate): ignore root paths when removing leading forward slash ([#1269](https://github.com/sveltejs/cli/pull/1269))
+
+
+- fix: ignore unknown style languages when parsing Svelte code ([#1265](https://github.com/sveltejs/cli/pull/1265))
+
+
+- fix: transform `$lib` to relative path in style tags ([#1266](https://github.com/sveltejs/cli/pull/1266))
+
+
+- fix(migrate): handle overlapping comments while merging ([#1264](https://github.com/sveltejs/cli/pull/1264))
+
+- Updated dependencies [[`cc986e5`](https://github.com/sveltejs/cli/commit/cc986e5cc7079815ca2b1ab4b788d44192a83653)]:
+  - @sveltejs/sv-utils@1.0.0-next.2
+
 ## 1.0.0-next.1
 ### Patch Changes
 
