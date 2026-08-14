@@ -1,3 +1,4 @@
+import dedent from 'dedent';
 import { describe, expect, it } from 'vitest';
 import { transforms } from '../tooling/transforms.ts';
 
@@ -95,7 +96,7 @@ describe('transforms', () => {
 			expect(result).toContain('world');
 		});
 
-		it('abort: returns fals if transform is cacelled', () => {
+		it('abort: returns false if transform is cancelled', () => {
 			const input = '<p>hello</p>';
 			expect(transforms.svelte(() => false)(input)).toBe(false);
 		});
