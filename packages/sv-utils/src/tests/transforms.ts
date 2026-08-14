@@ -99,6 +99,41 @@ describe('transforms', () => {
 			const input = '<p>hello</p>';
 			expect(transforms.svelte(() => false)(input)).toBe(false);
 		});
+
+		it('handle inline comment in transforms.script', () => {
+			const input = `const foo = {
+	bar: { // inline comment
+		baz: 1;
+	}
+};`;
+			let caught = false;
+			const result = transforms.script(() => {}, {
+				onError: () => {
+					caught = true;
+				}
+			})(input);
+			expect(result).toBe(input);
+			expect(caught).toBe(false);
+		});
+
+		it('handle inline comment in transforms.svelte', () => {
+			const input = dedent`
+				<style>
+					.foo { // inline comment
+						color: red; // inline comment
+					}
+				</style>
+
+			`;
+			let caught = false;
+			const result = transforms.svelte(() => {}, {
+				onError: () => {
+					caught = true;
+				}
+			})(input);
+			expect(result).toBe(input);
+			expect(caught).toBe(false);
+		});
 	});
 
 	describe('css', () => {
