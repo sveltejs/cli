@@ -27,7 +27,10 @@ export default defineMigrationTask({
 				where: (content) => content.includes('$lib')
 			},
 			(content, file) => {
-				let styleLibPath = path.posix.relative(path.posix.dirname(file), directory.lib);
+				let styleLibPath = path.posix.relative(
+					path.posix.dirname(file.replaceAll('\\', '/')),
+					directory.lib.replaceAll('\\', '/')
+				);
 				if (!styleLibPath.startsWith('.')) styleLibPath = `./${styleLibPath}`;
 
 				const rewritten = content
