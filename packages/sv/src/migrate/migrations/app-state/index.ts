@@ -8,9 +8,9 @@ export default defineMigration({
 	setup: ({ pkg }) => {
 		const kitPackageName = '@sveltejs/kit';
 
-		if (!pkg.devDependencies?.[kitPackageName])
+		if (!pkg.devDependencies?.[kitPackageName] && !pkg.dependencies?.[kitPackageName])
 			throw new Error(
-				`${color.command(kitPackageName)} is not a devDependency in package.json - this doesn't look like a SvelteKit project.\n` +
+				`${color.command(kitPackageName)} is not in package.json - this doesn't look like a SvelteKit project.\n` +
 					`Point to one with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
 			);
 	},

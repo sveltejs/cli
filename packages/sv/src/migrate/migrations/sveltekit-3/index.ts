@@ -20,13 +20,14 @@ export default defineMigration({
 	setup: ({ pkg, requires }) => {
 		const kitPackageName = '@sveltejs/kit';
 
-		if (!pkg.devDependencies?.[kitPackageName])
+		const kitDep = pkg.devDependencies?.[kitPackageName] ?? pkg.dependencies?.[kitPackageName];
+		if (!kitDep)
 			throw new Error(
-				`${color.command(kitPackageName)} is not a devDependency in package.json - this doesn't look like a SvelteKit project.\n` +
+				`${color.command(kitPackageName)} is not in package.json - this doesn't look like a SvelteKit project.\n` +
 					`Point to one with ${color.command('--cwd <path>')}, or see ${color.command('sv migrate --help')}.`
 			);
 
-		const kitVersion = coerceVersion(pkg.devDependencies[kitPackageName]);
+		const kitVersion = coerceVersion(kitDep);
 		if (kitVersion.major && kitVersion.major < 2) {
 			requires('sveltekit-2');
 		}
