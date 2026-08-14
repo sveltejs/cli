@@ -143,9 +143,7 @@ export default defineAddon({
 				});
 
 				const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
-		// @ts-expect-error it is readonly now
-		event.request = request;
-		return resolve(event, {
+		return resolve({ ...event, request }, {
 			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale).replace('%paraglide.dir%', getTextDirection(locale))
 		});
 	});`;
