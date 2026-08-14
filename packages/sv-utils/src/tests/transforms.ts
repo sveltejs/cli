@@ -95,6 +95,24 @@ describe('transforms', () => {
 			expect(result).toContain('world');
 		});
 
+		it('preserves styles with a lang attribute', () => {
+			const style = '\n\t.foo { color: red; } // SCSS comment\n';
+			const input = `<style lang="scss">${style}</style>\n\n<p>hello</p>`;
+			const result = transforms.svelte(({ ast }) => {
+				const node = ast.fragment.nodes.find((node) => node.type === 'RegularElement');
+				if (node?.type === 'RegularElement') {
+					const textNode = node.fragment.nodes[0];
+					if (textNode.type === 'Text') {
+						textNode.data = 'world';
+					}
+				}
+			})(input);
+
+			expect(result).toMatch(/<style\s+lang="scss"/);
+			expect(result).toContain(style);
+			expect(result).toContain('<p>world</p>');
+		});
+
 		it('abort: returns false if transform is cancelled', () => {
 			const input = '<p>hello</p>';
 			expect(transforms.svelte(() => false)(input)).toBe(false);
