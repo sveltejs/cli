@@ -57,6 +57,10 @@ const addOption = new Option(
 	'--add <addon...>',
 	'add-ons to include (see Add-Ons section below)'
 ).default([]);
+const addonNameOption = new Option(
+	'--addon-name <name>',
+	'name for the addon package (e.g. @<org>, @<org>/<pkg>, or <pkg>)'
+);
 export const noDownloadCheckOption = new Option(
 	'--no-download-check',
 	'skip all download confirmation prompts'
@@ -75,7 +79,8 @@ const OptionsSchema = v.strictObject({
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
 	dirCheck: v.boolean(),
-	downloadCheck: v.boolean()
+	downloadCheck: v.boolean(),
+	addonName: v.optional(v.string())
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -88,6 +93,7 @@ export const create = new Command('create')
 	.option('--no-types')
 	.addOption(noAddonsOption)
 	.addOption(addOption)
+	.addOption(addonNameOption)
 	.addOption(noInstallOption)
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
@@ -279,8 +285,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			);
 		}
 
-		const namePrompt = await p.text({
-			message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>')}, ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
+		const namePrompt = options.addonName ?? await p.text({
+			message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
 			initialValue: projectName,
 			validate: v.pipe(v.string(), v.nonEmpty())
 		});
@@ -289,8 +295,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			process.exit(0);
 		}
 
-		const isScopeOnly = namePrompt.startsWith('@') && !namePrompt.includes('/');
-		projectName = isScopeOnly ? `${namePrompt}/${basename}` : namePrompt;
+		projectName = namePrompt;
 	}
 
 	let loadedAddons: LoadedAddon[] = [];
