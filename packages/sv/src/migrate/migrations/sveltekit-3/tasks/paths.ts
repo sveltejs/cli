@@ -387,6 +387,7 @@ function withoutLeadingSlash(expression: AstTypes.Expression): AstTypes.Expressi
 function removeStaticLeadingSlash(expression: AstTypes.Expression): boolean {
 	if (expression.type === 'Literal' && typeof expression.value === 'string') {
 		if (!expression.value.startsWith('/')) return false;
+		if (expression.value === '/') return false;
 		expression.value = expression.value.slice(1);
 		expression.raw = undefined;
 		return true;
@@ -395,6 +396,7 @@ function removeStaticLeadingSlash(expression: AstTypes.Expression): boolean {
 	if (expression.type === 'TemplateLiteral') {
 		const quasi = expression.quasis[0];
 		if (!quasi?.value.raw.startsWith('/')) return false;
+		if (quasi.value.raw === '/') return false;
 		quasi.value.raw = quasi.value.raw.slice(1);
 		if (quasi.value.cooked !== undefined && quasi.value.cooked !== null) {
 			quasi.value.cooked = quasi.value.cooked.slice(1);
