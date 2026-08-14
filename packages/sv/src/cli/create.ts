@@ -59,7 +59,7 @@ const addOption = new Option(
 ).default([]);
 const addonNameOption = new Option(
 	'--addon-name <name>',
-	'name for the addon package (e.g. @<org>, @<org>/<pkg>, or <pkg>)'
+	'name for the addon package (e.g. @<org>/<pkg> or <pkg>)'
 );
 export const noDownloadCheckOption = new Option(
 	'--no-download-check',
