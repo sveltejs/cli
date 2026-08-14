@@ -1,5 +1,5 @@
 {
-	"extends": "$app/tsconfig.json",
+	"extends": "$app/tsconfig",
 	"compilerOptions": {
 		"sourceMap": true,
 		"strict": true,

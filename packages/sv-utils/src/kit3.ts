@@ -13,11 +13,6 @@ export function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib' 
 	return isKit3(kitRange) ? '#lib' : '$lib';
 }
 
-/** The `package.json#imports` entries backing `#lib`. `libDir` is workspace-relative, e.g. `src/lib`. */
-export function libSubpathImports(libDir: string): Record<string, string> {
-	return { '#lib': `./${libDir}/index.js`, '#lib/*': `./${libDir}/*` };
-}
-
 /** The config kit 3 generates into `node_modules`, replacing `.svelte-kit/tsconfig.json`. */
 export const KIT3_TSCONFIG = '$app/tsconfig';
 

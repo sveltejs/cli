@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { setLocale } from '#lib/paraglide/runtime';
+	import { setLocale } from '#lib/paraglide/runtime.js';
 	import { m } from '#lib/paraglide/messages.js';
 </script>
 

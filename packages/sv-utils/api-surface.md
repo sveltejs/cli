@@ -143,6 +143,9 @@ declare module 'estree' {
 	interface ImportDeclaration {
 		importKind: 'type' | 'value';
 	}
+	interface ImportSpecifier {
+		importKind?: 'type' | 'value';
+	}
 }
 type CommentType = {
 	type: 'Line' | 'Block';
@@ -411,6 +414,7 @@ declare function createCall(options: {
 declare function createArrow(options: {
 	body: estree.Expression | estree.BlockStatement;
 	async: boolean;
+	params?: string[];
 }): estree.ArrowFunctionExpression;
 declare function getArgument<T extends estree.Expression>(
 	node: estree.CallExpression,
@@ -964,8 +968,6 @@ declare function isKit3(kitRange: string | undefined): boolean;
 
 declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
 
-declare function libSubpathImports(libDir: string): Record<string, string>;
-
 declare const KIT3_TSCONFIG = '$app/tsconfig';
 
 declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
@@ -1026,7 +1028,6 @@ export {
 	isVersionUnsupportedBelow,
 	index_d_exports$3 as js,
 	json_d_exports as json,
-	libSubpathImports,
 	loadFile,
 	loadPackageJson,
 	minVersion,

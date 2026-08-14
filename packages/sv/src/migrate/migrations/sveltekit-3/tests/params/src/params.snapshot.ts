@@ -1,4 +1,4 @@
-import { defineParams } from '@sveltejs/kit';
+import { defineParams } from '@sveltejs/kit/params';
 import { fruits } from './lib/fruits.js';
 
 const allowed = new Set(fruits);

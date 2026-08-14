@@ -2,4 +2,4 @@
 'sv': major
 ---
 
-feat(migrate): `sveltekit-3` migration
+breaking(migrate): move migrations into `sv`, add task-based `sveltekit-3` and `$app/state` migrations, and delegate unmaintained legacy migrations to `svelte-migrate@1`

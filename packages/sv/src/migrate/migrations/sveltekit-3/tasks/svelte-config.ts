@@ -1,6 +1,12 @@
-import { svelteConfig, transforms, Walker, type AstTypes, type Comments } from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
+import {
+	js,
+	parse,
+	svelteConfig,
+	transforms,
+	Walker,
+	type AstTypes,
+	type Comments
+} from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
 
@@ -20,7 +26,7 @@ export default defineMigrationTask({
 		if (!originalConfigObject) return;
 
 		// delete the original config file, so that the we will use the vite config afterwards
-		fs.unlinkSync(path.join(cwd, configSource.path));
+		sv.removeFile(configSource.path);
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, comments }) => {
 			// the original `const config = {...}` declaration and its `export default` are replaced
@@ -63,7 +69,7 @@ export default defineMigrationTask({
 				...originalConfigObject.config.properties,
 				...originalConfigObject.kit.properties
 			];
-			const keyedConfig: Record<string, any> = [];
+			const keyedConfig: Record<string, AstTypes.Node> = {};
 			let trustsAllOrigins = false;
 
 			for (const prop of newConfigProperties) {
@@ -72,12 +78,66 @@ export default defineMigrationTask({
 				if (prop.key.name === 'kit') continue;
 
 				const propAttachment = attachments.get(prop);
+				keyedConfig[prop.key.name] = prop.value;
+				if (propAttachment) propComments.set(prop.key.name, propAttachment);
+			}
+
+			for (const [key, value] of Object.entries(keyedConfig)) {
+				// Rendering error boundaries are always enabled in SvelteKit 3, and the old opt-in
+				// is rejected by its config validation. Drop it instead of moving it to vite.config.
+				// Tracing is also no longer experimental.
+				if (key === 'experimental' && value.type === 'ObjectExpression') {
+					removeProperty(value, 'handleRenderingErrors');
+					removeProperty(value, 'instrumentation');
+
+					const index = value.properties.findIndex(
+						(prop) =>
+							prop.type === 'Property' &&
+							prop.key.type === 'Identifier' &&
+							prop.key.name === 'tracing'
+					);
+					if (index !== -1) {
+						keyedConfig.tracing = (value.properties[index] as AstTypes.Property).value;
+						value.properties.splice(index, 1);
+					}
+				}
+
+				// prerender.origin is removed in favor of paths.origin
+				if (key === 'prerender' && value.type === 'ObjectExpression') {
+					const originProp = value.properties.find(
+						(prop): prop is AstTypes.Property & { key: AstTypes.Identifier } =>
+							prop.type === 'Property' &&
+							prop.key.type === 'Identifier' &&
+							prop.key.name === 'origin'
+					);
+					if (originProp) {
+						// prerender may come before paths and may be merged so we need to ensure the current object first
+						keyedConfig.paths ??= {
+							type: 'ObjectExpression',
+							properties: []
+						};
+						(keyedConfig.paths as AstTypes.ObjectExpression).properties.push({
+							type: 'Property',
+							key: { type: 'Identifier', name: 'origin' },
+							value: originProp.value,
+							kind: 'init',
+							method: false,
+							shorthand: false,
+							computed: false
+						});
+						removeProperty(value, 'origin');
+						if (value.properties.length === 0) {
+							// drop the empty prerender object entirely
+							delete keyedConfig.prerender;
+						}
+					}
+				}
 
 				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now
 				// `csrf: { trustedOrigins: ['*'] }`. Rewrite the property in place so any sibling
 				// `csrf` options are preserved and `trustedOrigins` stays nested under `csrf`.
-				if (prop.key.name === 'csrf' && prop.value.type === 'ObjectExpression') {
-					const checkOrigin = findDisabledCheckOrigin(prop.value);
+				if (key === 'csrf' && value.type === 'ObjectExpression') {
+					const checkOrigin = findDisabledCheckOrigin(value);
 					if (checkOrigin) {
 						checkOrigin.key.name = 'trustedOrigins';
 						checkOrigin.value = {
@@ -87,10 +147,10 @@ export default defineMigrationTask({
 						trustsAllOrigins = true;
 					}
 				}
-
-				keyedConfig[prop.key.name] = prop.value;
-				if (propAttachment) propComments.set(prop.key.name, propAttachment);
 			}
+
+			// preloadStrategy is removed
+			delete keyedConfig.preloadStrategy;
 
 			override(keyedConfig);
 
@@ -143,34 +203,57 @@ export default defineMigrationTask({
 		});
 
 		// other files may import from the now-deleted svelte.config (e.g. eslint.config.js passing
-		// `svelteConfig` to the parser). There's no importable config once it lives in vite.config,
-		// so flag every such import for manual handling.
+		// `svelteConfig` to the parser). Load the migrated config in eslint, and flag other imports
+		// for manual handling.
+		let addedConfigLoader = false;
 		sv.files(
 			{
 				include: '**/*.{js,ts,mjs,mts,cjs,cts}',
 				where: (content) => content.includes('svelte.config')
 			},
 			(content, filePath) => {
-				// eslint no longer needs the config: svelte-eslint-parser falls back to its defaults.
-				// Anything else should read the config at runtime via `@sveltejs/load-config`.
-				const message = /(^|\/)eslint\.config\.[mc]?[jt]s$/.test(filePath)
-					? 'svelteConfig should not be needed anymore, see https://github.com/sveltejs/eslint-plugin-svelte/issues/1550'
-					: "svelte.config was removed; switch to `import { loadConfig } from '@sveltejs/load-config'` to read your config";
+				if (/(^|\/)eslint\.config\.[mc]?[jt]s$/.test(filePath)) {
+					const { ast } = parse.script(content);
+					const configImport = js.imports
+						.findAll(ast, { from: SVELTE_CONFIG_IMPORT })
+						.find((item) => item.kind === 'static');
+					if (configImport?.node.loc) {
+						const start = offsetAt(content, configImport.node.loc.start);
+						const end = offsetAt(content, configImport.node.loc.end);
+						const replacement =
+							"import { loadConfig } from '@sveltejs/load-config';\n\n" +
+							"const svelteConfig = (await loadConfig('./', { traverse: false }))?.config;";
+						addedConfigLoader = true;
+						return content.slice(0, start) + replacement + content.slice(end);
+					}
+				}
 
 				return transforms.script(({ ast, comments, js }) => {
 					const found = js.imports.findAll(ast, { from: SVELTE_CONFIG_IMPORT });
 					if (found.length === 0) return false;
+
 					for (const imp of found) {
-						addMigrationTask(message, { comments, node: imp.node });
+						addMigrationTask(
+							"svelte.config was removed; switch to `import { loadConfig } from '@sveltejs/load-config'` to read your config",
+							{ comments, node: imp.node }
+						);
 					}
 				})(content);
 			}
 		);
+
+		if (addedConfigLoader) sv.devDependency('@sveltejs/load-config', '^0.2.2');
 	}
 });
 
 type Pos = { line: number; column: number };
 const posKey = (p: Pos) => p.line * 1_000_000 + p.column;
+
+function offsetAt(content: string, pos: Pos): number {
+	let offset = 0;
+	for (let line = 1; line < pos.line; line++) offset = content.indexOf('\n', offset) + 1;
+	return offset + pos.column;
+}
 
 type SourceComment = { type: 'Line' | 'Block'; value: string };
 type CommentRecord = { leading: SourceComment[]; trailing: SourceComment[] };
@@ -188,6 +271,14 @@ function forEachNode(root: unknown, visit: (node: AstTypes.Node) => void): void 
 		if (key === 'loc' || key === 'range' || key === 'parent') continue;
 		forEachNode(node[key], visit);
 	}
+}
+
+/** Removes a statically named property from an object literal. */
+function removeProperty(value: AstTypes.ObjectExpression, name: string): void {
+	const index = value.properties.findIndex(
+		(prop) => prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === name
+	);
+	if (index !== -1) value.properties.splice(index, 1);
 }
 
 /**
