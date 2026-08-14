@@ -285,11 +285,13 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			);
 		}
 
-		const namePrompt = options.addonName ?? await p.text({
-			message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
-			initialValue: projectName,
-			validate: v.pipe(v.string(), v.nonEmpty())
-		});
+		const namePrompt =
+			options.addonName ??
+			(await p.text({
+				message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
+				initialValue: projectName,
+				validate: v.pipe(v.string(), v.nonEmpty())
+			}));
 		if (p.isCancel(namePrompt)) {
 			p.cancel('Operation cancelled.');
 			process.exit(0);
