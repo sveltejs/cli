@@ -113,7 +113,7 @@ describe('transforms', () => {
 			expect(result).toContain('<p>world</p>');
 		});
 
-		it('abort: returns fals if transform is cacelled', () => {
+		it('abort: returns false if transform is cancelled', () => {
 			const input = '<p>hello</p>';
 			expect(transforms.svelte(() => false)(input)).toBe(false);
 		});
