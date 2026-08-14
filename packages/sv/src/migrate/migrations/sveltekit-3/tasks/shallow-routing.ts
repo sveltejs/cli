@@ -170,7 +170,7 @@ function gotoOptions(
 	return js.object.create({
 		shallow: js.common.createLiteral(true),
 		replace: replace ? js.common.createLiteral(true) : undefined,
-		state
+		state: state?.type === 'ObjectExpression' && state.properties.length === 0 ? undefined : state
 	});
 }
 

@@ -117,6 +117,7 @@ type SvApi = {
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 
 	file: (path: string, edit: FileEdit) => void;
+	removeFile: (path: string) => void;
 
 	files: (
 		options: {

@@ -293,7 +293,7 @@ function editFile(
 		const editedContent = edit(content);
 		if (editedContent === '' || editedContent === false) return;
 
-		if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) {
+		if (!matchesFilesFilter(file, options)) {
 			unmodifiedFiles.add(file);
 			return;
 		}
@@ -316,6 +316,10 @@ type PrepareSvApiOptions = {
 	additionalExcludes?: string[] | undefined;
 };
 
+function matchesFilesFilter(file: string, options: PrepareSvApiOptions) {
+	return !options.filesFilter || path.matchesGlob(file, options.filesFilter);
+}
+
 export function prepareSvApi(
 	workspace: Workspace,
 	options: PrepareSvApiOptions = {
@@ -332,6 +336,14 @@ export function prepareSvApi(
 	const sv: SvApi = {
 		file: (path, edit) => {
 			editFile(path, edit, workspace, modifiedFiles, unmodifiedFiles, options);
+		},
+		removeFile: (file) => {
+			if (!matchesFilesFilter(file, options)) {
+				unmodifiedFiles.add(file);
+				return;
+			}
+
+			fs.unlinkSync(path.resolve(workspace.cwd, file));
 		},
 		files: (opts, edit) => {
 			const { include, exclude } = opts;
@@ -350,7 +362,7 @@ export function prepareSvApi(
 			});
 
 			for (const file of globbedFiles) {
-				if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) continue;
+				if (!matchesFilesFilter(file, options)) continue;
 
 				const singleFileEdit = (content: string) => edit(content, file);
 				editFile(

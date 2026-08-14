@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-chore(addons): rename `experimental` addon’s SvelteKit option to `kit-3-next`
+chore(addons): rename the `experimental` add-on's SvelteKit option to `kit-3-next`

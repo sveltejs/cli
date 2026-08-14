@@ -4,6 +4,7 @@ import appState from '../app-state/tasks/app-state.ts';
 import collectMigrationInstructions from './tasks/collect-migration-instructions.ts';
 import environment from './tasks/environment.ts';
 import externalRedirects from './tasks/external-redirects.ts';
+import imports from './tasks/imports.ts';
 import libAlias from './tasks/lib-alias.ts';
 import packageJson from './tasks/package-json.ts';
 import params from './tasks/params.ts';
@@ -14,7 +15,7 @@ import tsconfig from './tasks/tsconfig.ts';
 
 export default defineMigration({
 	id: 'sveltekit-3',
-	changelog: 'https://github.com/sveltejs/kit/blob/version-3/packages/kit/CHANGELOG.md',
+	changelog: 'https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3',
 	description: 'A set of migrations for SvelteKit 3.0',
 	setup: ({ pkg, requires }) => {
 		const kitPackageName = '@sveltejs/kit';
@@ -42,6 +43,7 @@ export default defineMigration({
 		tasks.add(externalRedirects, { prerequisite: false });
 		tasks.add(shallowRouting, { prerequisite: false });
 		tasks.add(params, { prerequisite: false });
+		tasks.add(imports, { prerequisite: false });
 		tasks.add(libAlias, { prerequisite: false });
 		tasks.add(appState, { prerequisite: false });
 		tasks.add(collectMigrationInstructions, { prerequisite: false });

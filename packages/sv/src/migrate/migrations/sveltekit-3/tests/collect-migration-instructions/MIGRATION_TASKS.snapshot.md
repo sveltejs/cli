@@ -28,11 +28,23 @@ Create a mutable copy with `new URL(page.url.href)`, mutate that copy, and use i
 
 #### References
 
-- [Migrating to SvelteKit v3](https://github.com/sveltejs/kit/blob/24a438d23baa049fcd1d6b4b558634f7054de052/documentation/docs/60-appendix/35-migrating-to-sveltekit-3.md#pageurl-is-now-readonly)
+- [Migrating to SvelteKit v3](https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3#$app-state-page.url-is-now-readonly)
 
 #### Files to review
 
 - [ ] `src/routes/+page.svelte`
+
+### CORS for static assets in development is handled by Vite
+
+SvelteKit no longer sets `access-control-allow-origin: *` on every static asset request in development. CORS is now delegated to Vite's built-in middleware.
+
+#### What to do
+
+If you rely on cross-origin access to static assets in dev, configure it in your Vite config by adding server.cors.origin = "*" to your config.
+
+#### References
+
+- [Migrating to SvelteKit v3](https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3#Security-CORS-for-static-assets-in-development-is-handled-by-Vite)
 
 ## Final verification
 

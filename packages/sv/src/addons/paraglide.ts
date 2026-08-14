@@ -95,7 +95,7 @@ export default defineAddon({
 			`src/hooks.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, {
-					from: `${lib}/paraglide/runtime`,
+					from: `${lib}/paraglide/runtime.js`,
 					imports: ['deLocalizeUrl']
 				});
 
@@ -118,13 +118,13 @@ export default defineAddon({
 
 				if (language === 'ts') {
 					js.imports.addNamed(ast, {
-						from: '@sveltejs/kit',
+						from: '@sveltejs/kit/hooks',
 						imports: ['Reroute'],
 						isType: true
 					});
 				} else {
 					js.common.addJsDocTypeComment(existingExport, comments, {
-						type: "import('@sveltejs/kit').Reroute"
+						type: "import('@sveltejs/kit/hooks').Reroute"
 					});
 				}
 			})
@@ -135,11 +135,11 @@ export default defineAddon({
 			`src/hooks.server.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, {
-					from: `${lib}/paraglide/server`,
+					from: `${lib}/paraglide/server.js`,
 					imports: ['paraglideMiddleware']
 				});
 				js.imports.addNamed(ast, {
-					from: `${lib}/paraglide/runtime`,
+					from: `${lib}/paraglide/runtime.js`,
 					imports: ['getTextDirection']
 				});
 
@@ -210,7 +210,7 @@ export default defineAddon({
 			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addNamed(ast.instance.content, {
 					imports: ['locales', 'localizeHref'],
-					from: `${lib}/paraglide/runtime`
+					from: `${lib}/paraglide/runtime.js`
 				});
 				js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
 				js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
@@ -251,7 +251,7 @@ export default defineAddon({
 						imports: {
 							setLocale: 'setLocale'
 						},
-						from: `${lib}/paraglide/runtime`
+						from: `${lib}/paraglide/runtime.js`
 					});
 
 					// add localized message
