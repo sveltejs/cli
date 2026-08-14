@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: handle overlapping comments while merging
+fix(migrate): handle overlapping comments while merging
