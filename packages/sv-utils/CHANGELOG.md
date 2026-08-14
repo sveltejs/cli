@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 1.0.0-next.2
+### Patch Changes
+
+
+- fix: ignore unknown style languages when parsing Svelte code ([#1265](https://github.com/sveltejs/cli/pull/1265))
+
 ## 1.0.0-next.1
 ### Patch Changes
 
