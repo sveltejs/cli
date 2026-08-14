@@ -376,9 +376,9 @@ export function prepareSvApi(
 			}
 		},
 		execute: async (commandArgs, stdio) => {
-			const cmd = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
+			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
 
-			const executedCommand = [cmd, ...commandArgs].join(' ');
+			const executedCommand = [command, ...args].join(' ');
 			if (!TESTING) {
 				p.log.step(
 					`${options?.executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
@@ -386,21 +386,21 @@ export function prepareSvApi(
 			}
 
 			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') cmd.args.unshift('--yes');
+			if (workspace.packageManager === 'npm') args.unshift('--yes');
 
 			try {
-				await exec(cmd.command, cmd.args, {
+				await exec(command, args, {
 					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
 					throwOnError: true
 				});
-			} catch (e) {
+			} catch (error) {
 				let msg;
-				if (e instanceof NonZeroExitError || e instanceof Error) {
-					msg = `Failed to execute scripts '${executedCommand}': ${e.message}`;
+				if (error instanceof NonZeroExitError || error instanceof Error) {
+					msg = `Failed to execute scripts '${executedCommand}': ${error.message}`;
 				} else {
 					msg = 'unknown error';
 				}
-				throw new Error(msg, { cause: e });
+				throw new Error(msg, { cause: error });
 			}
 		},
 		dependency: (pkg, version) => {
