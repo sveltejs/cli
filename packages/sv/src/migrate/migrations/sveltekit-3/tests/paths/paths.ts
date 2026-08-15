@@ -6,6 +6,7 @@ declare const routeId: RouteId;
 declare const pathname: Pathname;
 declare const assetPath: Asset;
 
+export const root = resolve('/');
 export const blog = base + route('/blog/[slug]', { slug });
 export const tplRoute = `${base}${route('/blog/[slug]', { slug })}`;
 export const tplRouteSuffix = `${base}${route('/blog/[slug]', { slug })}#comments`;

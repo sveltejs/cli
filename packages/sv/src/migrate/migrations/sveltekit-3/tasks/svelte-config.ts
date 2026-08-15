@@ -29,6 +29,11 @@ export default defineMigrationTask({
 		sv.removeFile(configSource.path);
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, comments }) => {
+			// The vite config is about to gain and reorder nodes. Bind its positional comments to
+			// their original nodes first so the printer cannot attach them to a new property.
+			const existingAttachments = collectComments(ast, comments);
+			comments.remove(() => true);
+
 			// the original `const config = {...}` declaration and its `export default` are replaced
 			// by the generated vite config, so identify them to drop them while keeping everything else
 			const configDeclaration = originalConfigObject.ast.body.find(
@@ -181,6 +186,7 @@ export default defineMigrationTask({
 			// by identity wherever they ended up; capture the `sveltekit()` arg in the same pass
 			let rootConfig: AstTypes.ObjectExpression | undefined;
 			forEachNode(ast, (node) => {
+				apply(node, existingAttachments.get(node));
 				apply(node, attachments.get(node));
 				if (
 					node.type === 'CallExpression' &&
