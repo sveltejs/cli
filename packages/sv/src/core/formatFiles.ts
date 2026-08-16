@@ -74,6 +74,7 @@ async function withSpinner(
 	if (error !== undefined) {
 		stop('Failed to format files');
 		p.log.error(error);
+
 		return;
 	}
 	stop('Successfully formatted files');

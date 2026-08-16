@@ -95,6 +95,7 @@ export default defineAddon({
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, {
 					from: `${lib}/paraglide/runtime.js`,
+
 					imports: ['deLocalizeUrl']
 				});
 

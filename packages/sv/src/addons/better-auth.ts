@@ -248,6 +248,7 @@ export default defineAddon({
 						imports: ['createAuth'],
 						from: `${lib}/server/auth.${language}`
 					});
+
 				js.imports.addNamed(ast, {
 					imports: ['User', 'Session'],
 					from: 'better-auth',
@@ -423,6 +424,7 @@ export default defineAddon({
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
 					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
+
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
@@ -512,6 +514,7 @@ export default defineAddon({
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
 					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
+
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {

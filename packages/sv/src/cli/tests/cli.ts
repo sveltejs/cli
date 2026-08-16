@@ -50,6 +50,17 @@ describe('cli', () => {
 			]
 		},
 		{
+			// guards the `kit@next` shape against upstream churn: no snapshot (the point is that it
+			// installs, builds and type-checks, not what it looks like)
+			projectName: 'create-experimental-next',
+			snapshot: false,
+			args: [
+				'--add',
+				'drizzle=database:sqlite+sqlite:libsql',
+				'experimental=versions:kit+features:async,remoteFunctions'
+			]
+		},
+		{
 			projectName: '@my-org/sv',
 			template: 'addon',
 			args: []
