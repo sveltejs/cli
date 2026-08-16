@@ -177,18 +177,15 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 
 ### Package names
 
-Packages must be published under an npm org:
+Any npm package name works:
 
 ```sh
-# ✓ GOOD
 npx sv add @my-org/sv
 npx sv add @my-org/core
-
-# ✗ BAD
 npx sv add my-lib
 ```
 
-If your package is published with the `sv` scope, it can be omitted. The following all resolves to the same package:
+Publishing under an org is recommended, because naming the package `sv` within it lets users install it by typing the org alone. If your package is published with the `sv` scope, it can be omitted. The following all resolves to the same package:
 
 ```sh
 npx sv add @my-org

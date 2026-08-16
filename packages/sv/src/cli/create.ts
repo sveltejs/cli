@@ -273,13 +273,13 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
 	if (template === 'addon' && !projectName.startsWith('@')) {
-		// At this stage, we don't support un-scoped add-ons
-		// FYI: a demo exists for `npx sv add my-cool-addon`
+		// publishing as `@my-org/sv` is what lets users install with just `sv add @my-org`
 		const org = await p.text({
-			message: `Community add-ons must be published under an npm org. Enter the name of your npm org:`,
+			message: `npm org for your add-on? Leave empty to publish as ${color.command(basename)}:`,
 			placeholder: '  @my-org',
+			defaultValue: '',
 			validate: (value) => {
-				if (!value) return 'Organization name is required';
+				if (!value) return;
 				if (!value.startsWith('@')) return 'Must start with @';
 				if (value.includes('/')) return 'Just the org, not the full package name';
 			}
@@ -288,7 +288,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			p.cancel('Operation cancelled.');
 			process.exit(0);
 		}
-		projectName = `${org}/${basename}`;
+		if (org) projectName = `${org}/${basename}`;
 	}
 
 	if (template === 'addon' && options.add.length > 0) {
