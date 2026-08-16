@@ -278,7 +278,7 @@ export function errorAndExit(message: string) {
 	const [firstLine, ...restLines] = message.split('\n');
 
 	p.log.error(firstLine);
-	// Fixes issue where the first line of the error message is not the same color as the rest of the lines
+	// detail lines are dimmed so the first line reads as the headline
 	for (const line of restLines) {
 		p.log.message(color.optional(line), { spacing: 0 });
 	}
