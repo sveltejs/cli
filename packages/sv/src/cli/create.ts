@@ -418,6 +418,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
 				? ['.']
 				: addOnFilesToFormat;
+
 			await formatFiles({
 				packageManager,
 				cwd: projectPath,

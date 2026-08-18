@@ -261,6 +261,7 @@ export default defineAddon({
 					if (content) {
 						// several clients share AGENTS.md, so the same path can land here more than once
 						if (!filesExistingAlready.includes(agentPath)) filesExistingAlready.push(agentPath);
+
 						return false;
 					}
 					filesAdded.push(agentPath);
