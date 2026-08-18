@@ -26,7 +26,7 @@
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/eslint-config": "^10.0.1",
 		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
-		"@types/node": "^25.9.1",
+		"@types/node": "^22.18.0",
 		"@typescript/native-preview": "7.0.0-dev.20260601.1",
 		"@vitest/ui": "4.1.8",
 		"eslint": "^10.4.1",
