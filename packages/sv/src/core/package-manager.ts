@@ -32,17 +32,9 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	// There is no need to prompt in that case.
 	if (!process.stdout.isTTY) return agent;
 
-	// installed ones first
 	const agentOptions = [
 		{ label: 'None', value: undefined },
-		...AGENT_NAMES.map((agent) => {
-			const installed = isInstalled(agent);
-			return {
-				value: agent,
-				label: installed ? agent : color.dim(`${agent} (not installed)`),
-				installed
-			};
-		}).sort((a, b) => Number(b.installed) - Number(a.installed))
+		...AGENT_NAMES.filter(isInstalled).map((agent) => ({ value: agent }))
 	];
 
 	const pm = await p.select({

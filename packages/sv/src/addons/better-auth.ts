@@ -248,6 +248,7 @@ export default defineAddon({
 						imports: ['createAuth'],
 						from: `${lib}/server/auth.${language}`
 					});
+
 				js.imports.addNamed(ast, {
 					imports: ['User', 'Session'],
 					from: 'better-auth',
