@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-fix: remove `"sourceMap": true` from tsconfig options
+fix(create): remove `"sourceMap": true` from tsconfig options
