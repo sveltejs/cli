@@ -1,7 +1,6 @@
 {
 	"extends": "$app/tsconfig",
 	"compilerOptions": {
-		"sourceMap": true,
 		"strict": true
 	}
 	// If you want to overwrite includes/excludes, make sure to copy over the relevant includes/excludes
