@@ -77,19 +77,19 @@ describe('minVersion', () => {
 
 describe('isRangeWithin', () => {
 	const combinations = [
-		{ range: '^9.0.0', target: '^9.0.0', expected: true },
-		{ range: '^9.2.0', target: '^9.0.0', expected: true },
-		{ range: '9.2.0', target: '^9.0.0', expected: true },
-		{ range: '^9.0.0', target: '^9.2.0', expected: false },
-		{ range: '^8.0.0', target: '^9.0.0', expected: false },
-		{ range: '*', target: '^9.0.0', expected: false },
-		{ range: 'latest', target: '^9.0.0', expected: false },
-		{ range: 'workspace:^9.0.0', target: '^9.0.0', expected: false }
+		{ subset: '^9.0.0', superset: '^9.0.0', expected: true },
+		{ subset: '^9.2.0', superset: '^9.0.0', expected: true },
+		{ subset: '9.2.0', superset: '^9.0.0', expected: true },
+		{ subset: '^9.0.0', superset: '^9.2.0', expected: false },
+		{ subset: '^8.0.0', superset: '^9.0.0', expected: false },
+		{ subset: '*', superset: '^9.0.0', expected: false },
+		{ subset: 'latest', superset: '^9.0.0', expected: false },
+		{ subset: 'workspace:^9.0.0', superset: '^9.0.0', expected: false }
 	] as const;
 	it.each(combinations)(
-		'($range within $target) should be $expected',
-		({ range, target, expected }) => {
-			expect(isRangeWithin(range, target)).toEqual(expected);
+		'($subset within $superset) should be $expected',
+		({ subset, superset, expected }) => {
+			expect(isRangeWithin(subset, superset)).toEqual(expected);
 		}
 	);
 });
