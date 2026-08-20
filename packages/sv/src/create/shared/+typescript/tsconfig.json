@@ -2,7 +2,6 @@
 	"extends": "$app/tsconfig",
 	"compilerOptions": {
 		"strict": true
-	}
-	// To make changes to top-level options such as include and exclude, we recommend extending
-	// the generated config; see https://svelte.dev/docs/kit/configuration#typescript
+	},
+	"include": ["src", "vite.config.ts"]
 }
