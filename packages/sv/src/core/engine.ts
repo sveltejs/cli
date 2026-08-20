@@ -71,7 +71,7 @@ function updatePackages(
 		})
 	);
 
-	return installNeeded;
+	return { installNeeded };
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
