@@ -44,6 +44,14 @@ jobs:
         env:
           NPM_CONFIG_PROVENANCE: true
 
+      - name: Require addon integration tests on Changesets PR
+        if: steps.changesets.outputs.pullRequestNumber != ''
+        run: >-
+          gh pr edit "${{ steps.changesets.outputs.pullRequestNumber }}"
+          --add-label needs-addon-integration-tests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Update Template Repo
         if: steps.changesets.outputs.published == 'true'
         run: pnpm -F @sveltejs/create update-template-repo
