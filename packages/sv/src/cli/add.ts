@@ -20,7 +20,7 @@ import {
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
 import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
-import { formatFiles } from '../core/formatFiles.ts';
+import { formatFiles, isFormatterInstalled } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmAllowBuilds,
@@ -758,18 +758,20 @@ export async function runAddonsApply({
 		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
 	}
 
-	let depsInstalled = true;
+	let depsInstalled = false;
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 		depsInstalled = await installDependencies(packageManager, options.cwd);
-		if (depsInstalled) {
-			await formatFiles({
-				packageManager: packageManager ?? workspace.packageManager,
-				cwd: options.cwd,
-				filesToFormat,
-				strategy: 'files-only'
-			});
-		}
+	}
+
+	// the formatter has to be on disk: either we just installed it, or it was already there
+	if (depsInstalled || isFormatterInstalled(options.cwd)) {
+		await formatFiles({
+			packageManager: packageManager ?? workspace.packageManager,
+			cwd: options.cwd,
+			filesToFormat,
+			strategy: 'files-only'
+		});
 	}
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);
