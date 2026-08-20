@@ -37,13 +37,13 @@ export function coerceVersion(str: string): Version {
 }
 
 /**
- * Returns `true` when every version matching `range` also matches `target`,
+ * Returns `true` when every version matching `subset` also matches `superset`,
  * e.g. `^9.2.0` is within `^9.0.0` but `^8.0.0` is not.
  * Unparseable inputs (`latest`, `workspace:*`, ...) return `false`.
  */
-export function isRangeWithin(range: string, target: string): boolean {
+export function isRangeWithin(subset: string, superset: string): boolean {
 	try {
-		return isRangeSubset(range, target);
+		return isRangeSubset(subset, superset);
 	} catch {
 		return false;
 	}
