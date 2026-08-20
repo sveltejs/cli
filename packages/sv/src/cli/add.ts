@@ -691,9 +691,15 @@ export async function runAddonsApply({
 
 	// nothing new landed in `package.json`, so there is nothing to install and nothing to ask about
 	let packageManager: AgentName | null | undefined = null;
-	if (options.install !== false && installNeeded) {
-		packageManager =
-			options.install === true ? await packageManagerPrompt(options.cwd) : options.install;
+	if (options.install === true) {
+		// prompt user when `package.json` has changed
+		if (installNeeded) {
+			packageManager = await packageManagerPrompt(options.cwd);
+		}
+	} else if (options.install === false) {
+		// user choose not to install
+	} else {
+		packageManager = options.install;
 	}
 
 	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
