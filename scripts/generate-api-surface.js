@@ -6,18 +6,17 @@
  *
  * @remarks
  * Run: `node scripts/generate-api-surface.js` — or via root `postbuild` after `pnpm build`.
- * Output is formatted with Prettier using the repo root `prettier.config.js` so it matches `pnpm format`.
+ * Output is formatted with Oxfmt using the repo root `oxfmt.config.ts` so it matches `pnpm format`.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import prettier from 'prettier';
+import { format } from 'oxfmt';
+import oxfmtConfig from '../oxfmt.config.ts';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-/** Absolute path to the repo Prettier config (explicit so formatting does not depend on cwd). */
-const PRETTIER_CONFIG = path.join(ROOT, 'prettier.config.js');
 
 const packages = [
 	{
@@ -114,17 +113,14 @@ function clean(source) {
 }
 
 /**
- * Format a file with repo Prettier options (plugins + overrides).
+ * Format a file with repo Oxfmt options.
  * @param {string} absPath absolute path to the markdown file
  * @returns {Promise<void>}
  */
-async function formatWithPrettier(absPath) {
+async function formatWithOxfmt(absPath) {
 	const raw = fs.readFileSync(absPath, 'utf8');
-	const options =
-		(await prettier.resolveConfig(absPath, {
-			config: PRETTIER_CONFIG
-		})) ?? {};
-	const formatted = await prettier.format(raw, { ...options, filepath: absPath });
+
+	const formatted = (await format(absPath, raw, oxfmtConfig)).code;
 	fs.writeFileSync(absPath, formatted, 'utf8');
 }
 
@@ -216,7 +212,7 @@ export async function generateApiSurface() {
 
 		const outPath = path.resolve(ROOT, pkg.out);
 		fs.writeFileSync(outPath, header + cleaned + footer, 'utf8');
-		await formatWithPrettier(outPath);
+		await formatWithOxfmt(outPath);
 		generated++;
 		console.log(`  ${pkg.name} -> ${pkg.out}`);
 	}
@@ -229,8 +225,7 @@ export async function generateApiSurface() {
 	return generated;
 }
 
-const isMain =
-	process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
 if (isMain) {
 	generateApiSurface().catch((err) => {

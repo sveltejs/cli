@@ -1,4 +1,4 @@
-import { transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
+import { js, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
 const NAVIGATION_MODULE = '$app/navigation';
@@ -40,27 +40,22 @@ function migrateShallowRouting(ast: AstTypes.Program): boolean {
 	const navigationImports: AstTypes.ImportDeclaration[] = [];
 	let gotoLocal: string | undefined;
 
+	for (const binding of js.imports.bindings(ast, { from: NAVIGATION_MODULE })) {
+		if (binding.imported === 'goto') gotoLocal = binding.local;
+		if (NAVIGATION_HOOKS.has(binding.imported)) hooks.add(binding.local);
+
+		const replace = SHALLOW_METHODS.get(binding.imported);
+		if (replace !== undefined) methods.set(binding.local, replace);
+		if (replace !== undefined && binding.kind === 'named') {
+			oldSpecifiers.push(binding.specifier as NamedImportSpecifier);
+		}
+	}
+
 	for (const statement of ast.body) {
 		if (statement.type !== 'ImportDeclaration' || statement.source.value !== NAVIGATION_MODULE) {
 			continue;
 		}
 		navigationImports.push(statement);
-
-		for (const specifier of statement.specifiers) {
-			if (specifier.type !== 'ImportSpecifier' || specifier.imported.type !== 'Identifier')
-				continue;
-
-			const imported = specifier.imported.name;
-			const local = specifier.local.name;
-			if (imported === 'goto') gotoLocal = local;
-			if (NAVIGATION_HOOKS.has(imported)) hooks.add(local);
-
-			const replace = SHALLOW_METHODS.get(imported);
-			if (replace !== undefined) {
-				methods.set(local, replace);
-				oldSpecifiers.push(specifier as NamedImportSpecifier);
-			}
-		}
 	}
 
 	if (methods.size === 0 && hooks.size === 0) return false;
@@ -77,7 +72,7 @@ function migrateShallowRouting(ast: AstTypes.Program): boolean {
 			// repurpose a no longer needed import as the `goto` import
 			const wasUnaliased = specifier.local.name === specifier.imported.name;
 			gotoLocal = specifier.local.name;
-			if (wasUnaliased && !hasIdentifier(ast, 'goto')) {
+			if (wasUnaliased && js.identifiers.freeName([ast], 'goto') === 'goto') {
 				specifier.imported.name = 'goto';
 				specifier.local.name = 'goto';
 				gotoLocal = 'goto';
@@ -85,18 +80,18 @@ function migrateShallowRouting(ast: AstTypes.Program): boolean {
 				// keep the local name (e.g. `import { goto as pushState }`) to avoid
 				// colliding with an existing `goto` binding or breaking an aliased import.
 				// use a fresh node in case `imported` and `local` share the same node
-				specifier.imported = identifier('goto');
+				specifier.imported = js.variables.createIdentifier('goto');
 			}
 		} else {
 			// every shallow routing import has to be kept, so add a new `goto` import
-			gotoLocal = freeIdentifier(ast, 'goto');
+			gotoLocal = js.identifiers.freeName([ast], 'goto');
 			const declaration = navigationImports.find((navigationImport) =>
 				navigationImport.specifiers.some((s) => oldSpecifiers.includes(s as NamedImportSpecifier))
 			)!;
 			declaration.specifiers.push({
 				type: 'ImportSpecifier',
-				imported: identifier('goto'),
-				local: identifier(gotoLocal)
+				imported: js.variables.createIdentifier('goto'),
+				local: js.variables.createIdentifier(gotoLocal)
 			});
 		}
 		changed = true;
@@ -168,45 +163,15 @@ function scanMethodCalls(
 	return { unmigratable, migratable };
 }
 
-function freeIdentifier(ast: AstTypes.Program, base: string): string {
-	let name = base;
-	for (let i = 1; hasIdentifier(ast, name); i += 1) name = `${base}${i}`;
-	return name;
-}
-
-function hasIdentifier(ast: AstTypes.Program, name: string): boolean {
-	let found = false;
-	Walker.walk(ast as AstTypes.Node, null, {
-		Identifier(node: AstTypes.Identifier, { path, stop }: Walker.Context<AstTypes.Node, null>) {
-			if (node.name !== name) return;
-			const parent = path.at(-1);
-			// ignore non-binding positions: `object.goto` and `{ goto: value }`
-			if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) {
-				return;
-			}
-			if (
-				parent?.type === 'Property' &&
-				parent.key === node &&
-				!parent.computed &&
-				!parent.shorthand
-			) {
-				return;
-			}
-			found = true;
-			stop();
-		}
-	});
-	return found;
-}
-
 function gotoOptions(
 	replace: boolean,
 	state: AstTypes.Expression | undefined
 ): AstTypes.ObjectExpression {
-	const properties: AstTypes.Property[] = [property('shallow', literal(true))];
-	if (replace) properties.push(property('replace', literal(true)));
-	if (state) properties.push(property('state', state));
-	return { type: 'ObjectExpression', properties };
+	return js.object.create({
+		shallow: js.common.createLiteral(true),
+		replace: replace ? js.common.createLiteral(true) : undefined,
+		state: state?.type === 'ObjectExpression' && state.properties.length === 0 ? undefined : state
+	});
 }
 
 function migrateNavigationHook(call: AstTypes.CallExpression): boolean {
@@ -246,7 +211,7 @@ function shallowTest(
 			type: 'ObjectPattern',
 			properties: [patternProperty('shallow')]
 		});
-		return identifier('shallow');
+		return js.variables.createIdentifier('shallow');
 	}
 
 	if (parameter.type === 'Identifier') return member(parameter.name, 'shallow');
@@ -264,9 +229,9 @@ function shallowTest(
 		) {
 			continue;
 		}
-		if (entry.value.type === 'Identifier') return identifier(entry.value.name);
+		if (entry.value.type === 'Identifier') return js.variables.createIdentifier(entry.value.name);
 		if (entry.value.type === 'AssignmentPattern' && entry.value.left.type === 'Identifier') {
-			return identifier(entry.value.left.name);
+			return js.variables.createIdentifier(entry.value.left.name);
 		}
 		return undefined;
 	}
@@ -275,7 +240,7 @@ function shallowTest(
 	const shallowProperty = patternProperty('shallow');
 	if (restIndex === -1) parameter.properties.push(shallowProperty);
 	else parameter.properties.splice(restIndex, 0, shallowProperty);
-	return identifier('shallow');
+	return js.variables.createIdentifier('shallow');
 }
 
 function startsWithShallowGuard(
@@ -305,23 +270,11 @@ function sameExpression(left: AstTypes.Expression, right: AstTypes.Expression): 
 	);
 }
 
-function property(name: string, value: AstTypes.Expression): AstTypes.Property {
-	return {
-		type: 'Property',
-		key: identifier(name),
-		value,
-		kind: 'init',
-		method: false,
-		shorthand: false,
-		computed: false
-	};
-}
-
 function patternProperty(name: string): AstTypes.AssignmentProperty {
-	const value = identifier(name);
+	const value = js.variables.createIdentifier(name);
 	return {
 		type: 'Property',
-		key: identifier(name),
+		key: js.variables.createIdentifier(name),
 		value,
 		kind: 'init',
 		method: false,
@@ -330,19 +283,11 @@ function patternProperty(name: string): AstTypes.AssignmentProperty {
 	};
 }
 
-function identifier(name: string): AstTypes.Identifier {
-	return { type: 'Identifier', name };
-}
-
-function literal(value: boolean): AstTypes.Literal {
-	return { type: 'Literal', value };
-}
-
 function member(object: string, property: string): AstTypes.MemberExpression {
 	return {
 		type: 'MemberExpression',
-		object: identifier(object),
-		property: identifier(property),
+		object: js.variables.createIdentifier(object),
+		property: js.variables.createIdentifier(property),
 		computed: false,
 		optional: false
 	};

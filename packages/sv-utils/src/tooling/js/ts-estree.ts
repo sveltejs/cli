@@ -98,6 +98,9 @@ declare module 'estree' {
 	interface ImportDeclaration {
 		importKind: 'type' | 'value';
 	}
+	interface ImportSpecifier {
+		importKind?: 'type' | 'value';
+	}
 }
 
 export type { estree as TsEstree };

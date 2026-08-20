@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 import * as p from '@clack/prompts';
 import {
 	color,
@@ -6,9 +9,6 @@ import {
 	resolveCommandArray
 } from '@sveltejs/sv-utils';
 import type { Argument, Command, Help, HelpConfiguration, Option } from 'commander';
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
 import pkg from '../../package.json' with { type: 'json' };
 import type { LoadedAddon, Verification } from './config.ts';
 import { UnsupportedError } from './errors.ts';
@@ -168,7 +168,7 @@ export async function runCommand(action: MaybePromise): Promise<void> {
 
 		p.intro(`Welcome to the Svelte CLI! ${color.optional(`(v${pkg.version})`)}`);
 
-		const minimumVersion = '18.3.0';
+		const minimumVersion = '22.17.0';
 		const unsupported = isVersionUnsupportedBelow(process.versions.node, minimumVersion);
 		if (unsupported) {
 			p.log.warn(

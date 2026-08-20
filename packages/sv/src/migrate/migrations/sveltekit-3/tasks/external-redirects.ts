@@ -1,4 +1,4 @@
-import { transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
+import { js, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 
 const KIT_MODULE = '@sveltejs/kit';
@@ -49,7 +49,7 @@ function migrateExternalRedirects(ast: AstTypes.Program): boolean {
 			) {
 				const external = externalValue(destination);
 				if (external !== undefined) {
-					node.arguments.push(externalOption(external));
+					node.arguments.push(js.object.create({ external: js.common.createLiteral(external) }));
 					changed = true;
 				}
 			}
@@ -64,27 +64,19 @@ function collectRedirectImports(ast: AstTypes.Program): {
 	locals: Set<string>;
 	namespaces: Set<string>;
 } {
-	const locals = new Set<string>();
-	const namespaces = new Set<string>();
-
-	for (const statement of ast.body) {
-		if (statement.type !== 'ImportDeclaration' || statement.source.value !== KIT_MODULE) continue;
-		if (statement.importKind === 'type') continue;
-
-		for (const specifier of statement.specifiers) {
-			if (specifier.type === 'ImportNamespaceSpecifier') {
-				namespaces.add(specifier.local.name);
-			} else if (
-				specifier.type === 'ImportSpecifier' &&
-				// the estree types don't model specifier-level `import { type x }`
-				(specifier as { importKind?: 'type' | 'value' }).importKind !== 'type' &&
-				specifier.imported.type === 'Identifier' &&
-				specifier.imported.name === REDIRECT
-			) {
-				locals.add(specifier.local.name);
-			}
-		}
-	}
+	const bindings = js.imports.bindings(ast, { from: KIT_MODULE });
+	const locals = new Set(
+		bindings
+			.filter(
+				(binding) => binding.kind === 'named' && binding.imported === REDIRECT && !binding.isType
+			)
+			.map((binding) => binding.local)
+	);
+	const namespaces = new Set(
+		bindings
+			.filter((binding) => binding.kind === 'namespace' && !binding.isType)
+			.map((binding) => binding.local)
+	);
 
 	return { locals, namespaces };
 }
@@ -156,21 +148,4 @@ function staticPrefix(
 		const left = staticPrefix(expression.left);
 		return left && { value: left.value, complete: false };
 	}
-}
-
-function externalOption(value: true | string): AstTypes.ObjectExpression {
-	return {
-		type: 'ObjectExpression',
-		properties: [
-			{
-				type: 'Property',
-				key: { type: 'Identifier', name: 'external' },
-				value: { type: 'Literal', value },
-				kind: 'init',
-				method: false,
-				shorthand: false,
-				computed: false
-			}
-		]
-	};
 }

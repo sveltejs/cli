@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-npx sv@0.0.0 create --template minimal --types ts --add sveltekit-adapter="adapter:cloudflare+cfTarget:workers" drizzle="database:sqlite+sqlite:libsql" better-auth="demo:password,github" experimental="versions:none+features:explicitEnvironmentVariables" --no-install packages/sv/.test-output/cli/create-experimental
+npx sv@0.0.0 create --template minimal --types ts --add sveltekit-adapter="adapter:cloudflare+cfTarget:workers" drizzle="database:sqlite+sqlite:libsql" better-auth="demo:password,github" experimental="features:remoteFunctions" --no-install packages/sv/.test-output/cli/create-experimental
 ```
 
 ## Developing
