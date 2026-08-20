@@ -76,7 +76,7 @@ function restoreBlankLineLayout(original: string, replacement: string): string {
 	const changes = diffLines(original, replacement, { ignoreWhitespace: true });
 	let result = '';
 
-	for (let i = 0; i < changes.length; ) {
+	for (let i = 0; i < changes.length;) {
 		const change = changes[i];
 		const next = changes[i + 1];
 		const afterNext = changes[i + 2];

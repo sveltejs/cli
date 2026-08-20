@@ -1,6 +1,6 @@
-import { parse, type AstTypes } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { js, parse, type AstTypes } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 import { createMigrationTaskComment } from '../../../migration-task.ts';
 
@@ -67,9 +67,9 @@ export default defineMigrationTask({
 			imports: new Map(),
 			sideEffectImports: new Set()
 		};
-		// seed the `defineParams` import so other imports from '@sveltejs/kit' merge into it
-		context.imports.set('named:defineParams:@sveltejs/kit', {
-			source: '@sveltejs/kit',
+		// seed the `defineParams` import so other imports from its module merge into it
+		context.imports.set('named:defineParams:@sveltejs/kit/params', {
+			source: '@sveltejs/kit/params',
 			kind: 'named',
 			imported: 'defineParams',
 			local: 'defineParams',
@@ -107,7 +107,7 @@ export default defineMigrationTask({
 		// non-matcher files may depend on the matchers (e.g. tests), leave the directory to the user
 		if (foreignEntries.length > 0) return;
 
-		for (const file of matcherFiles) fs.unlinkSync(path.join(cwd, file));
+		for (const file of matcherFiles) sv.removeFile(file);
 		if (fs.readdirSync(absoluteParamsDirectory).length === 0) fs.rmdirSync(absoluteParamsDirectory);
 	}
 });
@@ -129,7 +129,10 @@ function migrateMatcher(
 
 	for (const statement of parsed.ast.body) {
 		if (statement.type === 'ImportDeclaration') {
-			if (statement.source.value === '@sveltejs/kit') {
+			if (
+				statement.source.value === '@sveltejs/kit' ||
+				statement.source.value === '@sveltejs/kit/params'
+			) {
 				for (const specifier of statement.specifiers) {
 					if (
 						specifier.type === 'ImportSpecifier' &&
@@ -224,7 +227,7 @@ function migrateMatcher(
 		}
 	}
 
-	const nestedBindings = collectNestedBindingNames(body);
+	const nestedBindings = js.scope.nestedBindingNames(body);
 	for (const local of renames.keys()) {
 		if (nestedBindings.has(local)) {
 			throw new Error(
@@ -237,12 +240,13 @@ function migrateMatcher(
 	// top-level binding colliding with a previous matcher gets a deduplicated name
 	const identifier = name.replace(/\W/g, '_');
 	const preferredMatchName = `match${identifier.charAt(0).toUpperCase()}${identifier.slice(1)}`;
-	const topLevelBindings = collectTopLevelBindingNames(body);
+	parsed.ast.body = body;
+	const topLevelBindings = js.scope.topLevelBindings([parsed.ast]);
 	const tentativeNames = new Set(context.usedNames);
 	const bodyRenames = new Map<string, string>();
 	for (const binding of topLevelBindings) {
 		const preferred = binding === 'match' ? preferredMatchName : binding;
-		const finalName = uniqueName(preferred, tentativeNames);
+		const finalName = js.identifiers.uniqueName(preferred, tentativeNames);
 		if (finalName !== binding) bodyRenames.set(binding, finalName);
 	}
 
@@ -256,8 +260,7 @@ function migrateMatcher(
 		for (const [from, to] of bodyRenames) renames.set(from, to);
 	}
 
-	renameReferences(body, renames);
-	parsed.ast.body = body;
+	js.identifiers.renameReferences([parsed.ast], renames);
 	const bodyCode = parsed.generateCode().trim();
 
 	if (hoistable) {
@@ -283,7 +286,7 @@ function registerImport(context: ModuleContext, binding: ImportBinding): string 
 		return existing.local;
 	}
 
-	const local = uniqueName(binding.local, context.usedNames);
+	const local = js.identifiers.uniqueName(binding.local, context.usedNames);
 	context.imports.set(key, { ...binding, local });
 	return local;
 }
@@ -392,184 +395,11 @@ function declares(node: AstTypes.Program['body'][number], name: string): boolean
 	return (
 		node.type === 'VariableDeclaration' &&
 		node.declarations.some(
-			(declaration) => declaration.id.type === 'Identifier' && declaration.id.name === name
+			(declaration) =>
+				declaration.id.type === 'Identifier' &&
+				js.scope.collectPatternNames(declaration.id).includes(name)
 		)
 	);
-}
-
-type WalkNode = { type: string } & Record<string, any>;
-
-function isNode(value: unknown): value is WalkNode {
-	return (
-		typeof value === 'object' && value !== null && typeof (value as WalkNode).type === 'string'
-	);
-}
-
-/** Depth-first pre-order walk over every AST node, including its parent for context. */
-function forEachNode(
-	node: WalkNode,
-	visit: (node: WalkNode, parent: WalkNode | undefined) => void,
-	parent?: WalkNode
-): void {
-	visit(node, parent);
-	for (const [key, value] of Object.entries(node)) {
-		if (key === 'loc' || key === 'range') continue;
-		if (Array.isArray(value)) {
-			for (const child of value) {
-				if (isNode(child)) forEachNode(child, visit, node);
-			}
-		} else if (isNode(value)) {
-			forEachNode(value, visit, node);
-		}
-	}
-}
-
-/** Collects the names bound by the top-level statements of a matcher body. */
-function collectTopLevelBindingNames(statements: AstTypes.Program['body']): string[] {
-	const names: string[] = [];
-	for (const statement of statements) {
-		const node = statement as WalkNode;
-		switch (node.type) {
-			case 'FunctionDeclaration':
-			case 'ClassDeclaration':
-			case 'TSInterfaceDeclaration':
-			case 'TSTypeAliasDeclaration':
-			case 'TSEnumDeclaration':
-			case 'TSModuleDeclaration':
-				if (node.id?.type === 'Identifier') names.push(node.id.name);
-				break;
-			case 'VariableDeclaration':
-				for (const declaration of node.declarations) {
-					collectPatternNames(declaration.id, names);
-				}
-				break;
-		}
-	}
-	return names;
-}
-
-/**
- * Collects every name that is (re)bound below the top level of the given statements. Renaming one
- * of these names is unsafe because nested references may belong to the nested binding.
- */
-function collectNestedBindingNames(statements: AstTypes.Program['body']): Set<string> {
-	const names: string[] = [];
-	for (const statement of statements) {
-		forEachNode(statement as WalkNode, (node) => {
-			switch (node.type) {
-				case 'FunctionDeclaration':
-				case 'ClassDeclaration':
-					if (node !== statement && node.id?.type === 'Identifier') names.push(node.id.name);
-					if (node.type === 'FunctionDeclaration') {
-						for (const param of node.params) collectPatternNames(param, names);
-					}
-					break;
-				case 'FunctionExpression':
-				case 'ArrowFunctionExpression':
-					if (node.id?.type === 'Identifier') names.push(node.id.name);
-					for (const param of node.params) collectPatternNames(param, names);
-					break;
-				case 'ClassExpression':
-					if (node.id?.type === 'Identifier') names.push(node.id.name);
-					break;
-				case 'VariableDeclaration':
-					if (node !== statement) {
-						for (const declaration of node.declarations) {
-							collectPatternNames(declaration.id, names);
-						}
-					}
-					break;
-				case 'CatchClause':
-					if (node.param) collectPatternNames(node.param, names);
-					break;
-			}
-		});
-	}
-	return new Set(names);
-}
-
-function collectPatternNames(pattern: WalkNode, names: string[]): void {
-	switch (pattern.type) {
-		case 'Identifier':
-			names.push(pattern.name);
-			break;
-		case 'ObjectPattern':
-			for (const property of pattern.properties) {
-				collectPatternNames(
-					property.type === 'RestElement' ? property.argument : property.value,
-					names
-				);
-			}
-			break;
-		case 'ArrayPattern':
-			for (const element of pattern.elements) {
-				if (element) collectPatternNames(element, names);
-			}
-			break;
-		case 'AssignmentPattern':
-			collectPatternNames(pattern.left, names);
-			break;
-		case 'RestElement':
-			collectPatternNames(pattern.argument, names);
-			break;
-	}
-}
-
-/** Renames all references to the given bindings, leaving property/label/import names untouched. */
-function renameReferences(
-	statements: AstTypes.Program['body'],
-	renames: Map<string, string>
-): void {
-	if (renames.size === 0) return;
-
-	for (const statement of statements) {
-		forEachNode(statement as WalkNode, (node, parent) => {
-			// expand shorthand properties (`{ match }` -> `{ match: matchFoo }`) so the key survives
-			if (node.type === 'Property' && node.shorthand) {
-				const value = node.value.type === 'AssignmentPattern' ? node.value.left : node.value;
-				if (value.type === 'Identifier' && renames.has(value.name)) {
-					node.shorthand = false;
-					node.key = { type: 'Identifier', name: value.name };
-				}
-				return;
-			}
-
-			if (node.type !== 'Identifier' || !renames.has(node.name)) return;
-			if (parent) {
-				if (parent.type === 'MemberExpression' && parent.property === node && !parent.computed)
-					return;
-				if (
-					(parent.type === 'Property' ||
-						parent.type === 'PropertyDefinition' ||
-						parent.type === 'MethodDefinition') &&
-					parent.key === node &&
-					!parent.computed
-				) {
-					return;
-				}
-				if (parent.type === 'ImportSpecifier' && parent.imported === node) return;
-				if (parent.type === 'ExportSpecifier' && parent.exported === node) return;
-				if (
-					(parent.type === 'LabeledStatement' ||
-						parent.type === 'BreakStatement' ||
-						parent.type === 'ContinueStatement') &&
-					parent.label === node
-				) {
-					return;
-				}
-			}
-			node.name = renames.get(node.name)!;
-		});
-	}
-}
-
-/** Returns `base` if unused, otherwise `base2`, `base3`, ... - and marks the result as used. */
-function uniqueName(base: string, used: Set<string>): string {
-	let name = base;
-	let counter = 2;
-	while (used.has(name)) name = `${base}${counter++}`;
-	used.add(name);
-	return name;
 }
 
 function relocateImport(source: string, from: string, to: string): string {

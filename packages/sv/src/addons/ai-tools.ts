@@ -1,7 +1,7 @@
-import { log } from '@clack/prompts';
-import { color, transforms } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { log } from '@clack/prompts';
+import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
@@ -261,6 +261,7 @@ export default defineAddon({
 					if (content) {
 						// several clients share AGENTS.md, so the same path can land here more than once
 						if (!filesExistingAlready.includes(agentPath)) filesExistingAlready.push(agentPath);
+
 						return false;
 					}
 					filesAdded.push(agentPath);

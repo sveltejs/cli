@@ -1,5 +1,113 @@
 # sv
 
+## 1.0.0-next.3
+### Patch Changes
+
+
+- chore(drizzle): bump `@types/better-sqlite3` to v9 ([#1272](https://github.com/sveltejs/cli/pull/1272))
+
+
+- fix(cli): align the minimum Node.js version with SvelteKit 3 ([#1273](https://github.com/sveltejs/cli/pull/1273))
+
+
+- fix(create): include project source and Vite config files in generated TypeScript and JavaScript configs ([#1284](https://github.com/sveltejs/cli/pull/1284))
+
+
+- fix(create): use SvelteKit 3 adapter versions in templates so new projects without an explicit adapter don't install the old `@sveltejs/adapter-auto` ([#1285](https://github.com/sveltejs/cli/pull/1285))
+
+
+- fix(create): remove `"sourceMap": true` from tsconfig options ([#1281](https://github.com/sveltejs/cli/pull/1281))
+
+## 1.0.0-next.2
+### Patch Changes
+
+
+- fix(migrate): ignore root paths when removing leading forward slash ([#1269](https://github.com/sveltejs/cli/pull/1269))
+
+
+- fix: ignore unknown style languages when parsing Svelte code ([#1265](https://github.com/sveltejs/cli/pull/1265))
+
+
+- fix: transform `$lib` to relative path in style tags ([#1266](https://github.com/sveltejs/cli/pull/1266))
+
+
+- fix(migrate): handle overlapping comments while merging ([#1264](https://github.com/sveltejs/cli/pull/1264))
+
+- Updated dependencies [[`cc986e5`](https://github.com/sveltejs/cli/commit/cc986e5cc7079815ca2b1ab4b788d44192a83653)]:
+  - @sveltejs/sv-utils@1.0.0-next.2
+
+## 1.0.0-next.1
+### Patch Changes
+
+
+- chore(migrate): bump `svelte` and `esrap` ([#1259](https://github.com/sveltejs/cli/pull/1259))
+
+
+- fix(create): add explicit file endings ([#1255](https://github.com/sveltejs/cli/pull/1255))
+
+
+- chore(cli): sv.removeFile ([#1238](https://github.com/sveltejs/cli/pull/1238))
+
+
+- fix(addons): update adapter versions ([#1258](https://github.com/sveltejs/cli/pull/1258))
+
+
+- fix(migrate): various tweaks ([#1255](https://github.com/sveltejs/cli/pull/1255))
+
+- Updated dependencies [[`c632951`](https://github.com/sveltejs/cli/commit/c632951e452630591ddc3cc9ad9545e8172322e1)]:
+  - @sveltejs/sv-utils@1.0.0-next.1
+
+## 1.0.0-next.0
+### Major Changes
+
+
+- breaking(migrate): move migrations into `sv`, add task-based `sveltekit-3` and `$app/state` migrations, and delegate unmaintained legacy migrations to `svelte-migrate@1` ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- breaking(addons): limit the `experimental` add-on to enabling experimental features ([#1241](https://github.com/sveltejs/cli/pull/1241))
+
+
+- breaking: remove deprecated utilities and properties ([#1184](https://github.com/sveltejs/cli/pull/1184))
+
+
+### Minor Changes
+
+
+- feat(migrate): list migration tasks ([#1249](https://github.com/sveltejs/cli/pull/1249))
+
+
+- feat(create): use `#lib` instead of `$lib` ([#1185](https://github.com/sveltejs/cli/pull/1185))
+
+
+- feat(migrate): migrate SvelteKit 3 dependencies and replace `$lib` with `#lib` ([#1241](https://github.com/sveltejs/cli/pull/1241))
+
+
+### Patch Changes
+
+
+- fix(paraglide): adjust paraglide add-on ([#1244](https://github.com/sveltejs/cli/pull/1244))
+
+
+- chore(addons): rename the `experimental` add-on's SvelteKit option to `kit-3-next` ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- chore(deps): replace `tar-fs` with `modern-tar` ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- fix(cli): omit undetected package managers from install prompt ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- feat(drizzle): add `node:sqlite` ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- chore(addon-tests): document default values for `prepareServer` ([#1230](https://github.com/sveltejs/cli/pull/1230))
+
+
+- chore(addons): rename the `experimental` add-on's `versions` option value to `kit-3` ([#1185](https://github.com/sveltejs/cli/pull/1185))
+
+- Updated dependencies [[`897b3c0`](https://github.com/sveltejs/cli/commit/897b3c0c50f87904222e6d167c55c7c71b70a9a9), [`a4ad77e`](https://github.com/sveltejs/cli/commit/a4ad77ea6ba4cbe9ed356d0982f54154646f33a1), [`86e4195`](https://github.com/sveltejs/cli/commit/86e419546ab931e14f2038fc2bdc9c6b4048defd), [`a4ad77e`](https://github.com/sveltejs/cli/commit/a4ad77ea6ba4cbe9ed356d0982f54154646f33a1), [`0038420`](https://github.com/sveltejs/cli/commit/003842033b10aaa33b515fbfea141be44d0acdd0), [`c7e7473`](https://github.com/sveltejs/cli/commit/c7e7473df952c295a93bcc8c2af36e0bca2fead1), [`c7e7473`](https://github.com/sveltejs/cli/commit/c7e7473df952c295a93bcc8c2af36e0bca2fead1), [`ffa9807`](https://github.com/sveltejs/cli/commit/ffa98070cfd5c4b27398419a0243e464d9998311)]:
+  - @sveltejs/sv-utils@1.0.0-next.0
+
 ## 0.17.0
 ### Minor Changes
 

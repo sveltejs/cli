@@ -4,6 +4,7 @@ import * as Walker from 'zimmerframe';
 import {
 	type AstTypes,
 	type Comments,
+	type SvelteAst,
 	parseScript,
 	serializeScript,
 	stripAst,
@@ -196,6 +197,34 @@ export function contains(node: AstTypes.Node, targetNode: AstTypes.Node): boolea
 	});
 
 	return found;
+}
+
+/** Replaces a node wherever it appears among the parent's direct children. */
+export function replaceChild(
+	parent: AstTypes.Node | SvelteAst.SvelteNode,
+	node: AstTypes.Node,
+	replacement: AstTypes.Node
+): boolean {
+	const record = parent as unknown as Record<string, unknown>;
+
+	for (const key in record) {
+		const value = record[key];
+
+		if (value === node) {
+			record[key] = replacement;
+			return true;
+		}
+
+		if (Array.isArray(value)) {
+			const index = value.indexOf(node);
+			if (index !== -1) {
+				value[index] = replacement;
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 export function hasTypeProperty(

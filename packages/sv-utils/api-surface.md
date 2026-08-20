@@ -143,6 +143,9 @@ declare module 'estree' {
 	interface ImportDeclaration {
 		importKind: 'type' | 'value';
 	}
+	interface ImportSpecifier {
+		importKind?: 'type' | 'value';
+	}
 }
 type CommentType = {
 	type: 'Line' | 'Block';
@@ -327,6 +330,7 @@ declare namespace common_d_exports {
 		parseExpression,
 		parseFromString,
 		parseStatement,
+		replaceChild,
 		typeAnnotate
 	};
 }
@@ -382,6 +386,12 @@ declare function appendStatement(
 ): void;
 
 declare function contains(node: estree.Node, targetNode: estree.Node): boolean;
+
+declare function replaceChild(
+	parent: estree.Node | SvelteAst.SvelteNode,
+	node: estree.Node,
+	replacement: estree.Node
+): boolean;
 declare function hasTypeProperty(
 	node: estree.TSInterfaceDeclaration['body']['body'][number],
 	options: {
@@ -404,6 +414,7 @@ declare function createCall(options: {
 declare function createArrow(options: {
 	body: estree.Expression | estree.BlockStatement;
 	async: boolean;
+	params?: string[];
 }): estree.ArrowFunctionExpression;
 declare function getArgument<T extends estree.Expression>(
 	node: estree.CallExpression,
@@ -415,13 +426,18 @@ declare function getArgument<T extends estree.Expression>(
 declare namespace imports_d_exports {
 	export {
 		FoundImport,
+		ImportBinding,
 		addDefault,
 		addEmpty,
 		addNamed,
 		addNamespace$1 as addNamespace,
+		bindings,
 		find,
 		findAll,
-		remove
+		remove,
+		renameBinding,
+		renameSource,
+		setSource
 	};
 }
 declare function addEmpty(
@@ -466,6 +482,7 @@ type FoundImport =
 			kind: 'dynamic';
 			node: estree.ImportExpression;
 	  } & FoundImportBase);
+declare function setSource(found: FoundImport, source: string): void;
 
 declare function findAll(
 	ast: estree.Node,
@@ -473,6 +490,37 @@ declare function findAll(
 		from?: string | RegExp;
 	}
 ): FoundImport[];
+type ImportBinding = {
+	kind: 'named' | 'default' | 'namespace';
+	imported: string;
+	local: string;
+	isType: boolean;
+	specifier: estree.ImportDeclaration['specifiers'][number];
+	declaration: estree.ImportDeclaration;
+};
+declare function bindings(
+	ast: estree.Program,
+	options: {
+		from: string;
+		name?: string;
+	}
+): ImportBinding[];
+declare function renameSource(
+	ast: estree.Node,
+	options: {
+		from: string | RegExp;
+		to: string;
+	}
+): boolean;
+declare function renameBinding(
+	roots: Array<estree.Program | SvelteAst.Fragment>,
+	options: {
+		from: string;
+		name: string;
+		to: string;
+		local?: string;
+	}
+): boolean;
 declare function find(
 	ast: estree.Program,
 	options: {
@@ -497,6 +545,30 @@ declare function remove(
 		statement?: estree.ImportDeclaration;
 	}
 ): void;
+declare namespace identifiers_d_exports {
+	export { freeName, isReference, renameReferences, replaceReferences, uniqueName };
+}
+type Root$1 = estree.Program | SvelteAst.Fragment;
+declare function isReference(
+	node: estree.Node,
+	parent: estree.Node | SvelteAst.SvelteNode | undefined
+): boolean;
+declare function uniqueName(base: string, used: Set<string>): string;
+declare function renameReferences(roots: Root$1[], renames: Map<string, string>): boolean;
+declare function replaceReferences(
+	roots: Root$1[],
+	names: string[],
+	build: () => estree.Expression
+): boolean;
+declare function freeName(roots: Root$1[], base: string): string;
+declare namespace scope_d_exports {
+	export { collectPatternNames, findShadowedIdentifiers, nestedBindingNames, topLevelBindings };
+}
+type Root = estree.Program | SvelteAst.Fragment;
+declare function collectPatternNames(pattern: estree.Pattern): string[];
+declare function topLevelBindings(programs: estree.Program[]): Set<string>;
+declare function nestedBindingNames(statements: estree.Program['body']): Set<string>;
+declare function findShadowedIdentifiers(roots: Root[], names: string[]): Set<estree.Identifier>;
 declare namespace variables_d_exports {
 	export { createIdentifier, declaration, typeAnnotateDeclarator };
 }
@@ -587,9 +659,11 @@ declare namespace index_d_exports$3 {
 		common_d_exports as common,
 		exports_d_exports as exports,
 		function_d_exports as functions,
+		identifiers_d_exports as identifiers,
 		imports_d_exports as imports,
 		kit_d_exports as kit,
 		object_d_exports as object,
+		scope_d_exports as scope,
 		variables_d_exports as variables,
 		vite_d_exports as vite
 	};

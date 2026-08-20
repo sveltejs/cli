@@ -179,18 +179,15 @@ Your add-on must have `sv` as a peer dependency. Any `dependencies` declared wil
 
 ### Package names
 
-Packages must be published under an npm org:
+Naming follows the same [restrictions](https://npmx.dev/package/validate-npm-package-name#user-content-naming-rules) as on npm:
 
 ```sh
-# ✓ GOOD
+npx sv add my-addon
 npx sv add @my-org/sv
-npx sv add @my-org/core
-
-# ✗ BAD
-npx sv add my-lib
+npx sv add @my-org/foo
 ```
 
-If your package is published with the `sv` scope, it can be omitted. The following all resolves to the same package:
+An add-on published as `@<org>/sv` can also be installed as `@<org>`. The following all resolve to the same package:
 
 ```sh
 npx sv add @my-org
@@ -198,10 +195,11 @@ npx sv add @my-org/sv
 npx sv add @my-org/sv@latest
 ```
 
-For a specific version, append `@<version>`:
+For a specific version, append `@<semver>`:
 
 ```sh
 npx sv add @my-org/sv@1.2.3
+npx sv add my-addon@1.2.3
 ```
 
 ### Entry points

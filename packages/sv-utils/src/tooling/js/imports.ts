@@ -1,6 +1,7 @@
 import * as Walker from 'zimmerframe';
-import type { AstTypes } from '../index.ts';
+import type { AstTypes, SvelteAst } from '../index.ts';
 import { areNodesEqual } from './common.ts';
+import * as identifiers from './identifiers.ts';
 
 export function addEmpty(node: AstTypes.Program, options: { from: string }): void {
 	const expectedImportDeclaration: AstTypes.ImportDeclaration = {
@@ -90,32 +91,51 @@ export function addNamed(
 	});
 
 	const expectedImportKind = options.isType ? 'type' : 'value';
-	let importDecl: AstTypes.ImportDeclaration | undefined;
+	const matchingDeclarations: AstTypes.ImportDeclaration[] = [];
 
 	Walker.walk(node as AstTypes.Node, null, {
 		ImportDeclaration(declaration) {
-			if (
-				declaration.source.value === options.from &&
-				declaration.specifiers &&
-				declaration.importKind === expectedImportKind
-			) {
-				importDecl = declaration;
+			if (declaration.source.value === options.from) {
+				matchingDeclarations.push(declaration);
 			}
 		}
 	});
 
+	const valueDeclaration = matchingDeclarations.find(
+		(declaration) =>
+			declaration.importKind === 'value' &&
+			!declaration.specifiers.some((specifier) => specifier.type === 'ImportNamespaceSpecifier')
+	);
+	const typeDeclaration = matchingDeclarations.find(
+		(declaration) =>
+			declaration.importKind === 'type' &&
+			declaration.specifiers.every((specifier) => specifier.type === 'ImportSpecifier')
+	);
+	const importDecl = valueDeclaration ?? typeDeclaration;
+
 	// merge the specifiers into a single import declaration if they share a source
 	if (importDecl) {
 		const declaration = importDecl;
+		if (!options.isType && declaration.importKind === 'type') {
+			declaration.importKind = 'value';
+			for (const specifier of declaration.specifiers) {
+				if (specifier.type === 'ImportSpecifier') specifier.importKind = 'type';
+			}
+		}
+		if (options.isType && declaration.importKind === 'value') {
+			for (const specifier of specifiers) specifier.importKind = 'type';
+		}
 		specifiers.forEach((specifierToAdd) => {
 			// skip specifiers whose imported or local name is already taken
-			const conflicts = declaration.specifiers.some(
-				(existingSpecifier) =>
-					existingSpecifier.local?.name === specifierToAdd.local.name ||
-					(existingSpecifier.type === 'ImportSpecifier' &&
-						existingSpecifier.imported.type === 'Identifier' &&
-						specifierToAdd.imported.type === 'Identifier' &&
-						existingSpecifier.imported.name === specifierToAdd.imported.name)
+			const conflicts = matchingDeclarations.some((matchingDeclaration) =>
+				matchingDeclaration.specifiers.some(
+					(existingSpecifier) =>
+						existingSpecifier.local?.name === specifierToAdd.local.name ||
+						(existingSpecifier.type === 'ImportSpecifier' &&
+							existingSpecifier.imported.type === 'Identifier' &&
+							specifierToAdd.imported.type === 'Identifier' &&
+							existingSpecifier.imported.name === specifierToAdd.imported.name)
+				)
 			);
 			if (!conflicts) {
 				declaration.specifiers.push(specifierToAdd);
@@ -157,6 +177,12 @@ export type FoundImport =
 	| ({ kind: 'static'; node: AstTypes.ImportDeclaration } & FoundImportBase)
 	| ({ kind: 'dynamic'; node: AstTypes.ImportExpression } & FoundImportBase);
 
+export function setSource(found: FoundImport, source: string): void {
+	found.source = source;
+	found.sourceNode.value = source;
+	found.sourceNode.raw = undefined;
+}
+
 /**
  * Find every import of a module - both static `import ... from '...'` declarations and dynamic
  * `import('...')` expressions, anywhere in the tree. Optionally filtered by source (exact string
@@ -173,6 +199,7 @@ export function findAll(
 	const matchesSource = (source: string): boolean => {
 		if (options.from === undefined) return true;
 		if (typeof options.from === 'string') return source === options.from;
+		options.from.lastIndex = 0;
 		return options.from.test(source);
 	};
 
@@ -210,6 +237,133 @@ export function findAll(
 	});
 
 	return matches;
+}
+
+export type ImportBinding = {
+	kind: 'named' | 'default' | 'namespace';
+	imported: string;
+	local: string;
+	isType: boolean;
+	specifier: AstTypes.ImportDeclaration['specifiers'][number];
+	declaration: AstTypes.ImportDeclaration;
+};
+
+export function bindings(
+	ast: AstTypes.Program,
+	options: { from: string; name?: string }
+): ImportBinding[] {
+	const found: ImportBinding[] = [];
+
+	for (const statement of ast.body) {
+		if (statement.type !== 'ImportDeclaration' || statement.source.value !== options.from) continue;
+
+		for (const specifier of statement.specifiers) {
+			const kind =
+				specifier.type === 'ImportSpecifier'
+					? 'named'
+					: specifier.type === 'ImportDefaultSpecifier'
+						? 'default'
+						: 'namespace';
+			const imported =
+				specifier.type === 'ImportSpecifier'
+					? specifier.imported.type === 'Identifier'
+						? specifier.imported.name
+						: String(specifier.imported.value)
+					: kind === 'default'
+						? 'default'
+						: '*';
+			if (options.name !== undefined && imported !== options.name) continue;
+
+			found.push({
+				kind,
+				imported,
+				local: specifier.local.name,
+				isType:
+					statement.importKind === 'type' ||
+					(specifier as AstTypes.ImportSpecifier & { importKind?: 'type' | 'value' }).importKind ===
+						'type',
+				specifier,
+				declaration: statement
+			});
+		}
+	}
+
+	return found;
+}
+
+export function renameSource(
+	ast: AstTypes.Node,
+	options: { from: string | RegExp; to: string }
+): boolean {
+	const found = findAll(ast, { from: options.from });
+	for (const item of found) setSource(item, options.to);
+	return found.length > 0;
+}
+
+export function renameBinding(
+	roots: Array<AstTypes.Program | SvelteAst.Fragment>,
+	options: { from: string; name: string; to: string; local?: string }
+): boolean {
+	const renames = new Map<string, string>();
+	const programs = roots.filter((root): root is AstTypes.Program => root.type === 'Program');
+	const existing = programs.flatMap((program) =>
+		bindings(program, { from: options.from, name: options.to })
+	);
+	const old = programs.flatMap((program) =>
+		bindings(program, { from: options.from, name: options.name }).map((binding) => ({
+			binding,
+			program
+		}))
+	);
+	if (old.length === 0) return false;
+
+	for (const isType of [false, true]) {
+		const matching = old.filter(({ binding }) => binding.isType === isType);
+		if (matching.length === 0) continue;
+
+		const replacement =
+			options.name === options.to
+				? undefined
+				: existing.find((binding) => binding.isType === isType);
+		const first = matching[0].binding;
+		const local =
+			replacement?.local ??
+			options.local ??
+			(first.local === options.name ? options.to : first.local);
+
+		for (const { binding } of matching) {
+			if (binding.local !== local) renames.set(binding.local, local);
+		}
+
+		for (const program of new Set(matching.map(({ program }) => program))) {
+			renameNamed(program, {
+				from: options.from,
+				name: options.name,
+				to: options.to,
+				local,
+				isType
+			});
+		}
+	}
+
+	identifiers.renameReferences(roots, renames);
+	return true;
+}
+
+function renameNamed(
+	program: AstTypes.Program,
+	options: { from: string; name: string; to: string; local: string; isType: boolean }
+): void {
+	const add = () =>
+		addNamed(program, {
+			from: options.from,
+			imports: { [options.to]: options.local },
+			isType: options.isType
+		});
+
+	add();
+	remove(program, { from: options.from, name: options.name });
+	add();
 }
 
 export function find(
@@ -271,8 +425,9 @@ export function remove(
 		const remaining = statement.specifiers.filter(
 			(s) =>
 				s.type !== 'ImportSpecifier' ||
-				s.imported.type !== 'Identifier' ||
-				s.imported.name !== options.name
+				(s.imported.type === 'Identifier'
+					? s.imported.name !== options.name
+					: s.imported.value !== options.name)
 		);
 		if (remaining.length === statement.specifiers.length) continue;
 

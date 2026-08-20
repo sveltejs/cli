@@ -1,7 +1,7 @@
-import * as p from '@clack/prompts';
-import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import * as p from '@clack/prompts';
+import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import { exec } from 'tinyexec';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
@@ -35,11 +35,11 @@ export async function formatFiles(options: {
 
 	const args = ['--write', '--ignore-unknown', ...options.filesToFormat];
 	await withSpinner('Formatting modified files', async () => {
-		// tinyexec resolves `prettier` from `node_modules/.bin`; going through the package
-		// manager can fail on unrelated state (e.g. pnpm refusing to run while build scripts
-		// are unapproved), but it's the only way to reach binaries under Yarn PnP
+		// Prefer calling `prettier` from the project's `node_modules/.bin`. Going through the
+		// package manager can fail on unrelated state (e.g. pnpm refusing to run while build
+		// scripts are unapproved), but it's the only way to reach binaries under Yarn PnP.
 		let result = await run('prettier', args, options.cwd);
-		if (result.notFound) {
+		if (result.error) {
 			const cmd = resolveCommand(options.packageManager, 'execute-local', ['prettier', ...args])!;
 			result = await run(cmd.command, cmd.args, options.cwd);
 		}
@@ -74,26 +74,28 @@ async function withSpinner(
 	if (error !== undefined) {
 		stop('Failed to format files');
 		p.log.error(error);
+
 		return;
 	}
 	stop('Successfully formatted files');
 }
 
-async function run(
-	command: string,
-	args: string[],
-	cwd: string
-): Promise<{ error?: string; notFound?: boolean }> {
+async function run(command: string, args: string[], cwd: string): Promise<{ error?: string }> {
 	try {
 		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
 		return {};
 	} catch (e) {
-		// @ts-expect-error tinyexec rethrows the spawn error as-is
-		if (e?.code === 'ENOENT') return { notFound: true, error: `${command} not found` };
-		// @ts-expect-error `output` is only present on tinyexec's `NonZeroExitError`
-		const output = e?.output as { stderr?: string; stdout?: string } | undefined;
-		// failures can land on either stream, so report both
-		const message = [output?.stderr, output?.stdout].filter(Boolean).join('\n').trim();
-		return { error: message || (e instanceof Error ? e.message : 'unknown error') };
+		// Unix spawn of a missing binary is ENOENT. On Windows, tinyexec often runs via
+		// cmd.exe which exits 1 with "is not recognized..." instead. We'll treat both as errors
+		// so we can fall back to the package manager (needed for Yarn PnP).
+		if (e instanceof Error && 'code' in e && e.code === 'ENOENT') {
+			if ('code' in e && e.code === 'ENOENT') {
+				return { error: `${command} not found` };
+			}
+
+			return { error: e.message };
+		}
+
+		return { error: 'unknown error' };
 	}
 }
