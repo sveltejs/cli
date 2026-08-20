@@ -764,11 +764,8 @@ declare function minVersion(range: string): string;
 
 declare function coerceVersion(str: string): Version;
 
-declare function isRangeWithin(range: string, target: string): boolean;
-declare function isVersionUnsupportedBelow(
-	versionStr: string,
-	belowStr: string
-): boolean | undefined;
+declare function isRangeWithin(subset: string, superset: string): boolean;
+declare function isVersionUnsupportedBelow(version: string, below: string): boolean | undefined;
 type Printer = (content: string, alt?: string) => string;
 declare function createPrinter(...conditions: boolean[]): Printer[];
 

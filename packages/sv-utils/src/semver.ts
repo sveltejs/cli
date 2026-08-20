@@ -53,8 +53,8 @@ export function isVersionUnsupportedBelow(
 	version: string,
 	below: string
 ): boolean | undefined {
-	const version = coerce(versionStr);
-	const below = coerce(belowStr);
-	if (!version || !below) return undefined;
-	return isLess(version, below);
+	const version_c = coerce(version);
+	const below_c = coerce(below);
+	if (!version_c || !below_c) return undefined;
+	return isLess(version_c, below_c);
 }
