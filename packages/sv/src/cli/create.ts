@@ -57,6 +57,10 @@ const addOption = new Option(
 	'--add <addon...>',
 	'add-ons to include (see Add-Ons section below)'
 ).default([]);
+const addonNameOption = new Option(
+	'--addon-name <name>',
+	'name for the addon package (e.g. @<org>/<pkg> or <pkg>)'
+);
 export const noDownloadCheckOption = new Option(
 	'--no-download-check',
 	'skip all download confirmation prompts'
@@ -75,7 +79,8 @@ const OptionsSchema = v.strictObject({
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
 	dirCheck: v.boolean(),
-	downloadCheck: v.boolean()
+	downloadCheck: v.boolean(),
+	addonName: v.optional(v.string())
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -88,6 +93,7 @@ export const create = new Command('create')
 	.option('--no-types')
 	.addOption(noAddonsOption)
 	.addOption(addOption)
+	.addOption(addonNameOption)
 	.addOption(noInstallOption)
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
@@ -272,29 +278,26 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	const parentDirName = path.basename(path.dirname(projectPath));
 	let projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
-	if (template === 'addon' && !projectName.startsWith('@')) {
-		// At this stage, we don't support un-scoped add-ons
-		// FYI: a demo exists for `npx sv add my-cool-addon`
-		const org = await p.text({
-			message: `Community add-ons must be published under an npm org. Enter the name of your npm org:`,
-			placeholder: '  @my-org',
-			validate: (value) => {
-				if (!value) return 'Organization name is required';
-				if (!value.startsWith('@')) return 'Must start with @';
-				if (value.includes('/')) return 'Just the org, not the full package name';
-			}
-		});
-		if (p.isCancel(org)) {
+	if (template === 'addon') {
+		if (options.add.length > 0) {
+			common.errorAndExit(
+				`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
+			);
+		}
+
+		const namePrompt =
+			options.addonName ??
+			(await p.text({
+				message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
+				initialValue: projectName,
+				validate: v.pipe(v.string(), v.nonEmpty())
+			}));
+		if (p.isCancel(namePrompt)) {
 			p.cancel('Operation cancelled.');
 			process.exit(0);
 		}
-		projectName = `${org}/${basename}`;
-	}
 
-	if (template === 'addon' && options.add.length > 0) {
-		common.errorAndExit(
-			`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
-		);
+		projectName = namePrompt;
 	}
 
 	let loadedAddons: LoadedAddon[] = [];
