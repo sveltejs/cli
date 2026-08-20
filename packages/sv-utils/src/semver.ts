@@ -50,8 +50,8 @@ export function isRangeWithin(subset: string, superset: string): boolean {
 }
 
 export function isVersionUnsupportedBelow(
-	versionStr: string,
-	belowStr: string
+	version: string,
+	below: string
 ): boolean | undefined {
 	const version = coerce(versionStr);
 	const below = coerce(belowStr);
