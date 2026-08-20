@@ -38,14 +38,13 @@ function alphabetizeRecord(obj: Record<string, string>) {
 	return ordered;
 }
 
-/** Returns `true` when `package.json` gained or widened a dependency, i.e. an install is required. */
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
 	sv: SvApi
-): boolean {
-	if (dependencies.length === 0) return false;
-
+): { installNeeded: boolean } {
 	let installNeeded = false;
+	if (dependencies.length === 0) return { installNeeded };
+
 	const pkgPath = filePaths.packageJson;
 	sv.file(
 		pkgPath,
