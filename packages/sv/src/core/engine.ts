@@ -71,7 +71,7 @@ function updatePackages(
 		})
 	);
 
-	return installNeeded;
+	return { installNeeded };
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -421,7 +421,7 @@ export function prepareSvApi(
 	return {
 		sv,
 		finalize: () => {
-			const installNeeded = updatePackages(dependencies, sv);
+			const { installNeeded } = updatePackages(dependencies, sv);
 
 			return {
 				modifiedFiles,
