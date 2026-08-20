@@ -1,3 +1,6 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
 	color,
 	dedent,
@@ -10,9 +13,6 @@ import {
 	defineEnv,
 	isKit3
 } from '@sveltejs/sv-utils';
-import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';

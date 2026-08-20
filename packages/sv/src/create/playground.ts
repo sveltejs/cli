@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
 	type AstTypes,
 	isVersionUnsupportedBelow,
@@ -9,8 +11,6 @@ import {
 	downloadJson,
 	Walker
 } from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
 import { filePaths } from '../core/common.ts';
 import { getSharedFiles } from './utils.ts';
 

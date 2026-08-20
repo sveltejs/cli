@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { log } from '@clack/prompts';
 import {
 	resolveLibPrefix,
@@ -12,7 +13,6 @@ import {
 	coerceVersion,
 	defineEnv
 } from '@sveltejs/sv-utils';
-import crypto from 'node:crypto';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 

@@ -27,8 +27,8 @@ export function replace(contents: string, kv: Record<string, string>): string {
 export function kv(name: string): Record<string, string> {
 	const protocolName = name.startsWith('@') ? name.split('/')[0] : name;
 	return {
-		'~SV-PROTOCOL-NAME-TODO~': protocolName,
-		'~SV-NAME-TODO~': name
+		'$SV-PROTOCOL-NAME-TODO$': protocolName,
+		'$SV-NAME-TODO$': name
 	};
 }
 

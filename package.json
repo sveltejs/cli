@@ -1,20 +1,17 @@
 {
 	"name": "sv-monorepo",
-	"private": true,
 	"version": "0.0.1",
-	"type": "module",
+	"private": true,
 	"description": "monorepo for sv and friends",
-	"engines": {
-		"pnpm": "^10.0.0"
-	},
+	"type": "module",
 	"scripts": {
 		"build": "tsdown",
 		"postbuild": "node scripts/generate-api-surface.js",
 		"changeset:publish": "changeset publish",
 		"check": "pnpm --parallel check",
 		"dev": "tsdown -w & pnpm --parallel check -w & wait",
-		"format": "pnpm --parallel format",
-		"lint": "pnpm --parallel lint && eslint --cache --cache-location node_modules/.eslintcache",
+		"format": "oxfmt",
+		"lint": "oxfmt --check && eslint --cache --cache-location node_modules/.eslintcache",
 		"test": "vitest run --silent",
 		"test:ecosystem-ci": "vitest run --exclude='**/storybook/test.ts'",
 		"test:ui": "vitest --ui",
@@ -25,21 +22,21 @@
 		"@changesets/cli": "^3.0.0",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/eslint-config": "^10.0.1",
-		"@trivago/prettier-plugin-sort-imports": "^6.0.2",
 		"@types/node": "^22.18.0",
 		"@typescript/native-preview": "7.0.0-dev.20260601.1",
 		"@vitest/ui": "4.1.8",
 		"eslint": "^10.4.1",
 		"eslint-plugin-svelte": "^3.19.0",
-		"prettier": "^3.8.3",
-		"prettier-plugin-packagejson": "^3.0.2",
-		"prettier-plugin-svelte": "^4.1.0",
+		"oxfmt": "^0.62.0",
 		"sv": "workspace:*",
 		"svelte": "^5.56.9",
 		"tsdown": "^0.22.3",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vitest": "4.1.8"
+	},
+	"engines": {
+		"pnpm": "^10.0.0"
 	},
 	"packageManager": "pnpm@10.33.4+sha512.1c67b3b359b2d408119ba1ed289f34b8fc3c6873412bec6fd264fbdc82489e510fcbecb9ce9d22dae7f3b76269d8441046014bdca53b9979cd7a561ad631b800"
 }
