@@ -143,6 +143,9 @@ declare module 'estree' {
 	interface ImportDeclaration {
 		importKind: 'type' | 'value';
 	}
+	interface ImportSpecifier {
+		importKind?: 'type' | 'value';
+	}
 }
 type CommentType = {
 	type: 'Line' | 'Block';
@@ -411,6 +414,7 @@ declare function createCall(options: {
 declare function createArrow(options: {
 	body: estree.Expression | estree.BlockStatement;
 	async: boolean;
+	params?: string[];
 }): estree.ArrowFunctionExpression;
 declare function getArgument<T extends estree.Expression>(
 	node: estree.CallExpression,

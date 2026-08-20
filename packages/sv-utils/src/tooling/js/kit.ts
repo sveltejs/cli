@@ -70,7 +70,7 @@ export function addHooksHandle(
 ): void {
 	if (options.language === 'ts') {
 		imports.addNamed(node, {
-			from: '@sveltejs/kit',
+			from: '@sveltejs/kit/hooks',
 			imports: { Handle: 'Handle' },
 			isType: true
 		});
@@ -197,7 +197,7 @@ export function addHooksHandle(
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		} else if (options.comments) {
 			common.addJsDocTypeComment(newHandleDecl, options.comments, {
-				type: "import('@sveltejs/kit').Handle"
+				type: "import('@sveltejs/kit/hooks').Handle"
 			});
 		}
 		node.body.push(newHandleDecl);
@@ -213,7 +213,7 @@ export function addHooksHandle(
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		} else if (options.comments) {
 			common.addJsDocTypeComment(handleDecl, options.comments, {
-				type: "import('@sveltejs/kit').Handle"
+				type: "import('@sveltejs/kit/hooks').Handle"
 			});
 		}
 
@@ -235,7 +235,7 @@ export function addHooksHandle(
 		variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 	} else if (options.comments) {
 		common.addJsDocTypeComment(newHandleDecl, options.comments, {
-			type: "import('@sveltejs/kit').Handle"
+			type: "import('@sveltejs/kit/hooks').Handle"
 		});
 	}
 
@@ -345,7 +345,7 @@ export function addHooksHandle(
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		} else if (options.comments) {
 			common.addJsDocTypeComment(finalHandleDecl, options.comments, {
-				type: "import('@sveltejs/kit').Handle"
+				type: "import('@sveltejs/kit/hooks').Handle"
 			});
 		}
 		node.body.push(newHandleDecl);

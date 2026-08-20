@@ -1,6 +1,6 @@
-import { js, parse, type AstTypes } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { js, parse, type AstTypes } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 import { createMigrationTaskComment } from '../../../migration-task.ts';
 
@@ -67,9 +67,9 @@ export default defineMigrationTask({
 			imports: new Map(),
 			sideEffectImports: new Set()
 		};
-		// seed the `defineParams` import so other imports from '@sveltejs/kit' merge into it
-		context.imports.set('named:defineParams:@sveltejs/kit', {
-			source: '@sveltejs/kit',
+		// seed the `defineParams` import so other imports from its module merge into it
+		context.imports.set('named:defineParams:@sveltejs/kit/params', {
+			source: '@sveltejs/kit/params',
 			kind: 'named',
 			imported: 'defineParams',
 			local: 'defineParams',
@@ -107,7 +107,7 @@ export default defineMigrationTask({
 		// non-matcher files may depend on the matchers (e.g. tests), leave the directory to the user
 		if (foreignEntries.length > 0) return;
 
-		for (const file of matcherFiles) fs.unlinkSync(path.join(cwd, file));
+		for (const file of matcherFiles) sv.removeFile(file);
 		if (fs.readdirSync(absoluteParamsDirectory).length === 0) fs.rmdirSync(absoluteParamsDirectory);
 	}
 });
@@ -129,7 +129,10 @@ function migrateMatcher(
 
 	for (const statement of parsed.ast.body) {
 		if (statement.type === 'ImportDeclaration') {
-			if (statement.source.value === '@sveltejs/kit') {
+			if (
+				statement.source.value === '@sveltejs/kit' ||
+				statement.source.value === '@sveltejs/kit/params'
+			) {
 				for (const specifier of statement.specifiers) {
 					if (
 						specifier.type === 'ImportSpecifier' &&

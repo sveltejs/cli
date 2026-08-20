@@ -1,5 +1,5 @@
-import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import path from 'node:path';
+import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import type { SvApi } from '../../../../core/config.ts';
 import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
@@ -64,6 +64,12 @@ export default defineMigrationTask({
 				// the generated config no longer carries `include`, so the project owns it now
 				const include = (data.include ??= ['src']);
 				include.push(...moved.filter((entry) => !include.includes(entry)));
+
+				// if types is set we need to add $app/types to it
+				if (data.compilerOptions?.types) {
+					const types = data.compilerOptions.types as string[];
+					if (!types.includes('$app/types')) types.push('$app/types');
+				}
 
 				for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
 					if (INHERITED_OPTIONS[key] === value) delete data.compilerOptions![key];
