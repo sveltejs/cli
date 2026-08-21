@@ -838,10 +838,9 @@ type Version = {
 declare function minVersion(range: string): string;
 
 declare function coerceVersion(str: string): Version;
-declare function isVersionUnsupportedBelow(
-	versionStr: string,
-	belowStr: string
-): boolean | undefined;
+
+declare function isRangeWithin(subset: string, superset: string): boolean;
+declare function isVersionUnsupportedBelow(version: string, below: string): boolean | undefined;
 type Printer = (content: string, alt?: string) => string;
 declare function createPrinter(...conditions: boolean[]): Printer[];
 
@@ -1027,6 +1026,7 @@ export {
 	fileExists,
 	index_d_exports$2 as html,
 	isKit3,
+	isRangeWithin,
 	isVersionUnsupportedBelow,
 	index_d_exports$3 as js,
 	json_d_exports as json,

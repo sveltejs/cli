@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import { color, resolveCommandArray } from '@sveltejs/sv-utils';
+import { type AgentName, color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import * as v from 'valibot';
@@ -20,7 +20,7 @@ import {
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
 import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
-import { formatFiles } from '../core/formatFiles.ts';
+import { formatFiles, isFormatterInstalled } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmAllowBuilds,
@@ -655,7 +655,7 @@ export async function runAddonsApply({
 			setupResults: {}
 		};
 
-	const { filesToFormat, status } = await applyAddons({
+	const { filesToFormat, status, installNeeded } = await applyAddons({
 		loadedAddons,
 		workspace,
 		setupResults,
@@ -689,12 +689,18 @@ export async function runAddonsApply({
 		);
 	}
 
-	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(options.cwd)
-				: options.install;
+	// nothing new landed in `package.json`, so there is nothing to install and nothing to ask about
+	let packageManager: AgentName | null | undefined = null;
+	if (options.install === true) {
+		// prompt user when `package.json` has changed
+		if (installNeeded) {
+			packageManager = await packageManagerPrompt(options.cwd);
+		}
+	} else if (options.install === false) {
+		// user choose not to install
+	} else {
+		packageManager = options.install;
+	}
 
 	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
 
@@ -752,18 +758,20 @@ export async function runAddonsApply({
 		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
 	}
 
-	let depsInstalled = true;
+	let depsInstalled = false;
 	if (packageManager) {
 		workspace.packageManager = packageManager;
 		depsInstalled = await installDependencies(packageManager, options.cwd);
-		if (depsInstalled) {
-			await formatFiles({
-				packageManager,
-				cwd: options.cwd,
-				filesToFormat,
-				strategy: 'files-only'
-			});
-		}
+	}
+
+	// the formatter has to be on disk: either we just installed it, or it was already there
+	if (depsInstalled || isFormatterInstalled(options.cwd)) {
+		await formatFiles({
+			packageManager: packageManager ?? workspace.packageManager,
+			cwd: options.cwd,
+			filesToFormat,
+			strategy: 'files-only'
+		});
 	}
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);

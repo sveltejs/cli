@@ -4,6 +4,7 @@ import * as p from '@clack/prompts';
 import {
 	color,
 	fileExists,
+	isRangeWithin,
 	loadFile,
 	saveFile,
 	resolveCommand,
@@ -40,8 +41,9 @@ function alphabetizeRecord(obj: Record<string, string>) {
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
 	sv: SvApi
-) {
-	if (dependencies.length === 0) return;
+): { installNeeded: boolean } {
+	let installNeeded = false;
+	if (dependencies.length === 0) return { installNeeded };
 
 	const pkgPath = filePaths.packageJson;
 	sv.file(
@@ -49,23 +51,26 @@ function updatePackages(
 		transforms.json<Package>(({ content, data }) => {
 			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
-			let modified = false;
 			for (const { dev, pkg, version } of dependencies) {
 				const dependency = dev ? 'devDependencies' : 'dependencies';
 				data[dependency] ??= {};
 
-				if (data[dependency][pkg] !== version) {
-					modified = true;
-					data[dependency][pkg] = version;
-				}
+				// keep a stricter existing range (e.g. `^9.2.0` when the add-on asks for `^9.0.0`)
+				const declared = data[dependency][pkg];
+				if (declared && isRangeWithin(declared, version)) continue;
+
+				installNeeded = true;
+				data[dependency][pkg] = version;
 			}
 
-			if (!modified) return false; // do not edit the file if no changes were made
+			if (!installNeeded) return false; // do not edit the file if no changes were made
 
 			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
 			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
 		})
 	);
+
+	return { installNeeded };
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -118,10 +123,12 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
+	installNeeded: boolean;
 }> {
 	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
 	const canceledAddons = new Set<string>();
+	let installNeeded = false;
 
 	const addonDefs = loadedAddons.map((l) => l.addon);
 	const ordered = orderAddons(addonDefs, setupResults);
@@ -150,7 +157,11 @@ export async function applyAddons({
 		// If we don't have a formatter yet, check if the addon adds one
 		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
-		const { files, cancels } = await runAddon({
+		const {
+			files,
+			cancels,
+			installNeeded: addonInstallNeeded
+		} = await runAddon({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
@@ -159,6 +170,7 @@ export async function applyAddons({
 		});
 
 		files.forEach((f) => filesToFormat.add(f));
+		if (addonInstallNeeded) installNeeded = true;
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
 		} else {
@@ -169,7 +181,8 @@ export async function applyAddons({
 
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
-		status
+		status,
+		installNeeded
 	};
 }
 
@@ -262,13 +275,15 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		);
 	}
 
+	let installNeeded = false;
 	if (cancels.length === 0) {
-		({ modifiedFiles } = finalize());
+		({ modifiedFiles, installNeeded } = finalize());
 	}
 
 	return {
 		files: Array.from(modifiedFiles),
-		cancels
+		cancels,
+		installNeeded
 	};
 }
 
@@ -327,7 +342,14 @@ export function prepareSvApi(
 		saveFileInfix: undefined,
 		additionalExcludes: undefined
 	}
-): { sv: SvApi; finalize: () => { modifiedFiles: Set<string>; unmodifiedFiles: Set<string> } } {
+): {
+	sv: SvApi;
+	finalize: () => {
+		modifiedFiles: Set<string>;
+		unmodifiedFiles: Set<string>;
+		installNeeded: boolean;
+	};
+} {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 	const modifiedFiles = new Set<string>();
 	const unmodifiedFiles = new Set<string>();
@@ -410,11 +432,12 @@ export function prepareSvApi(
 	return {
 		sv,
 		finalize: () => {
-			updatePackages(dependencies, sv);
+			const { installNeeded } = updatePackages(dependencies, sv);
 
 			return {
 				modifiedFiles,
-				unmodifiedFiles
+				unmodifiedFiles,
+				installNeeded
 			};
 		}
 	};
