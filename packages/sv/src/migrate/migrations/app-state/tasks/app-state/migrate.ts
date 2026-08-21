@@ -28,8 +28,9 @@ export function migrateAppState(ast: AstTypes.Program, fragment: SvelteAst.Fragm
 	if (imports.length === 0) return false;
 
 	const locals = new Map<string, StoreLocal>();
-	for (const found of imports) {
-		for (const [key, value] of collectStoreLocals(found.node)) locals.set(key, value);
+	for (const binding of js.imports.bindings(ast, { from: OLD_SOURCE })) {
+		if (!KNOWN_STORES.has(binding.imported)) continue;
+		locals.set(`$${binding.local}`, { name: binding.local, store: binding.imported });
 	}
 	if (locals.size === 0) return false;
 
@@ -45,8 +46,7 @@ export function migrateAppState(ast: AstTypes.Program, fragment: SvelteAst.Fragm
 
 	// rename the import source(s)
 	for (const found of imports) {
-		found.sourceNode.value = NEW_SOURCE;
-		found.sourceNode.raw = undefined;
+		js.imports.setSource(found, NEW_SOURCE);
 	}
 
 	const state = { needsNavigatingReview: false };
@@ -77,22 +77,15 @@ export function migrateAppStateModule(ast: AstTypes.Program, comments: Comments)
 
 	const storeNames = new Set<string>();
 	let getStoresImport: AstTypes.ImportDeclaration | undefined;
-	for (const found of imports) {
-		for (const specifier of found.node.specifiers) {
-			if (specifier.type !== 'ImportSpecifier') continue;
-			if (specifier.imported.type !== 'Identifier') continue;
-			if (!KNOWN_STORES.has(specifier.imported.name)) continue;
-			if (specifier.local?.type !== 'Identifier') continue;
-
-			if (specifier.imported.name === 'getStores') getStoresImport = found.node;
-			else storeNames.add(specifier.local.name);
-		}
+	for (const binding of js.imports.bindings(ast, { from: OLD_SOURCE })) {
+		if (!KNOWN_STORES.has(binding.imported)) continue;
+		if (binding.imported === 'getStores') getStoresImport = binding.declaration;
+		else storeNames.add(binding.local);
 	}
 	if (storeNames.size === 0 && !getStoresImport) return false;
 
 	for (const found of imports) {
-		found.sourceNode.value = NEW_SOURCE;
-		found.sourceNode.raw = undefined;
+		js.imports.setSource(found, NEW_SOURCE);
 	}
 
 	if (getStoresImport) {
@@ -196,25 +189,6 @@ function findBailReason(
 	return reason;
 }
 
-/** Map of `$`-prefixed auto-subscription name -> store info. */
-function collectStoreLocals(importNode: AstTypes.ImportDeclaration): Map<string, StoreLocal> {
-	const locals = new Map<string, StoreLocal>();
-
-	for (const specifier of importNode.specifiers) {
-		if (specifier.type !== 'ImportSpecifier') continue;
-		if (specifier.imported.type !== 'Identifier') continue;
-		if (!KNOWN_STORES.has(specifier.imported.name)) continue;
-		if (specifier.local?.type !== 'Identifier') continue;
-
-		locals.set(`$${specifier.local.name}`, {
-			name: specifier.local.name,
-			store: specifier.imported.name
-		});
-	}
-
-	return locals;
-}
-
 /** Rewrite `$store` auto-subscription identifiers to their `$app/state` equivalent. */
 function derefStores(
 	node: AstTypes.Node | SvelteAst.SvelteNode,
@@ -227,10 +201,17 @@ function derefStores(
 			if (local === undefined) return;
 
 			const parent = ctx.path[ctx.path.length - 1];
+			if (!js.identifiers.isReference(node, parent)) return;
+
+			// `{ $page }` shorthand carries the name twice; keep the key and rewrite only the value
+			if (parent.type === 'Property' && parent.shorthand && parent.key === node) {
+				parent.key = { ...node };
+				parent.shorthand = false;
+			}
 
 			if (local.store === 'updated') {
 				// `$updated` -> `updated.current`
-				replaceChildNode(parent, node, memberExpression(local.name, 'current'));
+				js.common.replaceChild(parent, node, memberExpression(local.name, 'current'));
 				return;
 			}
 
@@ -238,7 +219,7 @@ function derefStores(
 				if (isBooleanPosition(node, parent)) {
 					// `$navigating` used as a truthy check -> `navigating.to`
 					// (`navigating` is always defined now; `.to` is null when idle)
-					replaceChildNode(parent, node, memberExpression(local.name, 'to'));
+					js.common.replaceChild(parent, node, memberExpression(local.name, 'to'));
 					return;
 				}
 				if (!isMemberAccessObject(node, parent)) {
@@ -297,30 +278,4 @@ function memberExpression(object: string, property: string): AstTypes.MemberExpr
 		computed: false,
 		optional: false
 	};
-}
-
-/** Replace `node` with `replacement` wherever it appears among `parent`'s direct children. */
-function replaceChildNode(
-	parent: AstTypes.Node | SvelteAst.SvelteNode,
-	node: AstTypes.Node,
-	replacement: AstTypes.Node
-): void {
-	const record = parent as unknown as Record<string, unknown>;
-
-	for (const key in record) {
-		const value = record[key];
-
-		if (value === node) {
-			record[key] = replacement;
-			return;
-		}
-
-		if (Array.isArray(value)) {
-			const index = value.indexOf(node);
-			if (index !== -1) {
-				value[index] = replacement;
-				return;
-			}
-		}
-	}
 }

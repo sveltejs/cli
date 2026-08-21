@@ -11,12 +11,7 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 			adapter: adapter(),
-			experimental: { explicitEnvironmentVariables: true },
-			typescript: {
-				config: (config) => {
-					config.include.push('../drizzle.config.ts');
-				}
-			}
+			experimental: { remoteFunctions: true }
 		})
 	]
 });

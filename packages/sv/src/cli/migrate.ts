@@ -1,8 +1,8 @@
+import path from 'node:path';
+import process from 'node:process';
 import * as p from '@clack/prompts';
 import { color, loadPackageJson, type Package } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
-import path from 'node:path';
-import process from 'node:process';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
 import { prepareSvApi } from '../core/engine.ts';
@@ -34,11 +34,18 @@ import kit3 from '../migrate/migrations/sveltekit-3/index.ts';
 const migrations = [kit3, appState, ...legacyMigrations] as const;
 const MigrationScheme = v.optional(v.picklist(migrations.map((m) => m.id)));
 
+export function normalizeTasksOption(tasks: string[] | true | undefined) {
+	return tasks === true ? [] : tasks;
+}
+
 const OptionsSchema = v.strictObject({
 	cwd: v.optional(v.string(), './'),
 	files: v.optional(v.string()),
 	gitCheck: v.boolean(),
-	tasks: v.optional(v.array(v.string())),
+	tasks: v.pipe(
+		v.optional(v.union([v.array(v.string()), v.literal(true)])),
+		v.transform(normalizeTasksOption)
+	),
 	confirm: v.optional(v.boolean(), false),
 	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true)
 });
@@ -53,7 +60,10 @@ export const migrate = new Command('migrate')
 		'only run the migration on a subset of files matching the provided glob pattern'
 	)
 	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
-	.option('--tasks <task...>', 'migration tasks to run')
+	.option(
+		'--tasks [task...]',
+		'migration tasks to run. Omit list of tasks to show available tasks. Use `--task all` to run all migration tasks.'
+	)
 	.option('--confirm', 'skip the final confirmation prompt')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
@@ -79,8 +89,10 @@ export const migrate = new Command('migrate')
 			if (!pkg) return;
 
 			// verifications
-			const verifications = [...verifyCleanWorkingDirectory(options.cwd, options.gitCheck)];
-			await common.runAndValidateVerifications(verifications);
+			if (verifiedOptions.tasks?.length !== 0) {
+				const verifications = [...verifyCleanWorkingDirectory(options.cwd, options.gitCheck)];
+				await common.runAndValidateVerifications(verifications);
+			}
 
 			if (!verifiedMigrationName) {
 				verifiedMigrationName = await p.select({
@@ -93,7 +105,7 @@ export const migrate = new Command('migrate')
 				});
 			}
 
-			if (!verifiedMigrationName || typeof verifiedMigrationName === 'symbol') {
+			if (p.isCancel(verifiedMigrationName)) {
 				p.cancel('Operation cancelled.');
 				process.exit(1);
 			}
@@ -104,15 +116,20 @@ export const migrate = new Command('migrate')
 				return;
 			}
 			const legacyMigration = migration.legacy ?? false;
-			if (legacyMigration && verifiedOptions.tasks) {
+			if (legacyMigration && verifiedOptions.tasks !== undefined) {
 				common.errorAndExit(`The migration ${migration.id} does not support task selection.`);
 				return;
 			}
-
-			if (migration.changelog) {
-				p.log.warn(
-					`Make sure to read the changelog for this migration before running it: ${color.website(migration.changelog)}`
-				);
+			if (verifiedOptions.tasks?.length === 0) {
+				const allTasks = await collectMigrationTasks(migration, verifiedOptions.cwd);
+				if (allTasks.length === 0) {
+					common.errorAndExit(`Migration "${migration.id}" did not return any tasks.`);
+					return;
+				}
+				p.note(formatAvailableTasks(allTasks), `Available tasks for ${migration.id}`, {
+					format: (line) => line
+				});
+				return;
 			}
 
 			const tasks = await determineTasks(migration, verifiedOptions, pkg);
@@ -140,7 +157,7 @@ export const migrate = new Command('migrate')
 				await installDependencies(packageManager, workspace.cwd);
 			}
 
-			reportNextSteps(migration.changelog);
+			reportNextSteps();
 		});
 	});
 
@@ -172,7 +189,7 @@ async function determineTasks(
 	};
 
 	try {
-		migration.setup(setupOptions);
+		await migration.setup(setupOptions);
 	} catch (err) {
 		common.errorAndExit(err instanceof Error ? err.message : String(err));
 		return;
@@ -187,16 +204,7 @@ async function determineTasks(
 		return;
 	}
 
-	const allTasks: TaskWithOptions[] = [];
-	const collectOptions: MigrationCollectOptions = {
-		cwd: options.cwd,
-		tasks: {
-			add: (task, options) => {
-				allTasks.push({ ...task, ...options });
-			}
-		}
-	};
-	migration.collect(collectOptions);
+	const allTasks = await collectMigrationTasks(migration, options.cwd);
 
 	if (allTasks.length === 0) {
 		common.errorAndExit(`Migration "${migration.id}" did not return any tasks to run.`);
@@ -204,18 +212,35 @@ async function determineTasks(
 	}
 
 	const prerequisiteTasks = allTasks.filter((t) => t.prerequisite);
-	const optionalTasks = allTasks.filter((t) => !t.prerequisite);
+	const selectableTasks = allTasks.filter((t) => !t.prerequisite);
+	// Don't show the recommended workflow when the user has already specified which tasks to run
+	if (!options.tasks?.length && selectableTasks.length > 0) {
+		const workflow = [];
+		if (migration.changelog) {
+			workflow.push(
+				'Make sure to read the changelog for this migration before running it:',
+				color.website(migration.changelog),
+				''
+			);
+		}
+		workflow.push(
+			`To make migration changes easier to review, run ${color.command('one selectable task at a time')} and ${color.command('commit after each run')}.`,
+			'Tasks are intended to create focused commits, not independent migration paths.',
+			`Most projects need ${color.warning('all applicable tasks')} before they work correctly.`
+		);
+		p.note(workflow.join('\n'), 'Recommended workflow', { format: (line) => line });
+	}
 
 	const tasksToRun = [...prerequisiteTasks];
 	if (options.tasks) {
-		tasksToRun.push(...selectOptionalTasksFromArgs(options.tasks, optionalTasks));
-	} else if (optionalTasks.length > 0) {
+		tasksToRun.push(...selectTasksFromArgs(options.tasks, selectableTasks));
+	} else if (selectableTasks.length > 0) {
 		const prerequisiteIds = prerequisiteTasks.map((t) => t.id).join(', ');
-		const optionalTaskIdsToRun = await p.multiselect({
+		const selectedTaskIds = await p.multiselect({
 			message: prerequisiteTasks.length
-				? `Select optional tasks to run, in addition to ${color.dim(prerequisiteIds)}`
+				? `Select tasks to run; prerequisites always included: ${color.command(prerequisiteIds)}`
 				: 'Select the tasks to run',
-			options: optionalTasks.map((t) => ({
+			options: selectableTasks.map((t) => ({
 				value: t.id,
 				label: t.id,
 				hint: t.description
@@ -223,13 +248,13 @@ async function determineTasks(
 			required: false
 		});
 
-		if (typeof optionalTaskIdsToRun === 'symbol') {
+		if (p.isCancel(selectedTaskIds)) {
 			p.cancel('Operation cancelled.');
 			process.exit(1);
 		}
 
-		const optionalTasksToRun = optionalTasks.filter((t) => optionalTaskIdsToRun.includes(t.id));
-		tasksToRun.push(...optionalTasksToRun);
+		const selectedTasks = selectableTasks.filter((t) => selectedTaskIds.includes(t.id));
+		tasksToRun.push(...selectedTasks);
 	}
 
 	if (tasksToRun.length === 0) {
@@ -238,9 +263,8 @@ async function determineTasks(
 	}
 
 	const recapMessage = tasksToRun
-		.map(({ id, description, prerequisite }) => {
-			const tag = prerequisite ? '' : color.optional(' (optional)');
-			return `${id}${tag} ${color.dim(`(${description})`)}`;
+		.map(({ id, description }) => {
+			return `${id} ${color.optional(`(${description})`)}`;
 		})
 		.join('\n- ');
 	p.note(`- ${recapMessage}`, 'Migration steps', { format: (line) => line });
@@ -251,6 +275,12 @@ async function determineTasks(
 			initialValue: false
 		});
 
+		// a cancel is a truthy symbol, so it has to be checked before the falsy "no"
+		if (p.isCancel(proceed)) {
+			p.cancel('Operation cancelled.');
+			process.exit(1);
+		}
+
 		if (!proceed) {
 			common.errorAndExit('Migration cancelled by the user.');
 			return;
@@ -260,10 +290,30 @@ async function determineTasks(
 	return tasksToRun;
 }
 
-export function selectOptionalTasksFromArgs(
-	selectedTaskIds: string[],
-	optionalTasks: TaskWithOptions[]
-) {
+async function collectMigrationTasks(migration: Migration, cwd: string) {
+	const allTasks: TaskWithOptions[] = [];
+	const collectOptions: MigrationCollectOptions = {
+		cwd,
+		tasks: {
+			add: (task, options) => {
+				allTasks.push({ ...task, ...options });
+			}
+		}
+	};
+	await migration.collect(collectOptions);
+	return allTasks;
+}
+
+export function formatAvailableTasks(tasks: TaskWithOptions[]) {
+	return tasks
+		.map(
+			({ id, description, prerequisite }) =>
+				`- ${id}${prerequisite ? color.warning(' (prerequisite)') : ''}: ${color.optional(description)}`
+		)
+		.join('\n');
+}
+
+export function selectTasksFromArgs(selectedTaskIds: string[], selectableTasks: TaskWithOptions[]) {
 	if (
 		selectedTaskIds.length > 1 &&
 		(selectedTaskIds.includes('all') || selectedTaskIds.includes('prerequisite'))
@@ -280,23 +330,25 @@ export function selectOptionalTasksFromArgs(
 	}
 
 	if (selectedTaskIds[0] === 'all') {
-		return optionalTasks;
+		return selectableTasks;
 	}
 
-	const invalidTasks = selectedTaskIds.filter((id) => !optionalTasks.some((t) => t.id === id));
+	const invalidTasks = selectedTaskIds.filter((id) => !selectableTasks.some((t) => t.id === id));
 	if (invalidTasks.length > 0) {
 		common.errorAndExit(
 			`Unknown migration task${invalidTasks.length === 1 ? '' : 's'}: ${invalidTasks
 				.map((id) => color.command(id))
-				.join(', ')}\nAvailable tasks: ${optionalTasks.map((t) => color.command(t.id)).join(', ')}`
+				.join(
+					', '
+				)}\nAvailable tasks: ${selectableTasks.map((t) => color.command(t.id)).join(', ')}`
 		);
 	}
 
-	return optionalTasks.filter((task) => selectedTaskIds.includes(task.id));
+	return selectableTasks.filter((task) => selectedTaskIds.includes(task.id));
 }
 
 /** Prints a summary of the `@migration-task` comments left for the user to resolve, if any. */
-function reportNextSteps(changelog?: string): void {
+function reportNextSteps(): void {
 	const total = getMigrationTaskCount();
 	if (total === 0) return;
 
@@ -304,8 +356,6 @@ function reportNextSteps(changelog?: string): void {
 		`${total} ${total === 1 ? 'comment' : 'comments'} to review.`,
 		`Search for ${color.command(MIGRATION_TASK_MARKER)} to resolve ${total === 1 ? 'it' : 'them'}.`
 	];
-	if (changelog) body.push('', `Changelog: ${color.website(changelog)}`);
-
 	p.note(body.join('\n'), 'Next steps', { format: (line) => line });
 }
 
@@ -354,11 +404,12 @@ async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigr
 	if (!legacyMigration) stop('All tasks applied successfully!');
 
 	if (allUnmodifiedFiles.size > 0) {
+		const skippedFiles = Array.from(allUnmodifiedFiles)
+			.map((file) => `- ${color.path(file)}`)
+			.join('\n');
 		p.note(
-			`The following files were modified by the migration,\nbut their content was not saved:\n- ${Array.from(
-				allUnmodifiedFiles
-			).join('\n- ')}`,
-			'Unmodified files',
+			`Changes to these files were skipped because they did not\nmatch the ${color.command('--files')} filter:\n${skippedFiles}`,
+			color.warning('Skipped changes'),
 			{ format: (line) => line }
 		);
 	}

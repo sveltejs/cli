@@ -31,6 +31,8 @@ export type SvApi = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	file: (path: string, edit: FileEdit) => void;
+	/** Remove a file from the workspace. Respects the migration file filter. */
+	removeFile: (path: string) => void;
 	/**
 	 * Edits matching files in the workspace.
 	 * The `include` and `exclude` patterns are glob patterns relative to the workspace root.
@@ -265,13 +267,6 @@ export type SetupResult = {
 };
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
-
-export type Tests = {
-	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
-	elementExists: (selector: string) => Promise<void>;
-	click: (selector: string, path?: string) => Promise<void>;
-	expectUrlPath: (path: string) => void;
-};
 
 type MaybePromise<T> = Promise<T> | T;
 

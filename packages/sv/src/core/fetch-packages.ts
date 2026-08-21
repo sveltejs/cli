@@ -1,11 +1,11 @@
-import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
-import { extract } from 'tar-fs';
+import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
+import { unpackTar } from 'modern-tar/fs';
 import pkg from '../../package.json' with { type: 'json' };
 import * as common from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
@@ -125,14 +125,9 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 	await pipeline(
 		data.body,
 		createGunzip(),
-		extract(NODE_MODULES, {
-			map: (header: any) => {
-				// file paths from the tarball will always have a `package/` prefix,
-				// so we'll need to replace it with the name of the package
-				header.name = header.name.replace('package', pkg.name);
-				return header;
-			}
-		})
+		// file paths from the tarball will always have a `package/` prefix,
+		// so we'll need to replace it with the name of the package
+		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
 	);
 
 	return await importAddonCode(pkg.name, pkg.version);
