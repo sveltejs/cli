@@ -1,6 +1,6 @@
 import process from 'node:process';
 import { log } from '@clack/prompts';
-import { color, dedent, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import { color, type TransformFn, transforms } from '@sveltejs/sv-utils';
 
 // This is in common because the eslint addon installs this version,
 // and the prettier addon uses this to check if the installed major version of
@@ -168,80 +168,6 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 			});
 		}
 	});
-
-const find = (
-	nodes: SvelteAst.SvelteNode[],
-	name: string
-): SvelteAst.RegularElement | undefined => {
-	for (const node of nodes) {
-		if (node.type === 'RegularElement' && node.name === name) {
-			return node;
-		}
-		if ('fragment' in node && node.fragment && 'nodes' in node.fragment) {
-			const result = find(node.fragment.nodes, name);
-			if (result) return result;
-		}
-	}
-	return undefined;
-};
-
-const hasDemoLink = (nodes: SvelteAst.Fragment['nodes'], addonName?: string): boolean => {
-	for (const node of nodes) {
-		if (node.type !== 'RegularElement') continue;
-		const hrefAttribute = node.attributes.find(
-			(x): x is SvelteAst.Attribute => x.type === 'Attribute' && x.name === 'href'
-		);
-		if (!hrefAttribute) continue;
-		if (!hrefAttribute.value) continue;
-		if (!Array.isArray(hrefAttribute.value)) continue;
-		return hrefAttribute.value.some(
-			(x) => x.type === 'Text' && x.data.includes(`/demo${addonName ? `/${addonName}` : ''}`)
-		);
-	}
-	return false;
-};
-
-type KitRoutes = string & {};
-type AddonName = string & {};
-type CreateDemoPage = (
-	name: string,
-	language: 'ts' | 'js',
-	kitRoutes: string
-) => {
-	addonPath: `${KitRoutes}/demo/${AddonName}`;
-	listing: [path: `${KitRoutes}/demo/+page.svelte`, transform: TransformFn];
-	header: [path: `${KitRoutes}/Header.svelte`, transform: TransformFn];
-};
-
-export const createDemoPage: CreateDemoPage = (name, language, kitRoutes) => {
-	const listingTransform = transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
-		if (hasDemoLink(ast.fragment.nodes, name)) return false;
-
-		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-		svelte.addFragment(ast, `<a href={resolve('/demo/${name}')}>${name}</a>`, { mode: 'prepend' });
-	});
-
-	const headerTransform = transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
-		const ul = find(ast.fragment.nodes, 'ul');
-		if (!ul) return false;
-		if (hasDemoLink(ul.fragment.nodes)) return false;
-
-		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-		svelte.addFragment(
-			ul,
-			dedent`
-				<li aria-current={page.url.pathname.startsWith('/demo') ? 'page' : undefined}>
-					<a href={resolve('/demo')}>Demo</a>
-				</li>`
-		);
-	});
-
-	return {
-		addonPath: `${kitRoutes}/demo/${name}`,
-		listing: [`${kitRoutes}/demo/+page.svelte`, listingTransform],
-		header: [`${kitRoutes}/Header.svelte`, headerTransform]
-	};
-};
 
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.

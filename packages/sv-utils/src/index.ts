@@ -84,6 +84,9 @@ export {
 	type SvelteConfigObjects
 } from './svelte-config.ts';
 
+// Demo page wiring (the `/demo` index + nav entry an add-on's demo route hangs off)
+export { defineDemoPage, type DemoPage } from './demo-page.ts';
+
 // Env access (abstracts over legacy `$env/dynamic/*` vs declared `$app/env/*` + `src/env.ts`)
 export { defineEnv } from './env.ts';
 

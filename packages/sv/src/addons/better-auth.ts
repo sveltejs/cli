@@ -11,10 +11,10 @@ import {
 	createPrinter,
 	type TransformFn,
 	coerceVersion,
+	defineDemoPage,
 	defineEnv
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { createDemoPage } from './common.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
@@ -333,7 +333,7 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
-			const demo = createDemoPage('better-auth', language, directory.kitRoutes);
+			const demo = defineDemoPage('better-auth', language, directory.kitRoutes);
 			sv.file(...demo.listing);
 			sv.file(...demo.header);
 

@@ -935,6 +935,15 @@ declare const svelteConfig: {
 	find: (source: ConfigSource) => SvelteConfigLocation | null;
 	read: (source: ConfigSource) => SvelteConfigObjects | null;
 };
+type KitRoutes = string & {};
+type AddonName = string & {};
+type DemoPage = {
+	addonPath: `${KitRoutes}/demo/${AddonName}`;
+	listing: [path: `${KitRoutes}/demo/+page.svelte`, transform: TransformFn];
+	header: [path: `${KitRoutes}/Header.svelte`, transform: TransformFn];
+};
+
+declare function defineDemoPage(name: string, language: 'ts' | 'js', kitRoutes: string): DemoPage;
 type EnvMode = 'declared' | 'legacy';
 type EnvScope = 'private' | 'public';
 type EnvVarSpec = {
@@ -1004,6 +1013,7 @@ export {
 	COMMANDS,
 	type Comments,
 	type ConfigFileReader,
+	type DemoPage,
 	KIT3_TSCONFIG,
 	KIT3_TSCONFIG_DEFAULT,
 	type Package,
@@ -1020,6 +1030,7 @@ export {
 	createPrinter,
 	index_d_exports$1 as css,
 	dedent,
+	defineDemoPage,
 	defineEnv,
 	detect,
 	downloadJson,
