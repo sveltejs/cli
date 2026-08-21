@@ -90,7 +90,7 @@ test.concurrent.for(testCases)(
 			fs.writeFileSync(pagePath, pageComp, 'utf8');
 
 			const pageServerPath = path.resolve(routes, `+page.server.${ts ? 'ts' : 'js'}`);
-			fs.writeFileSync(pageServerPath, pageServer, 'utf8');
+			fs.writeFileSync(pageServerPath, pageServer(ts ? 'ts' : 'js'), 'utf8');
 
 			execSync('npm run db:push', { cwd, stdio: 'pipe' });
 

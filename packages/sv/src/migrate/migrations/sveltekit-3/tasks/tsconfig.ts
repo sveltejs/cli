@@ -1,5 +1,5 @@
-import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import path from 'node:path';
+import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import type { SvApi } from '../../../../core/config.ts';
 import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
@@ -51,14 +51,25 @@ export default defineMigrationTask({
 			transforms.json<TypeConfig>(({ data }) => {
 				const extended = Array.isArray(data.extends) ? [...data.extends] : [data.extends];
 				const index = extended.findIndex((entry) => entry && GENERATED_CONFIG.test(entry));
-				if (index === -1) return false;
 
-				extended[index] = PARENT_CONFIG;
-				data.extends = Array.isArray(data.extends) ? (extended as string[]) : PARENT_CONFIG;
+				// a prerequisite task may have retargeted `extends` already; the `include` paths below
+				// still have to move, so only bail when neither config is referenced
+				if (index === -1 && !extended.includes(PARENT_CONFIG)) return false;
+
+				if (index !== -1) {
+					extended[index] = PARENT_CONFIG;
+					data.extends = Array.isArray(data.extends) ? (extended as string[]) : PARENT_CONFIG;
+				}
 
 				// the generated config no longer carries `include`, so the project owns it now
 				const include = (data.include ??= ['src']);
 				include.push(...moved.filter((entry) => !include.includes(entry)));
+
+				// if types is set we need to add $app/types to it
+				if (data.compilerOptions?.types) {
+					const types = data.compilerOptions.types as string[];
+					if (!types.includes('$app/types')) types.push('$app/types');
+				}
 
 				for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
 					if (INHERITED_OPTIONS[key] === value) delete data.compilerOptions![key];

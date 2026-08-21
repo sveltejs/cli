@@ -17,12 +17,7 @@ export default defineConfig({
 			},
 			adapter: adapter(),
 			preprocess: [mdsvex({ extensions: ['.svx', '.md'] })],
-			extensions: ['.svelte', '.svx', '.md'],
-			typescript: {
-				config: (config) => {
-					(config.include as string[]).push('../drizzle.config.ts');
-				}
-			}
+			extensions: ['.svelte', '.svx', '.md']
 		}),
 
 		paraglideVitePlugin({

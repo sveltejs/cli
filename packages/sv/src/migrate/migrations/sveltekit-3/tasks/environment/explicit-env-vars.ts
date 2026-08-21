@@ -7,6 +7,8 @@ type UsageInfo = {
 	name: string;
 };
 
+type StaticImport = Extract<js.imports.FoundImport, { kind: 'static' }>;
+
 export type EnvScope = 'private' | 'public';
 
 export type EnvVar = {
@@ -19,13 +21,13 @@ type EnvImport =
 	| {
 			type: 'dynamic';
 			scope: EnvScope;
-			importNode: AstTypes.ImportDeclaration;
+			found: StaticImport;
 			usages: UsageInfo[];
 	  }
 	| {
 			type: 'static';
 			scope: EnvScope;
-			importNode: AstTypes.ImportDeclaration;
+			found: StaticImport;
 			importNames: string[];
 	  };
 
@@ -76,8 +78,7 @@ function migrateDynamicEnvImports(
 
 		const [, type, scope] = found.source.match(ENV_MODULE) as [string, EnvImport['type'], EnvScope];
 
-		found.sourceNode.value = `$app/env/${scope}`;
-		found.sourceNode.raw = undefined;
+		js.imports.setSource(found, `$app/env/${scope}`);
 		mutated = true;
 
 		const names = getDestructuredEnvNames(found.path);
@@ -142,15 +143,14 @@ function collectEnvImports(
 
 	const relevantImports = js.imports
 		.findAll(ast, { from: /^\$env\// })
-		.filter((found) => found.kind === 'static')
-		.map((found) => found.node);
+		.filter((found): found is StaticImport => found.kind === 'static');
 
 	if (relevantImports.length === 0) {
 		return envImports;
 	}
 
-	for (const importNode of relevantImports) {
-		const source = importNode.source.value as string;
+	for (const found of relevantImports) {
+		const source = found.source;
 
 		const match = source.match(ENV_MODULE);
 		if (!match) continue;
@@ -160,8 +160,8 @@ function collectEnvImports(
 
 		const envImport =
 			type === 'dynamic'
-				? collectDynamicEnvImport(ast, importNode, scope, template, comments)
-				: collectStaticEnvImport(importNode, scope);
+				? collectDynamicEnvImport(ast, found, scope, template, comments)
+				: collectStaticEnvImport(ast, found, scope);
 		if (envImport === 'migration-task') {
 			hasMigrationTask = true;
 			continue;
@@ -175,26 +175,25 @@ function collectEnvImports(
 
 function collectDynamicEnvImport(
 	ast: AstTypes.Program,
-	importNode: AstTypes.ImportDeclaration,
+	found: StaticImport,
 	scope: EnvScope,
 	template?: SvelteAst.Fragment,
 	comments?: Comments
 ): EnvImportResult | undefined {
-	const hasEnvImport = importNode.specifiers.some(
-		(specifier) =>
-			specifier.type === 'ImportSpecifier' &&
-			specifier.imported.type === 'Identifier' &&
-			specifier.imported.name === 'env' &&
-			specifier.local?.type === 'Identifier'
+	const importNames = new Set(
+		js.imports
+			.bindings(ast, { from: found.source, name: 'env' })
+			.filter((binding) => binding.declaration === found.node)
+			.map((binding) => binding.local)
 	);
-	if (!hasEnvImport) return;
+	if (importNames.size === 0) return;
 
-	const usages = getDynamicEnvUsages(ast, importNode, comments, template);
+	const usages = getDynamicEnvUsages(ast, importNames, comments, template);
 	if (!usages) {
 		return 'migration-task';
 	}
 	if (template) {
-		const templateUsages = getDynamicEnvUsages(template, importNode, comments, template);
+		const templateUsages = getDynamicEnvUsages(template, importNames, comments, template);
 		if (!templateUsages) {
 			return 'migration-task';
 		}
@@ -206,48 +205,36 @@ function collectDynamicEnvImport(
 	return {
 		type: 'dynamic',
 		scope,
-		importNode,
+		found,
 		usages
 	};
 }
 
 function collectStaticEnvImport(
-	importNode: AstTypes.ImportDeclaration,
+	ast: AstTypes.Program,
+	found: StaticImport,
 	scope: EnvScope
 ): EnvImport | undefined {
-	const importNames = importNode.specifiers.flatMap((specifier) => {
-		if (specifier.type !== 'ImportSpecifier') return [];
-		if (specifier.imported.type !== 'Identifier') return [];
-
-		return [specifier.imported.name];
-	});
+	const importNames = js.imports
+		.bindings(ast, { from: found.source })
+		.filter((binding) => binding.kind === 'named' && binding.declaration === found.node)
+		.map((binding) => binding.imported);
 	if (importNames.length === 0) return;
 
 	return {
 		type: 'static',
 		scope,
-		importNode,
+		found,
 		importNames
 	};
 }
 
 function getDynamicEnvUsages(
 	node: AstTypes.Node | SvelteAst.SvelteNode,
-	importNode: AstTypes.ImportDeclaration,
+	importNames: Set<string>,
 	comments?: Comments,
 	svelteFragment?: SvelteAst.Fragment
 ): UsageInfo[] | undefined {
-	const importNames = new Set<string>();
-
-	for (const specifier of importNode.specifiers) {
-		if (specifier.type !== 'ImportSpecifier') continue;
-		if (specifier.imported.type !== 'Identifier') continue;
-		if (specifier.imported.name !== 'env') continue;
-		if (specifier.local?.type !== 'Identifier') continue;
-
-		importNames.add(specifier.local.name);
-	}
-
 	const usages: UsageInfo[] = [];
 	let hasUnsupportedUsage = false;
 	Walker.walk(node as AstTypes.Node, null, {
@@ -337,26 +324,18 @@ function isValidIdentifierName(name: string): boolean {
 
 function changeEnvImports(ast: AstTypes.Program, envImports: EnvImport[]): void {
 	const staticImports = envImports.filter((x) => x.type === 'static');
-	for (const { scope, importNode } of staticImports) {
-		if (!importNode.source.value) continue;
-
-		const newSource = `$app/env/${scope}`;
-		importNode.source.value = newSource;
-		importNode.source.raw = undefined;
+	for (const { scope, found } of staticImports) {
+		js.imports.setSource(found, `$app/env/${scope}`);
 	}
 
 	const dynamicImports = envImports.filter((x) => x.type === 'dynamic');
-	for (const { scope, importNode, usages } of dynamicImports) {
-		if (!importNode.source.value) continue;
+	for (const { scope, found, usages } of dynamicImports) {
+		js.imports.setSource(found, `$app/env/${scope}`);
 
-		const newSource = `$app/env/${scope}`;
-		importNode.source.value = newSource;
-		importNode.source.raw = undefined;
-
-		importNode.specifiers = [];
+		found.node.specifiers = [];
 		const uniqueUsages = new Set(usages.map((usage) => usage.name));
 		for (const name of uniqueUsages) {
-			importNode.specifiers.push({
+			found.node.specifiers.push({
 				type: 'ImportSpecifier',
 				imported: {
 					type: 'Identifier',
@@ -408,35 +387,10 @@ function replaceEnvUsages(envImports: EnvImport[]): void {
 		for (const usage of usages) {
 			if (!usage.parent) continue;
 
-			replaceChildNode(usage.parent, usage.node, {
+			js.common.replaceChild(usage.parent, usage.node, {
 				type: 'Identifier',
 				name: usage.name
 			});
-		}
-	}
-}
-
-function replaceChildNode(
-	parent: AstTypes.Node | SvelteAst.SvelteNode,
-	node: AstTypes.Node,
-	replacement: AstTypes.Node
-): void {
-	const record = parent as unknown as Record<string, unknown>;
-
-	for (const key in record) {
-		const value = record[key];
-
-		if (value === node) {
-			record[key] = replacement;
-			return;
-		}
-
-		if (Array.isArray(value)) {
-			const index = value.indexOf(node);
-			if (index !== -1) {
-				value[index] = replacement;
-				return;
-			}
 		}
 	}
 }
@@ -465,11 +419,12 @@ function collectEnvVars(envImports: EnvImport[], envVars: Map<string, EnvVar>): 
 
 export function addEnvDeclarationFile(
 	ast: AstTypes.Program,
+	comments: Comments,
 	envVars: Map<string, EnvVar>
 ): false | void {
 	if (envVars.size === 0) return false;
 
-	js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });
+	js.imports.addNamed(ast, { from: '@sveltejs/kit/env', imports: ['defineEnvVars'] });
 
 	const defineCall = js.functions.createCall({
 		name: 'defineEnvVars',
@@ -484,10 +439,12 @@ export function addEnvDeclarationFile(
 		name: 'variables',
 		value: defineCall
 	});
-	js.exports.createNamed(ast, {
+	const exportDeclaration = js.exports.createNamed(ast, {
 		name: 'variables',
 		fallback: variablesIdentifier
 	});
+
+	let has_dynamic = false;
 
 	for (const envVar of envVars.values()) {
 		const value = js.object.property(variablesObject, {
@@ -495,9 +452,31 @@ export function addEnvDeclarationFile(
 			fallback: js.object.create({})
 		}) as AstTypes.ObjectExpression;
 
+		has_dynamic ||= envVar.type === 'dynamic';
+
 		js.object.overrideProperties(value, {
 			public: envVar.scope === 'public' ? true : undefined,
-			static: envVar.type === 'static' ? true : undefined
+			static: envVar.type === 'static' ? true : undefined,
+			schema:
+				envVar.type === 'dynamic'
+					? js.functions.createArrow({
+							params: ['input'],
+							body: {
+								type: 'LogicalExpression',
+								operator: '??',
+								left: { type: 'Identifier', name: 'input' },
+								right: { type: 'Literal', value: '', raw: "''" }
+							},
+							async: false
+						})
+					: undefined
 		});
+	}
+
+	if (has_dynamic) {
+		addMigrationTask(
+			'Review usage of dynamic environment variables. They fall back to the empty string if not present, which may not be what you want.',
+			{ comments, node: exportDeclaration }
+		);
 	}
 }

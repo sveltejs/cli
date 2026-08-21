@@ -59,6 +59,8 @@ pnpm dev
 
 For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
 
+Because the add-on integration tests take a long time, CI only runs them when a pull request has the `needs-addon-integration-tests` label. Add this label to pull requests that change add-on behavior or could otherwise affect add-on integrations. Changesets release pull requests receive the label automatically.
+
 Tests are split into projects: `cli`, `core`, `sv-utils`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
 
 ```sh
@@ -192,7 +194,19 @@ pnpm changeset
 #   chore(cli): update addons dependencies
 ```
 
+- Format changeset summaries as `<type>(<scope>): <summary>`. A scope is required.
+- Use a conventional type such as `feat`, `fix`, `chore`, `docs`, `refactor`, `revert`, `security`, or `breaking`.
+- Write the summary as a concise, lowercase, imperative phrase and wrap code identifiers in backticks.
+- Use single quotes around package names in the changeset frontmatter.
 - Do not edit `packages/*/CHANGELOG.md` manually.
+
+Choose a scope that identifies the part of the project affected by the change. Only relevant for changesets targetting `sv`. Potential scopes include:
+
+- `cli` for command-line parsing, prompts, and command execution
+- `create` for project creation and templates
+- `migrate` for migrations and migration tasks
+- `addons` for behavior shared across add-ons, or the add-on name such as `drizzle`, `eslint`, or `better-auth` for a specific add-on
+- `deps` for dependency-only changes
 
 ## Updating dependencies
 

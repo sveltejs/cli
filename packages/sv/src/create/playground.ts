@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
 	type AstTypes,
 	isVersionUnsupportedBelow,
@@ -9,8 +11,6 @@ import {
 	downloadJson,
 	Walker
 } from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
 import { filePaths } from '../core/common.ts';
 import { getSharedFiles } from './utils.ts';
 
@@ -100,6 +100,7 @@ export function detectPlaygroundDependencies(files: PlaygroundData['files']): Ma
 	// Prefixes for packages that should be excluded (built-in or framework packages)
 	const excludedPrefixes = [
 		'$', // SvelteKit framework imports
+		'#', // subpath imports from the project itself
 		'node:', // Node.js built-in modules
 		'svelte', // Svelte core packages
 		'@sveltejs/' // All SvelteKit packages
@@ -227,11 +228,11 @@ export function setupPlaygroundProject(
 	svelte.ensureScript(ast);
 	js.imports.addDefault(ast.instance.content, {
 		as: 'App',
-		from: `$lib/playground/${mainFile.name}`
+		from: `#lib/playground/${mainFile.name}`
 	});
 	js.imports.addDefault(ast.instance.content, {
 		as: 'PlaygroundLayout',
-		from: `$lib/PlaygroundLayout.svelte`
+		from: `#lib/PlaygroundLayout.svelte`
 	});
 	svelte.addFragment(
 		ast,

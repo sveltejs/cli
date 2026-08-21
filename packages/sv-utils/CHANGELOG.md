@@ -1,5 +1,50 @@
 # @sveltejs/sv-utils
 
+## 1.0.0-next.2
+### Patch Changes
+
+
+- fix: ignore unknown style languages when parsing Svelte code ([#1265](https://github.com/sveltejs/cli/pull/1265))
+
+## 1.0.0-next.1
+### Patch Changes
+
+
+- chore(migrate): bump `svelte` and `esrap` ([#1259](https://github.com/sveltejs/cli/pull/1259))
+
+## 1.0.0-next.0
+### Major Changes
+
+
+- breaking: remove the migration-specific `libSubpathImports` helper ([#1241](https://github.com/sveltejs/cli/pull/1241))
+
+
+- breaking: remove deprecated utilities and properties ([#1184](https://github.com/sveltejs/cli/pull/1184))
+
+
+### Minor Changes
+
+
+- feat: allow `js.function.call` to accept AST expression nodes as arguments ([#1232](https://github.com/sveltejs/cli/pull/1232))
+
+
+### Patch Changes
+
+
+- fix: make named import helpers handle duplicate, aliased, and repeated imports correctly ([#1232](https://github.com/sveltejs/cli/pull/1232))
+
+
+- chore(deps): replace `semver` with `verkit` ([#1186](https://github.com/sveltejs/cli/pull/1186))
+
+
+- feat: add more helpers for analyzing and manipulating ASTs ([#1236](https://github.com/sveltejs/cli/pull/1236))
+
+
+- feat: expose the full `ast` from `svelteConfig.read` ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
+
+- docs(svelte-config): fix incorrect documentation about default config file ([#1138](https://github.com/sveltejs/cli/pull/1138))
+
 ## 0.3.3
 ### Patch Changes
 
