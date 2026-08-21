@@ -1,24 +1,29 @@
 {
 	"name": "sv",
-	"version": "1.0.0-next.2",
-	"type": "module",
+	"version": "1.0.0-next.3",
 	"description": "A command line interface (CLI) for creating and maintaining Svelte applications",
+	"keywords": [
+		"create",
+		"new",
+		"project",
+		"starter",
+		"svelte",
+		"sveltekit",
+		"template",
+		"wizard"
+	],
+	"homepage": "https://svelte.dev",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/sveltejs/cli.git",
 		"directory": "packages/sv"
 	},
-	"homepage": "https://svelte.dev",
-	"scripts": {
-		"check": "tsgo",
-		"format": "pnpm lint --write",
-		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path .gitignore --ignore-path ../../.prettierignore"
-	},
+	"bin": "./dist/bin.mjs",
 	"files": [
 		"dist"
 	],
-	"bin": "./dist/bin.mjs",
+	"type": "module",
 	"exports": {
 		".": {
 			"types": "./dist/src/index.d.mts",
@@ -28,6 +33,9 @@
 			"types": "./dist/src/testing.d.mts",
 			"default": "./dist/src/testing.mjs"
 		}
+	},
+	"scripts": {
+		"check": "tsgo"
 	},
 	"dependencies": {
 		"@sveltejs/sv-utils": "workspace:*"
@@ -47,15 +55,5 @@
 		"tiny-glob": "^0.2.9",
 		"tinyexec": "^1.2.4",
 		"valibot": "^1.4.1"
-	},
-	"keywords": [
-		"create",
-		"new",
-		"project",
-		"starter",
-		"svelte",
-		"sveltekit",
-		"template",
-		"wizard"
-	]
+	}
 }

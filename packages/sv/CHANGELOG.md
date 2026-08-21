@@ -1,5 +1,23 @@
 # sv
 
+## 1.0.0-next.3
+### Patch Changes
+
+
+- chore(drizzle): bump `@types/better-sqlite3` to v9 ([#1272](https://github.com/sveltejs/cli/pull/1272))
+
+
+- fix(cli): align the minimum Node.js version with SvelteKit 3 ([#1273](https://github.com/sveltejs/cli/pull/1273))
+
+
+- fix(create): include project source and Vite config files in generated TypeScript and JavaScript configs ([#1284](https://github.com/sveltejs/cli/pull/1284))
+
+
+- fix(create): use SvelteKit 3 adapter versions in templates so new projects without an explicit adapter don't install the old `@sveltejs/adapter-auto` ([#1285](https://github.com/sveltejs/cli/pull/1285))
+
+
+- fix(create): remove `"sourceMap": true` from tsconfig options ([#1281](https://github.com/sveltejs/cli/pull/1281))
+
 ## 1.0.0-next.2
 ### Patch Changes
 

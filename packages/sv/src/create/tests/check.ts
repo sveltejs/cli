@@ -90,7 +90,7 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 		}
 
 		if (template === 'demo') {
-			describe(`local import with extentions`, () => {
+			describe(`local import with extensions`, () => {
 				test(`${template}-${types}`, () => {
 					const ending = types === 'typescript' ? 'ts' : 'js';
 					const gameFile = path.join(cwd, `src/routes/sverdle/game.${ending}`);

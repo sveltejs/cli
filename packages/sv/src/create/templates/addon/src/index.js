@@ -10,7 +10,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: '~SV-NAME-TODO~',
+	id: '$SV-NAME-TODO$',
 	options,
 
 	setup: ({ isKit, unsupported }) => {
@@ -19,14 +19,14 @@ export default defineAddon({
 
 	run: ({ directory, sv, options, language }) => {
 		sv.file(
-			`${directory.lib}/~SV-NAME-TODO~/content.txt`,
+			`${directory.lib}/$SV-NAME-TODO$/content.txt`,
 			transforms.text(() => {
-				return `This is a text file made by the Community Addon Template demo for the add-on: '~SV-NAME-TODO~'!`;
+				return `This is a text file made by the Community Addon Template demo for the add-on: '$SV-NAME-TODO$'!`;
 			})
 		);
 
 		sv.file(
-			`${directory.lib}/~SV-NAME-TODO~/HelloComponent.svelte`,
+			`${directory.lib}/$SV-NAME-TODO$/HelloComponent.svelte`,
 			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addDefault(ast.instance.content, {
 					as: 'content',
@@ -43,7 +43,7 @@ export default defineAddon({
 			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addDefault(ast.instance.content, {
 					as: 'HelloComponent',
-					from: `#lib/~SV-NAME-TODO~/HelloComponent.svelte`
+					from: `#lib/$SV-NAME-TODO$/HelloComponent.svelte`
 				});
 
 				svelte.addFragment(ast, '<HelloComponent />');

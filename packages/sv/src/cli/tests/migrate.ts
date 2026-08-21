@@ -1,5 +1,5 @@
-import type { AstTypes, Comments } from '@sveltejs/sv-utils';
 import process from 'node:process';
+import type { AstTypes, Comments } from '@sveltejs/sv-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type TaskWithOptions } from '../../migrate/index.ts';
 import {

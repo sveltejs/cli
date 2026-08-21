@@ -968,6 +968,8 @@ declare function isKit3(kitRange: string | undefined): boolean;
 
 declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
 
+declare function libSubpathImports(libDir: string): Record<string, string>;
+
 declare const KIT3_TSCONFIG = '$app/tsconfig';
 
 declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
@@ -1028,6 +1030,7 @@ export {
 	isVersionUnsupportedBelow,
 	index_d_exports$3 as js,
 	json_d_exports as json,
+	libSubpathImports,
 	loadFile,
 	loadPackageJson,
 	minVersion,

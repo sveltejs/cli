@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { log } from '@clack/prompts';
 import {
 	resolveLibPrefix,
@@ -12,7 +13,6 @@ import {
 	coerceVersion,
 	defineEnv
 } from '@sveltejs/sv-utils';
-import crypto from 'node:crypto';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { createDemoPage } from './common.ts';
 
@@ -248,6 +248,7 @@ export default defineAddon({
 						imports: ['createAuth'],
 						from: `${lib}/server/auth.${language}`
 					});
+
 				js.imports.addNamed(ast, {
 					imports: ['User', 'Session'],
 					from: 'better-auth',

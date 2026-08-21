@@ -1,6 +1,6 @@
-import { js, parse, type AstTypes } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { js, parse, type AstTypes } from '@sveltejs/sv-utils';
 import { defineMigrationTask } from '../../../index.ts';
 import { createMigrationTaskComment } from '../../../migration-task.ts';
 

@@ -1,5 +1,5 @@
-import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import path from 'node:path';
+import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import type { SvApi } from '../../../../core/config.ts';
 import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
