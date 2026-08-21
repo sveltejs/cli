@@ -1,8 +1,8 @@
+import { execSync } from 'tinyexec';
+import process from 'node:process';
 import { color, resolveCommand, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
-import process from 'node:process';
-import { execSync } from 'tinyexec';
 import { forwardExitCode } from '../core/common.ts';
 import { detectPackageManager } from '../core/package-manager.ts';
 

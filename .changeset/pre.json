@@ -1,36 +1,4 @@
 {
-  "mode": "pre",
-  "tag": "next",
-  "initialVersions": {
-    "svelte-migrate": "1.10.3",
-    "sv": "0.17.0",
-    "@sveltejs/sv-utils": "0.3.3"
-  },
-  "changesets": [
-    "big-balloons-peel",
-    "calm-utils-trim",
-    "chatty-ravens-take",
-    "cozy-ends-film",
-    "cuddly-cloths-fry",
-    "experimental-flags-only",
-    "flat-pianos-create",
-    "fresh-libs-migrate",
-    "fuzzy-cats-smile",
-    "hot-taxis-happen",
-    "light-results-move",
-    "moody-mice-hang",
-    "moody-pears-tickle",
-    "pink-crews-find",
-    "purple-glasses-appear",
-    "rare-places-write",
-    "ready-geese-learn",
-    "rich-papayas-hide",
-    "silent-apples-join",
-    "sixty-bottles-work",
-    "stale-olives-appear",
-    "sweet-horses-share",
-    "tame-shrimps-clap",
-    "tiny-zoos-add",
-    "wise-maps-dance"
-  ]
+	"mode": "pre",
+	"tag": "next"
 }

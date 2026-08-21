@@ -1,28 +1,31 @@
 {
 	"name": "@sveltejs/sv-utils",
-	"version": "1.0.0-next.1",
-	"type": "module",
+	"version": "1.0.0-next.2",
 	"description": "Utility functions for sv",
+	"keywords": [
+		"sv",
+		"svelte",
+		"sveltekit"
+	],
+	"homepage": "https://svelte.dev",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/sveltejs/cli.git",
 		"directory": "packages/sv-utils"
 	},
-	"homepage": "https://svelte.dev",
-	"scripts": {
-		"check": "tsgo",
-		"format": "pnpm lint --write",
-		"lint": "prettier --check . --config ../../prettier.config.js --ignore-path ../../.gitignore --ignore-path ../../.prettierignore"
-	},
 	"files": [
 		"dist"
 	],
+	"type": "module",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.mts",
 			"default": "./dist/index.mjs"
 		}
+	},
+	"scripts": {
+		"check": "tsgo"
 	},
 	"devDependencies": {
 		"@types/estree": "^1.0.9",
@@ -37,10 +40,5 @@
 		"verkit": "^0.2.0",
 		"yaml": "^2.9.0",
 		"zimmerframe": "^1.1.4"
-	},
-	"keywords": [
-		"sv",
-		"svelte",
-		"sveltekit"
-	]
+	}
 }

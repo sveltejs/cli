@@ -11,6 +11,7 @@ const { test, testCases } = setupTest(
 		kinds: [
 			{
 				type: 'all-features',
+
 				options: {
 					[addonId]: {
 						features: ['async', 'remoteFunctions', 'forkPreloads']

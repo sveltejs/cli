@@ -1,7 +1,7 @@
-import type { Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import type { Page } from '@playwright/test';
 import pstree, { type PS } from 'ps-tree';
 import { exec, execSync } from 'tinyexec';
 import type { TestProject } from 'vitest/node';

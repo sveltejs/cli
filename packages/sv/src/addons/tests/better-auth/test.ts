@@ -1,7 +1,7 @@
-import { expect } from '@playwright/test';
+import { execSync } from 'tinyexec';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'tinyexec';
+import { expect } from '@playwright/test';
 import betterAuth from '../../better-auth.ts';
 import drizzle from '../../drizzle.ts';
 import { setupTest } from '../_setup/suite.ts';

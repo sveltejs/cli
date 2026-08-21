@@ -8,3 +8,9 @@
 </script>
 
 <svelte:component this={component} />
+
+<style>
+	div {
+		background-image: url("$lib/example.jpg");
+	}
+</style>

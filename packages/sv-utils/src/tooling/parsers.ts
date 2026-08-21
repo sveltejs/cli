@@ -27,6 +27,9 @@ type ParseBase = {
 	generateCode(): string;
 };
 
+const STYLE_TAG_REGEX = /(<style\b([^>]*)>)([\s\S]*?)<\/style\s*>/gi;
+const LANG_ATTRIBUTE_REGEX = /(?:^|\s)lang(?:\s|=|$)/;
+
 export function parseScript(source: string): {
 	ast: utils.AstTypes.Program;
 	comments: utils.Comments;
@@ -70,9 +73,30 @@ export function parseYaml(source: string): { data: YamlDocument } & ParseBase {
 }
 
 export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & ParseBase {
-	const ast = utils.parseSvelte(source);
+	// Handle `<style lang="...">` blocks by replacing them with a safe placeholder,
+	// so that the Svelte parser doesn't throw errors on unknown languages.
+	const styles: string[] = [];
+	const sourceWithSafeStyles = source.replace(
+		STYLE_TAG_REGEX,
+		(match, openingTag: string, attributes: string, content: string) => {
+			if (!LANG_ATTRIBUTE_REGEX.test(attributes)) return match;
 
-	const generateCode = () => utils.serializeSvelte(ast, source);
+			styles.push(content);
+			return `${openingTag}/* */</style>`;
+		}
+	);
+	const ast = utils.parseSvelte(sourceWithSafeStyles);
+
+	const generateCode = () => {
+		let code = utils.serializeSvelte(ast, source);
+		let styleIndex = 0;
+		code = code.replace(STYLE_TAG_REGEX, (match, openingTag: string, attributes: string) => {
+			if (!LANG_ATTRIBUTE_REGEX.test(attributes) || styleIndex === styles.length) return match;
+			return `${openingTag}${styles[styleIndex++]}</style>`;
+		});
+
+		return code;
+	};
 
 	return {
 		ast,
