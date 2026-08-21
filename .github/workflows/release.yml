@@ -45,9 +45,9 @@ jobs:
           NPM_CONFIG_PROVENANCE: true
 
       - name: Require addon integration tests on Changesets PR
-        if: steps.changesets.outputs.pullRequestNumber != ''
+        if: steps.changesets.outputs['pr-number'] != ''
         run: >-
-          gh pr edit "${{ steps.changesets.outputs.pullRequestNumber }}"
+          gh pr edit "${{ steps.changesets.outputs['pr-number'] }}"
           --add-label needs-addon-integration-tests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
