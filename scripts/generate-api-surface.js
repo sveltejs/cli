@@ -109,19 +109,20 @@ function clean(source) {
 	result = stripJsDoc(result);
 	result = stripImportLines(result);
 	result = collapseBlankLines(result);
-	result = fixZimmerframeModuleDeclaration(result);
+	result = zimmerframeFix(result);
 	return result.trim() + '\n';
 }
 
 /**
- * Fix `declare module 'zimmerframe'` -> `declare module index_d_exports`
- * in generated .d.mts files. This makes Visitors/Context types accessible
+ * This makes Visitors/Context types accessible
  * via Walker.Visitors when importing from sv-utils.
  * @param {string} source
  * @returns {string}
  */
-function fixZimmerframeModuleDeclaration(source) {
-	return source.replace(/declare module 'zimmerframe'/g, 'declare namespace index_d_exports');
+function zimmerframeFix(source) {
+	return source
+		.replace(/declare module 'zimmerframe'/g, 'declare namespace zimmerframe')
+		.replace(/\w+ as Walker/g, 'zimmerframe as Walker');
 }
 
 /**
@@ -249,7 +250,7 @@ export function fixDtsModuleDeclarations() {
 
 		let content = fs.readFileSync(dtsPath, 'utf8');
 		const original = content;
-		content = fixZimmerframeModuleDeclaration(content);
+		content = zimmerframeFix(content);
 
 		if (content !== original) {
 			fs.writeFileSync(dtsPath, content, 'utf8');
