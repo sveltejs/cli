@@ -334,7 +334,7 @@ export async function promptAddonQuestions({
 
 						// if there's a condition, does it pass?
 						if (question.condition) {
-							return question.condition(specifiedOptionsObject, workspace.template);
+							return question.condition(specifiedOptionsObject);
 						}
 
 						// finally, unconditional
@@ -404,7 +404,7 @@ export async function promptAddonQuestions({
 			// if you want to skip the prompt, add it in the args! (will be shown before nextSteps)
 			for (const [id, question] of Object.entries(details.options)) {
 				// Check condition: if it returns false, the option should not be asked and value should be undefined
-				const conditionResult = question.condition?.(answers[addonId], workspace.template);
+				const conditionResult = question.condition?.(answers[addonId]);
 				if (conditionResult === false) {
 					// Condition says don't ask - value should remain undefined
 					// Error out if a specified option is incompatible with other options.
@@ -570,7 +570,7 @@ export async function promptAddonQuestions({
 		const values = answers[addonId];
 
 		for (const [questionId, question] of Object.entries(addon.options)) {
-			const shouldAsk = question.condition?.(values, workspace.template);
+			const shouldAsk = question.condition?.(values);
 			if (shouldAsk === false || values[questionId] !== undefined) continue;
 
 			let answer;
@@ -915,7 +915,7 @@ function getOptionChoices(details: AddonDefinition) {
 	const options: OptionValues<any> = {};
 	for (const [id, question] of Object.entries(details.options)) {
 		let values: string[] = [];
-		const applyDefault = question.condition?.(options, undefined) !== false;
+		const applyDefault = question.condition?.(options) !== false;
 		const groupId = question.group ?? id;
 		groupDefaults[groupId] ??= [];
 

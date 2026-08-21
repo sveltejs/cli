@@ -69,7 +69,7 @@ type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
 
-	condition?: (options: OptionValues<Args>, template?: string) => boolean;
+	condition?: (options: OptionValues<Args>) => boolean;
 };
 type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
 	(
@@ -118,7 +118,6 @@ type Workspace = {
 		kitRoutes: string;
 	};
 	packageManager: AgentName;
-	template?: string;
 };
 type ConditionDefinition = (Workspace: Workspace) => boolean;
 type FileEdit = (content: string) => string | false;

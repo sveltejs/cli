@@ -49,8 +49,7 @@ const options = defineAddonOptions()
 	.add('demo', {
 		type: 'boolean',
 		default: true,
-		question: 'Do you want to include a demo?',
-		condition: (_, t) => t !== 'demo'
+		question: 'Do you want to include a demo?'
 	})
 	.build();
 
@@ -64,7 +63,7 @@ export default defineAddon({
 		// it picks the kit-3 shape off the version `experimental` writes
 		runsAfter('experimental');
 	},
-	run: ({ sv, options, file, language, directory, dependencyVersion, template }) => {
+	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
 		const [ts] = createPrinter(language === 'ts');
 		const kitRange = dependencyVersion('@sveltejs/kit');
 		const lib = resolveLibPrefix(kitRange);
@@ -235,7 +234,7 @@ export default defineAddon({
 			})
 		);
 
-		if (template === 'demo' || options.demo) {
+		if (options.demo) {
 			const demo = createDemoPage('paraglide', language, directory.kitRoutes);
 			sv.file(...demo.listing);
 			sv.file(...demo.header);
@@ -286,14 +285,11 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: ({ template }) => {
-		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
-		if (template === 'demo' || options.demo) {
-			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
-		}
-
-		return steps;
-	}
+	nextSteps: () =>
+		[
+			`Edit your messages in ${color.path('messages/en.json')}`,
+			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
+		].filter((line): line is string => Boolean(line))
 });
 
 const isValidLanguageTag = (languageTag: string): boolean =>
