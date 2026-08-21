@@ -1,5 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import { coerceVersion, isVersionUnsupportedBelow, minVersion } from '../semver.ts';
+import { coerceVersion, isRangeWithin, isVersionUnsupportedBelow, minVersion } from '../semver.ts';
 
 describe('coerceVersion', () => {
 	const combinationsCoerceVersion = [
@@ -73,4 +73,23 @@ describe('minVersion', () => {
 		expect(() => minVersion('latest')).toThrow();
 		expect(() => minVersion('workspace:*')).toThrow();
 	});
+});
+
+describe('isRangeWithin', () => {
+	const combinations = [
+		{ subset: '^9.0.0', superset: '^9.0.0', expected: true },
+		{ subset: '^9.2.0', superset: '^9.0.0', expected: true },
+		{ subset: '9.2.0', superset: '^9.0.0', expected: true },
+		{ subset: '^9.0.0', superset: '^9.2.0', expected: false },
+		{ subset: '^8.0.0', superset: '^9.0.0', expected: false },
+		{ subset: '*', superset: '^9.0.0', expected: false },
+		{ subset: 'latest', superset: '^9.0.0', expected: false },
+		{ subset: 'workspace:^9.0.0', superset: '^9.0.0', expected: false }
+	] as const;
+	it.each(combinations)(
+		'($subset within $superset) should be $expected',
+		({ subset, superset, expected }) => {
+			expect(isRangeWithin(subset, superset)).toEqual(expected);
+		}
+	);
 });

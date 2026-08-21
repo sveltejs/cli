@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
@@ -45,6 +46,19 @@ export async function formatFiles(options: {
 		}
 		return result;
 	});
+}
+
+/**
+ * Whether `prettier` resolves from `cwd`, walking up `node_modules` the same way the spawned
+ * binary does - so formatting can be skipped instead of failing when deps were never installed.
+ */
+export function isFormatterInstalled(cwd: string): boolean {
+	try {
+		createRequire(path.join(cwd, 'index.js')).resolve('prettier/package.json');
+		return true;
+	} catch {
+		return false;
+	}
 }
 
 /** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */

@@ -307,6 +307,7 @@ declare function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
+	installNeeded: boolean;
 }>;
 type FileEditor = Workspace & {
 	content: string;
