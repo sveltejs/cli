@@ -2,4 +2,4 @@
 'sv': patch
 ---
 
-feat: skip the package manager prompt when no dependency needs installing
+feat(cli): skip the package manager prompt when no dependency needs installing
