@@ -1,5 +1,41 @@
 # sv
 
+## 1.0.0-next.3
+### Patch Changes
+
+
+- chore(drizzle): bump `@types/better-sqlite3` to v9 ([#1272](https://github.com/sveltejs/cli/pull/1272))
+
+
+- fix(cli): align the minimum Node.js version with SvelteKit 3 ([#1273](https://github.com/sveltejs/cli/pull/1273))
+
+
+- fix(create): include project source and Vite config files in generated TypeScript and JavaScript configs ([#1284](https://github.com/sveltejs/cli/pull/1284))
+
+
+- fix(create): use SvelteKit 3 adapter versions in templates so new projects without an explicit adapter don't install the old `@sveltejs/adapter-auto` ([#1285](https://github.com/sveltejs/cli/pull/1285))
+
+
+- fix(create): remove `"sourceMap": true` from tsconfig options ([#1281](https://github.com/sveltejs/cli/pull/1281))
+
+## 1.0.0-next.2
+### Patch Changes
+
+
+- fix(migrate): ignore root paths when removing leading forward slash ([#1269](https://github.com/sveltejs/cli/pull/1269))
+
+
+- fix: ignore unknown style languages when parsing Svelte code ([#1265](https://github.com/sveltejs/cli/pull/1265))
+
+
+- fix: transform `$lib` to relative path in style tags ([#1266](https://github.com/sveltejs/cli/pull/1266))
+
+
+- fix(migrate): handle overlapping comments while merging ([#1264](https://github.com/sveltejs/cli/pull/1264))
+
+- Updated dependencies [[`cc986e5`](https://github.com/sveltejs/cli/commit/cc986e5cc7079815ca2b1ab4b788d44192a83653)]:
+  - @sveltejs/sv-utils@1.0.0-next.2
+
 ## 1.0.0-next.1
 ### Patch Changes
 

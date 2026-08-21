@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import * as p from '@clack/prompts';
 import {
 	color,
@@ -10,8 +12,6 @@ import {
 	type Package,
 	minimizeDiff
 } from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
 import { NonZeroExitError, exec } from 'tinyexec';
 import { createLoadedAddon } from '../cli/add.ts';
 import { filePaths } from './common.ts';

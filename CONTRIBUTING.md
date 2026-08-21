@@ -59,6 +59,8 @@ pnpm dev
 
 For each add-on we have integration tests setup. These install the deps, build the app, run the dev server and then run a few small snippets against the add-on to see if the changes introduced by the add-on are working as expected.
 
+Because the add-on integration tests take a long time, CI only runs them when a pull request has the `needs-addon-integration-tests` label. Add this label to pull requests that change add-on behavior or could otherwise affect add-on integrations. Changesets release pull requests receive the label automatically.
+
 Tests are split into projects: `cli`, `core`, `sv-utils`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
 
 ```sh

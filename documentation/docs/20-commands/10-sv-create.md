@@ -57,6 +57,10 @@ npx sv create --add eslint prettier [path]
 
 Run the command without the interactive add-ons prompt
 
+### `--addon-name <name>`
+
+Specify the package name when creating an addon template. Accepts `@<org>/<pkg>` or `<pkg>`. When omitted, you will be prompted for the name.
+
 ### `--install <package-manager>`
 
 Installs dependencies with a specified package manager:

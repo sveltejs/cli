@@ -1,7 +1,7 @@
-import { log } from '@clack/prompts';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { log } from '@clack/prompts';
 import { vi } from 'vitest';
 import { ESLINT_VERSION } from '../../common.ts';
 import prettier from '../../prettier.ts';
