@@ -3,9 +3,9 @@ import path from 'node:path';
 import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import { exec } from 'tinyexec';
+import { isNodeError } from './common.ts';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
-import { isNodeError } from './common.ts';
 
 export type FormatStrategy =
 	/** Run the nearest `format`/`fmt` script up to the workspace root, else format the files. */
