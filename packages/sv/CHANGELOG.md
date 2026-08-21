@@ -1,5 +1,17 @@
 # sv
 
+## 1.0.0-next.4
+
+### Minor Changes
+
+- feat(cli): Community add-ons no longer require scoped package names ([#1216](https://github.com/sveltejs/cli/pull/1216))
+
+### Patch Changes
+
+- feat(cli): skip the package manager prompt when no dependency needs installing ([#1195](https://github.com/sveltejs/cli/pull/1195))
+- Updated dependencies [[`da31828`](https://github.com/sveltejs/cli/commit/da3182868850305f9e054b81dce39eb7babeb801)]:
+  - @sveltejs/sv-utils@1.0.0-next.3
+
 ## 1.0.0-next.3
 ### Patch Changes
 
