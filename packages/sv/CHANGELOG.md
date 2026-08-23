@@ -1,5 +1,12 @@
 # sv
 
+## 1.0.0-next.5
+
+### Patch Changes
+
+- Updated dependencies [[`25acc4c`](https://github.com/sveltejs/cli/commit/25acc4c79522e98d4f7d1e56934a1209d332a294)]:
+  - @sveltejs/sv-utils@1.0.0-next.4
+
 ## 1.0.0-next.4
 
 ### Minor Changes
