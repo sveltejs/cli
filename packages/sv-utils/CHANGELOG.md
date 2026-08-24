@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 1.0.0-next.4
+
+### Patch Changes
+
+- fix: bump esrap to 2.3.6 to preserve generic type arguments and annotations during sveltekit-3 migrations ([#1294](https://github.com/sveltejs/cli/pull/1294))
+
 ## 1.0.0-next.3
 
 ### Patch Changes
