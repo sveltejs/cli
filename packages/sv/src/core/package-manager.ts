@@ -52,7 +52,11 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 /** Returns `false` when the package manager isn't installed and the install was skipped. */
-export async function installDependencies(agent: AgentName, cwd: string): Promise<boolean> {
+export async function installDependencies(
+	agent: AgentName,
+	cwd: string,
+	flags: string[] = []
+): Promise<boolean> {
 	if (!isInstalled(agent)) {
 		p.log.warn(`${color.command(agent)} is not installed, skipping dependency installation.`);
 		return false;
@@ -65,7 +69,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		retainLog: true
 	});
 
-	const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
+	const { command, args } = constructCommand(COMMANDS[agent].install, flags)!;
 
 	const proc = exec(command, args, {
 		nodeOptions: { cwd, stdio: 'pipe' },
