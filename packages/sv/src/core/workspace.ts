@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { type AgentName, js, loadPackageJson, minVersion, svelteConfig } from '@sveltejs/sv-utils';
 import * as find from 'empathic/find';
+import * as walk from 'empathic/walk';
 import { filePaths } from './common.ts';
 import type { OptionDefinition, OptionValues } from './options.ts';
 import { detectPackageManager } from './package-manager.ts';
@@ -79,15 +80,8 @@ export async function createWorkspace({
 	if (override?.dependencies) {
 		dependencies = override.dependencies;
 	} else {
-		let directory = resolvedCwd;
-		const workspaceRoot = findWorkspaceRoot(directory);
-		const { root } = path.parse(directory);
-		while (
-			// we have a directory
-			directory &&
-			// we are still in the workspace (including the workspace root)
-			directory.length >= workspaceRoot.length
-		) {
+		const workspaceRoot = findWorkspaceRoot(resolvedCwd);
+		for (const directory of walk.up(resolvedCwd, { last: workspaceRoot })) {
 			if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
 				const { data: packageJson } = loadPackageJson(directory);
 				dependencies = {
@@ -96,8 +90,6 @@ export async function createWorkspace({
 					...dependencies
 				};
 			}
-			if (root === directory) break; // we are at the root root, let's stop
-			directory = path.dirname(directory);
 		}
 	}
 
@@ -158,9 +150,7 @@ export async function createWorkspace({
 }
 
 export function findWorkspaceRoot(cwd: string): string {
-	const { root } = path.parse(cwd);
-	let directory = cwd;
-	while (directory && directory !== root) {
+	for (const directory of walk.up(cwd)) {
 		if (fs.existsSync(path.join(directory, filePaths.packageJson))) {
 			// in pnpm it can be a file
 			if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) {
@@ -175,7 +165,6 @@ export function findWorkspaceRoot(cwd: string): string {
 		const parent = path.dirname(directory);
 		// For test isolation: don't walk up past .test-output directories
 		if (directory.includes('.test-output') && !parent.includes('.test-output')) break;
-		directory = parent;
 	}
 	// We didn't find a workspace root, so we return the original directory
 	// it's a standalone project
