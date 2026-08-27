@@ -47,6 +47,11 @@ Run the 'cli' package:
 
 ```sh
 pnpm sv
+pnpm sv create
+pnpm sv add
+pnpm sv migrate
+pnpm sv check
+pnpm sv help
 ```
 
 Run build with watch mode:
@@ -146,14 +151,6 @@ pnpm format
 pnpm check
 ```
 
-## svelte-migrate
-
-To run svelte-migrate locally:
-
-```sh
-# from root of project
-pnpm sv migrate
-```
 ## Updating dependencies
 
 Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
