@@ -114,8 +114,7 @@ Some snapshots are testing the output of `sv` directly from the generated binary
 In one command:
 
 ```sh
-pnpm build && pnpm test:ui --project cli
-# Press `u` when prompted to update snapshots.
+pnpm build && pnpm test --project cli --update all
 ```
 
 ## Style Guide
