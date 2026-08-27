@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { create } from '../index.ts';
+import { create } from 'sv';
 
 const repo = /** @type {string} */ (process.argv[2]);
 
@@ -13,7 +13,8 @@ fs.readdirSync(repo).forEach((file) => {
 	}
 });
 
-create(repo, {
+create({
+	cwd: repo,
 	name: 'kit-template-default',
 	template: 'demo',
 	types: 'checkjs'

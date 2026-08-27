@@ -27,6 +27,6 @@ jobs:
         run: pnpm build
 
       - name: Run template update script
-        run: pnpm -F @sveltejs/create update-template-repo
+        run: pnpm -F sv update-template-repo
         env:
           UPDATE_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_TEMPLATE_SSH_KEY }}
