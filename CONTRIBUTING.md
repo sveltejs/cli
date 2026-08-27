@@ -152,7 +152,7 @@ To run svelte-migrate locally:
 
 ```sh
 # from root of project
-node ./packages/migrate/bin.js
+pnpm sv migrate
 ```
 
 ## Deprecation
