@@ -154,6 +154,10 @@ To run svelte-migrate locally:
 # from root of project
 pnpm sv migrate
 ```
+## Updating dependencies
+
+Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
+After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.
 
 ## Deprecation
 
@@ -208,8 +212,3 @@ Choose a scope that identifies the part of the project affected by the change. O
 - `migrate` for migrations and migration tasks
 - `addons` for behavior shared across add-ons, or the add-on name such as `drizzle`, `eslint`, or `better-auth` for a specific add-on
 - `deps` for dependency-only changes
-
-## Updating dependencies
-
-Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
-After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.
