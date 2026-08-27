@@ -5,6 +5,7 @@ import * as p from '@clack/prompts';
 import { color, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import * as v from 'valibot';
+import { getAddonDetails } from '../addons/index.ts';
 import * as common from '../core/common.ts';
 import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
@@ -34,6 +35,7 @@ import { dist } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	classifyAddons,
+	createLoadedAddon,
 	formatAddonHelpSection,
 	promptAddonQuestions,
 	resolveAddons,
@@ -332,6 +334,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 		loadedAddons = result.loadedAddons;
 		answers = result.answers;
+
+		if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhancedImg')) {
+			const addon = getAddonDetails('enhanced-img');
+			loadedAddons.push(createLoadedAddon(addon));
+			answers.enhancedImg = {};
+		}
 	}
 
 	createKit({

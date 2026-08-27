@@ -1,6 +1,4 @@
 <script lang="ts">
-	import welcomeFallback from '#lib/images/svelte-welcome.png';
-	import welcome from '#lib/images/svelte-welcome.webp';
 	import Counter from './Counter.svelte';
 </script>
 
@@ -12,10 +10,7 @@
 <section>
 	<h1>
 		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcomeFallback} alt="Welcome" />
-			</picture>
+			<enhanced:img src="#lib/images/svelte-welcome.png" alt="Welcome" />
 		</span>
 
 		to your new<br />SvelteKit app
