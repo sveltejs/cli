@@ -44,7 +44,7 @@
 		padding: 0 0 calc(100% * 495 / 2048) 0;
 	}
 
-	.welcome img {
+	.welcome enhanced\:img {
 		position: absolute;
 		width: 100%;
 		height: 100%;
