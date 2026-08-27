@@ -15,16 +15,11 @@ Please keep your pull requests focused to feature or issue. Focused smaller chan
 
 ## Preparing
 
-This is a monorepo, meaning the repo holds multiple packages. It requires the use of [pnpm](https://pnpm.io/). You can [install pnpm](https://pnpm.io/installation) with:
+This project is a monorepo managed with pnpm workspaces. Install it [here](https://pnpm.io/installation).
 
-```sh
-npm i -g pnpm
-```
+For testing, [docker](https://docs.docker.com/get-started/get-docker) is also required. For linux users, you will have to ensure 'sudo' is not required. See [docker post install](https://docs.docker.com/engine/install/linux-postinstall/)
 
-_(Optional)_ For running certain packages and tests locally you will need to install [docker](https://docs.docker.com/get-started/get-docker).
-Linux users, you will have to ensure 'sudo' is not required. See [docker post install](https://docs.docker.com/engine/install/linux-postinstall/)
-
-`pnpm` commands run in the project's root directory will run on all sub-projects. You can checkout the code and install the dependencies with:
+Checkout the code and install the dependencies with:
 
 ```sh
 git clone https://github.com/sveltejs/cli.git
@@ -127,29 +122,12 @@ pnpm build && pnpm test --project cli --update all
 
 ### Coding style
 
-There are a few guidelines we follow:
+Ensure the following passes:
 
-- Ensure `pnpm lint` and `pnpm check` pass. You can run `pnpm format` to format the code
-- linting
+- `pnpm lint`
+- `pnpm check`
 
-```sh
-# from root of project
-pnpm lint
-```
-
-- formatting
-
-```sh
-# from root of project
-pnpm format
-```
-
-- type checking
-
-```sh
-# from root of project
-pnpm check
-```
+Use `pnpm format` to format the code.
 
 ## Updating dependencies
 
