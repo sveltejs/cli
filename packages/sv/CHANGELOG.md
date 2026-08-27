@@ -1,5 +1,20 @@
 # sv
 
+## 0.17.1
+### Patch Changes
+
+
+- chore: replace `tar-fs` with `modern-tar` ([#1209](https://github.com/sveltejs/cli/pull/1209))
+
+
+- fix(cli): omit undetected package managers from install prompt ([#1207](https://github.com/sveltejs/cli/pull/1207))
+
+
+- feat(drizzle): add `node:sqlite` ([#1206](https://github.com/sveltejs/cli/pull/1206))
+
+
+- chore: document default values for `prepareServer` ([#1211](https://github.com/sveltejs/cli/pull/1211))
+
 ## 0.17.0
 ### Minor Changes
 
