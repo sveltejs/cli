@@ -74,10 +74,11 @@ pnpm test --project addons eslint      # Just eslint add-on tests
 pnpm build && pnpm test --project cli  # CLI tests
 ```
 
-Run with vitest ui for interactive debugging:
+For interactive debugging, append `:ui`:
 
-```sh
-pnpm test:ui --project cli
+```diff
+-pnpm test --project cli
++pnpm test:ui --project cli
 ```
 
 Run all tests (slow, typically for CI):
