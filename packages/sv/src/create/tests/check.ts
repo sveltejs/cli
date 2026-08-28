@@ -12,7 +12,7 @@ import { type LanguageType, type TemplateType } from '../index.ts';
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 // use a directory outside of packages to ensure it isn't added to the pnpm workspace
-const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
+const test_workspace_dir = resolve_path('../../../.test-output/create/');
 
 // prepare test pnpm workspace
 fs.rmSync(test_workspace_dir, { recursive: true, force: true });
