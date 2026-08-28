@@ -147,15 +147,15 @@ test('detect dependencies from playground files', () => {
 	expect(Array.from(dependencies.keys()).length).toBe(3);
 });
 
-test('real world download and convert playground async', async () => {
-	const directory = path.join(testWorkspaceDir, 'real-world-playground');
+test('download and convert playground e2e (svelte async)', async () => {
+	const directory = path.join(testWorkspaceDir, 'playground-e2e-svelte-async');
 	if (fs.existsSync(directory)) {
 		fs.rmSync(directory, { recursive: true });
 	}
 
 	create({
 		cwd: directory,
-		name: 'real-world-playground',
+		name: 'playground-e2e-svelte-async',
 		template: 'minimal',
 		types: 'typescript'
 	});
@@ -199,15 +199,15 @@ test('real world download and convert playground async', async () => {
 	expect(viteConfigContent).toContain('experimental: { async: true }');
 });
 
-test('real world download and convert playground without async', async () => {
-	const directory = path.join(testWorkspaceDir, 'real-world-playground-old');
+test('download and convert playground e2e (pre svelte async)', async () => {
+	const directory = path.join(testWorkspaceDir, 'playground-e2e-pre-svelte-async');
 	if (fs.existsSync(directory)) {
 		fs.rmSync(directory, { recursive: true });
 	}
 
 	create({
 		cwd: directory,
-		name: 'real-world-playground-old',
+		name: 'playground-e2e-pre-svelte-async',
 		template: 'minimal',
 		types: 'typescript'
 	});
