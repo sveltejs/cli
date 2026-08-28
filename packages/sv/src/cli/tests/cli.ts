@@ -2,13 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { parse } from '@sveltejs/sv-utils';
+import * as find from 'empathic/find';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 /** Matches `sv@1.2.3`, `sv@0.0.0-next.0`, `sv@1.0.0-rc.1+build.5`. */
 const SV_VERSION_REGEX = /sv@\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?/g;
 
-const ROOT = path.resolve(__dirname, '..', '..', '..', '..', '..');
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
 const SV_BIN_PATH = path.resolve(ROOT, 'packages', 'sv', 'dist', 'bin.mjs');
 const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'cli');
 
@@ -72,10 +73,7 @@ describe('cli', () => {
 				snapshot?: boolean;
 			};
 
-			const projectPath = path.relative(
-				ROOT,
-				path.resolve(TEST_DIR, projectName)
-			);
+			const projectPath = path.relative(ROOT, path.resolve(TEST_DIR, projectName));
 
 			const allArgs = [
 				SV_BIN_PATH,

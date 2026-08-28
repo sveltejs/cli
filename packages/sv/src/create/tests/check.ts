@@ -1,16 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import * as find from 'empathic/find';
 import { exec, type Result } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createProject } from '../../cli/create.ts';
 import { add, officialAddons } from '../../index.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 
-// Resolve the given path relative to the current file
-const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-
-const TEST_DIR = resolvePath('../../../.test-output/create/');
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
+const TEMPLATES_DIR = path.resolve(ROOT, 'packages', 'sv', 'src', 'create', 'templates');
+const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'create');
 
 // prepare test pnpm workspace
 fs.rmSync(TEST_DIR, { recursive: true, force: true });
@@ -35,7 +34,7 @@ beforeAll(async () => {
  */
 const script_test_map = new Map<string, Array<[string, () => Result]>>();
 
-const templates = fs.readdirSync(resolvePath('../templates/')) as TemplateType[];
+const templates = fs.readdirSync(TEMPLATES_DIR) as TemplateType[];
 
 for (const template of templates.filter((t) => t !== 'addon')) {
 	if (template[0] === '.') continue;

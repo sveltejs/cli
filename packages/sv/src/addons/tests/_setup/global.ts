@@ -1,9 +1,12 @@
+import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
+import * as find from 'empathic/find';
 import { setupGlobal } from 'sv/testing';
 import { exec } from 'tinyexec';
 
-const TEST_DIR = fileURLToPath(new URL('../../../../.test-output/addons/', import.meta.url));
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
+const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'addons');
+
 const CI = Boolean(process.env.CI);
 
 export default setupGlobal({
