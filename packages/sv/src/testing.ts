@@ -1,10 +1,9 @@
-import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import type { Page } from '@playwright/test';
 import pstree, { type PS } from 'ps-tree';
-import { exec, x } from 'tinyexec';
+import { exec, execSync } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
 import { addPnpmAllowBuilds } from './core/package-manager.ts';
@@ -82,11 +81,7 @@ async function startPreview({
 	command = 'npm run preview'
 }: PreviewOptions): Promise<{ url: string; close: () => Promise<void> }> {
 	const [cmd, ...args] = command.split(' ');
-	const proc = exec(cmd, args, {
-		nodeOptions: { cwd, stdio: 'pipe' },
-		throwOnError: true,
-		timeout: 66_999
-	});
+	const proc = exec(cmd, args, { nodeOptions: { cwd }, throwOnError: true, timeout: 66_999 });
 
 	const close = async () => {
 		if (!proc.pid) return;
@@ -129,7 +124,7 @@ async function getProcessTree(pid: number) {
 async function terminate(pid: number) {
 	if (process.platform === 'win32') {
 		// on windows, use taskkill to terminate the process tree
-		await x('taskkill', ['/PID', `${pid}`, '/T', '/F']);
+		await exec('taskkill', ['/PID', `${pid}`, '/T', '/F']);
 		return;
 	}
 	const children = await getProcessTree(pid);
@@ -230,7 +225,10 @@ export async function prepareServer({
 	expect
 }: PrepareServerOptions): Promise<PrepareServerReturn> {
 	// build project
-	if (buildCommand) execSync(buildCommand, { cwd, stdio: 'pipe' });
+	if (buildCommand) {
+		const [cmd, ...args] = buildCommand.split(' ');
+		execSync(cmd, args, { nodeOptions: { cwd }, throwOnError: true });
+	}
 
 	// start preview server
 	const { url, close } = await startPreview({ cwd, command: previewCommand });
@@ -367,9 +365,7 @@ export function createSetupTest(
 			}
 
 			const installDir = path.resolve(cwd, testName);
-			const install = await exec('pnpm', ['install'], {
-				nodeOptions: { cwd: installDir, stdio: 'pipe' }
-			});
+			const install = await exec('pnpm', ['install'], { nodeOptions: { cwd: installDir } });
 			if (install.exitCode !== 0) {
 				throw new Error(
 					`pnpm install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`

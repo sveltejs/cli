@@ -1,7 +1,7 @@
-import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { log } from '@clack/prompts';
+import { execSync } from 'tinyexec';
 import { vi } from 'vitest';
 import { ESLINT_VERSION } from '../../common.ts';
 import prettier from '../../prettier.ts';
@@ -48,11 +48,20 @@ test.concurrent.for(testCases)('prettier $kind.type $variant', (testCase, { expe
 		const unformattedFile = 'const foo = "bar"';
 		fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unformattedFile, 'utf8');
 
-		expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).toThrow();
+		expect(
+			execSync('pnpm', ['lint'], { nodeOptions: { cwd } }).exitCode,
+			'lint should fail on unformatted file'
+		).not.toBe(0);
 
-		expect(() => execSync('pnpm format', { cwd, stdio: 'pipe' })).not.toThrow();
+		expect(
+			execSync('pnpm', ['format'], { nodeOptions: { cwd } }).exitCode,
+			'format should succeed'
+		).toBe(0);
 
-		expect(() => execSync('pnpm lint', { cwd, stdio: 'pipe' })).not.toThrow();
+		expect(
+			execSync('pnpm', ['lint'], { nodeOptions: { cwd } }).exitCode,
+			'lint should pass after format'
+		).toBe(0);
 	} else if (testCase.kind.type === 'supported-eslint') {
 		expect(fs.existsSync(path.resolve(cwd, 'eslint.config.js'))).toBe(true);
 

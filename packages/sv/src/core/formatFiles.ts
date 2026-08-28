@@ -4,6 +4,7 @@ import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import * as resolve from 'empathic/resolve';
 import { exec } from 'tinyexec';
+import { isNodeError } from './common.ts';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
@@ -109,20 +110,18 @@ async function withSpinner(
 
 async function run(command: string, args: string[], cwd: string): Promise<{ error?: string }> {
 	try {
-		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
+		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
 		return {};
 	} catch (e) {
 		// Unix spawn of a missing binary is ENOENT. On Windows, tinyexec often runs via
 		// cmd.exe which exits 1 with "is not recognized..." instead. We'll treat both as errors
 		// so we can fall back to the package manager (needed for Yarn PnP).
-		if (e instanceof Error && 'code' in e) {
-			if (e.code === 'ENOENT') {
-				return { error: `${command} not found` };
-			}
-
-			return { error: e.message };
+		if (!isNodeError(e)) {
+			return { error: 'unknown error' };
 		}
-
-		return { error: 'unknown error' };
+		if ('code' in e && e.code === 'ENOENT') {
+			return { error: `${command} not found` };
+		}
+		return { error: e.message };
 	}
 }

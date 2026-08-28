@@ -2,15 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import {
-	AGENTS,
-	type AgentName,
-	COMMANDS,
-	color,
-	constructCommand,
-	detect,
-	pnpm
-} from '@sveltejs/sv-utils';
+import { AGENTS, type AgentName, color, detect, pnpm, resolveCommand } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
 import { exec, execSync } from 'tinyexec';
@@ -69,12 +61,9 @@ export async function installDependencies(
 		retainLog: true
 	});
 
-	const { command, args } = constructCommand(COMMANDS[agent].install, flags)!;
+	const { command, args } = resolveCommand(agent, 'install', flags)!;
 
-	const proc = exec(command, args, {
-		nodeOptions: { cwd, stdio: 'pipe' },
-		throwOnError: false
-	});
+	const proc = exec(command, args, { nodeOptions: { cwd }, throwOnError: false });
 
 	const output: string[] = [];
 	try {
