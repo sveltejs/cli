@@ -3,15 +3,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { exec, type Result } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
-import { add, officialAddons } from '../../../../sv/src/index.ts';
 import { createProject } from '../../cli/create.ts';
+import { add, officialAddons } from '../../index.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
-// use a directory outside of packages to ensure it isn't added to the pnpm workspace
-const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
+const test_workspace_dir = resolve_path('../../../.test-output/create/');
 
 // prepare test pnpm workspace
 fs.rmSync(test_workspace_dir, { recursive: true, force: true });
