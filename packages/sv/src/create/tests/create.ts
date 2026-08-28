@@ -3,8 +3,8 @@ import path from 'node:path';
 import * as find from 'empathic/find';
 import { exec, type Result } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
+import { add, officialAddons } from '../../../../sv/src/index.ts';
 import { createProject } from '../../cli/create.ts';
-import { add, officialAddons } from '../../index.ts';
 import { type LanguageType, type TemplateType, create } from '../index.ts';
 
 const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
