@@ -367,7 +367,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	let addonSetupResults: Record<string, SetupResult> = {};
-	if (template !== 'addon' && loadedAddons.length > 0) {
+	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,

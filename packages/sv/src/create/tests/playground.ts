@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
 import { create } from '../index.ts';
 import {
@@ -10,7 +11,8 @@ import {
 	validatePlaygroundUrl
 } from '../playground.ts';
 
-const testWorkspaceDir = path.resolve(import.meta.dirname, '../../../.test-output/playground');
+const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+const testWorkspaceDir = resolvePath('../../../.test-output/create/');
 
 test.for([
 	{ input: 'https://svelte.dev/playground/628f435d787a465f9c1f1854134d6f70/', valid: true },
