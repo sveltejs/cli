@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createProject } from '../../cli/create.ts';
-import { type LanguageType, type TemplateType, } from '../index.ts';
+import { type LanguageType, type TemplateType } from '../index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
@@ -80,7 +80,6 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 				dirCheck: false,
 				downloadCheck: false
 			});
-
 		}
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
