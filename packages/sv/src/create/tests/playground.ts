@@ -12,7 +12,7 @@ import {
 } from '../playground.ts';
 
 const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-const testWorkspaceDir = resolvePath('../../../.test-output/playground/');
+const TEST_DIR = resolvePath('../../../.test-output/playground/');
 
 test.for([
 	{ input: 'https://svelte.dev/playground/628f435d787a465f9c1f1854134d6f70/', valid: true },
@@ -148,7 +148,7 @@ test('detect dependencies from playground files', () => {
 });
 
 test('download and convert playground e2e (svelte async)', async () => {
-	const directory = path.join(testWorkspaceDir, 'playground-e2e-svelte-async');
+	const directory = path.join(TEST_DIR, 'playground-e2e-svelte-async');
 	if (fs.existsSync(directory)) {
 		fs.rmSync(directory, { recursive: true });
 	}
@@ -200,7 +200,7 @@ test('download and convert playground e2e (svelte async)', async () => {
 });
 
 test('download and convert playground e2e (pre svelte async)', async () => {
-	const directory = path.join(testWorkspaceDir, 'playground-e2e-pre-svelte-async');
+	const directory = path.join(TEST_DIR, 'playground-e2e-pre-svelte-async');
 	if (fs.existsSync(directory)) {
 		fs.rmSync(directory, { recursive: true });
 	}
