@@ -95,10 +95,10 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		try {
 			fs.symlinkSync(options.path, dest, 'dir');
 		} catch (error) {
-			if (!isNodeError(error)) throw error;
+			const code = errorCode(error);
 			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
 			// In that case, fall back to copying the directory
-			if (platform() === 'win32' && (error.code === 'EPERM' || error.code === 'EACCES')) {
+			if (platform() === 'win32' && (code === 'EPERM' || code === 'EACCES')) {
 				copyDirectorySync(options.path, dest);
 			} else {
 				throw error;
@@ -126,61 +126,56 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 }
 
-async function importAddonCode(
+export async function importAddonCode(
 	pkgName: string,
 	pkgVersion: string,
-	exports?: Record<string, string | undefined>
+	exports?: PackageExports
 ): Promise<AddonDefinition> {
 	const issues: string[] = [];
+	let unresolvedModule = false;
 
-	const error = () => {
-		return new Error(
-			`Failed to load add-on '${pkgName}@${pkgVersion}':\n- ${issues.join('\n- ')}\n\n` +
-				`Please report this to the add-on author.`
-		);
-	};
+	// only probe `/sv` when the package actually maps it, otherwise the probe itself
+	// fails and reports a missing module that the author never declared
+	const candidates = hasSvExport(exports) ? [`${pkgName}/sv`, pkgName] : [pkgName];
 
-	if (!exports) {
-		issues.push(`'exports' field not found in package.json`);
-		throw error();
-	}
-
-	const svImport = exports['./sv'] ? `${pkgName}/sv` : undefined;
-	const defaultImport = exports['.'] ? pkgName : undefined;
-	if (!svImport && !defaultImport) {
-		issues.push(`export conditions './sv' or '.' are not present in package.json`);
-		throw error();
-	}
-
-	let details: AddonDefinition | undefined;
-
-	for (const importPath of [svImport, defaultImport]) {
-		if (!importPath) continue;
+	for (const specifier of candidates) {
 		try {
-			details ??= await import(importPath).then((m) => m.default);
+			const details: AddonDefinition | undefined = (await import(specifier)).default;
+			if (details) return details;
+
+			issues.push(`'${specifier}' resolved but has no default export`);
 		} catch (e) {
-			if (isNodeError(e)) {
-				if (e.code === 'ERR_MODULE_NOT_FOUND') {
-					issues.push('the add-on contains dependencies that are not bundled');
-					throw error();
-				}
-				issues.push(`Failed to import add-on '${importPath}': ${e.message}`);
-			} else {
-				issues.push(`An unknown error has occurred: ${e}`);
+			const code = errorCode(e);
+			// ESM entry points report `ERR_MODULE_NOT_FOUND`, CJS ones report `MODULE_NOT_FOUND`
+			if (code === 'ERR_MODULE_NOT_FOUND' || code === 'MODULE_NOT_FOUND') {
+				unresolvedModule = true;
 			}
+			issues.push(`'${specifier}' failed to load: ${e instanceof Error ? e.message : e}`);
 		}
 	}
 
-	if (!details) {
-		throw error();
-	}
+	const hint = unresolvedModule
+		? `\nThis usually means the add-on has dependencies that are not bundled.\n`
+		: '';
 
-	return details;
+	throw new Error(
+		`Failed to load add-on '${pkgName}@${pkgVersion}':\n- ${issues.join('\n- ')}\n${hint}\n` +
+			`Please report this to the add-on author.`
+	);
 }
 
-function isNodeError(err: unknown): err is Error & NodeJS.ErrnoException {
-	return err instanceof Error;
+/** `exports` is only consulted to pick entry points, never to reject a package. */
+export function hasSvExport(exports?: PackageExports): boolean {
+	if (typeof exports !== 'object' || exports === null || Array.isArray(exports)) return false;
+	return Boolean(exports['./sv']);
 }
+
+function errorCode(err: unknown): string | undefined {
+	return err instanceof Error ? (err as NodeJS.ErrnoException).code : undefined;
+}
+
+/** Values are nested condition objects, and the field itself may be a string or an array. */
+type PackageExports = string | string[] | Record<string, unknown>;
 
 type PackageJSON = {
 	name: string;
