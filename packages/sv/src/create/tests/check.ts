@@ -5,9 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
-import { add, officialAddons } from '../../../../sv/src/index.ts';
 import { createProject } from '../../cli/create.ts';
-import { type LanguageType, type TemplateType, create } from '../index.ts';
+import { type LanguageType, type TemplateType, } from '../index.ts';
 
 // Resolve the given path relative to the current file
 const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
@@ -71,17 +70,17 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 				});
 			});
 		} else {
-			create({ cwd, name: `create-svelte-test-${template}-${types}`, template, types });
-			// the `demo` template uses `<enhanced:img>`, which requires the `enhanced-img` plugin to build
-			const addons = {
-				eslint: officialAddons.eslint,
-				...(template === 'demo' ? { 'enhanced-img': officialAddons.enhancedImg } : {})
-			};
-			const addonOptions = {
-				eslint: {},
-				...(template === 'demo' ? { 'enhanced-img': {} } : {})
-			};
-			await add({ cwd, addons, options: addonOptions });
+			await createProject(cwd, {
+				types,
+				addOns: true,
+				add: ['eslint'],
+				install: false,
+				template,
+				fromPlayground: undefined,
+				dirCheck: false,
+				downloadCheck: false
+			});
+
 		}
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
