@@ -136,7 +136,7 @@ And the global test setup script `tests/setup/global.js`:
 ```js
 import path from 'node:path';
 import { setupGlobal } from 'sv/testing';
-
+// test projects are scaffolded into `<project-root>/.test-output`
 const TEST_DIR = path.resolve(import.meta.dirname, '..', '..', '.test-output');
 
 export default setupGlobal({ TEST_DIR });
