@@ -1,5 +1,32 @@
 # sv
 
+## 1.0.0-next.6
+
+### Patch Changes
+
+- fix(cli): skip formatting if the project has no detectable formatter ([#1298](https://github.com/sveltejs/cli/pull/1298))
+
+- fix(migrate): specify full version range for sveltekit and adapters ([#1292](https://github.com/sveltejs/cli/pull/1292))
+
+## 1.0.0-next.5
+
+### Patch Changes
+
+- Updated dependencies [[`25acc4c`](https://github.com/sveltejs/cli/commit/25acc4c79522e98d4f7d1e56934a1209d332a294)]:
+  - @sveltejs/sv-utils@1.0.0-next.4
+
+## 1.0.0-next.4
+
+### Minor Changes
+
+- feat(cli): Community add-ons no longer require scoped package names ([#1216](https://github.com/sveltejs/cli/pull/1216))
+
+### Patch Changes
+
+- feat(cli): skip the package manager prompt when no dependency needs installing ([#1195](https://github.com/sveltejs/cli/pull/1195))
+- Updated dependencies [[`da31828`](https://github.com/sveltejs/cli/commit/da3182868850305f9e054b81dce39eb7babeb801)]:
+  - @sveltejs/sv-utils@1.0.0-next.3
+
 ## 1.0.0-next.3
 ### Patch Changes
 

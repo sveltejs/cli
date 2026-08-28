@@ -1,4 +1,4 @@
-import { coerce, findMinimumForRange, isLess, tryParse } from 'verkit';
+import { coerce, findMinimumForRange, isLess, isRangeSubset, tryParse } from 'verkit';
 
 type Version = {
 	major?: number;
@@ -36,12 +36,22 @@ export function coerceVersion(str: string): Version {
 	return { major: c.major, minor: c.minor, patch: c.patch, version: coerced! };
 }
 
-export function isVersionUnsupportedBelow(
-	versionStr: string,
-	belowStr: string
-): boolean | undefined {
-	const version = coerce(versionStr);
-	const below = coerce(belowStr);
-	if (!version || !below) return undefined;
-	return isLess(version, below);
+/**
+ * Returns `true` when every version matching `subset` also matches `superset`,
+ * e.g. `^9.2.0` is within `^9.0.0` but `^8.0.0` is not.
+ * Unparseable inputs (`latest`, `workspace:*`, ...) return `false`.
+ */
+export function isRangeWithin(subset: string, superset: string): boolean {
+	try {
+		return isRangeSubset(subset, superset);
+	} catch {
+		return false;
+	}
+}
+
+export function isVersionUnsupportedBelow(version: string, below: string): boolean | undefined {
+	const version_c = coerce(version);
+	const below_c = coerce(below);
+	if (!version_c || !below_c) return undefined;
+	return isLess(version_c, below_c);
 }
