@@ -40,10 +40,7 @@ async function runCheck(cwd: string, args: string[]) {
 	// avoids printing the stack trace for `sv` when `svelte-check` exits with an error code
 	try {
 		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
-		execSync(cmd.command, cmd.args, {
-			nodeOptions: { cwd, stdio: 'inherit' },
-			throwOnError: true
-		});
+		execSync(cmd.command, cmd.args, { nodeOptions: { cwd, stdio: 'inherit' }, throwOnError: true });
 	} catch (error) {
 		forwardExitCode(error);
 	} finally {

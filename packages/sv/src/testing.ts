@@ -365,9 +365,7 @@ export function createSetupTest(
 			}
 
 			const installDir = path.resolve(cwd, testName);
-			const install = await exec('pnpm', ['install'], {
-				nodeOptions: { cwd: installDir }
-			});
+			const install = await exec('pnpm', ['install'], { nodeOptions: { cwd: installDir } });
 			if (install.exitCode !== 0) {
 				throw new Error(
 					`pnpm install failed in ${installDir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`

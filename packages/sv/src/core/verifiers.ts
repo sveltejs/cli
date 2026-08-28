@@ -18,7 +18,7 @@ export function verifyCleanWorkingDirectory(cwd: string, gitCheck: boolean) {
 				const result = await exec('git', ['status', '--short'], { nodeOptions: { cwd } });
 
 				if (result.exitCode !== 0) return { success: true, message: 'Not a git repository' };
-				if (result.stdout) return { success: false, message: 'Uncommited changes found' };
+				if (result.stdout) return { success: false, message: 'Uncommitted changes found' };
 				return { success: true, message: undefined };
 			}
 		});

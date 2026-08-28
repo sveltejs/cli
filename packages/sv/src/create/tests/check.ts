@@ -81,7 +81,10 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 
 		for (const script of scripts_to_test) {
 			const tests = script_test_map.get(script) ?? [];
-			tests.push([`${template}-${types}`, () => exec('pnpm', [script], { nodeOptions: { cwd } })]);
+			tests.push([
+				`${template}-${types}`,
+				() => exec('pnpm', [script], { nodeOptions: { cwd }, throwOnError: true })
+			]);
 			script_test_map.set(script, tests);
 		}
 
