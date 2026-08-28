@@ -72,7 +72,16 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 			});
 		} else {
 			create({ cwd, name: `create-svelte-test-${template}-${types}`, template, types });
-			await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+			// the `demo` template uses `<enhanced:img>`, which requires the `enhanced-img` plugin to build
+			const addons = {
+				eslint: officialAddons.eslint,
+				...(template === 'demo' ? { 'enhanced-img': officialAddons.enhancedImg } : {})
+			};
+			const addonOptions = {
+				eslint: {},
+				...(template === 'demo' ? { 'enhanced-img': {} } : {})
+			};
+			await add({ cwd, addons, options: addonOptions });
 		}
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));

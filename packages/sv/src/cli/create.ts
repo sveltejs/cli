@@ -334,12 +334,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 		loadedAddons = result.loadedAddons;
 		answers = result.answers;
+	}
 
-		if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhancedImg')) {
-			const addon = getAddonDetails('enhanced-img');
-			loadedAddons.push(createLoadedAddon(addon));
-			answers.enhancedImg = {};
-		}
+	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
+		const addon = getAddonDetails('enhanced-img');
+		loadedAddons.push(createLoadedAddon(addon));
+		answers['enhanced-img'] = {};
 	}
 
 	createKit({
@@ -371,7 +371,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	let addonSetupResults: Record<string, SetupResult> = {};
-	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
+	if (template !== 'addon' && loadedAddons.length > 0) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,
