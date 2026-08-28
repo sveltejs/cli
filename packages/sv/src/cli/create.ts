@@ -42,6 +42,7 @@ import {
 	runAddonsApply,
 	getNextSteps
 } from './add.ts';
+import { noDownloadCheckOption, noInstallOption } from './options.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType> = {
@@ -63,11 +64,6 @@ const addonNameOption = new Option(
 	'--addon-name <name>',
 	'name for the addon package (e.g. @<org>/<pkg> or <pkg>)'
 );
-export const noDownloadCheckOption = new Option(
-	'--no-download-check',
-	'skip all download confirmation prompts'
-);
-export const noInstallOption = new Option('--no-install', 'skip installing dependencies');
 
 const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({

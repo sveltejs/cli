@@ -30,7 +30,7 @@ import {
 } from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../core/verifiers.ts';
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
-import { noDownloadCheckOption, noInstallOption } from './create.ts';
+import { noDownloadCheckOption, noInstallOption } from './options.ts';
 
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();
