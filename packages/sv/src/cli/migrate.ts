@@ -154,7 +154,10 @@ export const migrate = new Command('migrate')
 						? await packageManagerPrompt(workspace.cwd)
 						: verifiedOptions.install;
 			if (packageManager) {
-				await installDependencies(packageManager, workspace.cwd);
+				// NPM installs will fail if the project contains dependencies that don't have compatible peer-dependencies,
+				// which is _a bit_ expected if they're migrating to a newer (or possibly next/rc) version of SvelteKit/Svelte.
+				const flags = packageManager === 'npm' ? ['--legacy-peer-deps'] : [];
+				await installDependencies(packageManager, workspace.cwd, flags);
 			}
 
 			reportNextSteps();

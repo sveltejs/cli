@@ -1,5 +1,13 @@
 # sv
 
+## 1.0.0-next.6
+
+### Patch Changes
+
+- fix(cli): skip formatting if the project has no detectable formatter ([#1298](https://github.com/sveltejs/cli/pull/1298))
+
+- fix(migrate): specify full version range for sveltekit and adapters ([#1292](https://github.com/sveltejs/cli/pull/1292))
+
 ## 1.0.0-next.5
 
 ### Patch Changes

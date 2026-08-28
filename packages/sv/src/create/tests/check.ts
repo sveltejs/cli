@@ -1,9 +1,7 @@
-import { type PromiseWithChild, exec as nodeExec } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
-import { exec } from 'tinyexec';
+import { exec, type Result } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createProject } from '../../cli/create.ts';
 import { type LanguageType, type TemplateType } from '../index.ts';
@@ -20,11 +18,9 @@ fs.mkdirSync(test_workspace_dir, { recursive: true });
 
 fs.writeFileSync(path.join(test_workspace_dir, 'pnpm-workspace.yaml'), 'packages:\n  - ./*\n');
 
-const exec_async = promisify(nodeExec);
-
 beforeAll(async () => {
 	const install = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
-		nodeOptions: { cwd: test_workspace_dir, stdio: 'pipe' }
+		nodeOptions: { cwd: test_workspace_dir }
 	});
 	if (install.exitCode !== 0) {
 		throw new Error(
@@ -37,7 +33,7 @@ beforeAll(async () => {
  * Tests in different templates can be run concurrently for a nice speedup locally, but tests within a template must be run sequentially.
  * It'd be better to group tests by template, but vitest doesn't support that yet.
  */
-const script_test_map = new Map<string, Array<[string, () => PromiseWithChild<any>]>>();
+const script_test_map = new Map<string, Array<[string, () => Result]>>();
 
 const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[];
 
@@ -92,7 +88,10 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 
 		for (const script of scripts_to_test) {
 			const tests = script_test_map.get(script) ?? [];
-			tests.push([`${template}-${types}`, () => exec_async(`pnpm ${script}`, { cwd })]);
+			tests.push([
+				`${template}-${types}`,
+				() => exec('pnpm', [script], { nodeOptions: { cwd }, throwOnError: true })
+			]);
 			script_test_map.set(script, tests);
 		}
 

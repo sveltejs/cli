@@ -2,15 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import {
-	AGENTS,
-	type AgentName,
-	COMMANDS,
-	color,
-	constructCommand,
-	detect,
-	pnpm
-} from '@sveltejs/sv-utils';
+import { AGENTS, type AgentName, color, detect, pnpm, resolveCommand } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
 import { exec, execSync } from 'tinyexec';
@@ -52,7 +44,11 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 /** Returns `false` when the package manager isn't installed and the install was skipped. */
-export async function installDependencies(agent: AgentName, cwd: string): Promise<boolean> {
+export async function installDependencies(
+	agent: AgentName,
+	cwd: string,
+	flags: string[] = []
+): Promise<boolean> {
 	if (!isInstalled(agent)) {
 		p.log.warn(`${color.command(agent)} is not installed, skipping dependency installation.`);
 		return false;
@@ -65,12 +61,9 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		retainLog: true
 	});
 
-	const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
+	const { command, args } = resolveCommand(agent, 'install', flags)!;
 
-	const proc = exec(command, args, {
-		nodeOptions: { cwd, stdio: 'pipe' },
-		throwOnError: false
-	});
+	const proc = exec(command, args, { nodeOptions: { cwd }, throwOnError: false });
 
 	const output: string[] = [];
 	try {

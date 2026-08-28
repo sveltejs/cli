@@ -20,7 +20,7 @@ import {
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
 import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
-import { formatFiles, isFormatterInstalled } from '../core/formatFiles.ts';
+import { formatFiles, isPrettierInstalled } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addPnpmAllowBuilds,
@@ -765,7 +765,7 @@ export async function runAddonsApply({
 	}
 
 	// the formatter has to be on disk: either we just installed it, or it was already there
-	if (depsInstalled || isFormatterInstalled(options.cwd)) {
+	if (depsInstalled || isPrettierInstalled(options.cwd)) {
 		await formatFiles({
 			packageManager: packageManager ?? workspace.packageManager,
 			cwd: options.cwd,

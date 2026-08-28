@@ -1,9 +1,10 @@
 import fs from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
+import * as resolve from 'empathic/resolve';
 import { exec } from 'tinyexec';
+import { isNodeError } from './common.ts';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
@@ -13,6 +14,11 @@ export type FormatStrategy =
 	/** Run `prettier --write` on the given files (if `prettier` is available). */
 	| 'files-only';
 
+type FormatAction =
+	| { kind: 'script'; dir: string; name: 'format' | 'fmt' }
+	| { kind: 'prettier' }
+	| { kind: 'skip' };
+
 export async function formatFiles(options: {
 	packageManager: AgentName;
 	cwd: string;
@@ -21,17 +27,17 @@ export async function formatFiles(options: {
 }): Promise<void> {
 	if (options.filesToFormat.length === 0) return;
 
-	if (options.strategy === 'project-script-then-files-only') {
-		const script = findFormatScript(options.cwd);
-		if (script) {
-			// the script owns its scope (whole repo/monorepo) and deps - we don't care what runs under it
-			const packageManager = await detectPackageManager(script.dir);
-			const cmd = resolveCommand(packageManager, 'run', [script.name])!;
-			await withSpinner(`Running ${packageManager} run ${script.name}`, () =>
-				run(cmd.command, cmd.args, script.dir)
-			);
-			return;
-		}
+	const action = resolveFormatAction(options.cwd, options.strategy);
+	if (action.kind === 'skip') return;
+
+	if (action.kind === 'script') {
+		// the script owns its scope (whole repo/monorepo) and deps - we don't care what runs under it
+		const packageManager = await detectPackageManager(action.dir);
+		const cmd = resolveCommand(packageManager, 'run', [action.name])!;
+		await withSpinner(`Running ${packageManager} run ${action.name}`, () =>
+			run(cmd.command, cmd.args, action.dir)
+		);
+		return;
 	}
 
 	const args = ['--write', '--ignore-unknown', ...options.filesToFormat];
@@ -49,16 +55,24 @@ export async function formatFiles(options: {
 }
 
 /**
- * Whether `prettier` resolves from `cwd`, walking up `node_modules` the same way the spawned
- * binary does - so formatting can be skipped instead of failing when deps were never installed.
+ * Checks if a format script is available (`format`/`fmt`). If not, run `prettier`
+ * if it's resolvable from `cwd`. Otherwise, skip altogether if no formatter is detectable.
  */
-export function isFormatterInstalled(cwd: string): boolean {
-	try {
-		createRequire(path.join(cwd, 'index.js')).resolve('prettier/package.json');
-		return true;
-	} catch {
-		return false;
+export function resolveFormatAction(cwd: string, strategy: FormatStrategy): FormatAction {
+	if (strategy === 'project-script-then-files-only') {
+		const script = findFormatScript(cwd);
+		if (script) return { kind: 'script', ...script };
 	}
+
+	if (isPrettierInstalled(cwd)) return { kind: 'prettier' };
+	return { kind: 'skip' };
+}
+
+/**
+ * Whether `prettier` resolves from `cwd` via Node's module resolution.
+ */
+export function isPrettierInstalled(cwd: string): boolean {
+	return Boolean(resolve.from(cwd, 'prettier', true));
 }
 
 /** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
@@ -96,20 +110,18 @@ async function withSpinner(
 
 async function run(command: string, args: string[], cwd: string): Promise<{ error?: string }> {
 	try {
-		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
+		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
 		return {};
 	} catch (e) {
 		// Unix spawn of a missing binary is ENOENT. On Windows, tinyexec often runs via
 		// cmd.exe which exits 1 with "is not recognized..." instead. We'll treat both as errors
 		// so we can fall back to the package manager (needed for Yarn PnP).
-		if (e instanceof Error && 'code' in e && e.code === 'ENOENT') {
-			if ('code' in e && e.code === 'ENOENT') {
-				return { error: `${command} not found` };
-			}
-
-			return { error: e.message };
+		if (!isNodeError(e)) {
+			return { error: 'unknown error' };
 		}
-
-		return { error: 'unknown error' };
+		if ('code' in e && e.code === 'ENOENT') {
+			return { error: `${command} not found` };
+		}
+		return { error: e.message };
 	}
 }
