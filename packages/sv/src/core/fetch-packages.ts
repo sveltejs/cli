@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import { platform } from 'node:os';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { color, coerceVersion, downloadJson, dedent } from '@sveltejs/sv-utils';
 import { unpackTar } from 'modern-tar/fs';
@@ -11,7 +10,7 @@ import * as common from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
 
 // path to the `node_modules` directory of `sv`
-const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));
+const NODE_MODULES = path.resolve(import.meta.dirname, '..', '..', 'node_modules');
 
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };

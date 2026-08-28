@@ -2,7 +2,6 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import parser from 'gitignore-parser';
 import { format } from 'oxfmt';
 import { transform } from 'sucrase';
@@ -11,7 +10,7 @@ import oxfmtConfig from '../../../../../oxfmt.config.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
 
-const pkgRoot = path.resolve(fileURLToPath(import.meta.url), '..', '..');
+const pkgRoot = path.resolve(import.meta.dirname, '..');
 const require = createRequire(import.meta.url);
 const createVitePath = path.dirname(require.resolve('create-vite/package.json'));
 

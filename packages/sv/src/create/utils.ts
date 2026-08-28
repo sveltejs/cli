@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type { Common } from './index.ts';
 
 export function mkdirp(dir: string): void {
@@ -58,14 +57,12 @@ export function copy(
 	}
 }
 
-export function dist(path: string): string {
+export function dist(currentPath: string): string {
 	// we need to make this check, because vitest is making the package root the cwd,
 	// but executing the cli from the command line already makes the dist folder the cwd.
 	const insideDistFolder = import.meta.url.includes('dist');
 
-	return fileURLToPath(
-		new URL(`./${!insideDistFolder ? 'dist/' : ''}${path}`, import.meta.url).href
-	);
+	return path.resolve(import.meta.dirname, insideDistFolder ? '' : 'dist', currentPath);
 }
 
 export function getSharedFiles(): Common['files'] {
