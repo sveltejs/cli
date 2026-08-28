@@ -24,7 +24,7 @@ Checkout the code and install the dependencies with:
 ```sh
 git clone https://github.com/sveltejs/cli.git
 cd cli
-pnpm install
+pnpm i
 ```
 
 ## Build and run
@@ -33,7 +33,7 @@ To build the project and all packages. Run the 'build' script:
 
 ```sh
 # from root of project
-pnpm run build
+pnpm build
 ```
 
 This outputs into /packages/PACKAGE/dist/.
@@ -41,18 +41,18 @@ This outputs into /packages/PACKAGE/dist/.
 Run the 'cli' package:
 
 ```sh
-pnpm exec sv
-pnpm exec sv create
-pnpm exec sv add
-pnpm exec sv migrate
-pnpm exec sv check
-pnpm exec sv help
+pnpm sv
+pnpm sv create
+pnpm sv add
+pnpm sv migrate
+pnpm sv check
+pnpm sv help
 ```
 
 Run build with watch mode:
 
 ```sh
-pnpm run dev
+pnpm dev
 ```
 
 ## Testing
@@ -64,27 +64,27 @@ Because the add-on integration tests take a long time, CI only runs them when a 
 Tests are split into projects: `cli`, `core`, `sv-utils`, `addons`, `create`, `migrate`. **Always run tests by project** for faster feedback:
 
 ```sh
-pnpm run test --project migrate            # Migrate tests
-pnpm run test --project core               # Core tests
-pnpm run test --project create             # Project creation tests
-pnpm run test --project addons             # Add-on tests
-pnpm run test --project sv-utils           # sv-utils tests
+pnpm test --project migrate            # Migrate tests
+pnpm test --project core               # Core tests
+pnpm test --project create             # Project creation tests
+pnpm test --project addons             # Add-on tests
+pnpm test --project sv-utils           # sv-utils tests
 
-pnpm run test --project addons eslint      # Just eslint add-on tests
-pnpm run build && pnpm run test --project cli  # CLI tests
+pnpm test --project addons eslint      # Just eslint add-on tests
+pnpm build && pnpm test --project cli  # CLI tests
 ```
 
 For interactive debugging, append `:ui`:
 
 ```diff
--pnpm run test --project cli
-+pnpm run test:ui --project cli
+-pnpm test --project cli
++pnpm test:ui --project cli
 ```
 
 Run all tests (slow, typically for CI):
 
 ```sh
-pnpm run test
+pnpm test
 ```
 
 ### Debugging
@@ -92,17 +92,17 @@ pnpm run test
 Example of how to debug an addon failing test. Once you run the test command, you will have a directory in `.test-output` with the test id. A good starting point is to `cd` into the failing tests dir and run the app directly. E.g.:
 
 ```sh
-pnpm run test --project addons better-auth   # Run the failing test first
+pnpm test --project addons better-auth   # Run the failing test first
 
 # Each test generates a standalone app in .test-output
 cd packages/sv/.test-output/addons/better-auth/default-kit-ts
 
 # Option 1: Run dev server for interactive debugging
-pnpm run dev
+pnpm dev
 # Open http://localhost:5173 and use browser DevTools to inspect
 
 # Option 2: Build and preview (matches production behavior)
-pnpm run build
+pnpm build
 pnpm preview
 ```
 
@@ -115,7 +115,7 @@ Some snapshots are testing the output of `sv` directly from the generated binary
 In one command:
 
 ```sh
-pnpm run build && pnpm run test --project cli --update all
+pnpm build && pnpm test --project cli --update all
 ```
 
 ## Style Guide
@@ -124,14 +124,14 @@ pnpm run build && pnpm run test --project cli --update all
 
 Ensure the following passes:
 
-- `pnpm run lint`
-- `pnpm run check`
+- `pnpm lint`
+- `pnpm check`
 
-Use `pnpm run format` to format the code.
+Use `pnpm format` to format the code.
 
 ## Updating dependencies
 
-Run `pnpm run update-deps` to recursively update the dependencies of all addons and create templates.
+Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
 After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.
 
 ## Deprecation
@@ -164,7 +164,7 @@ Here is the command to generate a change set:
 
 ```sh
 # from root of project
-pnpm exec changeset
+pnpm changeset
 
 # select package
 # choose the level of change (patch, minor, major)
