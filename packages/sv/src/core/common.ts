@@ -22,7 +22,8 @@ export const PackageJSONSchema = v.looseObject({
 	dependencies: v.optional(StringRecordSchema),
 	devDependencies: v.optional(StringRecordSchema),
 	repository: v.optional(v.union([v.string(), v.looseObject({ url: v.optional(v.string()) })])),
-	dist: v.optional(v.looseObject({ tarball: v.optional(v.string()) }))
+	dist: v.optional(v.looseObject({ tarball: v.optional(v.string()) })),
+	exports: v.optional(v.union([v.string(), v.array(v.string()), v.record(v.string(), v.any())]))
 });
 export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
 
@@ -293,7 +294,14 @@ export function updateReadme(projectPath: string, command: string) {
 }
 
 export function errorAndExit(message: string) {
-	p.log.error(message);
+	const [firstLine, ...restLines] = message.split('\n');
+
+	p.log.error(firstLine);
+	// Fixes issue where the first line of the error message is not the same color as the rest of the lines
+	for (const line of restLines) {
+		p.log.message(color.optional(line), { spacing: 0 });
+	}
+
 	p.log.message();
 	p.cancel('Operation failed.');
 	process.exit(1);

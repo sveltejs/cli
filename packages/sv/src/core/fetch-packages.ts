@@ -4,7 +4,7 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
-import { color, coerceVersion, downloadJson, dedent } from '@sveltejs/sv-utils';
+import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
 import { unpackTar } from 'modern-tar/fs';
 import * as v from 'valibot';
 import pkg from '../../package.json' with { type: 'json' };
@@ -29,20 +29,12 @@ function parsePackageJSON(value: unknown, specifier: string): PackageJSON {
 
 function verifyPackage(addonPkg: PackageJSON, specifier: string): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };
-	const deps = { ...addonPkg.dependencies };
 
 	// valid addons should always have `sv` as a peerDependency
 	const addonSvVersion = peerDeps['sv'];
 	if (!addonSvVersion) {
 		throw new Error(
 			`Invalid add-on package specified: '${specifier}' is missing 'sv' in its 'peerDependencies'`
-		);
-	}
-
-	// addons should not have any dependencies (everything should be bundled)
-	if (Object.keys(deps).length > 0) {
-		throw new Error(
-			`Invalid add-on package detected: '${specifier}'\nCommunity add-ons should not have any 'dependencies'. Use 'peerDependencies' for 'sv' and bundle everything else`
 		);
 	}
 
@@ -130,7 +122,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 			}
 		}
 
-		return await importAddonCode(pkg.name, pkg.version);
+		return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 	}
 
 	const tarballUrl = pkg.dist?.tarball;
@@ -151,39 +143,53 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
 	);
 
-	return await importAddonCode(pkg.name, pkg.version);
+	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 }
 
-async function importAddonCode(pkgName: string, pkgVersion: string): Promise<AddonDefinition> {
+export async function importAddonCode(
+	pkgName: string,
+	pkgVersion: string,
+	exports?: common.PackageJSON['exports']
+): Promise<AddonDefinition> {
 	const issues: string[] = [];
+	let unresolvedModule = false;
 
-	let details: AddonDefinition | undefined;
-	try {
-		({ default: details } = await import(`${pkgName}/sv`));
-	} catch {
-		issues.push(`'/sv' export not found`);
-	}
+	// only probe `/sv` when the package actually maps it, otherwise the probe itself
+	// fails and reports a missing module that the author never declared
+	const candidates = hasSvExport(exports) ? [`${pkgName}/sv`, pkgName] : [pkgName];
 
-	if (!details) {
+	for (const specifier of candidates) {
 		try {
-			({ default: details } = await import(pkgName));
-		} catch {
-			issues.push(`default export not found`);
+			const details: AddonDefinition | undefined = (await import(specifier)).default;
+			if (details) return details;
+
+			issues.push(`'${specifier}' resolved but has no default export`);
+		} catch (e) {
+			// ESM entry points report `ERR_MODULE_NOT_FOUND`, CJS ones report `MODULE_NOT_FOUND`
+			if (
+				common.isNodeError(e) &&
+				(e.code === 'ERR_MODULE_NOT_FOUND' || e.code === 'MODULE_NOT_FOUND')
+			) {
+				unresolvedModule = true;
+			}
+			issues.push(`'${specifier}' failed to load: ${e instanceof Error ? e.message : e}`);
 		}
 	}
 
-	if (!details && issues.length > 0) {
-		throw new Error(
-			dedent`
-				Failed to load add-on '${pkgName}@${pkgVersion}':
-				${issues.map((i) => `- ${i}`).join('\n')}
+	const hint = unresolvedModule
+		? `\nThis usually means the add-on has dependencies that are not bundled.\n`
+		: '';
 
-				Please report this to the add-on author.
-				`
-		);
-	}
+	throw new Error(
+		`Failed to load add-on '${pkgName}@${pkgVersion}':\n- ${issues.join('\n- ')}\n${hint}\n` +
+			`Please report this to the add-on author.`
+	);
+}
 
-	return details!;
+/** `exports` is only consulted to pick entry points, never to reject a package. */
+export function hasSvExport(exports?: common.PackageJSON['exports']): boolean {
+	if (typeof exports !== 'object' || exports === null || Array.isArray(exports)) return false;
+	return Boolean(exports['./sv']);
 }
 
 export async function getPackageJSON(ref: AddonReference): Promise<{
