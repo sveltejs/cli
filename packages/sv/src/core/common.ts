@@ -275,7 +275,14 @@ export function updateReadme(projectPath: string, command: string) {
 }
 
 export function errorAndExit(message: string) {
-	p.log.error(message);
+	const [firstLine, ...restLines] = message.split('\n');
+
+	p.log.error(firstLine);
+	// Fixes issue where the first line of the error message is not the same color as the rest of the lines
+	for (const line of restLines) {
+		p.log.message(color.optional(line), { spacing: 0 });
+	}
+
 	p.log.message();
 	p.cancel('Operation failed.');
 	process.exit(1);
