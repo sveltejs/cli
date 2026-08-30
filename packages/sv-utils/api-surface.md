@@ -827,7 +827,7 @@ declare namespace pnpm_d_exports {
 	export { allowBuilds };
 }
 
-declare function allowBuilds(...packages: string[]): TransformFn;
+declare function allowBuilds(cwd: string, ...packages: [string, ...string[]]): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;

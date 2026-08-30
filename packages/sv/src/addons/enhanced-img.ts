@@ -1,6 +1,5 @@
-import { color, transforms } from '@sveltejs/sv-utils';
+import { color, pnpm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
-import { addPnpmAllowBuilds } from '../core/package-manager.ts';
 
 export default defineAddon({
 	id: 'enhanced-img',
@@ -9,7 +8,10 @@ export default defineAddon({
 	options: {},
 	run: ({ sv, file, packageManager, cwd }) => {
 		sv.devDependency('@sveltejs/enhanced-img', '^0.11.0');
-		if (packageManager === 'pnpm') addPnpmAllowBuilds(cwd, 'workerd');
+
+		if (packageManager === 'pnpm') {
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds(cwd, 'sharp'));
+		}
 
 		sv.file(
 			file.viteConfig,

@@ -5,10 +5,10 @@ import {
 	fileExists,
 	loadPackageJson,
 	sanitizeName,
-	svelteConfig
+	svelteConfig,
+	pnpm
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addPnpmAllowBuilds } from '../core/package-manager.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0-next.3' },
@@ -111,7 +111,9 @@ export default defineAddon({
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.97.0');
-			if (packageManager === 'pnpm') addPnpmAllowBuilds(cwd, 'workerd');
+			if (packageManager === 'pnpm') {
+				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds(cwd, 'workerd'));
+			}
 
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';

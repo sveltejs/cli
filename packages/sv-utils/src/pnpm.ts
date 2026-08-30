@@ -32,8 +32,8 @@ type YamlDoc = {
  * }
  * ```
  */
-export function allowBuilds(...packages: string[]): TransformFn {
-	const major = detectPnpmMajor();
+export function allowBuilds(cwd: string, ...packages: [string, ...string[]]): TransformFn {
+	const major = detectPnpmMajor(cwd);
 	if (major !== undefined && major < 11) return writeLegacy(packages);
 	return writeAllowBuilds(packages);
 }
