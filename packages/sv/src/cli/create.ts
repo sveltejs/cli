@@ -415,7 +415,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
-	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
+	if (packageManager === 'pnpm') addPnpmAllowBuilds(projectPath, 'esbuild');
+
 	let depsInstalled = false;
 	if (packageManager) {
 		depsInstalled = await installDependencies(packageManager, projectPath);

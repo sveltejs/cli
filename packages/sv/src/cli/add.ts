@@ -774,7 +774,7 @@ export async function runAddonsApply({
 		packageManager = options.install;
 	}
 
-	addPnpmAllowBuilds(workspace.cwd, packageManager, 'esbuild');
+	if (packageManager === 'pnpm') addPnpmAllowBuilds(workspace.cwd, 'esbuild');
 
 	const argsFormattedAddons: string[] = [];
 	for (const loaded of successfulAddons) {

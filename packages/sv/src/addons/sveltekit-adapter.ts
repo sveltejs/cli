@@ -111,8 +111,7 @@ export default defineAddon({
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.97.0');
-
-			addPnpmAllowBuilds(cwd, packageManager, 'workerd');
+			if (packageManager === 'pnpm') addPnpmAllowBuilds(cwd, 'workerd');
 
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';

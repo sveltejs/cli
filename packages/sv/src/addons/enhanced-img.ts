@@ -9,7 +9,7 @@ export default defineAddon({
 	options: {},
 	run: ({ sv, file, packageManager, cwd }) => {
 		sv.devDependency('@sveltejs/enhanced-img', '^0.11.0');
-		addPnpmAllowBuilds(cwd, packageManager, 'workerd');
+		if (packageManager === 'pnpm') addPnpmAllowBuilds(cwd, 'workerd');
 
 		sv.file(
 			file.viteConfig,
