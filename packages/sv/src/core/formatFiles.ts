@@ -119,7 +119,7 @@ async function run(command: string, args: string[], cwd: string): Promise<{ erro
 		if (!isNodeError(e)) {
 			return { error: 'unknown error' };
 		}
-		if ('code' in e && e.code === 'ENOENT') {
+		if (e.code === 'ENOENT') {
 			return { error: `${command} not found` };
 		}
 		return { error: e.message };

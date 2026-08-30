@@ -15,13 +15,14 @@ const { test, prepareServer, testCases } = setupTest(
 
 test.concurrent.for(testCases)(
 	'tailwindcss $kind.type $variant',
-	async (testCase, { page, ...ctx }) => {
+	async (testCase, { page, expect: vExpect, ...ctx }) => {
 		const cwd = ctx.cwd(testCase);
 
 		// ...add test files
 		addFixture(cwd, testCase.variant);
 
-		const { close } = await prepareServer({ cwd, page });
+		// we'll pass in vitest's `expect` instance to satisfy our `requireAssertion: true` requirement (it would otherwise _occasionally_ fail without it)
+		const { close } = await prepareServer({ cwd, page, expect: vExpect });
 		// kill server process when we're done
 		ctx.onTestFinished(async () => await close());
 

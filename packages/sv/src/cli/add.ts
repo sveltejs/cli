@@ -16,6 +16,7 @@ import {
 	type LoadedAddon,
 	type OptionValues,
 	type SetupResult,
+	createLoadedAddon,
 	getErrorHint
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
@@ -30,7 +31,6 @@ import {
 } from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../core/verifiers.ts';
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
-import { noDownloadCheckOption, noInstallOption } from './create.ts';
 
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();
@@ -43,6 +43,96 @@ const OptionsSchema = v.strictObject({
 	addons: v.record(v.string(), v.optional(v.array(v.string())))
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
+
+// infers the workspace cwd if a `package.json` resides in a parent directory
+const defaultPkgPath = pkg.up();
+const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
+export const add = new Command('add')
+	.description('applies specified add-ons into a project')
+	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonInput[] = []) =>
+		addonArgsHandler(previous, value)
+	)
+	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
+	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.addOption(common.cliOptions.noDownloadCheck)
+	.addOption(common.cliOptions.noInstall)
+	.addOption(installOption)
+	.configureHelp({
+		...common.helpConfig,
+		formatHelp(cmd, helper) {
+			const s = common.getHelpSections(cmd, helper);
+
+			const addonSection = formatAddonHelpSection({
+				styleTitle: s.styleTitle,
+				formatItem: (term, desc) =>
+					s.formatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
+			});
+
+			return [
+				...s.usage,
+				...s.description,
+				...s.arguments,
+				...addonSection,
+				...s.options,
+				...s.globalOptions,
+				...s.commands,
+				s.styleTitle('Examples:'),
+				'  sv add prettier eslint',
+				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
+				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
+				'  sv add prettier @supacool',
+				'  sv add @supacool/sv@0.1.2',
+				''
+			].join('\n');
+		}
+	})
+	.action(async (addonInputs: AddonInput[], opts) => {
+		// validate workspace
+		if (opts.cwd === undefined) {
+			common.errorAndExit(
+				'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
+			);
+		} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
+			// when `--cwd` is specified, we'll validate that it's a valid workspace
+			common.errorAndExit(
+				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
+			);
+		}
+
+		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
+		const addonRefs = classifyAddons(addonInputs, options.cwd);
+
+		const workspace = await createWorkspace({ cwd: options.cwd });
+
+		common.runCommand(async () => {
+			// Resolve all addons (official and community) - returns LoadedAddon[]
+			const loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
+
+			// Map options from refs to resolved IDs
+			for (const loaded of loadedAddons) {
+				const id = loaded.addon.id;
+				options.addons[id] = loaded.reference.options;
+			}
+
+			const { answers, loadedAddons: finalAddons } = await promptAddonQuestions({
+				options,
+				loadedAddons,
+				workspace
+			});
+
+			const { nextSteps } = await runAddonsApply({
+				answers,
+				options,
+				loadedAddons: finalAddons,
+				workspace,
+				fromCommand: 'add'
+			});
+
+			if (nextSteps.length > 0) {
+				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
+			}
+		});
+	});
 
 /**
  * Classifies addon inputs into AddonReferences with source information.
@@ -123,110 +213,6 @@ export function classifyAddons(inputs: AddonInput[], cwd: string): AddonReferenc
 }
 
 /**
- * Creates a LoadedAddon from an AddonDefinition (for official addons)
- */
-export function createLoadedAddon(addon: AddonDefinition): LoadedAddon {
-	return {
-		reference: {
-			specifier: addon.id,
-			options: [],
-			source: { kind: 'official', id: addon.id }
-		},
-		addon
-	};
-}
-
-// infers the workspace cwd if a `package.json` resides in a parent directory
-const defaultPkgPath = pkg.up();
-const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
-export const add = new Command('add')
-	.description('applies specified add-ons into a project')
-	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonInput[] = []) =>
-		addonArgsHandler(previous, value)
-	)
-	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
-	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
-	.addOption(noDownloadCheckOption)
-	.addOption(noInstallOption)
-	.addOption(installOption)
-	.configureHelp({
-		...common.helpConfig,
-		formatHelp(cmd, helper) {
-			const s = common.getHelpSections(cmd, helper);
-
-			const addonSection = formatAddonHelpSection({
-				styleTitle: s.styleTitle,
-				formatItem: (term, desc) =>
-					s.formatItem(helper.styleArgumentTerm(term), helper.styleArgumentDescription(desc))
-			});
-
-			return [
-				...s.usage,
-				...s.description,
-				...s.arguments,
-				...addonSection,
-				...s.options,
-				...s.globalOptions,
-				...s.commands,
-				s.styleTitle('Examples:'),
-				'  sv add prettier eslint',
-				'  sv add vitest="usages:unit" tailwindcss="plugins:none"',
-				'  sv add drizzle="database:postgresql+client:postgres.js+docker:yes"',
-				'  sv add prettier @supacool',
-				'  sv add @supacool/sv@0.1.2',
-				''
-			].join('\n');
-		}
-	})
-	.action(async (addonInputs: AddonInput[], opts) => {
-		// validate workspace
-		if (opts.cwd === undefined) {
-			common.errorAndExit(
-				'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
-			);
-		} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
-			// when `--cwd` is specified, we'll validate that it's a valid workspace
-			common.errorAndExit(
-				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
-			);
-		}
-
-		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
-		const addonRefs = classifyAddons(addonInputs, options.cwd);
-
-		const workspace = await createWorkspace({ cwd: options.cwd });
-
-		common.runCommand(async () => {
-			// Resolve all addons (official and community) - returns LoadedAddon[]
-			const loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
-
-			// Map options from refs to resolved IDs
-			for (const loaded of loadedAddons) {
-				const id = loaded.addon.id;
-				options.addons[id] = loaded.reference.options;
-			}
-
-			const { answers, loadedAddons: finalAddons } = await promptAddonQuestions({
-				options,
-				loadedAddons,
-				workspace
-			});
-
-			const { nextSteps } = await runAddonsApply({
-				answers,
-				options,
-				loadedAddons: finalAddons,
-				workspace,
-				fromCommand: 'add'
-			});
-
-			if (nextSteps.length > 0) {
-				p.note(nextSteps.join('\n'), 'Next steps', { format: (line) => line });
-			}
-		});
-	});
-
-/**
  * Resolves all addons (official and community).
  * Returns LoadedAddon[] with addon code loaded.
  */
@@ -267,6 +253,92 @@ export async function resolveAddons(
 	}
 
 	return loaded;
+}
+
+export async function resolveNonOfficialAddons(
+	refs: AddonReference[],
+	downloadCheck: boolean
+): Promise<AddonDefinition[]> {
+	const selectedAddons: AddonDefinition[] = [];
+	const { start, stop } = p.spinner();
+
+	try {
+		start(`Resolving ${refs.map((r) => color.addon(r.specifier)).join(', ')} packages`);
+
+		const pkgs = await Promise.all(
+			refs.map(async (ref) => {
+				if (ref.source.kind === 'official') {
+					throw new Error(`Unexpected official addon in non-official resolver: ${ref.specifier}`);
+				}
+				return await getPackageJSON(ref);
+			})
+		);
+		stop('Resolved community add-on packages');
+
+		// Display version compatibility warnings
+		for (const { warning } of pkgs) {
+			if (warning) {
+				p.log.warn(warning);
+			}
+		}
+
+		p.log.warn(
+			'Svelte maintainers have not reviewed community add-ons for malicious code! Use at your discretion.'
+		);
+
+		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
+		const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
+
+		const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
+			const name = color.warning(pkg.name.padEnd(paddingName));
+			const version = color.dim(`(v${pkg.version})`.padEnd(paddingVersion));
+			const repo = color.dim(`(${_repo})`);
+			return `${name} ${version} ${repo}`;
+		});
+		p.log.message(packageInfos.join('\n'));
+
+		if (downloadCheck) {
+			const confirm = await p.confirm({ message: 'Would you like to continue?' });
+			if (confirm !== true) {
+				p.cancel('Operation cancelled.');
+				process.exit(1);
+			}
+		}
+
+		start('Downloading community add-on packages');
+		const downloadResults = await Promise.allSettled(
+			pkgs.map(async (opts) => downloadPackage(opts))
+		);
+
+		// Separate successes and failures
+		const failures: Array<{ ref: AddonReference; error: string }> = [];
+		for (let i = 0; i < downloadResults.length; i++) {
+			const result = downloadResults[i];
+			if (result.status === 'fulfilled') {
+				selectedAddons.push(result.value);
+			} else {
+				failures.push({
+					ref: refs[i],
+					error: result.reason instanceof Error ? result.reason.message : 'Unknown error'
+				});
+			}
+		}
+
+		if (failures.length > 0) {
+			const failedList = failures.map((f) => color.addon(f.ref.specifier)).join(', ');
+			const hints = failures
+				.map((f) => `${f.ref.specifier}: ${getErrorHint(f.ref.source)}`)
+				.join('\n');
+			const errorMsg = `Failed to resolve ${failedList}\n${color.optional(failures.map((f) => f.error).join('\n'))}\n\n${hints}`;
+			throw new Error(errorMsg);
+		}
+		stop('Downloaded community add-on packages');
+	} catch (err) {
+		stop('Failed to download community add-on packages');
+		const msg = err instanceof Error ? err.message : 'Unknown error';
+		common.errorAndExit(msg);
+	}
+	return selectedAddons;
 }
 
 export async function promptAddonQuestions({
@@ -953,90 +1025,4 @@ function getOptionChoices(details: AddonDefinition) {
 		groups[groupId].push(...values);
 	}
 	return { choices, groups, groupDefaults };
-}
-
-export async function resolveNonOfficialAddons(
-	refs: AddonReference[],
-	downloadCheck: boolean
-): Promise<AddonDefinition[]> {
-	const selectedAddons: AddonDefinition[] = [];
-	const { start, stop } = p.spinner();
-
-	try {
-		start(`Resolving ${refs.map((r) => color.addon(r.specifier)).join(', ')} packages`);
-
-		const pkgs = await Promise.all(
-			refs.map(async (ref) => {
-				if (ref.source.kind === 'official') {
-					throw new Error(`Unexpected official addon in non-official resolver: ${ref.specifier}`);
-				}
-				return await getPackageJSON(ref);
-			})
-		);
-		stop('Resolved community add-on packages');
-
-		// Display version compatibility warnings
-		for (const { warning } of pkgs) {
-			if (warning) {
-				p.log.warn(warning);
-			}
-		}
-
-		p.log.warn(
-			'Svelte maintainers have not reviewed community add-ons for malicious code! Use at your discretion.'
-		);
-
-		const paddingName = common.getPadding(pkgs.map(({ pkg }) => pkg.name));
-		const paddingVersion = common.getPadding(pkgs.map(({ pkg }) => `(v${pkg.version})`));
-
-		const packageInfos = pkgs.map(({ pkg, repo: _repo }) => {
-			const name = color.warning(pkg.name.padEnd(paddingName));
-			const version = color.dim(`(v${pkg.version})`.padEnd(paddingVersion));
-			const repo = color.dim(`(${_repo})`);
-			return `${name} ${version} ${repo}`;
-		});
-		p.log.message(packageInfos.join('\n'));
-
-		if (downloadCheck) {
-			const confirm = await p.confirm({ message: 'Would you like to continue?' });
-			if (confirm !== true) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
-			}
-		}
-
-		start('Downloading community add-on packages');
-		const downloadResults = await Promise.allSettled(
-			pkgs.map(async (opts) => downloadPackage(opts))
-		);
-
-		// Separate successes and failures
-		const failures: Array<{ ref: AddonReference; error: string }> = [];
-		for (let i = 0; i < downloadResults.length; i++) {
-			const result = downloadResults[i];
-			if (result.status === 'fulfilled') {
-				selectedAddons.push(result.value);
-			} else {
-				failures.push({
-					ref: refs[i],
-					error: result.reason instanceof Error ? result.reason.message : 'Unknown error'
-				});
-			}
-		}
-
-		if (failures.length > 0) {
-			const failedList = failures.map((f) => color.addon(f.ref.specifier)).join(', ');
-			const hints = failures
-				.map((f) => `${f.ref.specifier}: ${getErrorHint(f.ref.source)}`)
-				.join('\n');
-			const errorMsg = `Failed to resolve ${failedList}\n${color.optional(failures.map((f) => f.error).join('\n'))}\n\n${hints}`;
-			throw new Error(errorMsg);
-		}
-		stop('Downloaded community add-on packages');
-	} catch (err) {
-		stop('Failed to download community add-on packages');
-		const msg = err instanceof Error ? err.message : 'Unknown error';
-		common.errorAndExit(msg);
-	}
-	return selectedAddons;
 }

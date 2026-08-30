@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { sanitizeName } from '@sveltejs/sv-utils';
-import { filePaths } from '../core/common.ts';
+import { filePaths, type PackageJSON } from '../core/common.ts';
 import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
@@ -88,7 +88,7 @@ function write_common_files(cwd: string, options: Omit<Options, 'cwd'>, name: st
 	const files = getSharedFiles();
 
 	const pkg_file = path.join(cwd, filePaths.packageJson);
-	const pkg = /** @type {any} */ JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
+	const pkg: PackageJSON = JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
 
 	sort_files(files).forEach((file) => {
 		const include = file.include.every((condition) => matches_condition(condition, options));
@@ -97,7 +97,7 @@ function write_common_files(cwd: string, options: Omit<Options, 'cwd'>, name: st
 		if (exclude || !include) return;
 
 		if (file.name === filePaths.packageJson) {
-			const new_pkg = JSON.parse(file.contents);
+			const new_pkg: PackageJSON = JSON.parse(file.contents);
 			merge(pkg, new_pkg);
 		} else {
 			const dest = path.join(cwd, file.name);
@@ -147,17 +147,15 @@ function merge(target: any, source: any) {
 	}
 }
 
-function sort_keys(obj: Record<string, any>) {
+function sort_keys<T>(obj?: Record<string, T>) {
 	if (!obj) return;
 
-	const sorted: Record<string, any> = {};
-	Object.keys(obj)
+	return Object.keys(obj)
 		.sort()
-		.forEach((key) => {
+		.reduce<Record<string, T>>((sorted, key) => {
 			sorted[key] = obj[key];
-		});
-
-	return sorted;
+			return sorted;
+		}, {});
 }
 
 /**

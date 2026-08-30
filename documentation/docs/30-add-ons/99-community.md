@@ -148,9 +148,11 @@ export default setupGlobal({ TEST_DIR });
 
 Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
 
+`sv` ships its own copy of [`@sveltejs/sv-utils`](sv-utils), so an add-on that leaves it unbundled will still load. Nothing verifies the version: your add-on runs against whatever `sv` provides, and following its breaking changes is up to you. Bundle it to stay on a version you control.
+
 ### `package.json`
 
-Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `package.json`:
+Your add-on must have `sv` as a peer dependency. Any `dependencies` declared will **not** be available at runtime, everything must be bundled:
 
 ```jsonc
 {
@@ -164,7 +166,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 	"publishConfig": {
 		"access": "public"
 	},
-	// cannot have dependencies
+	// packages declared here will not be available during runtime, it must be bundled
 	"dependencies": {},
 	"peerDependencies": {
 		// minimum version required to run by this add-on
