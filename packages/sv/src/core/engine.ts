@@ -14,9 +14,9 @@ import {
 	minimizeDiff
 } from '@sveltejs/sv-utils';
 import { exec } from 'tinyexec';
-import { createLoadedAddon } from '../cli/add.ts';
 import { filePaths } from './common.ts';
 import {
+	createLoadedAddon,
 	getErrorHint,
 	type Addon,
 	type AddonDefinition,

@@ -8,10 +8,29 @@ import {
 	type AgentName,
 	resolveCommandArray
 } from '@sveltejs/sv-utils';
-import type { Argument, Command, Help, HelpConfiguration, Option } from 'commander';
+import { Option, type Argument, type Command, type Help, type HelpConfiguration } from 'commander';
+import * as v from 'valibot';
 import pkg from '../../package.json' with { type: 'json' };
 import type { LoadedAddon, Verification } from './config.ts';
 import { UnsupportedError } from './errors.ts';
+
+const StringRecordSchema = v.record(v.string(), v.string());
+export const PackageJSONSchema = v.looseObject({
+	name: v.string(),
+	version: v.string(),
+	peerDependencies: v.optional(StringRecordSchema),
+	dependencies: v.optional(StringRecordSchema),
+	devDependencies: v.optional(StringRecordSchema),
+	repository: v.optional(v.union([v.string(), v.looseObject({ url: v.optional(v.string()) })])),
+	dist: v.optional(v.looseObject({ tarball: v.optional(v.string()) })),
+	exports: v.optional(v.union([v.string(), v.array(v.string()), v.record(v.string(), v.any())]))
+});
+export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
+
+export const cliOptions = {
+	noDownloadCheck: new Option('--no-download-check', 'skip all download confirmation prompts'),
+	noInstall: new Option('--no-install', 'skip installing dependencies')
+};
 
 // a file whose whole content is a single @import (e.g. CLAUDE.md -> @../AGENTS.md)
 const RX_IMPORT_ONLY = /^\s*@\S+\s*$/;
@@ -275,7 +294,14 @@ export function updateReadme(projectPath: string, command: string) {
 }
 
 export function errorAndExit(message: string) {
-	p.log.error(message);
+	const [firstLine, ...restLines] = message.split('\n');
+
+	p.log.error(firstLine);
+	// Fixes issue where the first line of the error message is not the same color as the rest of the lines
+	for (const line of restLines) {
+		p.log.message(color.optional(line), { spacing: 0 });
+	}
+
 	p.log.message();
 	p.cancel('Operation failed.');
 	process.exit(1);

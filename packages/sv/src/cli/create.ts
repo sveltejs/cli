@@ -92,10 +92,10 @@ export const create = new Command('create')
 	.addOption(noAddonsOption)
 	.addOption(addOption)
 	.addOption(addonNameOption)
-	.addOption(noInstallOption)
+	.addOption(common.cliOptions.noInstall)
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
-	.addOption(noDownloadCheckOption)
+	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(installOption)
 	.configureHelp({
 		...common.helpConfig,

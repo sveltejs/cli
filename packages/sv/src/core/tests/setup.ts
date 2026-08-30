@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createLoadedAddon } from '../../cli/add.ts';
 import {
+	createLoadedAddon,
 	defineAddon,
 	defineAddonOptions,
 	type Addon,
