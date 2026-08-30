@@ -1,14 +1,15 @@
-import { color, pnpm, transforms } from '@sveltejs/sv-utils';
+import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
+import { addPnpmAllowBuilds } from '../core/package-manager.ts';
 
 export default defineAddon({
 	id: 'enhanced-img',
 	shortDescription: 'image optimization',
 	homepage: 'https://svelte.dev/docs/kit/images',
 	options: {},
-	run: ({ sv, file }) => {
+	run: ({ sv, file, packageManager, cwd }) => {
 		sv.devDependency('@sveltejs/enhanced-img', '^0.11.0');
-		pnpm.allowBuilds('sharp');
+		addPnpmAllowBuilds(cwd, packageManager, 'workerd');
 
 		sv.file(
 			file.viteConfig,
