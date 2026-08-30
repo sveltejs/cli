@@ -7,7 +7,12 @@ import { Command, Option } from 'commander';
 import * as v from 'valibot';
 import { getAddonDetails } from '../addons/index.ts';
 import * as common from '../core/common.ts';
-import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
+import {
+	createLoadedAddon,
+	type LoadedAddon,
+	type OptionValues,
+	type SetupResult
+} from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
@@ -35,14 +40,12 @@ import { dist } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	classifyAddons,
-	createLoadedAddon,
 	formatAddonHelpSection,
 	promptAddonQuestions,
 	resolveAddons,
 	runAddonsApply,
 	getNextSteps
 } from './add.ts';
-import { noDownloadCheckOption, noInstallOption } from './options.ts';
 
 const langs = ['ts', 'jsdoc'] as const;
 const langMap: Record<string, LanguageType> = {
