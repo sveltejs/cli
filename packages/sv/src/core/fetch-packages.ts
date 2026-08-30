@@ -6,14 +6,28 @@ import { fileURLToPath } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
 import { unpackTar } from 'modern-tar/fs';
+import * as v from 'valibot';
 import pkg from '../../package.json' with { type: 'json' };
 import * as common from './common.ts';
+import { PackageJSONSchema, type PackageJSON } from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
 
 // path to the `node_modules` directory of `sv`
 const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));
 
-function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
+type PackageBlocklist = { npm_names: string[] };
+
+function parsePackageJSON(value: unknown, specifier: string): PackageJSON {
+	const result = v.safeParse(PackageJSONSchema, value);
+	if (!result.success) {
+		throw new Error(
+			`Invalid add-on package specified: '${specifier}' has invalid package metadata`
+		);
+	}
+	return result.output;
+}
+
+function verifyPackage(addonPkg: PackageJSON, specifier: string): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };
 
 	// valid addons should always have `sv` as a peerDependency
@@ -67,7 +81,7 @@ function copyDirectorySync(src: string, dest: string) {
 	}
 }
 
-type DownloadOptions = { path?: string; pkg: any };
+type DownloadOptions = { path?: string; pkg: PackageJSON };
 /**
  * Downloads and installs the package into the `node_modules` of `sv`.
  * @returns the details of the downloaded addon
@@ -95,10 +109,13 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		try {
 			fs.symlinkSync(options.path, dest, 'dir');
 		} catch (error) {
-			const code = errorCode(error);
 			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
 			// In that case, fall back to copying the directory
-			if (platform() === 'win32' && (code === 'EPERM' || code === 'EACCES')) {
+			if (
+				platform() === 'win32' &&
+				common.isNodeError(error) &&
+				(error.code === 'EPERM' || error.code === 'EACCES')
+			) {
 				copyDirectorySync(options.path, dest);
 			} else {
 				throw error;
@@ -108,7 +125,10 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 	}
 
-	const tarballUrl: string = pkg.dist.tarball;
+	const tarballUrl = pkg.dist?.tarball;
+	if (!tarballUrl) {
+		throw new Error(`Invalid add-on package: '${pkg.name}' is missing 'dist.tarball'`);
+	}
 
 	const data = await fetch(tarballUrl);
 	if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
@@ -129,7 +149,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 export async function importAddonCode(
 	pkgName: string,
 	pkgVersion: string,
-	exports?: PackageExports
+	exports?: common.PackageJSON['exports']
 ): Promise<AddonDefinition> {
 	const issues: string[] = [];
 	let unresolvedModule = false;
@@ -145,9 +165,11 @@ export async function importAddonCode(
 
 			issues.push(`'${specifier}' resolved but has no default export`);
 		} catch (e) {
-			const code = errorCode(e);
 			// ESM entry points report `ERR_MODULE_NOT_FOUND`, CJS ones report `MODULE_NOT_FOUND`
-			if (code === 'ERR_MODULE_NOT_FOUND' || code === 'MODULE_NOT_FOUND') {
+			if (
+				common.isNodeError(e) &&
+				(e.code === 'ERR_MODULE_NOT_FOUND' || e.code === 'MODULE_NOT_FOUND')
+			) {
 				unresolvedModule = true;
 			}
 			issues.push(`'${specifier}' failed to load: ${e instanceof Error ? e.message : e}`);
@@ -165,23 +187,11 @@ export async function importAddonCode(
 }
 
 /** `exports` is only consulted to pick entry points, never to reject a package. */
-export function hasSvExport(exports?: PackageExports): boolean {
+export function hasSvExport(exports?: common.PackageJSON['exports']): boolean {
 	if (typeof exports !== 'object' || exports === null || Array.isArray(exports)) return false;
 	return Boolean(exports['./sv']);
 }
 
-function errorCode(err: unknown): string | undefined {
-	return err instanceof Error ? (err as NodeJS.ErrnoException).code : undefined;
-}
-
-/** Values are nested condition objects, and the field itself may be a string or an array. */
-type PackageExports = string | string[] | Record<string, unknown>;
-
-type PackageJSON = {
-	name: string;
-	version: string;
-	[key: string]: string | number | boolean;
-};
 export async function getPackageJSON(ref: AddonReference): Promise<{
 	pkg: PackageJSON;
 	repo: string;
@@ -197,14 +207,14 @@ export async function getPackageJSON(ref: AddonReference): Promise<{
 	if (source.kind === 'file') {
 		const pkgJSONPath = path.resolve(source.path, 'package.json');
 		const json = fs.readFileSync(pkgJSONPath, 'utf8');
-		const pkg = JSON.parse(json);
+		const pkg = parsePackageJSON(JSON.parse(json), specifier);
 		const warning = verifyPackage(pkg, specifier);
 
 		return { path: source.path, pkg, repo: source.path, warning };
 	}
 
 	// Check blocklist
-	const blocklist = await downloadJson(
+	const blocklist: PackageBlocklist = await downloadJson(
 		'https://raw.githubusercontent.com/sveltejs/cli/refs/heads/main/packages/sv/blocklist.json'
 	);
 	if (blocklist.npm_names.includes(source.packageName)) {
@@ -213,12 +223,10 @@ export async function getPackageJSON(ref: AddonReference): Promise<{
 		);
 	}
 
-	const pkg = await downloadJson(source.registryUrl);
+	const pkg = parsePackageJSON(await downloadJson(source.registryUrl), specifier);
 	const warning = verifyPackage(pkg, specifier);
+	const repo =
+		typeof pkg.repository === 'string' ? pkg.repository : (pkg.repository?.url ?? source.npmUrl);
 
-	return {
-		pkg,
-		repo: pkg.repository?.url ?? source.npmUrl,
-		warning
-	};
+	return { pkg, repo, warning };
 }

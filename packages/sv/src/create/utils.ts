@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isNodeError } from '../core/common.ts';
 import type { Common } from './index.ts';
 
 export function mkdirp(dir: string): void {
 	try {
 		fs.mkdirSync(dir, { recursive: true });
 	} catch (err) {
-		const e: any = err;
-		if (e.code === 'EEXIST') return;
-		throw e;
+		if (isNodeError(err) && err.code === 'EEXIST') return;
+		throw err;
 	}
 }
 
