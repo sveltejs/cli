@@ -5,8 +5,8 @@ import {
 	fileExists,
 	loadPackageJson,
 	sanitizeName,
-	svelteConfig,
-	pnpm
+	pnpm,
+	svelteConfig
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -111,6 +111,7 @@ export default defineAddon({
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.97.0');
+
 			if (packageManager === 'pnpm') {
 				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds(cwd, 'workerd'));
 			}
