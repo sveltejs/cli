@@ -2,19 +2,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { parse } from '@sveltejs/sv-utils';
+import * as find from 'empathic/find';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 /** Matches `sv@1.2.3`, `sv@0.0.0-next.0`, `sv@1.0.0-rc.1+build.5`. */
 const SV_VERSION_REGEX = /sv@\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?/g;
 
-const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
-const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
-const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
+const SV_BIN_PATH = path.resolve(ROOT, 'packages', 'sv', 'dist', 'bin.mjs');
+const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'cli');
 
 beforeAll(() => {
-	if (fs.existsSync(testOutputCliPath)) {
-		fs.rmSync(testOutputCliPath, { force: true, recursive: true });
+	if (fs.existsSync(TEST_DIR)) {
+		fs.rmSync(TEST_DIR, { force: true, recursive: true });
 	}
 });
 
@@ -72,15 +73,12 @@ describe('cli', () => {
 				snapshot?: boolean;
 			};
 
-			const testOutputPath = path.relative(
-				monoRepoPath,
-				path.resolve(testOutputCliPath, projectName)
-			);
+			const projectPath = path.relative(ROOT, path.resolve(TEST_DIR, projectName));
 
 			const allArgs = [
-				svBinPath,
+				SV_BIN_PATH,
 				'create',
-				testOutputPath,
+				projectPath,
 				'--template',
 				template,
 				...(template === 'addon' ? [] : ['--types', 'ts']),
@@ -89,12 +87,12 @@ describe('cli', () => {
 			];
 
 			/**
-			 * Same as `exec`. but `cwd` defaults to `testOutputPath`
+			 * Same as `exec`. but `cwd` defaults to `projectPath`
 			 */
 			const run = (...params: Parameters<typeof exec>) => {
 				const [command, args, options = {}] = params;
 				options.nodeOptions ??= {};
-				options.nodeOptions.cwd ??= testOutputPath;
+				options.nodeOptions.cwd ??= projectPath;
 				return exec(command, args, options);
 			};
 
@@ -108,15 +106,15 @@ describe('cli', () => {
 				`Error with cli:\n  cmd: node ${allArgs.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
 			).toBe(0);
 			// test output path exists
-			expect(fs.existsSync(testOutputPath)).toBe(true);
+			expect(fs.existsSync(projectPath)).toBe(true);
 
 			// package.json has a name
-			const packageJsonPath = path.resolve(testOutputPath, 'package.json');
+			const packageJsonPath = path.resolve(projectPath, 'package.json');
 			const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 			expect(packageJson.name).toBe(projectName);
 
 			const snapPath = path.resolve(
-				monoRepoPath,
+				ROOT,
 				'packages',
 				'sv',
 				'src',
@@ -126,7 +124,7 @@ describe('cli', () => {
 				projectName
 			);
 			const relativeFiles = snapshot
-				? (fs.readdirSync(testOutputPath, { recursive: true }) as string[])
+				? (fs.readdirSync(projectPath, { recursive: true }) as string[])
 				: [];
 
 			// Files from ai-tools repo (skills, agents) change independently -
@@ -135,7 +133,7 @@ describe('cli', () => {
 			const aiToolsPattern = /[\\/](skills|agents)[\\/]/;
 
 			for (const relativeFile of relativeFiles) {
-				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
+				if (!fs.statSync(path.resolve(projectPath, relativeFile)).isFile()) continue;
 				if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
 
 				const normalized = relativeFile.replace(/\\/g, '/');
@@ -151,7 +149,7 @@ describe('cli', () => {
 					continue;
 				}
 
-				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
+				let generated = fs.readFileSync(path.resolve(projectPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
 					const { data: generatedPackageJson } = parse.json(generated);
 					// remove @types/node from generated package.json as we test on different node versions
@@ -220,7 +218,7 @@ describe('cli', () => {
 			}
 
 			if (projectName === 'create-experimental') {
-				const read = (p: string) => fs.readFileSync(path.resolve(testOutputPath, p), 'utf-8');
+				const read = (p: string) => fs.readFileSync(path.resolve(projectPath, p), 'utf-8');
 				const envFile = read('src/env.ts');
 				expect(envFile).toContain('defineEnvVars');
 				expect(envFile).toContain('DATABASE_URL');
@@ -231,7 +229,7 @@ describe('cli', () => {
 
 			if (template === 'addon') {
 				// replace sv and sv-utils versions in package.json for tests
-				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
+				const packageJsonPath = path.resolve(projectPath, 'package.json');
 				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 				packageJson.peerDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['sv'] = 'file:../../../..';

@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 import { execSync } from 'tinyexec';
 import { beforeAll, expect } from 'vitest';
 import drizzle from '../../drizzle.ts';
@@ -39,7 +38,7 @@ const { test, testCases, prepareServer } = setupTest(
 
 beforeAll(() => {
 	if (!MUST_HAVE_DOCKER) return;
-	const cwd = path.dirname(fileURLToPath(import.meta.url));
+	const cwd = import.meta.dirname;
 
 	try {
 		execSync('docker', ['--version'], { nodeOptions: { cwd }, throwOnError: true });

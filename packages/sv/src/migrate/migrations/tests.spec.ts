@@ -1,11 +1,10 @@
 import fs from 'node:fs';
-import path, { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { prepareSvApi } from '../../core/engine.ts';
 import { createWorkspace } from '../../core/workspace.ts';
 
-const baseDir = resolve(fileURLToPath(import.meta.url), '..');
+const baseDir = import.meta.dirname;
 const migrationDirectories = getDirectoryNames(baseDir);
 const tasksDirectoryName = 'tasks';
 const testsDirectoryName = 'tests';
