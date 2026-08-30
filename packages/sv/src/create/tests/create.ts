@@ -1,30 +1,28 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import * as find from 'empathic/find';
 import { exec, type Result } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
 import { createProject } from '../../cli/create.ts';
 import { type LanguageType, type TemplateType } from '../index.ts';
 
-// Resolve the given path relative to the current file
-const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-
-// use a directory outside of packages to ensure it isn't added to the pnpm workspace
-const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
+const TEMPLATES_DIR = path.resolve(ROOT, 'packages', 'sv', 'src', 'create', 'templates');
+const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'create');
 
 // prepare test pnpm workspace
-fs.rmSync(test_workspace_dir, { recursive: true, force: true });
-fs.mkdirSync(test_workspace_dir, { recursive: true });
+fs.rmSync(TEST_DIR, { recursive: true, force: true });
+fs.mkdirSync(TEST_DIR, { recursive: true });
 
-fs.writeFileSync(path.join(test_workspace_dir, 'pnpm-workspace.yaml'), 'packages:\n  - ./*\n');
+fs.writeFileSync(path.join(TEST_DIR, 'pnpm-workspace.yaml'), 'packages:\n  - ./*\n');
 
 beforeAll(async () => {
 	const install = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
-		nodeOptions: { cwd: test_workspace_dir }
+		nodeOptions: { cwd: TEST_DIR }
 	});
 	if (install.exitCode !== 0) {
 		throw new Error(
-			`pnpm install failed in ${test_workspace_dir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+			`pnpm install failed in ${TEST_DIR}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
 		);
 	}
 }, 60000);
@@ -35,13 +33,13 @@ beforeAll(async () => {
  */
 const script_test_map = new Map<string, Array<[string, () => Result]>>();
 
-const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[];
+const templates = fs.readdirSync(TEMPLATES_DIR) as TemplateType[];
 
 for (const template of templates.filter((t) => t !== 'addon')) {
 	if (template[0] === '.') continue;
 
 	for (const types of ['checkjs', 'typescript', 'none'] as LanguageType[]) {
-		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
+		const cwd = path.join(TEST_DIR, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 
 		if (template === 'demo' && types === 'typescript') {
