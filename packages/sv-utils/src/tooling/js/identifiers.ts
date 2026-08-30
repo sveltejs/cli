@@ -163,7 +163,7 @@ function walkRoots(
 	roots: Root[],
 	visitors: Parameters<typeof Walker.walk<AstTypes.Node, null>>[2]
 ): void {
-	for (const root of roots) Walker.walk(root as unknown as AstTypes.Node, null, visitors);
+	for (const root of roots) Walker.walk(root as AstTypes.Node, null, visitors);
 }
 
 function isImportIdentifier(node: AstTypes.Identifier, parent: AstTypes.Node): boolean {

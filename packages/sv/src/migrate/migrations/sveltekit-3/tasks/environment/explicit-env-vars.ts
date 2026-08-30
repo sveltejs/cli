@@ -238,10 +238,7 @@ function getDynamicEnvUsages(
 	const usages: UsageInfo[] = [];
 	let hasUnsupportedUsage = false;
 	Walker.walk(node as AstTypes.Node, null, {
-		MemberExpression(
-			node: AstTypes.MemberExpression,
-			walkContext: Walker.Context<AstTypes.Node, null>
-		) {
+		MemberExpression(node, walkContext) {
 			if (node.object.type === 'Identifier' && importNames.has(node.object.name)) {
 				const name = getDynamicEnvUsageName(node);
 				if (!name) {

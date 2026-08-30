@@ -383,10 +383,10 @@ export function find(
 						sp.type === 'ImportSpecifier' &&
 						sp.imported.type === 'Identifier' &&
 						sp.imported.name === options.name
-				) as AstTypes.ImportSpecifier | undefined;
+				);
 				if (specifier) {
 					statement = node;
-					alias = (specifier.local?.name ?? alias) as string;
+					alias = specifier.local?.name ?? alias;
 					stop();
 					return;
 				}

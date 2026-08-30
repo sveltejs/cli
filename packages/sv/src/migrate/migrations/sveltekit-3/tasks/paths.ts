@@ -69,8 +69,8 @@ function migratePaths(programs: AstTypes.Program[], fragment?: SvelteAst.Fragmen
 
 	const resolveRouteCalls = new Set<AstTypes.CallExpression>();
 	for (const root of roots) {
-		Walker.walk(root as unknown as AstTypes.Node, null, {
-			CallExpression(node: AstTypes.CallExpression, ctx: Walker.Context<AstTypes.Node, null>) {
+		Walker.walk(root as AstTypes.Node, null, {
+			CallExpression(node, ctx) {
 				if (
 					isNamedIdentifier(node.callee, resolveRouteLocals) &&
 					!shadowedIdentifiers.has(node.callee)
@@ -190,7 +190,7 @@ function collapsePathPrefixes(
 	let changed = false;
 
 	const visitors: Parameters<typeof Walker.walk<AstTypes.Node, null>>[2] = {
-		BinaryExpression(node: AstTypes.BinaryExpression, ctx: Walker.Context<AstTypes.Node, null>) {
+		BinaryExpression(node, ctx) {
 			if (
 				node.operator !== '+' ||
 				node.left.type !== 'Identifier' ||
@@ -223,7 +223,7 @@ function collapsePathPrefixes(
 			js.common.replaceChild(ctx.path[ctx.path.length - 1], node, replacement);
 			changed = true;
 		},
-		TemplateLiteral(node: AstTypes.TemplateLiteral, ctx: Walker.Context<AstTypes.Node, null>) {
+		TemplateLiteral(node, ctx) {
 			const first = node.expressions[0];
 			const parent = ctx.path[ctx.path.length - 1];
 			if (
@@ -273,7 +273,7 @@ function collapsePathPrefixes(
 			changed = true;
 		}
 	};
-	for (const root of roots) Walker.walk(root as unknown as AstTypes.Node, null, visitors);
+	for (const root of roots) Walker.walk(root as AstTypes.Node, null, visitors);
 
 	return changed;
 }
@@ -323,7 +323,7 @@ function normalizePathCalls(
 ): boolean {
 	let changed = false;
 	const visitors: Parameters<typeof Walker.walk<AstTypes.Node, null>>[2] = {
-		CallExpression(node: AstTypes.CallExpression, ctx: Walker.Context<AstTypes.Node, null>) {
+		CallExpression(node, ctx) {
 			const argument = node.arguments[0];
 			if (!argument || argument.type === 'SpreadElement') {
 				ctx.next();
@@ -354,7 +354,7 @@ function normalizePathCalls(
 			ctx.next();
 		}
 	};
-	for (const root of roots) Walker.walk(root as unknown as AstTypes.Node, null, visitors);
+	for (const root of roots) Walker.walk(root as AstTypes.Node, null, visitors);
 	return changed;
 }
 

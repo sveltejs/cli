@@ -109,7 +109,20 @@ function clean(source) {
 	result = stripJsDoc(result);
 	result = stripImportLines(result);
 	result = collapseBlankLines(result);
+	result = zimmerframeFix(result);
 	return result.trim() + '\n';
+}
+
+/**
+ * This makes Visitors/Context types accessible
+ * via Walker.Visitors when importing from sv-utils.
+ * @param {string} source
+ * @returns {string}
+ */
+function zimmerframeFix(source) {
+	return source
+		.replace(/declare module 'zimmerframe'/g, 'declare namespace zimmerframe')
+		.replace(/\w+ as Walker/g, 'zimmerframe as Walker');
 }
 
 /**
@@ -225,9 +238,31 @@ export async function generateApiSurface() {
 	return generated;
 }
 
+/**
+ * Fix `declare module 'zimmerframe'` -> `declare module index_d_exports`
+ * in generated .d.mts files. This makes Visitors/Context types accessible
+ * via Walker.Visitors when importing from sv-utils.
+ */
+export function fixDtsModuleDeclarations() {
+	for (const pkg of packages) {
+		const dtsPath = path.resolve(ROOT, pkg.dts);
+		if (!fs.existsSync(dtsPath)) continue;
+
+		let content = fs.readFileSync(dtsPath, 'utf8');
+		const original = content;
+		content = zimmerframeFix(content);
+
+		if (content !== original) {
+			fs.writeFileSync(dtsPath, content, 'utf8');
+			console.log(`  fixed: ${pkg.dts}`);
+		}
+	}
+}
+
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 
 if (isMain) {
+	fixDtsModuleDeclarations();
 	generateApiSurface().catch((err) => {
 		console.error(err);
 		process.exit(1);

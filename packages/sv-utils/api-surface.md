@@ -211,7 +211,7 @@ interface Dedent {
 }
 type CreateDedent = (options: DedentOptions) => Dedent;
 declare const dedent: Dedent;
-declare module 'zimmerframe' {
+declare namespace zimmerframe {
 	export function walk<
 		T extends {
 			type: string;
@@ -1012,7 +1012,7 @@ export {
 	type SvelteConfigLocation,
 	type SvelteConfigObjects,
 	type TransformFn,
-	index_d_exports as Walker,
+	zimmerframe as Walker,
 	type YamlDocument,
 	coerceVersion,
 	color,

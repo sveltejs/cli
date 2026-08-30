@@ -113,9 +113,9 @@ function migrateShallowRouting(ast: AstTypes.Program): boolean {
 	}
 
 	Walker.walk(ast as AstTypes.Node, null, {
-		CallExpression(node: AstTypes.CallExpression, { next }: Walker.Context<AstTypes.Node, null>) {
+		CallExpression(node, ctx) {
 			if (node.callee.type !== 'Identifier') {
-				next();
+				ctx.next();
 				return;
 			}
 
@@ -135,7 +135,7 @@ function migrateShallowRouting(ast: AstTypes.Program): boolean {
 			}
 
 			if (hooks.has(node.callee.name) && migrateNavigationHook(node)) changed = true;
-			next();
+			ctx.next();
 		}
 	});
 
@@ -149,7 +149,7 @@ function scanMethodCalls(
 	const unmigratable = new Set<string>();
 	let migratable = false;
 	Walker.walk(ast as AstTypes.Node, null, {
-		CallExpression(node: AstTypes.CallExpression, { next }: Walker.Context<AstTypes.Node, null>) {
+		CallExpression(node, ctx) {
 			if (node.callee.type === 'Identifier' && methods.has(node.callee.name)) {
 				if (node.arguments.some((argument) => argument.type === 'SpreadElement')) {
 					unmigratable.add(node.callee.name);
@@ -157,7 +157,7 @@ function scanMethodCalls(
 					migratable = true;
 				}
 			}
-			next();
+			ctx.next();
 		}
 	});
 	return { unmigratable, migratable };
