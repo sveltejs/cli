@@ -65,9 +65,6 @@ Do not prompt to install dependencies.
 ## Community add-ons
 
 > [!NOTE]
-> Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
-
-> [!NOTE]
 > Svelte maintainers have not reviewed community add-ons for malicious code!
 
 Community add-ons are npm packages published by the community. Look out for add-ons from your favourite libraries and tools. _(soon)_ Many developers are building `sv` add-ons to make their integrations a one-liner. You can find them on [npmx](https://www.npmx.dev/search?q=keyword:sv-add) by searching for the keyword: `sv-add`.
