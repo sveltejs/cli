@@ -90,17 +90,16 @@ type DownloadOptions = { path?: string; pkg: PackageJSON };
  */
 export async function downloadPackage(options: DownloadOptions): Promise<AddonDefinition> {
 	const { pkg } = options;
+
+	// contents is written to `sv/node_modules/pkg-name`
+	// so that we can dynamically import the package via `import(pkg-name)`
 	const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
 
-	// ensures that a new symlink/copy/extract always starts from a clean slate,
-	// so a stale `file:` symlink is never written through by the tarball extraction
+	// prevent old symlinks and caches from causing a stale install
 	fs.rmSync(dest, { recursive: true, force: true });
 
-	// The package lives in a local directory,
-	// so we link it into the cache instead of downloading a tarball
 	if (options.path) {
-		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
-		// On Windows, symlinks require admin privileges, so we fall back to copying if symlink fails
+		// local add-on (i.e. `file:...`)
 
 		// `symlinkSync` doesn't recursively create directories to the `destination` path,
 		// so we'll need to create them before creating the symlink
@@ -109,23 +108,23 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 			fs.mkdirSync(dir, { recursive: true });
 		}
 
-		// Try to create a symlink, but fall back to copying on Windows if it fails with EPERM
 		try {
 			fs.symlinkSync(options.path, dest, 'dir');
 		} catch (error) {
-			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
-			// In that case, fall back to copying the directory
+			// Windows requires admin privileges for symlinks
 			if (
 				platform() === 'win32' &&
 				common.isNodeError(error) &&
 				(error.code === 'EPERM' || error.code === 'EACCES')
 			) {
+				// fall back to copying the directory
 				copyDirectorySync(options.path, dest);
 			} else {
 				throw error;
 			}
 		}
 	} else {
+		// npm add-on (i.e. @supacool)
 		const tarballUrl = pkg.dist?.tarball;
 		if (!tarballUrl) {
 			throw new Error(`Invalid add-on package: '${pkg.name}' is missing 'dist.tarball'`);
@@ -134,13 +133,11 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		const data = await fetch(tarballUrl);
 		if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
 
-		// extracts the package's contents from the tarball and writes the files to `sv/node_modules/pkg-name`
-		// so that we can dynamically import the package via `import(pkg-name)`
 		await pipeline(
 			data.body,
 			createGunzip(),
 			// file paths from the tarball will always have a `package/` prefix,
-			// so we'll need to replace it with the name of the package
+			// so we'll need to strip that out
 			unpackTar(dest, { strip: 1 })
 		);
 	}
