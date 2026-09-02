@@ -4,6 +4,7 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
 import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
+import * as packageJson from 'empathic/package';
 import { unpackTar } from 'modern-tar/fs';
 import * as v from 'valibot';
 import pkg from '../../package.json' with { type: 'json' };
@@ -11,8 +12,10 @@ import * as common from './common.ts';
 import { PackageJSONSchema, type PackageJSON } from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
 
-// path to the `node_modules` directory of `sv`
-const NODE_MODULES = path.resolve(import.meta.dirname, '..', '..', 'node_modules');
+const packageJsonPath = packageJson.up({ cwd: import.meta.dirname });
+if (!packageJsonPath) throw Error('This should not happen');
+/** path to the `node_modules` directory of `sv` */
+const NODE_MODULES = path.join(path.dirname(packageJsonPath), 'node_modules');
 
 type PackageBlocklist = { npm_names: string[] };
 
@@ -87,15 +90,17 @@ type DownloadOptions = { path?: string; pkg: PackageJSON };
  */
 export async function downloadPackage(options: DownloadOptions): Promise<AddonDefinition> {
 	const { pkg } = options;
+	const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
+
+	// ensures that a new symlink/copy/extract always starts from a clean slate,
+	// so a stale `file:` symlink is never written through by the tarball extraction
+	fs.rmSync(dest, { recursive: true, force: true });
+
+	// The package lives in a local directory,
+	// so we link it into the cache instead of downloading a tarball
 	if (options.path) {
 		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
 		// On Windows, symlinks require admin privileges, so we fall back to copying if symlink fails
-		const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
-
-		// ensures that a new symlink/copy is always created
-		if (fs.existsSync(dest)) {
-			fs.rmSync(dest, { recursive: true });
-		}
 
 		// `symlinkSync` doesn't recursively create directories to the `destination` path,
 		// so we'll need to create them before creating the symlink
@@ -139,7 +144,7 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		createGunzip(),
 		// file paths from the tarball will always have a `package/` prefix,
 		// so we'll need to replace it with the name of the package
-		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
+		unpackTar(dest, { strip: 1 })
 	);
 
 	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
