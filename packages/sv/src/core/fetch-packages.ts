@@ -125,27 +125,25 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 				throw error;
 			}
 		}
+	} else {
+		const tarballUrl = pkg.dist?.tarball;
+		if (!tarballUrl) {
+			throw new Error(`Invalid add-on package: '${pkg.name}' is missing 'dist.tarball'`);
+		}
 
-		return await importAddonCode(pkg.name, pkg.version, pkg.exports);
+		const data = await fetch(tarballUrl);
+		if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
+
+		// extracts the package's contents from the tarball and writes the files to `sv/node_modules/pkg-name`
+		// so that we can dynamically import the package via `import(pkg-name)`
+		await pipeline(
+			data.body,
+			createGunzip(),
+			// file paths from the tarball will always have a `package/` prefix,
+			// so we'll need to replace it with the name of the package
+			unpackTar(dest, { strip: 1 })
+		);
 	}
-
-	const tarballUrl = pkg.dist?.tarball;
-	if (!tarballUrl) {
-		throw new Error(`Invalid add-on package: '${pkg.name}' is missing 'dist.tarball'`);
-	}
-
-	const data = await fetch(tarballUrl);
-	if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
-
-	// extracts the package's contents from the tarball and writes the files to `sv/node_modules/pkg-name`
-	// so that we can dynamically import the package via `import(pkg-name)`
-	await pipeline(
-		data.body,
-		createGunzip(),
-		// file paths from the tarball will always have a `package/` prefix,
-		// so we'll need to replace it with the name of the package
-		unpackTar(dest, { strip: 1 })
-	);
 
 	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 }
