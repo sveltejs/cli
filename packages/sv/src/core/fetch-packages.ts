@@ -1,17 +1,50 @@
 import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
 import { unpackTar } from 'modern-tar/fs';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
-import { platform } from 'node:os';
+import os from 'node:os';
 import path from 'node:path';
+import process from 'node:process';
 import { pipeline } from 'node:stream/promises';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createGunzip } from 'node:zlib';
 import pkg from '../../package.json' with { type: 'json' };
 import * as common from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
 
-// path to the `node_modules` directory of `sv`
-const NODE_MODULES = fileURLToPath(new URL('../../node_modules', import.meta.url));
+/** Re-exports `import()` so add-ons are resolved from their install root, not from `sv`'s. */
+const LOADER = 'loader.mjs';
+const LOADER_SOURCE = 'export const load = (id) => import(id);\n';
+
+const SV_ROOT = findSvRoot();
+
+/**
+ * Add-ons are installed under the user's cache dir rather than next to `sv`: with `pnpm dlx`,
+ * `sv` lives in the content store, which is immutable, shared by every project and never pruned
+ * per-project.
+ */
+const CACHE_DIR = path.join(cacheHome(), 'sv', 'add-ons', pkg.version);
+
+/** Walks up from this module, which sits in `src/core/` in the repo and in `dist/` once published. */
+function findSvRoot(): string {
+	let dir = path.dirname(fileURLToPath(import.meta.url));
+	for (let parent = path.dirname(dir); parent !== dir; dir = parent, parent = path.dirname(dir)) {
+		const manifest = path.join(dir, 'package.json');
+		if (!fs.existsSync(manifest)) continue;
+		if (JSON.parse(fs.readFileSync(manifest, 'utf8')).name === pkg.name) return dir;
+	}
+	throw new Error(`Unable to locate the installation directory of '${pkg.name}'`);
+}
+
+function cacheHome(): string {
+	if (process.platform === 'win32' && process.env.LOCALAPPDATA) return process.env.LOCALAPPDATA;
+	if (process.env.XDG_CACHE_HOME) return process.env.XDG_CACHE_HOME;
+	const home = os.homedir();
+	if (!home) return os.tmpdir();
+	return process.platform === 'darwin'
+		? path.join(home, 'Library', 'Caches')
+		: path.join(home, '.cache');
+}
 
 function verifyPackage(addonPkg: Record<string, any>, specifier: string): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };
@@ -75,77 +108,116 @@ function copyDirectorySync(src: string, dest: string) {
 	}
 }
 
+/** Creates a directory symlink, or a junction on Windows, where symlinks need admin privileges. */
+function linkDir(target: string, dest: string) {
+	fs.symlinkSync(target, dest, process.platform === 'win32' ? 'junction' : 'dir');
+}
+
+/** The add-on's install root: a `node_modules` holding the add-on itself, plus a loader stub. */
+function installRoot(options: DownloadOptions): string {
+	if (options.path) return path.join(CACHE_DIR, 'local', hashPath(options.path));
+	const { name, version } = options.pkg;
+	return path.join(CACHE_DIR, 'npm', `${name.split('/').join('+')}@${version}`);
+}
+
+function hashPath(target: string): string {
+	return createHash('sha256').update(path.resolve(target)).digest('hex').slice(0, 16);
+}
+
+/**
+ * A cached root is only usable while its `sv` link still points at the running `sv`, which is not
+ * a given: the cache outlives reinstalls and `pnpm dlx` runs from a different store path.
+ */
+function isCached(root: string): boolean {
+	try {
+		return fs.realpathSync(path.join(root, 'node_modules', 'sv')) === fs.realpathSync(SV_ROOT);
+	} catch {
+		return false;
+	}
+}
+
+/** Populates the install root in a temporary directory, then moves it into place in one step. */
+async function install(root: string, name: string, write: (dest: string) => Promise<void> | void) {
+	fs.mkdirSync(path.dirname(root), { recursive: true });
+	const tmp = fs.mkdtempSync(`${root}.tmp-`);
+	try {
+		const dest = path.join(tmp, 'node_modules', ...name.split('/'));
+		fs.mkdirSync(path.dirname(dest), { recursive: true });
+		await write(dest);
+
+		// `sv` is the only dependency an add-on is allowed to leave unbundled
+		linkDir(SV_ROOT, path.join(tmp, 'node_modules', 'sv'));
+		fs.writeFileSync(path.join(tmp, LOADER), LOADER_SOURCE);
+
+		fs.rmSync(root, { recursive: true, force: true });
+		fs.renameSync(tmp, root);
+	} finally {
+		fs.rmSync(tmp, { recursive: true, force: true });
+	}
+}
+
 type DownloadOptions = { path?: string; pkg: any };
 /**
- * Downloads and installs the package into the `node_modules` of `sv`.
+ * Installs the package into `sv`'s add-on cache.
  * @returns the details of the downloaded addon
  */
 export async function downloadPackage(options: DownloadOptions): Promise<AddonDefinition> {
 	const { pkg } = options;
-	if (options.path) {
-		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
-		// On Windows, symlinks require admin privileges, so we fall back to copying if symlink fails
-		const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
+	const root = installRoot(options);
+	const source = options.path;
 
-		// ensures that a new symlink/copy is always created
-		if (fs.existsSync(dest)) {
-			fs.rmSync(dest, { recursive: true });
-		}
-
-		// `symlinkSync` doesn't recursively create directories to the `destination` path,
-		// so we'll need to create them before creating the symlink
-		const dir = path.dirname(dest);
-		if (!fs.existsSync(dir)) {
-			fs.mkdirSync(dir, { recursive: true });
-		}
-
-		// Try to create a symlink, but fall back to copying on Windows if it fails with EPERM
-		try {
-			fs.symlinkSync(options.path, dest, 'dir');
-		} catch (error: any) {
-			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
-			// In that case, fall back to copying the directory
-			if (platform() === 'win32' && (error.code === 'EPERM' || error.code === 'EACCES')) {
-				copyDirectorySync(options.path, dest);
-			} else {
-				throw error;
+	if (source) {
+		// always relinked: unlike a published version, a local add-on changes in place
+		await install(root, pkg.name, (dest) => {
+			try {
+				linkDir(source, dest);
+			} catch (error: any) {
+				// on Windows, linking may fail without admin privileges; copy instead
+				if (process.platform !== 'win32' || (error.code !== 'EPERM' && error.code !== 'EACCES')) {
+					throw error;
+				}
+				copyDirectorySync(source, dest);
 			}
-		}
+		});
+	} else if (!isCached(root)) {
+		const tarballUrl: string = pkg.dist.tarball;
+		const data = await fetch(tarballUrl);
+		if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
 
-		return await importAddonCode(pkg.name, pkg.version);
+		await install(root, pkg.name, (dest) =>
+			pipeline(
+				data.body!,
+				createGunzip(),
+				// file paths from the tarball will always have a `package/` prefix,
+				// so we'll need to replace it with the name of the package
+				unpackTar(dest, { strip: 1 })
+			)
+		);
 	}
 
-	const tarballUrl: string = pkg.dist.tarball;
-
-	const data = await fetch(tarballUrl);
-	if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
-
-	// extracts the package's contents from the tarball and writes the files to `sv/node_modules/pkg-name`
-	// so that we can dynamically import the package via `import(pkg-name)`
-	await pipeline(
-		data.body,
-		createGunzip(),
-		// file paths from the tarball will always have a `package/` prefix,
-		// so we'll need to replace it with the name of the package
-		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
-	);
-
-	return await importAddonCode(pkg.name, pkg.version);
+	return await importAddonCode(root, pkg.name, pkg.version);
 }
 
-async function importAddonCode(pkgName: string, pkgVersion: string): Promise<AddonDefinition> {
+async function importAddonCode(
+	root: string,
+	pkgName: string,
+	pkgVersion: string
+): Promise<AddonDefinition> {
 	const issues: string[] = [];
+	const { load } = (await import(pathToFileURL(path.join(root, LOADER)).href)) as {
+		load: (id: string) => Promise<{ default?: AddonDefinition }>;
+	};
 
 	let details: AddonDefinition | undefined;
 	try {
-		({ default: details } = await import(`${pkgName}/sv`));
+		({ default: details } = await load(`${pkgName}/sv`));
 	} catch {
 		issues.push(`'/sv' export not found`);
 	}
 
 	if (!details) {
 		try {
-			({ default: details } = await import(pkgName));
+			({ default: details } = await load(pkgName));
 		} catch {
 			issues.push(`default export not found`);
 		}
