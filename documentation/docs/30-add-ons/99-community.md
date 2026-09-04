@@ -59,12 +59,29 @@ export default defineAddon({
 });
 ```
 
-The CLI is split into two packages with a clear boundary:
+## API
 
-- [**`sv`**](sv) = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
-- [**`@sveltejs/sv-utils`**](sv-utils) = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
+### sv
 
-This separation means transforms are testable without a workspace and composable across add-ons.
+```js
+import { defineAddon, defineAddonOptions } from 'sv';
+
+export default defineAddon({
+	run: (workspace.sv) => {
+    // ...
+  }
+})
+```
+
+The [**`sv`**](sv) API focuses on **when and where** your code executes. It is specific to your project and is responsible for file paths, workspace detection, dependency tracking, and file I/O.
+
+### sv-utils
+
+```js
+import { transforms } from '@sveltejs/sv-utils';
+```
+
+[**`@sveltejs/sv-utils`**](sv-utils) is a collection of side-effect free functions. It provides parsers, language tooling, and typed transforms.
 
 ## Development
 
@@ -262,3 +279,9 @@ Your add-on should specify a minimum `sv` version in `peerDependencies`. Your us
 ## Examples
 
 See the [official add-on source code](https://github.com/sveltejs/cli/tree/main/packages/sv/src/addons) for some real world examples.
+
+## FAQ
+
+### Why isn't `sv` and `sv-utils` combined into 1 API? (`sv` and `sv-utils`)
+
+One reason is to prevent add-on develpoers from having to update their add-on when `sv-utils` has a breaking change. Another is to seperate opersations with and without side-effects, this makes it easier for us to write our test suite and ensure the reliability of these functions.
