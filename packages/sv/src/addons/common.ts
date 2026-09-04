@@ -1,6 +1,6 @@
 import process from 'node:process';
 import { log } from '@clack/prompts';
-import { color, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import { color, type TransformFn, transforms } from '@sveltejs/sv-utils';
 
 // This is in common because the eslint addon installs this version,
 // and the prettier addon uses this to check if the installed major version of
@@ -167,33 +167,6 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 				fallback: js.common.createLiteral(opts.stylesheet)
 			});
 		}
-	});
-
-type AddToDemoPage = (path: string, language: 'ts' | 'js') => TransformFn;
-export const addToDemoPage: AddToDemoPage = (path, language) =>
-	transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
-		for (const node of ast.fragment.nodes) {
-			if (node.type === 'RegularElement') {
-				const hrefAttribute = node.attributes.find(
-					(x) => x.type === 'Attribute' && x.name === 'href'
-				) as SvelteAst.Attribute;
-				if (!hrefAttribute || !hrefAttribute.value) continue;
-
-				if (!Array.isArray(hrefAttribute.value)) continue;
-
-				const hasDemo = hrefAttribute.value.some(
-					// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
-					(x) => x.type === 'Text' && x.data.includes(`/demo/${path}`)
-				);
-				if (hasDemo) {
-					return false;
-				}
-			}
-		}
-
-		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-
-		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
 	});
 
 /**
