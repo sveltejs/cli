@@ -1,13 +1,14 @@
+import process from 'node:process';
 import { describe, expect, it } from 'vitest';
 import { detectPnpmMajor } from '../pnpm-internals.ts';
 import { allowBuilds } from '../pnpm.ts';
 
-const major = detectPnpmMajor();
+const major = detectPnpmMajor(process.cwd());
 const isPnpm11 = major === undefined || major >= 11;
 
 describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
 	it('creates allowBuilds map in empty file', () => {
-		expect(allowBuilds('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
+		expect(allowBuilds(process.cwd(), 'esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
 	});
 
 	it('appends to existing allowBuilds map', () => {
@@ -16,7 +17,7 @@ describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () 
 allowBuilds:
   bar: true
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`packages:
+		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`packages:
   - 'packages/*'
 allowBuilds:
   bar: true
@@ -28,7 +29,7 @@ allowBuilds:
 		const input = `allowBuilds:
   core-js: false
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`allowBuilds:
+		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`allowBuilds:
   core-js: false
   esbuild: true
 `);
@@ -41,7 +42,7 @@ onlyBuiltDependencies:
   - foo
   - bar
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`packages:
+		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`packages:
   - 'packages/*'
 allowBuilds:
   foo: true
@@ -56,7 +57,7 @@ allowBuilds:
 allowBuilds:
   shared: false
 `;
-		expect(allowBuilds('newone')(input)).toBe(`allowBuilds:
+		expect(allowBuilds(process.cwd(), 'newone')(input)).toBe(`allowBuilds:
   shared: false
   newone: true
 `);
@@ -66,20 +67,20 @@ allowBuilds:
 		const input = `allowBuilds:
   esbuild: true
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(input);
+		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(input);
 	});
 });
 
 describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
 	it('creates onlyBuiltDependencies list in empty file', () => {
-		expect(allowBuilds('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
+		expect(allowBuilds(process.cwd(), 'esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
 	});
 
 	it('appends to existing onlyBuiltDependencies list', () => {
 		const input = `onlyBuiltDependencies:
   - foo
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`onlyBuiltDependencies:
+		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`onlyBuiltDependencies:
   - foo
   - esbuild
 `);
@@ -89,6 +90,6 @@ describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies 
 		const input = `onlyBuiltDependencies:
   - esbuild
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(input);
+		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(input);
 	});
 });

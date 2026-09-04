@@ -125,16 +125,10 @@ function isInstalled(agent: AgentName): boolean {
 	return installed;
 }
 
-export function addPnpmAllowBuilds(
-	cwd: string,
-	packageManager: AgentName | null | undefined,
-	...packages: string[]
-): void {
-	if (packageManager !== 'pnpm' || packages.length === 0) return;
-
+export function addPnpmAllowBuilds(cwd: string, ...packages: [string, ...string[]]): void {
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.allowBuilds(...packages)(content);
+	const newContent = pnpm.allowBuilds(cwd, ...packages)(content);
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }

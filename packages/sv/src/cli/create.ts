@@ -5,8 +5,14 @@ import * as p from '@clack/prompts';
 import { color, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import * as v from 'valibot';
+import { getAddonDetails } from '../addons/index.ts';
 import * as common from '../core/common.ts';
-import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
+import {
+	createLoadedAddon,
+	type LoadedAddon,
+	type OptionValues,
+	type SetupResult
+} from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
@@ -329,6 +335,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		answers = result.answers;
 	}
 
+	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
+		const addon = getAddonDetails('enhanced-img');
+		loadedAddons.push(createLoadedAddon(addon));
+		answers['enhanced-img'] = {};
+	}
+
 	createKit({
 		cwd: projectPath,
 		name: projectName,
@@ -403,7 +415,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
-	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
+	if (packageManager === 'pnpm') addPnpmAllowBuilds(projectPath, 'esbuild');
+
 	let depsInstalled = false;
 	if (packageManager) {
 		depsInstalled = await installDependencies(packageManager, projectPath);

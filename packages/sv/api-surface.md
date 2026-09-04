@@ -20,6 +20,7 @@ type OfficialAddons = {
 	vitest: Addon<any>;
 	playwright: Addon<any>;
 	tailwindcss: Addon<any>;
+	enhancedImg: Addon<any>;
 	sveltekitAdapter: Addon<any>;
 	drizzle: Addon<any>;
 	betterAuth: Addon<any>;

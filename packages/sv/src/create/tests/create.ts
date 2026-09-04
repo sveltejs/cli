@@ -3,9 +3,8 @@ import path from 'node:path';
 import * as find from 'empathic/find';
 import { exec, type Result } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
-import { add, officialAddons } from '../../../../sv/src/index.ts';
 import { createProject } from '../../cli/create.ts';
-import { type LanguageType, type TemplateType, create } from '../index.ts';
+import { type LanguageType, type TemplateType } from '../index.ts';
 
 const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
 const TEMPLATES_DIR = path.resolve(ROOT, 'packages', 'sv', 'src', 'create', 'templates');
@@ -65,8 +64,16 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 				});
 			});
 		} else {
-			create({ cwd, name: `create-svelte-test-${template}-${types}`, template, types });
-			await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+			await createProject(cwd, {
+				types,
+				addOns: true,
+				add: ['eslint'],
+				install: false,
+				template,
+				fromPlayground: undefined,
+				dirCheck: false,
+				downloadCheck: false
+			});
 		}
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));

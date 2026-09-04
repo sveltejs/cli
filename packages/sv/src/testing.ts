@@ -361,7 +361,7 @@ export function createSetupTest(
 					options: kind.options,
 					packageManager: 'pnpm'
 				});
-				addPnpmAllowBuilds(cwd, 'pnpm', 'esbuild');
+				addPnpmAllowBuilds(cwd, 'esbuild');
 			}
 
 			const installDir = path.resolve(cwd, testName);
