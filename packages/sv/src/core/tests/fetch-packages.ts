@@ -1,8 +1,12 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { buffer } from 'node:stream/consumers';
 import { fileURLToPath } from 'node:url';
-import { afterAll, describe, expect, it } from 'vitest';
-import { hasSvExport, importAddonCode } from '../fetch-packages.ts';
+import { gzipSync } from 'node:zlib';
+import { packTar } from 'modern-tar/fs';
+import { afterAll, describe, expect, it, vi } from 'vitest';
+import { downloadPackage, hasSvExport, importAddonCode } from '../fetch-packages.ts';
 
 // add-ons are imported by bare specifier, so fixtures have to live where `sv` resolves from
 const NODE_MODULES = fileURLToPath(new URL('../../../node_modules', import.meta.url));
@@ -152,5 +156,43 @@ describe('importAddonCode', () => {
 		await expect(importAddonCode(name, '1.0.0', exports)).rejects.toThrow(
 			expect.objectContaining({ message: expect.not.stringMatching(/-\s*\n/) })
 		);
+	});
+});
+
+describe('downloadPackage', () => {
+	it('replaces a stale `file:` symlink instead of writing through it', async () => {
+		const name = `${PREFIX}${counter++}`;
+		const localDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sv-addon-local-'));
+		const marker = path.join(localDir, 'local-only.txt');
+		fs.writeFileSync(marker, 'do not clobber me');
+		// simulate the symlink left behind by a previous `sv add file:...`
+		fs.symlinkSync(localDir, path.join(NODE_MODULES, name), 'dir');
+
+		const pkgJson = JSON.stringify({
+			name,
+			version: '2.0.0',
+			type: 'module',
+			exports: './index.mjs'
+		});
+		const tarball = await buffer(
+			packTar([
+				{ type: 'content', content: pkgJson, target: 'package/package.json' },
+				{ type: 'content', content: ADDON, target: 'package/index.mjs' }
+			])
+		);
+		vi.stubGlobal('fetch', () => Promise.resolve(new Response(gzipSync(tarball))));
+
+		try {
+			const details = await downloadPackage({
+				pkg: { name, version: '2.0.0', dist: { tarball: `https://registry.test/${name}` } }
+			});
+			expect(details).toMatchObject({ id: 'fixture' });
+			// the symlink must have been replaced by the extracted package, not followed into `localDir`
+			expect(fs.lstatSync(path.join(NODE_MODULES, name)).isSymbolicLink()).toBe(false);
+			expect(fs.readFileSync(marker, 'utf8')).toBe('do not clobber me');
+		} finally {
+			vi.unstubAllGlobals();
+			fs.rmSync(localDir, { recursive: true, force: true });
+		}
 	});
 });

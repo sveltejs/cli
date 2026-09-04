@@ -4,6 +4,7 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
 import { color, coerceVersion, downloadJson } from '@sveltejs/sv-utils';
+import * as packageJson from 'empathic/package';
 import { unpackTar } from 'modern-tar/fs';
 import * as v from 'valibot';
 import pkg from '../../package.json' with { type: 'json' };
@@ -11,8 +12,10 @@ import * as common from './common.ts';
 import { PackageJSONSchema, type PackageJSON } from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
 
-// path to the `node_modules` directory of `sv`
-const NODE_MODULES = path.resolve(import.meta.dirname, '..', '..', 'node_modules');
+const packageJsonPath = packageJson.up({ cwd: import.meta.dirname });
+if (!packageJsonPath) throw Error('This should not happen');
+/** path to the `node_modules` directory of `sv` */
+const NODE_MODULES = path.join(path.dirname(packageJsonPath), 'node_modules');
 
 type PackageBlocklist = { npm_names: string[] };
 
@@ -87,15 +90,16 @@ type DownloadOptions = { path?: string; pkg: PackageJSON };
  */
 export async function downloadPackage(options: DownloadOptions): Promise<AddonDefinition> {
 	const { pkg } = options;
-	if (options.path) {
-		// we'll create a symlink so that we can dynamically import the package via `import(pkg-name)`
-		// On Windows, symlinks require admin privileges, so we fall back to copying if symlink fails
-		const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
 
-		// ensures that a new symlink/copy is always created
-		if (fs.existsSync(dest)) {
-			fs.rmSync(dest, { recursive: true });
-		}
+	// contents is written to `sv/node_modules/pkg-name`
+	// so that we can dynamically import the package via `import(pkg-name)`
+	const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
+
+	// prevent old symlinks and caches from causing a stale install
+	fs.rmSync(dest, { recursive: true, force: true });
+
+	if (options.path) {
+		// local add-on (i.e. `file:...`)
 
 		// `symlinkSync` doesn't recursively create directories to the `destination` path,
 		// so we'll need to create them before creating the symlink
@@ -104,43 +108,39 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 			fs.mkdirSync(dir, { recursive: true });
 		}
 
-		// Try to create a symlink, but fall back to copying on Windows if it fails with EPERM
 		try {
 			fs.symlinkSync(options.path, dest, 'dir');
 		} catch (error) {
-			// On Windows, symlinks may fail with EPERM if admin privileges aren't available
-			// In that case, fall back to copying the directory
+			// Windows requires admin privileges for symlinks
 			if (
 				platform() === 'win32' &&
 				common.isNodeError(error) &&
 				(error.code === 'EPERM' || error.code === 'EACCES')
 			) {
+				// fall back to copying the directory
 				copyDirectorySync(options.path, dest);
 			} else {
 				throw error;
 			}
 		}
+	} else {
+		// npm add-on (i.e. @supacool)
+		const tarballUrl = pkg.dist?.tarball;
+		if (!tarballUrl) {
+			throw new Error(`Invalid add-on package: '${pkg.name}' is missing 'dist.tarball'`);
+		}
 
-		return await importAddonCode(pkg.name, pkg.version, pkg.exports);
+		const data = await fetch(tarballUrl);
+		if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
+
+		await pipeline(
+			data.body,
+			createGunzip(),
+			// file paths from the tarball will always have a `package/` prefix,
+			// so we'll need to strip that out
+			unpackTar(dest, { strip: 1 })
+		);
 	}
-
-	const tarballUrl = pkg.dist?.tarball;
-	if (!tarballUrl) {
-		throw new Error(`Invalid add-on package: '${pkg.name}' is missing 'dist.tarball'`);
-	}
-
-	const data = await fetch(tarballUrl);
-	if (!data.body) throw new Error(`Unexpected response: '${tarballUrl}' responded with no body`);
-
-	// extracts the package's contents from the tarball and writes the files to `sv/node_modules/pkg-name`
-	// so that we can dynamically import the package via `import(pkg-name)`
-	await pipeline(
-		data.body,
-		createGunzip(),
-		// file paths from the tarball will always have a `package/` prefix,
-		// so we'll need to replace it with the name of the package
-		unpackTar(path.join(NODE_MODULES, pkg.name), { strip: 1 })
-	);
 
 	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
 }
