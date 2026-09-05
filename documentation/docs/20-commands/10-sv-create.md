@@ -57,6 +57,13 @@ npx sv create --add eslint prettier [path]
 
 Run the command without the interactive add-ons prompt
 
+### `--no-download-check`
+
+Do not warn about downloads from community add-ons.
+
+> [!NOTE]
+> Svelte maintainers have not reviewed community add-ons for malicious code! Use at your discretion.
+
 ### `--addon-name <name>`
 
 Specify the package name when creating an addon template. Accepts `@<org>/<pkg>` or `<pkg>`. When omitted, you will be prompted for the name.
