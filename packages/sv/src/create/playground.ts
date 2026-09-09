@@ -172,7 +172,7 @@ export function setupPlaygroundProject(
 	installDependencies: boolean
 ): void {
 	const mainFile = playground.files.find((file) => file.name === 'App.svelte');
-	if (!mainFile) throw new Error('Failed to find `App.svelte` entrypoint.');
+	if (!mainFile) throw new Error('Failed to find `App.svelte` entrypoint');
 
 	const dependencies = detectPlaygroundDependencies(playground.files);
 	for (const file of playground.files) {
