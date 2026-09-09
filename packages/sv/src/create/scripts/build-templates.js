@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import * as find from 'empathic/find';
 import parser from 'gitignore-parser';
 import { format } from 'oxfmt';
 import { transform } from 'sucrase';
@@ -9,6 +10,11 @@ import oxfmtConfig from '../../../../../oxfmt.config.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
 
+const pnpmWorkspace = find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname });
+if (!pnpmWorkspace) {
+	throw new Error("This project must have a 'pnpm-workspace.yaml' file");
+}
+const ROOT = path.dirname(pnpmWorkspace);
 const pkgRoot = path.resolve(import.meta.dirname, '..');
 const require = createRequire(import.meta.url);
 const createVitePath = path.dirname(require.resolve('create-vite/package.json'));
@@ -94,9 +100,8 @@ async function generate_templates(dist, shared) {
 			// to be able to develop and deploy the app from here, but have a different
 			// package.json in newly created projects (based on package.template.json)
 			if (name === 'package.template.json') {
-				const packagesDir = path.resolve(pkgRoot, '..', '..', '..');
 				const getVersion = (/** @type {string} */ pkgDir) => {
-					const pkgPath = path.join(packagesDir, pkgDir, 'package.json');
+					const pkgPath = path.join(ROOT, 'packages', pkgDir, 'package.json');
 					return JSON.parse(fs.readFileSync(pkgPath, 'utf8')).version;
 				};
 				const replaceWorkspace = (
