@@ -20,7 +20,7 @@ const require = createRequire(import.meta.url);
 const createVitePath = path.dirname(require.resolve('create-vite/package.json'));
 
 /** @param {string} content */
-async function convert_typescript(content) {
+async function strip_typescript(content) {
 	let { code } = transform(content, {
 		transforms: ['typescript'],
 		disableESTransforms: true
@@ -133,7 +133,7 @@ async function generate_templates(dist, shared) {
 					if (name.endsWith('app.d.ts')) types.checkjs.push({ name, contents });
 					types.typescript.push({ name, contents });
 				} else if (name.endsWith('.ts')) {
-					const js = await convert_typescript(contents);
+					const js = await strip_typescript(contents);
 
 					types.typescript.push({
 						name,
@@ -291,7 +291,7 @@ async function generate_shared(dist) {
 		if (name.endsWith('.ts') && !include.includes('typescript')) {
 			// file includes types in TypeScript and JSDoc —
 			// create .js file, with and without JSDoc
-			const js = await convert_typescript(contents);
+			const js = await strip_typescript(contents);
 			const js_name = name.replace(/\.ts$/, '.js');
 
 			// typescript
