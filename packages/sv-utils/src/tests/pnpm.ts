@@ -1,13 +1,15 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { detectPnpmMajor } from '../pnpm-internals.ts';
 import { allowBuilds } from '../pnpm.ts';
 
-const major = detectPnpmMajor();
-const isPnpm11 = major === undefined || major >= 11;
+describe('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
+	const transform = (pkg: string) => allowBuilds(pkg, { pnpmVersion: 11 });
 
-describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
 	it('creates allowBuilds map in empty file', () => {
-		expect(allowBuilds('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
+		expect(transform('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
 	});
 
 	it('appends to existing allowBuilds map', () => {
@@ -16,7 +18,7 @@ describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () 
 allowBuilds:
   bar: true
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`packages:
+		expect(transform('esbuild')(input)).toBe(`packages:
   - 'packages/*'
 allowBuilds:
   bar: true
@@ -28,7 +30,7 @@ allowBuilds:
 		const input = `allowBuilds:
   core-js: false
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`allowBuilds:
+		expect(transform('esbuild')(input)).toBe(`allowBuilds:
   core-js: false
   esbuild: true
 `);
@@ -41,7 +43,7 @@ onlyBuiltDependencies:
   - foo
   - bar
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`packages:
+		expect(transform('esbuild')(input)).toBe(`packages:
   - 'packages/*'
 allowBuilds:
   foo: true
@@ -56,7 +58,7 @@ allowBuilds:
 allowBuilds:
   shared: false
 `;
-		expect(allowBuilds('newone')(input)).toBe(`allowBuilds:
+		expect(transform('newone')(input)).toBe(`allowBuilds:
   shared: false
   newone: true
 `);
@@ -66,20 +68,22 @@ allowBuilds:
 		const input = `allowBuilds:
   esbuild: true
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(input);
+		expect(transform('esbuild')(input)).toBe(input);
 	});
 });
 
-describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
+describe('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
+	const transform = (pkg: string) => allowBuilds(pkg, { pnpmVersion: 10 });
+
 	it('creates onlyBuiltDependencies list in empty file', () => {
-		expect(allowBuilds('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
+		expect(transform('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
 	});
 
 	it('appends to existing onlyBuiltDependencies list', () => {
 		const input = `onlyBuiltDependencies:
   - foo
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(`onlyBuiltDependencies:
+		expect(transform('esbuild')(input)).toBe(`onlyBuiltDependencies:
   - foo
   - esbuild
 `);
@@ -89,6 +93,36 @@ describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies 
 		const input = `onlyBuiltDependencies:
   - esbuild
 `;
-		expect(allowBuilds('esbuild')(input)).toBe(input);
+		expect(transform('esbuild')(input)).toBe(input);
+	});
+});
+
+describe('allowBuilds version detection', () => {
+	it('accepts an array of packages plus options', () => {
+		expect(allowBuilds(['esbuild', 'workerd'], { pnpmVersion: 10 })('')).toBe(
+			'onlyBuiltDependencies:\n  - esbuild\n  - workerd\n'
+		);
+	});
+
+	it('accepts trailing options after rest package names', () => {
+		expect(allowBuilds('esbuild', 'workerd', { pnpmVersion: 11 })('')).toBe(
+			'allowBuilds:\n  esbuild: true\n  workerd: true\n'
+		);
+	});
+
+	it('detects pnpm from the target cwd, not process.cwd()', { timeout: 30_000 }, () => {
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sv-pnpm-'));
+		try {
+			fs.writeFileSync(
+				path.join(dir, 'package.json'),
+				JSON.stringify({ name: 'pin11', packageManager: 'pnpm@11.0.0' })
+			);
+
+			expect(detectPnpmMajor(process.cwd())).toBe(10);
+			expect(detectPnpmMajor(dir)).toBe(11);
+			expect(allowBuilds('esbuild', { cwd: dir })('')).toBe('allowBuilds:\n  esbuild: true\n');
+		} finally {
+			fs.rmSync(dir, { recursive: true, force: true });
+		}
 	});
 });

@@ -824,10 +824,18 @@ declare const transforms: {
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
 declare namespace pnpm_d_exports {
-	export { allowBuilds };
+	export { AllowBuildsOptions, allowBuilds };
 }
+type AllowBuildsOptions = {
+	cwd?: string;
+	pnpmVersion?: string | number;
+};
 
 declare function allowBuilds(...packages: string[]): TransformFn;
+declare function allowBuilds(
+	...args: [...packages: string[], options: AllowBuildsOptions]
+): TransformFn;
+declare function allowBuilds(packages: string[], options?: AllowBuildsOptions): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
