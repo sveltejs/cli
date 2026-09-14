@@ -122,7 +122,10 @@ function isInstalled(agent: AgentName): boolean {
 	let installed = installedCache.get(agent);
 	if (installed === undefined) {
 		try {
-			execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
+			// corepack shims auto-pin `packageManager` into the nearest package.json, even for `--version`
+			execSync(agent, ['--version'], {
+				nodeOptions: { stdio: 'ignore', env: { ...process.env, COREPACK_ENABLE_AUTO_PIN: '0' } }
+			});
 			installed = true;
 		} catch {
 			installed = false;
