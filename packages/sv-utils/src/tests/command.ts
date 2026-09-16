@@ -16,6 +16,7 @@ describe('commandExists', () => {
 	});
 
 	it('does not execute shell metacharacters', () => {
+		// if `;` reached the shell, `echo pwned` would run and exit 0 and return `true`
 		expect(commandExists('node; echo pwned')).toBe(false);
 	});
 });
