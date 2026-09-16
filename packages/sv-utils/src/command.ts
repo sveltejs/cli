@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import process from 'node:process';
 
 /**
@@ -16,14 +16,12 @@ import process from 'node:process';
  * @returns `true` if the command can be found, `false` otherwise
  */
 export function commandExists(command: string): boolean {
-	try {
-		// windows
-		if (process.platform === 'win32') {
-			return spawnSync('where', [command], { stdio: 'ignore' }).status === 0;
-		}
+	if (command === '') throw Error('`Command cannot be empty');
+	const _command = process.platform === 'win32' ? `where` : `command -v`;
 
-		// unix
-		return spawnSync('command', ['-v', command], { stdio: 'ignore' }).status === 0;
+	try {
+		execSync(`${_command} ${command}`, { stdio: 'ignore' });
+		return true;
 	} catch {
 		return false;
 	}
