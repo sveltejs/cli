@@ -11,7 +11,11 @@ describe('commandExists', () => {
 		expect(commandExists('definitely-not-a-real-command-xyz-42')).toBe(false);
 	});
 
-	it('returns false for an empty string', () => {
-		expect(commandExists('')).toBe(false);
+	it('throws for an empty string', () => {
+		expect(() => commandExists('')).toThrow('`command` cannot be empty');
+	});
+
+	it('does not execute shell metacharacters', () => {
+		expect(commandExists('node; echo pwned')).toBe(false);
 	});
 });
