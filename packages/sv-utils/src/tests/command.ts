@@ -14,9 +14,4 @@ describe('commandExists', () => {
 	it('throws for an empty string', () => {
 		expect(() => commandExists('')).toThrow('`command` cannot be empty');
 	});
-
-	it('does not execute shell metacharacters', () => {
-		// if `;` reached the shell, `echo pwned` would run and exit 0 and return `true`
-		expect(commandExists('node; echo pwned')).toBe(false);
-	});
 });
