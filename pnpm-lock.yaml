@@ -129,8 +129,8 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       smol-toml:
-        specifier: ^1.6.1
-        version: 1.6.1
+        specifier: ^1.7.2
+        version: 1.7.2
       svelte:
         specifier: ^5.56.9
         version: 5.56.9(@typescript-eslint/types@8.67.0)
@@ -1746,8 +1746,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  smol-toml@1.6.1:
-    resolution: {integrity: sha512-dWUG8F5sIIARXih1DTaQAX4SsiTXhInKf1buxdY9DIg4ZYPZK5nGM1VRIYmEbDbsHt7USo99xSLFu5Q1IqTmsg==}
+  smol-toml@1.7.2:
+    resolution: {integrity: sha512-pXFZ9B2WinEPzxWkMmlYE/oYx2BP+qLrE95wP8tCuK901uLSMGdCb6QSr82z+wnhXkG4+cO+OMLbZB2Cn+97zw==}
     engines: {node: '>= 18'}
 
   source-map-js@1.2.1:
@@ -3471,7 +3471,7 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  smol-toml@1.6.1: {}
+  smol-toml@1.7.2: {}
 
   source-map-js@1.2.1: {}
 

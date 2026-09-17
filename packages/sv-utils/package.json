@@ -35,7 +35,7 @@
 		"esrap": "^2.3.6",
 		"package-manager-detector": "^1.8.0",
 		"silver-fleece": "^1.2.1",
-		"smol-toml": "^1.6.1",
+		"smol-toml": "^1.7.2",
 		"svelte": "^5.56.9",
 		"verkit": "^0.2.0",
 		"yaml": "^2.9.0",
