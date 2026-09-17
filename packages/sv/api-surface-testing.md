@@ -274,7 +274,6 @@ export {
 	ProjectVariant,
 	SetupTestOptions,
 	VitestContext,
-	commandExists,
 	createSetupTest,
 	prepareServer,
 	setupGlobal,

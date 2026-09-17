@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { commandExists } from 'sv/testing';
+import { commandExists } from '@sveltejs/sv-utils';
 import { execSync } from 'tinyexec';
 import { beforeAll, expect } from 'vitest';
 import drizzle from '../../drizzle.ts';
