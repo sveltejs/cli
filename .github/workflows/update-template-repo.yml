@@ -2,6 +2,15 @@ name: Update Template Repo (manual)
 
 on:
   workflow_dispatch:
+    inputs:
+      template:
+        description: Which template repo to update
+        type: choice
+        default: all
+        options:
+          - all
+          - kit-template-default
+          - kit-template-railway
 
 permissions: {}
 jobs:
@@ -27,6 +36,13 @@ jobs:
         run: pnpm build
 
       - name: Run template update script
+        if: inputs.template == 'all' || inputs.template == 'kit-template-default'
         run: pnpm -F sv update-template-repo
         env:
           UPDATE_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_TEMPLATE_SSH_KEY }}
+
+      - name: Run railway template update script
+        if: inputs.template == 'all' || inputs.template == 'kit-template-railway'
+        run: pnpm -F sv update-kit-template-railway
+        env:
+          UPDATE_RAILWAY_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_RAILWAY_TEMPLATE_SSH_KEY }}
