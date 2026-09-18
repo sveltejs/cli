@@ -268,11 +268,22 @@ export function buildAndLogArgs(
 	return message;
 }
 
-export function updateReadme(projectPath: string, command: string) {
+export function updateReadme(
+	projectPath: string,
+	command: string,
+	{ omitAdapterHint = false }: { omitAdapterHint?: boolean } = {}
+) {
 	const readmePath = path.join(projectPath, 'README.md');
 	if (!fs.existsSync(readmePath)) return;
 
 	let content = fs.readFileSync(readmePath, 'utf-8');
+
+	if (omitAdapterHint) {
+		content = content.replace(
+			'\n\n> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.',
+			''
+		);
+	}
 
 	// Check if the Creating a project section exists
 	const creatingSectionPattern = /## Creating a project[\s\S]*?(?=## |$)/;
