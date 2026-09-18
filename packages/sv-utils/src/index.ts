@@ -71,6 +71,7 @@ export { coerceVersion, isRangeWithin, isVersionUnsupportedBelow, minVersion } f
 export { createPrinter } from './utils.ts';
 export { sanitizeName, minimizeDiff } from './sanitize.ts';
 export { downloadJson } from './downloadJson.ts';
+export { commandExists } from './command.ts';
 
 // File system helpers (sync, workspace-relative paths)
 export { fileExists, loadFile, loadPackageJson, saveFile, type Package } from './files.ts';
