@@ -335,7 +335,6 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		answers = result.answers;
 	}
 
-	// the demo markup uses `<enhanced:img>`, so the add-on is not optional there
 	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
 		const addon = getAddonDetails('enhanced-img');
 		loadedAddons.push(createLoadedAddon(addon));
@@ -375,7 +374,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	let addonSetupResults: Record<string, SetupResult> = {};
-	if (loadedAddons.length > 0) {
+	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,
