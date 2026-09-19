@@ -1,4 +1,5 @@
 <script lang="ts">
+	import welcome from '#lib/images/svelte-welcome.png';
 	import Counter from './Counter.svelte';
 </script>
 
@@ -10,7 +11,7 @@
 <section>
 	<h1>
 		<span class="welcome">
-			<enhanced:img src="#lib/images/svelte-welcome.png" alt="Welcome" />
+			<img src={welcome} alt="Welcome" />
 		</span>
 
 		to your new<br />SvelteKit app
@@ -44,7 +45,7 @@
 		padding: 0 0 calc(100% * 495 / 2048) 0;
 	}
 
-	.welcome enhanced\:img {
+	.welcome img {
 		position: absolute;
 		width: 100%;
 		height: 100%;
