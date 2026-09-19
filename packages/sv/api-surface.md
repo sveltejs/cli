@@ -14,21 +14,23 @@ type Options = {
 	types: LanguageType;
 };
 declare function create({ cwd, ...options }: Options): void;
+
 type OfficialAddons = {
 	prettier: Addon<any>;
 	eslint: Addon<any>;
 	vitest: Addon<any>;
 	playwright: Addon<any>;
 	tailwindcss: Addon<any>;
-	sveltekitAdapter: Addon<any>;
+	'sveltekit-adapter': Addon<any>;
 	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
+	'better-auth': Addon<any>;
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
-	aiTools: Addon<any>;
+	'ai-tools': Addon<any>;
 	experimental: Addon<any>;
 };
+type OfficialAddonId = keyof OfficialAddons;
 declare const officialAddons: OfficialAddons;
 type BooleanQuestion = {
 	type: 'boolean';
@@ -140,6 +142,7 @@ type SvApi = {
 		edit: FileEditMultiple
 	) => void;
 };
+type AddonId = OfficialAddonId | (string & {});
 type Addon<
 	Args extends OptionDefinition,
 	Id extends string = string,
@@ -153,10 +156,10 @@ type Addon<
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
-			dependsOn: (name: keyof typeof officialAddons) => void;
+			dependsOn: (id: AddonId) => void;
 
 			unsupported: (reason: string) => void;
-			runsAfter: (name: keyof typeof officialAddons) => void;
+			runsAfter: (id: AddonId) => void;
 			addOption: <K extends Extract<keyof Setup, string>>(
 				key: K,
 				question: SetupOptions<Setup>[K]

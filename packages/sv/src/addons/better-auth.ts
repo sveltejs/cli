@@ -15,6 +15,10 @@ import {
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
+import drizzle from './drizzle.ts';
+import experimental from './experimental.ts';
+import sveltekitAdapter from './sveltekit-adapter.ts';
+import tailwindcss from './tailwindcss.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
@@ -38,11 +42,11 @@ export default defineAddon({
 	options,
 	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
-		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
+		if (!dependencyVersion('drizzle-orm')) dependsOn(drizzle.id);
 
-		runsAfter('sveltekitAdapter');
-		runsAfter('tailwindcss');
-		runsAfter('experimental');
+		runsAfter(sveltekitAdapter.id);
+		runsAfter(tailwindcss.id);
+		runsAfter(experimental.id);
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
