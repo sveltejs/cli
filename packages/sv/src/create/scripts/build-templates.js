@@ -5,7 +5,6 @@ import path from 'node:path';
 import parser from 'gitignore-parser';
 import { format } from 'oxfmt';
 import { transform } from 'sucrase';
-import glob from 'tiny-glob/sync.js';
 import oxfmtConfig from '../../../../../oxfmt.config.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
@@ -85,7 +84,11 @@ async function generate_templates(dist, shared) {
 			none: []
 		};
 
-		const files = glob('**/*', { cwd, filesOnly: true, dot: true });
+		const files = fs
+			.readdirSync(cwd, { recursive: true, withFileTypes: true })
+			.filter((entry) => entry.isFile())
+			.map(({ parentPath, name }) => path.join(path.relative(cwd, parentPath), name))
+			.sort();
 		for (const name of files) {
 			// the package.template.json thing is a bit annoying — basically we want
 			// to be able to develop and deploy the app from here, but have a different
@@ -249,7 +252,11 @@ async function generate_shared(dist) {
 	/** @type {Array<{ name: string, include: string[], exclude: string[], contents: string }>} */
 	const files = [];
 
-	const globbed = glob('**/*', { cwd, filesOnly: true, dot: true });
+	const globbed = fs
+		.readdirSync(cwd, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile())
+		.map(({ parentPath, name }) => path.join(path.relative(cwd, parentPath), name))
+		.sort();
 	for (const file of globbed) {
 		const contents = fs.readFileSync(path.join(cwd, file), 'utf8');
 
@@ -357,7 +364,11 @@ function generate_vite_template(dist) {
 
 	for (const { src, lang } of variants) {
 		const srcDir = path.join(createVitePath, src);
-		const files = glob('**/*', { cwd: srcDir, filesOnly: true, dot: true });
+		const files = fs
+			.readdirSync(srcDir, { recursive: true, withFileTypes: true })
+			.filter((entry) => entry.isFile())
+			.map(({ parentPath, name }) => path.join(path.relative(srcDir, parentPath), name))
+			.sort();
 
 		for (const name of files) {
 			const srcPath = path.join(srcDir, name);

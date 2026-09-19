@@ -28,7 +28,10 @@ export const PackageJSONSchema = v.looseObject({
 export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
 
 export const cliOptions = {
-	noDownloadCheck: new Option('--no-download-check', 'skip all download confirmation prompts'),
+	noDownloadCheck: new Option(
+		'--no-download-check',
+		'do not warn about downloads from community add-ons'
+	),
 	noInstall: new Option('--no-install', 'skip installing dependencies')
 };
 
@@ -291,6 +294,17 @@ export function updateReadme(projectPath: string, command: string) {
 
 	content = content.replace(creatingSectionPattern, updatedSection);
 	fs.writeFileSync(readmePath, content);
+}
+
+export function updateLibraryBuild(projectPath: string, packageManager: AgentName): void {
+	const pkgPath = path.join(projectPath, 'package.json');
+	const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+
+	if (pkg.scripts?.build && typeof pkg.scripts.build === 'string') {
+		const prepackCmd = resolveCommandArray(packageManager, 'run', ['prepack']).join(' ');
+		pkg.scripts.build = pkg.scripts.build.replace('npm run prepack', prepackCmd);
+		fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, '\t') + '\n');
+	}
 }
 
 export function errorAndExit(message: string) {
