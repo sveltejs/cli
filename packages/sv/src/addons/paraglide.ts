@@ -10,6 +10,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
+import experimental from './experimental.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -61,7 +62,7 @@ export default defineAddon({
 	setup: ({ isKit, unsupported, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 		// it picks the kit-3 shape off the version `experimental` writes
-		runsAfter('experimental');
+		runsAfter(experimental.id);
 	},
 	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
 		const [ts] = createPrinter(language === 'ts');

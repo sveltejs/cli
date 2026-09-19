@@ -588,13 +588,14 @@ export async function promptAddonQuestions({
 				dependencyChains.set(depId, depChain);
 
 				hasNewDependencies = true;
-				// Dependencies are always official addons - check if already in addons
 				const existingLoaded = addons.find((a) => a.addon.id === depId);
 				if (!existingLoaded) {
-					// Not in addons, get from official addons
+					// only official add-ons can be pulled in automatically, others need an npm/file reference
 					const officialDep = officialAddons.find((a) => a.id === depId);
 					if (!officialDep) {
-						throw new Error(`'${addonId}' depends on an invalid add-on: '${depId}'`);
+						throw new Error(
+							`'${addonId}' depends on '${depId}', which is not an official add-on. Add it to the command explicitly.`
+						);
 					}
 					// Add official dependency as new LoadedAddon
 					const officialAddonDetails = getAddonDetails(depId);
