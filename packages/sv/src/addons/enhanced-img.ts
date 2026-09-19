@@ -25,7 +25,7 @@ export default defineAddon({
 		);
 	},
 	nextSteps: () => [
-		`Replace ${color.command('`<image ...>`')} with ${color.command('`<enhanced:img ...>`')} for optimized images`,
+		`Replace ${color.command('`<img ...>`')} with ${color.command('`<enhanced:img ...>`')} for optimized images`,
 		`Docs: ${color.website('https://svelte.dev/docs/kit/images')}`
 	]
 });
