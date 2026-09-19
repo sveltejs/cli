@@ -117,7 +117,10 @@ function findProperty(ast: AstTypes.Program, name: string): FoundProperty | unde
 	let found: FoundProperty | undefined;
 
 	Walker.walk(ast as AstTypes.Node, null, {
-		ObjectExpression(node: AstTypes.ObjectExpression, { next }: Walker.Context<never, null>) {
+		ObjectExpression(
+			node: AstTypes.ObjectExpression,
+			{ next }: Walker.Context<AstTypes.Node, null>
+		) {
 			const property = node.properties.find(
 				(p): p is AstTypes.Property =>
 					p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === name
