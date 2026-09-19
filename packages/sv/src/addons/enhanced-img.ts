@@ -15,8 +15,8 @@ export default defineAddon({
 			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['sharp'] }));
 		}
 
-		// only an `<img>` bound to a static image import can be resolved at build time;
-		// `static/` assets, remote URLs and runtime sources must stay plain `<img>`
+		// only match static image imports
+		// `static/` assets, remote URLs and runtime sources cannot be resolved at build time
 		sv.files(
 			{ include: 'src/**/*.svelte', where: (content) => content.includes('<img') },
 			transforms.text(({ content }) => {
@@ -24,7 +24,7 @@ export default defineAddon({
 				for (const [statement, binding, src] of content.matchAll(REGEX_IMPORTED_IMG)) {
 					const tag = new RegExp(`<img([^>]*?)src=\\{${binding}\\}`, 'g');
 					if (!tag.test(next)) continue;
-					// a string `src` is resolved like an import, so the import itself becomes dead
+					// `src` can be resolve import paths
 					next = next
 						.replaceAll(tag, `<enhanced:img$1src="${src}"`)
 						.replace(`\n\t${statement}`, '');
@@ -45,7 +45,7 @@ export default defineAddon({
 		);
 	},
 	nextSteps: () => [
-		`Imported images now use ${color.command('`<enhanced:img>`')}, others are untouched`,
+		`Imported images now use ${color.command('`<enhanced:img>`')}`,
 		`Docs: ${color.website('https://svelte.dev/docs/kit/images')}`
 	]
 });

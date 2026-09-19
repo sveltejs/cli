@@ -13,5 +13,5 @@ npx sv add enhanced-img
 ## What you get
 
 - the `enhancedImages` Vite plugin
-- `<img>` tags bound to an image import rewritten to `<enhanced:img>`
+- rewrite applicable `<img>` tags to `<enhanced:img>`
 - `sharp` added to the allowed builds when using pnpm
