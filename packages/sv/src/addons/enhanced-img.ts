@@ -2,6 +2,11 @@ import { color, pnpm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 
 const REGEX_IMPORTED_IMG = /import (\w+) from '([^']+\.(?:png|jpe?g|webp|avif|gif))';/g;
+const REGEX_REGEX_CHARS = /[.*+?^${}()|[\]\\]/g;
+
+function escapeRegex(value: string) {
+	return value.replace(REGEX_REGEX_CHARS, '\\$&');
+}
 
 export default defineAddon({
 	id: 'enhanced-img',
@@ -15,8 +20,8 @@ export default defineAddon({
 			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['sharp'] }));
 		}
 
-		// only match static image imports
-		// `static/` assets, remote URLs and runtime sources cannot be resolved at build time
+		// only static imports: `static/` assets, remote URLs and runtime sources
+		// cannot be resolved at build time
 		sv.files(
 			{ include: 'src/**/*.svelte', where: (content) => content.includes('<img') },
 			transforms.text(({ content }) => {
@@ -24,10 +29,16 @@ export default defineAddon({
 				for (const [statement, binding, src] of content.matchAll(REGEX_IMPORTED_IMG)) {
 					const tag = new RegExp(`<img([^>]*?)src=\\{${binding}\\}`, 'g');
 					if (!tag.test(next)) continue;
-					// `src` can be resolve import paths
-					next = next
-						.replaceAll(tag, `<enhanced:img$1src="${src}"`)
-						.replace(`\n\t${statement}`, '');
+
+					const importLine = new RegExp(`[ \\t]*${escapeRegex(statement)}\\r?\\n?`);
+					// the binding can also feed props, meta tags, styles... the lookbehind
+					// skips lookalikes in paths and attribute values, e.g. `alt="logo"`
+					const reference = new RegExp(`(?<![\\w"'./-])${binding}\\b`);
+					const unused = !reference.test(content.replace(importLine, '').replaceAll(tag, ''));
+
+					// an inlined `src` needs no `?enhanced` query, the preprocessor resolves it
+					next = next.replaceAll(tag, `<enhanced:img$1src="${src}"`);
+					if (unused) next = next.replace(importLine, '');
 				}
 				return next === content ? false : next;
 			})
