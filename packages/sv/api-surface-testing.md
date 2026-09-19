@@ -58,7 +58,6 @@ type MultiSelectQuestion<Value> = {
 type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
-
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
@@ -88,52 +87,37 @@ type OptionValues<Args extends OptionDefinition> = {
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
 	cwd: string;
-
 	dependencyVersion: (pkg: string) => string | undefined;
-
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
-
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
-
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
-
 		findUp: (filename: string) => string;
 	};
 	isKit: boolean;
 	directory: {
 		src: string;
-
 		lib: string;
-
 		kitRoutes: string;
 	};
-
 	packageManager: AgentName;
 };
 type FileEdit = (content: string) => string | false;
 type FileEditMultiple = (content: string, path: string) => string | false;
 type SvApi = {
 	dependency: (pkg: string, version: string) => void;
-
 	devDependency: (pkg: string, version: string) => void;
-
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
-
 	file: (path: string, edit: FileEdit) => void;
-
 	removeFile: (path: string) => void;
-
 	files: (
 		options: {
 			include: string | string[];
-
 			exclude?: string[];
-
 			where?: (content: string) => boolean;
 		},
 		edit: FileEditMultiple
@@ -146,46 +130,34 @@ type Addon<
 > = {
 	id: Id;
 	alias?: string;
-
 	shortDescription?: string;
-
 	homepage?: string;
-
 	hidden?: boolean;
 	options: Args;
-
 	setup?: (
 		workspace: Workspace & {
 			dependsOn: (name: keyof typeof officialAddons) => void;
-
 			unsupported: (reason: string) => void;
-
 			runsAfter: (name: keyof typeof officialAddons) => void;
-
 			addOption: <K extends Extract<keyof Setup, string>>(
 				key: K,
 				question: SetupOptions<Setup>[K]
 			) => void;
 		}
 	) => MaybePromise<void>;
-
 	run: (
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
-
 			sv: SvApi;
-
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
-
 	nextSteps?: (
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 		}
 	) => string[];
 };
-
 type SetupOptions<T extends Record<string, unknown>> = {
 	[K in keyof T]: BaseQuestion<any> &
 		(T[K] extends boolean
@@ -214,7 +186,6 @@ export declare const variants: ProjectVariant[];
 export type CreateProject = (options: {
 	testId: string;
 	variant: ProjectVariant;
-
 	clean?: boolean;
 }) => string;
 declare module 'vitest' {
@@ -253,11 +224,8 @@ export type SetupTestOptions<Addons extends AddonMap> = {
 export type PrepareServerOptions = {
 	cwd: string;
 	page: Page;
-
 	buildCommand?: string;
-
 	previewCommand?: string;
-
 	expect?: VitestContext['expect'];
 };
 export type PrepareServerReturn = {

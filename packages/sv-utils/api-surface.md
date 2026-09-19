@@ -314,7 +314,6 @@ declare class Comments {
 	private leading;
 	private trailing;
 	constructor();
-
 	list(): readonly SvelteAst.JSComment[];
 	add(
 		node: BaseNode$1,
@@ -335,14 +334,12 @@ declare function parseSvelte$1(content: string): SvelteAst.Root;
 declare function serializeSvelte(ast: SvelteAst.SvelteNode, previousContent?: string): string;
 declare function parseToml$1(content: string): TomlTable;
 declare function serializeToml(data: TomlTable): string;
-
 type YamlDocument = {
 	get(key: string): unknown;
 	set(key: string, value: unknown): void;
 };
 type ParseBase = {
 	source: string;
-
 	generateCode(): string;
 };
 declare function parseScript(source: string): {
@@ -549,16 +546,13 @@ declare function appendFromString(
 declare function parseExpression(code: string): estree.Expression;
 declare function parseStatement(code: string): estree.Statement;
 declare function parseFromString<T extends estree.Node>(code: string): T;
-
 declare function appendStatement(
 	node: estree.BlockStatement | estree.Program,
 	options: {
 		statement: estree.Statement;
 	}
 ): void;
-
 declare function contains(node: estree.Node, targetNode: estree.Node): boolean;
-
 declare function replaceChild(
 	parent: estree.Node | SvelteAst.SvelteNode,
 	node: estree.Node,
@@ -580,7 +574,6 @@ declare namespace function_d_exports {
 }
 declare function createCall(options: {
 	name: string;
-
 	args: Array<string | estree.Expression>;
 	useIdentifiers?: boolean;
 }): estree.CallExpression;
@@ -656,7 +649,6 @@ type FoundImport =
 			node: estree.ImportExpression;
 	  } & FoundImportBase);
 declare function setSource(found: FoundImport, source: string): void;
-
 declare function findAll(
 	ast: estree.Node,
 	options?: {
@@ -709,7 +701,6 @@ declare function find(
 			statement: undefined;
 			alias: undefined;
 	  };
-
 declare function remove(
 	ast: estree.Program,
 	options: {
@@ -813,11 +804,9 @@ declare const addPlugin: (
 	ast: estree.Program,
 	options: {
 		code: string;
-
 		mode?: 'append' | 'prepend';
 	}
 ) => void;
-
 declare function configProperty<T extends estree.Expression | estree.Identifier>(
 	ast: estree.Program,
 	config: estree.ObjectExpression,
@@ -867,7 +856,6 @@ type CommentEntry = {
 	mode: 'append' | 'prepend';
 };
 type CommentOption = string | Array<string | CommentEntry>;
-
 declare function upsert(
 	content: string,
 	key: string,
@@ -927,7 +915,6 @@ type TransformFn = (content: string) => string | false;
 type TransformOptions = {
 	onError?: (error: unknown) => void;
 };
-
 export declare const transforms: {
 	script(
 		cb: (file: {
@@ -938,7 +925,6 @@ export declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	svelte(
 		cb: (file: {
 			ast: SvelteAst.Root;
@@ -948,7 +934,6 @@ export declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	svelteScript(
 		scriptOptions: {
 			language: 'ts' | 'js';
@@ -961,7 +946,6 @@ export declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	css(
 		cb: (file: {
 			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
@@ -970,22 +954,18 @@ export declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	json<T = any>(
 		cb: (file: { data: T; content: string; json: typeof json_d_exports }) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	yaml(
 		cb: (file: { data: YamlDocument; content: string }) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	toml(
 		cb: (file: { data: TomlTable; content: string }) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	html(
 		cb: (file: {
 			ast: SvelteAst.Fragment;
@@ -994,26 +974,20 @@ export declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
 declare namespace pnpm_d_exports {
 	export { allowBuilds };
 }
-
 declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
 	patch?: number;
-
 	version?: string;
 };
-
 export declare function minVersion(range: string): string;
-
 export declare function coerceVersion(str: string): Version;
-
 export declare function isRangeWithin(subset: string, superset: string): boolean;
 export declare function isVersionUnsupportedBelow(
 	version: string,
@@ -1021,12 +995,9 @@ export declare function isVersionUnsupportedBelow(
 ): boolean | undefined;
 type Printer = (content: string, alt?: string) => string;
 export declare function createPrinter(...conditions: boolean[]): Printer[];
-
 export declare function sanitizeName(name: string, style: 'package' | 'wrangler'): string;
-
 export declare function minimizeDiff(old: string, updated: string): string;
 export declare const downloadJson: (url: string) => Promise<any>;
-
 export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;
@@ -1042,45 +1013,32 @@ type Package = {
 	keywords?: string[];
 	workspaces?: string[];
 };
-
 export declare function fileExists(cwd: string, filePath: string): boolean;
-
 export declare function loadFile(cwd: string, filePath: string): string;
-
 export declare function saveFile(
 	cwd: string,
 	filePath: string,
 	content: string,
 	saveFileInfix?: string
 ): string;
-
 export declare function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;
 };
-
 type SvelteConfigKind = 'svelte' | 'vite';
-
 type SvelteConfigPath = `${'svelte.config' | 'vite.config'}.${'js' | 'ts'}`;
 type SvelteConfigLocation = {
 	path: SvelteConfigPath;
 	kind: SvelteConfigKind;
 };
-
 type SvelteConfigObjects = {
 	location: SvelteConfigLocation;
-
 	config: estree.ObjectExpression;
-
 	kit: estree.ObjectExpression;
-
 	ast: estree.Program;
-
 	comments: Comments;
 };
-
 type ConfigFileReader = (path: string) => string | null;
-
 type ConfigSource = string | ConfigFileReader;
 type ObjectMap = Parameters<typeof overrideProperties>[1];
 type SvelteConfEdit = (file: {
@@ -1088,14 +1046,12 @@ type SvelteConfEdit = (file: {
 	comments: Comments;
 	js: typeof index_d_exports$3;
 	location: SvelteConfigLocation;
-
 	property: <T extends estree.Expression | estree.Identifier>(
 		name: string,
 		opts: {
 			fallback: T;
 		}
 	) => T;
-
 	override: (
 		props: ObjectMap,
 		opts?: {
@@ -1103,11 +1059,9 @@ type SvelteConfEdit = (file: {
 		}
 	) => void;
 }) => void | false;
-
 type SvFileApi = {
 	file: (path: string, edit: (content: string) => string | false) => void;
 };
-
 export declare const svelteConfig: {
 	edit: (
 		target: {
@@ -1116,9 +1070,7 @@ export declare const svelteConfig: {
 		},
 		editFn: SvelteConfEdit
 	) => void;
-
 	find: (source: ConfigSource) => SvelteConfigLocation | null;
-
 	read: (source: ConfigSource) => SvelteConfigObjects | null;
 };
 type EnvMode = 'declared' | 'legacy';
@@ -1132,7 +1084,6 @@ type EnvVarSpec = {
 type DefineEnvContext = {
 	sv: SvFileApi;
 	cwd: string;
-
 	dependencyVersion: (pkg: string) => string | undefined;
 };
 type ReferenceOpts = {
@@ -1144,20 +1095,13 @@ type DefineEnv = {
 	mode: EnvMode;
 	define: (spec: EnvVarSpec) => void;
 	reference: (ast: estree.Program, js: typeof index_d_exports$3, opts: ReferenceOpts) => string;
-
 	importEnv: (ast: estree.Program, js: typeof index_d_exports$3, imports: string[]) => void;
 };
-
 export declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
-
 export declare function isKit3(kitRange: string | undefined): boolean;
-
 export declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
-
 export declare function libSubpathImports(libDir: string): Record<string, string>;
-
 export declare const KIT3_TSCONFIG = '$app/tsconfig';
-
 export declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
 type ColorInput = string | string[];
 export declare const color: {
@@ -1174,7 +1118,6 @@ export declare const color: {
 	error: (str: ColorInput) => string;
 	hidden: (str: ColorInput) => string;
 };
-
 export declare const parse: {
 	css: typeof parseCss;
 	html: typeof parseHtml;
