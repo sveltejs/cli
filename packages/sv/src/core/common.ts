@@ -293,6 +293,17 @@ export function updateReadme(projectPath: string, command: string) {
 	fs.writeFileSync(readmePath, content);
 }
 
+export function updateLibraryBuild(projectPath: string, packageManager: AgentName): void {
+	const pkgPath = path.join(projectPath, 'package.json');
+	const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+
+	if (pkg.scripts?.build && typeof pkg.scripts.build === 'string') {
+		const prepackCmd = resolveCommandArray(packageManager, 'run', ['prepack']).join(' ');
+		pkg.scripts.build = pkg.scripts.build.replace('npm run prepack', prepackCmd);
+		fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, '\t') + '\n');
+	}
+}
+
 export function errorAndExit(message: string) {
 	const [firstLine, ...restLines] = message.split('\n');
 

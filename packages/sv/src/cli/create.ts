@@ -364,6 +364,10 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
+
+		if (template === 'library') {
+			common.updateLibraryBuild(projectPath, packageManager);
+		}
 	}
 
 	let argsFormattedAddons: string[] = [];

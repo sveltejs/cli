@@ -827,7 +827,7 @@ declare namespace pnpm_d_exports {
 	export { allowBuilds };
 }
 
-declare function allowBuilds(cwd: string, ...packages: [string, ...string[]]): TransformFn;
+declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
@@ -848,6 +848,8 @@ declare function sanitizeName(name: string, style: 'package' | 'wrangler'): stri
 
 declare function minimizeDiff(old: string, updated: string): string;
 declare const downloadJson: (url: string) => Promise<any>;
+
+declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;
 	version: string;
@@ -1016,6 +1018,7 @@ export {
 	type YamlDocument,
 	coerceVersion,
 	color,
+	commandExists,
 	constructCommand,
 	createPrinter,
 	index_d_exports$1 as css,

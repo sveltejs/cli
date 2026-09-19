@@ -2,10 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import { AGENTS, type AgentName, color, detect, pnpm, resolveCommand } from '@sveltejs/sv-utils';
+import {
+	AGENTS,
+	type AgentName,
+	commandExists,
+	color,
+	detect,
+	pnpm,
+	resolveCommand
+} from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
-import { exec, execSync } from 'tinyexec';
+import { exec } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -112,23 +120,23 @@ function getUserAgent(): AgentName | undefined {
 
 const installedCache = new Map<AgentName, boolean>();
 function isInstalled(agent: AgentName): boolean {
-	let installed = installedCache.get(agent);
-	if (installed === undefined) {
-		try {
-			execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
-			installed = true;
-		} catch {
-			installed = false;
-		}
-		installedCache.set(agent, installed);
-	}
+	const cached = installedCache.get(agent);
+	if (cached !== undefined) return cached;
+	const installed = commandExists(agent);
+	installedCache.set(agent, installed);
 	return installed;
 }
 
-export function addPnpmAllowBuilds(cwd: string, ...packages: [string, ...string[]]): void {
+export function addPnpmAllowBuilds(
+	cwd: string,
+	packageManager: AgentName | null | undefined,
+	...packages: string[]
+): void {
+	if (packageManager !== 'pnpm' || packages.length === 0) return;
+
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.allowBuilds(cwd, ...packages)(content);
+	const newContent = pnpm.allowBuilds({ cwd, packages })(content);
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }

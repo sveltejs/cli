@@ -1,5 +1,15 @@
 # sv
 
+## 1.0.0-next.7
+
+### Patch Changes
+
+- chore(sv): replace `tiny-glob` with `fs.readdirSync` ([#1311](https://github.com/sveltejs/cli/pull/1311))
+
+- fix(create): use selected pm in library `build` command ([#1317](https://github.com/sveltejs/cli/pull/1317))
+
+- fix(addon): relax dependency fields restriction on community add-ons ([#1233](https://github.com/sveltejs/cli/pull/1233))
+
 ## 1.0.0-next.6
 
 ### Patch Changes

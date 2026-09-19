@@ -1,14 +1,14 @@
-import process from 'node:process';
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { detectPnpmMajor } from '../pnpm-internals.ts';
+import { detectPnpmMajor, writeAllowBuilds, writeLegacy } from '../pnpm-internals.ts';
 import { allowBuilds } from '../pnpm.ts';
 
-const major = detectPnpmMajor(process.cwd());
-const isPnpm11 = major === undefined || major >= 11;
+describe('pnpm >= 11: writes allowBuilds map', () => {
+	const transform = (...packages: string[]) => writeAllowBuilds(packages);
 
-describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
 	it('creates allowBuilds map in empty file', () => {
-		expect(allowBuilds(process.cwd(), 'esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
+		expect(transform('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
 	});
 
 	it('appends to existing allowBuilds map', () => {
@@ -17,7 +17,7 @@ describe.runIf(isPnpm11)('allowBuilds (pnpm >= 11: writes allowBuilds map)', () 
 allowBuilds:
   bar: true
 `;
-		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`packages:
+		expect(transform('esbuild')(input)).toBe(`packages:
   - 'packages/*'
 allowBuilds:
   bar: true
@@ -29,7 +29,7 @@ allowBuilds:
 		const input = `allowBuilds:
   core-js: false
 `;
-		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`allowBuilds:
+		expect(transform('esbuild')(input)).toBe(`allowBuilds:
   core-js: false
   esbuild: true
 `);
@@ -42,7 +42,7 @@ onlyBuiltDependencies:
   - foo
   - bar
 `;
-		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`packages:
+		expect(transform('esbuild')(input)).toBe(`packages:
   - 'packages/*'
 allowBuilds:
   foo: true
@@ -57,7 +57,7 @@ allowBuilds:
 allowBuilds:
   shared: false
 `;
-		expect(allowBuilds(process.cwd(), 'newone')(input)).toBe(`allowBuilds:
+		expect(transform('newone')(input)).toBe(`allowBuilds:
   shared: false
   newone: true
 `);
@@ -67,20 +67,22 @@ allowBuilds:
 		const input = `allowBuilds:
   esbuild: true
 `;
-		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(input);
+		expect(transform('esbuild')(input)).toBe(input);
 	});
 });
 
-describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
+describe('pnpm < 11: writes onlyBuiltDependencies list', () => {
+	const transform = (...packages: string[]) => writeLegacy(packages);
+
 	it('creates onlyBuiltDependencies list in empty file', () => {
-		expect(allowBuilds(process.cwd(), 'esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
+		expect(transform('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
 	});
 
 	it('appends to existing onlyBuiltDependencies list', () => {
 		const input = `onlyBuiltDependencies:
   - foo
 `;
-		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(`onlyBuiltDependencies:
+		expect(transform('esbuild')(input)).toBe(`onlyBuiltDependencies:
   - foo
   - esbuild
 `);
@@ -90,6 +92,31 @@ describe.runIf(!isPnpm11)('allowBuilds (pnpm < 11: writes onlyBuiltDependencies 
 		const input = `onlyBuiltDependencies:
   - esbuild
 `;
-		expect(allowBuilds(process.cwd(), 'esbuild')(input)).toBe(input);
+		expect(transform('esbuild')(input)).toBe(input);
 	});
+});
+
+describe('allowBuilds version detection', () => {
+	const root = path.resolve(import.meta.dirname, '../../../..');
+
+	it('writes the shape matching the pnpm version of the given cwd', () => {
+		const major = detectPnpmMajor(root);
+		const expected =
+			major !== undefined && major < 11
+				? 'onlyBuiltDependencies:\n  - esbuild\n  - workerd\n'
+				: 'allowBuilds:\n  esbuild: true\n  workerd: true\n';
+
+		expect(allowBuilds({ cwd: root, packages: ['esbuild', 'workerd'] })('')).toBe(expected);
+	});
+
+	it.runIf(detectPnpmMajor(root) !== undefined)(
+		'honours the `packageManager` pin of the given cwd',
+		{ timeout: 30_000 },
+		() => {
+			const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'));
+			const pinned = Number(pkg.packageManager.split('@')[1].split('.')[0]);
+
+			expect(detectPnpmMajor(root)).toBe(pinned);
+		}
+	);
 });
