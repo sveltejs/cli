@@ -14,23 +14,6 @@ type Options = {
 	types: LanguageType;
 };
 declare function create({ cwd, ...options }: Options): void;
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	enhancedImg: Addon<any>;
-	sveltekitAdapter: Addon<any>;
-	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	aiTools: Addon<any>;
-	experimental: Addon<any>;
-};
-declare const officialAddons: OfficialAddons;
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -96,6 +79,79 @@ type OptionValues<Args extends OptionDefinition> = {
 							? unknown
 							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
+type NoOptions = {};
+
+type QuestionFor<Value> = BaseQuestion<any> &
+	([Value] extends [boolean]
+		? BooleanQuestion
+		: [Value] extends [number]
+			? NumberQuestion
+			: [Value] extends [Array<infer Item>]
+				? MultiSelectQuestion<Item>
+				: [string] extends [Value]
+					? StringQuestion
+					: SelectQuestion<Value>);
+type QuestionsFor<Values> = {
+	[K in keyof Values]: QuestionFor<Values[K]>;
+} extends infer Questions extends OptionDefinition
+	? Questions
+	: never;
+
+type OfficialAddonIds = {
+	enhancedImg: 'enhanced-img';
+	sveltekitAdapter: 'sveltekit-adapter';
+	betterAuth: 'better-auth';
+	aiTools: 'ai-tools';
+};
+
+type OfficialAddons = {
+	[K in keyof OfficialAddonOptions]: Addon<
+		QuestionsFor<OfficialAddonOptions[K]>,
+		K extends keyof OfficialAddonIds ? OfficialAddonIds[K] : K & string
+	>;
+};
+
+type OfficialAddonOptions = {
+	prettier: NoOptions;
+	eslint: NoOptions;
+	vitest: {
+		usages: Array<'unit' | 'component'>;
+	};
+	playwright: NoOptions;
+	tailwindcss: {
+		plugins: Array<'typography' | 'forms'>;
+	};
+	enhancedImg: NoOptions;
+	sveltekitAdapter: {
+		adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+		cfTarget: 'workers' | 'pages';
+	};
+	drizzle: {
+		database: 'postgresql' | 'mysql' | 'sqlite' | 'd1';
+		postgresql: 'postgres.js' | 'neon';
+		mysql: 'mysql2' | 'planetscale';
+		sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
+		docker: boolean;
+	};
+	betterAuth: {
+		demo: Array<'password' | 'github'>;
+	};
+	mdsvex: NoOptions;
+	paraglide: {
+		languageTags: string;
+		demo: boolean;
+	};
+	storybook: NoOptions;
+	aiTools: {
+		ide: string[];
+		delivery: 'plugin' | 'tools';
+		tools: string[];
+		mcpSetup: 'local' | 'remote';
+	};
+	experimental: {
+		features: string[];
+	};
+};
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
 	cwd: string;
@@ -154,10 +210,10 @@ type Addon<
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
-			dependsOn: (name: keyof typeof officialAddons) => void;
+			dependsOn: (name: keyof OfficialAddonOptions) => void;
 
 			unsupported: (reason: string) => void;
-			runsAfter: (name: keyof typeof officialAddons) => void;
+			runsAfter: (name: keyof OfficialAddonOptions) => void;
 			addOption: <K extends Extract<keyof Setup, string>>(
 				key: K,
 				question: SetupOptions<Setup>[K]
@@ -309,6 +365,7 @@ declare function applyAddons({
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }>;
+declare const officialAddons: OfficialAddons;
 type FileEditor = Workspace & {
 	content: string;
 };

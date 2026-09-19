@@ -1,4 +1,4 @@
-import type { Addon, AddonDefinition } from '../core/config.ts';
+import type { AddonDefinition } from '../core/config.ts';
 import aiTools from './ai-tools.ts';
 import betterAuth from './better-auth.ts';
 import drizzle from './drizzle.ts';
@@ -6,6 +6,7 @@ import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
 import experimental from './experimental.ts';
 import mdsvex from './mdsvex.ts';
+import type { OfficialAddons } from './options.ts';
 import paraglide from './paraglide.ts';
 import playwright from './playwright.ts';
 import prettier from './prettier.ts';
@@ -13,23 +14,6 @@ import storybook from './storybook.ts';
 import sveltekitAdapter from './sveltekit-adapter.ts';
 import tailwindcss from './tailwindcss.ts';
 import vitest from './vitest-addon.ts';
-
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	enhancedImg: Addon<any>;
-	sveltekitAdapter: Addon<any>;
-	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	aiTools: Addon<any>;
-	experimental: Addon<any>;
-};
 
 // The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity
