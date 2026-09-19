@@ -97,7 +97,9 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 			describe('enhanced-img rewrites the welcome image', () => {
 				test(`${template}-${types}`, () => {
 					const page = fs.readFileSync(path.join(cwd, 'src/routes/+page.svelte'), 'utf-8');
-					expect(page).toContain('<enhanced:img src="#lib/images/svelte-welcome.png"');
+					expect(page).not.toContain("svelte-welcome.png';");
+					expect(page).toContain('<enhanced:img');
+					expect(page).toContain('src="#lib/images/svelte-welcome.png"');
 				});
 			});
 

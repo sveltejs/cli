@@ -11,7 +11,7 @@
 <section>
 	<h1>
 		<span class="welcome">
-			<img src={welcome} alt="Welcome" />
+			<img class="welcome-image" src={welcome} alt="Welcome" />
 		</span>
 
 		to your new<br />SvelteKit app
@@ -45,7 +45,7 @@
 		padding: 0 0 calc(100% * 495 / 2048) 0;
 	}
 
-	.welcome img {
+	.welcome-image {
 		position: absolute;
 		width: 100%;
 		height: 100%;

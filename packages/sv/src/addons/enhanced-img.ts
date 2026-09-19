@@ -1,7 +1,7 @@
 import { color, pnpm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 
-const REGEX_IMPORTED_IMG = /\n\s*import (\w+) from '([^']+\.(?:png|jpe?g|webp|avif|gif))';/g;
+const REGEX_IMPORTED_IMG = /import (\w+) from '([^']+\.(?:png|jpe?g|webp|avif|gif))';/g;
 
 export default defineAddon({
 	id: 'enhanced-img',
@@ -15,7 +15,8 @@ export default defineAddon({
 			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['sharp'] }));
 		}
 
-		// an `<img>` bound to a static image import is the one case we can rewrite safely
+		// only an `<img>` bound to a static image import can be resolved at build time;
+		// `static/` assets, remote URLs and runtime sources must stay plain `<img>`
 		sv.files(
 			{ include: 'src/**/*.svelte', where: (content) => content.includes('<img') },
 			transforms.text(({ content }) => {
@@ -23,7 +24,10 @@ export default defineAddon({
 				for (const [statement, binding, src] of content.matchAll(REGEX_IMPORTED_IMG)) {
 					const tag = new RegExp(`<img([^>]*?)src=\\{${binding}\\}`, 'g');
 					if (!tag.test(next)) continue;
-					next = next.replaceAll(tag, `<enhanced:img$1src="${src}"`).replace(statement, '');
+					// a string `src` is resolved like an import, so the import itself becomes dead
+					next = next
+						.replaceAll(tag, `<enhanced:img$1src="${src}"`)
+						.replace(`\n\t${statement}`, '');
 				}
 				return next === content ? false : next;
 			})
@@ -41,7 +45,7 @@ export default defineAddon({
 		);
 	},
 	nextSteps: () => [
-		`Replace ${color.command('`<img ...>`')} with ${color.command('`<enhanced:img ...>`')} for optimized images`,
+		`Imported images now use ${color.command('`<enhanced:img>`')}, others are untouched`,
 		`Docs: ${color.website('https://svelte.dev/docs/kit/images')}`
 	]
 });
