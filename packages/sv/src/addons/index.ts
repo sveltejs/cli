@@ -2,6 +2,7 @@ import type { Addon, AddonDefinition } from '../core/config.ts';
 import aiTools from './ai-tools.ts';
 import betterAuth from './better-auth.ts';
 import drizzle from './drizzle.ts';
+import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
 import experimental from './experimental.ts';
 import mdsvex from './mdsvex.ts';
@@ -19,6 +20,7 @@ type OfficialAddons = {
 	vitest: Addon<any>;
 	playwright: Addon<any>;
 	tailwindcss: Addon<any>;
+	enhancedImg: Addon<any>;
 	sveltekitAdapter: Addon<any>;
 	drizzle: Addon<any>;
 	betterAuth: Addon<any>;
@@ -37,6 +39,7 @@ export const officialAddons: OfficialAddons = {
 	vitest,
 	playwright,
 	tailwindcss,
+	enhancedImg,
 	sveltekitAdapter,
 	drizzle,
 	betterAuth,
