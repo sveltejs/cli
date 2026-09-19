@@ -17,6 +17,9 @@ import oxfmtConfig from '../oxfmt.config.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 
+const ZIMMERFRAME_MODULE = /declare module 'zimmerframe'/g;
+const ZIMMERFRAME_WALKER_ALIAS = /index_d_exports\S* as Walker/g;
+
 const packages = [
 	{
 		// Self-contained DTS from the single-entry api-surface build (see tsdown.config.ts).
@@ -108,7 +111,34 @@ function clean(source) {
 	result = stripJsDoc(result);
 	result = stripImportLines(result);
 	result = collapseBlankLines(result);
+	result = zimmerframeFix(result);
 	return result.trim() + '\n';
+}
+
+/**
+ * Workaround, not a fix: the dts bundler emits `export * as Walker from 'zimmerframe'` as an
+ * ambient `declare module 'zimmerframe'` block while the export list still points at the internal
+ * chunk name, so `Walker.Visitors` / `Walker.Context` resolve to nothing for consumers.
+ * The real fix belongs upstream: https://github.com/sveltejs/svelte/issues/17520
+ * Delete this workaround once that lands.
+ * @param {string} source
+ * @returns {string}
+ */
+function zimmerframeFix(source) {
+	const declarations = source.match(ZIMMERFRAME_MODULE) ?? [];
+	if (declarations.length === 0) return source;
+
+	const aliases = source.match(ZIMMERFRAME_WALKER_ALIAS) ?? [];
+	if (declarations.length !== 1 || aliases.length !== 1) {
+		throw new Error(
+			`zimmerframe workaround no longer matches the bundler output: found ${declarations.length} \`declare module 'zimmerframe'\` block(s) and ${aliases.length} \`… as Walker\` export alias(es), expected exactly 1 of each.\n` +
+				'Either the dts bundler changed its output, or the upstream bug is fixed and this workaround should be deleted (see the comment on zimmerframeFix).'
+		);
+	}
+
+	return source
+		.replace(ZIMMERFRAME_MODULE, 'declare namespace zimmerframe')
+		.replace(ZIMMERFRAME_WALKER_ALIAS, 'zimmerframe as Walker');
 }
 
 /**
@@ -224,9 +254,27 @@ export async function generateApiSurface() {
 	return generated;
 }
 
+/** Applies {@link zimmerframeFix} to the built `.d.mts` files, so shipped types match the snapshot. */
+export function fixDtsModuleDeclarations() {
+	for (const pkg of packages) {
+		const dtsPath = path.resolve(ROOT, pkg.dts);
+		if (!fs.existsSync(dtsPath)) continue;
+
+		let content = fs.readFileSync(dtsPath, 'utf8');
+		const original = content;
+		content = zimmerframeFix(content);
+
+		if (content !== original) {
+			fs.writeFileSync(dtsPath, content, 'utf8');
+			console.log(`  fixed: ${pkg.dts}`);
+		}
+	}
+}
+
 const isMain = process.argv[1] && import.meta.filename === path.resolve(process.argv[1]);
 
 if (isMain) {
+	fixDtsModuleDeclarations();
 	generateApiSurface().catch((err) => {
 		console.error(err);
 		process.exit(1);
