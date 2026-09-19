@@ -21,7 +21,7 @@ const adapters = [
 
 /** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */
 const ADAPTER_HINT_REGEX =
-	/\n*^> [^\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\n]*$/m;
+	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
 const options = defineAddonOptions()
 	.add('adapter', {
