@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import path from 'node:path';
 import { coerceVersion } from './semver.ts';
 import { transforms, type TransformFn } from './tooling/transforms.ts';
 
@@ -18,22 +19,34 @@ type YamlDoc = {
 	createNode(value: unknown, options?: { flow?: boolean }): unknown;
 };
 
+const majorByCwd = new Map<string, number | undefined>();
+
 /**
  * Detects the major version of pnpm that would run in `cwd`. `pnpm --version` resolves
  * `packageManager` / `devEngines.packageManager` from there, so the invoker's pin does
  * not leak into the target project.
+ *
+ * Results are memoised per directory: pnpm self-manages versions, so a miss can download
+ * a whole pnpm release before answering.
  */
 export function detectPnpmMajor(cwd: string): number | undefined {
+	const key = path.resolve(cwd);
+	if (majorByCwd.has(key)) return majorByCwd.get(key);
+
+	let major: number | undefined;
 	try {
 		const out = execSync('pnpm --version', {
 			encoding: 'utf-8',
 			stdio: ['ignore', 'pipe', 'ignore'],
-			cwd
+			cwd: key
 		});
-		return coerceVersion(out.trim()).major;
+		major = coerceVersion(out.trim()).major;
 	} catch {
-		return undefined;
+		major = undefined;
 	}
+
+	majorByCwd.set(key, major);
+	return major;
 }
 
 export function writeAllowBuilds(packages: string[]): TransformFn {
