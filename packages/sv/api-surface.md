@@ -13,7 +13,7 @@ type Options = {
 	template: TemplateType;
 	types: LanguageType;
 };
-declare function create({ cwd, ...options }: Options): void;
+export declare function create({ cwd, ...options }: Options): void;
 type OfficialAddons = {
 	prettier: Addon<any>;
 	eslint: Addon<any>;
@@ -30,7 +30,7 @@ type OfficialAddons = {
 	aiTools: Addon<any>;
 	experimental: Addon<any>;
 };
-declare const officialAddons: OfficialAddons;
+export declare const officialAddons: OfficialAddons;
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -101,13 +101,16 @@ type Workspace = {
 	cwd: string;
 
 	dependencyVersion: (pkg: string) => string | undefined;
+
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
+
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
+
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 
 		findUp: (filename: string) => string;
@@ -115,9 +118,12 @@ type Workspace = {
 	isKit: boolean;
 	directory: {
 		src: string;
+
 		lib: string;
+
 		kitRoutes: string;
 	};
+
 	packageManager: AgentName;
 };
 type ConditionDefinition = (Workspace: Workspace) => boolean;
@@ -125,15 +131,19 @@ type FileEdit = (content: string) => string | false;
 type FileEditMultiple = (content: string, path: string) => string | false;
 type SvApi = {
 	dependency: (pkg: string, version: string) => void;
+
 	devDependency: (pkg: string, version: string) => void;
+
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 
 	file: (path: string, edit: FileEdit) => void;
+
 	removeFile: (path: string) => void;
 
 	files: (
 		options: {
 			include: string | string[];
+
 			exclude?: string[];
 
 			where?: (content: string) => boolean;
@@ -148,30 +158,39 @@ type Addon<
 > = {
 	id: Id;
 	alias?: string;
+
 	shortDescription?: string;
+
 	homepage?: string;
+
 	hidden?: boolean;
 	options: Args;
+
 	setup?: (
 		workspace: Workspace & {
 			dependsOn: (name: keyof typeof officialAddons) => void;
 
 			unsupported: (reason: string) => void;
+
 			runsAfter: (name: keyof typeof officialAddons) => void;
+
 			addOption: <K extends Extract<keyof Setup, string>>(
 				key: K,
 				question: SetupOptions<Setup>[K]
 			) => void;
 		}
 	) => MaybePromise<void>;
+
 	run: (
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
+
 			sv: SvApi;
 
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
+
 	nextSteps?: (
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
@@ -192,10 +211,10 @@ type SetupOptions<T extends Record<string, unknown>> = {
 						: Question<any>);
 };
 
-declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
+export declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
 	config: Addon<Args, Id>
 ): Addon<Args, Id>;
-declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
+export declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
 	const Id extends string,
 	Args extends OptionDefinition
 >(
@@ -267,10 +286,11 @@ type OptionBuilder<T extends OptionDefinition> = {
 		key: K,
 		question: Q
 	): OptionBuilder<T & Record<K, Q>>;
+
 	build(): Prettify<T>;
 };
 
-declare function defineAddonOptions(): OptionBuilder<{}>;
+export declare function defineAddonOptions(): OptionBuilder<{}>;
 type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
 	addons: Addons;
@@ -287,7 +307,7 @@ type AddonById<Addons extends AddonMap, Id extends string> = Extract<
 type OptionMap<Addons extends AddonMap> = {
 	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
 };
-declare function add<Addons extends AddonMap>({
+export declare function add<Addons extends AddonMap>({
 	addons,
 	cwd,
 	options,
@@ -317,41 +337,36 @@ type FileType = {
 	condition?: ConditionDefinition;
 	content: (editor: FileEditor) => string;
 };
-export {
-	type Addon,
-	type AddonDefinition,
-	type AddonInput,
-	type AddonMap,
-	type AddonReference,
-	type AddonResult,
-	type AddonSource,
-	type BaseQuestion,
-	type BooleanQuestion,
-	type ConfiguredAddon,
-	type FileEditor,
-	type FileType,
-	type InstallOptions,
-	type LanguageType,
-	type LoadedAddon,
-	type MultiSelectQuestion,
-	type NumberQuestion,
-	type OptionBuilder,
-	type OptionDefinition,
-	type OptionMap,
-	type OptionValues,
-	type PreparedAddon,
-	type Question,
-	type SelectQuestion,
-	type SetupResult,
-	type StringQuestion,
-	type SvApi,
-	type TemplateType,
-	type Workspace,
-	type WorkspaceOptions,
-	add,
-	create,
-	defineAddon,
-	defineAddonOptions,
-	officialAddons
+export type {
+	Addon,
+	AddonDefinition,
+	AddonInput,
+	AddonMap,
+	AddonReference,
+	AddonResult,
+	AddonSource,
+	BaseQuestion,
+	BooleanQuestion,
+	ConfiguredAddon,
+	FileEditor,
+	FileType,
+	InstallOptions,
+	LanguageType,
+	LoadedAddon,
+	MultiSelectQuestion,
+	NumberQuestion,
+	OptionBuilder,
+	OptionDefinition,
+	OptionMap,
+	OptionValues,
+	PreparedAddon,
+	Question,
+	SelectQuestion,
+	SetupResult,
+	StringQuestion,
+	SvApi,
+	TemplateType,
+	Workspace,
+	WorkspaceOptions
 };
 ```

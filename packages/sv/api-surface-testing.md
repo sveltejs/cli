@@ -90,13 +90,16 @@ type Workspace = {
 	cwd: string;
 
 	dependencyVersion: (pkg: string) => string | undefined;
+
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
 		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
+
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
+
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
 
 		findUp: (filename: string) => string;
@@ -104,24 +107,31 @@ type Workspace = {
 	isKit: boolean;
 	directory: {
 		src: string;
+
 		lib: string;
+
 		kitRoutes: string;
 	};
+
 	packageManager: AgentName;
 };
 type FileEdit = (content: string) => string | false;
 type FileEditMultiple = (content: string, path: string) => string | false;
 type SvApi = {
 	dependency: (pkg: string, version: string) => void;
+
 	devDependency: (pkg: string, version: string) => void;
+
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
 
 	file: (path: string, edit: FileEdit) => void;
+
 	removeFile: (path: string) => void;
 
 	files: (
 		options: {
 			include: string | string[];
+
 			exclude?: string[];
 
 			where?: (content: string) => boolean;
@@ -136,30 +146,39 @@ type Addon<
 > = {
 	id: Id;
 	alias?: string;
+
 	shortDescription?: string;
+
 	homepage?: string;
+
 	hidden?: boolean;
 	options: Args;
+
 	setup?: (
 		workspace: Workspace & {
 			dependsOn: (name: keyof typeof officialAddons) => void;
 
 			unsupported: (reason: string) => void;
+
 			runsAfter: (name: keyof typeof officialAddons) => void;
+
 			addOption: <K extends Extract<keyof Setup, string>>(
 				key: K,
 				question: SetupOptions<Setup>[K]
 			) => void;
 		}
 	) => MaybePromise<void>;
+
 	run: (
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
+
 			sv: SvApi;
 
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
+
 	nextSteps?: (
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
@@ -190,11 +209,12 @@ type AddonById<Addons extends AddonMap, Id extends string> = Extract<
 type OptionMap<Addons extends AddonMap> = {
 	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
 };
-type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
-declare const variants: ProjectVariant[];
-type CreateProject = (options: {
+export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
+export declare const variants: ProjectVariant[];
+export type CreateProject = (options: {
 	testId: string;
 	variant: ProjectVariant;
+
 	clean?: boolean;
 }) => string;
 declare module 'vitest' {
@@ -204,7 +224,7 @@ declare module 'vitest' {
 		variants: ProjectVariant[];
 	}
 }
-declare function setupGlobal({
+export declare function setupGlobal({
 	TEST_DIR,
 	pre,
 	post
@@ -213,48 +233,50 @@ declare function setupGlobal({
 	pre?: () => Promise<void>;
 	post?: () => Promise<void>;
 }): ({ provide }: TestProject) => Promise<() => Promise<void>>;
-type Fixtures = {
+export type Fixtures = {
 	page: Page;
 	cwd(addonTestCase: AddonTestCase<any>): string;
 };
-type AddonTestCase<Addons extends AddonMap> = {
+export type AddonTestCase<Addons extends AddonMap> = {
 	variant: ProjectVariant;
 	kind: {
 		type: string;
 		options: OptionMap<Addons>;
 	};
 };
-type SetupTestOptions<Addons extends AddonMap> = {
+export type SetupTestOptions<Addons extends AddonMap> = {
 	kinds: Array<AddonTestCase<Addons>['kind']>;
 	filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
 	browser?: boolean;
 	preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
 };
-type PrepareServerOptions = {
+export type PrepareServerOptions = {
 	cwd: string;
 	page: Page;
+
 	buildCommand?: string;
+
 	previewCommand?: string;
 
 	expect?: VitestContext['expect'];
 };
-type PrepareServerReturn = {
+export type PrepareServerReturn = {
 	url: string;
 	close: () => Promise<void>;
 };
-declare function prepareServer({
+export declare function prepareServer({
 	cwd,
 	page,
 	buildCommand,
 	previewCommand,
 	expect
 }: PrepareServerOptions): Promise<PrepareServerReturn>;
-type PlaywrightContext = Pick<typeof import('@playwright/test'), 'chromium'>;
-type VitestContext = Pick<
+export type PlaywrightContext = Pick<typeof import('@playwright/test'), 'chromium'>;
+export type VitestContext = Pick<
 	typeof import('vitest'),
 	'inject' | 'test' | 'beforeAll' | 'beforeEach' | 'expect'
 >;
-declare function createSetupTest(
+export declare function createSetupTest(
 	vitest: VitestContext,
 	playwright?: PlaywrightContext
 ): <Addons extends AddonMap>(
@@ -264,20 +286,5 @@ declare function createSetupTest(
 	test: import('vitest').TestAPI<Fixtures>;
 	testCases: Array<AddonTestCase<AddonMap>>;
 	prepareServer: typeof prepareServer;
-};
-export {
-	AddonTestCase,
-	CreateProject,
-	Fixtures,
-	PlaywrightContext,
-	PrepareServerOptions,
-	PrepareServerReturn,
-	ProjectVariant,
-	SetupTestOptions,
-	VitestContext,
-	createSetupTest,
-	prepareServer,
-	setupGlobal,
-	variants
 };
 ```

@@ -45,7 +45,7 @@ export default defineConfig([
 		entry: ['src/index.ts', 'src/testing.ts', 'bin.ts'],
 		sourcemap: !process.env.CI,
 		dts: {
-			oxc: true
+			generator: 'oxc'
 		},
 		failOnWarn: true,
 		deps: svDeps,
@@ -80,7 +80,7 @@ export default defineConfig([
 		entry: ['src/index.ts'],
 		outDir: `${API_SURFACE_DIR}/index`,
 		dts: {
-			oxc: true,
+			generator: 'oxc',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
@@ -96,7 +96,7 @@ export default defineConfig([
 		entry: ['src/testing.ts'],
 		outDir: `${API_SURFACE_DIR}/testing`,
 		dts: {
-			oxc: true,
+			generator: 'oxc',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
@@ -159,7 +159,7 @@ export default defineConfig([
 		cwd: path.resolve('packages/sv-utils'),
 		entry: ['src/index.ts'],
 		dts: {
-			oxc: true,
+			generator: 'oxc',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
