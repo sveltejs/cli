@@ -827,15 +827,11 @@ declare namespace pnpm_d_exports {
 	export { AllowBuildsOptions, allowBuilds };
 }
 type AllowBuildsOptions = {
-	cwd?: string;
-	pnpmVersion?: string | number;
+	cwd: string;
+	packages: string[];
 };
 
-declare function allowBuilds(...packages: string[]): TransformFn;
-declare function allowBuilds(
-	...args: [...packages: string[], options: AllowBuildsOptions]
-): TransformFn;
-declare function allowBuilds(packages: string[], options?: AllowBuildsOptions): TransformFn;
+declare function allowBuilds({ cwd, packages }: AllowBuildsOptions): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;

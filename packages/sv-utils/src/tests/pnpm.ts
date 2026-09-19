@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { detectPnpmMajor } from '../pnpm-internals.ts';
+import { detectPnpmMajor, writeAllowBuilds, writeLegacy } from '../pnpm-internals.ts';
 import { allowBuilds } from '../pnpm.ts';
 
-describe('allowBuilds (pnpm >= 11: writes allowBuilds map)', () => {
-	const transform = (pkg: string) => allowBuilds(pkg, { pnpmVersion: 11 });
+describe('pnpm >= 11: writes allowBuilds map', () => {
+	const transform = (...packages: string[]) => writeAllowBuilds(packages);
 
 	it('creates allowBuilds map in empty file', () => {
 		expect(transform('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
@@ -71,8 +71,8 @@ allowBuilds:
 	});
 });
 
-describe('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
-	const transform = (pkg: string) => allowBuilds(pkg, { pnpmVersion: 10 });
+describe('pnpm < 11: writes onlyBuiltDependencies list', () => {
+	const transform = (...packages: string[]) => writeLegacy(packages);
 
 	it('creates onlyBuiltDependencies list in empty file', () => {
 		expect(transform('esbuild')('')).toBe('onlyBuiltDependencies:\n  - esbuild\n');
@@ -97,23 +97,22 @@ describe('allowBuilds (pnpm < 11: writes onlyBuiltDependencies list)', () => {
 });
 
 describe('allowBuilds version detection', () => {
-	it('accepts an array of packages plus options', () => {
-		expect(allowBuilds(['esbuild', 'workerd'], { pnpmVersion: 10 })('')).toBe(
-			'onlyBuiltDependencies:\n  - esbuild\n  - workerd\n'
-		);
+	const root = path.resolve(import.meta.dirname, '../../../..');
+
+	it('writes the shape matching the pnpm version of the given cwd', () => {
+		const major = detectPnpmMajor(root);
+		const expected =
+			major !== undefined && major < 11
+				? 'onlyBuiltDependencies:\n  - esbuild\n  - workerd\n'
+				: 'allowBuilds:\n  esbuild: true\n  workerd: true\n';
+
+		expect(allowBuilds({ cwd: root, packages: ['esbuild', 'workerd'] })('')).toBe(expected);
 	});
 
-	it('accepts trailing options after rest package names', () => {
-		expect(allowBuilds('esbuild', 'workerd', { pnpmVersion: 11 })('')).toBe(
-			'allowBuilds:\n  esbuild: true\n  workerd: true\n'
-		);
-	});
-
-	it.runIf(detectPnpmMajor() !== undefined)(
+	it.runIf(detectPnpmMajor(root) !== undefined)(
 		'honours the `packageManager` pin of the given cwd',
 		{ timeout: 30_000 },
 		() => {
-			const root = path.resolve(import.meta.dirname, '../../../..');
 			const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'));
 			const pinned = Number(pkg.packageManager.split('@')[1].split('.')[0]);
 
