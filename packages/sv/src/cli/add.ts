@@ -24,7 +24,7 @@ import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
 import { formatFiles, isPrettierInstalled } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmAllowBuilds,
+	addAllowBuildsIfPnpm,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
@@ -774,7 +774,7 @@ export async function runAddonsApply({
 		packageManager = options.install;
 	}
 
-	if (packageManager === 'pnpm') addPnpmAllowBuilds(workspace.cwd, 'esbuild');
+	addAllowBuildsIfPnpm({ cwd: workspace.cwd, packageManager, packages: ['esbuild'] });
 
 	const argsFormattedAddons: string[] = [];
 	for (const loaded of successfulAddons) {

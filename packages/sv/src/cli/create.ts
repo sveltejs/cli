@@ -16,7 +16,7 @@ import {
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmAllowBuilds,
+	addAllowBuildsIfPnpm,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -335,6 +335,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		answers = result.answers;
 	}
 
+	// the demo markup uses `<enhanced:img>`, so the add-on is not optional there
 	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
 		const addon = getAddonDetails('enhanced-img');
 		loadedAddons.push(createLoadedAddon(addon));
@@ -374,7 +375,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	let addonSetupResults: Record<string, SetupResult> = {};
-	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
+	if (loadedAddons.length > 0) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,
@@ -419,7 +420,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
-	if (packageManager === 'pnpm') addPnpmAllowBuilds(projectPath, 'esbuild');
+	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
 
 	let depsInstalled = false;
 	if (packageManager) {

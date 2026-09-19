@@ -10,7 +10,7 @@ export default defineAddon({
 		sv.devDependency('@sveltejs/enhanced-img', '^0.11.0');
 
 		if (packageManager === 'pnpm') {
-			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds(cwd, 'sharp'));
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['sharp'] }));
 		}
 
 		sv.file(
