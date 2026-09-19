@@ -401,11 +401,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
 	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [directory]);
-	const selectedAdapter = answers['sveltekit-adapter']?.adapter ?? 'auto';
-	const omitAdapterHint =
-		selectedAdapter !== 'auto' &&
-		addOnSuccessfulAddons.some(({ addon }) => addon.id === 'sveltekit-adapter');
-	common.updateReadme(directory, prompt, { omitAdapterHint });
+	common.updateReadme(directory, prompt);
 
 	common.updateAgent(directory, language, packageManager ?? 'npm', loadedAddons);
 
