@@ -1,5 +1,22 @@
 # @sveltejs/sv-utils
 
+## 1.0.0-next.5
+
+### Minor Changes
+
+- fix(sv-utils): detect pnpm version from the target project, and update `pnpm.allowBuilds` signature. ([#1320](https://github.com/sveltejs/cli/pull/1320))
+  
+  ```diff
+  -pnpm.allowBuilds('sharp')
+  +pnpm.allowBuilds({ cwd, packages: ['sharp'] })
+  ```
+
+### Patch Changes
+
+- feat(sv-utils): add `commandExists` ([#1323](https://github.com/sveltejs/cli/pull/1323))
+
+- fix: add zimmerframe types ([#1323](https://github.com/sveltejs/cli/pull/1323))
+
 ## 1.0.0-next.4
 
 ### Patch Changes
