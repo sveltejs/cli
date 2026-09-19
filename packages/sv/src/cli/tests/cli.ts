@@ -8,6 +8,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 /** Matches `sv@1.2.3`, `sv@0.0.0-next.0`, `sv@1.0.0-rc.1+build.5`. */
 const SV_VERSION_REGEX = /sv@\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?/g;
+const ADAPTER_HINT =
+	'To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.';
 
 const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
 const SV_BIN_PATH = path.resolve(ROOT, 'packages', 'sv', 'dist', 'bin.mjs');
@@ -22,6 +24,11 @@ beforeAll(() => {
 describe('cli', () => {
 	const testCases = [
 		{ projectName: 'create-only', args: ['--no-add-ons'] },
+		{
+			projectName: 'create-adapter-auto',
+			args: ['--add', 'sveltekit-adapter=adapter:auto'],
+			snapshot: false
+		},
 		{
 			projectName: 'create-with-all-addons',
 			args: [
@@ -112,6 +119,13 @@ describe('cli', () => {
 			const packageJsonPath = path.resolve(projectPath, 'package.json');
 			const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 			expect(packageJson.name).toBe(projectName);
+
+			const readme = fs.readFileSync(path.resolve(projectPath, 'README.md'), 'utf-8');
+			if (projectName === 'create-with-all-addons' || projectName === 'create-experimental') {
+				expect(readme).not.toContain(ADAPTER_HINT);
+			} else if (projectName === 'create-only' || projectName === 'create-adapter-auto') {
+				expect(readme).toContain(ADAPTER_HINT);
+			}
 
 			const snapPath = path.resolve(
 				ROOT,
