@@ -92,9 +92,11 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		// On Windows, symlinks require admin privileges, so we fall back to copying if symlink fails
 		const dest = path.join(NODE_MODULES, pkg.name.split('/').join(path.sep));
 
-		// ensures that a new symlink/copy is always created
-		if (fs.existsSync(dest)) {
-			fs.rmSync(dest, { recursive: true });
+		// ensures that a new symlink/copy is always created.
+		// `lstat`, not `existsSync`: the latter follows the link, so a symlink left by a
+		// previous run whose target is gone would survive and make `symlinkSync` throw EEXIST
+		if (fs.lstatSync(dest, { throwIfNoEntry: false })) {
+			fs.rmSync(dest, { recursive: true, force: true });
 		}
 
 		// `symlinkSync` doesn't recursively create directories to the `destination` path,

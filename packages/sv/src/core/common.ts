@@ -28,7 +28,10 @@ export const PackageJSONSchema = v.looseObject({
 export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
 
 export const cliOptions = {
-	noDownloadCheck: new Option('--no-download-check', 'skip all download confirmation prompts'),
+	noDownloadCheck: new Option(
+		'--no-download-check',
+		'do not warn about downloads from community add-ons'
+	),
 	noInstall: new Option('--no-install', 'skip installing dependencies')
 };
 

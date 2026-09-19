@@ -36,6 +36,7 @@
 	},
 	"scripts": {
 		"check": "tsgo",
+		"update-kit-template-railway": "./src/create/scripts/update-kit-template-railway.sh",
 		"update-template-repo": "./src/create/scripts/update-template-repo.sh"
 	},
 	"dependencies": {
