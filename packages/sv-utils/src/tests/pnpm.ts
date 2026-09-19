@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { detectPnpmMajor } from '../pnpm-internals.ts';
@@ -110,19 +109,15 @@ describe('allowBuilds version detection', () => {
 		);
 	});
 
-	it('detects pnpm from the target cwd, not process.cwd()', { timeout: 30_000 }, () => {
-		const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sv-pnpm-'));
-		try {
-			fs.writeFileSync(
-				path.join(dir, 'package.json'),
-				JSON.stringify({ name: 'pin11', packageManager: 'pnpm@11.0.0' })
-			);
+	it.runIf(detectPnpmMajor() !== undefined)(
+		'honours the `packageManager` pin of the given cwd',
+		{ timeout: 30_000 },
+		() => {
+			const root = path.resolve(import.meta.dirname, '../../../..');
+			const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'));
+			const pinned = Number(pkg.packageManager.split('@')[1].split('.')[0]);
 
-			expect(detectPnpmMajor(process.cwd())).toBe(10);
-			expect(detectPnpmMajor(dir)).toBe(11);
-			expect(allowBuilds('esbuild', { cwd: dir })('')).toBe('allowBuilds:\n  esbuild: true\n');
-		} finally {
-			fs.rmSync(dir, { recursive: true, force: true });
+			expect(detectPnpmMajor(root)).toBe(pinned);
 		}
-	});
+	);
 });

@@ -25,10 +25,6 @@ export type AllowBuildsOptions = {
 	pnpmVersion?: string | number;
 };
 
-function isAllowBuildsOptions(value: unknown): value is AllowBuildsOptions {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function resolvePnpmMajor(options?: AllowBuildsOptions): number | undefined {
 	if (options?.pnpmVersion !== undefined) {
 		return coerceVersion(String(options.pnpmVersion)).major;
@@ -40,7 +36,8 @@ function resolvePnpmMajor(options?: AllowBuildsOptions): number | undefined {
  * Returns a TransformFn for `pnpm-workspace.yaml` that adds packages to the
  * pnpm "allow builds" config.
  *
- * The helper detects the installed pnpm version (via `pnpm --version`) and:
+ * The helper detects the pnpm version that would run in `cwd` (via `pnpm --version`,
+ * defaulting to `os.tmpdir()` so the invoker's pin isn't inherited) and:
  * - on pnpm `>= 11` writes to the unified `allowBuilds` map (`{ pkg: true }`),
  *   migrating any legacy `onlyBuiltDependencies` list into the map;
  * - on pnpm `< 11` writes to the legacy `onlyBuiltDependencies` list.
@@ -60,23 +57,16 @@ export function allowBuilds(
 ): TransformFn;
 export function allowBuilds(packages: string[], options?: AllowBuildsOptions): TransformFn;
 export function allowBuilds(
-	first?: string | string[] | AllowBuildsOptions,
-	second?: string | AllowBuildsOptions,
-	...rest: Array<string | AllowBuildsOptions>
+	...rest: Array<string | string[] | AllowBuildsOptions | undefined>
 ): TransformFn {
-	const args: Array<string | string[] | AllowBuildsOptions> = [];
-	if (first !== undefined) args.push(first);
-	if (second !== undefined) args.push(second);
-	args.push(...rest);
-
-	let options: AllowBuildsOptions | undefined;
+	const args = rest.filter((arg) => arg !== undefined);
 	const last = args.at(-1);
-	if (isAllowBuildsOptions(last)) {
-		options = last;
-		args.pop();
-	}
+	const options =
+		typeof last === 'object' && !Array.isArray(last)
+			? (args.pop() as AllowBuildsOptions)
+			: undefined;
+	const packages = args.flat() as string[];
 
-	const packages = args.length === 1 && Array.isArray(args[0]) ? args[0] : (args as string[]);
 	const major = resolvePnpmMajor(options);
 	if (major !== undefined && major < 11) return writeLegacy(packages);
 	return writeAllowBuilds(packages);
