@@ -5,15 +5,15 @@ import * as p from '@clack/prompts';
 import {
 	AGENTS,
 	type AgentName,
-	COMMANDS,
+	commandExists,
 	color,
-	constructCommand,
 	detect,
-	pnpm
+	pnpm,
+	resolveCommand
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
-import { exec, execSync } from 'tinyexec';
+import { exec } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -52,7 +52,11 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 }
 
 /** Returns `false` when the package manager isn't installed and the install was skipped. */
-export async function installDependencies(agent: AgentName, cwd: string): Promise<boolean> {
+export async function installDependencies(
+	agent: AgentName,
+	cwd: string,
+	flags: string[] = []
+): Promise<boolean> {
 	if (!isInstalled(agent)) {
 		p.log.warn(`${color.command(agent)} is not installed, skipping dependency installation.`);
 		return false;
@@ -65,12 +69,9 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		retainLog: true
 	});
 
-	const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
+	const { command, args } = resolveCommand(agent, 'install', flags)!;
 
-	const proc = exec(command, args, {
-		nodeOptions: { cwd, stdio: 'pipe' },
-		throwOnError: false
-	});
+	const proc = exec(command, args, { nodeOptions: { cwd }, throwOnError: false });
 
 	const output: string[] = [];
 	try {
@@ -119,16 +120,10 @@ function getUserAgent(): AgentName | undefined {
 
 const installedCache = new Map<AgentName, boolean>();
 function isInstalled(agent: AgentName): boolean {
-	let installed = installedCache.get(agent);
-	if (installed === undefined) {
-		try {
-			execSync(agent, ['--version'], { nodeOptions: { stdio: 'ignore' } });
-			installed = true;
-		} catch {
-			installed = false;
-		}
-		installedCache.set(agent, installed);
-	}
+	const cached = installedCache.get(agent);
+	if (cached !== undefined) return cached;
+	const installed = commandExists(agent);
+	installedCache.set(agent, installed);
 	return installed;
 }
 
@@ -142,6 +137,6 @@ export function addPnpmAllowBuilds(
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.allowBuilds(...packages)(content);
+	const newContent = pnpm.allowBuilds({ cwd, packages })(content);
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }

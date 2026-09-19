@@ -827,7 +827,7 @@ declare namespace pnpm_d_exports {
 	export { allowBuilds };
 }
 
-declare function allowBuilds(...packages: string[]): TransformFn;
+declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
@@ -838,10 +838,9 @@ type Version = {
 declare function minVersion(range: string): string;
 
 declare function coerceVersion(str: string): Version;
-declare function isVersionUnsupportedBelow(
-	versionStr: string,
-	belowStr: string
-): boolean | undefined;
+
+declare function isRangeWithin(subset: string, superset: string): boolean;
+declare function isVersionUnsupportedBelow(version: string, below: string): boolean | undefined;
 type Printer = (content: string, alt?: string) => string;
 declare function createPrinter(...conditions: boolean[]): Printer[];
 
@@ -849,6 +848,8 @@ declare function sanitizeName(name: string, style: 'package' | 'wrangler'): stri
 
 declare function minimizeDiff(old: string, updated: string): string;
 declare const downloadJson: (url: string) => Promise<any>;
+
+declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;
 	version: string;
@@ -1017,6 +1018,7 @@ export {
 	type YamlDocument,
 	coerceVersion,
 	color,
+	commandExists,
 	constructCommand,
 	createPrinter,
 	index_d_exports$1 as css,
@@ -1027,6 +1029,7 @@ export {
 	fileExists,
 	index_d_exports$2 as html,
 	isKit3,
+	isRangeWithin,
 	isVersionUnsupportedBelow,
 	index_d_exports$3 as js,
 	json_d_exports as json,

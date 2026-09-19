@@ -15,16 +15,11 @@ Please keep your pull requests focused to feature or issue. Focused smaller chan
 
 ## Preparing
 
-This is a monorepo, meaning the repo holds multiple packages. It requires the use of [pnpm](https://pnpm.io/). You can [install pnpm](https://pnpm.io/installation) with:
+This project is a monorepo managed with pnpm workspaces. Install it [here](https://pnpm.io/installation).
 
-```sh
-npm i -g pnpm
-```
+For testing, [docker](https://docs.docker.com/get-started/get-docker) is also required. For linux users, you will have to ensure 'sudo' is not required. See [docker post install](https://docs.docker.com/engine/install/linux-postinstall/)
 
-_(Optional)_ For running certain packages and tests locally you will need to install [docker](https://docs.docker.com/get-started/get-docker).
-Linux users, you will have to ensure 'sudo' is not required. See [docker post install](https://docs.docker.com/engine/install/linux-postinstall/)
-
-`pnpm` commands run in the project's root directory will run on all sub-projects. You can checkout the code and install the dependencies with:
+Checkout the code and install the dependencies with:
 
 ```sh
 git clone https://github.com/sveltejs/cli.git
@@ -47,6 +42,11 @@ Run the 'cli' package:
 
 ```sh
 pnpm sv
+pnpm sv create
+pnpm sv add
+pnpm sv migrate
+pnpm sv check
+pnpm sv help
 ```
 
 Run build with watch mode:
@@ -74,10 +74,11 @@ pnpm test --project addons eslint      # Just eslint add-on tests
 pnpm build && pnpm test --project cli  # CLI tests
 ```
 
-Run with vitest ui for interactive debugging:
+For interactive debugging, append `:ui`:
 
-```sh
-pnpm test:ui --project cli
+```diff
+-pnpm test --project cli
++pnpm test:ui --project cli
 ```
 
 Run all tests (slow, typically for CI):
@@ -114,46 +115,24 @@ Some snapshots are testing the output of `sv` directly from the generated binary
 In one command:
 
 ```sh
-pnpm build && pnpm test:ui --project cli
-# Press `u` when prompted to update snapshots.
+pnpm build && pnpm test --project cli --update all
 ```
 
 ## Style Guide
 
 ### Coding style
 
-There are a few guidelines we follow:
+Ensure the following passes:
 
-- Ensure `pnpm lint` and `pnpm check` pass. You can run `pnpm format` to format the code
-- linting
+- `pnpm lint`
+- `pnpm check`
 
-```sh
-# from root of project
-pnpm lint
-```
+Use `pnpm format` to format the code.
 
-- formatting
+## Updating dependencies
 
-```sh
-# from root of project
-pnpm format
-```
-
-- type checking
-
-```sh
-# from root of project
-pnpm check
-```
-
-## svelte-migrate
-
-To run svelte-migrate locally:
-
-```sh
-# from root of project
-node ./packages/migrate/bin.js
-```
+Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
+After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.
 
 ## Deprecation
 
@@ -208,8 +187,3 @@ Choose a scope that identifies the part of the project affected by the change. O
 - `migrate` for migrations and migration tasks
 - `addons` for behavior shared across add-ons, or the add-on name such as `drizzle`, `eslint`, or `better-auth` for a specific add-on
 - `deps` for dependency-only changes
-
-## Updating dependencies
-
-Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
-After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.
