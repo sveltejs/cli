@@ -119,8 +119,8 @@ function clean(source) {
  * Workaround, not a fix: the dts bundler emits `export * as Walker from 'zimmerframe'` as an
  * ambient `declare module 'zimmerframe'` block while the export list still points at the internal
  * chunk name, so `Walker.Visitors` / `Walker.Context` resolve to nothing for consumers.
- * The real fix belongs upstream in the dts bundler (`rolldown-plugin-dts`, used by `tsdown`);
- * delete this once it names the namespace correctly. Tracked in sveltejs/cli#1289.
+ * The real fix belongs upstream: https://github.com/sveltejs/svelte/issues/17520
+ * Delete this workaround once that lands.
  * @param {string} source
  * @returns {string}
  */
