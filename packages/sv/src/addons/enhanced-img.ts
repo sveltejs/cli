@@ -7,7 +7,7 @@ export default defineAddon({
 	homepage: 'https://svelte.dev/docs/kit/images',
 	options: {},
 	run: ({ sv, file, packageManager, cwd }) => {
-		sv.devDependency('@sveltejs/enhanced-img', '^0.11.0');
+		sv.devDependency('@sveltejs/enhanced-img', '^1.0.0-next.5');
 
 		if (packageManager === 'pnpm') {
 			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['sharp'] }));
