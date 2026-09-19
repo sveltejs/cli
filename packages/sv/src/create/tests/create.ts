@@ -94,6 +94,13 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 		}
 
 		if (template === 'demo') {
+			describe('enhanced-img rewrites the welcome image', () => {
+				test(`${template}-${types}`, () => {
+					const page = fs.readFileSync(path.join(cwd, 'src/routes/+page.svelte'), 'utf-8');
+					expect(page).toContain('<enhanced:img src="#lib/images/svelte-welcome.png"');
+				});
+			});
+
 			describe(`local import with extensions`, () => {
 				test(`${template}-${types}`, () => {
 					const ending = types === 'typescript' ? 'ts' : 'js';
