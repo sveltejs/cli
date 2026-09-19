@@ -12,11 +12,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 import { format } from 'oxfmt';
 import oxfmtConfig from '../oxfmt.config.ts';
 
-const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const ROOT = path.resolve(import.meta.dirname, '..');
 
 const packages = [
 	{
@@ -259,7 +258,7 @@ export function fixDtsModuleDeclarations() {
 	}
 }
 
-const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+const isMain = process.argv[1] && import.meta.filename === path.resolve(process.argv[1]);
 
 if (isMain) {
 	fixDtsModuleDeclarations();

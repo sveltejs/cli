@@ -45,15 +45,21 @@ jobs:
           NPM_CONFIG_PROVENANCE: true
 
       - name: Require addon integration tests on Changesets PR
-        if: steps.changesets.outputs.pullRequestNumber != ''
+        if: steps.changesets.outputs['pr-number'] != ''
         run: >-
-          gh pr edit "${{ steps.changesets.outputs.pullRequestNumber }}"
+          gh pr edit "${{ steps.changesets.outputs['pr-number'] }}"
           --add-label needs-addon-integration-tests
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Template Repo
         if: steps.changesets.outputs.published == 'true'
-        run: pnpm -F @sveltejs/create update-template-repo
+        run: pnpm -F sv update-template-repo
         env:
           UPDATE_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_TEMPLATE_SSH_KEY }}
+
+      - name: Update Railway Template Repo
+        if: steps.changesets.outputs.published == 'true'
+        run: pnpm -F sv update-kit-template-railway
+        env:
+          UPDATE_RAILWAY_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_RAILWAY_TEMPLATE_SSH_KEY }}

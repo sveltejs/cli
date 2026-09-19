@@ -275,7 +275,7 @@ Lower-level building blocks, both reading candidate files through an injected `r
 
 Returns a transform for `pnpm-workspace.yaml` that adds packages to the pnpm "allow builds" config. Use with `sv.file` when the project uses pnpm.
 
-The helper detects the installed pnpm version via `pnpm --version`:
+`cwd` is the target project: the pnpm version that would run there (via `pnpm --version`) decides the shape, so the invoker's `packageManager` pin is not used.
 
 - pnpm `>= 11`: writes to the unified `allowBuilds` map (`{ pkg: true }`), migrating any legacy `onlyBuiltDependencies` list into the map.
 - pnpm `< 11`: writes to the legacy `onlyBuiltDependencies` list.
@@ -285,6 +285,9 @@ The helper detects the installed pnpm version via `pnpm --version`:
 import { pnpm } from '@sveltejs/sv-utils';
 
 if (packageManager === 'pnpm') {
-	sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('my-native-dep'));
+	sv.file(
+		file.findUp('pnpm-workspace.yaml'),
+		pnpm.allowBuilds({ cwd, packages: ['my-native-dep'] })
+	);
 }
 ```
