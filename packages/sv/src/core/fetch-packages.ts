@@ -13,7 +13,7 @@ import { PackageJSONSchema, type PackageJSON } from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
 
 const packageJsonPath = packageJson.up({ cwd: import.meta.dirname });
-if (!packageJsonPath) throw Error('This should not happen');
+if (!packageJsonPath) throw new Error('Could not locate the `package.json` of `sv`');
 /** path to the `node_modules` directory of `sv` */
 const NODE_MODULES = path.join(path.dirname(packageJsonPath), 'node_modules');
 
@@ -99,8 +99,6 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 	fs.rmSync(dest, { recursive: true, force: true });
 
 	if (options.path) {
-		// local add-on (i.e. `file:...`)
-
 		// `symlinkSync` doesn't recursively create directories to the `destination` path,
 		// so we'll need to create them before creating the symlink
 		const dir = path.dirname(dest);
@@ -124,7 +122,6 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 			}
 		}
 	} else {
-		// npm add-on (i.e. @supacool)
 		const tarballUrl = pkg.dist?.tarball;
 		if (!tarballUrl) {
 			throw new Error(`Invalid add-on package: '${pkg.name}' is missing 'dist.tarball'`);
