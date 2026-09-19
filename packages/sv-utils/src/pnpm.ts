@@ -1,12 +1,6 @@
 import { detectPnpmMajor, writeAllowBuilds, writeLegacy } from './pnpm-internals.ts';
 import { type TransformFn } from './tooling/transforms.ts';
 
-export type AllowBuildsOptions = {
-	/** Target project directory, whose pnpm version decides which config shape is written. */
-	cwd: string;
-	packages: string[];
-};
-
 /**
  * Returns a TransformFn for `pnpm-workspace.yaml` that adds packages to the
  * pnpm "allow builds" config.
@@ -22,7 +16,12 @@ export type AllowBuildsOptions = {
  * }
  * ```
  */
-export function allowBuilds({ cwd, packages }: AllowBuildsOptions): TransformFn {
+export function allowBuilds(options: {
+	/** Target project directory, whose pnpm version decides which config shape is written. */
+	cwd: string;
+	packages: string[];
+}): TransformFn {
+	const { cwd, packages } = options;
 	const major = detectPnpmMajor(cwd);
 	if (major !== undefined && major < 11) return writeLegacy(packages);
 	return writeAllowBuilds(packages);
