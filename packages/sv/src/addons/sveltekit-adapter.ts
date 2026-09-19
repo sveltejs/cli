@@ -124,7 +124,10 @@ export default defineAddon({
 			sv.devDependency('wrangler', '^4.97.0');
 
 			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('workerd'));
+				sv.file(
+					file.findUp('pnpm-workspace.yaml'),
+					pnpm.allowBuilds({ cwd, packages: ['workerd'] })
+				);
 			}
 
 			// default to jsonc

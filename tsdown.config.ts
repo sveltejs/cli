@@ -112,6 +112,18 @@ export default defineConfig([
 		cwd: path.resolve('packages/sv-utils'),
 		entry: ['src/index.ts'],
 		sourcemap: !process.env.CI,
+		exports: {
+			devExports: true,
+			inlinedDependencies: false,
+			packageJson: false,
+			// `index.d.mts` comes from the DTS-only sv-utils build below, not from this one.
+			customExports: (exports, { isPublish }) => {
+				exports['.'] = isPublish
+					? { types: './dist/index.d.mts', default: './dist/index.mjs' }
+					: './src/index.ts';
+				return exports;
+			}
+		},
 		dts: false,
 		failOnWarn: true,
 		deps: {
