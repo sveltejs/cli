@@ -116,6 +116,7 @@ export default defineConfig([
 			devExports: true,
 			inlinedDependencies: false,
 			packageJson: false,
+			// `index.d.mts` comes from the DTS-only sv-utils build below, not from this one.
 			customExports: (exports, { isPublish }) => {
 				exports['.'] = isPublish
 					? { types: './dist/index.d.mts', default: './dist/index.mjs' }
