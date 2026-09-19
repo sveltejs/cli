@@ -2,4 +2,9 @@
 '@sveltejs/sv-utils': minor
 ---
 
-fix(sv-utils): detect pnpm version from the target project, not the invoker cwd
+fix(sv-utils): detect pnpm version from the target project, and update `pnpm.allowBuilds` signature.
+
+```diff
+-pnpm.allowBuilds('sharp')
++pnpm.allowBuilds({ cwd, packages: ['sharp'] })
+```
