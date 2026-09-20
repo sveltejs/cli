@@ -291,3 +291,12 @@ if (packageManager === 'pnpm') {
 	);
 }
 ```
+
+## Browser usage
+
+The package root pulls in Node-only APIs (file system, package manager detection, shell lookups, terminal colors). For browser bundles - in-browser playgrounds, sandboxes, ... - import `@sveltejs/sv-utils/browser` instead, which exposes the environment-agnostic subset: `parse`, `transforms`, the language namespaces (`js`, `svelte`, `css`, `html`, `json`, `text`), `Walker`, `dedent`, the version helpers, `sanitizeName`, `minimizeDiff`, `createPrinter` and `downloadJson`.
+
+```js
+// @noErrors
+import { parse, transforms } from '@sveltejs/sv-utils/browser';
+```

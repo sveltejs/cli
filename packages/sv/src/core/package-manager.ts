@@ -127,12 +127,18 @@ function isInstalled(agent: AgentName): boolean {
 	return installed;
 }
 
-export function addPnpmAllowBuilds(
-	cwd: string,
-	packageManager: AgentName | null | undefined,
-	...packages: string[]
-): void {
-	if (packageManager !== 'pnpm' || packages.length === 0) return;
+/**
+ * `pnpm.allowBuilds` only transforms content. Add-ons get the read/write for free through
+ * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
+ * `pnpm-workspace.yaml` by hand.
+ */
+export function addAllowBuildsIfPnpm(options: {
+	cwd: string;
+	packageManager: AgentName | null | undefined;
+	packages: string[];
+}): void {
+	const { cwd, packageManager, packages } = options;
+	if (packageManager !== 'pnpm') return;
 
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');

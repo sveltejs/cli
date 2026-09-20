@@ -13,14 +13,14 @@ type Options = {
 	template: TemplateType;
 	types: LanguageType;
 };
-declare function create({ cwd, ...options }: Options): void;
-
+export declare function create({ cwd, ...options }: Options): void;
 type OfficialAddons = {
 	prettier: Addon<any>;
 	eslint: Addon<any>;
 	vitest: Addon<any>;
 	playwright: Addon<any>;
 	tailwindcss: Addon<any>;
+	'enhanced-img': Addon<any>;
 	'sveltekit-adapter': Addon<any>;
 	drizzle: Addon<any>;
 	'better-auth': Addon<any>;
@@ -31,7 +31,7 @@ type OfficialAddons = {
 	experimental: Addon<any>;
 };
 type OfficialAddonId = keyof OfficialAddons;
-declare const officialAddons: OfficialAddons;
+export declare const officialAddons: OfficialAddons;
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -70,7 +70,6 @@ type MultiSelectQuestion<Value> = {
 type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
-
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
@@ -100,7 +99,6 @@ type OptionValues<Args extends OptionDefinition> = {
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
 	cwd: string;
-
 	dependencyVersion: (pkg: string) => string | undefined;
 	language: 'ts' | 'js';
 	file: {
@@ -110,7 +108,6 @@ type Workspace = {
 		package: 'package.json';
 		gitignore: '.gitignore';
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
-
 		findUp: (filename: string) => string;
 	};
 	isKit: boolean;
@@ -128,15 +125,12 @@ type SvApi = {
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
-
 	file: (path: string, edit: FileEdit) => void;
 	removeFile: (path: string) => void;
-
 	files: (
 		options: {
 			include: string | string[];
 			exclude?: string[];
-
 			where?: (content: string) => boolean;
 		},
 		edit: FileEditMultiple
@@ -157,7 +151,6 @@ type Addon<
 	setup?: (
 		workspace: Workspace & {
 			dependsOn: (id: AddonId) => void;
-
 			unsupported: (reason: string) => void;
 			runsAfter: (id: AddonId) => void;
 			addOption: <K extends Extract<keyof Setup, string>>(
@@ -170,7 +163,6 @@ type Addon<
 		workspace: Workspace & {
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			sv: SvApi;
-
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
@@ -180,7 +172,6 @@ type Addon<
 		}
 	) => string[];
 };
-
 type SetupOptions<T extends Record<string, unknown>> = {
 	[K in keyof T]: BaseQuestion<any> &
 		(T[K] extends boolean
@@ -193,11 +184,10 @@ type SetupOptions<T extends Record<string, unknown>> = {
 						? MultiSelectQuestion<V>
 						: Question<any>);
 };
-
-declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
+export declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
 	config: Addon<Args, Id>
 ): Addon<Args, Id>;
-declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
+export declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
 	const Id extends string,
 	Args extends OptionDefinition
 >(
@@ -205,12 +195,10 @@ declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
 		options: Args;
 	}
 ) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
-
 type AddonInput = {
 	readonly specifier: string;
 	readonly options: string[];
 };
-
 type AddonSource =
 	| {
 			readonly kind: 'official';
@@ -232,20 +220,16 @@ type AddonReference = {
 	readonly options: string[];
 	readonly source: AddonSource;
 };
-
 type LoadedAddon = {
 	readonly reference: AddonReference;
 	readonly addon: AddonDefinition;
 };
-
 type PreparedAddon = LoadedAddon & {
 	readonly setupResult: SetupResult;
 };
-
 type ConfiguredAddon = PreparedAddon & {
 	readonly answers: OptionValues<any>;
 };
-
 type AddonResult = {
 	readonly id: string;
 	readonly status:
@@ -271,8 +255,7 @@ type OptionBuilder<T extends OptionDefinition> = {
 	): OptionBuilder<T & Record<K, Q>>;
 	build(): Prettify<T>;
 };
-
-declare function defineAddonOptions(): OptionBuilder<{}>;
+export declare function defineAddonOptions(): OptionBuilder<{}>;
 type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
 	addons: Addons;
@@ -289,7 +272,7 @@ type AddonById<Addons extends AddonMap, Id extends string> = Extract<
 type OptionMap<Addons extends AddonMap> = {
 	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
 };
-declare function add<Addons extends AddonMap>({
+export declare function add<Addons extends AddonMap>({
 	addons,
 	cwd,
 	options,
@@ -319,41 +302,36 @@ type FileType = {
 	condition?: ConditionDefinition;
 	content: (editor: FileEditor) => string;
 };
-export {
-	type Addon,
-	type AddonDefinition,
-	type AddonInput,
-	type AddonMap,
-	type AddonReference,
-	type AddonResult,
-	type AddonSource,
-	type BaseQuestion,
-	type BooleanQuestion,
-	type ConfiguredAddon,
-	type FileEditor,
-	type FileType,
-	type InstallOptions,
-	type LanguageType,
-	type LoadedAddon,
-	type MultiSelectQuestion,
-	type NumberQuestion,
-	type OptionBuilder,
-	type OptionDefinition,
-	type OptionMap,
-	type OptionValues,
-	type PreparedAddon,
-	type Question,
-	type SelectQuestion,
-	type SetupResult,
-	type StringQuestion,
-	type SvApi,
-	type TemplateType,
-	type Workspace,
-	type WorkspaceOptions,
-	add,
-	create,
-	defineAddon,
-	defineAddonOptions,
-	officialAddons
+export type {
+	Addon,
+	AddonDefinition,
+	AddonInput,
+	AddonMap,
+	AddonReference,
+	AddonResult,
+	AddonSource,
+	BaseQuestion,
+	BooleanQuestion,
+	ConfiguredAddon,
+	FileEditor,
+	FileType,
+	InstallOptions,
+	LanguageType,
+	LoadedAddon,
+	MultiSelectQuestion,
+	NumberQuestion,
+	OptionBuilder,
+	OptionDefinition,
+	OptionMap,
+	OptionValues,
+	PreparedAddon,
+	Question,
+	SelectQuestion,
+	SetupResult,
+	StringQuestion,
+	SvApi,
+	TemplateType,
+	Workspace,
+	WorkspaceOptions
 };
 ```

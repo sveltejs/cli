@@ -52,6 +52,7 @@ Do not prompt to install dependencies.
 - [`ai-tools`](ai-tools)
 - [`better-auth`](better-auth)
 - [`drizzle`](drizzle)
+- [`enhanced-img`](enhanced-img)
 - [`eslint`](eslint)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
