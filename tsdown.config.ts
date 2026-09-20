@@ -39,6 +39,12 @@ const svDeps = {
 	]
 };
 
+/**
+ * `rolldown-plugin-dts` warns once per process that the TypeScript 7 API is experimental.
+ * `failOnWarn: true` would turn that notice into a build failure.
+ */
+const TSGO_EXPERIMENTAL_NOTICE = /TypeScript 7\.0 does not yet have a stable API/;
+
 /** Shared `deps` settings for the sv-utils DTS-only builds. */
 const svUtilsDtsDeps = {
 	neverBundle: [/^svelte/, '@types/estree', 'estree', 'yaml', 'package-manager-detector'],
@@ -51,9 +57,10 @@ export default defineConfig([
 		entry: ['src/index.ts', 'src/testing.ts', 'bin.ts'],
 		sourcemap: !process.env.CI,
 		dts: {
-			generator: 'oxc'
+			generator: 'tsgo'
 		},
 		failOnWarn: true,
+		suppressWarnings: TSGO_EXPERIMENTAL_NOTICE,
 		deps: svDeps,
 		plugins: [],
 		inputOptions: {
@@ -86,10 +93,11 @@ export default defineConfig([
 		entry: ['src/index.ts'],
 		outDir: `${API_SURFACE_DIR}/index`,
 		dts: {
-			generator: 'oxc',
+			generator: 'tsgo',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
+		suppressWarnings: TSGO_EXPERIMENTAL_NOTICE,
 		deps: svDeps,
 		inputOptions: {
 			experimental: {
@@ -102,10 +110,11 @@ export default defineConfig([
 		entry: ['src/testing.ts'],
 		outDir: `${API_SURFACE_DIR}/testing`,
 		dts: {
-			generator: 'oxc',
+			generator: 'tsgo',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
+		suppressWarnings: TSGO_EXPERIMENTAL_NOTICE,
 		deps: svDeps,
 		inputOptions: {
 			experimental: {
