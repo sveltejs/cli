@@ -409,11 +409,6 @@ declare namespace zimmerframe {
 	}
 	export {};
 }
-export declare function resolveCommandArray(
-	agent: Agent,
-	command: Command,
-	args: string[]
-): string[];
 declare namespace index_d_exports$1 {
 	export { addAtRule, addDeclaration, addImports, addRule };
 }
@@ -976,10 +971,6 @@ export declare const transforms: {
 	): TransformFn;
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
-declare namespace pnpm_d_exports {
-	export { allowBuilds };
-}
-declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
@@ -998,6 +989,29 @@ export declare function createPrinter(...conditions: boolean[]): Printer[];
 export declare function sanitizeName(name: string, style: 'package' | 'wrangler'): string;
 export declare function minimizeDiff(old: string, updated: string): string;
 export declare const downloadJson: (url: string) => Promise<any>;
+export declare function isKit3(kitRange: string | undefined): boolean;
+export declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
+export declare function libSubpathImports(libDir: string): Record<string, string>;
+export declare const KIT3_TSCONFIG = '$app/tsconfig';
+export declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
+export declare const parse: {
+	css: typeof parseCss;
+	html: typeof parseHtml;
+	json: typeof parseJson;
+	script: typeof parseScript;
+	svelte: typeof parseSvelte;
+	toml: typeof parseToml;
+	yaml: typeof parseYaml;
+};
+export declare function resolveCommandArray(
+	agent: Agent,
+	command: Command,
+	args: string[]
+): string[];
+declare namespace pnpm_d_exports {
+	export { allowBuilds };
+}
+declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
 export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;
@@ -1098,11 +1112,6 @@ type DefineEnv = {
 	importEnv: (ast: estree.Program, js: typeof index_d_exports$3, imports: string[]) => void;
 };
 export declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
-export declare function isKit3(kitRange: string | undefined): boolean;
-export declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
-export declare function libSubpathImports(libDir: string): Record<string, string>;
-export declare const KIT3_TSCONFIG = '$app/tsconfig';
-export declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
 type ColorInput = string | string[];
 export declare const color: {
 	addon: (str: ColorInput) => string;
@@ -1117,15 +1126,6 @@ export declare const color: {
 	warning: (str: ColorInput) => string;
 	error: (str: ColorInput) => string;
 	hidden: (str: ColorInput) => string;
-};
-export declare const parse: {
-	css: typeof parseCss;
-	html: typeof parseHtml;
-	json: typeof parseJson;
-	script: typeof parseScript;
-	svelte: typeof parseSvelte;
-	toml: typeof parseToml;
-	yaml: typeof parseYaml;
 };
 export {
 	AGENTS,

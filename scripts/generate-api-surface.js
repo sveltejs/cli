@@ -40,6 +40,12 @@ const packages = [
 		name: '@sveltejs/sv-utils',
 		dts: 'packages/sv-utils/dist/index.d.mts',
 		out: 'packages/sv-utils/api-surface.md'
+	},
+	{
+		// Subset of the root entry, so no snapshot - it only needs the zimmerframe fix.
+		name: '@sveltejs/sv-utils (browser)',
+		dts: 'packages/sv-utils/dist/browser.d.mts',
+		out: null
 	}
 ];
 
@@ -224,6 +230,7 @@ function annotateDeprecatedExports(cleaned, deprecated) {
 export async function generateApiSurface() {
 	let generated = 0;
 	for (const pkg of packages) {
+		if (!pkg.out) continue;
 		const dtsPath = path.resolve(ROOT, pkg.dts);
 		if (!fs.existsSync(dtsPath)) {
 			console.warn(`  skipped ${pkg.name} - ${pkg.dts} not found (run build first)`);
