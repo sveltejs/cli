@@ -1,5 +1,6 @@
 import { svelteConfig } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 
 // Single source of truth, keyed by flag name. `path` defaults to `experimental.<name>` and `off`
 // opts out of the default selection.
@@ -10,7 +11,9 @@ const FEATURES: Record<string, Feature> = {
 	forkPreloads: { label: 'forked preloading', off: true }
 };
 
-const options = defineAddonOptions()
+export type ExperimentalOptions = { features: string[] };
+
+const options: AddonOptions<ExperimentalOptions> = defineAddonOptions()
 	.add('features', {
 		question: 'Which experimental features do you want to enable?',
 		type: 'multiselect',
@@ -22,7 +25,7 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
+const addon: Addon<AddonOptions<ExperimentalOptions>, 'experimental'> = defineAddon({
 	id: 'experimental',
 	shortDescription: 'svelte & kit experimental features',
 	homepage: 'https://svelte.dev/docs/kit/configuration#experimental',
@@ -41,3 +44,5 @@ export default defineAddon({
 			svelteConfig.edit({ sv, cwd }, ({ override }) => override(config));
 	}
 });
+
+export default addon;
