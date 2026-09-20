@@ -1,5 +1,27 @@
 # sv
 
+## 1.0.0-next.8
+
+### Patch Changes
+
+- fix(sv): clear a previously installed add-on before installing it again, and resolve `sv`'s `node_modules` from its own `package.json` ([#1313](https://github.com/sveltejs/cli/pull/1313))
+
+- fix(migrate): update `@sveltejs/package` for SvelteKit 3 ([#1336](https://github.com/sveltejs/cli/pull/1336))
+
+- fix: don't fail on a local add-on whose previous symlink target is gone ([#1326](https://github.com/sveltejs/cli/pull/1326))
+
+- fix: remove the README adapter hint when a non-`auto` adapter is selected ([#1329](https://github.com/sveltejs/cli/pull/1329))
+
+- feat(sv-utils): add `commandExists` ([#1323](https://github.com/sveltejs/cli/pull/1323))
+
+- feat(cli): Add `@sveltejs/enhanced-img` as a new official addon ([#1300](https://github.com/sveltejs/cli/pull/1300))
+
+- chore(cli): bump `vite` to 8.3 ([#1291](https://github.com/sveltejs/cli/pull/1291))
+
+- fix: add zimmerframe types ([#1323](https://github.com/sveltejs/cli/pull/1323))
+- Updated dependencies [[`7528887`](https://github.com/sveltejs/cli/commit/7528887b0a8e3375fc374199ec021b18d9577360), [`0c50d69`](https://github.com/sveltejs/cli/commit/0c50d693e32973b73c1f9acfe3f7043eb4ce5c3f), [`9b86f62`](https://github.com/sveltejs/cli/commit/9b86f62d08ac1854b8937295905b2e0cb706c01b), [`9b86f62`](https://github.com/sveltejs/cli/commit/9b86f62d08ac1854b8937295905b2e0cb706c01b)]:
+  - @sveltejs/sv-utils@1.0.0-next.5
+
 ## 1.0.0-next.7
 
 ### Patch Changes
