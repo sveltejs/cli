@@ -1,7 +1,10 @@
 import { coerceVersion, color, createPrinter, dedent, transforms } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 
-const options = defineAddonOptions()
+export type VitestOptions = { usages: Array<'unit' | 'component'> };
+
+const options: AddonOptions<VitestOptions> = defineAddonOptions()
 	.add('usages', {
 		question: 'What do you want to use vitest for?',
 		type: 'multiselect',
@@ -17,7 +20,7 @@ const options = defineAddonOptions()
 // Manage only version before current
 let vitestV3Installed = false;
 
-export default defineAddon({
+const addon: Addon<AddonOptions<VitestOptions>, 'vitest'> = defineAddon({
 	id: 'vitest',
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
@@ -214,3 +217,5 @@ export default defineAddon({
 		return toReturn;
 	}
 });
+
+export default addon;

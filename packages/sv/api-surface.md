@@ -14,23 +14,6 @@ type Options = {
 	types: LanguageType;
 };
 export declare function create({ cwd, ...options }: Options): void;
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	enhancedImg: Addon<any>;
-	sveltekitAdapter: Addon<any>;
-	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	aiTools: Addon<any>;
-	experimental: Addon<any>;
-};
-export declare const officialAddons: OfficialAddons;
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -80,6 +63,21 @@ type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<A
 		| MultiSelectQuestion<any>
 	);
 type OptionDefinition = Record<string, Question<any>>;
+type QuestionFor<Value> = BaseQuestion<any> &
+	([Value] extends [boolean]
+		? BooleanQuestion
+		: [Value] extends [number]
+			? NumberQuestion
+			: [Value] extends [Array<infer Item>]
+				? MultiSelectQuestion<Item>
+				: [string] extends [Value]
+					? StringQuestion
+					: SelectQuestion<Value>);
+type AddonOptions<Values extends Record<string, unknown>> = {
+	[K in keyof Values]: QuestionFor<Values[K]>;
+} extends infer Questions extends OptionDefinition
+	? Questions
+	: never;
 type OptionValues<Args extends OptionDefinition> = {
 	[K in keyof Args]: Args[K] extends StringQuestion
 		? string
@@ -95,6 +93,61 @@ type OptionValues<Args extends OptionDefinition> = {
 							? unknown
 							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
+type AiToolsOptions = {
+	ide: string[];
+	delivery: 'plugin' | 'tools';
+	tools: string[];
+	mcpSetup: 'local' | 'remote';
+};
+type BetterAuthOptions = {
+	demo: Array<'password' | 'github'>;
+};
+type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
+type DrizzleOptions = {
+	database: Database;
+	postgresql: 'postgres.js' | 'neon';
+	mysql: 'mysql2' | 'planetscale';
+	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
+	docker: boolean;
+};
+type ExperimentalOptions = {
+	features: string[];
+};
+type ParaglideOptions = {
+	languageTags: string;
+	demo: boolean;
+};
+type SveltekitAdapterOptions = {
+	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	cfTarget: 'workers' | 'pages';
+};
+type TailwindcssOptions = {
+	plugins: Array<'typography' | 'forms'>;
+};
+type VitestOptions = {
+	usages: Array<'unit' | 'component'>;
+};
+type NoOptions = {};
+type OfficialAddons = {
+	prettier: Addon<NoOptions, 'prettier'>;
+	eslint: Addon<NoOptions, 'eslint'>;
+	vitest: Addon<AddonOptions<VitestOptions>, 'vitest'>;
+	playwright: Addon<NoOptions, 'playwright'>;
+	tailwindcss: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'>;
+	enhancedImg: Addon<NoOptions, 'enhanced-img'>;
+	sveltekitAdapter: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'>;
+	drizzle: Addon<AddonOptions<DrizzleOptions>, 'drizzle'>;
+	betterAuth: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'>;
+	mdsvex: Addon<NoOptions, 'mdsvex'>;
+	paraglide: Addon<AddonOptions<ParaglideOptions>, 'paraglide'>;
+	storybook: Addon<NoOptions, 'storybook'>;
+	aiTools: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'>;
+	experimental: Addon<AddonOptions<ExperimentalOptions>, 'experimental'>;
+};
+type OfficialAddonOptions = {
+	[K in keyof OfficialAddons]: OptionValues<OfficialAddons[K]['options']>;
+};
+export declare const officialAddons: OfficialAddons;
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
 	cwd: string;
@@ -305,6 +358,7 @@ export type {
 	AddonDefinition,
 	AddonInput,
 	AddonMap,
+	AddonOptions,
 	AddonReference,
 	AddonResult,
 	AddonSource,
@@ -318,6 +372,8 @@ export type {
 	LoadedAddon,
 	MultiSelectQuestion,
 	NumberQuestion,
+	OfficialAddonOptions,
+	OfficialAddons,
 	OptionBuilder,
 	OptionDefinition,
 	OptionMap,

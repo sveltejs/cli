@@ -8,7 +8,8 @@ import {
 	pnpm,
 	svelteConfig
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0-next.3' },
@@ -23,7 +24,12 @@ const adapters = [
 const ADAPTER_HINT_REGEX =
 	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
-const options = defineAddonOptions()
+export type SveltekitAdapterOptions = {
+	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	cfTarget: 'workers' | 'pages';
+};
+
+const options: AddonOptions<SveltekitAdapterOptions> = defineAddonOptions()
 	.add('adapter', {
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',
@@ -42,7 +48,7 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
+const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> = defineAddon({
 	id: 'sveltekit-adapter',
 	alias: 'adapter',
 	shortDescription: 'deployment',
@@ -230,3 +236,5 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;

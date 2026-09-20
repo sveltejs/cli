@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { log } from '@clack/prompts';
 import { color, transforms } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 import { getSharedFiles } from '../create/utils.ts';
 
 const REGEX_MD = /\.md$/;
@@ -125,7 +126,14 @@ const TOOLS: Record<string, { label: string; kind: 'mcp' | 'skill' | 'agent'; hi
 	'svelte-file-editor': { label: 'svelte-file-editor', kind: 'agent', hint: 'sub-agent' }
 };
 
-const options = defineAddonOptions()
+export type AiToolsOptions = {
+	ide: string[];
+	delivery: 'plugin' | 'tools';
+	tools: string[];
+	mcpSetup: 'local' | 'remote';
+};
+
+const options: AddonOptions<AiToolsOptions> = defineAddonOptions()
 	.add('ide', {
 		question: 'Which client would you like to use?',
 		type: 'multiselect',
@@ -165,7 +173,7 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
+const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 	id: 'ai-tools',
 	shortDescription: 'Svelte AI tools',
 	homepage: 'https://svelte.dev/docs/ai',
@@ -388,3 +396,5 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;
