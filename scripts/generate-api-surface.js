@@ -18,6 +18,8 @@ import oxfmtConfig from '../oxfmt.config.ts';
 const ROOT = path.resolve(import.meta.dirname, '..');
 
 const ZIMMERFRAME_MODULE = /declare module 'zimmerframe'/g;
+// Swallows the line break the comment sat on, so stripping it doesn't leave a blank line.
+const JSDOC_BLOCK = /\n?[ \t]*\/\*\*[\s\S]*?\*\//g;
 const ZIMMERFRAME_WALKER_ALIAS = /index_d_exports\S* as Walker/g;
 
 const packages = [
@@ -71,7 +73,7 @@ function stripSourceMappingUrl(source) {
  * @returns {string}
  */
 function stripJsDoc(source) {
-	return source.replace(/\/\*\*[\s\S]*?\*\//g, (match) => {
+	return source.replace(JSDOC_BLOCK, (match) => {
 		if (/@deprecated\b/.test(match)) {
 			return match;
 		}
