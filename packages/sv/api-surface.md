@@ -14,24 +14,23 @@ type Options = {
 	types: LanguageType;
 };
 export declare function create({ cwd, ...options }: Options): void;
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	'enhanced-img': Addon<any>;
-	'sveltekit-adapter': Addon<any>;
-	drizzle: Addon<any>;
-	'better-auth': Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	'ai-tools': Addon<any>;
-	experimental: Addon<any>;
+declare const ADDON_IDS: {
+	readonly prettier: 'prettier';
+	readonly eslint: 'eslint';
+	readonly vitest: 'vitest';
+	readonly playwright: 'playwright';
+	readonly tailwindcss: 'tailwindcss';
+	readonly enhancedImg: 'enhanced-img';
+	readonly sveltekitAdapter: 'sveltekit-adapter';
+	readonly drizzle: 'drizzle';
+	readonly betterAuth: 'better-auth';
+	readonly mdsvex: 'mdsvex';
+	readonly paraglide: 'paraglide';
+	readonly storybook: 'storybook';
+	readonly aiTools: 'ai-tools';
+	readonly experimental: 'experimental';
 };
-type OfficialAddonId = keyof OfficialAddons;
-export declare const officialAddons: OfficialAddons;
+type OfficialAddonId = (typeof ADDON_IDS)[keyof typeof ADDON_IDS];
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -294,6 +293,8 @@ declare function applyAddons({
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }>;
+type OfficialAddons = { [Id in OfficialAddonId]: Addon<any> };
+export declare const officialAddons: OfficialAddons;
 type FileEditor = Workspace & {
 	content: string;
 };

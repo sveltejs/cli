@@ -1,4 +1,4 @@
-import type { OfficialAddonId } from '../addons/index.ts';
+import type { OfficialAddonId } from '../addons/ids.ts';
 import type {
 	BaseQuestion,
 	BooleanQuestion,

@@ -1,8 +1,7 @@
 import process from 'node:process';
 import { defineAddon } from '../core/config.ts';
 import { getNodeTypesVersion } from './common.ts';
-import eslint from './eslint.ts';
-import vitest from './vitest-addon.ts';
+import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
 	id: 'storybook',
@@ -10,8 +9,8 @@ export default defineAddon({
 	homepage: 'https://storybook.js.org',
 	options: {},
 	setup: ({ runsAfter }) => {
-		runsAfter(vitest.id);
-		runsAfter(eslint.id);
+		runsAfter(ADDON_IDS.vitest);
+		runsAfter(ADDON_IDS.eslint);
 	},
 	run: async ({ sv }) => {
 		const args = [`create-storybook@latest`, '--skip-install', '--no-dev'];

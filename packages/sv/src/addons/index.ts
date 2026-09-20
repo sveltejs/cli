@@ -5,6 +5,7 @@ import drizzle from './drizzle.ts';
 import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
 import experimental from './experimental.ts';
+import type { OfficialAddonId } from './ids.ts';
 import mdsvex from './mdsvex.ts';
 import paraglide from './paraglide.ts';
 import playwright from './playwright.ts';
@@ -14,25 +15,10 @@ import sveltekitAdapter from './sveltekit-adapter.ts';
 import tailwindcss from './tailwindcss.ts';
 import vitest from './vitest-addon.ts';
 
-/** Keyed by `addon.id`. */
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	'enhanced-img': Addon<any>;
-	'sveltekit-adapter': Addon<any>;
-	drizzle: Addon<any>;
-	'better-auth': Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	'ai-tools': Addon<any>;
-	experimental: Addon<any>;
-};
+/** Keyed by `addon.id`, so a drift between `ADDON_IDS` and an add-on's `id` fails to compile. */
+type OfficialAddons = { [Id in OfficialAddonId]: Addon<any> };
 
-export type OfficialAddonId = keyof OfficialAddons;
+export type { OfficialAddonId };
 
 // The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity
@@ -54,7 +40,7 @@ export const officialAddons: OfficialAddons = {
 };
 
 export function getAddonDetails(id: string): AddonDefinition {
-	const details = Object.values(officialAddons).find((a) => a.id === id);
+	const details = officialAddons[id as OfficialAddonId];
 	if (!details) {
 		throw new Error(`Invalid add-on: ${id}`);
 	}
