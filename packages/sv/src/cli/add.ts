@@ -341,6 +341,40 @@ export async function resolveNonOfficialAddons(
 	return selectedAddons;
 }
 
+/**
+ * Walks the `dependsOn` graph and returns the first cycle found as a path
+ * (e.g. `['a', 'b', 'a']`), or `undefined` when the graph is acyclic.
+ */
+export function findDependencyCycle(
+	addonIds: string[],
+	setupResults: Record<string, SetupResult>
+): string[] | undefined {
+	const known = new Set(addonIds);
+	const settled = new Set<string>();
+	const path: string[] = [];
+
+	const visit = (id: string): string[] | undefined => {
+		if (settled.has(id)) return;
+		const cycleStart = path.indexOf(id);
+		if (cycleStart !== -1) return [...path.slice(cycleStart), id];
+
+		path.push(id);
+		for (const depId of setupResults[id]?.dependsOn ?? []) {
+			// deps outside the selection are reported separately as missing
+			if (!known.has(depId)) continue;
+			const cycle = visit(depId);
+			if (cycle) return cycle;
+		}
+		path.pop();
+		settled.add(id);
+	};
+
+	for (const id of addonIds) {
+		const cycle = visit(id);
+		if (cycle) return cycle;
+	}
+}
+
 export async function promptAddonQuestions({
 	options,
 	loadedAddons,
@@ -552,9 +586,6 @@ export async function promptAddonQuestions({
 
 	// add inter-addon dependencies
 	// We need to iterate until no new dependencies are added (to handle transitive dependencies)
-	// Track dependency chains to detect circular dependencies
-	const dependencyChains = new Map<string, Set<string>>();
-
 	let hasNewDependencies = true;
 	while (hasNewDependencies) {
 		hasNewDependencies = false;
@@ -571,48 +602,16 @@ export async function promptAddonQuestions({
 			);
 
 			for (const depId of missingDependencies) {
-				// Check for circular dependencies
-				const addonChain = dependencyChains.get(addonId) ?? new Set();
-				if (addonChain.has(depId)) {
-					// Build the cycle path for a helpful error message
-					const cyclePath = [...addonChain, addonId, depId].join(' → ');
+				// only official add-ons can be pulled in automatically, others need an npm/file reference
+				if (!officialAddons.some((a) => a.id === depId)) {
 					common.errorAndExit(
-						`Circular dependency detected: ${cyclePath}\n` +
-							`Add-ons cannot have circular dependencies.`
+						`'${color.addon(addonId)}' depends on '${color.addon(depId)}', which is not an official add-on.\n` +
+							`Add it to the command explicitly.`
 					);
 				}
 
-				// Track the dependency chain
-				const depChain = new Set(addonChain);
-				depChain.add(addonId);
-				dependencyChains.set(depId, depChain);
-
 				hasNewDependencies = true;
-				const existingLoaded = addons.find((a) => a.addon.id === depId);
-				if (!existingLoaded) {
-					// only official add-ons can be pulled in automatically, others need an npm/file reference
-					const officialDep = officialAddons.find((a) => a.id === depId);
-					if (!officialDep) {
-						throw new Error(
-							`'${addonId}' depends on '${depId}', which is not an official add-on. Add it to the command explicitly.`
-						);
-					}
-					// Add official dependency as new LoadedAddon
-					const officialAddonDetails = getAddonDetails(depId);
-					addons.push(createLoadedAddon(officialAddonDetails));
-					answers[depId] = {};
-					continue;
-				}
-
-				// prompt to install the dependent
-				const install = await p.confirm({
-					message: `The ${color.addon(addonId)} add-on requires ${color.addon(depId)} to also be setup. ${color.success('Include it?')}`
-				});
-				if (install !== true) {
-					p.cancel('Operation cancelled.');
-					process.exit(1);
-				}
-				// Already exists in addons, just add to answers
+				addons.push(createLoadedAddon(getAddonDetails(depId)));
 				answers[depId] = {};
 			}
 		}
@@ -623,6 +622,17 @@ export async function promptAddonQuestions({
 			const newSetupResults = await setupAddons(newlyAddedAddons, workspace);
 			Object.assign(setupResults, newSetupResults);
 		}
+	}
+
+	const cycle = findDependencyCycle(
+		addons.map((a) => a.addon.id),
+		setupResults
+	);
+	if (cycle) {
+		common.errorAndExit(
+			`Circular dependency detected: ${cycle.map((id) => color.addon(id)).join(' \u2192 ')}\n` +
+				`Add-ons cannot have circular dependencies.`
+		);
 	}
 
 	// run verifications after inter-addon deps have been added
