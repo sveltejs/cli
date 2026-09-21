@@ -1,4 +1,4 @@
-import type { officialAddons } from '../addons/index.ts';
+import type { OfficialAddonId } from '../addons/ids.ts';
 import type {
 	BaseQuestion,
 	BooleanQuestion,
@@ -57,6 +57,8 @@ export type SvApi = {
 	) => void;
 };
 
+export type AddonId = OfficialAddonId | (string & {});
+
 export type Addon<
 	Args extends OptionDefinition,
 	Id extends string = string,
@@ -74,8 +76,8 @@ export type Addon<
 	/** Setup the addon. Will be called before the addon is run. */
 	setup?: (
 		workspace: Workspace & {
-			/** On what official addons does this addon depend on? */
-			dependsOn: (name: keyof typeof officialAddons) => void;
+			/** Required add-ons. Implies `runsAfter`. Official ids are installed automatically, others must be part of the same run. */
+			dependsOn: (id: AddonId) => void;
 
 			/**
 			 * Why is this addon not supported?
@@ -84,8 +86,8 @@ export type Addon<
 			 */
 			unsupported: (reason: string) => void;
 
-			/** On what official addons does this addon run after? */
-			runsAfter: (name: keyof typeof officialAddons) => void;
+			/** Ordering only: run after these add-ons when they are part of the same run. */
+			runsAfter: (id: AddonId) => void;
 
 			/** Dynamically add an option to be prompted to the user */
 			addOption: <K extends Extract<keyof Setup, string>>(

@@ -37,9 +37,10 @@ export default defineAddon({
 		})
 		.build(),
 
-	setup: ({ dependsOn, isKit, unsupported, addOption }) => {
+	setup: ({ dependsOn, runsAfter, isKit, unsupported, addOption }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
-		dependsOn('vitest');
+		dependsOn('vitest'); // required add-on
+		runsAfter('prettier'); // ordering only
 
 		// dynamically add options (e.g. based on workspace state or fetched data)
 		// addOption('key', { question: '...', type: 'boolean', default: true });

@@ -5,6 +5,7 @@ import drizzle from './drizzle.ts';
 import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
 import experimental from './experimental.ts';
+import type { OfficialAddonId } from './ids.ts';
 import mdsvex from './mdsvex.ts';
 import paraglide from './paraglide.ts';
 import playwright from './playwright.ts';
@@ -14,44 +15,32 @@ import sveltekitAdapter from './sveltekit-adapter.ts';
 import tailwindcss from './tailwindcss.ts';
 import vitest from './vitest-addon.ts';
 
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	enhancedImg: Addon<any>;
-	sveltekitAdapter: Addon<any>;
-	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	aiTools: Addon<any>;
-	experimental: Addon<any>;
-};
+/** Keyed by `addon.id`, so a drift between `ADDON_IDS` and an add-on's `id` fails to compile. */
+type OfficialAddons = { [Id in OfficialAddonId]: Addon<any> };
+
+export type { OfficialAddonId };
 
 // The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity
 export const officialAddons: OfficialAddons = {
-	prettier,
-	eslint,
-	vitest,
-	playwright,
-	tailwindcss,
-	enhancedImg,
-	sveltekitAdapter,
-	drizzle,
-	betterAuth,
-	mdsvex,
-	paraglide,
-	storybook,
-	aiTools,
-	experimental
+	[prettier.id]: prettier,
+	[eslint.id]: eslint,
+	[vitest.id]: vitest,
+	[playwright.id]: playwright,
+	[tailwindcss.id]: tailwindcss,
+	[enhancedImg.id]: enhancedImg,
+	[sveltekitAdapter.id]: sveltekitAdapter,
+	[drizzle.id]: drizzle,
+	[betterAuth.id]: betterAuth,
+	[mdsvex.id]: mdsvex,
+	[paraglide.id]: paraglide,
+	[storybook.id]: storybook,
+	[aiTools.id]: aiTools,
+	[experimental.id]: experimental
 };
 
 export function getAddonDetails(id: string): AddonDefinition {
-	const details = Object.values(officialAddons).find((a) => a.id === id);
+	const details = officialAddons[id as OfficialAddonId];
 	if (!details) {
 		throw new Error(`Invalid add-on: ${id}`);
 	}
