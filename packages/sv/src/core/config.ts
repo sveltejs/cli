@@ -1,4 +1,4 @@
-import type { officialAddons } from '../addons/index.ts';
+import type { OfficialAddonOptions } from '../addons/options.ts';
 import type {
 	BaseQuestion,
 	BooleanQuestion,
@@ -75,7 +75,7 @@ export type Addon<
 	setup?: (
 		workspace: Workspace & {
 			/** On what official addons does this addon depend on? */
-			dependsOn: (name: keyof typeof officialAddons) => void;
+			dependsOn: (name: keyof OfficialAddonOptions) => void;
 
 			/**
 			 * Why is this addon not supported?
@@ -85,7 +85,7 @@ export type Addon<
 			unsupported: (reason: string) => void;
 
 			/** On what official addons does this addon run after? */
-			runsAfter: (name: keyof typeof officialAddons) => void;
+			runsAfter: (name: keyof OfficialAddonOptions) => void;
 
 			/** Dynamically add an option to be prompted to the user */
 			addOption: <K extends Extract<keyof Setup, string>>(
