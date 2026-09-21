@@ -1094,8 +1094,11 @@ type DemoPage = {
 	listing: [path: `${KitRoutes}/demo/+page.svelte`, transform: TransformFn];
 	header: [path: `${KitRoutes}/Header.svelte`, transform: TransformFn];
 };
-
-declare function defineDemoPage(name: string, language: 'ts' | 'js', kitRoutes: string): DemoPage;
+export declare function defineDemoPage(
+	name: string,
+	language: 'ts' | 'js',
+	kitRoutes: string
+): DemoPage;
 type EnvMode = 'declared' | 'legacy';
 type EnvScope = 'private' | 'public';
 type EnvVarSpec = {
@@ -1144,8 +1147,6 @@ export {
 	type Comments,
 	type ConfigFileReader,
 	type DemoPage,
-	KIT3_TSCONFIG,
-	KIT3_TSCONFIG_DEFAULT,
 	type Package,
 	type SvelteAst,
 	type SvelteConfigKind,
@@ -1157,8 +1158,6 @@ export {
 	constructCommand,
 	index_d_exports$1 as css,
 	dedent,
-	defineDemoPage,
-	defineEnv,
 	detect,
 	index_d_exports$2 as html,
 	index_d_exports$3 as js,
