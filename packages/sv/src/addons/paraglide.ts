@@ -3,13 +3,13 @@ import {
 	color,
 	createPrinter,
 	dedent,
+	defineDemoPage,
 	isKit3,
 	resolveLibPrefix,
 	type SvelteAst,
 	transforms
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -235,11 +235,13 @@ export default defineAddon({
 		);
 
 		if (options.demo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('paraglide', language));
+			const demo = defineDemoPage('paraglide', language, directory.kitRoutes);
+			sv.file(...demo.listing);
+			sv.file(...demo.header);
 
 			// add usage example
 			sv.file(
-				`${directory.kitRoutes}/demo/paraglide/+page.svelte`,
+				`${demo.addonPath}/+page.svelte`,
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },

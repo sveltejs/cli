@@ -83,14 +83,15 @@ export function addSlot(
 }
 
 export function addFragment(
-	ast: SvelteAst.Root,
+	ast: SvelteAst.Root | SvelteAst.BaseElement,
 	content: string,
 	options?: {
 		mode?: 'append' | 'prepend';
 		language?: 'ts' | 'js';
 	}
 ): void {
-	if (options?.language === 'ts') ensureScript(ast, { language: 'ts' });
+	if (options?.language === 'ts' && ast.type === 'Root')
+		ensureScript(ast as SvelteAst.Root, { language: 'ts' });
 
 	const source = options?.language === 'ts' ? `<script lang="ts"></script>${content}` : content;
 	const { ast: fragmentAst } = parseSvelte(source);

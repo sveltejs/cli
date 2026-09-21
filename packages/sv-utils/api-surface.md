@@ -899,7 +899,7 @@ declare function addSlot(
 	}
 ): void;
 declare function addFragment(
-	ast: SvelteAst.Root,
+	ast: SvelteAst.Root | SvelteAst.BaseElement,
 	content: string,
 	options?: {
 		mode?: 'append' | 'prepend';
@@ -1087,6 +1087,18 @@ export declare const svelteConfig: {
 	find: (source: ConfigSource) => SvelteConfigLocation | null;
 	read: (source: ConfigSource) => SvelteConfigObjects | null;
 };
+type KitRoutes = string & {};
+type AddonName = string & {};
+type DemoPage = {
+	addonPath: `${KitRoutes}/demo/${AddonName}`;
+	listing: [path: `${KitRoutes}/demo/+page.svelte`, transform: TransformFn];
+	header: [path: `${KitRoutes}/Header.svelte`, transform: TransformFn];
+};
+export declare function defineDemoPage(
+	name: string,
+	language: 'ts' | 'js',
+	kitRoutes: string
+): DemoPage;
 type EnvMode = 'declared' | 'legacy';
 type EnvScope = 'private' | 'public';
 type EnvVarSpec = {
@@ -1134,6 +1146,7 @@ export {
 	COMMANDS,
 	type Comments,
 	type ConfigFileReader,
+	type DemoPage,
 	type Package,
 	type SvelteAst,
 	type SvelteConfigKind,

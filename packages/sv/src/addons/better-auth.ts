@@ -11,10 +11,10 @@ import {
 	createPrinter,
 	type TransformFn,
 	coerceVersion,
+	defineDemoPage,
 	defineEnv
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
@@ -333,21 +333,21 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
+			const demo = defineDemoPage('better-auth', language, directory.kitRoutes);
+			sv.file(...demo.listing);
+			sv.file(...demo.header);
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
-				(content) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
+			sv.file(`${demo.addonPath}/login/+page.server.${language}`, (content) => {
+				if (content) {
+					const filePath = `${demo.addonPath}/login/+page.server.${language}`;
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
+					return false;
+				}
 
-					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
+				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
-					const signInEmailAction = demoPassword
-						? `
+				const signInEmailAction = demoPassword
+					? `
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const email = formData.get('email')?.toString() ?? '';
@@ -394,10 +394,10 @@ export default defineAddon({
 
 							return redirect(302, '/demo/better-auth');
 						},`
-						: '';
+					: '';
 
-					const signInSocialAction = demoGithub
-						? `
+				const signInSocialAction = demoGithub
+					? `
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = formData.get('provider')?.toString() ?? 'github';
@@ -415,11 +415,11 @@ export default defineAddon({
 							}
 							return fail(400, { message: 'Social sign-in failed' });
 						},`
-						: '';
+					: '';
 
-					const needsAPIError = demoPassword;
+				const needsAPIError = demoPassword;
 
-					return dedent`
+				return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
@@ -436,12 +436,11 @@ export default defineAddon({
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
 				`;
-				}
-			);
+			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/login/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
+					const filePath = `${demo.addonPath}/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -500,9 +499,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`, (content) => {
+			sv.file(`${demo.addonPath}/+page.server.${language}`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
+					const filePath = `${demo.addonPath}/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -532,9 +531,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
+					const filePath = `${demo.addonPath}/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
