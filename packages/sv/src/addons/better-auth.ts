@@ -350,8 +350,8 @@ export default defineAddon({
 						? `
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
+							const email = parseEntry(formData.get('email'));
+							const password = parseEntry(formData.get('password'));
 
 							try {
 								await auth.api.signInEmail({
@@ -372,9 +372,9 @@ export default defineAddon({
 						},
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
-							const name = formData.get('name')?.toString() ?? '';
+							const email = parseEntry(formData.get('email'));
+							const password = parseEntry(formData.get('password'));
+							const name = parseEntry(formData.get('name'));
 
 							try {
 								await auth.api.signUpEmail({
@@ -400,8 +400,8 @@ export default defineAddon({
 						? `
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+							const provider = parseEntry(formData.get('provider')) || 'github';
+							const callbackURL = parseEntry(formData.get('callbackURL')) || '/demo/better-auth';
 
 							const result = await auth.api.signInSocial({
 								body: {
@@ -425,6 +425,9 @@ export default defineAddon({
 					${ts("import type { PageServerLoad } from './$types';")}
 					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
+
+					const parseEntry = (input${ts(' : FormDataEntryValue | null')}): string =>
+						input instanceof File ? input.name : (input ?? '');
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
