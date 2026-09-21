@@ -33,6 +33,12 @@ test.concurrent.for(testCases)('adapter $kind.type $variant', (testCase, { ...ct
 		.map((name) => join(cwd, name))
 		.find((file) => existsSync(file))!;
 
+	const readme = join(cwd, 'README.md');
+	if (existsSync(readme)) {
+		const hasHint = readFileSync(readme, 'utf8').includes('/docs/kit/adapters');
+		expect(hasHint).toBe(testCase.kind.type === 'auto');
+	}
+
 	if (testCase.kind.type === 'node') {
 		expect(readFileSync(viteConfig, 'utf8')).not.toMatch('adapter-auto');
 		expect(readFileSync(viteConfig, 'utf8')).not.toMatch(

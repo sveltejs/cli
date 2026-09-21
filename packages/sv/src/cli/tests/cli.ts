@@ -2,25 +2,33 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { parse } from '@sveltejs/sv-utils';
+import * as find from 'empathic/find';
 import { exec } from 'tinyexec';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 /** Matches `sv@1.2.3`, `sv@0.0.0-next.0`, `sv@1.0.0-rc.1+build.5`. */
 const SV_VERSION_REGEX = /sv@\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?/g;
+const ADAPTER_HINT =
+	'To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.';
 
-const monoRepoPath = path.resolve(__dirname, '..', '..', '..', '..', '..');
-const svBinPath = path.resolve(monoRepoPath, 'packages', 'sv', 'dist', 'bin.mjs');
-const testOutputCliPath = path.resolve(monoRepoPath, 'packages', 'sv', '.test-output', 'cli');
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
+const SV_BIN_PATH = path.resolve(ROOT, 'packages', 'sv', 'dist', 'bin.mjs');
+const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'cli');
 
 beforeAll(() => {
-	if (fs.existsSync(testOutputCliPath)) {
-		fs.rmSync(testOutputCliPath, { force: true, recursive: true });
+	if (fs.existsSync(TEST_DIR)) {
+		fs.rmSync(TEST_DIR, { force: true, recursive: true });
 	}
 });
 
 describe('cli', () => {
 	const testCases = [
 		{ projectName: 'create-only', args: ['--no-add-ons'] },
+		{
+			projectName: 'create-adapter-auto',
+			args: ['--add', 'sveltekit-adapter=adapter:auto'],
+			snapshot: false
+		},
 		{
 			projectName: 'create-with-all-addons',
 			args: [
@@ -72,15 +80,12 @@ describe('cli', () => {
 				snapshot?: boolean;
 			};
 
-			const testOutputPath = path.relative(
-				monoRepoPath,
-				path.resolve(testOutputCliPath, projectName)
-			);
+			const projectPath = path.relative(ROOT, path.resolve(TEST_DIR, projectName));
 
 			const allArgs = [
-				svBinPath,
+				SV_BIN_PATH,
 				'create',
-				testOutputPath,
+				projectPath,
 				'--template',
 				template,
 				...(template === 'addon' ? [] : ['--types', 'ts']),
@@ -88,9 +93,19 @@ describe('cli', () => {
 				...args
 			];
 
+			/**
+			 * Same as `exec`. but `cwd` defaults to `projectPath`
+			 */
+			const run = (...params: Parameters<typeof exec>) => {
+				const [command, args, options = {}] = params;
+				options.nodeOptions ??= {};
+				options.nodeOptions.cwd ??= projectPath;
+				return exec(command, args, options);
+			};
+
 			// useful for debugging
 			// console.log(`command`, `node ${allArgs.join(' ')}`);
-			const result = await exec('node', allArgs, { nodeOptions: { stdio: 'pipe' } });
+			const result = await exec('node', allArgs);
 
 			// cli finished well
 			expect(
@@ -98,15 +113,22 @@ describe('cli', () => {
 				`Error with cli:\n  cmd: node ${allArgs.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
 			).toBe(0);
 			// test output path exists
-			expect(fs.existsSync(testOutputPath)).toBe(true);
+			expect(fs.existsSync(projectPath)).toBe(true);
 
 			// package.json has a name
-			const packageJsonPath = path.resolve(testOutputPath, 'package.json');
+			const packageJsonPath = path.resolve(projectPath, 'package.json');
 			const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 			expect(packageJson.name).toBe(projectName);
 
+			const readme = fs.readFileSync(path.resolve(projectPath, 'README.md'), 'utf-8');
+			if (projectName === 'create-with-all-addons' || projectName === 'create-experimental') {
+				expect(readme).not.toContain(ADAPTER_HINT);
+			} else if (projectName === 'create-only' || projectName === 'create-adapter-auto') {
+				expect(readme).toContain(ADAPTER_HINT);
+			}
+
 			const snapPath = path.resolve(
-				monoRepoPath,
+				ROOT,
 				'packages',
 				'sv',
 				'src',
@@ -116,7 +138,7 @@ describe('cli', () => {
 				projectName
 			);
 			const relativeFiles = snapshot
-				? (fs.readdirSync(testOutputPath, { recursive: true }) as string[])
+				? (fs.readdirSync(projectPath, { recursive: true }) as string[])
 				: [];
 
 			// Files from ai-tools repo (skills, agents) change independently -
@@ -125,7 +147,7 @@ describe('cli', () => {
 			const aiToolsPattern = /[\\/](skills|agents)[\\/]/;
 
 			for (const relativeFile of relativeFiles) {
-				if (!fs.statSync(path.resolve(testOutputPath, relativeFile)).isFile()) continue;
+				if (!fs.statSync(path.resolve(projectPath, relativeFile)).isFile()) continue;
 				if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
 
 				const normalized = relativeFile.replace(/\\/g, '/');
@@ -141,7 +163,7 @@ describe('cli', () => {
 					continue;
 				}
 
-				let generated = fs.readFileSync(path.resolve(testOutputPath, relativeFile), 'utf-8');
+				let generated = fs.readFileSync(path.resolve(projectPath, relativeFile), 'utf-8');
 				if (relativeFile === 'package.json') {
 					const { data: generatedPackageJson } = parse.json(generated);
 					// remove @types/node from generated package.json as we test on different node versions
@@ -191,24 +213,18 @@ describe('cli', () => {
 
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
 				// the generated project lives inside this repo, so it must not join its workspace
-				const installResult = await exec(
-					'pnpm',
-					['install', '--no-frozen-lockfile', '--ignore-workspace'],
-					{ nodeOptions: { stdio: 'pipe', cwd: testOutputPath } }
-				);
+				const installResult = await run('pnpm', [
+					'install',
+					'--no-frozen-lockfile',
+					'--ignore-workspace'
+				]);
 				expect(
 					installResult.exitCode,
 					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`
 				).toBe(0);
-				await exec('pnpm', ['build'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
-				await exec('pnpm', ['auth:schema'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
-				const check = await exec('pnpm', ['check'], {
-					nodeOptions: { stdio: 'pipe', cwd: testOutputPath }
-				});
+				await run('pnpm', ['build']);
+				await run('pnpm', ['auth:schema']);
+				const check = await run('pnpm', ['check']);
 				expect(
 					check.exitCode,
 					`svelte-check failed:\n  stdout: ${check.stdout}\n  stderr: ${check.stderr}`
@@ -216,7 +232,7 @@ describe('cli', () => {
 			}
 
 			if (projectName === 'create-experimental') {
-				const read = (p: string) => fs.readFileSync(path.resolve(testOutputPath, p), 'utf-8');
+				const read = (p: string) => fs.readFileSync(path.resolve(projectPath, p), 'utf-8');
 				const envFile = read('src/env.ts');
 				expect(envFile).toContain('defineEnvVars');
 				expect(envFile).toContain('DATABASE_URL');
@@ -227,7 +243,7 @@ describe('cli', () => {
 
 			if (template === 'addon') {
 				// replace sv and sv-utils versions in package.json for tests
-				const packageJsonPath = path.resolve(testOutputPath, 'package.json');
+				const packageJsonPath = path.resolve(projectPath, 'package.json');
 				const { data: packageJson } = parse.json(fs.readFileSync(packageJsonPath, 'utf-8'));
 				packageJson.peerDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['sv'] = 'file:../../../..';
@@ -247,10 +263,8 @@ describe('cli', () => {
 				for (const cmd of cmds) {
 					// use npm here so the install doesn't walk up into the monorepo's
 					// pnpm workspace and try to resolve packages from there
-					const res = await exec('npm', cmd, {
+					const res = await run('npm', cmd, {
 						nodeOptions: {
-							stdio: 'pipe',
-							cwd: testOutputPath,
 							env: {
 								...process.env,
 								// allow npm under a repo whose packageManager is pnpm

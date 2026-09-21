@@ -129,12 +129,19 @@ export type SetupOptions<T extends Record<string, unknown>> = {
 };
 
 /**
- * The entry point for your addon, It will hold every thing! (options, setup, run, nextSteps, ...)
+ * The entry point for your add-on.
  *
- * For dynamic options added via `addOption` in setup, use the generic to get strong typing:
+ * ```ts
+ * const addon = defineAddon({ id: 'my-addon', options, run });
+ * ```
+ *
+ * If your add-on adds dynamic options via `addOption` during setup, pass their
+ * types as a type argument:
  * ```ts
  * const addon = defineAddon<{ extra: boolean }>()({ ... });
- * addon.options.extra.default // boolean
+ * // Take note of the extra call here:         👆   👆
+ * // This works around Typescript's lack of partial type arguments
+ * addon.options.extra.default; // boolean
  * ```
  */
 export function defineAddon<const Id extends string, Args extends OptionDefinition>(
@@ -148,11 +155,13 @@ export function defineAddon<SetupValues extends Record<string, unknown>>(): <
 		options: Args;
 	}
 ) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
-export function defineAddon(...args: any[]): any {
-	if (args.length === 0) {
-		return (config: any) => config;
+export function defineAddon(
+	config?: AddonDefinition
+): AddonDefinition | ((config: AddonDefinition) => AddonDefinition) {
+	if (config === undefined) {
+		return (c) => c;
 	}
-	return args[0];
+	return config;
 }
 
 // ============================================================================
@@ -267,6 +276,20 @@ export type SetupResult = {
 };
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
+
+/**
+ * Creates a LoadedAddon from an AddonDefinition (for official addons)
+ */
+export function createLoadedAddon(addon: AddonDefinition): LoadedAddon {
+	return {
+		reference: {
+			specifier: addon.id,
+			options: [],
+			source: { kind: 'official', id: addon.id }
+		},
+		addon
+	};
+}
 
 type MaybePromise<T> = Promise<T> | T;
 

@@ -1,5 +1,30 @@
 # sv
 
+## 1.0.0-next.7
+
+### Patch Changes
+
+- chore(sv): replace `tiny-glob` with `fs.readdirSync` ([#1311](https://github.com/sveltejs/cli/pull/1311))
+
+- fix(create): use selected pm in library `build` command ([#1317](https://github.com/sveltejs/cli/pull/1317))
+
+- fix(addon): relax dependency fields restriction on community add-ons ([#1233](https://github.com/sveltejs/cli/pull/1233))
+
+## 1.0.0-next.6
+
+### Patch Changes
+
+- fix(cli): skip formatting if the project has no detectable formatter ([#1298](https://github.com/sveltejs/cli/pull/1298))
+
+- fix(migrate): specify full version range for sveltekit and adapters ([#1292](https://github.com/sveltejs/cli/pull/1292))
+
+## 1.0.0-next.5
+
+### Patch Changes
+
+- Updated dependencies [[`25acc4c`](https://github.com/sveltejs/cli/commit/25acc4c79522e98d4f7d1e56934a1209d332a294)]:
+  - @sveltejs/sv-utils@1.0.0-next.4
+
 ## 1.0.0-next.4
 
 ### Minor Changes

@@ -13,10 +13,10 @@ import {
 	type Package,
 	minimizeDiff
 } from '@sveltejs/sv-utils';
-import { NonZeroExitError, exec } from 'tinyexec';
-import { createLoadedAddon } from '../cli/add.ts';
+import { exec } from 'tinyexec';
 import { filePaths } from './common.ts';
 import {
+	createLoadedAddon,
 	getErrorHint,
 	type Addon,
 	type AddonDefinition,
@@ -416,10 +416,11 @@ export function prepareSvApi(
 					throwOnError: true
 				});
 			} catch (error) {
-				const typedError = error as NonZeroExitError;
-				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
-					cause: error
-				});
+				let message = `Failed to execute scripts '${executedCommand}'`;
+				if (error instanceof Error) {
+					message += `: ${error.message}`;
+				}
+				throw new Error(message, { cause: error });
 			}
 		},
 		dependency: (pkg, version) => {

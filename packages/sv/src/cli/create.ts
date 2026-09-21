@@ -5,12 +5,18 @@ import * as p from '@clack/prompts';
 import { color, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command, Option } from 'commander';
 import * as v from 'valibot';
+import { getAddonDetails } from '../addons/index.ts';
 import * as common from '../core/common.ts';
-import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
+import {
+	createLoadedAddon,
+	type LoadedAddon,
+	type OptionValues,
+	type SetupResult
+} from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmAllowBuilds,
+	addAllowBuildsIfPnpm,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -61,11 +67,6 @@ const addonNameOption = new Option(
 	'--addon-name <name>',
 	'name for the addon package (e.g. @<org>/<pkg> or <pkg>)'
 );
-export const noDownloadCheckOption = new Option(
-	'--no-download-check',
-	'skip all download confirmation prompts'
-);
-export const noInstallOption = new Option('--no-install', 'skip installing dependencies');
 
 const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
@@ -94,10 +95,10 @@ export const create = new Command('create')
 	.addOption(noAddonsOption)
 	.addOption(addOption)
 	.addOption(addonNameOption)
-	.addOption(noInstallOption)
+	.addOption(common.cliOptions.noInstall)
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
-	.addOption(noDownloadCheckOption)
+	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(installOption)
 	.configureHelp({
 		...common.helpConfig,
@@ -334,6 +335,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		answers = result.answers;
 	}
 
+	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
+		const addon = getAddonDetails('enhanced-img');
+		loadedAddons.push(createLoadedAddon(addon));
+		answers['enhanced-img'] = {};
+	}
+
 	createKit({
 		cwd: projectPath,
 		name: projectName,
@@ -357,13 +364,17 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
+
+		if (template === 'library') {
+			common.updateLibraryBuild(projectPath, packageManager);
+		}
 	}
 
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	let addonSetupResults: Record<string, SetupResult> = {};
-	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
+	if (loadedAddons.length > 0) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,
@@ -408,7 +419,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
-	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
+	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
+
 	let depsInstalled = false;
 	if (packageManager) {
 		depsInstalled = await installDependencies(packageManager, projectPath);

@@ -1,7 +1,7 @@
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { setupGlobal } from 'sv/testing';
 
-const TEST_DIR = fileURLToPath(new URL('../../.test-output/', import.meta.url));
+const TEST_DIR = path.resolve(import.meta.dirname, '..', '..', '.test-output');
 
 export default setupGlobal({
 	TEST_DIR,
