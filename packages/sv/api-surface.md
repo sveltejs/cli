@@ -14,23 +14,6 @@ type Options = {
 	types: LanguageType;
 };
 export declare function create({ cwd, ...options }: Options): void;
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	enhancedImg: Addon<any>;
-	sveltekitAdapter: Addon<any>;
-	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	aiTools: Addon<any>;
-	experimental: Addon<any>;
-};
-export declare const officialAddons: OfficialAddons;
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -94,6 +77,1249 @@ type OptionValues<Args extends OptionDefinition> = {
 						: Args[K] extends Question<any>
 							? unknown
 							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
+};
+export declare const officialAddons: {
+	prettier: Addon<{}, 'prettier', Record<string, unknown>>;
+	eslint: Addon<{}, 'eslint', Record<string, unknown>>;
+	vitest: Addon<
+		{
+			usages: {
+				readonly question: 'What do you want to use vitest for?';
+				readonly type: 'multiselect';
+				readonly default: ['unit', 'component'];
+				readonly options: [
+					{
+						readonly value: 'unit';
+						readonly label: 'unit testing';
+					},
+					{
+						readonly value: 'component';
+						readonly label: 'component testing';
+					}
+				];
+				readonly required: true;
+			};
+		},
+		'vitest',
+		Record<string, unknown>
+	>;
+	playwright: Addon<{}, 'playwright', Record<string, unknown>>;
+	tailwindcss: Addon<
+		{
+			plugins: {
+				readonly type: 'multiselect';
+				readonly question: 'Which plugins would you like to add?';
+				readonly options: {
+					value: 'forms' | 'typography';
+					label: 'forms' | 'typography';
+					hint: '@tailwindcss/forms' | '@tailwindcss/typography';
+				}[];
+				readonly default: Array<
+					(readonly [
+						{
+							readonly id: 'typography';
+							readonly package: '@tailwindcss/typography';
+							readonly version: '^0.5.19';
+						},
+						{
+							readonly id: 'forms';
+							readonly package: '@tailwindcss/forms';
+							readonly version: '^0.5.11';
+						}
+					])[number]['id']
+				>;
+				readonly required: false;
+			};
+		},
+		'tailwindcss',
+		Record<string, unknown>
+	>;
+	enhancedImg: Addon<{}, 'enhanced-img', Record<string, unknown>>;
+	sveltekitAdapter: Addon<
+		{
+			adapter: {
+				readonly type: 'select';
+				readonly question: 'Which SvelteKit adapter would you like to use?';
+				readonly default: 'auto';
+				readonly options: {
+					value: 'auto' | 'cloudflare' | 'netlify' | 'node' | 'static' | 'vercel';
+					label: 'auto' | 'cloudflare' | 'netlify' | 'node' | 'static' | 'vercel';
+					hint:
+						| '@sveltejs/adapter-auto'
+						| '@sveltejs/adapter-cloudflare'
+						| '@sveltejs/adapter-netlify'
+						| '@sveltejs/adapter-node'
+						| '@sveltejs/adapter-static'
+						| '@sveltejs/adapter-vercel';
+				}[];
+			};
+			cfTarget: {
+				readonly condition: (
+					options: OptionValues<
+						Record<
+							'adapter',
+							{
+								readonly type: 'select';
+								readonly question: 'Which SvelteKit adapter would you like to use?';
+								readonly default: 'auto';
+								readonly options: {
+									value: 'auto' | 'cloudflare' | 'netlify' | 'node' | 'static' | 'vercel';
+									label: 'auto' | 'cloudflare' | 'netlify' | 'node' | 'static' | 'vercel';
+									hint:
+										| '@sveltejs/adapter-auto'
+										| '@sveltejs/adapter-cloudflare'
+										| '@sveltejs/adapter-netlify'
+										| '@sveltejs/adapter-node'
+										| '@sveltejs/adapter-static'
+										| '@sveltejs/adapter-vercel';
+								}[];
+							}
+						> &
+							Record<'cfTarget', unknown>
+					>
+				) => boolean;
+				readonly type: 'select';
+				readonly question: 'Are you deploying to Workers (assets) or Pages?';
+				readonly default: 'workers';
+				readonly options: [
+					{
+						readonly value: 'workers';
+						readonly label: 'Workers';
+						readonly hint: 'Recommended way to deploy to Cloudflare';
+					},
+					{
+						readonly value: 'pages';
+						readonly label: 'Pages';
+					}
+				];
+			};
+		},
+		'sveltekit-adapter',
+		Record<string, unknown>
+	>;
+	drizzle: Addon<
+		{
+			database: {
+				readonly question: 'Which database would you like to use?';
+				readonly type: 'select';
+				readonly default: 'sqlite';
+				readonly options: [
+					{
+						readonly value: 'postgresql';
+						readonly label: 'PostgreSQL';
+					},
+					{
+						readonly value: 'mysql';
+						readonly label: 'MySQL';
+					},
+					{
+						readonly value: 'sqlite';
+						readonly label: 'SQLite';
+					},
+					{
+						readonly value: 'd1';
+						readonly label: 'Cloudflare D1';
+					}
+				];
+			};
+			docker: {
+				readonly question: 'Do you want to run the database locally with docker-compose?';
+				readonly default: false;
+				readonly type: 'boolean';
+				readonly condition: ({
+					database,
+					mysql,
+					postgresql
+				}: OptionValues<
+					Record<
+						'database',
+						{
+							readonly question: 'Which database would you like to use?';
+							readonly type: 'select';
+							readonly default: 'sqlite';
+							readonly options: [
+								{
+									readonly value: 'postgresql';
+									readonly label: 'PostgreSQL';
+								},
+								{
+									readonly value: 'mysql';
+									readonly label: 'MySQL';
+								},
+								{
+									readonly value: 'sqlite';
+									readonly label: 'SQLite';
+								},
+								{
+									readonly value: 'd1';
+									readonly label: 'Cloudflare D1';
+								}
+							];
+						}
+					> &
+						Record<
+							'postgresql',
+							{
+								readonly question: 'Which PostgreSQL client would you like to use?';
+								readonly type: 'select';
+								readonly group: 'client';
+								readonly default: 'postgres.js';
+								readonly options: [
+									{
+										readonly value: 'postgres.js';
+										readonly label: 'Postgres.JS';
+										readonly hint: 'recommended for most users';
+									},
+									{
+										readonly value: 'neon';
+										readonly label: 'Neon';
+										readonly hint: 'popular hosted platform';
+									}
+								];
+								readonly condition: ({
+									database
+								}: OptionValues<
+									Record<
+										'database',
+										{
+											readonly question: 'Which database would you like to use?';
+											readonly type: 'select';
+											readonly default: 'sqlite';
+											readonly options: [
+												{
+													readonly value: 'postgresql';
+													readonly label: 'PostgreSQL';
+												},
+												{
+													readonly value: 'mysql';
+													readonly label: 'MySQL';
+												},
+												{
+													readonly value: 'sqlite';
+													readonly label: 'SQLite';
+												},
+												{
+													readonly value: 'd1';
+													readonly label: 'Cloudflare D1';
+												}
+											];
+										}
+									> &
+										Record<'postgresql', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<
+							'mysql',
+							{
+								readonly question: 'Which MySQL client would you like to use?';
+								readonly type: 'select';
+								readonly group: 'client';
+								readonly default: 'mysql2';
+								readonly options: [
+									{
+										readonly value: 'mysql2';
+										readonly hint: 'recommended for most users';
+									},
+									{
+										readonly value: 'planetscale';
+										readonly label: 'PlanetScale';
+										readonly hint: 'popular hosted platform';
+									}
+								];
+								readonly condition: ({
+									database
+								}: OptionValues<
+									Record<
+										'database',
+										{
+											readonly question: 'Which database would you like to use?';
+											readonly type: 'select';
+											readonly default: 'sqlite';
+											readonly options: [
+												{
+													readonly value: 'postgresql';
+													readonly label: 'PostgreSQL';
+												},
+												{
+													readonly value: 'mysql';
+													readonly label: 'MySQL';
+												},
+												{
+													readonly value: 'sqlite';
+													readonly label: 'SQLite';
+												},
+												{
+													readonly value: 'd1';
+													readonly label: 'Cloudflare D1';
+												}
+											];
+										}
+									> &
+										Record<
+											'postgresql',
+											{
+												readonly question: 'Which PostgreSQL client would you like to use?';
+												readonly type: 'select';
+												readonly group: 'client';
+												readonly default: 'postgres.js';
+												readonly options: [
+													{
+														readonly value: 'postgres.js';
+														readonly label: 'Postgres.JS';
+														readonly hint: 'recommended for most users';
+													},
+													{
+														readonly value: 'neon';
+														readonly label: 'Neon';
+														readonly hint: 'popular hosted platform';
+													}
+												];
+												readonly condition: ({
+													database
+												}: OptionValues<
+													Record<
+														'database',
+														{
+															readonly question: 'Which database would you like to use?';
+															readonly type: 'select';
+															readonly default: 'sqlite';
+															readonly options: [
+																{
+																	readonly value: 'postgresql';
+																	readonly label: 'PostgreSQL';
+																},
+																{
+																	readonly value: 'mysql';
+																	readonly label: 'MySQL';
+																},
+																{
+																	readonly value: 'sqlite';
+																	readonly label: 'SQLite';
+																},
+																{
+																	readonly value: 'd1';
+																	readonly label: 'Cloudflare D1';
+																}
+															];
+														}
+													> &
+														Record<'postgresql', unknown>
+												>) => boolean;
+											}
+										> &
+										Record<'mysql', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<
+							'sqlite',
+							{
+								readonly question: 'Which SQLite client would you like to use?';
+								readonly type: 'select';
+								readonly group: 'client';
+								readonly default: 'libsql';
+								readonly options: [
+									{
+										readonly value: 'node-sqlite';
+										readonly label: 'node:sqlite';
+										readonly hint: 'built-in to Node.js and Deno';
+									},
+									{
+										readonly value: 'better-sqlite3';
+										readonly hint: 'for server environments';
+									},
+									{
+										readonly value: 'libsql';
+										readonly label: 'libSQL';
+										readonly hint: 'for serverless environments';
+									},
+									{
+										readonly value: 'turso';
+										readonly label: 'Turso';
+										readonly hint: 'popular hosted platform';
+									}
+								];
+								readonly condition: ({
+									database
+								}: OptionValues<
+									Record<
+										'database',
+										{
+											readonly question: 'Which database would you like to use?';
+											readonly type: 'select';
+											readonly default: 'sqlite';
+											readonly options: [
+												{
+													readonly value: 'postgresql';
+													readonly label: 'PostgreSQL';
+												},
+												{
+													readonly value: 'mysql';
+													readonly label: 'MySQL';
+												},
+												{
+													readonly value: 'sqlite';
+													readonly label: 'SQLite';
+												},
+												{
+													readonly value: 'd1';
+													readonly label: 'Cloudflare D1';
+												}
+											];
+										}
+									> &
+										Record<
+											'postgresql',
+											{
+												readonly question: 'Which PostgreSQL client would you like to use?';
+												readonly type: 'select';
+												readonly group: 'client';
+												readonly default: 'postgres.js';
+												readonly options: [
+													{
+														readonly value: 'postgres.js';
+														readonly label: 'Postgres.JS';
+														readonly hint: 'recommended for most users';
+													},
+													{
+														readonly value: 'neon';
+														readonly label: 'Neon';
+														readonly hint: 'popular hosted platform';
+													}
+												];
+												readonly condition: ({
+													database
+												}: OptionValues<
+													Record<
+														'database',
+														{
+															readonly question: 'Which database would you like to use?';
+															readonly type: 'select';
+															readonly default: 'sqlite';
+															readonly options: [
+																{
+																	readonly value: 'postgresql';
+																	readonly label: 'PostgreSQL';
+																},
+																{
+																	readonly value: 'mysql';
+																	readonly label: 'MySQL';
+																},
+																{
+																	readonly value: 'sqlite';
+																	readonly label: 'SQLite';
+																},
+																{
+																	readonly value: 'd1';
+																	readonly label: 'Cloudflare D1';
+																}
+															];
+														}
+													> &
+														Record<'postgresql', unknown>
+												>) => boolean;
+											}
+										> &
+										Record<
+											'mysql',
+											{
+												readonly question: 'Which MySQL client would you like to use?';
+												readonly type: 'select';
+												readonly group: 'client';
+												readonly default: 'mysql2';
+												readonly options: [
+													{
+														readonly value: 'mysql2';
+														readonly hint: 'recommended for most users';
+													},
+													{
+														readonly value: 'planetscale';
+														readonly label: 'PlanetScale';
+														readonly hint: 'popular hosted platform';
+													}
+												];
+												readonly condition: ({
+													database
+												}: OptionValues<
+													Record<
+														'database',
+														{
+															readonly question: 'Which database would you like to use?';
+															readonly type: 'select';
+															readonly default: 'sqlite';
+															readonly options: [
+																{
+																	readonly value: 'postgresql';
+																	readonly label: 'PostgreSQL';
+																},
+																{
+																	readonly value: 'mysql';
+																	readonly label: 'MySQL';
+																},
+																{
+																	readonly value: 'sqlite';
+																	readonly label: 'SQLite';
+																},
+																{
+																	readonly value: 'd1';
+																	readonly label: 'Cloudflare D1';
+																}
+															];
+														}
+													> &
+														Record<
+															'postgresql',
+															{
+																readonly question: 'Which PostgreSQL client would you like to use?';
+																readonly type: 'select';
+																readonly group: 'client';
+																readonly default: 'postgres.js';
+																readonly options: [
+																	{
+																		readonly value: 'postgres.js';
+																		readonly label: 'Postgres.JS';
+																		readonly hint: 'recommended for most users';
+																	},
+																	{
+																		readonly value: 'neon';
+																		readonly label: 'Neon';
+																		readonly hint: 'popular hosted platform';
+																	}
+																];
+																readonly condition: ({
+																	database
+																}: OptionValues<
+																	Record<
+																		'database',
+																		{
+																			readonly question: 'Which database would you like to use?';
+																			readonly type: 'select';
+																			readonly default: 'sqlite';
+																			readonly options: [
+																				{
+																					readonly value: 'postgresql';
+																					readonly label: 'PostgreSQL';
+																				},
+																				{
+																					readonly value: 'mysql';
+																					readonly label: 'MySQL';
+																				},
+																				{
+																					readonly value: 'sqlite';
+																					readonly label: 'SQLite';
+																				},
+																				{
+																					readonly value: 'd1';
+																					readonly label: 'Cloudflare D1';
+																				}
+																			];
+																		}
+																	> &
+																		Record<'postgresql', unknown>
+																>) => boolean;
+															}
+														> &
+														Record<'mysql', unknown>
+												>) => boolean;
+											}
+										> &
+										Record<'sqlite', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<'docker', unknown>
+				>) => boolean;
+			};
+			mysql: {
+				readonly question: 'Which MySQL client would you like to use?';
+				readonly type: 'select';
+				readonly group: 'client';
+				readonly default: 'mysql2';
+				readonly options: [
+					{
+						readonly value: 'mysql2';
+						readonly hint: 'recommended for most users';
+					},
+					{
+						readonly value: 'planetscale';
+						readonly label: 'PlanetScale';
+						readonly hint: 'popular hosted platform';
+					}
+				];
+				readonly condition: ({
+					database
+				}: OptionValues<
+					Record<
+						'database',
+						{
+							readonly question: 'Which database would you like to use?';
+							readonly type: 'select';
+							readonly default: 'sqlite';
+							readonly options: [
+								{
+									readonly value: 'postgresql';
+									readonly label: 'PostgreSQL';
+								},
+								{
+									readonly value: 'mysql';
+									readonly label: 'MySQL';
+								},
+								{
+									readonly value: 'sqlite';
+									readonly label: 'SQLite';
+								},
+								{
+									readonly value: 'd1';
+									readonly label: 'Cloudflare D1';
+								}
+							];
+						}
+					> &
+						Record<
+							'postgresql',
+							{
+								readonly question: 'Which PostgreSQL client would you like to use?';
+								readonly type: 'select';
+								readonly group: 'client';
+								readonly default: 'postgres.js';
+								readonly options: [
+									{
+										readonly value: 'postgres.js';
+										readonly label: 'Postgres.JS';
+										readonly hint: 'recommended for most users';
+									},
+									{
+										readonly value: 'neon';
+										readonly label: 'Neon';
+										readonly hint: 'popular hosted platform';
+									}
+								];
+								readonly condition: ({
+									database
+								}: OptionValues<
+									Record<
+										'database',
+										{
+											readonly question: 'Which database would you like to use?';
+											readonly type: 'select';
+											readonly default: 'sqlite';
+											readonly options: [
+												{
+													readonly value: 'postgresql';
+													readonly label: 'PostgreSQL';
+												},
+												{
+													readonly value: 'mysql';
+													readonly label: 'MySQL';
+												},
+												{
+													readonly value: 'sqlite';
+													readonly label: 'SQLite';
+												},
+												{
+													readonly value: 'd1';
+													readonly label: 'Cloudflare D1';
+												}
+											];
+										}
+									> &
+										Record<'postgresql', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<'mysql', unknown>
+				>) => boolean;
+			};
+			postgresql: {
+				readonly question: 'Which PostgreSQL client would you like to use?';
+				readonly type: 'select';
+				readonly group: 'client';
+				readonly default: 'postgres.js';
+				readonly options: [
+					{
+						readonly value: 'postgres.js';
+						readonly label: 'Postgres.JS';
+						readonly hint: 'recommended for most users';
+					},
+					{
+						readonly value: 'neon';
+						readonly label: 'Neon';
+						readonly hint: 'popular hosted platform';
+					}
+				];
+				readonly condition: ({
+					database
+				}: OptionValues<
+					Record<
+						'database',
+						{
+							readonly question: 'Which database would you like to use?';
+							readonly type: 'select';
+							readonly default: 'sqlite';
+							readonly options: [
+								{
+									readonly value: 'postgresql';
+									readonly label: 'PostgreSQL';
+								},
+								{
+									readonly value: 'mysql';
+									readonly label: 'MySQL';
+								},
+								{
+									readonly value: 'sqlite';
+									readonly label: 'SQLite';
+								},
+								{
+									readonly value: 'd1';
+									readonly label: 'Cloudflare D1';
+								}
+							];
+						}
+					> &
+						Record<'postgresql', unknown>
+				>) => boolean;
+			};
+			sqlite: {
+				readonly question: 'Which SQLite client would you like to use?';
+				readonly type: 'select';
+				readonly group: 'client';
+				readonly default: 'libsql';
+				readonly options: [
+					{
+						readonly value: 'node-sqlite';
+						readonly label: 'node:sqlite';
+						readonly hint: 'built-in to Node.js and Deno';
+					},
+					{
+						readonly value: 'better-sqlite3';
+						readonly hint: 'for server environments';
+					},
+					{
+						readonly value: 'libsql';
+						readonly label: 'libSQL';
+						readonly hint: 'for serverless environments';
+					},
+					{
+						readonly value: 'turso';
+						readonly label: 'Turso';
+						readonly hint: 'popular hosted platform';
+					}
+				];
+				readonly condition: ({
+					database
+				}: OptionValues<
+					Record<
+						'database',
+						{
+							readonly question: 'Which database would you like to use?';
+							readonly type: 'select';
+							readonly default: 'sqlite';
+							readonly options: [
+								{
+									readonly value: 'postgresql';
+									readonly label: 'PostgreSQL';
+								},
+								{
+									readonly value: 'mysql';
+									readonly label: 'MySQL';
+								},
+								{
+									readonly value: 'sqlite';
+									readonly label: 'SQLite';
+								},
+								{
+									readonly value: 'd1';
+									readonly label: 'Cloudflare D1';
+								}
+							];
+						}
+					> &
+						Record<
+							'postgresql',
+							{
+								readonly question: 'Which PostgreSQL client would you like to use?';
+								readonly type: 'select';
+								readonly group: 'client';
+								readonly default: 'postgres.js';
+								readonly options: [
+									{
+										readonly value: 'postgres.js';
+										readonly label: 'Postgres.JS';
+										readonly hint: 'recommended for most users';
+									},
+									{
+										readonly value: 'neon';
+										readonly label: 'Neon';
+										readonly hint: 'popular hosted platform';
+									}
+								];
+								readonly condition: ({
+									database
+								}: OptionValues<
+									Record<
+										'database',
+										{
+											readonly question: 'Which database would you like to use?';
+											readonly type: 'select';
+											readonly default: 'sqlite';
+											readonly options: [
+												{
+													readonly value: 'postgresql';
+													readonly label: 'PostgreSQL';
+												},
+												{
+													readonly value: 'mysql';
+													readonly label: 'MySQL';
+												},
+												{
+													readonly value: 'sqlite';
+													readonly label: 'SQLite';
+												},
+												{
+													readonly value: 'd1';
+													readonly label: 'Cloudflare D1';
+												}
+											];
+										}
+									> &
+										Record<'postgresql', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<
+							'mysql',
+							{
+								readonly question: 'Which MySQL client would you like to use?';
+								readonly type: 'select';
+								readonly group: 'client';
+								readonly default: 'mysql2';
+								readonly options: [
+									{
+										readonly value: 'mysql2';
+										readonly hint: 'recommended for most users';
+									},
+									{
+										readonly value: 'planetscale';
+										readonly label: 'PlanetScale';
+										readonly hint: 'popular hosted platform';
+									}
+								];
+								readonly condition: ({
+									database
+								}: OptionValues<
+									Record<
+										'database',
+										{
+											readonly question: 'Which database would you like to use?';
+											readonly type: 'select';
+											readonly default: 'sqlite';
+											readonly options: [
+												{
+													readonly value: 'postgresql';
+													readonly label: 'PostgreSQL';
+												},
+												{
+													readonly value: 'mysql';
+													readonly label: 'MySQL';
+												},
+												{
+													readonly value: 'sqlite';
+													readonly label: 'SQLite';
+												},
+												{
+													readonly value: 'd1';
+													readonly label: 'Cloudflare D1';
+												}
+											];
+										}
+									> &
+										Record<
+											'postgresql',
+											{
+												readonly question: 'Which PostgreSQL client would you like to use?';
+												readonly type: 'select';
+												readonly group: 'client';
+												readonly default: 'postgres.js';
+												readonly options: [
+													{
+														readonly value: 'postgres.js';
+														readonly label: 'Postgres.JS';
+														readonly hint: 'recommended for most users';
+													},
+													{
+														readonly value: 'neon';
+														readonly label: 'Neon';
+														readonly hint: 'popular hosted platform';
+													}
+												];
+												readonly condition: ({
+													database
+												}: OptionValues<
+													Record<
+														'database',
+														{
+															readonly question: 'Which database would you like to use?';
+															readonly type: 'select';
+															readonly default: 'sqlite';
+															readonly options: [
+																{
+																	readonly value: 'postgresql';
+																	readonly label: 'PostgreSQL';
+																},
+																{
+																	readonly value: 'mysql';
+																	readonly label: 'MySQL';
+																},
+																{
+																	readonly value: 'sqlite';
+																	readonly label: 'SQLite';
+																},
+																{
+																	readonly value: 'd1';
+																	readonly label: 'Cloudflare D1';
+																}
+															];
+														}
+													> &
+														Record<'postgresql', unknown>
+												>) => boolean;
+											}
+										> &
+										Record<'mysql', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<'sqlite', unknown>
+				>) => boolean;
+			};
+		},
+		'drizzle',
+		Record<string, unknown>
+	>;
+	betterAuth: Addon<
+		{
+			demo: {
+				readonly question: 'Which demo would you like to include?';
+				readonly type: 'multiselect';
+				readonly default: ['password'];
+				readonly options: [
+					{
+						readonly value: 'password';
+						readonly label: 'Email & Password';
+					},
+					{
+						readonly value: 'github';
+						readonly label: 'GitHub OAuth';
+					}
+				];
+				readonly required: false;
+			};
+		},
+		'better-auth',
+		Record<string, unknown>
+	>;
+	mdsvex: Addon<{}, 'mdsvex', Record<string, unknown>>;
+	paraglide: Addon<
+		{
+			demo: {
+				readonly type: 'boolean';
+				readonly default: true;
+				readonly question: 'Do you want to include a demo?';
+			};
+			languageTags: {
+				readonly question: `Which languages would you like to support? ${string}`;
+				readonly type: 'string';
+				readonly default: 'en, es';
+				readonly validate: (input: string | undefined) => string | undefined;
+			};
+		},
+		'paraglide',
+		Record<string, unknown>
+	>;
+	storybook: Addon<{}, 'storybook', Record<string, unknown>>;
+	aiTools: Addon<
+		{
+			delivery: {
+				readonly question: 'How would you like to add the Svelte tools?';
+				readonly type: 'select';
+				readonly default: 'plugin';
+				readonly options: [
+					{
+						readonly value: 'plugin';
+						readonly label: 'Svelte plugin';
+						readonly hint: 'recommended, auto-installs & updates';
+					},
+					{
+						readonly value: 'tools';
+						readonly label: 'Individual tools';
+						readonly hint: 'choose exactly what to add';
+					}
+				];
+				readonly condition: ({
+					ide
+				}: OptionValues<
+					Record<
+						'ide',
+						{
+							readonly question: 'Which client would you like to use?';
+							readonly type: 'multiselect';
+							readonly default: [];
+							readonly options: {
+								value: string;
+								label: string;
+							}[];
+							readonly required: true;
+						}
+					> &
+						Record<'delivery', unknown>
+				>) => boolean;
+			};
+			ide: {
+				readonly question: 'Which client would you like to use?';
+				readonly type: 'multiselect';
+				readonly default: [];
+				readonly options: {
+					value: string;
+					label: string;
+				}[];
+				readonly required: true;
+			};
+			mcpSetup: {
+				readonly question: 'Which MCP setup would you like to use?';
+				readonly type: 'select';
+				readonly default: 'remote';
+				readonly options: [
+					{
+						readonly value: 'local';
+						readonly label: 'Local';
+						readonly hint: 'will use stdio';
+					},
+					{
+						readonly value: 'remote';
+						readonly label: 'Remote';
+						readonly hint: 'will use a remote endpoint';
+					}
+				];
+				readonly condition: ({
+					ide,
+					delivery,
+					tools
+				}: OptionValues<
+					Record<
+						'ide',
+						{
+							readonly question: 'Which client would you like to use?';
+							readonly type: 'multiselect';
+							readonly default: [];
+							readonly options: {
+								value: string;
+								label: string;
+							}[];
+							readonly required: true;
+						}
+					> &
+						Record<
+							'delivery',
+							{
+								readonly question: 'How would you like to add the Svelte tools?';
+								readonly type: 'select';
+								readonly default: 'plugin';
+								readonly options: [
+									{
+										readonly value: 'plugin';
+										readonly label: 'Svelte plugin';
+										readonly hint: 'recommended, auto-installs & updates';
+									},
+									{
+										readonly value: 'tools';
+										readonly label: 'Individual tools';
+										readonly hint: 'choose exactly what to add';
+									}
+								];
+								readonly condition: ({
+									ide
+								}: OptionValues<
+									Record<
+										'ide',
+										{
+											readonly question: 'Which client would you like to use?';
+											readonly type: 'multiselect';
+											readonly default: [];
+											readonly options: {
+												value: string;
+												label: string;
+											}[];
+											readonly required: true;
+										}
+									> &
+										Record<'delivery', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<
+							'tools',
+							{
+								readonly question: 'Which tools would you like to add?';
+								readonly type: 'multiselect';
+								readonly default: string[];
+								readonly options: {
+									value: string;
+									label: string;
+									hint: string | undefined;
+								}[];
+								readonly required: false;
+								readonly condition: ({
+									ide,
+									delivery
+								}: OptionValues<
+									Record<
+										'ide',
+										{
+											readonly question: 'Which client would you like to use?';
+											readonly type: 'multiselect';
+											readonly default: [];
+											readonly options: {
+												value: string;
+												label: string;
+											}[];
+											readonly required: true;
+										}
+									> &
+										Record<
+											'delivery',
+											{
+												readonly question: 'How would you like to add the Svelte tools?';
+												readonly type: 'select';
+												readonly default: 'plugin';
+												readonly options: [
+													{
+														readonly value: 'plugin';
+														readonly label: 'Svelte plugin';
+														readonly hint: 'recommended, auto-installs & updates';
+													},
+													{
+														readonly value: 'tools';
+														readonly label: 'Individual tools';
+														readonly hint: 'choose exactly what to add';
+													}
+												];
+												readonly condition: ({
+													ide
+												}: OptionValues<
+													Record<
+														'ide',
+														{
+															readonly question: 'Which client would you like to use?';
+															readonly type: 'multiselect';
+															readonly default: [];
+															readonly options: {
+																value: string;
+																label: string;
+															}[];
+															readonly required: true;
+														}
+													> &
+														Record<'delivery', unknown>
+												>) => boolean;
+											}
+										> &
+										Record<'tools', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<'mcpSetup', unknown>
+				>) => boolean;
+			};
+			tools: {
+				readonly question: 'Which tools would you like to add?';
+				readonly type: 'multiselect';
+				readonly default: string[];
+				readonly options: {
+					value: string;
+					label: string;
+					hint: string | undefined;
+				}[];
+				readonly required: false;
+				readonly condition: ({
+					ide,
+					delivery
+				}: OptionValues<
+					Record<
+						'ide',
+						{
+							readonly question: 'Which client would you like to use?';
+							readonly type: 'multiselect';
+							readonly default: [];
+							readonly options: {
+								value: string;
+								label: string;
+							}[];
+							readonly required: true;
+						}
+					> &
+						Record<
+							'delivery',
+							{
+								readonly question: 'How would you like to add the Svelte tools?';
+								readonly type: 'select';
+								readonly default: 'plugin';
+								readonly options: [
+									{
+										readonly value: 'plugin';
+										readonly label: 'Svelte plugin';
+										readonly hint: 'recommended, auto-installs & updates';
+									},
+									{
+										readonly value: 'tools';
+										readonly label: 'Individual tools';
+										readonly hint: 'choose exactly what to add';
+									}
+								];
+								readonly condition: ({
+									ide
+								}: OptionValues<
+									Record<
+										'ide',
+										{
+											readonly question: 'Which client would you like to use?';
+											readonly type: 'multiselect';
+											readonly default: [];
+											readonly options: {
+												value: string;
+												label: string;
+											}[];
+											readonly required: true;
+										}
+									> &
+										Record<'delivery', unknown>
+								>) => boolean;
+							}
+						> &
+						Record<'tools', unknown>
+				>) => boolean;
+			};
+		},
+		'ai-tools',
+		Record<string, unknown>
+	>;
+	experimental: Addon<
+		{
+			features: {
+				readonly question: 'Which experimental features do you want to enable?';
+				readonly type: 'multiselect';
+				readonly default: string[];
+				readonly options: {
+					value: string;
+					label: string;
+					hint: string | undefined;
+				}[];
+				readonly required: false;
+			};
+		},
+		'experimental',
+		Record<string, unknown>
+	>;
 };
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {

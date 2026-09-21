@@ -34,7 +34,10 @@ const packages = [
 	{
 		name: 'sv (testing)',
 		dts: 'packages/sv/dts-api-surface/testing/testing.d.mts',
-		out: 'packages/sv/api-surface-testing.md'
+		out: 'packages/sv/api-surface-testing.md',
+		// `testing.ts` re-exports most of the root entry, so its DTS repeats those declarations
+		// verbatim. Keeping both copies makes every shared change show up twice in review.
+		dedupeAgainst: 'sv'
 	},
 	{
 		name: '@sveltejs/sv-utils',
@@ -149,6 +152,76 @@ function zimmerframeFix(source) {
 		.replace(ZIMMERFRAME_WALKER_ALIAS, 'zimmerframe as Walker');
 }
 
+const LEADING_EXPORT = /^export\s+/;
+const DECLARATION_HEADER =
+	/^(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?(?:type|interface|class|function|const|let|var|enum|namespace)\s+([A-Za-z0-9_$]+)/;
+
+/**
+ * Comparison form of a declaration: `export` is dropped so a declaration shared between two
+ * entries still matches when only one of them re-exports it.
+ * @param {string} text
+ * @returns {string}
+ */
+function normalizeBlock(text) {
+	return text.trim().replace(LEADING_EXPORT, '');
+}
+
+/**
+ * Split cleaned declaration text into top-level blocks, keyed by declared name.
+ * Anything that isn't a named declaration (export lists, comments) stays in `rest`.
+ * @param {string} source
+ * @returns {{ blocks: Array<{ name: string | null, text: string }> }}
+ */
+function splitTopLevelBlocks(source) {
+	/** @type {Array<{ name: string | null, text: string }>} */
+	const blocks = [];
+	let depth = 0;
+	/** @type {string[]} */
+	let current = [];
+
+	for (const line of source.split('\n')) {
+		current.push(line);
+		for (const char of line) {
+			if (char === '{' || char === '(' || char === '[') depth++;
+			else if (char === '}' || char === ')' || char === ']') depth--;
+		}
+		if (depth > 0) continue;
+
+		const text = current.join('\n');
+		if (text.trim() !== '') {
+			const name = text.trim().match(DECLARATION_HEADER)?.[1] ?? null;
+			blocks.push({ name, text });
+		}
+		current = [];
+	}
+
+	if (current.length > 0) blocks.push({ name: null, text: current.join('\n') });
+	return { blocks };
+}
+
+/**
+ * Drop declarations that already appear, byte-identical, in another package's surface.
+ * The dropped names are listed in a single pointer comment instead.
+ * @param {string} cleaned
+ * @param {string} otherName
+ * @param {Map<string, string>} otherBlocks declared name -> declaration text
+ * @returns {string}
+ */
+function dedupeAgainst(cleaned, otherName, otherBlocks) {
+	/** @type {string[]} */
+	const shared = [];
+	const kept = splitTopLevelBlocks(cleaned).blocks.filter(({ name, text }) => {
+		if (!name || otherBlocks.get(name) !== normalizeBlock(text)) return true;
+		shared.push(name);
+		return false;
+	});
+
+	if (shared.length === 0) return cleaned;
+
+	const pointer = `// Identical to \`${otherName}\`, see its api-surface: ${shared.sort().join(', ')}\n`;
+	return pointer + collapseBlankLines(kept.map(({ text }) => text).join('\n')).trim() + '\n';
+}
+
 /**
  * Format a file with repo Oxfmt options.
  * @param {string} absPath absolute path to the markdown file
@@ -229,6 +302,9 @@ function annotateDeprecatedExports(cleaned, deprecated) {
 /** @returns {Promise<number>} number of api-surface files written */
 export async function generateApiSurface() {
 	let generated = 0;
+	/** @type {Map<string, Map<string, string>>} package name -> (declared name -> declaration text) */
+	const surfaces = new Map();
+
 	for (const pkg of packages) {
 		if (!pkg.out) continue;
 		const dtsPath = path.resolve(ROOT, pkg.dts);
@@ -241,6 +317,23 @@ export async function generateApiSurface() {
 		const deprecated = collectDeprecatedFromChunks(raw, path.dirname(dtsPath));
 		let cleaned = clean(raw);
 		cleaned = annotateDeprecatedExports(cleaned, deprecated);
+
+		surfaces.set(
+			pkg.name,
+			new Map(
+				splitTopLevelBlocks(cleaned)
+					.blocks.filter(({ name }) => name)
+					.map(({ name, text }) => [/** @type {string} */ (name), normalizeBlock(text)])
+			)
+		);
+
+		const other = pkg.dedupeAgainst && surfaces.get(pkg.dedupeAgainst);
+		if (pkg.dedupeAgainst && !other) {
+			throw new Error(
+				`"${pkg.name}" dedupes against "${pkg.dedupeAgainst}", which must be generated before it.`
+			);
+		}
+		if (other) cleaned = dedupeAgainst(cleaned, pkg.dedupeAgainst, other);
 
 		const header =
 			`# ${pkg.name} - Public API Surface\n\n` +
