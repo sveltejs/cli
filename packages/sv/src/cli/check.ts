@@ -1,8 +1,8 @@
-import { execSync } from 'node:child_process';
 import process from 'node:process';
-import { color, resolveCommandArray } from '@sveltejs/sv-utils';
+import { color, resolveCommand, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as resolve from 'empathic/resolve';
+import { execSync } from 'tinyexec';
 import { forwardExitCode } from '../core/common.ts';
 import { detectPackageManager } from '../core/package-manager.ts';
 
@@ -39,8 +39,8 @@ async function runCheck(cwd: string, args: string[]) {
 
 	// avoids printing the stack trace for `sv` when `svelte-check` exits with an error code
 	try {
-		const cmd = resolveCommandArray(pm, 'execute-local', ['svelte-check', ...args]).join(' ');
-		execSync(cmd, { stdio: 'inherit', cwd });
+		const cmd = resolveCommand(pm, 'execute-local', ['svelte-check', ...args])!;
+		execSync(cmd.command, cmd.args, { nodeOptions: { cwd, stdio: 'inherit' }, throwOnError: true });
 	} catch (error) {
 		forwardExitCode(error);
 	} finally {

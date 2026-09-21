@@ -19,6 +19,10 @@ const adapters = [
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0-next.8' }
 ] as const;
 
+/** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */
+const ADAPTER_HINT_REGEX =
+	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
+
 const options = defineAddonOptions()
 	.add('adapter', {
 		type: 'select',
@@ -75,6 +79,13 @@ export default defineAddon({
 
 		sv.devDependency(adapter.package, adapter.version);
 
+		if (adapter.package !== '@sveltejs/adapter-auto') {
+			sv.file(
+				'README.md',
+				transforms.text(({ content }) => content.replace(ADAPTER_HINT_REGEX, ''))
+			);
+		}
+
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
 			// finds any existing adapter's import declaration
 			const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -113,7 +124,10 @@ export default defineAddon({
 			sv.devDependency('wrangler', '^4.97.0');
 
 			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('workerd'));
+				sv.file(
+					file.findUp('pnpm-workspace.yaml'),
+					pnpm.allowBuilds({ cwd, packages: ['workerd'] })
+				);
 			}
 
 			// default to jsonc

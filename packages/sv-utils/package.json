@@ -1,6 +1,6 @@
 {
 	"name": "@sveltejs/sv-utils",
-	"version": "1.0.0-next.2",
+	"version": "1.0.0-next.4",
 	"description": "Utility functions for sv",
 	"keywords": [
 		"sv",
@@ -19,9 +19,19 @@
 	],
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"default": "./dist/index.mjs"
+		".": "./src/index.ts",
+		"./browser": "./src/browser.ts"
+	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"types": "./dist/index.d.mts",
+				"default": "./dist/index.mjs"
+			},
+			"./browser": {
+				"types": "./dist/browser.d.mts",
+				"default": "./dist/browser.mjs"
+			}
 		}
 	},
 	"scripts": {
@@ -32,7 +42,7 @@
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.2",
 		"diff": "^9.0.0",
-		"esrap": "^2.3.3",
+		"esrap": "^2.3.6",
 		"package-manager-detector": "^1.8.0",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.6.1",

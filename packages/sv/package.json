@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "1.0.0-next.3",
+	"version": "1.0.0-next.7",
 	"description": "A command line interface (CLI) for creating and maintaining Svelte applications",
 	"keywords": [
 		"create",
@@ -35,7 +35,9 @@
 		}
 	},
 	"scripts": {
-		"check": "tsgo"
+		"check": "tsgo",
+		"update-kit-template-railway": "./src/create/scripts/update-kit-template-railway.sh",
+		"update-template-repo": "./src/create/scripts/update-template-repo.sh"
 	},
 	"dependencies": {
 		"@sveltejs/sv-utils": "workspace:*"
@@ -52,7 +54,6 @@
 		"ps-tree": "^1.2.0",
 		"sucrase": "^3.35.1",
 		"svelte": "^5.56.9",
-		"tiny-glob": "^0.2.9",
 		"tinyexec": "^1.2.4",
 		"valibot": "^1.4.1"
 	}

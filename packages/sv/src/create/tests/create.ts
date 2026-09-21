@@ -1,35 +1,28 @@
-import { type PromiseWithChild, exec as nodeExec } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
-import { exec } from 'tinyexec';
+import * as find from 'empathic/find';
+import { exec, type Result } from 'tinyexec';
 import { beforeAll, describe, expect, test } from 'vitest';
-import { add, officialAddons } from '../../../../sv/src/index.ts';
 import { createProject } from '../../cli/create.ts';
-import { type LanguageType, type TemplateType, create } from '../index.ts';
+import { type LanguageType, type TemplateType } from '../index.ts';
 
-// Resolve the given path relative to the current file
-const resolve_path = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-
-// use a directory outside of packages to ensure it isn't added to the pnpm workspace
-const test_workspace_dir = resolve_path('../../../../../.test-output/create/');
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
+const TEMPLATES_DIR = path.resolve(ROOT, 'packages', 'sv', 'src', 'create', 'templates');
+const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'create');
 
 // prepare test pnpm workspace
-fs.rmSync(test_workspace_dir, { recursive: true, force: true });
-fs.mkdirSync(test_workspace_dir, { recursive: true });
+fs.rmSync(TEST_DIR, { recursive: true, force: true });
+fs.mkdirSync(TEST_DIR, { recursive: true });
 
-fs.writeFileSync(path.join(test_workspace_dir, 'pnpm-workspace.yaml'), 'packages:\n  - ./*\n');
-
-const exec_async = promisify(nodeExec);
+fs.writeFileSync(path.join(TEST_DIR, 'pnpm-workspace.yaml'), 'packages:\n  - ./*\n');
 
 beforeAll(async () => {
 	const install = await exec('pnpm', ['install', '--no-frozen-lockfile'], {
-		nodeOptions: { cwd: test_workspace_dir, stdio: 'pipe' }
+		nodeOptions: { cwd: TEST_DIR }
 	});
 	if (install.exitCode !== 0) {
 		throw new Error(
-			`pnpm install failed in ${test_workspace_dir}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+			`pnpm install failed in ${TEST_DIR}\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
 		);
 	}
 }, 60000);
@@ -38,15 +31,15 @@ beforeAll(async () => {
  * Tests in different templates can be run concurrently for a nice speedup locally, but tests within a template must be run sequentially.
  * It'd be better to group tests by template, but vitest doesn't support that yet.
  */
-const script_test_map = new Map<string, Array<[string, () => PromiseWithChild<any>]>>();
+const script_test_map = new Map<string, Array<[string, () => Result]>>();
 
-const templates = fs.readdirSync(resolve_path('../templates/')) as TemplateType[];
+const templates = fs.readdirSync(TEMPLATES_DIR) as TemplateType[];
 
 for (const template of templates.filter((t) => t !== 'addon')) {
 	if (template[0] === '.') continue;
 
 	for (const types of ['checkjs', 'typescript', 'none'] as LanguageType[]) {
-		const cwd = path.join(test_workspace_dir, `${template}-${types}`);
+		const cwd = path.join(TEST_DIR, `${template}-${types}`);
 		fs.rmSync(cwd, { recursive: true, force: true });
 
 		if (template === 'demo' && types === 'typescript') {
@@ -71,8 +64,16 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 				});
 			});
 		} else {
-			create({ cwd, name: `create-svelte-test-${template}-${types}`, template, types });
-			await add({ cwd, addons: { eslint: officialAddons.eslint }, options: { eslint: {} } });
+			await createProject(cwd, {
+				types,
+				addOns: true,
+				add: ['eslint'],
+				install: false,
+				template,
+				fromPlayground: undefined,
+				dirCheck: false,
+				downloadCheck: false
+			});
 		}
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf-8'));
@@ -85,11 +86,23 @@ for (const template of templates.filter((t) => t !== 'addon')) {
 
 		for (const script of scripts_to_test) {
 			const tests = script_test_map.get(script) ?? [];
-			tests.push([`${template}-${types}`, () => exec_async(`pnpm ${script}`, { cwd })]);
+			tests.push([
+				`${template}-${types}`,
+				() => exec('pnpm', [script], { nodeOptions: { cwd }, throwOnError: true })
+			]);
 			script_test_map.set(script, tests);
 		}
 
 		if (template === 'demo') {
+			describe('enhanced-img rewrites the welcome image', () => {
+				test(`${template}-${types}`, () => {
+					const page = fs.readFileSync(path.join(cwd, 'src/routes/+page.svelte'), 'utf-8');
+					expect(page).not.toContain("svelte-welcome.png';");
+					expect(page).toContain('<enhanced:img');
+					expect(page).toContain('src="#lib/images/svelte-welcome.png"');
+				});
+			});
+
 			describe(`local import with extensions`, () => {
 				test(`${template}-${types}`, () => {
 					const ending = types === 'typescript' ? 'ts' : 'js';

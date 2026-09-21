@@ -283,14 +283,11 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: () => {
-		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
-		if (options.demo) {
-			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
-		}
-
-		return steps;
-	}
+	nextSteps: () =>
+		[
+			`Edit your messages in ${color.path('messages/en.json')}`,
+			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
+		].filter((line): line is string => Boolean(line))
 });
 
 const isValidLanguageTag = (languageTag: string): boolean =>
