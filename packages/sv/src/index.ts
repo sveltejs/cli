@@ -4,11 +4,13 @@ export { create } from './create/index.ts';
 export { add } from './core/engine.ts';
 export type { AddonMap, InstallOptions, OptionMap } from './core/engine.ts';
 export { officialAddons } from './addons/index.ts';
+export type { OfficialAddons, OfficialAddonOptions } from './addons/index.ts';
 // Addon authoring API
 export { defineAddon, defineAddonOptions } from './core/config.ts';
 
 // options.ts - question types for addon options
 export type {
+	AddonOptions,
 	Question,
 	OptionDefinition,
 	OptionValues,

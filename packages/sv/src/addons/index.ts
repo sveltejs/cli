@@ -1,34 +1,47 @@
 import type { Addon, AddonDefinition } from '../core/config.ts';
-import aiTools from './ai-tools.ts';
-import betterAuth from './better-auth.ts';
-import drizzle from './drizzle.ts';
+import type { AddonOptions, OptionValues } from '../core/options.ts';
+import aiTools, { type AiToolsOptions } from './ai-tools.ts';
+import betterAuth, { type BetterAuthOptions } from './better-auth.ts';
+import drizzle, { type DrizzleOptions } from './drizzle.ts';
 import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
-import experimental from './experimental.ts';
+import experimental, { type ExperimentalOptions } from './experimental.ts';
 import mdsvex from './mdsvex.ts';
-import paraglide from './paraglide.ts';
+import paraglide, { type ParaglideOptions } from './paraglide.ts';
 import playwright from './playwright.ts';
 import prettier from './prettier.ts';
 import storybook from './storybook.ts';
-import sveltekitAdapter from './sveltekit-adapter.ts';
-import tailwindcss from './tailwindcss.ts';
-import vitest from './vitest-addon.ts';
+import sveltekitAdapter, { type SveltekitAdapterOptions } from './sveltekit-adapter.ts';
+import tailwindcss, { type TailwindcssOptions } from './tailwindcss.ts';
+import vitest, { type VitestOptions } from './vitest-addon.ts';
 
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	enhancedImg: Addon<any>;
-	sveltekitAdapter: Addon<any>;
-	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	aiTools: Addon<any>;
-	experimental: Addon<any>;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- an add-on without options has no values
+type NoOptions = {};
+
+/**
+ * Each add-on declares the values of its own options; this table only wires them to an id.
+ * The assignment below is what keeps it honest - no drift test needed.
+ */
+export type OfficialAddons = {
+	prettier: Addon<NoOptions, 'prettier'>;
+	eslint: Addon<NoOptions, 'eslint'>;
+	vitest: Addon<AddonOptions<VitestOptions>, 'vitest'>;
+	playwright: Addon<NoOptions, 'playwright'>;
+	tailwindcss: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'>;
+	enhancedImg: Addon<NoOptions, 'enhanced-img'>;
+	sveltekitAdapter: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'>;
+	drizzle: Addon<AddonOptions<DrizzleOptions>, 'drizzle'>;
+	betterAuth: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'>;
+	mdsvex: Addon<NoOptions, 'mdsvex'>;
+	paraglide: Addon<AddonOptions<ParaglideOptions>, 'paraglide'>;
+	storybook: Addon<NoOptions, 'storybook'>;
+	aiTools: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'>;
+	experimental: Addon<AddonOptions<ExperimentalOptions>, 'experimental'>;
+};
+
+/** Option values of every official add-on, keyed like {@link officialAddons}. */
+export type OfficialAddonOptions = {
+	[K in keyof OfficialAddons]: OptionValues<OfficialAddons[K]['options']>;
 };
 
 // The order of addons here determines the order they are displayed inside the CLI

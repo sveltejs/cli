@@ -13,8 +13,8 @@ import {
 	defineEnv,
 	isKit3
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import type { OptionValues } from '../core/options.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions, OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
@@ -25,7 +25,15 @@ const PORTS: Record<Database, string> = {
 	d1: ''
 };
 
-const options = defineAddonOptions()
+export type DrizzleOptions = {
+	database: Database;
+	postgresql: 'postgres.js' | 'neon';
+	mysql: 'mysql2' | 'planetscale';
+	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
+	docker: boolean;
+};
+
+const options: AddonOptions<DrizzleOptions> = defineAddonOptions()
 	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',
@@ -82,7 +90,7 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
+const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 	id: 'drizzle',
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
@@ -556,6 +564,8 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;
 
 type GenerateEnv = (opts: OptionValues<typeof options>, isExample: boolean) => TransformFn;
 const generateEnv: GenerateEnv = (opts, isExample) =>

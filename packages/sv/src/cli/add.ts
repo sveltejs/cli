@@ -32,7 +32,8 @@ import {
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../core/verifiers.ts';
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
 
-const officialAddons = Object.values(_officialAddons);
+// Narrow types are great for add-on authors, but the CLI only ever treats add-ons generically.
+const officialAddons = Object.values(_officialAddons) as AddonDefinition[];
 const addonOptions = getAddonOptionFlags();
 
 const OptionsSchema = v.strictObject({
