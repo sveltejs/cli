@@ -131,8 +131,7 @@ Use `pnpm format` to format the code.
 
 ## Updating dependencies
 
-Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
-After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.
+Run `pnpm update-deps` to recursively update the dependencies of all: addons, `create` templates, `package.json`s and github actions to latest.
 
 ## Deprecation
 

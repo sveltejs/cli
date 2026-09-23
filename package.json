@@ -17,7 +17,7 @@
 		"test:ci": "vitest run --silent --project=!addons",
 		"test:ecosystem-ci": "vitest run --exclude='**/storybook/test.ts'",
 		"test:ui": "vitest --ui",
-		"update-deps": "node ./scripts/update-dependencies.js && pnpm format"
+		"update-deps": "node ./scripts/update-dependencies.js && pnpm update -r --latest --include-github-actions && pnpm format"
 	},
 	"devDependencies": {
 		"@changesets/changelog-github": "1.0.0",
