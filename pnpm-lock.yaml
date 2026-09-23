@@ -1,3 +1,202 @@
+---
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    configDependencies: {}
+    packageManagerDependencies:
+      '@pnpm/exe':
+        specifier: ^11.27.1
+        version: 11.27.1
+      pnpm:
+        specifier: ^11.27.1
+        version: 11.27.1
+
+packages:
+
+  '@pnpm/exe@11.27.1':
+    resolution: {integrity: sha512-jPZL1+kYXNqI6D9sWNKPq+t4nSJ4vvJePKJQd9aHpncdDyUudHGs0cl1IdzNTwWdqG2/+clY38zDgw0gs0lo8Q==}
+    hasBin: true
+
+  '@pnpm/linux-arm64@11.27.1':
+    resolution: {integrity: sha512-IMsVyn3CGhI/dSgPbLjT+iWsRPBmVZY3aPWAE9L6VK5sj34w1jIVvHi4jlOgctqZnSRRnCD7EnX3lcIv0iEyVA==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@pnpm/linux-x64@11.27.1':
+    resolution: {integrity: sha512-Hc2FF/IJiieEl2Xcq5zOo41LwfeP772d+qQfYQ54ELSphF51OnawvpGFg9dX1G+JryL/ous6oaGkQH784VulAg==}
+    cpu: [x64]
+    os: [linux]
+
+  '@pnpm/linuxstatic-arm64@11.27.1':
+    resolution: {integrity: sha512-XhisRlgkJR1tGd7LaG8g3GdCkYqHeTyrsW3GG1pS5VY7r3awgdvafnQDh7vlS32s2Ww/kt8i4UuktuPjK6PxsA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/linuxstatic-x64@11.27.1':
+    resolution: {integrity: sha512-UbP3TpTWAC/cYHGVo7BsVSqKKobwfwBgQnp1o5dt6VhY05wKQcfU8jM/231gsWAqlP0nf9lI9OS0AJkTwKykZQ==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/macos-arm64@11.27.1':
+    resolution: {integrity: sha512-OLPueX2J1ASL6IZGr9Mvxmk/3m0ifKqUqK8THWAvnSjDUb6FF/mGXLF8qDq66TuyHreZKcr8zpGKpqaQBi+qiQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@pnpm/win-arm64@11.27.1':
+    resolution: {integrity: sha512-AyP7zk7GiDUQjBk28UTDbwP5dSnfdrQkVlQZ11knhPywE4HKSjRdqKVBowLUb/Sp+YWB+/YB8TEmK9Iit5bosw==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@pnpm/win-x64@11.27.1':
+    resolution: {integrity: sha512-cJGFL+NcvxzCRhfirhqo95UQ+aPLux8cfjKlpFJhaQpC/n/qF3SDSsKjJMYMZGaLKHbrs50VFdkJR5z73RDsqQ==}
+    cpu: [x64]
+    os: [win32]
+
+  '@reflink/reflink-darwin-arm64@0.1.19':
+    resolution: {integrity: sha512-ruy44Lpepdk1FqDz38vExBY/PVUsjxZA+chd9wozjUH9JjuDT/HEaQYA6wYN9mf041l0yLVar6BCZuWABJvHSA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@reflink/reflink-darwin-x64@0.1.19':
+    resolution: {integrity: sha512-By85MSWrMZa+c26TcnAy8SDk0sTUkYlNnwknSchkhHpGXOtjNDUOxJE9oByBnGbeuIE1PiQsxDG3Ud+IVV9yuA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@reflink/reflink-linux-arm64-gnu@0.1.19':
+    resolution: {integrity: sha512-7P+er8+rP9iNeN+bfmccM4hTAaLP6PQJPKWSA4iSk2bNvo6KU6RyPgYeHxXmzNKzPVRcypZQTpFgstHam6maVg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@reflink/reflink-linux-arm64-musl@0.1.19':
+    resolution: {integrity: sha512-37iO/Dp6m5DDaC2sf3zPtx/hl9FV3Xze4xoYidrxxS9bgP3S8ALroxRK6xBG/1TtfXKTvolvp+IjrUU6ujIGmA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@reflink/reflink-linux-x64-gnu@0.1.19':
+    resolution: {integrity: sha512-jbI8jvuYCaA3MVUdu8vLoLAFqC+iNMpiSuLbxlAgg7x3K5bsS8nOpTRnkLF7vISJ+rVR8W+7ThXlXlUQ93ulkw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@reflink/reflink-linux-x64-musl@0.1.19':
+    resolution: {integrity: sha512-e9FBWDe+lv7QKAwtKOt6A2W/fyy/aEEfr0g6j/hWzvQcrzHCsz07BNQYlNOjTfeytrtLU7k449H1PI95jA4OjQ==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@reflink/reflink-win32-arm64-msvc@0.1.19':
+    resolution: {integrity: sha512-09PxnVIQcd+UOn4WAW73WU6PXL7DwGS6wPlkMhMg2zlHHG65F3vHepOw06HFCq+N42qkaNAc8AKIabWvtk6cIQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@reflink/reflink-win32-x64-msvc@0.1.19':
+    resolution: {integrity: sha512-E//yT4ni2SyhwP8JRjVGWr3cbnhWDiPLgnQ66qqaanjjnMiu3O/2tjCPQXlcGc/DEYofpDc9fvhv6tALQsMV9w==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@reflink/reflink@0.1.19':
+    resolution: {integrity: sha512-DmCG8GzysnCZ15bres3N5AHCmwBwYgp0As6xjhQ47rAUTUXxJiK+lLUxaGsX3hd/30qUpVElh05PbGuxRPgJwA==}
+    engines: {node: '>= 10'}
+
+  detect-libc@2.1.2:
+    resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
+    engines: {node: '>=8'}
+
+  pnpm@11.27.1:
+    resolution: {integrity: sha512-qB1MIbmwmksK6/kO9eUn1CYr3aMi0mCCl4y1SQI6xtnK/Jixn/+qXHHbQ4pl9wIk7beNcxEYeGH/lkgNHNyiPA==}
+    engines: {node: '>=22.13'}
+    hasBin: true
+
+snapshots:
+
+  '@pnpm/exe@11.27.1':
+    dependencies:
+      '@reflink/reflink': 0.1.19
+      detect-libc: 2.1.2
+    optionalDependencies:
+      '@pnpm/linux-arm64': 11.27.1
+      '@pnpm/linux-x64': 11.27.1
+      '@pnpm/linuxstatic-arm64': 11.27.1
+      '@pnpm/linuxstatic-x64': 11.27.1
+      '@pnpm/macos-arm64': 11.27.1
+      '@pnpm/win-arm64': 11.27.1
+      '@pnpm/win-x64': 11.27.1
+
+  '@pnpm/linux-arm64@11.27.1':
+    optional: true
+
+  '@pnpm/linux-x64@11.27.1':
+    optional: true
+
+  '@pnpm/linuxstatic-arm64@11.27.1':
+    optional: true
+
+  '@pnpm/linuxstatic-x64@11.27.1':
+    optional: true
+
+  '@pnpm/macos-arm64@11.27.1':
+    optional: true
+
+  '@pnpm/win-arm64@11.27.1':
+    optional: true
+
+  '@pnpm/win-x64@11.27.1':
+    optional: true
+
+  '@reflink/reflink-darwin-arm64@0.1.19':
+    optional: true
+
+  '@reflink/reflink-darwin-x64@0.1.19':
+    optional: true
+
+  '@reflink/reflink-linux-arm64-gnu@0.1.19':
+    optional: true
+
+  '@reflink/reflink-linux-arm64-musl@0.1.19':
+    optional: true
+
+  '@reflink/reflink-linux-x64-gnu@0.1.19':
+    optional: true
+
+  '@reflink/reflink-linux-x64-musl@0.1.19':
+    optional: true
+
+  '@reflink/reflink-win32-arm64-msvc@0.1.19':
+    optional: true
+
+  '@reflink/reflink-win32-x64-msvc@0.1.19':
+    optional: true
+
+  '@reflink/reflink@0.1.19':
+    optionalDependencies:
+      '@reflink/reflink-darwin-arm64': 0.1.19
+      '@reflink/reflink-darwin-x64': 0.1.19
+      '@reflink/reflink-linux-arm64-gnu': 0.1.19
+      '@reflink/reflink-linux-arm64-musl': 0.1.19
+      '@reflink/reflink-linux-x64-gnu': 0.1.19
+      '@reflink/reflink-linux-x64-musl': 0.1.19
+      '@reflink/reflink-win32-arm64-msvc': 0.1.19
+      '@reflink/reflink-win32-x64-msvc': 0.1.19
+
+  detect-libc@2.1.2: {}
+
+  pnpm@11.27.1: {}
+
+---
 lockfileVersion: '9.0'
 
 settings:
@@ -35,6 +234,9 @@ importers:
       eslint-plugin-svelte:
         specifier: ^3.19.0
         version: 3.19.0(eslint@10.4.1)(svelte@5.56.9(@typescript-eslint/types@8.70.0))
+      node:
+        specifier: runtime:^22.18.0
+        version: runtime:22.23.2
       oxfmt:
         specifier: ^0.62.0
         version: 0.62.0(svelte@5.56.9(@typescript-eslint/types@8.70.0))
@@ -64,6 +266,9 @@ importers:
       '@sveltejs/sv-utils':
         specifier: workspace:*
         version: link:../sv-utils
+      node:
+        specifier: runtime:^22.18.0
+        version: runtime:22.23.2
     devDependencies:
       '@clack/prompts':
         specifier: 1.5.0
@@ -878,10 +1083,6 @@ packages:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
       typescript: '>=4.8.4 <6.1.0'
 
-  '@typescript-eslint/types@8.67.0':
-    resolution: {integrity: sha512-sBtgslww8nsMYUjhdPBiSyUqSzT8uR6g93A2QXnQC8+cGdjz0CyaOdqHDRJb1AtORbZCNUJBBeFA/tNR2uQmww==}
-    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
   '@typescript-eslint/types@8.70.0':
     resolution: {integrity: sha512-asTOIYhDg4zdzOScCyaytrsV3cR6B4ecPQlXw/dJIm7J/MZTtCtfVII9JD8Geh4jTCrK/Xe6cg5UevoleMcoJQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -1655,6 +1856,115 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  node@runtime:22.23.2:
+    resolution:
+      type: variations
+      variants:
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-d8YwMv1KuOmOCufbnXnjlmWeBK+Vpe344cqGnkJsBKU=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-aix-ppc64.tar.gz
+          targets:
+            - cpu: ppc64
+              os: aix
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-YRMPOUwWMNIR3VCuzENT03lIDzbTrJE82F27oa7VhcY=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-darwin-arm64.tar.gz
+          targets:
+            - cpu: arm64
+              os: darwin
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-WOmQIsL/iTlVdsx/1NmM6iS7aAgUddX4i4Ae6HKfsCY=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-darwin-x64.tar.gz
+          targets:
+            - cpu: x64
+              os: darwin
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-ATtZz9KBlwOm9KFKuJH8RvwqTj9bzZLeP7SSm0PjWzA=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-linux-arm64.tar.gz
+          targets:
+            - cpu: arm64
+              os: linux
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-Ki9Z64/Z3sJ7O+4XxykTHR/T5tmUPUefEVbOOK+M1Zk=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-linux-armv7l.tar.gz
+          targets:
+            - cpu: armv7l
+              os: linux
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-ZciqnmRxlvMNNWS7ayATBrG1IPcvDdMnjaMmAUoBg3k=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-linux-ppc64le.tar.gz
+          targets:
+            - cpu: ppc64le
+              os: linux
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-mGuEQbHRoBxw7XELqyAXQf0NGW0wKn5DOP79XhwQ5h4=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-linux-s390x.tar.gz
+          targets:
+            - cpu: s390x
+              os: linux
+        - resolution:
+            archive: tarball
+            bin: bin/node
+            integrity: sha256-spSlVuY51kM4gjkg5YZsIcAnQXQtLhUp7hoiXB7JJSo=
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-linux-x64.tar.gz
+          targets:
+            - cpu: x64
+              os: linux
+        - resolution:
+            archive: zip
+            bin: node.exe
+            integrity: sha256-/sAlptoxdX47avhMWhYo6dOEQsqZohYQkdePL8+jXvM=
+            prefix: node-v22.23.2-win-arm64
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-win-arm64.zip
+          targets:
+            - cpu: arm64
+              os: win32
+        - resolution:
+            archive: zip
+            bin: node.exe
+            integrity: sha256-EXe0E3ulrapWNUrkDxCAx0UOiuCc7LR9pFnRxSrJn5c=
+            prefix: node-v22.23.2-win-x64
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-win-x64.zip
+          targets:
+            - cpu: x64
+              os: win32
+        - resolution:
+            archive: zip
+            bin: node.exe
+            integrity: sha256-clyeK90cIBa0HJlagfT6Ns5OLuVlt0Vdj4iRgnJ99kc=
+            prefix: node-v22.23.2-win-x86
+            type: binary
+            url: https://nodejs.org/download/release/v22.23.2/node-v22.23.2-win-x86.zip
+          targets:
+            - cpu: x86
+              os: win32
+    version: 22.23.2
+    hasBin: true
 
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -2669,7 +2979,7 @@ snapshots:
   '@stylistic/eslint-plugin@5.10.0(eslint@10.4.1)':
     dependencies:
       '@eslint-community/eslint-utils': 4.10.1(eslint@10.4.1)
-      '@typescript-eslint/types': 8.67.0
+      '@typescript-eslint/types': 8.70.0
       eslint: 10.4.1
       eslint-visitor-keys: 4.2.1
       espree: 10.4.0
@@ -2777,8 +3087,6 @@ snapshots:
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
-
-  '@typescript-eslint/types@8.67.0': {}
 
   '@typescript-eslint/types@8.70.0': {}
 
@@ -3416,6 +3724,8 @@ snapshots:
   nanoid@3.3.18: {}
 
   natural-compare@1.4.0: {}
+
+  node@runtime:22.23.2: {}
 
   object-assign@4.1.1: {}
 
