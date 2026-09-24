@@ -1,9 +1,10 @@
 <script lang="ts">
+	import type { LayoutProps } from './$types';
 	import Header from './Header.svelte';
 	import './layout.css';
 
 	/** @type {{children: import('svelte').Snippet}} */
-	let { children } = $props();
+	let { children }: LayoutProps = $props();
 </script>
 
 <div class="app">

@@ -35,7 +35,7 @@ export const actions = {
 		const game = new Game(cookies.get('sverdle'));
 
 		const data = await request.formData();
-		const key = data.get('key');
+		const key = (data.get('key') as string) ?? '';
 
 		const i = game.answers.length;
 
@@ -65,7 +65,7 @@ export const actions = {
 		cookies.set('sverdle', game.toString(), { path: '/' });
 	},
 
-	restart: async ({ cookies }) => {
+	restart: ({ cookies }) => {
 		cookies.delete('sverdle', { path: '/' });
 	}
 } satisfies Actions;
