@@ -17,7 +17,7 @@
 		"test:ci": "vitest run --silent --project=!addons",
 		"test:ecosystem-ci": "vitest run --exclude='**/storybook/test.ts'",
 		"test:ui": "vitest --ui",
-		"update-deps": "node ./scripts/update-dependencies.js && pnpm format"
+		"update-deps": "node ./scripts/update-dependencies.js && pnpm update -r --latest --include-github-actions && pnpm format"
 	},
 	"devDependencies": {
 		"@changesets/changelog-github": "1.0.0",
@@ -37,8 +37,17 @@
 		"typescript-eslint": "^8.70.0",
 		"vitest": "4.1.8"
 	},
-	"engines": {
-		"pnpm": "^10.0.0"
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "^11.27.1",
+			"onFail": "download"
+		},
+		"runtime": {
+			"name": "node",
+			"version": "^22.18.0",
+			"onFail": "download"
+		}
 	},
-	"packageManager": "pnpm@10.33.4+sha512.1c67b3b359b2d408119ba1ed289f34b8fc3c6873412bec6fd264fbdc82489e510fcbecb9ce9d22dae7f3b76269d8441046014bdca53b9979cd7a561ad631b800"
+	"packageManager": "pnpm@11.27.1+sha512-qB1MIbmwmksK6/kO9eUn1CYr3aMi0mCCl4y1SQI6xtnK/Jixn/+qXHHbQ4pl9wIk7beNcxEYeGH/lkgNHNyiPA=="
 }
