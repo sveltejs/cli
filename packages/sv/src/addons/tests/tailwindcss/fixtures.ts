@@ -3,7 +3,7 @@ import path from 'node:path';
 import { transforms } from '@sveltejs/sv-utils';
 
 const markup = `
-<div class="bg-slate-600 border-gray-50 border-4 mt-1" data-testid="base">
+<div class="bg-slate-600 border-gray-50 border-4 mt-[4px]" data-testid="base">
 	<p class="text-lg text-right line-through" data-testid="typography"></p>
 </div>
 `;
