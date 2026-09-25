@@ -47,7 +47,7 @@
 		"@types/gitignore-parser": "^0.0.3",
 		"@types/ps-tree": "^1.1.6",
 		"commander": "^15.0.0",
-		"create-vite": "^8.2.0",
+		"create-vite": "^9.2.1",
 		"empathic": "^2.0.1",
 		"gitignore-parser": "^0.0.2",
 		"modern-tar": "^0.7.7",
