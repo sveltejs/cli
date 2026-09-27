@@ -11,7 +11,8 @@ import {
 	createPrinter,
 	svelteConfig,
 	defineEnv,
-	isKit3
+	isKit3,
+	pnpm
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { OptionValues } from '../core/options.ts';
@@ -94,7 +95,17 @@ export default defineAddon({
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file }) => {
+	run: ({
+		sv,
+		language,
+		options,
+		directory,
+		dependencyVersion,
+		cwd,
+		cancel,
+		file,
+		packageManager
+	}) => {
 		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
@@ -129,6 +140,10 @@ export default defineAddon({
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.3');
+
+		if (packageManager === 'pnpm') {
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['esbuild'] }));
+		}
 
 		sv.file('.env', generateEnv(options, false));
 		sv.file('.env.example', generateEnv(options, true));

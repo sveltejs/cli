@@ -56,5 +56,12 @@
 		"svelte": "^5.56.9",
 		"tinyexec": "^1.2.4",
 		"valibot": "^1.4.1"
+	},
+	"engines": {
+		"runtime": {
+			"name": "node",
+			"version": "^22.18.0",
+			"onFail": "download"
+		}
 	}
 }
