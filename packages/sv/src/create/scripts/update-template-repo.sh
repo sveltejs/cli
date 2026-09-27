@@ -15,7 +15,7 @@ get_sv_version() {
 
 VERSION=$(get_sv_version)
 DIR=$(get_abs_filename $(dirname "$0"))
-TMP=$(get_abs_filename "$DIR/../node_modules/.tmp")
+TMP=$(get_abs_filename "$DIR/../../../node_modules/.tmp")
 
 mkdir -p $TMP
 cd $TMP

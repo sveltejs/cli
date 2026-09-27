@@ -1,0 +1,10 @@
+{
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"strict": true
+	},
+	"include": [
+		"src",
+		"drizzle.config.ts"
+	]
+}

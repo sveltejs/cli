@@ -1,11 +1,10 @@
 import fs from 'node:fs';
-import path, { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { prepareSvApi } from '../../core/engine.ts';
 import { createWorkspace } from '../../core/workspace.ts';
 
-const baseDir = resolve(fileURLToPath(import.meta.url), '..');
+const baseDir = import.meta.dirname;
 const migrationDirectories = getDirectoryNames(baseDir);
 const tasksDirectoryName = 'tasks';
 const testsDirectoryName = 'tests';
@@ -26,9 +25,7 @@ for (const migrationDirectory of migrationDirectories) {
 				const cwd = path.join(baseDir, migrationDirectory, testsDirectoryName, testName);
 
 				// cleanup old test run by deleting old actual files
-				const oldActualFiles = fs.globSync('**/*.actual.*', {
-					cwd
-				});
+				const oldActualFiles = fs.globSync('**/*.actual.*', { cwd });
 				for (const oldActualFile of oldActualFiles) {
 					fs.rmSync(path.join(cwd, oldActualFile));
 				}
@@ -68,9 +65,7 @@ for (const migrationDirectory of migrationDirectories) {
 					throw new Error('No files were modified by the migration.');
 				}
 
-				const remainingSnapshotFiles = fs.globSync('**/*.snapshot.*', {
-					cwd
-				});
+				const remainingSnapshotFiles = fs.globSync('**/*.snapshot.*', { cwd });
 
 				// compare modified files against snapshots
 				for (const file of modifiedFiles) {
@@ -81,7 +76,9 @@ for (const migrationDirectory of migrationDirectories) {
 					const expectedPath = path.join(cwd, expectedFileName);
 					await expect(actual).toMatchFileSnapshot(expectedPath, expectedFileName);
 
-					remainingSnapshotFiles.splice(remainingSnapshotFiles.indexOf(expectedFileName), 1);
+					// a snapshot vitest just created isn't in the list; `-1` would drop an unrelated entry
+					const snapshotIndex = remainingSnapshotFiles.indexOf(expectedFileName);
+					if (snapshotIndex !== -1) remainingSnapshotFiles.splice(snapshotIndex, 1);
 				}
 
 				// if we have any snapshots remaining that were not tested against, fail the test to make sure all snapshots are up to date and tested against.

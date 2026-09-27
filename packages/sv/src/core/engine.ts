@@ -1,7 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import * as p from '@clack/prompts';
 import {
 	color,
 	fileExists,
+	isRangeWithin,
 	loadFile,
 	saveFile,
 	resolveCommand,
@@ -10,12 +13,10 @@ import {
 	type Package,
 	minimizeDiff
 } from '@sveltejs/sv-utils';
-import fs from 'node:fs';
-import path from 'node:path';
-import { NonZeroExitError, exec } from 'tinyexec';
-import { createLoadedAddon } from '../cli/add.ts';
+import { exec } from 'tinyexec';
 import { filePaths } from './common.ts';
 import {
+	createLoadedAddon,
 	getErrorHint,
 	type Addon,
 	type AddonDefinition,
@@ -25,9 +26,8 @@ import {
 	type SetupResult,
 	type SvApi
 } from './config.ts';
-import { svDeprecated } from './deprecated.ts';
 import { TESTING } from './env.ts';
-import { addPnpmAllowBuilds } from './package-manager.ts';
+import type { Question } from './options.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 function alphabetizeRecord(obj: Record<string, string>) {
@@ -41,8 +41,9 @@ function alphabetizeRecord(obj: Record<string, string>) {
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
 	sv: SvApi
-) {
-	if (dependencies.length === 0) return;
+): { installNeeded: boolean } {
+	let installNeeded = false;
+	if (dependencies.length === 0) return { installNeeded };
 
 	const pkgPath = filePaths.packageJson;
 	sv.file(
@@ -50,23 +51,26 @@ function updatePackages(
 		transforms.json<Package>(({ content, data }) => {
 			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
-			let modified = false;
 			for (const { dev, pkg, version } of dependencies) {
 				const dependency = dev ? 'devDependencies' : 'dependencies';
 				data[dependency] ??= {};
 
-				if (data[dependency][pkg] !== version) {
-					modified = true;
-					data[dependency][pkg] = version;
-				}
+				// keep a stricter existing range (e.g. `^9.2.0` when the add-on asks for `^9.0.0`)
+				const declared = data[dependency][pkg];
+				if (declared && isRangeWithin(declared, version)) continue;
+
+				installNeeded = true;
+				data[dependency][pkg] = version;
 			}
 
-			if (!modified) return false; // do not edit the file if no changes were made
+			if (!installNeeded) return false; // do not edit the file if no changes were made
 
 			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
 			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
 		})
 	);
+
+	return { installNeeded };
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -100,7 +104,7 @@ export async function add<Addons extends AddonMap>({
 		createLoadedAddon(addon as AddonDefinition)
 	);
 
-	const setupResults = setupAddons(loadedAddons, workspace);
+	const setupResults = await setupAddons(loadedAddons, workspace);
 
 	return await applyAddons({ loadedAddons, workspace, options, setupResults });
 }
@@ -119,10 +123,12 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
+	installNeeded: boolean;
 }> {
 	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
 	const canceledAddons = new Set<string>();
+	let installNeeded = false;
 
 	const addonDefs = loadedAddons.map((l) => l.addon);
 	const ordered = orderAddons(addonDefs, setupResults);
@@ -151,7 +157,11 @@ export async function applyAddons({
 		// If we don't have a formatter yet, check if the addon adds one
 		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
-		const { files, cancels } = await runAddon({
+		const {
+			files,
+			cancels,
+			installNeeded: addonInstallNeeded
+		} = await runAddon({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
@@ -160,6 +170,7 @@ export async function applyAddons({
 		});
 
 		files.forEach((f) => filesToFormat.add(f));
+		if (addonInstallNeeded) installNeeded = true;
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
 		} else {
@@ -170,33 +181,39 @@ export async function applyAddons({
 
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
-		status
+		status,
+		installNeeded
 	};
 }
 
 /** Setup addons - takes LoadedAddon[] and returns setup results */
-export function setupAddons(
+export async function setupAddons(
 	loadedAddons: LoadedAddon[],
 	workspace: Workspace
-): Record<string, SetupResult> {
+): Promise<Record<string, SetupResult>> {
 	const setupResults: Record<string, SetupResult> = {};
 
 	for (const loaded of loadedAddons) {
 		const addon = loaded.addon;
+		const additionalOptions: Record<string, Question> = {};
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
-			runsAfter: []
+			runsAfter: [],
+			additionalOptions
 		};
 		try {
-			addon.setup?.({
+			await addon.setup?.({
 				...workspace,
 				dependsOn: (name) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
 				},
 				unsupported: (reason) => setupResult.unsupported.push(reason),
-				runsAfter: (name) => setupResult.runsAfter.push(name)
+				runsAfter: (name) => setupResult.runsAfter.push(name),
+				addOption: (key, question) => {
+					additionalOptions[key] = question;
+				}
 			});
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
@@ -205,6 +222,12 @@ export function setupAddons(
 				{ cause: err }
 			);
 		}
+
+		// Merge dynamic options into the addon's options
+		if (Object.keys(additionalOptions).length > 0) {
+			Object.assign(addon.options, additionalOptions);
+		}
+
 		setupResults[addon.id] = setupResult;
 	}
 
@@ -252,13 +275,15 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		);
 	}
 
+	let installNeeded = false;
 	if (cancels.length === 0) {
-		({ modifiedFiles } = finalize());
+		({ modifiedFiles, installNeeded } = finalize());
 	}
 
 	return {
 		files: Array.from(modifiedFiles),
-		cancels
+		cancels,
+		installNeeded
 	};
 }
 
@@ -282,7 +307,7 @@ function editFile(
 		const editedContent = edit(content);
 		if (editedContent === '' || editedContent === false) return;
 
-		if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) {
+		if (!matchesFilesFilter(file, options)) {
 			unmodifiedFiles.add(file);
 			return;
 		}
@@ -305,6 +330,10 @@ type PrepareSvApiOptions = {
 	additionalExcludes?: string[] | undefined;
 };
 
+function matchesFilesFilter(file: string, options: PrepareSvApiOptions) {
+	return !options.filesFilter || path.matchesGlob(file, options.filesFilter);
+}
+
 export function prepareSvApi(
 	workspace: Workspace,
 	options: PrepareSvApiOptions = {
@@ -313,7 +342,14 @@ export function prepareSvApi(
 		saveFileInfix: undefined,
 		additionalExcludes: undefined
 	}
-): { sv: SvApi; finalize: () => { modifiedFiles: Set<string>; unmodifiedFiles: Set<string> } } {
+): {
+	sv: SvApi;
+	finalize: () => {
+		modifiedFiles: Set<string>;
+		unmodifiedFiles: Set<string>;
+		installNeeded: boolean;
+	};
+} {
 	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
 	const modifiedFiles = new Set<string>();
 	const unmodifiedFiles = new Set<string>();
@@ -321,6 +357,14 @@ export function prepareSvApi(
 	const sv: SvApi = {
 		file: (path, edit) => {
 			editFile(path, edit, workspace, modifiedFiles, unmodifiedFiles, options);
+		},
+		removeFile: (file) => {
+			if (!matchesFilesFilter(file, options)) {
+				unmodifiedFiles.add(file);
+				return;
+			}
+
+			fs.unlinkSync(path.resolve(workspace.cwd, file));
 		},
 		files: (opts, edit) => {
 			const { include, exclude } = opts;
@@ -339,7 +383,7 @@ export function prepareSvApi(
 			});
 
 			for (const file of globbedFiles) {
-				if (options.filesFilter && !path.matchesGlob(file, options.filesFilter)) continue;
+				if (!matchesFilesFilter(file, options)) continue;
 
 				const singleFileEdit = (content: string) => edit(content, file);
 				editFile(
@@ -372,10 +416,11 @@ export function prepareSvApi(
 					throwOnError: true
 				});
 			} catch (error) {
-				const typedError = error as NonZeroExitError;
-				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
-					cause: error
-				});
+				let message = `Failed to execute scripts '${executedCommand}'`;
+				if (error instanceof Error) {
+					message += `: ${error.message}`;
+				}
+				throw new Error(message, { cause: error });
 			}
 		},
 		dependency: (pkg, version) => {
@@ -383,36 +428,54 @@ export function prepareSvApi(
 		},
 		devDependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: true });
-		},
-		/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
-		pnpmBuildDependency: (pkg) => {
-			svDeprecated(
-				'use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
-			);
-			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
 		}
 	};
 	return {
 		sv,
 		finalize: () => {
-			updatePackages(dependencies, sv);
+			const { installNeeded } = updatePackages(dependencies, sv);
 
 			return {
 				modifiedFiles,
-				unmodifiedFiles
+				unmodifiedFiles,
+				installNeeded
 			};
 		}
 	};
 }
 
-// orders addons by putting addons that don't require any other addon in the front.
-// This is a drastic simplification, as this could still cause some inconvenient circumstances,
-// but works for now in contrary to the previous implementation
+/**
+ * Orders add-ons so every `runsAfter` is honoured, keeping the original order between add-ons that
+ * don't constrain each other. Cycles and unknown ids are ignored rather than fatal - an add-on that
+ * can't be placed simply keeps its position.
+ */
 export function orderAddons(
 	addons: Array<Addon<any>>,
 	setupResults: Record<string, SetupResult>
 ): Array<Addon<any>> {
-	return addons.sort((a, b) => {
-		return setupResults[a.id]?.runsAfter?.length - setupResults[b.id]?.runsAfter?.length;
-	});
+	const byId = new Map(addons.map((addon) => [addon.id, addon]));
+	const ordered: Array<Addon<any>> = [];
+	const placed = new Set<string>();
+	const visiting = new Set<string>();
+
+	const place = (addon: Addon<any>) => {
+		if (placed.has(addon.id) || visiting.has(addon.id)) return;
+		visiting.add(addon.id);
+		for (const id of setupResults[addon.id]?.runsAfter ?? []) {
+			const dependency = byId.get(id);
+			if (dependency) place(dependency);
+		}
+		visiting.delete(addon.id);
+		placed.add(addon.id);
+		ordered.push(addon);
+	};
+
+	// seeded with the "fewest constraints first" order this used to rely on, so add-ons that don't
+	// constrain each other keep the relative order they already had
+	const seeded = [...addons].sort(
+		(a, b) =>
+			(setupResults[a.id]?.runsAfter?.length ?? 0) - (setupResults[b.id]?.runsAfter?.length ?? 0)
+	);
+	for (const addon of seeded) place(addon);
+	return ordered;
 }

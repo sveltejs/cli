@@ -16,6 +16,20 @@ npx sv create
 npx sv create my-app
 ```
 
+## Adding features
+
+Add features to your project with `sv add`:
+
+```sh
+npx sv add
+```
+
+For example, to add Tailwind CSS:
+
+```sh
+npx sv add tailwindcss
+```
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:

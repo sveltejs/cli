@@ -49,10 +49,11 @@ Do not prompt to install dependencies.
 
 ## Official add-ons
 
+- [`ai-tools`](ai-tools)
 - [`better-auth`](better-auth)
 - [`drizzle`](drizzle)
+- [`enhanced-img`](enhanced-img)
 - [`eslint`](eslint)
-- [`mcp`](mcp)
 - [`mdsvex`](mdsvex)
 - [`paraglide`](paraglide)
 - [`playwright`](playwright)
@@ -65,15 +66,18 @@ Do not prompt to install dependencies.
 ## Community add-ons
 
 > [!NOTE]
-> Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
-
-> [!NOTE]
 > Svelte maintainers have not reviewed community add-ons for malicious code!
 
 Community add-ons are npm packages published by the community. Look out for add-ons from your favourite libraries and tools. _(soon)_ Many developers are building `sv` add-ons to make their integrations a one-liner. You can find them on [npmx](https://www.npmx.dev/search?q=keyword:sv-add) by searching for the keyword: `sv-add`.
 
 ```sh
-# Install a community add-on by org name (it will look at @org/sv)
+# Install a community addon-on
+npx sv add my-addon
+
+# Also works with org names
+npx sv add @supacool/sv
+
+# As a shorthand, packages named `sv` can be omitted
 npx sv add @supacool
 
 # Use a local add-on (for development or internal use)

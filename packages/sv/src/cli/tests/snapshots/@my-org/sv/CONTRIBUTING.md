@@ -45,4 +45,4 @@ npm publish
 
 ## Things to be aware of
 
-Community add-ons must have `sv` as a `peerDependency` and should **not** have any `dependencies`. Everything else (including `@sveltejs/sv-utils`) is bundled at build time by tsdown.
+Community add-ons must have `sv` as a `peerDependency`. Any `dependencies` declared in `package.json` will not be available at runtime. Everything else (including `@sveltejs/sv-utils`) is bundled at build time by tsdown.

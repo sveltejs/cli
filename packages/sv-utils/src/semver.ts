@@ -1,6 +1,4 @@
-import semverCoerce from 'semver/functions/coerce.js';
-import semverLt from 'semver/functions/lt.js';
-import semverMinVersion from 'semver/ranges/min-version.js';
+import { coerce, findMinimumForRange, isLess, isRangeSubset, tryParse } from 'verkit';
 
 type Version = {
 	major?: number;
@@ -20,46 +18,40 @@ export function minVersion(range: string): string {
 	if (cleaned === '*' || cleaned === '') {
 		throw new Error(`Cannot determine min version from range: ${range}`);
 	}
-	const min = semverMinVersion(cleaned);
+	const min = findMinimumForRange(cleaned);
 	if (!min) throw new Error(`Cannot determine min version from range: ${range}`);
-	return min.version;
+	return min;
 }
 
 /**
- * @deprecated Use `coerceVersion` instead.
- */
-export function splitVersion(str: string): Version {
-	const [major, minor, patch] = str?.split('.') ?? [];
-
-	function toVersionNumber(val: string | undefined): number | undefined {
-		return val !== undefined && val !== '' && !isNaN(Number(val)) ? Number(val) : undefined;
-	}
-
-	return {
-		major: toVersionNumber(major),
-		minor: toVersionNumber(minor),
-		patch: toVersionNumber(patch)
-	};
-}
-
-/**
- * Parses a version-ish string into `{ major, minor, patch, version }` using `semver.coerce`.
+ * Parses a version-ish string into `{ major, minor, patch, version }` using verkit's `coerce`.
  * `version` is the clean `major.minor.patch` string (e.g. `"9.0.0"` for `^9.0.0`).
  * Understands ranges (`^9.0.0`), partial versions (`18.13`), and `workspace:` prefixes.
  * Returns all-undefined for unparseable input.
  */
 export function coerceVersion(str: string): Version {
-	const c = semverCoerce(str);
+	const coerced = coerce(str);
+	const c = coerced ? tryParse(coerced) : null;
 	if (!c) return { major: undefined, minor: undefined, patch: undefined, version: undefined };
-	return { major: c.major, minor: c.minor, patch: c.patch, version: c.version };
+	return { major: c.major, minor: c.minor, patch: c.patch, version: coerced! };
 }
 
-export function isVersionUnsupportedBelow(
-	versionStr: string,
-	belowStr: string
-): boolean | undefined {
-	const version = semverCoerce(versionStr);
-	const below = semverCoerce(belowStr);
-	if (!version || !below) return undefined;
-	return semverLt(version, below);
+/**
+ * Returns `true` when every version matching `subset` also matches `superset`,
+ * e.g. `^9.2.0` is within `^9.0.0` but `^8.0.0` is not.
+ * Unparseable inputs (`latest`, `workspace:*`, ...) return `false`.
+ */
+export function isRangeWithin(subset: string, superset: string): boolean {
+	try {
+		return isRangeSubset(subset, superset);
+	} catch {
+		return false;
+	}
+}
+
+export function isVersionUnsupportedBelow(version: string, below: string): boolean | undefined {
+	const version_c = coerce(version);
+	const below_c = coerce(below);
+	if (!version_c || !below_c) return undefined;
+	return isLess(version_c, below_c);
 }

@@ -1,18 +1,19 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
 	color,
 	dedent,
 	type TransformFn,
 	transforms,
-	pnpm,
 	resolveCommandArray,
 	fileExists,
 	createPrinter,
 	svelteConfig,
-	defineEnv
+	defineEnv,
+	isKit3,
+	pnpm
 } from '@sveltejs/sv-utils';
-import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
@@ -65,7 +66,8 @@ const options = defineAddonOptions()
 		group: 'client',
 		default: 'libsql',
 		options: [
-			{ value: 'better-sqlite3', hint: 'for traditional Node environments' },
+			{ value: 'node-sqlite', label: 'node:sqlite', hint: 'built-in to Node.js and Deno' },
+			{ value: 'better-sqlite3', hint: 'for server environments' },
 			{ value: 'libsql', label: 'libSQL', hint: 'for serverless environments' },
 			{ value: 'turso', label: 'Turso', hint: 'popular hosted platform' }
 		],
@@ -132,15 +134,16 @@ export default defineAddon({
 		// SQLite
 		if (options.sqlite === 'better-sqlite3') {
 			// not a devDependency due to bundling issues
-			sv.dependency('better-sqlite3', '^12.10.0');
-			sv.devDependency('@types/better-sqlite3', '^7.6.13');
-			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('better-sqlite3'));
-			}
+			sv.dependency('better-sqlite3', '^13.0.2');
+			sv.devDependency('@types/better-sqlite3', '^9.6.0');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.3');
+
+		if (packageManager === 'pnpm') {
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['esbuild'] }));
+		}
 
 		sv.file('.env', generateEnv(options, false));
 		sv.file('.env.example', generateEnv(options, true));
@@ -300,15 +303,33 @@ export default defineAddon({
 			})
 		);
 
-		svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
-			override({
-				typescript: {
-					config: js.common.parseExpression(
-						`(config) => { config.include.push('../drizzle.config.${language}')}`
-					)
-				}
+		// kit 3 dropped the `typescript.config` hook's `include` (and deprecates the hook itself),
+		// so the project's own ts/jsconfig has to cover the drizzle config
+		if (isKit3(dependencyVersion('@sveltejs/kit'))) {
+			const configFile = language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+			if (fileExists(cwd, configFile)) {
+				sv.file(
+					configFile,
+					transforms.json(({ data }) => {
+						const include: string[] = (data.include ??= ['src']);
+						if (!include.includes(`drizzle.config.${language}`)) {
+							include.push(`drizzle.config.${language}`);
+						}
+					})
+				);
+			}
+		} else {
+			// prior to kit 3
+			svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
+				override({
+					typescript: {
+						config: js.common.parseExpression(
+							`(config) => { config.include.push('../drizzle.config.${language}')}`
+						)
+					}
+				});
 			});
-		});
+		}
 
 		sv.file(
 			paths['database schema'],
@@ -433,6 +454,12 @@ export default defineAddon({
 						clientExpression = js.common.parseExpression(`createClient({ url: ${dbUrl} })`);
 					}
 				}
+				if (options.sqlite === 'node-sqlite') {
+					js.imports.addNamed(ast, { from: 'node:sqlite', imports: ['DatabaseSync'] });
+					js.imports.addNamed(ast, { from: 'drizzle-orm/node-sqlite', imports: ['drizzle'] });
+
+					clientExpression = js.common.parseExpression(`new DatabaseSync(${dbUrl})`);
+				}
 				// MySQL
 				if (options.mysql === 'mysql2' || options.mysql === 'planetscale') {
 					js.imports.addDefault(ast, { from: 'mysql2/promise', as: 'mysql' });
@@ -510,35 +537,36 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ options, packageManager, cwd, dependencyVersion }) => {
+		const pm = (command: Parameters<typeof resolveCommandArray>[1], args: string[]) =>
+			color.command(resolveCommandArray(packageManager, command, args));
 		const steps: string[] = [];
+
 		if (options.database === 'd1') {
 			if (!dependencyVersion('@sveltejs/adapter-cloudflare')) {
 				steps.push(
-					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${color.command(resolveCommandArray(packageManager, 'execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare']))} to add it`
+					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${pm('execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare'])} to add it`
 				);
 			}
-			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
+
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+				`Run ${pm('execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>'])} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
 
 		if (options.docker) {
-			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:start']))} to start the docker container`
-			);
+			steps.push(`Run ${pm('run', ['db:start'])} to start the docker container`);
 		} else if (options.database !== 'd1') {
 			steps.push(
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
 
-		steps.push(
-			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database schema`
-		);
+		steps.push(`Run ${pm('run', ['db:push'])} to update your database schema`);
 
 		return steps;
 	}
@@ -568,7 +596,7 @@ const generateEnv: GenerateEnv = (opts, isExample) =>
 			const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
 			const port = PORTS[opts.database];
 			value = `"${protocol}://root:mysecretpassword@localhost:${port}/local"`;
-		} else if (opts.sqlite === 'better-sqlite3' || opts.sqlite === 'libsql') {
+		} else if (['better-sqlite3', 'libsql', 'node-sqlite'].includes(opts.sqlite)) {
 			value = opts.sqlite === 'libsql' ? 'file:local.db' : 'local.db';
 		} else if (opts.sqlite === 'turso') {
 			if (isExample) {

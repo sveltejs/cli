@@ -1,5 +1,13 @@
 import { log } from '@clack/prompts';
-import { color, createPrinter, dedent, type SvelteAst, transforms } from '@sveltejs/sv-utils';
+import {
+	color,
+	createPrinter,
+	dedent,
+	isKit3,
+	resolveLibPrefix,
+	type SvelteAst,
+	transforms
+} from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 
@@ -50,11 +58,17 @@ export default defineAddon({
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
-	setup: ({ isKit, unsupported }) => {
+	setup: ({ isKit, unsupported, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
+		// it picks the kit-3 shape off the version `experimental` writes
+		runsAfter('experimental');
 	},
-	run: ({ sv, options, file, language, directory }) => {
+	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
 		const [ts] = createPrinter(language === 'ts');
+		const kitRange = dependencyVersion('@sveltejs/kit');
+		const lib = resolveLibPrefix(kitRange);
+		// kit 3 renamed the `Pathname` route type to `Path`
+		const pathType = isKit3(kitRange) ? 'Path' : 'Pathname';
 		const paraglideOutDir = `${directory.lib}/paraglide`;
 
 		sv.devDependency('@inlang/paraglide-js', '^2.18.2');
@@ -80,7 +94,8 @@ export default defineAddon({
 			`src/hooks.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, {
-					from: '$lib/paraglide/runtime',
+					from: `${lib}/paraglide/runtime.js`,
+
 					imports: ['deLocalizeUrl']
 				});
 
@@ -103,13 +118,13 @@ export default defineAddon({
 
 				if (language === 'ts') {
 					js.imports.addNamed(ast, {
-						from: '@sveltejs/kit',
+						from: '@sveltejs/kit/hooks',
 						imports: ['Reroute'],
 						isType: true
 					});
 				} else {
 					js.common.addJsDocTypeComment(existingExport, comments, {
-						type: "import('@sveltejs/kit').Reroute"
+						type: "import('@sveltejs/kit/hooks').Reroute"
 					});
 				}
 			})
@@ -120,17 +135,16 @@ export default defineAddon({
 			`src/hooks.server.${language}`,
 			transforms.script(({ ast, comments, js }) => {
 				js.imports.addNamed(ast, {
-					from: '$lib/paraglide/server',
+					from: `${lib}/paraglide/server.js`,
 					imports: ['paraglideMiddleware']
 				});
 				js.imports.addNamed(ast, {
-					from: '$lib/paraglide/runtime',
+					from: `${lib}/paraglide/runtime.js`,
 					imports: ['getTextDirection']
 				});
 
 				const hookHandleContent = `({ event, resolve }) => paraglideMiddleware(event.request, ({ request, locale }) => {
-		event.request = request;
-		return resolve(event, {
+		return resolve({ ...event, request }, {
 			transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale).replace('%paraglide.dir%', getTextDirection(locale))
 		});
 	});`;
@@ -196,13 +210,13 @@ export default defineAddon({
 			transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 				js.imports.addNamed(ast.instance.content, {
 					imports: ['locales', 'localizeHref'],
-					from: '$lib/paraglide/runtime'
+					from: `${lib}/paraglide/runtime.js`
 				});
 				js.imports.addNamed(ast.instance.content, { imports: ['page'], from: '$app/state' });
 				js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 				if (language === 'ts') {
 					js.imports.addNamed(ast.instance.content, {
-						imports: ['Pathname'],
+						imports: [pathType],
 						from: '$app/types',
 						isType: true
 					});
@@ -212,7 +226,7 @@ export default defineAddon({
 					dedent`
 						<div style="display:none">
 							{#each locales as locale (locale)}
-								<a href={resolve(localizeHref(page.url.pathname, { locale })${ts(' as Pathname')})}>{locale}</a>
+								<a href={resolve(localizeHref(page.url.pathname, { locale })${ts(` as ${pathType}`)})}>{locale}</a>
 							{/each}
 						</div>`,
 					{ language }
@@ -229,13 +243,13 @@ export default defineAddon({
 				transforms.svelteScript({ language }, ({ ast, svelte, js }) => {
 					js.imports.addNamed(ast.instance.content, {
 						imports: { m: 'm' },
-						from: '$lib/paraglide/messages.js'
+						from: `${lib}/paraglide/messages.js`
 					});
 					js.imports.addNamed(ast.instance.content, {
 						imports: {
 							setLocale: 'setLocale'
 						},
-						from: '$lib/paraglide/runtime'
+						from: `${lib}/paraglide/runtime.js`
 					});
 
 					// add localized message
@@ -269,14 +283,11 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: () => {
-		const steps = [`Edit your messages in ${color.path('messages/en.json')}`];
-		if (options.demo) {
-			steps.push(`Visit ${color.route('/demo/paraglide')} route to view the demo`);
-		}
-
-		return steps;
-	}
+	nextSteps: () =>
+		[
+			`Edit your messages in ${color.path('messages/en.json')}`,
+			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
+		].filter((line): line is string => Boolean(line))
 });
 
 const isValidLanguageTag = (languageTag: string): boolean =>

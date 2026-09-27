@@ -1,5 +1,14 @@
 import type { officialAddons } from '../addons/index.ts';
-import type { OptionDefinition, OptionValues, Question } from './options.ts';
+import type {
+	BaseQuestion,
+	BooleanQuestion,
+	MultiSelectQuestion,
+	NumberQuestion,
+	OptionDefinition,
+	OptionValues,
+	Question,
+	StringQuestion
+} from './options.ts';
 import type { Workspace, WorkspaceOptions } from './workspace.ts';
 
 export type { OptionValues } from './options.ts';
@@ -10,8 +19,6 @@ export type FileEdit = (content: string) => string | false;
 export type FileEditMultiple = (content: string, path: string) => string | false;
 
 export type SvApi = {
-	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
-	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
 	/** Add a package to the dev dependencies. */
@@ -24,6 +31,8 @@ export type SvApi = {
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
 	file: (path: string, edit: FileEdit) => void;
+	/** Remove a file from the workspace. Respects the migration file filter. */
+	removeFile: (path: string) => void;
 	/**
 	 * Edits matching files in the workspace.
 	 * The `include` and `exclude` patterns are glob patterns relative to the workspace root.
@@ -48,7 +57,11 @@ export type SvApi = {
 	) => void;
 };
 
-export type Addon<Args extends OptionDefinition, Id extends string = string> = {
+export type Addon<
+	Args extends OptionDefinition,
+	Id extends string = string,
+	Setup extends Record<string, unknown> = Record<string, unknown>
+> = {
 	id: Id;
 	alias?: string;
 	/** one-liner shown in prompts  */
@@ -73,13 +86,19 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 
 			/** On what official addons does this addon run after? */
 			runsAfter: (name: keyof typeof officialAddons) => void;
+
+			/** Dynamically add an option to be prompted to the user */
+			addOption: <K extends Extract<keyof Setup, string>>(
+				key: K,
+				question: SetupOptions<Setup>[K]
+			) => void;
 		}
 	) => MaybePromise<void>;
 	/** Run the addon. The actual execution of the addon... Add files, edit files, etc. */
 	run: (
 		workspace: Workspace & {
-			/** Add-on options */
-			options: WorkspaceOptions<Args>;
+			/** Add-on options (includes dynamically added options from setup) */
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			/** Api to interact with the workspace. */
 			sv: SvApi;
 			/** Cancel the addon at any time!
@@ -90,15 +109,58 @@ export type Addon<Args extends OptionDefinition, Id extends string = string> = {
 		}
 	) => MaybePromise<void>;
 	/** Next steps to display after the addon is run. */
-	nextSteps?: (workspace: Workspace & { options: WorkspaceOptions<Args> }) => string[];
+	nextSteps?: (
+		workspace: Workspace & { options: WorkspaceOptions<Args> & Record<string, unknown> }
+	) => string[];
+};
+
+/** Maps value types to question definitions for dynamic setup options */
+export type SetupOptions<T extends Record<string, unknown>> = {
+	[K in keyof T]: BaseQuestion<any> &
+		(T[K] extends boolean
+			? BooleanQuestion
+			: T[K] extends string
+				? StringQuestion
+				: T[K] extends number
+					? NumberQuestion
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
 };
 
 /**
- * The entry point for your addon, It will hold every thing! (options, setup, run, nextSteps, ...)
+ * The entry point for your add-on.
+ *
+ * ```ts
+ * const addon = defineAddon({ id: 'my-addon', options, run });
+ * ```
+ *
+ * If your add-on adds dynamic options via `addOption` during setup, pass their
+ * types as a type argument:
+ * ```ts
+ * const addon = defineAddon<{ extra: boolean }>()({ ... });
+ * // Take note of the extra call here:         👆   👆
+ * // This works around Typescript's lack of partial type arguments
+ * addon.options.extra.default; // boolean
+ * ```
  */
 export function defineAddon<const Id extends string, Args extends OptionDefinition>(
 	config: Addon<Args, Id>
-): Addon<Args, Id> {
+): Addon<Args, Id>;
+export function defineAddon<SetupValues extends Record<string, unknown>>(): <
+	const Id extends string,
+	Args extends OptionDefinition
+>(
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>, 'options'> & {
+		options: Args;
+	}
+) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
+export function defineAddon(
+	config?: AddonDefinition
+): AddonDefinition | ((config: AddonDefinition) => AddonDefinition) {
+	if (config === undefined) {
+		return (c) => c;
+	}
 	return config;
 }
 
@@ -121,7 +183,7 @@ export function defineAddon<const Id extends string, Args extends OptionDefiniti
 //      │
 //      │  setupAddons()
 //      ▼
-//   PreparedAddon[]     ──  Stage 4: Setup done (dependencies resolved)
+//   PreparedAddon[]     ──  Stage 4: Setup done (dependencies resolved, dynamic options merged)
 //      │
 //      │  promptAddonQuestions()
 //      ▼
@@ -206,16 +268,28 @@ export function getErrorHint(source: AddonSource): string {
 	}
 }
 
-export type SetupResult = { dependsOn: string[]; unsupported: string[]; runsAfter: string[] };
+export type SetupResult = {
+	dependsOn: string[];
+	unsupported: string[];
+	runsAfter: string[];
+	additionalOptions: Record<string, Question>;
+};
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 
-export type Tests = {
-	expectProperty: (selector: string, property: string, expectedValue: string) => Promise<void>;
-	elementExists: (selector: string) => Promise<void>;
-	click: (selector: string, path?: string) => Promise<void>;
-	expectUrlPath: (path: string) => void;
-};
+/**
+ * Creates a LoadedAddon from an AddonDefinition (for official addons)
+ */
+export function createLoadedAddon(addon: AddonDefinition): LoadedAddon {
+	return {
+		reference: {
+			specifier: addon.id,
+			options: [],
+			source: { kind: 'official', id: addon.id }
+		},
+		addon
+	};
+}
 
 type MaybePromise<T> = Promise<T> | T;
 
@@ -281,8 +355,7 @@ export function defineAddonOptions(): OptionBuilder<{}> {
 function createOptionBuilder<const T extends OptionDefinition>(options: T): OptionBuilder<T> {
 	return {
 		add(key, question) {
-			const newOptions = { ...options, [key]: question };
-			return createOptionBuilder(newOptions);
+			return createOptionBuilder({ ...options, [key]: question });
 		},
 		build() {
 			return options;

@@ -1,32 +1,29 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 import * as p from '@clack/prompts';
 import {
 	AGENTS,
 	type AgentName,
-	COMMANDS,
+	commandExists,
 	color,
-	constructCommand,
 	detect,
-	pnpm
+	pnpm,
+	resolveCommand
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
 import { exec } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
 );
-const agentOptions: PackageManagerOptions = AGENT_NAMES.map((pm) => ({ value: pm, label: pm }));
-agentOptions.unshift({ label: 'None', value: undefined });
 
 export const installOption: Option = new Option(
 	'--install <package-manager>',
 	'installs dependencies with a specified package manager'
 ).choices(AGENT_NAMES);
 
-type PackageManagerOptions = Array<{ value: AgentName | undefined; label: AgentName | 'None' }>;
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
 	const detected = await detect({ cwd });
 	const agent = detected?.name ?? getUserAgent();
@@ -35,11 +32,17 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	// There is no need to prompt in that case.
 	if (!process.stdout.isTTY) return agent;
 
+	const agentOptions = [
+		{ label: 'None', value: undefined },
+		...AGENT_NAMES.filter(isInstalled).map((agent) => ({ value: agent }))
+	];
+
 	const pm = await p.select({
-		message: 'Which package manager do you want to install dependencies with?',
+		message: 'Detected package managers. Which one should we use to install dependencies?',
 		options: agentOptions,
 		initialValue: agent
 	});
+
 	if (p.isCancel(pm)) {
 		p.cancel('Operation cancelled.');
 		process.exit(1);
@@ -48,7 +51,17 @@ export async function packageManagerPrompt(cwd: string): Promise<AgentName | und
 	return pm;
 }
 
-export async function installDependencies(agent: AgentName, cwd: string): Promise<void> {
+/** Returns `false` when the package manager isn't installed and the install was skipped. */
+export async function installDependencies(
+	agent: AgentName,
+	cwd: string,
+	flags: string[] = []
+): Promise<boolean> {
+	if (!isInstalled(agent)) {
+		p.log.warn(`${color.command(agent)} is not installed, skipping dependency installation.`);
+		return false;
+	}
+
 	const task = p.taskLog({
 		title: `Installing dependencies with ${color.command(agent)}...`,
 		limit: Math.ceil(process.stdout.rows / 2),
@@ -56,12 +69,9 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		retainLog: true
 	});
 
-	const { command, args } = constructCommand(COMMANDS[agent].install, [])!;
+	const { command, args } = resolveCommand(agent, 'install', flags)!;
 
-	const proc = exec(command, args, {
-		nodeOptions: { cwd, stdio: 'pipe' },
-		throwOnError: false
-	});
+	const proc = exec(command, args, { nodeOptions: { cwd }, throwOnError: false });
 
 	const output: string[] = [];
 	try {
@@ -77,7 +87,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 	const exitCode = proc.exitCode ?? 0;
 	if (exitCode === 0) {
 		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
-		return;
+		return true;
 	}
 
 	if (agent === 'pnpm' && output.join('\n').includes('ERR_PNPM_IGNORED_BUILDS')) {
@@ -85,7 +95,7 @@ export async function installDependencies(agent: AgentName, cwd: string): Promis
 		p.log.warn(
 			`Some build scripts were skipped. Run ${color.command(`${agent} approve-builds`)} to approve them.`
 		);
-		return;
+		return true;
 	}
 
 	task.error('Failed to install dependencies');
@@ -98,7 +108,7 @@ export async function detectPackageManager(cwd: string): Promise<AgentName> {
 	return detected?.name ?? getUserAgent() ?? 'npm';
 }
 
-export function getUserAgent(): AgentName | undefined {
+function getUserAgent(): AgentName | undefined {
 	const userAgent = process.env.npm_config_user_agent;
 	if (!userAgent) return undefined;
 
@@ -108,16 +118,31 @@ export function getUserAgent(): AgentName | undefined {
 	return AGENTS.includes(name) ? name : undefined;
 }
 
-export function addPnpmAllowBuilds(
-	cwd: string,
-	packageManager: AgentName | null | undefined,
-	...packages: string[]
-): void {
-	if (packageManager !== 'pnpm' || packages.length === 0) return;
+const installedCache = new Map<AgentName, boolean>();
+function isInstalled(agent: AgentName): boolean {
+	const cached = installedCache.get(agent);
+	if (cached !== undefined) return cached;
+	const installed = commandExists(agent);
+	installedCache.set(agent, installed);
+	return installed;
+}
+
+/**
+ * `pnpm.allowBuilds` only transforms content. Add-ons get the read/write for free through
+ * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
+ * `pnpm-workspace.yaml` by hand.
+ */
+export function addAllowBuildsIfPnpm(options: {
+	cwd: string;
+	packageManager: AgentName | null | undefined;
+	packages: string[];
+}): void {
+	const { cwd, packageManager, packages } = options;
+	if (packageManager !== 'pnpm') return;
 
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.allowBuilds(...packages)(content);
+	const newContent = pnpm.allowBuilds({ cwd, packages })(content);
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }

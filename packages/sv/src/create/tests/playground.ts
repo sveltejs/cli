@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import * as find from 'empathic/find';
 import { expect, test } from 'vitest';
 import { create } from '../index.ts';
 import {
@@ -11,8 +11,8 @@ import {
 	validatePlaygroundUrl
 } from '../playground.ts';
 
-const resolvePath = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-const testWorkspaceDir = resolvePath('../../../.test-output/create/');
+const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
+const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'playground');
 
 test.for([
 	{ input: 'https://svelte.dev/playground/628f435d787a465f9c1f1854134d6f70/', valid: true },
@@ -107,8 +107,8 @@ test('detect dependencies from playground files', () => {
 				import { onMount } from 'svelte';
 				import Component from './Component.svelte';
 				import { page } from '$app/stores';
-				import { browser } from '$app/environment';
-				import utils from '$lib/utils';
+				import { browser } from '$app/env';
+				import utils from '#lib/utils.js';
 			</script>`
 		},
 		{
@@ -117,7 +117,7 @@ test('detect dependencies from playground files', () => {
 				import lodash from 'lodash@1.0.0';
 				import './local-file.js';
 				import fs from 'node:fs';
-				import { someUtil } from '$lib/utils';
+				import { someUtil } from '#lib/utils.js';
 				import kit from '@sveltejs/kit';
 			`
 		}
@@ -138,8 +138,8 @@ test('detect dependencies from playground files', () => {
 	expect(dependencies).not.toContain(['svelte/store', 'latest']);
 	expect(dependencies).not.toContain(['svelte', 'latest']);
 	expect(dependencies).not.toContain(['$app/stores', 'latest']);
-	expect(dependencies).not.toContain(['$app/environment', 'latest']);
-	expect(dependencies).not.toContain(['$lib/utils', 'latest']);
+	expect(dependencies).not.toContain(['$app/env', 'latest']);
+	expect(dependencies).not.toContain(['#lib/utils', 'latest']);
 	expect(dependencies).not.toContain(['node:fs', 'latest']);
 	expect(dependencies).not.toContain(['@sveltejs/kit', 'latest']);
 
@@ -147,15 +147,15 @@ test('detect dependencies from playground files', () => {
 	expect(Array.from(dependencies.keys()).length).toBe(3);
 });
 
-test('real world download and convert playground async', async () => {
-	const directory = path.join(testWorkspaceDir, 'real-world-playground');
+test('download and convert playground e2e (svelte async)', async () => {
+	const directory = path.join(TEST_DIR, 'playground-e2e-svelte-async');
 	if (fs.existsSync(directory)) {
 		fs.rmSync(directory, { recursive: true });
 	}
 
 	create({
 		cwd: directory,
-		name: 'real-world-playground',
+		name: 'playground-e2e-svelte-async',
 		template: 'minimal',
 		types: 'typescript'
 	});
@@ -199,15 +199,15 @@ test('real world download and convert playground async', async () => {
 	expect(viteConfigContent).toContain('experimental: { async: true }');
 });
 
-test('real world download and convert playground without async', async () => {
-	const directory = path.join(testWorkspaceDir, 'real-world-playground-old');
+test('download and convert playground e2e (pre svelte async)', async () => {
+	const directory = path.join(TEST_DIR, 'playground-e2e-pre-svelte-async');
 	if (fs.existsSync(directory)) {
 		fs.rmSync(directory, { recursive: true });
 	}
 
 	create({
 		cwd: directory,
-		name: 'real-world-playground-old',
+		name: 'playground-e2e-pre-svelte-async',
 		template: 'minimal',
 		types: 'typescript'
 	});

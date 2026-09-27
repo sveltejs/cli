@@ -1,8 +1,10 @@
-import * as p from '@clack/prompts';
-import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import * as p from '@clack/prompts';
+import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
+import * as resolve from 'empathic/resolve';
 import { exec } from 'tinyexec';
+import { isNodeError } from './common.ts';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
@@ -12,6 +14,11 @@ export type FormatStrategy =
 	/** Run `prettier --write` on the given files (if `prettier` is available). */
 	| 'files-only';
 
+type FormatAction =
+	| { kind: 'script'; dir: string; name: 'format' | 'fmt' }
+	| { kind: 'prettier' }
+	| { kind: 'skip' };
+
 export async function formatFiles(options: {
 	packageManager: AgentName;
 	cwd: string;
@@ -20,24 +27,52 @@ export async function formatFiles(options: {
 }): Promise<void> {
 	if (options.filesToFormat.length === 0) return;
 
-	if (options.strategy === 'project-script-then-files-only') {
-		const script = findFormatScript(options.cwd);
-		if (script) {
-			// the script owns its scope (whole repo/monorepo) and deps - we don't care what runs under it
-			const packageManager = await detectPackageManager(script.dir);
-			const cmd = resolveCommand(packageManager, 'run', [script.name])!;
-			await run(cmd.command, cmd.args, script.dir, `Running ${packageManager} run ${script.name}`);
-			return;
-		}
+	const action = resolveFormatAction(options.cwd, options.strategy);
+	if (action.kind === 'skip') return;
+
+	if (action.kind === 'script') {
+		// the script owns its scope (whole repo/monorepo) and deps - we don't care what runs under it
+		const packageManager = await detectPackageManager(action.dir);
+		const cmd = resolveCommand(packageManager, 'run', [action.name])!;
+		await withSpinner(`Running ${packageManager} run ${action.name}`, () =>
+			run(cmd.command, cmd.args, action.dir)
+		);
+		return;
 	}
 
-	const cmd = resolveCommand(options.packageManager, 'execute-local', [
-		'prettier',
-		'--write',
-		'--ignore-unknown',
-		...options.filesToFormat
-	])!;
-	await run(cmd.command, cmd.args, options.cwd, 'Formatting modified files');
+	const args = ['--write', '--ignore-unknown', ...options.filesToFormat];
+	await withSpinner('Formatting modified files', async () => {
+		// Prefer calling `prettier` from the project's `node_modules/.bin`. Going through the
+		// package manager can fail on unrelated state (e.g. pnpm refusing to run while build
+		// scripts are unapproved), but it's the only way to reach binaries under Yarn PnP.
+		let result = await run('prettier', args, options.cwd);
+		if (result.error) {
+			const cmd = resolveCommand(options.packageManager, 'execute-local', ['prettier', ...args])!;
+			result = await run(cmd.command, cmd.args, options.cwd);
+		}
+		return result;
+	});
+}
+
+/**
+ * Checks if a format script is available (`format`/`fmt`). If not, run `prettier`
+ * if it's resolvable from `cwd`. Otherwise, skip altogether if no formatter is detectable.
+ */
+export function resolveFormatAction(cwd: string, strategy: FormatStrategy): FormatAction {
+	if (strategy === 'project-script-then-files-only') {
+		const script = findFormatScript(cwd);
+		if (script) return { kind: 'script', ...script };
+	}
+
+	if (isPrettierInstalled(cwd)) return { kind: 'prettier' };
+	return { kind: 'skip' };
+}
+
+/**
+ * Whether `prettier` resolves from `cwd` via Node's module resolution.
+ */
+export function isPrettierInstalled(cwd: string): boolean {
+	return Boolean(resolve.from(cwd, 'prettier', true));
 }
 
 /** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
@@ -57,24 +92,36 @@ function findFormatScript(cwd: string): { dir: string; name: 'format' | 'fmt' } 
 	return undefined;
 }
 
-async function run(command: string, args: string[], cwd: string, startMsg: string): Promise<void> {
+async function withSpinner(
+	startMsg: string,
+	task: () => Promise<{ error?: string }>
+): Promise<void> {
 	const { start, stop } = p.spinner();
 	start(startMsg);
-	try {
-		const result = await exec(command, args, {
-			nodeOptions: { cwd, stdio: 'pipe' },
-			throwOnError: true
-		});
-		if (result.exitCode !== 0) {
-			stop('Failed to format files');
-			p.log.error(result.stderr);
-			return;
-		}
-	} catch (e) {
+	const { error } = await task();
+	if (error !== undefined) {
 		stop('Failed to format files');
-		// @ts-expect-error
-		p.log.error(e?.output?.stderr || 'unknown error');
+		p.log.error(error);
+
 		return;
 	}
 	stop('Successfully formatted files');
+}
+
+async function run(command: string, args: string[], cwd: string): Promise<{ error?: string }> {
+	try {
+		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
+		return {};
+	} catch (e) {
+		// Unix spawn of a missing binary is ENOENT. On Windows, tinyexec often runs via
+		// cmd.exe which exits 1 with "is not recognized..." instead. We'll treat both as errors
+		// so we can fall back to the package manager (needed for Yarn PnP).
+		if (!isNodeError(e)) {
+			return { error: 'unknown error' };
+		}
+		if (e.code === 'ENOENT') {
+			return { error: `${command} not found` };
+		}
+		return { error: e.message };
+	}
 }

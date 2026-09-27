@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { defineAddon, defineAddonOptions, type LoadedAddon } from '../config.ts';
-import { applyAddons, setupAddons } from '../engine.ts';
+import { applyAddons, prepareSvApi, setupAddons } from '../engine.ts';
 import { createWorkspace } from '../workspace.ts';
 
 function makeWorkspace() {
@@ -34,7 +34,7 @@ describe('applyAddons cancel propagation', () => {
 		const { status } = await applyAddons({
 			loadedAddons: addons,
 			workspace,
-			setupResults: setupAddons(addons, workspace),
+			setupResults: await setupAddons(addons, workspace),
 			options: { dep: {}, child: {} }
 		});
 		expect(status.dep).toEqual(['nope']);
@@ -56,10 +56,36 @@ describe('applyAddons cancel propagation', () => {
 		const { status } = await applyAddons({
 			loadedAddons: addons,
 			workspace,
-			setupResults: setupAddons(addons, workspace),
+			setupResults: await setupAddons(addons, workspace),
 			options: { dep: {}, child: {} }
 		});
 		expect(status.child).toBe('success');
 		expect(ran).toBe(true);
+	});
+});
+
+describe('sv.removeFile', () => {
+	it('removes files that match the file filter', async () => {
+		const cwd = makeWorkspace();
+		fs.writeFileSync(path.join(cwd, 'remove.txt'), 'remove me');
+		const workspace = await createWorkspace({ cwd });
+		const { sv, finalize } = prepareSvApi(workspace, { filesFilter: '**/*.txt' });
+
+		sv.removeFile('remove.txt');
+
+		expect(fs.existsSync(path.join(cwd, 'remove.txt'))).toBe(false);
+		expect(finalize().unmodifiedFiles).toEqual(new Set());
+	});
+
+	it('preserves and reports files that do not match the file filter', async () => {
+		const cwd = makeWorkspace();
+		fs.writeFileSync(path.join(cwd, 'keep.js'), 'keep me');
+		const workspace = await createWorkspace({ cwd });
+		const { sv, finalize } = prepareSvApi(workspace, { filesFilter: '**/*.txt' });
+
+		sv.removeFile('keep.js');
+
+		expect(fs.readFileSync(path.join(cwd, 'keep.js'), 'utf8')).toBe('keep me');
+		expect(finalize().unmodifiedFiles).toEqual(new Set(['keep.js']));
 	});
 });

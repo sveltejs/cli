@@ -15,12 +15,21 @@ const config = {
 	onwarn,
 	kit: {
 		experimental: {
-			remoteFunctions: true // still experimental
+			remoteFunctions: true, // still experimental
+			handleRenderingErrors: true,
+			tracing: {
+				server: true,
+			},
+			instrumentation: {
+				server: true
+			}
 		},
 		csrf: {
 			checkOrigin: false
 		},
+		prerender: { origin: 'https://example.com' },
 		paths: { ...paths, base },
+		preloadStrategy: 'modulepreload',
 		// adapter is selected via the helper above
 		adapter: adapter(adapterConfig)
 	},

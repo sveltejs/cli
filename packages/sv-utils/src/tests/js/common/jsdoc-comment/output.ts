@@ -1,5 +1,5 @@
 /**
- * @param {import("$lib/paraglide/runtime").AvailableLanguageTag} newLanguage
+ * @param {import("#lib/paraglide/runtime").AvailableLanguageTag} newLanguage
  */
 function switchToLanguage(newLanguage) {
 	const canonicalPath = i18n.route(page.url.pathname);

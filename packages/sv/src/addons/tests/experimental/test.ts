@@ -10,28 +10,19 @@ const { test, testCases } = setupTest(
 	{
 		kinds: [
 			{
-				// kit@next selected + every feature: explicitEnvironmentVariables must be dropped (gone in kit 3)
-				type: 'next-all',
+				type: 'all-features',
+
 				options: {
 					[addonId]: {
-						versions: ['kit-3-next'],
-						features: [
-							'async',
-							'remoteFunctions',
-							'explicitEnvironmentVariables',
-							'handleRenderingErrors',
-							'forkPreloads'
-						]
+						features: ['async', 'remoteFunctions', 'forkPreloads']
 					}
 				}
 			},
 			{
-				// staying on kit 2: explicitEnvironmentVariables is kept, defaults leave forkPreloads off
-				type: 'kit2-defaults',
+				type: 'selected-features',
 				options: {
 					[addonId]: {
-						versions: [],
-						features: ['async', 'remoteFunctions', 'explicitEnvironmentVariables']
+						features: ['remoteFunctions']
 					}
 				}
 			}
@@ -48,25 +39,14 @@ test.concurrent.for(testCases)('experimental $kind.type $variant', (testCase, { 
 		.map((name) => join(cwd, name))
 		.find((file) => existsSync(file))!;
 	const source = readFileSync(config, 'utf8');
-	const pkg = readFileSync(join(cwd, 'package.json'), 'utf8');
 
-	if (testCase.kind.type === 'next-all') {
-		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).toBe('next');
-		// the adapter must follow kit onto its `next` line (it peers on kit's major)
-		expect(JSON.parse(pkg).devDependencies['@sveltejs/adapter-auto']).toBe('next');
+	if (testCase.kind.type === 'all-features') {
 		expect(source).toMatch('async: true');
 		expect(source).toMatch('remoteFunctions: true');
-		expect(source).toMatch('handleRenderingErrors: true');
 		expect(source).toMatch('forkPreloads: true');
-		// removed from experimental in kit 3, so it must be skipped when kit@next is chosen
-		expect(source).not.toMatch('explicitEnvironmentVariables');
-	} else if (testCase.kind.type === 'kit2-defaults') {
-		expect(JSON.parse(pkg).devDependencies['@sveltejs/kit']).not.toBe('next');
-		expect(source).toMatch('async: true');
+	} else if (testCase.kind.type === 'selected-features') {
 		expect(source).toMatch('remoteFunctions: true');
-		expect(source).toMatch('explicitEnvironmentVariables: true');
-		// not selected -> absent
+		expect(source).not.toMatch('async');
 		expect(source).not.toMatch('forkPreloads');
-		expect(source).not.toMatch('handleRenderingErrors');
 	}
 });

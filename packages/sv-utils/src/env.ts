@@ -1,4 +1,5 @@
 import { fileExists } from './files.ts';
+import { isKit3 } from './kit3.ts';
 import { coerceVersion } from './semver.ts';
 import { svelteConfig, type ConfigFileReader, type SvFileApi } from './svelte-config.ts';
 import type { AstTypes } from './tooling/index.ts';
@@ -15,10 +16,8 @@ export function resolveEnvMode({
 	explicitEnvFlag: boolean;
 }): EnvMode {
 	if (!kitRange) return 'legacy';
-	if (kitRange === 'next') return 'declared';
-	const { major } = coerceVersion(kitRange);
-	if (major !== undefined && major >= 3) return 'declared';
-	if (major === 2 && explicitEnvFlag) return 'declared';
+	if (isKit3(kitRange)) return 'declared';
+	if (coerceVersion(kitRange).major === 2 && explicitEnvFlag) return 'declared';
 	return 'legacy';
 }
 
@@ -110,23 +109,23 @@ function getOrCreateVariablesObject(
  * just call `define`/`reference` and never deal with the legacy-vs-declared distinction themselves.
  */
 export function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv {
-	const mode = resolveEnvMode({
-		kitRange: dependencyVersion('@sveltejs/kit'),
-		explicitEnvFlag: readExplicitEnvFlag(cwd)
-	});
+	const kitRange = dependencyVersion('@sveltejs/kit');
+	const mode = resolveEnvMode({ kitRange, explicitEnvFlag: readExplicitEnvFlag(cwd) });
 	const language = fileExists(cwd, 'tsconfig.json') ? 'ts' : 'js';
-	return _bindEnv({ sv, mode, language });
+	return _bindEnv({ sv, mode, language, kit3: isKit3(kitRange) });
 }
 
 /** @internal The mode-resolved core, exported for filesystem-free tests. */
 export function _bindEnv({
 	sv,
 	mode,
-	language
+	language,
+	kit3 = false
 }: {
 	sv: SvFileApi;
 	mode: EnvMode;
 	language: 'ts' | 'js';
+	kit3?: boolean;
 }): DefineEnv {
 	const declared = new Map<string, EnvVarSpec>();
 
@@ -138,7 +137,10 @@ export function _bindEnv({
 			const envPath = `src/env.${language}`;
 			sv.file(envPath, (content) =>
 				transforms.script(({ ast, js }) => {
-					js.imports.addNamed(ast, { from: '@sveltejs/kit/hooks', imports: ['defineEnvVars'] });
+					js.imports.addNamed(ast, {
+						from: kit3 ? '@sveltejs/kit/env' : '@sveltejs/kit/hooks',
+						imports: ['defineEnvVars']
+					});
 					const variables = getOrCreateVariablesObject(ast, js);
 					const entry = js.object.property(variables, {
 						name: spec.name,

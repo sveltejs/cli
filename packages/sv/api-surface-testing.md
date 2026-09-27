@@ -9,13 +9,14 @@ type OfficialAddons = {
 	vitest: Addon<any>;
 	playwright: Addon<any>;
 	tailwindcss: Addon<any>;
+	enhancedImg: Addon<any>;
 	sveltekitAdapter: Addon<any>;
 	drizzle: Addon<any>;
 	betterAuth: Addon<any>;
 	mdsvex: Addon<any>;
 	paraglide: Addon<any>;
 	storybook: Addon<any>;
-	mcp: Addon<any>;
+	aiTools: Addon<any>;
 	experimental: Addon<any>;
 };
 declare const officialAddons: OfficialAddons;
@@ -57,7 +58,6 @@ type MultiSelectQuestion<Value> = {
 type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;
 	group?: string;
-
 	condition?: (options: OptionValues<Args>) => boolean;
 };
 type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<Args> &
@@ -80,33 +80,22 @@ type OptionValues<Args extends OptionDefinition> = {
 					? Value
 					: Args[K] extends MultiSelectQuestion<infer Value>
 						? Value[]
-						: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
+						: Args[K] extends Question<any>
+							? unknown
+							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
 	cwd: string;
-
 	dependencyVersion: (pkg: string) => string | undefined;
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
-		/**
-		 * @deprecated the config no longer necessarily lives in `svelte.config.{js,ts}` (it can be
-		 * passed to `sveltekit()` in `vite.config.{js,ts}`). Use `svelteConfig` from
-		 * `@sveltejs/sv-utils` to edit it wherever it lives.
-		 */
-		svelteConfig: 'svelte.config.js' | 'svelte.config.ts';
 		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
-		gitignore: '.gitignore'; /** @deprecated use the string `.prettierignore` instead. */
-		prettierignore: '.prettierignore'; /** @deprecated use the string `.prettierrc` instead. */
-		prettierrc: '.prettierrc'; /** @deprecated use the string `eslint.config.js` instead. */
-		eslintConfig: 'eslint.config.js'; /** @deprecated use the string `.vscode/settings.json` instead. */
-		vscodeSettings: '.vscode/settings.json'; /** @deprecated use the string `.vscode/extensions.json` instead. */
-		vscodeExtensions: '.vscode/extensions.json';
+		gitignore: '.gitignore';
 		getRelative: ({ from, to }: { from?: string; to: string }) => string;
-
 		findUp: (filename: string) => string;
 	};
 	isKit: boolean;
@@ -120,26 +109,25 @@ type Workspace = {
 type FileEdit = (content: string) => string | false;
 type FileEditMultiple = (content: string, path: string) => string | false;
 type SvApi = {
-	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */ pnpmBuildDependency: (
-		pkg: string
-	) => void;
 	dependency: (pkg: string, version: string) => void;
 	devDependency: (pkg: string, version: string) => void;
 	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
-
 	file: (path: string, edit: FileEdit) => void;
-
+	removeFile: (path: string) => void;
 	files: (
 		options: {
 			include: string | string[];
 			exclude?: string[];
-
 			where?: (content: string) => boolean;
 		},
 		edit: FileEditMultiple
 	) => void;
 };
-type Addon<Args extends OptionDefinition, Id extends string = string> = {
+type Addon<
+	Args extends OptionDefinition,
+	Id extends string = string,
+	Setup extends Record<string, unknown> = Record<string, unknown>
+> = {
 	id: Id;
 	alias?: string;
 	shortDescription?: string;
@@ -149,24 +137,38 @@ type Addon<Args extends OptionDefinition, Id extends string = string> = {
 	setup?: (
 		workspace: Workspace & {
 			dependsOn: (name: keyof typeof officialAddons) => void;
-
 			unsupported: (reason: string) => void;
 			runsAfter: (name: keyof typeof officialAddons) => void;
+			addOption: <K extends Extract<keyof Setup, string>>(
+				key: K,
+				question: SetupOptions<Setup>[K]
+			) => void;
 		}
 	) => MaybePromise<void>;
 	run: (
 		workspace: Workspace & {
-			options: WorkspaceOptions<Args>;
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			sv: SvApi;
-
 			cancel: (reason: string) => void;
 		}
 	) => MaybePromise<void>;
 	nextSteps?: (
 		workspace: Workspace & {
-			options: WorkspaceOptions<Args>;
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
 		}
 	) => string[];
+};
+type SetupOptions<T extends Record<string, unknown>> = {
+	[K in keyof T]: BaseQuestion<any> &
+		(T[K] extends boolean
+			? BooleanQuestion
+			: T[K] extends string
+				? StringQuestion
+				: T[K] extends number
+					? NumberQuestion
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
 };
 type MaybePromise<T> = Promise<T> | T;
 type AddonMap = Record<string, Addon<any, any>>;
@@ -179,9 +181,9 @@ type AddonById<Addons extends AddonMap, Id extends string> = Extract<
 type OptionMap<Addons extends AddonMap> = {
 	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
 };
-type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
-declare const variants: ProjectVariant[];
-type CreateProject = (options: {
+export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
+export declare const variants: ProjectVariant[];
+export type CreateProject = (options: {
 	testId: string;
 	variant: ProjectVariant;
 	clean?: boolean;
@@ -193,7 +195,7 @@ declare module 'vitest' {
 		variants: ProjectVariant[];
 	}
 }
-declare function setupGlobal({
+export declare function setupGlobal({
 	TEST_DIR,
 	pre,
 	post
@@ -202,48 +204,47 @@ declare function setupGlobal({
 	pre?: () => Promise<void>;
 	post?: () => Promise<void>;
 }): ({ provide }: TestProject) => Promise<() => Promise<void>>;
-type Fixtures = {
+export type Fixtures = {
 	page: Page;
 	cwd(addonTestCase: AddonTestCase<any>): string;
 };
-type AddonTestCase<Addons extends AddonMap> = {
+export type AddonTestCase<Addons extends AddonMap> = {
 	variant: ProjectVariant;
 	kind: {
 		type: string;
 		options: OptionMap<Addons>;
 	};
 };
-type SetupTestOptions<Addons extends AddonMap> = {
+export type SetupTestOptions<Addons extends AddonMap> = {
 	kinds: Array<AddonTestCase<Addons>['kind']>;
 	filter?: (addonTestCase: AddonTestCase<Addons>) => boolean;
 	browser?: boolean;
 	preAdd?: (o: { addonTestCase: AddonTestCase<Addons>; cwd: string }) => Promise<void> | void;
 };
-type PrepareServerOptions = {
+export type PrepareServerOptions = {
 	cwd: string;
 	page: Page;
 	buildCommand?: string;
 	previewCommand?: string;
-
 	expect?: VitestContext['expect'];
 };
-type PrepareServerReturn = {
+export type PrepareServerReturn = {
 	url: string;
 	close: () => Promise<void>;
 };
-declare function prepareServer({
+export declare function prepareServer({
 	cwd,
 	page,
 	buildCommand,
 	previewCommand,
 	expect
 }: PrepareServerOptions): Promise<PrepareServerReturn>;
-type PlaywrightContext = Pick<typeof import('@playwright/test'), 'chromium'>;
-type VitestContext = Pick<
+export type PlaywrightContext = Pick<typeof import('@playwright/test'), 'chromium'>;
+export type VitestContext = Pick<
 	typeof import('vitest'),
 	'inject' | 'test' | 'beforeAll' | 'beforeEach' | 'expect'
 >;
-declare function createSetupTest(
+export declare function createSetupTest(
 	vitest: VitestContext,
 	playwright?: PlaywrightContext
 ): <Addons extends AddonMap>(
@@ -253,20 +254,5 @@ declare function createSetupTest(
 	test: import('vitest').TestAPI<Fixtures>;
 	testCases: Array<AddonTestCase<AddonMap>>;
 	prepareServer: typeof prepareServer;
-};
-export {
-	AddonTestCase,
-	CreateProject,
-	Fixtures,
-	PlaywrightContext,
-	PrepareServerOptions,
-	PrepareServerReturn,
-	ProjectVariant,
-	SetupTestOptions,
-	VitestContext,
-	createSetupTest,
-	prepareServer,
-	setupGlobal,
-	variants
 };
 ```
