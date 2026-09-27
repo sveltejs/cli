@@ -13,26 +13,26 @@ const KIT3_MIN_VERSIONS = {
 };
 
 const ADAPTERS: Record<string, string | undefined> = {
-	'@sveltejs/adapter-auto': '^8.0.0-next.0',
-	'@sveltejs/adapter-cloudflare': '^8.0.0-next.0',
-	'@sveltejs/adapter-netlify': '^7.0.0-next.0',
-	'@sveltejs/adapter-node': '^6.0.0-next.0',
-	'@sveltejs/adapter-static': '^4.0.0-next.0',
-	'@sveltejs/adapter-vercel': '^7.0.0-next.0'
+	'@sveltejs/adapter-auto': '^8.0.0',
+	'@sveltejs/adapter-cloudflare': '^8.0.0',
+	'@sveltejs/adapter-netlify': '^7.0.0',
+	'@sveltejs/adapter-node': '^6.0.0',
+	'@sveltejs/adapter-static': '^4.0.0',
+	'@sveltejs/adapter-vercel': '^7.0.0'
 };
 
 export default defineMigrationTask({
 	id: 'package-json',
 	description: 'Update package.json to be compatible with SvelteKit 3.0',
 	run: ({ sv, cwd, dependencyVersion }) => {
-		sv.devDependency('@sveltejs/kit', '^3.0.0-next.0');
+		sv.devDependency('@sveltejs/kit', '^3.0.0');
 
 		for (const [pkg, range] of Object.entries(KIT3_MIN_VERSIONS)) {
 			const current = dependencyVersion(pkg);
 			if (current && isVersionUnsupportedBelow(current, range)) sv.devDependency(pkg, range);
 		}
 
-		// Adapters track Kit's major, so installed adapters must move to their prerelease line too.
+		// Adapters track Kit's major, so installed adapters must move to their compatible major too.
 		const { data: pkg } = loadPackageJson(cwd);
 		const dependencies = { ...pkg.devDependencies, ...pkg.dependencies };
 		for (const name of Object.keys(dependencies)) {
