@@ -163,7 +163,7 @@ export default defineMigrationTask({
 			// `override` builds the node, so we locate it afterwards to attach the leading comment
 			if (trustsAllOrigins) {
 				Walker.walk(ast as AstTypes.Node, null, {
-					Property(node: AstTypes.Property, { next }: Walker.Context<AstTypes.Node, null>) {
+					Property(node, { next }) {
 						if (node.key.type === 'Identifier' && node.key.name === 'trustedOrigins') {
 							addMigrationTask(
 								"trusting all origins with '*' is generally not recommended, see https://svelte.dev/docs/kit/configuration#csrf",

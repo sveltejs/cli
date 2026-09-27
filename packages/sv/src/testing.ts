@@ -6,7 +6,7 @@ import pstree, { type PS } from 'ps-tree';
 import { exec, execSync } from 'tinyexec';
 import type { TestProject } from 'vitest/node';
 import { add, type AddonMap, type OptionMap } from './core/engine.ts';
-import { addPnpmAllowBuilds } from './core/package-manager.ts';
+import { addAllowBuildsIfPnpm } from './core/package-manager.ts';
 import { create } from './create/index.ts';
 
 export type ProjectVariant = 'kit-js' | 'kit-ts' | 'vite-js' | 'vite-ts';
@@ -361,7 +361,7 @@ export function createSetupTest(
 					options: kind.options,
 					packageManager: 'pnpm'
 				});
-				addPnpmAllowBuilds(cwd, 'pnpm', 'esbuild');
+				addAllowBuildsIfPnpm({ cwd, packageManager: 'pnpm', packages: ['esbuild'] });
 			}
 
 			const installDir = path.resolve(cwd, testName);

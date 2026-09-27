@@ -39,13 +39,19 @@ const svDeps = {
 	]
 };
 
+/** Shared `deps` settings for the sv-utils DTS-only builds. */
+const svUtilsDtsDeps = {
+	neverBundle: [/^svelte/, '@types/estree', 'estree', 'yaml', 'package-manager-detector'],
+	onlyBundle: ['smol-toml', 'zimmerframe', 'dedent']
+};
+
 export default defineConfig([
 	{
 		cwd: path.resolve('packages/sv'),
 		entry: ['src/index.ts', 'src/testing.ts', 'bin.ts'],
 		sourcemap: !process.env.CI,
 		dts: {
-			oxc: true
+			generator: 'oxc'
 		},
 		failOnWarn: true,
 		deps: svDeps,
@@ -80,7 +86,7 @@ export default defineConfig([
 		entry: ['src/index.ts'],
 		outDir: `${API_SURFACE_DIR}/index`,
 		dts: {
-			oxc: true,
+			generator: 'oxc',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
@@ -96,7 +102,7 @@ export default defineConfig([
 		entry: ['src/testing.ts'],
 		outDir: `${API_SURFACE_DIR}/testing`,
 		dts: {
-			oxc: true,
+			generator: 'oxc',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
@@ -110,10 +116,33 @@ export default defineConfig([
 	// sv-utils: runtime build (bundles everything including svelte)
 	{
 		cwd: path.resolve('packages/sv-utils'),
-		entry: ['src/index.ts'],
+		entry: ['src/index.ts', 'src/browser.ts'],
 		sourcemap: !process.env.CI,
+		exports: {
+			devExports: true,
+			inlinedDependencies: false,
+			packageJson: false,
+			// `*.d.mts` comes from the DTS-only sv-utils builds below, not from this one.
+			customExports: (exports, { isPublish }) => {
+				exports['.'] = isPublish
+					? { types: './dist/index.d.mts', default: './dist/index.mjs' }
+					: './src/index.ts';
+				exports['./browser'] = isPublish
+					? { types: './dist/browser.d.mts', default: './dist/browser.mjs' }
+					: './src/browser.ts';
+				return exports;
+			}
+		},
 		dts: false,
 		failOnWarn: true,
+		// `yaml` ships a CJS node build (reached through `createRequire`) and an ESM browser
+		// build. Resolving its `browser` field keeps the shared chunk free of node builtins;
+		// the node entry works fine with it too.
+		inputOptions: {
+			resolve: {
+				aliasFields: [['browser']]
+			}
+		},
 		deps: {
 			onlyBundle: [
 				'@jridgewell/gen-mapping',
@@ -143,18 +172,27 @@ export default defineConfig([
 	// Svelte uses `declare module 'svelte/compiler'` which rolldown-plugin-dts
 	// v0.21+ cannot inline. This is a known issue: https://github.com/sveltejs/svelte/issues/17520
 	// Once svelte ships separate .d.ts files per entry point, this split can be removed.
+	// One build per entry so each emitted `.d.mts` stays self-contained
+	// (a shared chunk would leave `api-surface.md` with bare re-exports).
 	{
 		cwd: path.resolve('packages/sv-utils'),
 		entry: ['src/index.ts'],
 		dts: {
-			oxc: true,
+			generator: 'oxc',
 			emitDtsOnly: true
 		},
 		failOnWarn: true,
-		deps: {
-			neverBundle: [/^svelte/, '@types/estree', 'estree', 'yaml', 'package-manager-detector'],
-			onlyBundle: ['smol-toml', 'zimmerframe', 'dedent']
-		}
+		deps: svUtilsDtsDeps
+	},
+	{
+		cwd: path.resolve('packages/sv-utils'),
+		entry: ['src/browser.ts'],
+		dts: {
+			generator: 'oxc',
+			emitDtsOnly: true
+		},
+		failOnWarn: true,
+		deps: svUtilsDtsDeps
 	}
 ]);
 

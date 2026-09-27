@@ -40,7 +40,7 @@ function migrateExternalRedirects(ast: AstTypes.Program): boolean {
 
 	let changed = false;
 	Walker.walk(ast as AstTypes.Node, null, {
-		CallExpression(node: AstTypes.CallExpression, { next }: Walker.Context<AstTypes.Node, null>) {
+		CallExpression(node, { next }) {
 			const destination = node.arguments[1];
 			if (
 				isRedirectCall(node, locals, namespaces) &&

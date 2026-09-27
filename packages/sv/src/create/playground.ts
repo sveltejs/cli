@@ -203,7 +203,7 @@ export function setupPlaygroundProject(
 				svelte.ensureScript(ast);
 				// tsgo can't infer visitor node types from zimmerframe's distributive conditional
 				Walker.walk(ast.instance.content as AstTypes.Node, null, {
-					Literal(node: AstTypes.Literal) {
+					Literal(node) {
 						if (node.value === '$sv-title-$sv') {
 							node.value = playground.name;
 							node.raw = undefined;

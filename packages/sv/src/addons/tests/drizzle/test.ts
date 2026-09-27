@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { commandExists } from '@sveltejs/sv-utils';
 import { execSync } from 'tinyexec';
 import { beforeAll, expect } from 'vitest';
 import drizzle from '../../drizzle.ts';
@@ -39,13 +40,7 @@ const { test, testCases, prepareServer } = setupTest(
 beforeAll(() => {
 	if (!MUST_HAVE_DOCKER) return;
 	const cwd = import.meta.dirname;
-
-	try {
-		execSync('docker', ['--version'], { nodeOptions: { cwd }, throwOnError: true });
-		dockerInstalled = true;
-	} catch {
-		dockerInstalled = false;
-	}
+	dockerInstalled = commandExists('docker');
 
 	if (dockerInstalled) {
 		execSync('docker', ['compose', 'up', '--detach'], {

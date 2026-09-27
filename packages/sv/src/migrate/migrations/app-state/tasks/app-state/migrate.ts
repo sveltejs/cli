@@ -96,7 +96,7 @@ export function migrateAppStateModule(ast: AstTypes.Program, comments: Comments)
 	}
 
 	Walker.walk(ast as AstTypes.Node, null, {
-		MemberExpression(node: AstTypes.MemberExpression, ctx: Walker.Context<AstTypes.Node, null>) {
+		MemberExpression(node, ctx) {
 			if (
 				node.object.type === 'Identifier' &&
 				storeNames.has(node.object.name) &&
@@ -110,7 +110,7 @@ export function migrateAppStateModule(ast: AstTypes.Program, comments: Comments)
 			}
 			ctx.next();
 		},
-		CallExpression(node: AstTypes.CallExpression, ctx: Walker.Context<AstTypes.Node, null>) {
+		CallExpression(node, ctx) {
 			if (
 				node.callee.type === 'Identifier' &&
 				node.callee.name === 'get' &&
@@ -160,20 +160,17 @@ function findBailReason(
 	let reason: string | undefined;
 
 	Walker.walk(ast as AstTypes.Node, null, {
-		LabeledStatement(node: AstTypes.LabeledStatement, ctx: Walker.Context<AstTypes.Node, null>) {
+		LabeledStatement(node, ctx) {
 			if (node.label.name === '$') reason ??= 'legacy reactive statement (`$:`)';
 			ctx.next();
 		},
-		ExportNamedDeclaration(
-			node: AstTypes.ExportNamedDeclaration,
-			ctx: Walker.Context<AstTypes.Node, null>
-		) {
+		ExportNamedDeclaration(node, ctx) {
 			if (node.declaration?.type === 'VariableDeclaration' && node.declaration.kind === 'let') {
 				reason ??= 'legacy `export let` props';
 			}
 			ctx.next();
 		},
-		CallExpression(node: AstTypes.CallExpression, ctx: Walker.Context<AstTypes.Node, null>) {
+		CallExpression(node, ctx) {
 			if (
 				node.callee.type === 'Identifier' &&
 				node.callee.name === 'derived' &&
@@ -196,7 +193,7 @@ function derefStores(
 	state: DerefState
 ): void {
 	Walker.walk(node as AstTypes.Node, null, {
-		Identifier(node: AstTypes.Identifier, ctx: Walker.Context<AstTypes.Node, null>) {
+		Identifier(node, ctx) {
 			const local = locals.get(node.name);
 			if (local === undefined) return;
 
