@@ -2,9 +2,6 @@
 title: [create your own]
 ---
 
-> [!NOTE]
-> Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
-
 This guide covers how to create, test, and publish community add-ons for the Svelte CLI.
 
 ## Quick start
