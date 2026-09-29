@@ -1,4 +1,9 @@
-import { detectPnpmMajor, writeAllowBuilds, writeLegacy } from './pnpm-internals.ts';
+import {
+	detectPnpmMajor,
+	writeAllowBuilds,
+	writeEngineStrict,
+	writeLegacy
+} from './pnpm-internals.ts';
 import { type TransformFn } from './tooling/transforms.ts';
 
 /**
@@ -25,4 +30,12 @@ export function allowBuilds(options: {
 	const major = detectPnpmMajor(cwd);
 	if (major !== undefined && major < 11) return writeLegacy(packages);
 	return writeAllowBuilds(packages);
+}
+
+/**
+ * Returns a TransformFn for `pnpm-workspace.yaml` that adds `engineStrict` config
+ * if not defined already
+ */
+export function engineStrict(): TransformFn {
+	return writeEngineStrict();
 }
