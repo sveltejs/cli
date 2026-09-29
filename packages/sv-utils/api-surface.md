@@ -1030,9 +1030,10 @@ export declare function resolveCommandArray(
 	args: string[]
 ): string[];
 declare namespace pnpm_d_exports {
-	export { allowBuilds };
+	export { allowBuilds, engineStrict };
 }
 declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
+declare function engineStrict(): TransformFn;
 export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;

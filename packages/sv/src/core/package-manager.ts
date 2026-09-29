@@ -146,3 +146,22 @@ export function addAllowBuildsIfPnpm(options: {
 	const newContent = pnpm.allowBuilds({ cwd, packages })(content);
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
+
+/**
+ * `pnpm.engineStrict` only transforms content. Add-ons get the read/write for free through
+ * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
+ * `pnpm-workspace.yaml` by hand.
+ */
+export function addEngineStrictIfPnpm(options: {
+	cwd: string;
+	packageManager: AgentName | null | undefined;
+}): void {
+	const { cwd, packageManager } = options;
+	if (packageManager !== 'pnpm') return;
+
+	const found = find.up('pnpm-workspace.yaml', { cwd });
+	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
+	const content = found ? fs.readFileSync(found, 'utf-8') : '';
+	const newContent = pnpm.engineStrict()(content);
+	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
+}
