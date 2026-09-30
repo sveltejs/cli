@@ -194,7 +194,9 @@ export default defineAddon({
 					transforms.json(({ data }) => {
 						data.compilerOptions ??= {};
 						data.compilerOptions.types ??= [];
-						data.compilerOptions.types.push('./worker-configuration.d.ts');
+						const types = data.compilerOptions.types
+						if (!types.includes('$app/types')) types.push('$app/types')
+						if (!types.includes('./worker-configuration.d.ts')) types.push('./worker-configuration.d.ts');
 					})
 				);
 
