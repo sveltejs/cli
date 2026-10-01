@@ -1,5 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+
+	const KEY = 'sv-demo-visited';
+	let visited = $state(new Set());
+
+	// ticks each demo once visited, remembered across reloads
+	$effect(() => {
+		const seen = new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]'));
+
+		seen.add(page.url.pathname);
+		localStorage.setItem(KEY, JSON.stringify([...seen]));
+		visited = seen;
+	});
 </script>
 
 <!-- Added by `sv add`. To remove: delete this file and `<DemoLinks />` from +layout.svelte -->
@@ -9,17 +22,35 @@
 
 	<ul>
 		<li>
-			<input type="checkbox" aria-label="tried playwright" />
+			<input
+				type="checkbox"
+				inert
+				checked={visited.has(resolve('/demo/playwright'))}
+				aria-label="visited playwright"
+			/>
+
 			<a href={resolve('/demo/playwright')}>playwright</a>
 		</li>
 
 		<li>
-			<input type="checkbox" aria-label="tried paraglide" />
+			<input
+				type="checkbox"
+				inert
+				checked={visited.has(resolve('/demo/paraglide'))}
+				aria-label="visited paraglide"
+			/>
+
 			<a href={resolve('/demo/paraglide')}>paraglide</a>
 		</li>
 
 		<li>
-			<input type="checkbox" aria-label="tried better-auth" />
+			<input
+				type="checkbox"
+				inert
+				checked={visited.has(resolve('/demo/better-auth'))}
+				aria-label="visited better-auth"
+			/>
+
 			<a href={resolve('/demo/better-auth')}>better-auth</a>
 		</li>
 	</ul>
@@ -87,16 +118,11 @@
 		text-underline-offset: 2px;
 	}
 
-	a::after {
-		content: ' →';
-	}
-
 	a:hover {
 		color: #0b2f8a;
 	}
 
 	input:checked + a {
 		color: #6b6420;
-		text-decoration: line-through;
 	}
 </style>

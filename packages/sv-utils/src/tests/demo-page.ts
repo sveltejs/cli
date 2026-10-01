@@ -29,7 +29,7 @@ describe('defineDemoPage', () => {
 		runAddon(sv, 'x');
 		runAddon(sv, 'x');
 
-		expect(count(sv.files[LINKS], "'/demo/x'")).toBe(1);
+		expect(count(sv.files[LINKS], "href={resolve('/demo/x')}")).toBe(1);
 		expect(count(sv.files[LAYOUT], '<DemoLinks />')).toBe(1);
 	});
 
@@ -38,7 +38,7 @@ describe('defineDemoPage', () => {
 		for (const name of ['x', 'y', 'z', 'x', 'y', 'z']) runAddon(sv, name);
 
 		for (const name of ['x', 'y', 'z']) {
-			expect(count(sv.files[LINKS], `'/demo/${name}'`)).toBe(1);
+			expect(count(sv.files[LINKS], `href={resolve('/demo/${name}')}`)).toBe(1);
 		}
 		expect(count(sv.files[LAYOUT], '<DemoLinks />')).toBe(1);
 		expect(count(sv.files[LAYOUT], 'import DemoLinks')).toBe(1);
