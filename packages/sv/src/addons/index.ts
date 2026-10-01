@@ -15,7 +15,7 @@ import sveltekitAdapter from './sveltekit-adapter.ts';
 import tailwindcss from './tailwindcss.ts';
 import vitest from './vitest-addon.ts';
 
-/** Keyed by `addon.id`, so a drift between `ADDON_IDS` and an add-on's `id` fails to compile. */
+/** Keyed by `addon.id`, so a missing or extra add-on fails to compile. */
 type OfficialAddons = { [Id in OfficialAddonId]: Addon<any> };
 
 export type { OfficialAddonId };

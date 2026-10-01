@@ -1,5 +1,6 @@
 import { coerceVersion, color, createPrinter, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const options = defineAddonOptions()
 	.add('usages', {
@@ -18,7 +19,7 @@ const options = defineAddonOptions()
 let vitestV3Installed = false;
 
 export default defineAddon({
-	id: 'vitest',
+	id: ADDON_IDS.vitest,
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,

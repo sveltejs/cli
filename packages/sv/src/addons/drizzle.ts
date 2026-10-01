@@ -85,7 +85,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'drizzle',
+	id: ADDON_IDS.drizzle,
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,

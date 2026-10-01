@@ -55,7 +55,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'paraglide',
+	id: ADDON_IDS.paraglide,
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,

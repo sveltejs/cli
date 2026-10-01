@@ -33,7 +33,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'better-auth',
+	id: ADDON_IDS.betterAuth,
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
 	options,

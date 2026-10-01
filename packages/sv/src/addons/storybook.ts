@@ -4,7 +4,7 @@ import { getNodeTypesVersion } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
-	id: 'storybook',
+	id: ADDON_IDS.storybook,
 	shortDescription: 'frontend workshop',
 	homepage: 'https://storybook.js.org',
 	options: {},

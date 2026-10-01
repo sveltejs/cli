@@ -1,5 +1,6 @@
 import { svelteConfig } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { ADDON_IDS } from './ids.ts';
 
 // Single source of truth, keyed by flag name. `path` defaults to `experimental.<name>` and `off`
 // opts out of the default selection.
@@ -23,7 +24,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'experimental',
+	id: ADDON_IDS.experimental,
 	shortDescription: 'svelte & kit experimental features',
 	homepage: 'https://svelte.dev/docs/kit/configuration#experimental',
 	options,
