@@ -31,11 +31,20 @@ export {
 	type SvelteConfigObjects
 } from './svelte-config.ts';
 
-// Demo page wiring (the `/demo` index + nav entry an add-on's demo route hangs off)
+// Floating add-on demo links, upserted into the root layout
 export { defineDemoPage, type DemoPage } from './demo-page.ts';
 
 // Env access (abstracts over legacy `$env/dynamic/*` vs declared `$app/env/*` + `src/env.ts`)
 export { defineEnv } from './env.ts';
+
+// Kit 3 specifics (version detection, `$lib` -> `#lib`, the generated tsconfig)
+export {
+	KIT3_TSCONFIG,
+	KIT3_TSCONFIG_DEFAULT,
+	isKit3,
+	libSubpathImports,
+	resolveLibPrefix
+} from './kit3.ts';
 
 // Terminal styling
 export { color } from './color.ts';
