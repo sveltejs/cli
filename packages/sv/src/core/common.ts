@@ -191,7 +191,7 @@ export async function runCommand(action: MaybePromise): Promise<void> {
 
 		p.intro(`Welcome to the Svelte CLI! ${color.optional(`(v${pkg.version})`)}`);
 
-		const minimumVersion = minVersion(pkg.engines.runtime.version);
+		const minimumVersion = '22.17.0';
 		const unsupported = isVersionUnsupportedBelow(process.versions.node, minimumVersion);
 		if (unsupported) {
 			p.log.warn(
