@@ -21,7 +21,7 @@ type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
 export type BetterAuthOptions = { demo: Array<'password' | 'github'> };
 
-const options: AddonOptions<BetterAuthOptions> = defineAddonOptions()
+const options = defineAddonOptions<BetterAuthOptions>()
 	.add('demo', {
 		question: 'Which demo would you like to include?',
 		type: 'multiselect',

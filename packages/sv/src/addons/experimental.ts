@@ -13,7 +13,7 @@ const FEATURES: Record<string, Feature> = {
 
 export type ExperimentalOptions = { features: string[] };
 
-const options: AddonOptions<ExperimentalOptions> = defineAddonOptions()
+const options = defineAddonOptions<ExperimentalOptions>()
 	.add('features', {
 		question: 'Which experimental features do you want to enable?',
 		type: 'multiselect',

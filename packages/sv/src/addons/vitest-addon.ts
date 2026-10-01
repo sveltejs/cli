@@ -4,7 +4,7 @@ import type { AddonOptions } from '../core/options.ts';
 
 export type VitestOptions = { usages: Array<'unit' | 'component'> };
 
-const options: AddonOptions<VitestOptions> = defineAddonOptions()
+const options = defineAddonOptions<VitestOptions>()
 	.add('usages', {
 		question: 'What do you want to use vitest for?',
 		type: 'multiselect',

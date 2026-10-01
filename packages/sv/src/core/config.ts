@@ -1,7 +1,9 @@
 import type { officialAddons } from '../addons/index.ts';
 import type {
+	AddonOptions,
 	BaseQuestion,
 	BooleanQuestion,
+	MismatchedOptions,
 	MultiSelectQuestion,
 	NumberQuestion,
 	OptionDefinition,
@@ -280,7 +282,8 @@ export type AddonDefinition<Id extends string = string> = Addon<Record<string, Q
 /**
  * Creates a LoadedAddon from an AddonDefinition (for official addons)
  */
-export function createLoadedAddon(addon: AddonDefinition): LoadedAddon {
+// `any`: a typed add-on is not an `AddonDefinition`, its `run` only accepts its own options.
+export function createLoadedAddon(addon: Addon<any>): LoadedAddon {
 	return {
 		reference: {
 			specifier: addon.id,
@@ -303,7 +306,10 @@ type Prettify<T> = {
 } & unknown;
 
 // Builder pattern for addon options
-export type OptionBuilder<T extends OptionDefinition> = {
+export type OptionBuilder<
+	T extends OptionDefinition,
+	Values extends Record<string, unknown> = never
+> = {
 	/**
 	 * This type is a bit complex, but in usage, it's quite simple!
 	 *
@@ -321,9 +327,16 @@ export type OptionBuilder<T extends OptionDefinition> = {
 	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
 		key: K,
 		question: Q
-	): OptionBuilder<T & Record<K, Q>>;
+	): OptionBuilder<T & Record<K, Q>, Values>;
 	/** Finalize all options of your `add-on`. */
-	build(): Prettify<T>;
+	build(
+		// a required argument is how a mismatch surfaces at the `build()` call site
+		...check: [Values] extends [never]
+			? []
+			: [MismatchedOptions<T, Values>] extends [never]
+				? []
+				: [mismatchedOptions: MismatchedOptions<T, Values>]
+	): [Values] extends [never] ? Prettify<T> : AddonOptions<Values>;
 };
 
 // Initializing with an empty object is intended given that the starting state _is_ empty.
@@ -346,19 +359,31 @@ export type OptionBuilder<T extends OptionDefinition> = {
  * ```sh
  * npx sv add <addon>=<option1>:<value1>+<option2>:<value2>
  * ```
+ *
+ * Pass the values your options produce to get a small, stable type to export, checked both ways
+ * against the questions:
+ * ```ts
+ * export type MyAddonOptions = { demo: boolean };
+ * const options = defineAddonOptions<MyAddonOptions>().add('demo', { ... }).build();
+ * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export function defineAddonOptions(): OptionBuilder<{}> {
+export function defineAddonOptions<
+	Values extends Record<string, unknown> = never
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+>(): OptionBuilder<{}, Values> {
 	return createOptionBuilder({});
 }
 
-function createOptionBuilder<const T extends OptionDefinition>(options: T): OptionBuilder<T> {
+function createOptionBuilder<
+	const T extends OptionDefinition,
+	Values extends Record<string, unknown>
+>(options: T): OptionBuilder<T, Values> {
 	return {
 		add(key, question) {
 			return createOptionBuilder({ ...options, [key]: question });
 		},
 		build() {
-			return options;
+			return options as any;
 		}
 	};
 }

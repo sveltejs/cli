@@ -1,5 +1,6 @@
 import type { Addon, AddonDefinition } from '../core/config.ts';
-import type { AddonOptions, OptionValues } from '../core/options.ts';
+import type { OptionMap } from '../core/engine.ts';
+import type { AddonOptions } from '../core/options.ts';
 import aiTools, { type AiToolsOptions } from './ai-tools.ts';
 import betterAuth, { type BetterAuthOptions } from './better-auth.ts';
 import drizzle, { type DrizzleOptions } from './drizzle.ts';
@@ -18,10 +19,7 @@ import vitest, { type VitestOptions } from './vitest-addon.ts';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- an add-on without options has no values
 type NoOptions = {};
 
-/**
- * Each add-on declares the values of its own options; this table only wires them to an id.
- * The assignment below is what keeps it honest - no drift test needed.
- */
+// Each add-on declares its option values; `officialAddons` below fails to compile if one drifts.
 export type OfficialAddons = {
 	prettier: Addon<NoOptions, 'prettier'>;
 	eslint: Addon<NoOptions, 'eslint'>;
@@ -39,10 +37,8 @@ export type OfficialAddons = {
 	experimental: Addon<AddonOptions<ExperimentalOptions>, 'experimental'>;
 };
 
-/** Option values of every official add-on, keyed like {@link officialAddons}. */
-export type OfficialAddonOptions = {
-	[K in keyof OfficialAddons]: OptionValues<OfficialAddons[K]['options']>;
-};
+/** What `add()` accepts as `options` for official add-ons, keyed by add-on id. */
+export type OfficialAddonOptions = OptionMap<OfficialAddons>;
 
 // The order of addons here determines the order they are displayed inside the CLI
 // We generally try to order them by perceived popularity

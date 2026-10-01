@@ -34,7 +34,7 @@ export type DrizzleOptions = {
 	docker: boolean;
 };
 
-const options: AddonOptions<DrizzleOptions> = defineAddonOptions()
+const options = defineAddonOptions<DrizzleOptions>()
 	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',

@@ -133,7 +133,7 @@ export type AiToolsOptions = {
 	mcpSetup: 'local' | 'remote';
 };
 
-const options: AddonOptions<AiToolsOptions> = defineAddonOptions()
+const options = defineAddonOptions<AiToolsOptions>()
 	.add('ide', {
 		question: 'Which client would you like to use?',
 		type: 'multiselect',

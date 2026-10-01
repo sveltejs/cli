@@ -18,7 +18,7 @@ const plugins = [
 
 export type TailwindcssOptions = { plugins: Array<'typography' | 'forms'> };
 
-const options: AddonOptions<TailwindcssOptions> = defineAddonOptions()
+const options = defineAddonOptions<TailwindcssOptions>()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',

@@ -25,7 +25,7 @@ const DEFAULT_INLANG_PROJECT = {
 
 export type ParaglideOptions = { languageTags: string; demo: boolean };
 
-const options: AddonOptions<ParaglideOptions> = defineAddonOptions()
+const options = defineAddonOptions<ParaglideOptions>()
 	.add('languageTags', {
 		question: `Which languages would you like to support? ${color.optional('(e.g. en,de-ch)')}`,
 		type: 'string',

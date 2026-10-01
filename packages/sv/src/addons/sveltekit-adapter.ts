@@ -29,7 +29,7 @@ export type SveltekitAdapterOptions = {
 	cfTarget: 'workers' | 'pages';
 };
 
-const options: AddonOptions<SveltekitAdapterOptions> = defineAddonOptions()
+const options = defineAddonOptions<SveltekitAdapterOptions>()
 	.add('adapter', {
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',

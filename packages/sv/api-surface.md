@@ -78,6 +78,16 @@ type AddonOptions<Values extends Record<string, unknown>> = {
 } extends infer Questions extends OptionDefinition
 	? Questions
 	: never;
+type SameType<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+type MismatchedOptions<Args extends OptionDefinition, Values> = {
+	[K in keyof Args | keyof Values]: K extends keyof Args
+		? K extends keyof Values
+			? SameType<OptionValues<Args>[K], Values[K]> extends true
+				? never
+				: K
+			: K
+		: K;
+}[keyof Args | keyof Values];
 type OptionValues<Args extends OptionDefinition> = {
 	[K in keyof Args]: Args[K] extends StringQuestion
 		? string
@@ -144,9 +154,7 @@ type OfficialAddons = {
 	aiTools: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'>;
 	experimental: Addon<AddonOptions<ExperimentalOptions>, 'experimental'>;
 };
-type OfficialAddonOptions = {
-	[K in keyof OfficialAddons]: OptionValues<OfficialAddons[K]['options']>;
-};
+type OfficialAddonOptions = OptionMap<OfficialAddons>;
 export declare const officialAddons: OfficialAddons;
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
@@ -299,14 +307,22 @@ type SetupResult = {
 type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 type MaybePromise<T> = Promise<T> | T;
 type Prettify<T> = { [K in keyof T]: T[K] } & unknown;
-type OptionBuilder<T extends OptionDefinition> = {
+type OptionBuilder<T extends OptionDefinition, Values extends Record<string, unknown> = never> = {
 	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
 		key: K,
 		question: Q
-	): OptionBuilder<T & Record<K, Q>>;
-	build(): Prettify<T>;
+	): OptionBuilder<T & Record<K, Q>, Values>;
+	build(
+		...check: [Values] extends [never]
+			? []
+			: [MismatchedOptions<T, Values>] extends [never]
+				? []
+				: [mismatchedOptions: MismatchedOptions<T, Values>]
+	): [Values] extends [never] ? Prettify<T> : AddonOptions<Values>;
 };
-export declare function defineAddonOptions(): OptionBuilder<{}>;
+export declare function defineAddonOptions<
+	Values extends Record<string, unknown> = never
+>(): OptionBuilder<{}, Values>;
 type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
 	addons: Addons;
