@@ -11,12 +11,12 @@ import {
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0-next.3' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0-next.10' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0-next.4' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0-next.6' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0-next.6' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0-next.8' }
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0' }
 ] as const;
 
 /** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */

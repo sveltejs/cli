@@ -15,7 +15,7 @@ Please keep your pull requests focused to feature or issue. Focused smaller chan
 
 ## Preparing
 
-This project is a monorepo managed with pnpm workspaces. Install it [here](https://pnpm.io/installation).
+This project is a monorepo managed with `pnpm` workspaces. Install it [here](https://pnpm.io/installation).
 
 For testing, [docker](https://docs.docker.com/get-started/get-docker) is also required. For linux users, you will have to ensure 'sudo' is not required. See [docker post install](https://docs.docker.com/engine/install/linux-postinstall/)
 
@@ -131,8 +131,7 @@ Use `pnpm format` to format the code.
 
 ## Updating dependencies
 
-Run `pnpm update-deps` to recursively update the dependencies of all addons and create templates.
-After that run `pnpm update -r --latest` to recursively update all dependencies of package.json files to their latest version.
+Run `pnpm update-deps` to recursively update the dependencies of all: addons, `create` templates, `package.json`s and github actions to latest.
 
 ## Deprecation
 

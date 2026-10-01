@@ -18,6 +18,20 @@ To recreate this project with the same configuration:
 npx sv@0.0.0 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" drizzle="database:sqlite+sqlite:libsql" better-auth="demo:password,github" mdsvex paraglide="languageTags:en,es+demo:yes" ai-tools="ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local" --no-install packages/sv/.test-output/cli/create-with-all-addons
 ```
 
+## Adding features
+
+Add features to your project with `sv add`:
+
+```sh
+npx sv add
+```
+
+For example, to add Tailwind CSS:
+
+```sh
+npx sv add tailwindcss
+```
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
