@@ -32,8 +32,8 @@ export default defineAddon({
 		const testRoute = isKit ? '/demo/playwright' : '/';
 
 		if (isKit) {
-			sv.file(...demo.listing);
-			sv.file(...demo.header);
+			sv.file(...demo.links);
+			sv.file(...demo.layout);
 
 			sv.file(
 				`${testDir}/+page.svelte`,

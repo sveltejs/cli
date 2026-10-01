@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { locales, localizeHref } from '#lib/paraglide/runtime.js';
 	import './layout.css';
+	import DemoLinks from './demo/DemoLinks.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 
 	let { children } = $props();
@@ -14,6 +15,7 @@
 </svelte:head>
 
 {@render children()}
+<DemoLinks />
 
 <div style="display:none">
 	{#each locales as locale (locale)}

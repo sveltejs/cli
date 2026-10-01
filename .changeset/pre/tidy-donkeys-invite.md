@@ -2,4 +2,4 @@
 "@sveltejs/sv-utils": patch
 ---
 
-feat: add `defineDemoPage` for wiring an add-on into `/demo`, and link the demo section from the template nav
+feat: add `defineDemoPage`, listing add-on demos in a floating `DemoLinks` post-it rendered from the root layout

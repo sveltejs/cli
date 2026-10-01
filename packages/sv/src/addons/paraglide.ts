@@ -236,8 +236,8 @@ export default defineAddon({
 
 		if (options.demo) {
 			const demo = defineDemoPage('paraglide', language, directory.kitRoutes);
-			sv.file(...demo.listing);
-			sv.file(...demo.header);
+			sv.file(...demo.links);
+			sv.file(...demo.layout);
 
 			// add usage example
 			sv.file(

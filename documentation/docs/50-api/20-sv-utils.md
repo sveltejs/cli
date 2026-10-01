@@ -296,7 +296,7 @@ if (packageManager === 'pnpm') {
 
 ### `defineDemoPage`
 
-Wires an add-on into the `/demo` section of a SvelteKit project. It returns the pieces you spread into `sv.file()`, so the demo index and the nav entry stay consistent across add-ons:
+Wires an add-on demo into a SvelteKit project. Every demo is listed in a floating `DemoLinks` post-it rendered from the root layout, whatever the template. It returns the pieces you spread into `sv.file()`:
 
 ```js
 // @noErrors
@@ -304,16 +304,16 @@ import { defineDemoPage } from '@sveltejs/sv-utils';
 
 const demo = defineDemoPage('my-addon', language, directory.kitRoutes);
 
-sv.file(...demo.listing); // links `/demo/my-addon` from the `/demo` index
-sv.file(...demo.header); // adds a `Demo` entry to the template's nav
+sv.file(...demo.links); // adds `/demo/my-addon` to `<routes>/demo/DemoLinks.svelte`
+sv.file(...demo.layout); // renders `<DemoLinks />` in `<routes>/+layout.svelte`
 sv.file(`${demo.addonPath}/+page.svelte` /* your demo route */);
 ```
 
 - **`addonPath`** - `<routes>/demo/<name>`, where your own demo route belongs.
-- **`listing`** - a `[path, transform]` pair for `<routes>/demo/+page.svelte`.
-- **`header`** - a `[path, transform]` pair for `<routes>/Header.svelte`.
+- **`links`** - a `[path, transform]` pair for `<routes>/demo/DemoLinks.svelte` (created if missing).
+- **`layout`** - a `[path, transform]` pair for `<routes>/+layout.svelte` (created if missing).
 
-Both transforms bail out once their link is present, so re-running an add-on won't duplicate entries. The header transform also bails when the layout has no nav list, which is why it's safe to call on templates that don't ship one.
+Both transforms are idempotent, so re-running an add-on won't duplicate entries. To opt out, delete `DemoLinks.svelte` and its usage in the layout.
 
 ## Browser usage
 

@@ -1091,8 +1091,8 @@ type KitRoutes = string & {};
 type AddonName = string & {};
 type DemoPage = {
 	addonPath: `${KitRoutes}/demo/${AddonName}`;
-	listing: [path: `${KitRoutes}/demo/+page.svelte`, transform: TransformFn];
-	header: [path: `${KitRoutes}/Header.svelte`, transform: TransformFn];
+	links: [path: `${KitRoutes}/demo/DemoLinks.svelte`, transform: TransformFn];
+	layout: [path: `${KitRoutes}/+layout.svelte`, transform: TransformFn];
 };
 export declare function defineDemoPage(
 	name: string,
