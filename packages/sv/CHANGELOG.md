@@ -1,5 +1,11 @@
 # sv
 
+## 1.0.0-next.9
+
+### Patch Changes
+
+- chore: use stable SvelteKit 3 package versions ([#1342](https://github.com/sveltejs/cli/pull/1342))
+
 ## 1.0.0-next.8
 
 ### Minor Changes
