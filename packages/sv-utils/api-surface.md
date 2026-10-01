@@ -1134,8 +1134,6 @@ export {
 	COMMANDS,
 	type Comments,
 	type ConfigFileReader,
-	KIT3_TSCONFIG,
-	KIT3_TSCONFIG_DEFAULT,
 	type Package,
 	type SvelteAst,
 	type SvelteConfigKind,
