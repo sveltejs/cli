@@ -34,36 +34,75 @@ const linksTemplate = (language: 'ts' | 'js') => dedent`
 	</script>
 
 	<!-- Added by \`sv add\`. To remove: delete this file and \`<${COMPONENT} />\` from +layout.svelte -->
-	<details class="sv-demo-links" open>
-		<summary>sv demos</summary>
+	<div class="sv-demo-links">
+		<p>sv addon demos</p>
 		<ul></ul>
-	</details>
+	</div>
 
 	<style>
 		.sv-demo-links {
 			position: fixed;
-			right: 1rem;
-			bottom: 1rem;
+			right: 1.25rem;
+			bottom: 1.25rem;
 			z-index: 9999;
-			max-width: 14rem;
-			padding: 0.75rem 1rem;
-			background: #fff59d;
-			color: #3b3200;
-			font: 14px/1.4 system-ui, sans-serif;
-			border-radius: 2px;
-			box-shadow: 0 6px 16px rgb(0 0 0 / 0.25);
-			transform: rotate(-2deg);
+			min-width: 11rem;
+			max-width: 16rem;
+			padding: 1rem 1.125rem 0.875rem;
+			background: linear-gradient(to bottom, #fff9b0, #fff176);
+			color: #3d3500;
+			font: 14px/1.5 system-ui, sans-serif;
+			text-align: left;
+			box-shadow:
+				0 1px 2px rgb(0 0 0 / 0.15),
+				0 10px 24px -6px rgb(0 0 0 / 0.35);
+			transform: rotate(-1.5deg);
 		}
-		summary {
-			cursor: pointer;
+		/* tape */
+		.sv-demo-links::before {
+			content: '';
+			position: absolute;
+			top: -0.5rem;
+			left: 50%;
+			width: 4.5rem;
+			height: 1.25rem;
+			background: rgb(255 255 255 / 0.55);
+			box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+			transform: translateX(-50%) rotate(2deg);
+		}
+		p {
+			margin: 0;
 			font-weight: 700;
+			letter-spacing: 0.02em;
 		}
 		ul {
 			margin: 0.5rem 0 0;
-			padding-left: 1.25rem;
+			padding: 0;
+			list-style: none;
+		}
+		li {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			padding: 0.125rem 0;
+		}
+		input {
+			margin: 0;
+			accent-color: #3d3500;
 		}
 		a {
-			color: inherit;
+			color: #1a4fd6;
+			text-decoration: underline;
+			text-underline-offset: 2px;
+		}
+		a::after {
+			content: ' →';
+		}
+		a:hover {
+			color: #0b2f8a;
+		}
+		input:checked + a {
+			color: #6b6420;
+			text-decoration: line-through;
 		}
 	</style>
 `;
@@ -106,7 +145,10 @@ export function defineDemoPage(name: string, language: 'ts' | 'js', kitRoutes: s
 			if (exists || !ul) return false;
 
 			js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-			svelte.addFragment(ul, `<li><a href={resolve('${href}')}>${name}</a></li>`);
+			svelte.addFragment(
+				ul,
+				`<li><input type="checkbox" aria-label="tried ${name}" /><a href={resolve('${href}')}>${name}</a></li>`
+			);
 		})(content || linksTemplate(language));
 
 	const layout: TransformFn = (content) =>
