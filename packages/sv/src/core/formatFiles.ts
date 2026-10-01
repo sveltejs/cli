@@ -4,7 +4,6 @@ import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import * as resolve from 'empathic/resolve';
 import { exec } from 'tinyexec';
-import { isNodeError } from './common.ts';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
@@ -108,20 +107,21 @@ async function withSpinner(
 	stop('Successfully formatted files');
 }
 
-async function run(command: string, args: string[], cwd: string): Promise<{ error?: string }> {
+async function run(
+	command: string,
+	args: string[],
+	cwd: string
+): Promise<{ error?: string; notFound?: boolean }> {
 	try {
-		await exec(command, args, { nodeOptions: { cwd }, throwOnError: true });
+		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
 		return {};
 	} catch (e) {
-		// Unix spawn of a missing binary is ENOENT. On Windows, tinyexec often runs via
-		// cmd.exe which exits 1 with "is not recognized..." instead. We'll treat both as errors
-		// so we can fall back to the package manager (needed for Yarn PnP).
-		if (!isNodeError(e)) {
-			return { error: 'unknown error' };
-		}
-		if (e.code === 'ENOENT') {
-			return { error: `${command} not found` };
-		}
-		return { error: e.message };
+		// @ts-expect-error tinyexec rethrows the spawn error as-is
+		if (e?.code === 'ENOENT') return { notFound: true, error: `${command} not found` };
+		// @ts-expect-error `output` is only present on tinyexec's `NonZeroExitError`
+		const output = e?.output as { stderr?: string; stdout?: string } | undefined;
+		// failures can land on either stream, so report both
+		const message = [output?.stderr, output?.stdout].filter(Boolean).join('\n').trim();
+		return { error: message || (e instanceof Error ? e.message : 'unknown error') };
 	}
 }
