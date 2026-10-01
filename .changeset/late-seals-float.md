@@ -2,4 +2,4 @@
 "sv": patch
 ---
 
-fix(addon): Cloudflare adapter missing `$app/types`
+fix(sveltekit-adapter): keep `$app/types` in tsconfig `types` with Cloudflare on SvelteKit 3
