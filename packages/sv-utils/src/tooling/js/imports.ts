@@ -103,7 +103,7 @@ export function addNamed(
 
 	const valueDeclaration = matchingDeclarations.find(
 		(declaration) =>
-			declaration.importKind === 'value' &&
+			(declaration.importKind ?? 'value') === 'value' &&
 			!declaration.specifiers.some((specifier) => specifier.type === 'ImportNamespaceSpecifier')
 	);
 	const typeDeclaration = matchingDeclarations.find(
@@ -122,7 +122,7 @@ export function addNamed(
 				if (specifier.type === 'ImportSpecifier') specifier.importKind = 'type';
 			}
 		}
-		if (options.isType && declaration.importKind === 'value') {
+		if (options.isType && (declaration.importKind ?? 'value') === 'value') {
 			for (const specifier of specifiers) specifier.importKind = 'type';
 		}
 		specifiers.forEach((specifierToAdd) => {
