@@ -1,5 +1,6 @@
+import dedent from 'dedent';
 import { describe, it, expect } from 'vitest';
-import { sanitizeName } from '../sanitize.ts';
+import { minimizeDiff, sanitizeName } from '../sanitize.ts';
 
 const testCases: Array<{ input: string; expected: string; expectedPackage?: string }> = [
 	// Basic cases
@@ -74,5 +75,571 @@ describe('sanitizeName wrangler', () => {
 describe('sanitizeName package', () => {
 	it.each(testCases)('sanitizes $input to $expected', ({ input, expected, expectedPackage }) => {
 		expect(sanitizeName(input, 'package')).toBe(expectedPackage ?? expected);
+	});
+});
+
+describe('minimizeDiff', () => {
+	it('keeps a brand-new file verbatim, including its blank lines', () => {
+		const updated = dedent`
+			# Section
+
+			content line
+
+			## Subsection
+
+			more content
+		`;
+
+		expect(minimizeDiff('', updated)).toBe(updated);
+	});
+
+	it('treats a whitespace-only original as a brand-new file', () => {
+		const updated = 'first\n\nsecond\n';
+
+		expect(minimizeDiff(' \n\t\n', updated)).toBe(updated);
+	});
+
+	it('preserves blank lines from the original content', () => {
+		const old = dedent`
+			console.log('line1');
+
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('drops blank lines introduced by the updated content', () => {
+		const old = dedent`
+			console.log('line1');
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+
+			console.log('line2');
+			console.log('line3');
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('keeps content replacements from the updated content', () => {
+		const old = dedent`
+			console.log('line1');
+			console.log('old');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+			console.log('updated');
+			console.log('line3');
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('does not restore deleted nonblank lines', () => {
+		const old = dedent`
+			console.log('line1');
+			console.log('deleted');
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+			console.log('line3');
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('drops multiple added whitespace-only blank lines', () => {
+		const old = "console.log('line1');\nconsole.log('line2');";
+		const updated = "console.log('line1');\n\n\t\n \nconsole.log('line2');";
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores a blank line removed between unchanged statements', () => {
+		const old = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+
+			const sha = await canonicalize_commit_sha();
+		`;
+
+		const updated = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+			const sha = await canonicalize_commit_sha();
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original layout when blank lines move within a function', () => {
+		// The reindentation is what makes diffLines misalign the otherwise unchanged statements. The
+		// behavior under test is that the blank lines must still stay in their original positions.
+		const old = dedent`
+			function parse(value: string) {
+				let parsed: URL;
+				try {
+					parsed = new URL(value, 'http://safe-next.invalid');
+				} catch {
+					return null;
+				}
+				if (parsed.origin !== 'http://safe-next.invalid') return null;
+
+				for (const prefix of BLOCKLIST) {
+					if (parsed.pathname === prefix) return null;
+				}
+
+				return parsed.pathname;
+			}
+		`;
+
+		const updated = dedent`
+			function parse(value: string) {
+			        let parsed: URL;
+
+			        try {
+			                parsed = new URL(value, 'http://safe-next.invalid');
+			        } catch {
+			                return null;
+			        }
+
+			        if (parsed.origin !== 'http://safe-next.invalid') return null;
+			        for (const prefix of BLOCKLIST) {
+			                if (parsed.pathname === prefix) return null;
+			        }
+			        return parsed.pathname;
+			}
+		`;
+
+		const blankLineLayout = (value: string) =>
+			value
+				.split('\n')
+				.map((line) => (line.trim() ? 'content' : ''))
+				.join('\n');
+		expect(blankLineLayout(minimizeDiff(old, updated))).toBe(blankLineLayout(old));
+	});
+
+	it('restores blank lines around a rewrapped statement', () => {
+		const old = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+
+			const sha = await canonicalize_commit_sha({
+				owner: opts.owner,
+				repo: opts.repo,
+				commit: opts.commit
+			});
+
+			// validate sha
+			const immutable = true;
+		`;
+
+		const updated = dedent`
+			const cache = getCache();
+			const host_key = get_host_key();
+			const sha = await canonicalize_commit_sha({ owner: opts.owner, repo: opts.repo, commit: opts.commit });
+
+			// validate sha
+
+			const immutable = true;
+		`;
+
+		const result = minimizeDiff(old, updated);
+		expect(result).toContain('const host_key = get_host_key();\n\nconst sha');
+		expect(result).toContain('});\n\n// validate sha\nconst immutable = true;');
+	});
+
+	it('restores blank lines shifted within a formatting-only hunk', () => {
+		const old = dedent`
+			const algorithm = 'old';
+
+			const parts = state.split('.');
+			if (parts.length !== 2) return null;
+			const [body_b64, sig_b64] = parts;
+
+			let body_bytes: Uint8Array;
+			let sig_bytes: Uint8Array;
+			try {
+				body_bytes = b64url_decode(body_b64);
+				sig_bytes = b64url_decode(sig_b64);
+			} catch {
+				return null;
+			}
+
+			const expected = await hmac_sha256(require_state_secret(), body_bytes);
+			if (!timing_safe_equal(expected, sig_bytes)) return null;
+
+			try {
+		`;
+
+		const updated = dedent`
+			const algorithm = 'new';
+
+			const parts = state.split('.');
+
+			if (parts.length !== 2) return null;
+
+			const [body_b64, sig_b64] = parts;
+			let body_bytes: Uint8Array;
+			let sig_bytes: Uint8Array;
+
+			try {
+				body_bytes = b64url_decode(body_b64);
+				sig_bytes = b64url_decode(sig_b64);
+			} catch {
+				return null;
+			}
+			const expected = await hmac_sha256(require_state_secret(), body_bytes);
+			if (!timing_safe_equal(expected, sig_bytes)) return null;
+			try {
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
+	});
+
+	it('keeps an original blank line that is bundled into a real change', () => {
+		// The diff groups the leading blank line together with the changed line. The blank line is
+		// layout, not content, so it must survive even though the adjacent line really changed.
+		const old = dedent`
+			const x = 1;
+
+			const y = 2;
+		`;
+
+		const updated = dedent`
+			const x = 1;
+			const y = 3;
+		`;
+
+		const expected = dedent`
+			const x = 1;
+
+			const y = 3;
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(expected);
+	});
+
+	it('drops printer-inserted blank lines even when the whole region is one changed hunk', () => {
+		// When every line differs (e.g. semicolons added throughout) the diff collapses into a single
+		// changed hunk. Printer-inserted blank lines must still be dropped, keeping the real change.
+		const old = dedent`
+			const p = samples[env.KEY]
+			if (!p) return null
+			return view.project(p.lat, p.lon)
+		`;
+
+		const updated = dedent`
+			const p = samples[ENV_KEY];
+
+			if (!p) return null;
+
+			return view.project(p.lat, p.lon);
+		`;
+
+		const expected = dedent`
+			const p = samples[ENV_KEY];
+			if (!p) return null;
+			return view.project(p.lat, p.lon);
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(expected);
+	});
+
+	it('drops printer-inserted blank lines around a newly inserted line', () => {
+		const old = dedent`
+			function require_env(name: string): string {
+				const value = env[name];
+				if (!value) throw new Error(name);
+				return value;
+			}
+		`;
+
+		const updated = dedent`
+			function require_env(name: string): string {
+				// @migration-task Rewrite dynamic env lookup manually.
+				const value = env[name];
+
+				if (!value) throw new Error(name);
+
+				return value;
+			}
+		`;
+
+		const expected = dedent`
+			function require_env(name: string): string {
+				// @migration-task Rewrite dynamic env lookup manually.
+				const value = env[name];
+				if (!value) throw new Error(name);
+				return value;
+			}
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(expected);
+	});
+
+	it('restores formatting-only hunks when the original uses CRLF line endings', () => {
+		// On Windows the original file is often checked out with CRLF while the printer emits LF.
+		// Without normalization the diff collapses into a single hunk and the formatting-only
+		// restoration never fires. The result is always normalized to LF.
+		const oldLf = dedent`
+			import { x } from './old.ts';
+			function load() {
+				return {
+					a,
+					b
+				};
+			}
+		`;
+		const oldCrlf = oldLf.replace(/\n/g, '\r\n');
+
+		// printer rewrites the import (real change) and collapses the object (formatting only)
+		const updated = dedent`
+			import { x } from './new.ts';
+			function load() {
+				return { a, b };
+			}
+		`;
+
+		const expected = dedent`
+			import { x } from './new.ts';
+			function load() {
+				return {
+					a,
+					b
+				};
+			}
+		`;
+
+		expect(minimizeDiff(oldCrlf, updated)).toBe(expected);
+		// CRLF and LF originals must produce identical output
+		expect(minimizeDiff(oldCrlf, updated)).toBe(minimizeDiff(oldLf, updated));
+	});
+
+	it('uses updated content when it replaces an original blank line', () => {
+		const old = dedent`
+			console.log('line1');
+			
+			console.log('line3');
+		`;
+
+		const updated = dedent`
+			console.log('line1');
+			
+			console.log('inserted');
+			console.log('line3');
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('keeps one separator after newly inserted imports', () => {
+		const old = dedent`
+			import a from 'a';
+
+			export default {};
+		`;
+
+		const updated = dedent`
+			import a from 'a';
+			import b from 'b';
+
+			export default {};
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('does not duplicate the separator after a replaced import block', () => {
+		const old = dedent`
+			import a from 'a';
+
+			export default {};
+		`;
+
+		const updated = dedent`
+			import b from 'b';
+			import c from 'c';
+
+			export default {};
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('restores a hunk that only collapsed whitespace', () => {
+		const old = dedent`
+			type RequestAuthContext = {
+				authToken?: string;
+				hasValidAuthToken: boolean;
+			};
+
+			const requestAuthContextStorage = new AsyncLocalStorage<RequestAuthContext>();
+		`;
+
+		const updated = dedent`
+			type RequestAuthContext = { authToken?: string; hasValidAuthToken: boolean; };
+
+			const requestAuthContextStorage = new AsyncLocalStorage<RequestAuthContext>();
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when only statement semicolons changed', () => {
+		const old = dedent`
+			const first = 1
+			const second = 2
+		`;
+
+		const updated = dedent`
+			const first = 1;
+			const second = 2;
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when only trailing commas changed', () => {
+		const old = dedent`
+			const config = {
+				extensions: [
+					'.svelte',
+					'.svx'
+				]
+			};
+		`;
+
+		const updated = dedent`
+			const config = {
+				extensions: [
+					'.svelte',
+					'.svx',
+				],
+			};
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when an object literal is expanded', () => {
+		const old = dedent`
+			export function getStaticEnvValues() {
+				return { private: ENV_PRIVATE_STATIC_1, public: publicStaticEnv };
+			}
+		`;
+
+		const updated = dedent`
+			export function getStaticEnvValues() {
+				return {
+					private: ENV_PRIVATE_STATIC_1,
+					public: publicStaticEnv
+				};
+			}
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old);
+	});
+
+	it('restores original formatting when a typed property is collapsed onto one line', () => {
+		const old = dedent`
+			type Version = 'old';
+
+			type Connection = {
+				pageInfo: {
+					hasPreviousPage: boolean;
+					startCursor: string | null;
+				};
+			};
+		`;
+
+		const updated = dedent`
+			type Version = 'new';
+
+			type Connection = {
+				pageInfo: { hasPreviousPage: boolean; startCursor: string | null };
+			};
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
+	});
+
+	it('restores original formatting when a call with trailing commas is collapsed onto one line', () => {
+		const old = dedent`
+			const version = 'old';
+
+			const sha = await canonicalize(
+				opts.owner,
+				opts.repo,
+				opts.commit,
+			);
+		`;
+
+		const updated = dedent`
+			const version = 'new';
+
+			const sha = await canonicalize(opts.owner, opts.repo, opts.commit);
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(old.replace("'old'", "'new'"));
+	});
+
+	it('keeps oversized inputs verbatim instead of diffing them', () => {
+		// worst case for diffLines is O(N·D); past the size cap the updated content is returned as-is
+		const line = (i: number) => `const value_${i} = compute(${i});`;
+		const old = Array.from({ length: 20_000 }, (_, i) => line(i)).join('\n');
+		const updated = Array.from({ length: 20_000 }, (_, i) => `\t${line(i)}\n`).join('');
+
+		const start = performance.now();
+		expect(minimizeDiff(old, updated)).toBe(updated);
+		expect(performance.now() - start).toBeLessThan(1000);
+	});
+
+	it('keeps updated hunks when non-trailing commas change the meaning', () => {
+		const old = dedent`
+			const values = ['a' + 'b'];
+		`;
+
+		const updated = dedent`
+			const values = ['a', 'b'];
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
+	});
+
+	it('keeps updated hunks with non-whitespace changes', () => {
+		const old = dedent`
+			import { env } from '$env/dynamic/private';
+
+			if (env.API_BASE_URL) {
+				client.setConfig({ baseUrl: env.API_BASE_URL });
+			}
+		`;
+
+		const updated = dedent`
+			import { API_BASE_URL } from '$app/env/private';
+
+			if (API_BASE_URL) {
+				client.setConfig({ baseUrl: API_BASE_URL });
+			}
+		`;
+
+		expect(minimizeDiff(old, updated)).toBe(updated);
 	});
 });

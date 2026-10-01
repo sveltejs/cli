@@ -1,16 +1,22 @@
-import * as p from '@clack/prompts';
-import { color, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
-import { Command, Option } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import * as p from '@clack/prompts';
+import { color, loadPackageJson, resolveCommandArray } from '@sveltejs/sv-utils';
+import { Command, Option } from 'commander';
 import * as v from 'valibot';
+import { getAddonDetails } from '../addons/index.ts';
 import * as common from '../core/common.ts';
-import type { LoadedAddon, OptionValues, SetupResult } from '../core/config.ts';
+import {
+	createLoadedAddon,
+	type LoadedAddon,
+	type OptionValues,
+	type SetupResult
+} from '../core/config.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addPnpmAllowBuilds,
+	addAllowBuildsIfPnpm,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -57,11 +63,10 @@ const addOption = new Option(
 	'--add <addon...>',
 	'add-ons to include (see Add-Ons section below)'
 ).default([]);
-export const noDownloadCheckOption = new Option(
-	'--no-download-check',
-	'skip all download confirmation prompts'
+const addonNameOption = new Option(
+	'--addon-name <name>',
+	'name for the addon package (e.g. @<org>/<pkg> or <pkg>)'
 );
-export const noInstallOption = new Option('--no-install', 'skip installing dependencies');
 
 const ProjectPathSchema = v.optional(v.string());
 const OptionsSchema = v.strictObject({
@@ -75,7 +80,8 @@ const OptionsSchema = v.strictObject({
 	template: v.optional(v.picklist(templateChoices)),
 	fromPlayground: v.optional(v.string()),
 	dirCheck: v.boolean(),
-	downloadCheck: v.boolean()
+	downloadCheck: v.boolean(),
+	addonName: v.optional(v.string())
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
@@ -88,10 +94,11 @@ export const create = new Command('create')
 	.option('--no-types')
 	.addOption(noAddonsOption)
 	.addOption(addOption)
-	.addOption(noInstallOption)
+	.addOption(addonNameOption)
+	.addOption(common.cliOptions.noInstall)
 	.option('--from-playground <url>', 'create a project from the svelte playground')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
-	.addOption(noDownloadCheckOption)
+	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(installOption)
 	.configureHelp({
 		...common.helpConfig,
@@ -138,28 +145,23 @@ export const create = new Command('create')
 			);
 
 			let i = 1;
-			const initialSteps: string[] = ['📁 Project steps', ''];
+			const steps: string[] = ['📁 Project steps', ''];
 			const relative = path.relative(process.cwd(), directory);
 			const pm = packageManager ?? (await detectPackageManager(directory));
 			if (relative !== '') {
 				const pathHasSpaces = relative.includes(' ');
-				initialSteps.push(
+				steps.push(
 					`  ${i++}: ${color.command(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
 				);
 			}
 			if (packageManager && !depsInstalled) {
-				initialSteps.push(`  ${i++}: Install ${color.command(pm)}`);
+				steps.push(`  ${i++}: Install ${color.command(pm)}`);
 			}
 			if (!packageManager || !depsInstalled) {
-				initialSteps.push(`  ${i++}: ${color.command(resolveCommandArray(pm, 'install', []))}`);
+				steps.push(`  ${i++}: ${color.command(resolveCommandArray(pm, 'install', []))}`);
 			}
-
-			const steps = [
-				...initialSteps,
-				`  ${i++}: ${color.command(resolveCommandArray(pm, 'run', ['dev', '--open']))}`,
-				'',
-				`To close the dev server, hit ${color.command('Ctrl-C')}`
-			];
+			steps.push(`  ${i++}: ${color.command(resolveCommandArray(pm, 'run', ['dev', '--open']))}\n`);
+			steps.push(`To close the dev server, hit ${color.command('Ctrl-C')}`);
 
 			if (addOnNextSteps.length > 0) {
 				steps.push('', '🧩 Add-on steps', '');
@@ -225,12 +227,9 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 				// always use the minimal template for playground projects
 				if (options.fromPlayground) return Promise.resolve<TemplateType>('minimal');
 
-				// TODO JYC:
-				// Don't allow the addon template right now to be displayed in the select list
-				const availableTemplates = templates.filter((t) => t.name !== 'addon');
-				// Later, we will not allow the addon template to be added via the CLI when "--add" is used
-				// const availableTemplates =
-				// 	options.add.length > 0 ? templates.filter((t) => t.name !== 'addon') : templates;
+				// the addon template is incompatible with "--add"
+				const availableTemplates =
+					options.add.length > 0 ? templates.filter((t) => t.name !== 'addon') : templates;
 
 				return p.select<TemplateType>({
 					message: 'Which template would you like?',
@@ -272,29 +271,26 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	const parentDirName = path.basename(path.dirname(projectPath));
 	let projectName = parentDirName.startsWith('@') ? `${parentDirName}/${basename}` : basename;
 
-	if (template === 'addon' && !projectName.startsWith('@')) {
-		// At this stage, we don't support un-scoped add-ons
-		// FYI: a demo exists for `npx sv add my-cool-addon`
-		const org = await p.text({
-			message: `Community add-ons must be published under an npm org. Enter the name of your npm org:`,
-			placeholder: '  @my-org',
-			validate: (value) => {
-				if (!value) return 'Organization name is required';
-				if (!value.startsWith('@')) return 'Must start with @';
-				if (value.includes('/')) return 'Just the org, not the full package name';
-			}
-		});
-		if (p.isCancel(org)) {
+	if (template === 'addon') {
+		if (options.add.length > 0) {
+			common.errorAndExit(
+				`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
+			);
+		}
+
+		const namePrompt =
+			options.addonName ??
+			(await p.text({
+				message: `Enter the package name for your add-on: (e.g. ${color.path('@<org>/<pkg>')} or ${color.path('<pkg>')})`,
+				initialValue: projectName,
+				validate: v.pipe(v.string(), v.nonEmpty())
+			}));
+		if (p.isCancel(namePrompt)) {
 			p.cancel('Operation cancelled.');
 			process.exit(0);
 		}
-		projectName = `${org}/${basename}`;
-	}
 
-	if (template === 'addon' && options.add.length > 0) {
-		common.errorAndExit(
-			`The ${color.command('--add')} flag cannot be used with the ${color.command('addon')} template.`
-		);
+		projectName = namePrompt;
 	}
 
 	let loadedAddons: LoadedAddon[] = [];
@@ -336,6 +332,12 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		answers = result.answers;
 	}
 
+	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
+		const addon = getAddonDetails('enhanced-img');
+		loadedAddons.push(createLoadedAddon(addon));
+		answers['enhanced-img'] = {};
+	}
+
 	createKit({
 		cwd: projectPath,
 		name: projectName,
@@ -359,13 +361,17 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
+
+		if (template === 'library') {
+			common.updateLibraryBuild(projectPath, packageManager);
+		}
 	}
 
 	let argsFormattedAddons: string[] = [];
 	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	let addonSetupResults: Record<string, SetupResult> = {};
-	if (template !== 'addon' && (options.addOns || options.add.length > 0)) {
+	if (loadedAddons.length > 0) {
 		const {
 			argsFormattedAddons: argsFormatted,
 			filesToFormat,
@@ -410,7 +416,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
-	addPnpmAllowBuilds(projectPath, packageManager, 'esbuild');
+	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
+
 	let depsInstalled = false;
 	if (packageManager) {
 		depsInstalled = await installDependencies(packageManager, projectPath);
@@ -418,7 +425,13 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
 				? ['.']
 				: addOnFilesToFormat;
-			await formatFiles({ packageManager, cwd: projectPath, filesToFormat });
+
+			await formatFiles({
+				packageManager,
+				cwd: projectPath,
+				filesToFormat,
+				strategy: 'files-only'
+			});
 		}
 	}
 
@@ -500,8 +513,7 @@ export async function createVirtualWorkspace({
 		file: {
 			...tentativeWorkspace.file,
 			viteConfig:
-				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig,
-			svelteConfig: common.filePaths.svelteConfig // currently we always use js files, never typescript files
+				type === 'typescript' ? common.filePaths.viteConfigTS : common.filePaths.viteConfig
 		}
 	};
 

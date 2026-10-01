@@ -1,7 +1,7 @@
-import { expect } from '@playwright/test';
-import { transforms } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { expect } from '@playwright/test';
+import { transforms } from '@sveltejs/sv-utils';
 import mdsvex from '../../mdsvex.ts';
 import { setupTest } from '../_setup/suite.ts';
 import { svxFile } from './fixtures.ts';
@@ -56,6 +56,12 @@ function addFixture(cwd: string, variant: string) {
 	}
 
 	const src = fs.readFileSync(page, 'utf8');
-	fs.writeFileSync(page, addMarkup(src), 'utf8');
+	const result = addMarkup(src);
+	if (result === false) {
+		// markup already added
+		return;
+	}
+
+	fs.writeFileSync(page, result, 'utf8');
 	fs.writeFileSync(svx, svxFile, 'utf8');
 }

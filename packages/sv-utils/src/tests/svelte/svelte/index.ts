@@ -1,10 +1,9 @@
 import fs from 'node:fs';
-import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { parseSvelte, serializeSvelte } from '../../../../src/tooling/index.ts';
 
-const baseDir = resolve(fileURLToPath(import.meta.url), '..');
+const baseDir = import.meta.dirname;
 const categoryDirectories = getDirectoryNames(baseDir);
 
 for (const categoryDirectory of categoryDirectories) {
@@ -22,7 +21,7 @@ for (const categoryDirectory of categoryDirectories) {
 				const module = await import(`./${categoryDirectory}/${testName}/run.ts`);
 				module.run(ast);
 
-				let output = serializeSvelte(ast);
+				let output = serializeSvelte(ast, input);
 				if (!output.endsWith('\n')) output += '\n';
 				await expect(output).toMatchFileSnapshot(`${testDirectoryPath}/output.svelte`);
 			});

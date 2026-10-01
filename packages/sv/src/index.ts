@@ -1,23 +1,6 @@
-import { svDeprecated } from './core/deprecated.ts';
-import { create as _create, type Options as CreateOptions } from './create/index.ts';
-
 export type { TemplateType, LanguageType } from './create/index.ts';
 
-export function create(options: CreateOptions): void;
-/** @deprecated use `create({ cwd, ...options })` instead. */
-export function create(cwd: string, options: Omit<CreateOptions, 'cwd'>): void;
-export function create(
-	cwdOrOptions: string | CreateOptions,
-	legacyOptions?: Omit<CreateOptions, 'cwd'>
-): void {
-	if (typeof cwdOrOptions === 'string') {
-		svDeprecated('use `create({ cwd, ...options })` instead of `create(cwd, options)`');
-		_create({ cwd: cwdOrOptions, ...legacyOptions! });
-	} else {
-		_create(cwdOrOptions);
-	}
-}
-
+export { create } from './create/index.ts';
 export { add } from './core/engine.ts';
 export type { AddonMap, InstallOptions, OptionMap } from './core/engine.ts';
 export { officialAddons } from './addons/index.ts';

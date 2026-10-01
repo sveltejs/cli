@@ -1,6 +1,6 @@
-import { transforms } from '@sveltejs/sv-utils';
 import fs from 'node:fs';
 import path from 'node:path';
+import { transforms } from '@sveltejs/sv-utils';
 
 const markup = `
 <div class="bg-slate-600 border-gray-50 border-4 mt-1" data-testid="base">
@@ -31,5 +31,10 @@ export function addFixture(cwd: string, variant: string) {
 		: path.resolve(cwd, 'src', 'App.svelte');
 
 	const content = fs.readFileSync(page, 'utf8');
-	fs.writeFileSync(page, addMarkup(content), 'utf8');
+	const result = addMarkup(content);
+	if (result === false) {
+		// markup already added
+		return;
+	}
+	fs.writeFileSync(page, result, 'utf8');
 }

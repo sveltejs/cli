@@ -15,9 +15,10 @@ export type { OptionValues } from './options.ts';
 
 export type ConditionDefinition = (Workspace: Workspace) => boolean;
 
+export type FileEdit = (content: string) => string | false;
+export type FileEditMultiple = (content: string, path: string) => string | false;
+
 export type SvApi = {
-	/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
-	pnpmBuildDependency: (pkg: string) => void;
 	/** Add a package to the dependencies. */
 	dependency: (pkg: string, version: string) => void;
 	/** Add a package to the dev dependencies. */
@@ -29,7 +30,31 @@ export type SvApi = {
 	 *
 	 * Return `false` from the callback to abort - the original content is returned unchanged.
 	 */
-	file: (path: string, edit: (content: string) => string | false) => void;
+	file: (path: string, edit: FileEdit) => void;
+	/** Remove a file from the workspace. Respects the migration file filter. */
+	removeFile: (path: string) => void;
+	/**
+	 * Edits matching files in the workspace.
+	 * The `include` and `exclude` patterns are glob patterns relative to the workspace root.
+	 * For each matching file, the `edit` callback is called with the file content,
+	 * and should return the new content (or `false` to abort editing that file).
+	 *
+	 * Note: always adds excludes for `node_modules` and dot-prefixed directories
+	 */
+	files: (
+		options: {
+			/** Glob patterns to include */
+			include: string | string[];
+			/** Glob patterns to exclude */
+			exclude?: string[];
+			/**
+			 * Only run `edit` for files whose current content matches this predicate.
+			 * Useful for avoiding expensive transforms on unrelated files.
+			 */
+			where?: (content: string) => boolean;
+		},
+		edit: FileEditMultiple
+	) => void;
 };
 
 export type Addon<
@@ -104,12 +129,19 @@ export type SetupOptions<T extends Record<string, unknown>> = {
 };
 
 /**
- * The entry point for your addon, It will hold every thing! (options, setup, run, nextSteps, ...)
+ * The entry point for your add-on.
  *
- * For dynamic options added via `addOption` in setup, use the generic to get strong typing:
+ * ```ts
+ * const addon = defineAddon({ id: 'my-addon', options, run });
+ * ```
+ *
+ * If your add-on adds dynamic options via `addOption` during setup, pass their
+ * types as a type argument:
  * ```ts
  * const addon = defineAddon<{ extra: boolean }>()({ ... });
- * addon.options.extra.default // boolean
+ * // Take note of the extra call here:         👆   👆
+ * // This works around Typescript's lack of partial type arguments
+ * addon.options.extra.default; // boolean
  * ```
  */
 export function defineAddon<const Id extends string, Args extends OptionDefinition>(
@@ -123,11 +155,13 @@ export function defineAddon<SetupValues extends Record<string, unknown>>(): <
 		options: Args;
 	}
 ) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
-export function defineAddon(...args: any[]): any {
-	if (args.length === 0) {
-		return (config: any) => config;
+export function defineAddon(
+	config?: AddonDefinition
+): AddonDefinition | ((config: AddonDefinition) => AddonDefinition) {
+	if (config === undefined) {
+		return (c) => c;
 	}
-	return args[0];
+	return config;
 }
 
 // ============================================================================
@@ -242,6 +276,20 @@ export type SetupResult = {
 };
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
+
+/**
+ * Creates a LoadedAddon from an AddonDefinition (for official addons)
+ */
+export function createLoadedAddon(addon: AddonDefinition): LoadedAddon {
+	return {
+		reference: {
+			specifier: addon.id,
+			options: [],
+			source: { kind: 'official', id: addon.id }
+		},
+		addon
+	};
+}
 
 type MaybePromise<T> = Promise<T> | T;
 

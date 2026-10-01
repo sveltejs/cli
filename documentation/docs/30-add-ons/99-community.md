@@ -2,9 +2,6 @@
 title: [create your own]
 ---
 
-> [!NOTE]
-> Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
-
 This guide covers how to create, test, and publish community add-ons for the Svelte CLI.
 
 ## Quick start
@@ -134,10 +131,10 @@ export default defineConfig({
 And the global test setup script `tests/setup/global.js`:
 
 ```js
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { setupGlobal } from 'sv/testing';
-
-const TEST_DIR = fileURLToPath(new URL('../../.test-output/', import.meta.url));
+// test projects are scaffolded into `<project-root>/.test-output`
+const TEST_DIR = path.resolve(import.meta.dirname, '..', '..', '.test-output');
 
 export default setupGlobal({ TEST_DIR });
 ```
@@ -148,9 +145,11 @@ export default setupGlobal({ TEST_DIR });
 
 Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
 
+`sv` ships its own copy of [`@sveltejs/sv-utils`](sv-utils), so an add-on that leaves it unbundled will still load. Nothing verifies the version: your add-on runs against whatever `sv` provides, and following its breaking changes is up to you. Bundle it to stay on a version you control.
+
 ### `package.json`
 
-Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `package.json`:
+Your add-on must have `sv` as a peer dependency. Any `dependencies` declared will **not** be available at runtime, everything must be bundled:
 
 ```jsonc
 {
@@ -164,7 +163,7 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 	"publishConfig": {
 		"access": "public"
 	},
-	// cannot have dependencies
+	// packages declared here will not be available during runtime, it must be bundled
 	"dependencies": {},
 	"peerDependencies": {
 		// minimum version required to run by this add-on
@@ -177,18 +176,15 @@ Your add-on must have `sv` as a peer dependency and **no** `dependencies` in `pa
 
 ### Package names
 
-Packages must be published under an npm org:
+Naming follows the same [restrictions](https://npmx.dev/package/validate-npm-package-name#user-content-naming-rules) as on npm:
 
 ```sh
-# ✓ GOOD
+npx sv add my-addon
 npx sv add @my-org/sv
-npx sv add @my-org/core
-
-# ✗ BAD
-npx sv add my-lib
+npx sv add @my-org/foo
 ```
 
-If your package is published with the `sv` scope, it can be omitted. The following all resolves to the same package:
+An add-on published as `@<org>/sv` can also be installed as `@<org>`. The following all resolve to the same package:
 
 ```sh
 npx sv add @my-org
@@ -196,10 +192,11 @@ npx sv add @my-org/sv
 npx sv add @my-org/sv@latest
 ```
 
-For a specific version, append `@<version>`:
+For a specific version, append `@<semver>`:
 
 ```sh
 npx sv add @my-org/sv@1.2.3
+npx sv add my-addon@1.2.3
 ```
 
 ### Entry points

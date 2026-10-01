@@ -2,7 +2,8 @@ import type { AstTypes } from '../index.ts';
 
 export function createCall(options: {
 	name: string;
-	args: string[];
+	/** String args become literals (or identifiers with `useIdentifiers`); expression nodes are passed through as-is. */
+	args: Array<string | AstTypes.Expression>;
 	useIdentifiers?: boolean;
 }): AstTypes.CallExpression {
 	const callExpression: AstTypes.CallExpression = {
@@ -18,7 +19,9 @@ export function createCall(options: {
 	for (const arg of options.args) {
 		let argNode: AstTypes.Expression;
 
-		if (options.useIdentifiers) {
+		if (typeof arg !== 'string') {
+			argNode = arg;
+		} else if (options.useIdentifiers) {
 			argNode = {
 				type: 'Identifier',
 				name: arg
@@ -39,12 +42,16 @@ export function createCall(options: {
 export function createArrow(options: {
 	body: AstTypes.Expression | AstTypes.BlockStatement;
 	async: boolean;
+	params?: string[];
 }): AstTypes.ArrowFunctionExpression {
 	const arrowFunction: AstTypes.ArrowFunctionExpression = {
 		type: 'ArrowFunctionExpression',
 		async: options.async,
 		body: options.body,
-		params: [],
+		params: (options.params ?? []).map((param) => ({
+			type: 'Identifier',
+			name: param
+		})),
 		expression: options.body.type !== 'BlockStatement'
 	};
 

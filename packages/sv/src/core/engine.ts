@@ -1,30 +1,33 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import * as p from '@clack/prompts';
 import {
 	color,
 	fileExists,
+	isRangeWithin,
 	loadFile,
-	loadPackageJson,
-	parse,
 	saveFile,
 	resolveCommand,
-	type AgentName
+	type AgentName,
+	transforms,
+	type Package,
+	minimizeDiff
 } from '@sveltejs/sv-utils';
-import { NonZeroExitError, exec } from 'tinyexec';
-import { createLoadedAddon } from '../cli/add.ts';
+import { exec } from 'tinyexec';
 import { filePaths } from './common.ts';
 import {
+	createLoadedAddon,
 	getErrorHint,
 	type Addon,
 	type AddonDefinition,
+	type FileEdit,
 	type LoadedAddon,
 	type OptionValues,
 	type SetupResult,
 	type SvApi
 } from './config.ts';
-import { svDeprecated } from './deprecated.ts';
 import { TESTING } from './env.ts';
 import type { Question } from './options.ts';
-import { addPnpmAllowBuilds } from './package-manager.ts';
 import { createWorkspace, type Workspace } from './workspace.ts';
 
 function alphabetizeRecord(obj: Record<string, string>) {
@@ -37,26 +40,37 @@ function alphabetizeRecord(obj: Record<string, string>) {
 
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	cwd: string
-): string {
-	const { source } = loadPackageJson(cwd);
-	const { data, generateCode } = parse.json(source);
+	sv: SvApi
+): { installNeeded: boolean } {
+	let installNeeded = false;
+	if (dependencies.length === 0) return { installNeeded };
 
-	for (const dependency of dependencies) {
-		if (dependency.dev) {
-			data.devDependencies ??= {};
-			data.devDependencies[dependency.pkg] = dependency.version;
-		} else {
-			data.dependencies ??= {};
-			data.dependencies[dependency.pkg] = dependency.version;
-		}
-	}
+	const pkgPath = filePaths.packageJson;
+	sv.file(
+		pkgPath,
+		transforms.json<Package>(({ content, data }) => {
+			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
-	if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
-	if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
+			for (const { dev, pkg, version } of dependencies) {
+				const dependency = dev ? 'devDependencies' : 'dependencies';
+				data[dependency] ??= {};
 
-	saveFile(cwd, filePaths.packageJson, generateCode());
-	return filePaths.packageJson;
+				// keep a stricter existing range (e.g. `^9.2.0` when the add-on asks for `^9.0.0`)
+				const declared = data[dependency][pkg];
+				if (declared && isRangeWithin(declared, version)) continue;
+
+				installNeeded = true;
+				data[dependency][pkg] = version;
+			}
+
+			if (!installNeeded) return false; // do not edit the file if no changes were made
+
+			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
+			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
+		})
+	);
+
+	return { installNeeded };
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -109,10 +123,12 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
+	installNeeded: boolean;
 }> {
 	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
 	const canceledAddons = new Set<string>();
+	let installNeeded = false;
 
 	const addonDefs = loadedAddons.map((l) => l.addon);
 	const ordered = orderAddons(addonDefs, setupResults);
@@ -141,7 +157,11 @@ export async function applyAddons({
 		// If we don't have a formatter yet, check if the addon adds one
 		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
-		const { files, cancels } = await runAddon({
+		const {
+			files,
+			cancels,
+			installNeeded: addonInstallNeeded
+		} = await runAddon({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
@@ -150,6 +170,7 @@ export async function applyAddons({
 		});
 
 		files.forEach((f) => filesToFormat.add(f));
+		if (addonInstallNeeded) installNeeded = true;
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
 		} else {
@@ -160,7 +181,8 @@ export async function applyAddons({
 
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
-		status
+		status,
+		installNeeded
 	};
 }
 
@@ -220,7 +242,7 @@ type RunAddon = {
 	multiple: boolean;
 };
 async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }: RunAddon) {
-	const files = new Set<string>();
+	let modifiedFiles = new Set<string>();
 
 	// apply default addon options
 	const options: OptionValues<any> = { ...workspaceOptions };
@@ -231,64 +253,9 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		}
 	}
 
-	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
-	const sv: SvApi = {
-		file: (path, edit) => {
-			try {
-				const content = fileExists(workspace.cwd, path) ? loadFile(workspace.cwd, path) : '';
-				const editedContent = edit(content);
-				if (editedContent === '' || editedContent === false) return content;
-
-				saveFile(workspace.cwd, path, editedContent);
-				files.add(path);
-			} catch (e) {
-				if (e instanceof Error) {
-					e.message = `Unable to process '${path}'. Reason: ${e.message}`;
-					throw e;
-				}
-				throw e;
-			}
-		},
-		execute: async (commandArgs, stdio) => {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
-
-			const addonPrefix = multiple ? `${addon.id}: ` : '';
-			const executedCommand = [command, ...args].join(' ');
-			if (!TESTING) {
-				p.log.step(
-					`${addonPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
-				);
-			}
-
-			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') args.unshift('--yes');
-
-			try {
-				await exec(command, args, {
-					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
-					throwOnError: true
-				});
-			} catch (error) {
-				const typedError = error as NonZeroExitError;
-				throw new Error(`Failed to execute scripts '${executedCommand}': ${typedError.message}`, {
-					cause: error
-				});
-			}
-		},
-		dependency: (pkg, version) => {
-			dependencies.push({ pkg, version, dev: false });
-		},
-		devDependency: (pkg, version) => {
-			dependencies.push({ pkg, version, dev: true });
-		},
-		/** @deprecated use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead */
-		pnpmBuildDependency: (pkg) => {
-			svDeprecated(
-				'use `pnpm.allowBuilds` from `@sveltejs/sv-utils` instead of `sv.pnpmBuildDependency`'
-			);
-			addPnpmAllowBuilds(workspace.cwd, workspace.packageManager, pkg);
-		}
-	};
+	const { sv, finalize } = prepareSvApi(workspace, {
+		executeOutputPrefix: multiple ? `${addon.id}: ` : ''
+	});
 
 	const cancels: string[] = [];
 	try {
@@ -308,14 +275,172 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		);
 	}
 
+	let installNeeded = false;
 	if (cancels.length === 0) {
-		const pkgPath = updatePackages(dependencies, workspace.cwd);
-		files.add(pkgPath);
+		({ modifiedFiles, installNeeded } = finalize());
 	}
 
 	return {
-		files: Array.from(files),
-		cancels
+		files: Array.from(modifiedFiles),
+		cancels,
+		installNeeded
+	};
+}
+
+function editFile(
+	file: string,
+	edit: FileEdit,
+	workspace: Workspace,
+	modifiedFiles: Set<string>,
+	unmodifiedFiles: Set<string>,
+	options: PrepareSvApiOptions,
+	include?: (content: string) => boolean
+) {
+	try {
+		const exists = fileExists(workspace.cwd, file);
+		if (exists && !fs.statSync(path.resolve(workspace.cwd, file)).isFile()) return;
+
+		const content = exists ? loadFile(workspace.cwd, file) : '';
+		const skip = include === undefined ? false : !include(content);
+		if (skip) return;
+
+		const editedContent = edit(content);
+		if (editedContent === '' || editedContent === false) return;
+
+		if (!matchesFilesFilter(file, options)) {
+			unmodifiedFiles.add(file);
+			return;
+		}
+
+		const diffMinimizedEditedContent = minimizeDiff(content, editedContent);
+		file = saveFile(workspace.cwd, file, diffMinimizedEditedContent, options.saveFileInfix);
+		modifiedFiles.add(file);
+	} catch (e) {
+		if (e instanceof Error) {
+			e.message = `Unable to process '${file}'. Reason: ${e.message}`;
+		}
+		throw e;
+	}
+}
+
+type PrepareSvApiOptions = {
+	filesFilter?: string | undefined;
+	executeOutputPrefix?: string | undefined;
+	saveFileInfix?: string | undefined;
+	additionalExcludes?: string[] | undefined;
+};
+
+function matchesFilesFilter(file: string, options: PrepareSvApiOptions) {
+	return !options.filesFilter || path.matchesGlob(file, options.filesFilter);
+}
+
+export function prepareSvApi(
+	workspace: Workspace,
+	options: PrepareSvApiOptions = {
+		filesFilter: undefined,
+		executeOutputPrefix: undefined,
+		saveFileInfix: undefined,
+		additionalExcludes: undefined
+	}
+): {
+	sv: SvApi;
+	finalize: () => {
+		modifiedFiles: Set<string>;
+		unmodifiedFiles: Set<string>;
+		installNeeded: boolean;
+	};
+} {
+	const dependencies: Array<{ pkg: string; version: string; dev: boolean }> = [];
+	const modifiedFiles = new Set<string>();
+	const unmodifiedFiles = new Set<string>();
+
+	const sv: SvApi = {
+		file: (path, edit) => {
+			editFile(path, edit, workspace, modifiedFiles, unmodifiedFiles, options);
+		},
+		removeFile: (file) => {
+			if (!matchesFilesFilter(file, options)) {
+				unmodifiedFiles.add(file);
+				return;
+			}
+
+			fs.unlinkSync(path.resolve(workspace.cwd, file));
+		},
+		files: (opts, edit) => {
+			const { include, exclude } = opts;
+			const globbedFiles = fs.globSync(include, {
+				cwd: workspace.cwd,
+				exclude: [
+					'node_modules/**',
+					'**/node_modules/**',
+					'.*/**',
+					'**/.*/**',
+					'build/**',
+					'dist/**',
+					...(options.additionalExcludes ?? []),
+					...(exclude ?? [])
+				]
+			});
+
+			for (const file of globbedFiles) {
+				if (!matchesFilesFilter(file, options)) continue;
+
+				const singleFileEdit = (content: string) => edit(content, file);
+				editFile(
+					file,
+					singleFileEdit,
+					workspace,
+					modifiedFiles,
+					unmodifiedFiles,
+					options,
+					opts.where
+				);
+			}
+		},
+		execute: async (commandArgs, stdio) => {
+			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
+
+			const executedCommand = [command, ...args].join(' ');
+			if (!TESTING) {
+				p.log.step(
+					`${options?.executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
+				);
+			}
+
+			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
+			if (workspace.packageManager === 'npm') args.unshift('--yes');
+
+			try {
+				await exec(command, args, {
+					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
+					throwOnError: true
+				});
+			} catch (error) {
+				let message = `Failed to execute scripts '${executedCommand}'`;
+				if (error instanceof Error) {
+					message += `: ${error.message}`;
+				}
+				throw new Error(message, { cause: error });
+			}
+		},
+		dependency: (pkg, version) => {
+			dependencies.push({ pkg, version, dev: false });
+		},
+		devDependency: (pkg, version) => {
+			dependencies.push({ pkg, version, dev: true });
+		}
+	};
+	return {
+		sv,
+		finalize: () => {
+			const { installNeeded } = updatePackages(dependencies, sv);
+
+			return {
+				modifiedFiles,
+				unmodifiedFiles,
+				installNeeded
+			};
+		}
 	};
 }
 

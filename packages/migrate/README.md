@@ -1,17 +1,15 @@
 # svelte-migrate
 
-A CLI for migrating Svelte(Kit) codebases.
-
-Run it directly using:
+This package has been deprecated. Please see [`sv`](https://npmjs.com/package/sv) instead:
 
 ```sh
 npx sv migrate
 ```
 
-You can also specify a migration directly via the CLI:
+In order to use older migrations, please use version 1 of this package:
 
 ```sh
-npx sv migrate [migration]
+npx svelte-migrate@1 [migration]
 ```
 
 ## Migrations

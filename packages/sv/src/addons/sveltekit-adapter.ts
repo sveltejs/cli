@@ -11,13 +11,17 @@ import {
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^7.0.1' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^5.5.4' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^3.0.10' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^6.3.3' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^7.2.8' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^6.0.4' }
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0' }
 ] as const;
+
+/** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */
+const ADAPTER_HINT_REGEX =
+	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
 const options = defineAddonOptions()
 	.add('adapter', {
@@ -75,6 +79,13 @@ export default defineAddon({
 
 		sv.devDependency(adapter.package, adapter.version);
 
+		if (adapter.package !== '@sveltejs/adapter-auto') {
+			sv.file(
+				'README.md',
+				transforms.text(({ content }) => content.replace(ADAPTER_HINT_REGEX, ''))
+			);
+		}
+
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
 			// finds any existing adapter's import declaration
 			const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -113,7 +124,10 @@ export default defineAddon({
 			sv.devDependency('wrangler', '^4.97.0');
 
 			if (packageManager === 'pnpm') {
-				sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds('workerd'));
+				sv.file(
+					file.findUp('pnpm-workspace.yaml'),
+					pnpm.allowBuilds({ cwd, packages: ['workerd'] })
+				);
 			}
 
 			// default to jsonc

@@ -18,6 +18,20 @@ To recreate this project with the same configuration:
 npx sv@0.0.0 create --template minimal --types ts --no-install packages/sv/.test-output/cli/create-only
 ```
 
+## Adding features
+
+Add features to your project with `sv add`:
+
+```sh
+npx sv add
+```
+
+For example, to add Tailwind CSS:
+
+```sh
+npx sv add tailwindcss
+```
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:

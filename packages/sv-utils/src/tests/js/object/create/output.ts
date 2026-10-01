@@ -13,3 +13,9 @@ const created3 = {
 	nested: { type: 'something', value: 'inside' },
 	array: [{ type: 'item', id: 1 }]
 };
+
+const created4 = {
+	nonNull: state!,
+	instantiation: factory<string>,
+	assertion: <string>state
+};

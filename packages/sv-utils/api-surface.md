@@ -44,11 +44,122 @@ declare class TomlDate extends Date {
 	static wrapAsLocalDate(jsDate: Date): TomlDate;
 	static wrapAsLocalTime(jsDate: Date): TomlDate;
 }
+type IntegersAsBigInt = undefined | boolean | 'asNeeded';
 type TomlPrimitive = string | number | bigint | boolean | TomlDate;
 type TomlTable = {
 	[key: string]: TomlValue;
 };
 type TomlValue = TomlPrimitive | TomlValue[] | TomlTable;
+type TomlTableWithoutBigInt = {
+	[key: string]: TomlValueWithoutBigInt;
+};
+type TomlValueWithoutBigInt =
+	Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt;
+interface ParseOptions {
+	maxDepth?: number;
+	integersAsBigInt?: IntegersAsBigInt;
+}
+declare function parse$1(
+	toml: string,
+	options?: ParseOptions & {
+		integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false>;
+	}
+): TomlTable;
+declare function parse$1(toml: string, options?: ParseOptions): TomlTableWithoutBigInt;
+/*!
+ * Copyright (c) Squirrel Chat et al., All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+declare function stringify(
+	obj: any,
+	{
+		maxDepth,
+		numbersAsFloat
+	}?: {
+		maxDepth?: number;
+		numbersAsFloat?: boolean;
+	}
+): string;
+/*!
+ * Copyright (c) Squirrel Chat et al., All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+type TomlErrorOptions = ErrorOptions & {
+	toml: string;
+	ptr: number;
+};
+declare class TomlError extends Error {
+	line: number;
+	column: number;
+	codeblock: string;
+	constructor(message: string, options: TomlErrorOptions);
+}
+declare namespace index_d_exports$6 {
+	export {
+		TomlDate,
+		TomlError,
+		TomlValue as TomlPrimitive,
+		TomlTable,
+		TomlTableWithoutBigInt,
+		TomlValue,
+		TomlValueWithoutBigInt,
+		_default as default,
+		parse$1 as parse,
+		stringify
+	};
+}
+declare const _default: {
+	parse: typeof parse$1;
+	stringify: typeof stringify;
+	TomlDate: typeof TomlDate;
+	TomlError: typeof TomlError;
+};
 declare module 'estree' {
 	interface TSTypeAnnotation {
 		type: 'TSTypeAnnotation';
@@ -143,7 +254,57 @@ declare module 'estree' {
 	interface ImportDeclaration {
 		importKind: 'type' | 'value';
 	}
+	interface ImportSpecifier {
+		importKind?: 'type' | 'value';
+	}
 }
+declare namespace index_d_exports$5 {
+	export {
+		estree as AstTypes,
+		CommentType,
+		Comments,
+		CommentsInternal,
+		SvelteAst,
+		guessIndentString,
+		guessQuoteStyle,
+		parseCss$1 as parseCss,
+		parseHtml$1 as parseHtml,
+		parseJson$1 as parseJson,
+		parseScript$1 as parseScript,
+		parseSvelte$1 as parseSvelte,
+		parseToml$1 as parseToml,
+		parseYaml$1 as parseYaml,
+		serializeCss,
+		serializeHtml,
+		serializeJson,
+		serializeScript,
+		serializeSvelte,
+		serializeToml,
+		serializeYaml,
+		stripAst,
+		transformToInternal
+	};
+}
+declare function parseScript$1(content: string): {
+	ast: estree.Program;
+	comments: Comments;
+};
+declare function serializeScript(
+	ast: estree.Node,
+	comments?: Comments,
+	previousContent?: string
+): string;
+declare function parseCss$1(content: string): SvelteAst.CSS.StyleSheetBase;
+declare function serializeCss(ast: SvelteAst.CSS.StyleSheetBase): string;
+declare function parseHtml$1(content: string): SvelteAst.Fragment;
+declare function serializeHtml(ast: SvelteAst.Fragment, previousContent?: string): string;
+declare function stripAst<T>(node: T, propsToRemove: string[]): T;
+declare function parseJson$1(content: string): any;
+declare function serializeJson(originalInput: string, data: unknown): string;
+declare function guessIndentString(str: string | undefined): string;
+declare function guessQuoteStyle(ast: estree.Node): 'single' | 'double' | undefined;
+declare function parseYaml$1(content: string): ReturnType<typeof yaml.parseDocument>;
+declare function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): string;
 type CommentType = {
 	type: 'Line' | 'Block';
 	value: string;
@@ -153,6 +314,7 @@ declare class Comments {
 	private leading;
 	private trailing;
 	constructor();
+	list(): readonly SvelteAst.JSComment[];
 	add(
 		node: BaseNode$1,
 		comment: CommentType,
@@ -162,14 +324,22 @@ declare class Comments {
 	): void;
 	remove(predicate: (comment: estree.Comment) => boolean | undefined | null): void;
 }
-
+interface CommentsInternal {
+	original: estree.Comment[];
+	leading: WeakMap<BaseNode$1, CommentType[]>;
+	trailing: WeakMap<BaseNode$1, CommentType[]>;
+}
+declare function transformToInternal(comments: Comments | undefined): CommentsInternal;
+declare function parseSvelte$1(content: string): SvelteAst.Root;
+declare function serializeSvelte(ast: SvelteAst.SvelteNode, previousContent?: string): string;
+declare function parseToml$1(content: string): TomlTable;
+declare function serializeToml(data: TomlTable): string;
 type YamlDocument = {
 	get(key: string): unknown;
 	set(key: string, value: unknown): void;
 };
 type ParseBase = {
 	source: string;
-
 	generateCode(): string;
 };
 declare function parseScript(source: string): {
@@ -206,7 +376,7 @@ interface Dedent {
 }
 type CreateDedent = (options: DedentOptions) => Dedent;
 declare const dedent: Dedent;
-declare module 'zimmerframe' {
+declare namespace zimmerframe {
 	export function walk<
 		T extends {
 			type: string;
@@ -238,8 +408,7 @@ declare module 'zimmerframe' {
 		visit: (node: T, state?: U) => T;
 	}
 	export {};
-} //# sourceMappingURL=index.d.ts.map
-declare function resolveCommandArray(agent: Agent, command: Command, args: string[]): string[];
+}
 declare namespace index_d_exports$1 {
 	export { addAtRule, addDeclaration, addImports, addRule };
 }
@@ -325,6 +494,7 @@ declare namespace common_d_exports {
 		parseExpression,
 		parseFromString,
 		parseStatement,
+		replaceChild,
 		typeAnnotate
 	};
 }
@@ -371,15 +541,18 @@ declare function appendFromString(
 declare function parseExpression(code: string): estree.Expression;
 declare function parseStatement(code: string): estree.Statement;
 declare function parseFromString<T extends estree.Node>(code: string): T;
-
 declare function appendStatement(
 	node: estree.BlockStatement | estree.Program,
 	options: {
 		statement: estree.Statement;
 	}
 ): void;
-
 declare function contains(node: estree.Node, targetNode: estree.Node): boolean;
+declare function replaceChild(
+	parent: estree.Node | SvelteAst.SvelteNode,
+	node: estree.Node,
+	replacement: estree.Node
+): boolean;
 declare function hasTypeProperty(
 	node: estree.TSInterfaceDeclaration['body']['body'][number],
 	options: {
@@ -396,12 +569,13 @@ declare namespace function_d_exports {
 }
 declare function createCall(options: {
 	name: string;
-	args: string[];
+	args: Array<string | estree.Expression>;
 	useIdentifiers?: boolean;
 }): estree.CallExpression;
 declare function createArrow(options: {
 	body: estree.Expression | estree.BlockStatement;
 	async: boolean;
+	params?: string[];
 }): estree.ArrowFunctionExpression;
 declare function getArgument<T extends estree.Expression>(
 	node: estree.CallExpression,
@@ -411,7 +585,21 @@ declare function getArgument<T extends estree.Expression>(
 	}
 ): T;
 declare namespace imports_d_exports {
-	export { addDefault, addEmpty, addNamed, addNamespace$1 as addNamespace, find, remove };
+	export {
+		FoundImport,
+		ImportBinding,
+		addDefault,
+		addEmpty,
+		addNamed,
+		addNamespace$1 as addNamespace,
+		bindings,
+		find,
+		findAll,
+		remove,
+		renameBinding,
+		renameSource,
+		setSource
+	};
 }
 declare function addEmpty(
 	node: estree.Program,
@@ -441,6 +629,58 @@ declare function addNamed(
 		isType?: boolean;
 	}
 ): void;
+type FoundImportBase = {
+	source: string;
+	sourceNode: estree.Literal;
+	path: estree.Node[];
+};
+type FoundImport =
+	| ({
+			kind: 'static';
+			node: estree.ImportDeclaration;
+	  } & FoundImportBase)
+	| ({
+			kind: 'dynamic';
+			node: estree.ImportExpression;
+	  } & FoundImportBase);
+declare function setSource(found: FoundImport, source: string): void;
+declare function findAll(
+	ast: estree.Node,
+	options?: {
+		from?: string | RegExp;
+	}
+): FoundImport[];
+type ImportBinding = {
+	kind: 'named' | 'default' | 'namespace';
+	imported: string;
+	local: string;
+	isType: boolean;
+	specifier: estree.ImportDeclaration['specifiers'][number];
+	declaration: estree.ImportDeclaration;
+};
+declare function bindings(
+	ast: estree.Program,
+	options: {
+		from: string;
+		name?: string;
+	}
+): ImportBinding[];
+declare function renameSource(
+	ast: estree.Node,
+	options: {
+		from: string | RegExp;
+		to: string;
+	}
+): boolean;
+declare function renameBinding(
+	roots: Array<estree.Program | SvelteAst.Fragment>,
+	options: {
+		from: string;
+		name: string;
+		to: string;
+		local?: string;
+	}
+): boolean;
 declare function find(
 	ast: estree.Program,
 	options: {
@@ -464,6 +704,30 @@ declare function remove(
 		statement?: estree.ImportDeclaration;
 	}
 ): void;
+declare namespace identifiers_d_exports {
+	export { freeName, isReference, renameReferences, replaceReferences, uniqueName };
+}
+type Root$1 = estree.Program | SvelteAst.Fragment;
+declare function isReference(
+	node: estree.Node,
+	parent: estree.Node | SvelteAst.SvelteNode | undefined
+): boolean;
+declare function uniqueName(base: string, used: Set<string>): string;
+declare function renameReferences(roots: Root$1[], renames: Map<string, string>): boolean;
+declare function replaceReferences(
+	roots: Root$1[],
+	names: string[],
+	build: () => estree.Expression
+): boolean;
+declare function freeName(roots: Root$1[], base: string): string;
+declare namespace scope_d_exports {
+	export { collectPatternNames, findShadowedIdentifiers, nestedBindingNames, topLevelBindings };
+}
+type Root = estree.Program | SvelteAst.Fragment;
+declare function collectPatternNames(pattern: estree.Pattern): string[];
+declare function topLevelBindings(programs: estree.Program[]): Set<string>;
+declare function nestedBindingNames(statements: estree.Program['body']): Set<string>;
+declare function findShadowedIdentifiers(roots: Root[], names: string[]): Set<estree.Identifier>;
 declare namespace variables_d_exports {
 	export { createIdentifier, declaration, typeAnnotateDeclarator };
 }
@@ -538,7 +802,6 @@ declare const addPlugin: (
 		mode?: 'append' | 'prepend';
 	}
 ) => void;
-
 declare function configProperty<T extends estree.Expression | estree.Identifier>(
 	ast: estree.Program,
 	config: estree.ObjectExpression,
@@ -554,9 +817,11 @@ declare namespace index_d_exports$3 {
 		common_d_exports as common,
 		exports_d_exports as exports,
 		function_d_exports as functions,
+		identifiers_d_exports as identifiers,
 		imports_d_exports as imports,
 		kit_d_exports as kit,
 		object_d_exports as object,
+		scope_d_exports as scope,
 		variables_d_exports as variables,
 		vite_d_exports as vite
 	};
@@ -586,7 +851,6 @@ type CommentEntry = {
 	mode: 'append' | 'prepend';
 };
 type CommentOption = string | Array<string | CommentEntry>;
-
 declare function upsert(
 	content: string,
 	key: string,
@@ -642,12 +906,11 @@ declare function addFragment(
 		language?: 'ts' | 'js';
 	}
 ): void;
-type TransformFn = (content: string) => string;
+type TransformFn = (content: string) => string | false;
 type TransformOptions = {
 	onError?: (error: unknown) => void;
 };
-
-declare const transforms: {
+export declare const transforms: {
 	script(
 		cb: (file: {
 			ast: estree.Program;
@@ -656,8 +919,7 @@ declare const transforms: {
 			js: typeof index_d_exports$3;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string;
-
+	): TransformFn;
 	svelte(
 		cb: (file: {
 			ast: SvelteAst.Root;
@@ -666,8 +928,7 @@ declare const transforms: {
 			js: typeof index_d_exports$3;
 		}) => void | false,
 		options?: TransformOptions
-	): (content: string) => string;
-
+	): TransformFn;
 	svelteScript(
 		scriptOptions: {
 			language: 'ts' | 'js';
@@ -680,7 +941,6 @@ declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	css(
 		cb: (file: {
 			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
@@ -689,22 +949,18 @@ declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	json<T = any>(
 		cb: (file: { data: T; content: string; json: typeof json_d_exports }) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	yaml(
 		cb: (file: { data: YamlDocument; content: string }) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	toml(
 		cb: (file: { data: TomlTable; content: string }) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	html(
 		cb: (file: {
 			ast: SvelteAst.Fragment;
@@ -713,44 +969,54 @@ declare const transforms: {
 		}) => void | false,
 		options?: TransformOptions
 	): TransformFn;
-
 	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
 };
-declare namespace pnpm_d_exports {
-	export { allowBuilds, onlyBuiltDependencies };
-}
-
-declare function allowBuilds(...packages: string[]): TransformFn;
-/**
- * @deprecated Use {@link allowBuilds} instead.
- */
-declare function onlyBuiltDependencies(...packages: string[]): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
 	patch?: number;
 	version?: string;
 };
-
-declare function minVersion(range: string): string;
-/**
- * @deprecated Use `coerceVersion` instead.
- */
-declare function splitVersion(str: string): Version;
-
-declare function coerceVersion(str: string): Version;
-declare function isVersionUnsupportedBelow(
-	versionStr: string,
-	belowStr: string
+export declare function minVersion(range: string): string;
+export declare function coerceVersion(str: string): Version;
+export declare function isRangeWithin(subset: string, superset: string): boolean;
+export declare function isVersionUnsupportedBelow(
+	version: string,
+	below: string
 ): boolean | undefined;
 type Printer = (content: string, alt?: string) => string;
-declare function createPrinter(...conditions: boolean[]): Printer[];
-
-declare function sanitizeName(name: string, style: 'package' | 'wrangler'): string;
-declare const downloadJson: (url: string) => Promise<any>;
+export declare function createPrinter(...conditions: boolean[]): Printer[];
+export declare function sanitizeName(name: string, style: 'package' | 'wrangler'): string;
+export declare function minimizeDiff(old: string, updated: string): string;
+export declare const downloadJson: (url: string) => Promise<any>;
+export declare function isKit3(kitRange: string | undefined): boolean;
+export declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
+export declare function libSubpathImports(libDir: string): Record<string, string>;
+export declare const KIT3_TSCONFIG = '$app/tsconfig';
+export declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
+export declare const parse: {
+	css: typeof parseCss;
+	html: typeof parseHtml;
+	json: typeof parseJson;
+	script: typeof parseScript;
+	svelte: typeof parseSvelte;
+	toml: typeof parseToml;
+	yaml: typeof parseYaml;
+};
+export declare function resolveCommandArray(
+	agent: Agent,
+	command: Command,
+	args: string[]
+): string[];
+declare namespace pnpm_d_exports {
+	export { allowBuilds };
+}
+declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
+export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;
 	version: string;
+	scripts?: Record<string, string>;
 	dependencies?: Record<string, string>;
 	devDependencies?: Record<string, string>;
 	bugs?: string;
@@ -761,34 +1027,32 @@ type Package = {
 	keywords?: string[];
 	workspaces?: string[];
 };
-
-declare function fileExists(cwd: string, filePath: string): boolean;
-
-declare function loadFile(cwd: string, filePath: string): string;
-
-declare function saveFile(cwd: string, filePath: string, content: string): void;
-
-declare function loadPackageJson(cwd: string): {
+export declare function fileExists(cwd: string, filePath: string): boolean;
+export declare function loadFile(cwd: string, filePath: string): string;
+export declare function saveFile(
+	cwd: string,
+	filePath: string,
+	content: string,
+	saveFileInfix?: string
+): string;
+export declare function loadPackageJson(cwd: string): {
 	source: string;
 	data: Package;
 };
-
 type SvelteConfigKind = 'svelte' | 'vite';
-
 type SvelteConfigPath = `${'svelte.config' | 'vite.config'}.${'js' | 'ts'}`;
 type SvelteConfigLocation = {
 	path: SvelteConfigPath;
 	kind: SvelteConfigKind;
 };
-
 type SvelteConfigObjects = {
 	location: SvelteConfigLocation;
 	config: estree.ObjectExpression;
 	kit: estree.ObjectExpression;
+	ast: estree.Program;
+	comments: Comments;
 };
-
 type ConfigFileReader = (path: string) => string | null;
-
 type ConfigSource = string | ConfigFileReader;
 type ObjectMap = Parameters<typeof overrideProperties>[1];
 type SvelteConfEdit = (file: {
@@ -796,14 +1060,12 @@ type SvelteConfEdit = (file: {
 	comments: Comments;
 	js: typeof index_d_exports$3;
 	location: SvelteConfigLocation;
-
 	property: <T extends estree.Expression | estree.Identifier>(
 		name: string,
 		opts: {
 			fallback: T;
 		}
 	) => T;
-
 	override: (
 		props: ObjectMap,
 		opts?: {
@@ -811,12 +1073,10 @@ type SvelteConfEdit = (file: {
 		}
 	) => void;
 }) => void | false;
-
 type SvFileApi = {
 	file: (path: string, edit: (content: string) => string | false) => void;
 };
-
-declare const svelteConfig: {
+export declare const svelteConfig: {
 	edit: (
 		target: {
 			sv: SvFileApi;
@@ -849,23 +1109,11 @@ type DefineEnv = {
 	mode: EnvMode;
 	define: (spec: EnvVarSpec) => void;
 	reference: (ast: estree.Program, js: typeof index_d_exports$3, opts: ReferenceOpts) => string;
-
 	importEnv: (ast: estree.Program, js: typeof index_d_exports$3, imports: string[]) => void;
 };
-
-declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
-
-declare function isKit3(kitRange: string | undefined): boolean;
-
-declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
-
-declare function libSubpathImports(libDir: string): Record<string, string>;
-
-declare const KIT3_TSCONFIG = '$app/tsconfig';
-
-declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
+export declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
 type ColorInput = string | string[];
-declare const color: {
+export declare const color: {
 	addon: (str: ColorInput) => string;
 	command: (str: ColorInput) => string;
 	env: (str: ColorInput) => string;
@@ -879,16 +1127,6 @@ declare const color: {
 	error: (str: ColorInput) => string;
 	hidden: (str: ColorInput) => string;
 };
-
-declare const parse: {
-	css: typeof parseCss;
-	html: typeof parseHtml;
-	json: typeof parseJson;
-	script: typeof parseScript;
-	svelte: typeof parseSvelte;
-	toml: typeof parseToml;
-	yaml: typeof parseYaml;
-};
 export {
 	AGENTS,
 	type AgentName,
@@ -896,46 +1134,24 @@ export {
 	COMMANDS,
 	type Comments,
 	type ConfigFileReader,
-	KIT3_TSCONFIG,
-	KIT3_TSCONFIG_DEFAULT,
 	type Package,
 	type SvelteAst,
 	type SvelteConfigKind,
 	type SvelteConfigLocation,
 	type SvelteConfigObjects,
 	type TransformFn,
-	index_d_exports as Walker,
+	zimmerframe as Walker,
 	type YamlDocument,
-	coerceVersion,
-	color,
 	constructCommand,
-	createPrinter,
 	index_d_exports$1 as css,
 	dedent,
-	defineEnv,
 	detect,
-	downloadJson,
-	fileExists,
 	index_d_exports$2 as html,
-	isKit3,
-	isVersionUnsupportedBelow,
 	index_d_exports$3 as js,
 	json_d_exports as json,
-	libSubpathImports,
-	loadFile,
-	loadPackageJson,
-	minVersion,
-	parse,
 	pnpm_d_exports as pnpm,
 	resolveCommand,
-	resolveCommandArray,
-	resolveLibPrefix,
-	sanitizeName,
-	saveFile,
-	splitVersion,
 	index_d_exports$4 as svelte,
-	svelteConfig,
-	text_d_exports as text,
-	transforms
+	text_d_exports as text
 };
 ```

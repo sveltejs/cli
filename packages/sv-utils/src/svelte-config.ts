@@ -29,6 +29,10 @@ export type SvelteConfigObjects = {
 	config: AstTypes.ObjectExpression;
 	/** kit-level config object (`adapter`, `alias`, `files`, `typescript`, ...). */
 	kit: AstTypes.ObjectExpression;
+	/** the full config file's AST */
+	ast: AstTypes.Program;
+	/** the comments parsed from the config file, so callers can preserve them when moving nodes */
+	comments: Comments;
 };
 
 /** Reads a workspace file. Returns `null` when the file doesn't exist. (the injected environment) */
@@ -64,11 +68,14 @@ const SVELTE_LEVEL_OPTIONS = new Set([
 const SVELTE_CANDIDATES = ['svelte.config.js', 'svelte.config.ts'] as const;
 const VITE_CANDIDATES = ['vite.config.ts', 'vite.config.js'] as const;
 
-function tryParse(read: ConfigFileReader, path: string): AstTypes.Program | undefined {
+type ParsedConfig = { ast: AstTypes.Program; comments: Comments };
+
+function tryParse(read: ConfigFileReader, path: string): ParsedConfig | undefined {
 	const source = read(path);
 	if (source === null) return undefined;
 	try {
-		return parseScript(source).ast;
+		const { ast, comments } = parseScript(source);
+		return { ast, comments };
 	} catch {
 		return undefined;
 	}
@@ -77,14 +84,18 @@ function tryParse(read: ConfigFileReader, path: string): AstTypes.Program | unde
 /** Detects the config location AND keeps the parsed AST, so callers don't have to parse twice. */
 function locate(
 	read: ConfigFileReader
-): { location: SvelteConfigLocation; ast: AstTypes.Program } | null {
+): { location: SvelteConfigLocation; ast: AstTypes.Program; comments: Comments } | null {
 	for (const path of SVELTE_CANDIDATES) {
-		const ast = tryParse(read, path);
-		if (ast && hasDefaultExport(ast)) return { location: { path, kind: 'svelte' }, ast };
+		const parsed = tryParse(read, path);
+		if (parsed && hasDefaultExport(parsed.ast)) {
+			return { location: { path, kind: 'svelte' }, ...parsed };
+		}
 	}
 	for (const path of VITE_CANDIDATES) {
-		const ast = tryParse(read, path);
-		if (ast && findSveltekitCall(ast)) return { location: { path, kind: 'vite' }, ast };
+		const parsed = tryParse(read, path);
+		if (parsed && findSveltekitCall(parsed.ast)) {
+			return { location: { path, kind: 'vite' }, ...parsed };
+		}
 	}
 	return null;
 }
@@ -109,7 +120,7 @@ function read(source: ConfigSource): SvelteConfigObjects | null {
 	if (!found) return null;
 	const config = getConfigRoot(found.ast, found.location.kind);
 	const kit = getKitObject(config, found.location.kind);
-	return { location: found.location, config, kit };
+	return { location: found.location, config, kit, ast: found.ast, comments: found.comments };
 }
 
 export type SvelteConfEdit = (file: {
@@ -165,14 +176,23 @@ function editContent(
 	content: string,
 	location: SvelteConfigLocation,
 	editFn: SvelteConfEdit
-): string {
+): string | false {
 	return transforms.script(({ ast, comments, js }) => {
 		const config = getConfigRoot(ast, location.kind);
 		// the `kit` object is only materialized when a kit-level option is actually edited, so a
 		// svelte-only edit (e.g. mdsvex) doesn't leave a spurious empty `kit: {}` behind
 		let kit: AstTypes.ObjectExpression | undefined;
 		const kitObject = () => (kit ??= getKitObject(config, location.kind));
-		const containerFor = (name: string) => (SVELTE_LEVEL_OPTIONS.has(name) ? config : kitObject());
+
+		// the `sveltekit()` arg omits `onwarn` (`KitConfig & Omit<SvelteConfig, 'onwarn'>`), so in a
+		// `vite.config` it has to be nested under `vitePlugin` instead of the root
+		const onwarnIsNested = (name: string) => name === 'onwarn' && location.kind === 'vite';
+		const vitePluginObject = () =>
+			js.object.property(config, { name: 'vitePlugin', fallback: js.object.create({}) });
+		const containerFor = (name: string) => {
+			if (onwarnIsNested(name)) return vitePluginObject();
+			return SVELTE_LEVEL_OPTIONS.has(name) ? config : kitObject();
+		};
 
 		const property: Parameters<SvelteConfEdit>[0]['property'] = (name, opts) =>
 			js.object.property(containerFor(name), { name, ...opts });
@@ -180,11 +200,16 @@ function editContent(
 		const override: Parameters<SvelteConfEdit>[0]['override'] = (props, opts) => {
 			const svelteProps: ObjectMap = {};
 			const kitProps: ObjectMap = {};
+			let nestedOnwarn: ObjectMap[string] | undefined;
 			for (const [key, value] of Object.entries(props)) {
-				(SVELTE_LEVEL_OPTIONS.has(key) ? svelteProps : kitProps)[key] = value;
+				if (onwarnIsNested(key)) nestedOnwarn = value;
+				else (SVELTE_LEVEL_OPTIONS.has(key) ? svelteProps : kitProps)[key] = value;
 			}
 			if (Object.keys(svelteProps).length) js.object.overrideProperties(config, svelteProps);
 			if (Object.keys(kitProps).length) js.object.overrideProperties(kitObject(), kitProps);
+			// last, so it merges into a `vitePlugin` an earlier prop may have just written
+			if (nestedOnwarn !== undefined)
+				js.object.overrideProperties(vitePluginObject(), { onwarn: nestedOnwarn });
 			for (const name of opts?.dropLeadingComments ?? []) {
 				dropLeadingComments(containerFor(name), name, comments);
 			}
@@ -224,7 +249,7 @@ function edit({ sv, cwd }: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdi
  * export or in the object passed to `sveltekit()` in a `vite.config.{js,ts}`.
  */
 export const svelteConfig: {
-	/** Edit the config wherever it lives (creating `svelte.config.js` if there is none). */
+	/** Edit the config wherever it lives (creating `vite.config.js` if there is none). */
 	edit: (target: { sv: SvFileApi; cwd: string }, editFn: SvelteConfEdit) => void;
 	/** Locate the config file, returning `{ path, kind }` or `null`. Detection is static (no execution). */
 	find: (source: ConfigSource) => SvelteConfigLocation | null;

@@ -3,7 +3,6 @@
 	import { resolve } from '$app/paths';
 	import { confetti } from '@neoconfetti/svelte';
 	import { MediaQuery } from 'svelte/reactivity';
-
 	import type { PageProps } from './$types';
 
 	/**
@@ -64,7 +63,7 @@
 	 */
 	function update(event: MouseEvent) {
 		event.preventDefault();
-		const key = /** @type {HTMLButtonElement} */ (event.target as HTMLButtonElement).getAttribute(
+		const key = /** @type {HTMLButtonElement} */ ((event.target as HTMLButtonElement)).getAttribute(
 			'data-key'
 		);
 

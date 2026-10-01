@@ -1,17 +1,17 @@
+import path from 'node:path';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import browserslist from 'browserslist';
 import { browserslistToTargets } from 'lightningcss';
 import examples from 'mdsvexamples/vite';
-import path from 'node:path';
 import { defineConfig, type UserConfig } from 'vite';
 import { kitRoutes } from 'vite-plugin-kit-routes';
 
 const $root = path.resolve(__dirname, './src');
-const $lib = path.resolve($root, './lib');
+const libDir = path.resolve($root, './lib');
 const $routes = path.resolve($root, './routes');
-const $scripts = path.resolve($lib, './scripts');
-const $actions = path.resolve($lib, './actions');
+const $scripts = path.resolve(libDir, './scripts');
+const $actions = path.resolve(libDir, './actions');
 
 const config = defineConfig({
 	plugins: [
@@ -23,7 +23,7 @@ const config = defineConfig({
 	],
 	resolve: {
 		alias: {
-			$lib,
+			libDir,
 			$routes,
 			$scripts,
 			$actions

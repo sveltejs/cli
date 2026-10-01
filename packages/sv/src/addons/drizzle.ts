@@ -1,3 +1,6 @@
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
 	color,
 	dedent,
@@ -8,11 +11,9 @@ import {
 	createPrinter,
 	svelteConfig,
 	defineEnv,
-	isKit3
+	isKit3,
+	pnpm
 } from '@sveltejs/sv-utils';
-import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
@@ -94,7 +95,17 @@ export default defineAddon({
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, language, options, directory, dependencyVersion, cwd, cancel, file }) => {
+	run: ({
+		sv,
+		language,
+		options,
+		directory,
+		dependencyVersion,
+		cwd,
+		cancel,
+		file,
+		packageManager
+	}) => {
 		const [ts] = createPrinter(language === 'ts');
 		const baseDBPath = path.resolve(cwd, directory.lib, 'server', 'db');
 		const paths = {
@@ -124,11 +135,15 @@ export default defineAddon({
 		if (options.sqlite === 'better-sqlite3') {
 			// not a devDependency due to bundling issues
 			sv.dependency('better-sqlite3', '^13.0.2');
-			sv.devDependency('@types/better-sqlite3', '^7.6.13');
+			sv.devDependency('@types/better-sqlite3', '^9.6.0');
 		}
 
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.17.3');
+
+		if (packageManager === 'pnpm') {
+			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['esbuild'] }));
+		}
 
 		sv.file('.env', generateEnv(options, false));
 		sv.file('.env.example', generateEnv(options, true));
@@ -522,35 +537,36 @@ export default defineAddon({
 	},
 
 	nextSteps: ({ options, packageManager, cwd, dependencyVersion }) => {
+		const pm = (command: Parameters<typeof resolveCommandArray>[1], args: string[]) =>
+			color.command(resolveCommandArray(packageManager, command, args));
 		const steps: string[] = [];
+
 		if (options.database === 'd1') {
 			if (!dependencyVersion('@sveltejs/adapter-cloudflare')) {
 				steps.push(
-					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${color.command(resolveCommandArray(packageManager, 'execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare']))} to add it`
+					`Cloudflare D1 requires ${color.addon('@sveltejs/adapter-cloudflare')}. Run ${pm('execute', ['sv', 'add', 'sveltekit-adapter=adapter:cloudflare'])} to add it`
 				);
 			}
-			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
+
 			steps.push(
 				`Add your ${color.env('CLOUDFLARE_ACCOUNT_ID')}, ${color.env('CLOUDFLARE_DATABASE_ID')}, and ${color.env('CLOUDFLARE_D1_TOKEN')} to ${color.path('.env')}`
 			);
+
+			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
 			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>']))} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
+				`Run ${pm('execute-local', ['wrangler', 'd1', 'create', '<DATABASE_NAME>'])} to generate a D1 database ID for your ${color.path(`wrangler.${ext}`)}`
 			);
 		}
 
 		if (options.docker) {
-			steps.push(
-				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:start']))} to start the docker container`
-			);
+			steps.push(`Run ${pm('run', ['db:start'])} to start the docker container`);
 		} else if (options.database !== 'd1') {
 			steps.push(
 				`Check ${color.env('DATABASE_URL')} in ${color.path('.env')} and adjust it to your needs`
 			);
 		}
 
-		steps.push(
-			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database schema`
-		);
+		steps.push(`Run ${pm('run', ['db:push'])} to update your database schema`);
 
 		return steps;
 	}

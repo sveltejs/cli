@@ -55,4 +55,17 @@ export function run(ast: AstTypes.Program): void {
 		value: createdObject3
 	});
 	ast.body.push(createdVariable3);
+
+	// TypeScript expression wrappers must be recognized as AST nodes, not serialized as data
+	const createdObject4 = object.create({
+		nonNull: common.parseExpression('state!'),
+		instantiation: common.parseExpression('factory<string>'),
+		assertion: common.parseExpression('<string>state')
+	});
+	const createdVariable4 = variables.declaration(ast, {
+		kind: 'const',
+		name: 'created4',
+		value: createdObject4
+	});
+	ast.body.push(createdVariable4);
 }
