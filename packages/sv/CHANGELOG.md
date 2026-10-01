@@ -1,5 +1,11 @@
 # sv
 
+## 1.0.1
+
+### Patch Changes
+
+- chore: remove node runtime dependency ([#1356](https://github.com/sveltejs/cli/pull/1356))
+
 ## 1.0.0
 
 ### Major Changes
