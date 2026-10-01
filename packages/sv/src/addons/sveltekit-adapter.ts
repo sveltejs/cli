@@ -24,10 +24,14 @@ const adapters = [
 const ADAPTER_HINT_REGEX =
 	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
+type TSConfig = { extends?: string | string[]; compilerOptions?: { types?: string[] } };
 /**
- * `$app/tsconfig` sets `types: ['$app/types']`, but a child `types` array overwrites instead of merge, so re-add the entry whenever `compilerOptions.types` is written.
+ * In kit 3, `$app/tsconfig` sets `types: ['$app/types']`,
+ * but `compilerOptions.types` in a child config
+ * overwrites the parent array rather than merging with it,
+ * so we make sure it is always added.
  */
-const ensureKit3Types = (data: { extends?: unknown; compilerOptions?: { types?: unknown } }) => {
+const ensureKit3Types = (data: TSConfig) => {
 	if (![data.extends].flat().includes(KIT3_TSCONFIG)) return;
 	const types = data.compilerOptions?.types;
 	if (Array.isArray(types) && !types.includes('$app/types')) types.unshift('$app/types');
@@ -204,9 +208,8 @@ export default defineAddon({
 					transforms.json(({ data }) => {
 						data.compilerOptions ??= {};
 						data.compilerOptions.types ??= [];
-						const types = data.compilerOptions.types;
-						if (!types.includes('./worker-configuration.d.ts'))
-							types.push('./worker-configuration.d.ts');
+						if (!data.compilerOptions.types.includes('./worker-configuration.d.ts'))
+							data.compilerOptions.types.push('./worker-configuration.d.ts');
 					})
 				);
 
@@ -230,14 +233,10 @@ export default defineAddon({
 					})
 				);
 
+				// todo: move this logic to a higher scope
 				sv.file(
 					file.typeConfig,
-					transforms.json(({ data }) => {
-						data.compilerOptions ??= {};
-						data.compilerOptions.types ??= [];
-						const types = data.compilerOptions.types;
-						ensureKit3Types(types);
-					})
+					transforms.json(({ data }) => ensureKit3Types(data))
 				);
 			}
 		}
