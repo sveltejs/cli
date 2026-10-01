@@ -1,5 +1,11 @@
 # svelte-migrate
 
+## 2.0.0
+
+### Major Changes
+
+- breaking: the `svelte-migrate` package has been replaced by the `sv` package ([#1354](https://github.com/sveltejs/cli/pull/1354))
+
 ## 1.10.3
 ### Patch Changes
 
