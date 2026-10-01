@@ -6,7 +6,8 @@ import {
 	loadPackageJson,
 	sanitizeName,
 	pnpm,
-	svelteConfig
+	svelteConfig,
+	KIT3_TSCONFIG
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 
@@ -22,6 +23,15 @@ const adapters = [
 /** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */
 const ADAPTER_HINT_REGEX =
 	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
+
+/**
+ * `$app/tsconfig` sets `types: ['$app/types']`, but a child `types` array overwrites instead of merge, so re-add the entry whenever `compilerOptions.types` is written.
+ */
+const ensureKit3Types = (data: { extends?: unknown; compilerOptions?: { types?: unknown } }) => {
+	if (![data.extends].flat().includes(KIT3_TSCONFIG)) return;
+	const types = data.compilerOptions?.types;
+	if (Array.isArray(types) && !types.includes('$app/types')) types.unshift('$app/types');
+};
 
 const options = defineAddonOptions()
 	.add('adapter', {
@@ -194,9 +204,9 @@ export default defineAddon({
 					transforms.json(({ data }) => {
 						data.compilerOptions ??= {};
 						data.compilerOptions.types ??= [];
-						const types = data.compilerOptions.types
-						if (!types.includes('$app/types')) types.push('$app/types')
-						if (!types.includes('./worker-configuration.d.ts')) types.push('./worker-configuration.d.ts');
+						const types = data.compilerOptions.types;
+						if (!types.includes('./worker-configuration.d.ts'))
+							types.push('./worker-configuration.d.ts');
 					})
 				);
 
@@ -217,6 +227,16 @@ export default defineAddon({
 							js.common.createTypeProperty('caches', 'CacheStorage'),
 							js.common.createTypeProperty('cf', 'IncomingRequestCfProperties', true)
 						);
+					})
+				);
+
+				sv.file(
+					file.typeConfig,
+					transforms.json(({ data }) => {
+						data.compilerOptions ??= {};
+						data.compilerOptions.types ??= [];
+						const types = data.compilerOptions.types;
+						ensureKit3Types(types);
 					})
 				);
 			}
