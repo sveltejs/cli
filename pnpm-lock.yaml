@@ -266,9 +266,6 @@ importers:
       '@sveltejs/sv-utils':
         specifier: workspace:*
         version: link:../sv-utils
-      node:
-        specifier: runtime:^22.18.0
-        version: runtime:22.23.2
     devDependencies:
       '@clack/prompts':
         specifier: 1.5.0
