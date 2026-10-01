@@ -1,4 +1,4 @@
 {
-	"mode": "pre",
-	"tag": "next"
+  "mode": "exit",
+  "tag": "next"
 }
