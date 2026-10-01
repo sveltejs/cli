@@ -33,7 +33,7 @@ git -C $TMP/repo push --dry-run $TEMPLATE_REPO main
 git clone --depth 1 --single-branch --branch $ADDON_REF $ADDON_REPO $TMP/addon
 ADDON_SHA=$(git -C $TMP/addon rev-parse --short HEAD)
 cd $TMP/addon
-pnpm install --frozen-lockfile --ignore-workspace
+pnpm install --frozen-lockfile
 pnpm build
 
 # generate the app: same recipe as the add-on repo's `pnpm smoke`
