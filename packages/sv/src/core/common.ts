@@ -5,7 +5,6 @@ import * as p from '@clack/prompts';
 import {
 	color,
 	isVersionUnsupportedBelow,
-	minVersion,
 	type AgentName,
 	resolveCommandArray
 } from '@sveltejs/sv-utils';
