@@ -8,6 +8,9 @@ title: sv-utils
 npm install -D @sveltejs/sv-utils
 ```
 
+> [!NOTE]
+> `@sveltejs/sv-utils` is optional: `sv.file()` accepts any `(content) => string` function. But most breaking changes will come from `sv-utils`, not `sv`. If you don't bundle it in your add-on, it runs against the copy shipped with `sv`, with no guarantee it's compatible, so your add-on could stay broken until you catch up. Bundle it to stay on a version you control. See [bundling](community#Bundling).
+
 ## transforms
 
 `transforms` is a collection of parser-aware functions that lets you modify the files via abstract syntax tree (AST). It accepts a callback function. The return value is designed to be be passed directly into `sv.file()`. The parser choice is baked into the transform type - you can't accidentally parse a vite config as Svelte because you never call a parser yourself.
