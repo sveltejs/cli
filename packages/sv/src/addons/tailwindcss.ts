@@ -1,6 +1,7 @@
 import { transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addPrettierTailwind, prettierConfigPath } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const plugins = [
 	{
@@ -26,7 +27,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'tailwindcss',
+	id: ADDON_IDS.tailwindcss,
 	alias: 'tailwind',
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',

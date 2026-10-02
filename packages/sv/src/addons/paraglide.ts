@@ -10,6 +10,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const DEFAULT_INLANG_PROJECT = {
 	$schema: 'https://inlang.com/schema/project-settings',
@@ -54,14 +55,14 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'paraglide',
+	id: ADDON_IDS.paraglide,
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
 	setup: ({ isKit, unsupported, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 		// it picks the kit-3 shape off the version `experimental` writes
-		runsAfter('experimental');
+		runsAfter(ADDON_IDS.experimental);
 	},
 	run: ({ sv, options, file, language, directory, dependencyVersion }) => {
 		const [ts] = createPrinter(language === 'ts');

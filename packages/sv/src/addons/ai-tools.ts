@@ -4,6 +4,7 @@ import { log } from '@clack/prompts';
 import { color, transforms } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import { getSharedFiles } from '../create/utils.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const REGEX_MD = /\.md$/;
 
@@ -166,7 +167,7 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'ai-tools',
+	id: ADDON_IDS.aiTools,
 	shortDescription: 'Svelte AI tools',
 	homepage: 'https://svelte.dev/docs/ai',
 	options,

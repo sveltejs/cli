@@ -17,6 +17,7 @@ import {
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 const PORTS: Record<Database, string> = {
@@ -84,14 +85,14 @@ const options = defineAddonOptions()
 	.build();
 
 export default defineAddon({
-	id: 'drizzle',
+	id: ADDON_IDS.drizzle,
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
 	setup: ({ isKit, unsupported, runsAfter }) => {
-		runsAfter('prettier');
-		runsAfter('sveltekitAdapter');
-		runsAfter('experimental');
+		runsAfter(ADDON_IDS.prettier);
+		runsAfter(ADDON_IDS.sveltekitAdapter);
+		runsAfter(ADDON_IDS.experimental);
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
