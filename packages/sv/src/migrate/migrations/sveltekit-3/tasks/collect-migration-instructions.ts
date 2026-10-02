@@ -9,7 +9,7 @@ export const GENERATED_MARKER =
 
 type MigrationTask = {
 	title: string;
-	/** Report the task whenever this package is a dependency; `checks` then only list files to review. */
+	/** If installed, always report; `checks` only list files. */
 	dependency?: string;
 	checks?: Array<{
 		include: string | string[];
@@ -360,7 +360,7 @@ const file = asset('foo.png');\n` +
 	},
 	{
 		title: 'Move adapter-node `ORIGIN` to `paths.origin`',
-		// `ORIGIN` can also live in places no scan covers (hosting dashboard, systemd units, ...)
+		// ORIGIN can be set where no scan reaches (hosting dashboard, ...)
 		dependency: '@sveltejs/adapter-node',
 		checks: [
 			{
@@ -381,7 +381,7 @@ const file = asset('foo.png');\n` +
 		],
 		summary: 'The adapter-node `ORIGIN` environment variable is removed.',
 		instructions:
-			'Check every place `ORIGIN` may be set, including `.env` files, process manager configs, shell scripts, service units, and the hosting provider dashboard. If this value configures adapter-node, move the public-facing origin to `paths.origin` in `sveltekit(...)`. Remove the environment variable only after confirming it has no unrelated use.',
+			'Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and move the public-facing origin to `paths.origin` in `sveltekit(...)`. Do not delete `ORIGIN`: it is ignored by adapter-node now and may have other uses.',
 		links: guideLink('Adapters-adapter-node')
 	},
 	{

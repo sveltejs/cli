@@ -52,7 +52,7 @@ The adapter-node `ORIGIN` environment variable is removed.
 
 #### What to do
 
-Check every place `ORIGIN` may be set, including `.env` files, process manager configs, shell scripts, service units, and the hosting provider dashboard. If this value configures adapter-node, move the public-facing origin to `paths.origin` in `sveltekit(...)`. Remove the environment variable only after confirming it has no unrelated use.
+Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and move the public-facing origin to `paths.origin` in `sveltekit(...)`. Do not delete `ORIGIN`: it is ignored by adapter-node now and may have other uses.
 
 #### References
 
