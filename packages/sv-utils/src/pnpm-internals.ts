@@ -92,7 +92,7 @@ export function writeEngineStrict(): TransformFn {
 	return transforms.yaml(({ data }) => {
 		const existing = data.get('engineStrict');
 		// if not set, set to true
-		if (typeof existing === 'undefined') {
+		if (existing === undefined) {
 			data.set('engineStrict', true);
 		}
 	});
