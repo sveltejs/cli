@@ -1,13 +1,13 @@
 import type { Addon, AddonDefinition } from '../core/config.ts';
 import type { OptionMap } from '../core/engine.ts';
 import type { AddonOptions } from '../core/options.ts';
-import { ADDON_IDS, type OfficialAddonId } from './ids.ts';
 import aiTools, { type AiToolsOptions } from './ai-tools.ts';
 import betterAuth, { type BetterAuthOptions } from './better-auth.ts';
 import drizzle, { type DrizzleOptions } from './drizzle.ts';
 import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
 import experimental, { type ExperimentalOptions } from './experimental.ts';
+import { ADDON_IDS, type OfficialAddonId } from './ids.ts';
 import mdsvex from './mdsvex.ts';
 import paraglide, { type ParaglideOptions } from './paraglide.ts';
 import playwright from './playwright.ts';
