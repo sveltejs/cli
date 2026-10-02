@@ -38,27 +38,11 @@ exports[`defineDemoPage > x, y, z, then x/y/z again: one link each 1`] = `
 		min-width: 11rem;
 		max-width: 16rem;
 		padding: 1rem 1.125rem 0.875rem;
-		background: linear-gradient(to bottom, #fff9b0, #fff176);
+		background: #fff9b0;
 		color: #3d3500;
 		font: 14px/1.5 system-ui, sans-serif;
 		text-align: left;
-		box-shadow: 0 1px 2px rgb(0 0 0 / 0.15),
-			0 10px 24px -6px rgb(0 0 0 / 0.35);
-		transform: rotate(-1.5deg);
-	}
-
-	/* tape */
-
-	.sv-demo-links::before {
-		content: '';
-		position: absolute;
-		top: -0.5rem;
-		left: 50%;
-		width: 4.5rem;
-		height: 1.25rem;
-		background: rgb(255 255 255 / 0.55);
-		box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
-		transform: translateX(-50%) rotate(2deg);
+		box-shadow: 0 4px 12px rgb(0 0 0 / 0.2);
 	}
 
 	p {
