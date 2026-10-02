@@ -14,14 +14,20 @@ type ParseBase = {
 	source: string;
 	/**
 	 * Generate the code after manipulating the `ast`.
+	 * Regenerate code from the modified AST
+	 * Output source code from the manipulated ast
 	 *
+	 * @example
 	 * ```ts
-	 * import { svelte } from 'sv/core';
+	 * import { parse, svelte } from '@sveltejs/sv-utils';
+	 *
+	 * const content = '<p>Hello World</p>';
+	 *
 	 * const { ast, generateCode } = parse.svelte(content);
-	 *
-	 * svelte.addFragment(ast, '<p>Hello World</p>');
-	 *
+	 * svelte.addFragment(ast, '<p>Goodbye World</p>');
 	 * const code = generateCode();
+	 *
+	 * console.log(code); // `<div><p>Hello World</p></div><p>Goodbye World</p>`
 	 * ```
 	 */
 	generateCode(): string;
@@ -67,7 +73,7 @@ export function parseJson(source: string): { data: any } & ParseBase {
 export function parseYaml(source: string): { data: YamlDocument } & ParseBase {
 	if (!source) source = '';
 	const data = utils.parseYaml(source);
-	const generateCode = () => utils.serializeYaml(data as Parameters<typeof utils.serializeYaml>[0]);
+	const generateCode = () => utils.serializeYaml(data);
 
 	return { data: data as YamlDocument, source, generateCode };
 }
@@ -98,19 +104,12 @@ export function parseSvelte(source: string): { ast: utils.SvelteAst.Root } & Par
 		return code;
 	};
 
-	return {
-		ast,
-		source,
-		generateCode
-	};
+	return { ast, source, generateCode };
 }
 
 export function parseToml(source: string): { data: TomlTable } & ParseBase {
 	const data = utils.parseToml(source);
+	const generateCode = () => utils.serializeToml(data);
 
-	return {
-		data,
-		source,
-		generateCode: () => utils.serializeToml(data)
-	};
+	return { data, source, generateCode };
 }

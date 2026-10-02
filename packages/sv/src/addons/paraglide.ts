@@ -8,7 +8,8 @@ import {
 	type SvelteAst,
 	transforms
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 import { addToDemoPage } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
@@ -23,7 +24,9 @@ const DEFAULT_INLANG_PROJECT = {
 	}
 };
 
-const options = defineAddonOptions()
+export type ParaglideOptions = { languageTags: string; demo: boolean };
+
+const options = defineAddonOptions<ParaglideOptions>()
 	.add('languageTags', {
 		question: `Which languages would you like to support? ${color.optional('(e.g. en,de-ch)')}`,
 		type: 'string',
@@ -54,7 +57,7 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
+const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 	id: ADDON_IDS.paraglide,
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
@@ -290,6 +293,8 @@ export default defineAddon({
 			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
 		].filter((line): line is string => Boolean(line))
 });
+
+export default addon;
 
 const isValidLanguageTag = (languageTag: string): boolean =>
 	// Regex vendored in from https://github.com/opral/monorepo/blob/94c2298cc1da5378b908e4c160b0fa71a45caadb/inlang/source-code/versioned-interfaces/language-tag/src/interface.ts#L16
