@@ -1,7 +1,7 @@
 import { log } from '@clack/prompts';
 import { color, dedent, resolveCommandArray, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
+import { addToDemoPage, addToTypeConfigInclude } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
@@ -9,7 +9,7 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, language, file, isKit, directory }) => {
+	run: ({ sv, language, file, isKit, directory, cwd, dependencyVersion }) => {
 		sv.devDependency('@playwright/test', '^1.60.0');
 
 		sv.file(
@@ -90,6 +90,14 @@ export default defineAddon({
 				}
 			})
 		);
+
+		addToTypeConfigInclude({
+			sv,
+			cwd,
+			language,
+			kitVersion: dependencyVersion('@sveltejs/kit'),
+			entry: `playwright.config.${language}`
+		});
 	},
 
 	nextSteps: ({ isKit, packageManager }) => {

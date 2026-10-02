@@ -1,6 +1,14 @@
 import process from 'node:process';
 import { log } from '@clack/prompts';
-import { color, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import {
+	color,
+	fileExists,
+	isKit3,
+	type SvelteAst,
+	type TransformFn,
+	transforms
+} from '@sveltejs/sv-utils';
+import type { SvApi } from '../core/config.ts';
 
 // This is in common because the eslint addon installs this version,
 // and the prettier addon uses this to check if the installed major version of
@@ -219,4 +227,29 @@ export function getNodeTypesVersion(): string {
 	// In those cases, we'll decrement the major by 2.
 	const previousLTSMajor = isEvenMajor ? majorNum - 2 : majorNum - 1;
 	return `^${previousLTSMajor}`;
+}
+
+/**
+ * Kit 3 no longer generates an `include`, so root files outside `src` (like tool configs) must be
+ * listed in the project's own ts/jsconfig to be type-checked. No-op before Kit 3.
+ */
+export function addToTypeConfigInclude(opts: {
+	sv: SvApi;
+	cwd: string;
+	language: 'ts' | 'js';
+	kitVersion: string | undefined;
+	entry: string;
+}): void {
+	if (!isKit3(opts.kitVersion)) return;
+
+	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+	if (!fileExists(opts.cwd, configFile)) return;
+
+	opts.sv.file(
+		configFile,
+		transforms.json(({ data }) => {
+			const include: string[] = (data.include ??= ['src']);
+			if (!include.includes(opts.entry)) include.push(opts.entry);
+		})
+	);
 }
