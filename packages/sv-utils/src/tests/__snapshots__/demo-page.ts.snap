@@ -15,6 +15,12 @@ exports[`defineDemoPage > upserts into an existing layout 1`] = `
 exports[`defineDemoPage > x, y, z, then x/y/z again: one link each 1`] = `
 "<script lang="ts">
 	import { resolve } from '$app/paths';
+
+	const demos = [
+		{ name: 'x', href: resolve('/demo/x') },
+		{ name: 'y', href: resolve('/demo/y') },
+		{ name: 'z', href: resolve('/demo/z') }
+	];
 </script>
 
 <!--
@@ -28,9 +34,9 @@ exports[`defineDemoPage > x, y, z, then x/y/z again: one link each 1`] = `
 	<p>sv addon demos</p>
 
 	<ul>
-		<li><a href={resolve('/demo/x')}>x</a></li>
-		<li><a href={resolve('/demo/y')}>y</a></li>
-		<li><a href={resolve('/demo/z')}>z</a></li>
+		{#each demos as demo (demo.href)}
+			<li><a href={demo.href}>{demo.name}</a></li>
+		{/each}
 	</ul>
 </div>
 

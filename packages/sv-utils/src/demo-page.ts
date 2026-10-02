@@ -1,5 +1,5 @@
 import dedent from 'dedent';
-import type { SvelteAst } from './tooling/index.ts';
+import type { AstTypes, SvelteAst } from './tooling/index.ts';
 import { type TransformFn, transforms } from './tooling/transforms.ts';
 
 type KitRoutes = string & {};
@@ -15,6 +15,7 @@ export type DemoPage = {
 };
 
 const COMPONENT = 'DemoLinks';
+const LIST = 'demos';
 
 function walk(nodes: SvelteAst.SvelteNode[], visit: (node: SvelteAst.SvelteNode) => boolean) {
 	for (const node of nodes) {
@@ -38,11 +39,17 @@ const linksTemplate = (language: 'ts' | 'js') => dedent`
 
 	${scriptTag(language)}
 		import { resolve } from '$app/paths';
+
+		const ${LIST} = [];
 	</script>
 
 	<div class="sv-demo-links">
 		<p>sv addon demos</p>
-		<ul></ul>
+		<ul>
+			{#each ${LIST} as demo (demo.href)}
+				<li><a href={demo.href}>{demo.name}</a></li>
+			{/each}
+		</ul>
 	</div>
 
 	<style>
@@ -112,23 +119,22 @@ export function defineDemoPage(name: string, language: 'ts' | 'js', kitRoutes: s
 	const href = `/demo/${name}`;
 
 	const links: TransformFn = (content) =>
-		transforms.svelteScript({ language }, ({ ast, content, js, svelte }) => {
-			let ul: SvelteAst.RegularElement | undefined;
-			const exists = walk(ast.fragment.nodes, (node) => {
-				if (node.type !== 'RegularElement') return false;
-				if (node.name === 'ul') ul ??= node;
-				if (node.name !== 'a') return false;
-				const attr = node.attributes.find((a) => a.type === 'Attribute' && a.name === 'href');
-				// source slice so `/demo/x`, `{resolve('/demo/x')}`, ... all match
-				return !!attr && content.slice(attr.start, attr.end).includes(`'${href}'`);
+		transforms.svelteScript({ language }, ({ ast, js }) => {
+			const program = ast.instance.content;
+			const declaration = js.variables.declaration(program, {
+				kind: 'const',
+				name: LIST,
+				value: js.array.create()
 			});
-			if (exists || !ul) return false;
+			const list = (declaration.declarations[0] as AstTypes.VariableDeclarator).init;
+			if (list?.type !== 'ArrayExpression') return false;
 
-			js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-			svelte.addFragment(
-				ul,
-				`<li><a href={resolve('${href}')}>${name}</a></li>`
-			);
+			const entry = js.common.parseExpression(`({ name: '${name}', href: resolve('${href}') })`);
+			if (list.elements.some((e) => e && js.common.areNodesEqual(e, entry))) return false;
+
+			js.imports.addNamed(program, { imports: ['resolve'], from: '$app/paths' });
+			if (!program.body.includes(declaration)) program.body.push(declaration);
+			list.elements.push(entry);
 		})(content || linksTemplate(language));
 
 	const layout: TransformFn = (content) =>

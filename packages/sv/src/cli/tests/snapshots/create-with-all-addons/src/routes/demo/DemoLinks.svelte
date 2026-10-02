@@ -1,5 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+
+	const demos = [
+		{ name: 'playwright', href: resolve('/demo/playwright') },
+		{ name: 'paraglide', href: resolve('/demo/paraglide') },
+		{ name: 'better-auth', href: resolve('/demo/better-auth') }
+	];
 </script>
 
 <!--
@@ -13,9 +19,9 @@
 	<p>sv addon demos</p>
 
 	<ul>
-		<li><a href={resolve('/demo/playwright')}>playwright</a></li>
-		<li><a href={resolve('/demo/paraglide')}>paraglide</a></li>
-		<li><a href={resolve('/demo/better-auth')}>better-auth</a></li>
+		{#each demos as demo (demo.href)}
+			<li><a href={demo.href}>{demo.name}</a></li>
+		{/each}
 	</ul>
 </div>
 
