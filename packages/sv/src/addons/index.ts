@@ -1,7 +1,7 @@
 import type { Addon, AddonDefinition } from '../core/config.ts';
 import type { OptionMap } from '../core/engine.ts';
 import type { AddonOptions } from '../core/options.ts';
-import type { OfficialAddonId } from './ids.ts';
+import { ADDON_IDS, type OfficialAddonId } from './ids.ts';
 import aiTools, { type AiToolsOptions } from './ai-tools.ts';
 import betterAuth, { type BetterAuthOptions } from './better-auth.ts';
 import drizzle, { type DrizzleOptions } from './drizzle.ts';
@@ -22,20 +22,23 @@ type NoOptions = {};
 
 // Each add-on declares its option values; `officialAddons` below fails to compile if one drifts.
 export type OfficialAddons = {
-	prettier: Addon<NoOptions, 'prettier'>;
-	eslint: Addon<NoOptions, 'eslint'>;
-	vitest: Addon<AddonOptions<VitestOptions>, 'vitest'>;
-	playwright: Addon<NoOptions, 'playwright'>;
-	tailwindcss: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'>;
-	'enhanced-img': Addon<NoOptions, 'enhanced-img'>;
-	'sveltekit-adapter': Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'>;
-	drizzle: Addon<AddonOptions<DrizzleOptions>, 'drizzle'>;
-	'better-auth': Addon<AddonOptions<BetterAuthOptions>, 'better-auth'>;
-	mdsvex: Addon<NoOptions, 'mdsvex'>;
-	paraglide: Addon<AddonOptions<ParaglideOptions>, 'paraglide'>;
-	storybook: Addon<NoOptions, 'storybook'>;
-	'ai-tools': Addon<AddonOptions<AiToolsOptions>, 'ai-tools'>;
-	experimental: Addon<AddonOptions<ExperimentalOptions>, 'experimental'>;
+	[ADDON_IDS.prettier]: Addon<NoOptions, typeof ADDON_IDS.prettier>;
+	[ADDON_IDS.eslint]: Addon<NoOptions, typeof ADDON_IDS.eslint>;
+	[ADDON_IDS.vitest]: Addon<AddonOptions<VitestOptions>, typeof ADDON_IDS.vitest>;
+	[ADDON_IDS.playwright]: Addon<NoOptions, typeof ADDON_IDS.playwright>;
+	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
+	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
+	[ADDON_IDS.sveltekitAdapter]: Addon<
+		AddonOptions<SveltekitAdapterOptions>,
+		typeof ADDON_IDS.sveltekitAdapter
+	>;
+	[ADDON_IDS.drizzle]: Addon<AddonOptions<DrizzleOptions>, typeof ADDON_IDS.drizzle>;
+	[ADDON_IDS.betterAuth]: Addon<AddonOptions<BetterAuthOptions>, typeof ADDON_IDS.betterAuth>;
+	[ADDON_IDS.mdsvex]: Addon<NoOptions, typeof ADDON_IDS.mdsvex>;
+	[ADDON_IDS.paraglide]: Addon<AddonOptions<ParaglideOptions>, typeof ADDON_IDS.paraglide>;
+	[ADDON_IDS.storybook]: Addon<NoOptions, typeof ADDON_IDS.storybook>;
+	[ADDON_IDS.aiTools]: Addon<AddonOptions<AiToolsOptions>, typeof ADDON_IDS.aiTools>;
+	[ADDON_IDS.experimental]: Addon<AddonOptions<ExperimentalOptions>, typeof ADDON_IDS.experimental>;
 };
 
 export type { OfficialAddonId };
