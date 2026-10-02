@@ -1,14 +1,25 @@
 import { log } from '@clack/prompts';
 import { color, dedent, defineDemoPage, resolveCommandArray, transforms } from '@sveltejs/sv-utils';
-import { defineAddon } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 import { ADDON_IDS } from './ids.ts';
 
-export default defineAddon({
+export type PlaywrightOptions = { demo: boolean };
+
+const options = defineAddonOptions<PlaywrightOptions>()
+	.add('demo', {
+		type: 'boolean',
+		default: true,
+		question: 'Do you want to include a demo?'
+	})
+	.build();
+
+const addon: Addon<AddonOptions<PlaywrightOptions>, 'playwright'> = defineAddon({
 	id: ADDON_IDS.playwright,
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
-	options: {},
-	run: ({ sv, language, file, isKit, directory }) => {
+	options,
+	run: ({ sv, options, language, file, isKit, directory }) => {
 		sv.devDependency('@playwright/test', '^1.60.0');
 
 		sv.file(
@@ -28,11 +39,12 @@ export default defineAddon({
 			})
 		);
 
+		const withDemo = isKit && options.demo;
 		const demo = defineDemoPage('playwright', language, directory.kitRoutes);
-		const testDir = isKit ? demo.addonPath : directory.src;
-		const testRoute = isKit ? '/demo/playwright' : '/';
+		const testDir = withDemo ? demo.addonPath : isKit ? directory.kitRoutes : directory.src;
+		const testRoute = withDemo ? '/demo/playwright' : '/';
 
-		if (isKit) {
+		if (withDemo) {
 			sv.file(...demo.links);
 			sv.file(...demo.layout);
 
@@ -93,14 +105,14 @@ export default defineAddon({
 		);
 	},
 
-	nextSteps: ({ isKit, packageManager }) => {
+	nextSteps: ({ isKit, options, packageManager }) => {
 		const steps: string[] = [];
 
 		steps.push(
 			`Run ${color.command(resolveCommandArray(packageManager, 'execute-local', ['playwright', 'install']))} to download browsers`
 		);
 
-		if (isKit) {
+		if (isKit && options.demo) {
 			steps.push(`Visit ${color.route('/demo/playwright')} to see the demo page`);
 		}
 
@@ -111,3 +123,5 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;
