@@ -16,7 +16,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { OptionValues } from '../core/options.ts';
-import { getNodeTypesVersion } from './common.ts';
+import { addToTypeConfigInclude, getNodeTypesVersion } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
@@ -306,19 +306,15 @@ export default defineAddon({
 
 		// kit 3 dropped the `typescript.config` hook's `include` (and deprecates the hook itself),
 		// so the project's own ts/jsconfig has to cover the drizzle config
-		if (isKit3(dependencyVersion('@sveltejs/kit'))) {
-			const configFile = language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
-			if (fileExists(cwd, configFile)) {
-				sv.file(
-					configFile,
-					transforms.json(({ data }) => {
-						const include: string[] = (data.include ??= ['src']);
-						if (!include.includes(`drizzle.config.${language}`)) {
-							include.push(`drizzle.config.${language}`);
-						}
-					})
-				);
-			}
+		const kitVersion = dependencyVersion('@sveltejs/kit');
+		if (isKit3(kitVersion)) {
+			addToTypeConfigInclude({
+				sv,
+				cwd,
+				language,
+				kitVersion,
+				entry: `drizzle.config.${language}`
+			});
 		} else {
 			// prior to kit 3
 			svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
