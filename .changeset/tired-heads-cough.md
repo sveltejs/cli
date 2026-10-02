@@ -2,5 +2,5 @@
 "@sveltejs/sv-utils": patch
 ---
 
-feat: allow comments in json transforms
+feat: allow comments in `json` transforms
   
