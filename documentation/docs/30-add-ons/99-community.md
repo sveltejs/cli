@@ -64,7 +64,7 @@ The CLI is split into two packages with a clear boundary:
 
 This separation means transforms are testable without a workspace and composable across add-ons.
 
-`@sveltejs/sv-utils` is optional, but if you use it, bundle it to protect your add-on from its breaking changes. See [bundling](#Bundling).
+We recommend bundling `@sveltejs/sv-utils` in your add-on: most breaking changes land there, and bundling keeps you on a version you control. See [bundling](#Bundling).
 
 ## Development
 

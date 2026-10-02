@@ -9,7 +9,7 @@ npm install -D @sveltejs/sv-utils
 ```
 
 > [!NOTE]
-> `@sveltejs/sv-utils` is optional: `sv.file()` accepts any `(content) => string` function. But most breaking changes will come from `sv-utils`, not `sv`. If you don't bundle it in your add-on, it runs against the copy shipped with `sv`, with no guarantee it's compatible, so your add-on could stay broken until you catch up. Bundle it to stay on a version you control. See [bundling](community#Bundling).
+> We recommend bundling `@sveltejs/sv-utils` in your add-on. Most breaking changes land in `sv-utils`, not `sv`. Without your own copy, your add-on runs against the one shipped with `sv`, which may not be compatible and can break your add-on until you update it. See [bundling](community#Bundling).
 
 ## transforms
 
