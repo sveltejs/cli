@@ -46,6 +46,22 @@ If you rely on cross-origin access to static assets in dev, configure it in your
 
 - [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Security-CORS-for-static-assets-in-development-is-handled-by-Vite)
 
+### Move adapter-node `ORIGIN` to `paths.origin`
+
+The adapter-node `ORIGIN` environment variable is removed.
+
+#### What to do
+
+Check every place `ORIGIN` may be set, including `.env` files, process manager configs, shell scripts, service units, and the hosting provider dashboard. If this value configures adapter-node, move the public-facing origin to `paths.origin` in `sveltekit(...)`. Remove the environment variable only after confirming it has no unrelated use.
+
+#### References
+
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Adapters-adapter-node)
+
+#### Files to review
+
+- [ ] `.env.production`
+
 ## Final verification
 
 - [ ] Review every migration task and ignore any irrelevant findings.

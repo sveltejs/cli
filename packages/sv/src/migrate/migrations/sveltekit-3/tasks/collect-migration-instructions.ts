@@ -9,6 +9,8 @@ export const GENERATED_MARKER =
 
 type MigrationTask = {
 	title: string;
+	/** Report the task whenever this package is a dependency; `checks` then only list files to review. */
+	dependency?: string;
 	checks?: Array<{
 		include: string | string[];
 		patterns: Array<string | RegExp>;
@@ -358,20 +360,28 @@ const file = asset('foo.png');\n` +
 	},
 	{
 		title: 'Move adapter-node `ORIGIN` to `paths.origin`',
+		// `ORIGIN` can also live in places no scan covers (hosting dashboard, systemd units, ...)
+		dependency: '@sveltejs/adapter-node',
 		checks: [
 			{
-				include: ['Dockerfile*', '**/Dockerfile*', '**/*.{js,ts,mjs,mts,json,jsonc,yml,yaml,toml}'],
+				include: [
+					'Dockerfile*',
+					'**/Dockerfile*',
+					'.env*',
+					'**/.env*',
+					'**/*.{js,ts,mjs,mts,cjs,cts,json,jsonc,yml,yaml,toml,sh}'
+				],
 				patterns: [
 					/\bprocess\.env\.ORIGIN\b/,
 					/\benv\s*\[\s*['"]ORIGIN['"]\s*\]/,
 					/^\s*(?:ENV|ARG)\s+ORIGIN\b/m,
-					/^\s*ORIGIN\s*[:=]/m
+					/^\s*(?:export\s+)?ORIGIN\s*[:=]/m
 				]
 			}
 		],
 		summary: 'The adapter-node `ORIGIN` environment variable is removed.',
 		instructions:
-			'If this value configures adapter-node, move the public-facing origin to `paths.origin` in `sveltekit(...)`. Remove the environment variable only after confirming it has no unrelated use.',
+			'Check every place `ORIGIN` may be set, including `.env` files, process manager configs, shell scripts, service units, and the hosting provider dashboard. If this value configures adapter-node, move the public-facing origin to `paths.origin` in `sveltekit(...)`. Remove the environment variable only after confirming it has no unrelated use.',
 		links: guideLink('Adapters-adapter-node')
 	},
 	{
@@ -478,10 +488,12 @@ export default defineMigrationTask({
 	description:
 		'Collect instructions for non-automated migration tasks; ' +
 		`creates ${REPORT_PATH} whose instructions you should follow to complete the migration`,
-	run: ({ sv }) => {
+	run: ({ sv, dependencyVersion }) => {
 		const findings: Finding[] = [];
 
 		for (const task of migrationTasks) {
+			if (task.dependency && !dependencyVersion(task.dependency)) continue;
+
 			const files = new Set<string>();
 			if (!task.checks) {
 				findings.push({ task, files: [] });
@@ -500,7 +512,7 @@ export default defineMigrationTask({
 					);
 				}
 
-				if (files.size > 0) findings.push({ task, files: [...files].sort() });
+				if (files.size > 0 || task.dependency) findings.push({ task, files: [...files].sort() });
 			}
 		}
 
