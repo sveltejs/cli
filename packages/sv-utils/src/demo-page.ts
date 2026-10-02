@@ -32,9 +32,9 @@ const scriptTag = (language: 'ts' | 'js') => `<script${language === 'ts' ? ' lan
 const linksTemplate = (language: 'ts' | 'js') => dedent`
 	<!--
 		@component
-		Added by \`sv add\`. Lists the add-on demos in \`/demo/<add-on>\`.
+		Lists the add-on demos in \`/demo/<add-on>\`. Added by \`sv add\`.
 
-		To remove: delete this file and \`<${COMPONENT} />\` from +layout.svelte
+		To remove: delete \`<${COMPONENT} />\` and its import, then \`demo/${COMPONENT}.svelte\`.
 	-->
 
 	${scriptTag(language)}

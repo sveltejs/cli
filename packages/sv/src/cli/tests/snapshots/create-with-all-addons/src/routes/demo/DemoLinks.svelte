@@ -10,9 +10,9 @@
 
 <!--
 	@component
-	Added by `sv add`. Lists the add-on demos in `/demo/<add-on>`.
+	Lists the add-on demos in `/demo/<add-on>`. Added by `sv add`.
 
-	To remove: delete this file and `<DemoLinks />` from +layout.svelte
+	To remove: delete `<DemoLinks />` and its import, then `demo/DemoLinks.svelte`.
 -->
 
 <div class="sv-demo-links">
