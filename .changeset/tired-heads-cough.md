@@ -1,5 +1,5 @@
 ---
-"@sveltejs/sv-utils": patch
+"@sveltejs/sv-utils": minor
 ---
 
 feat: allow comments in `json` transforms
