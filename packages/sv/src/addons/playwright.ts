@@ -1,9 +1,10 @@
 import { log } from '@clack/prompts';
 import { color, dedent, defineDemoPage, resolveCommandArray, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
+import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
-	id: 'playwright',
+	id: ADDON_IDS.playwright,
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},

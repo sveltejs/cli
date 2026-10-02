@@ -1,7 +1,11 @@
 import { coerceVersion, color, createPrinter, dedent, transforms } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 
-const options = defineAddonOptions()
+export type VitestOptions = { usages: Array<'unit' | 'component'> };
+import { ADDON_IDS } from './ids.ts';
+
+const options = defineAddonOptions<VitestOptions>()
 	.add('usages', {
 		question: 'What do you want to use vitest for?',
 		type: 'multiselect',
@@ -17,8 +21,8 @@ const options = defineAddonOptions()
 // Manage only version before current
 let vitestV3Installed = false;
 
-export default defineAddon({
-	id: 'vitest',
+const addon: Addon<AddonOptions<VitestOptions>, 'vitest'> = defineAddon({
+	id: ADDON_IDS.vitest,
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,
@@ -94,10 +98,10 @@ export default defineAddon({
 					if (content) return false;
 
 					return dedent`
-						<script>
+						<script${ts(' lang="ts"')}>
 							import { greet } from './greet';
 
-							let { host = 'SvelteKit', guest = 'Vitest' } = $props();
+							let { host = 'SvelteKit', guest = 'Vitest' }${ts(': { host: string; guest: string }')} = $props();
 						</script>
 
 						<h1>{greet(host)}</h1>
@@ -214,3 +218,5 @@ export default defineAddon({
 		return toReturn;
 	}
 });
+
+export default addon;

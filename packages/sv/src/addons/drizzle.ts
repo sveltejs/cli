@@ -14,9 +14,10 @@ import {
 	isKit3,
 	pnpm
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import type { OptionValues } from '../core/options.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions, OptionValues } from '../core/options.ts';
 import { getNodeTypesVersion } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 const PORTS: Record<Database, string> = {
@@ -26,7 +27,15 @@ const PORTS: Record<Database, string> = {
 	d1: ''
 };
 
-const options = defineAddonOptions()
+export type DrizzleOptions = {
+	database: Database;
+	postgresql: 'postgres.js' | 'neon';
+	mysql: 'mysql2' | 'planetscale';
+	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
+	docker: boolean;
+};
+
+const options = defineAddonOptions<DrizzleOptions>()
 	.add('database', {
 		question: 'Which database would you like to use?',
 		type: 'select',
@@ -83,15 +92,15 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
-	id: 'drizzle',
+const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
+	id: ADDON_IDS.drizzle,
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
 	setup: ({ isKit, unsupported, runsAfter }) => {
-		runsAfter('prettier');
-		runsAfter('sveltekitAdapter');
-		runsAfter('experimental');
+		runsAfter(ADDON_IDS.prettier);
+		runsAfter(ADDON_IDS.sveltekitAdapter);
+		runsAfter(ADDON_IDS.experimental);
 
 		if (!isKit) return unsupported('Requires SvelteKit');
 	},
@@ -571,6 +580,8 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;
 
 type GenerateEnv = (opts: OptionValues<typeof options>, isExample: boolean) => TransformFn;
 const generateEnv: GenerateEnv = (opts, isExample) =>
