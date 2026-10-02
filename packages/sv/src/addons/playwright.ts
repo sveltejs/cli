@@ -2,9 +2,9 @@ import { log } from '@clack/prompts';
 import {
 	color,
 	dedent,
-	fileExists,
 	isKit3,
 	resolveCommandArray,
+	svelteConfig,
 	transforms
 } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
@@ -99,10 +99,9 @@ export default defineAddon({
 		);
 
 		if (isKit3(dependencyVersion('@sveltejs/kit'))) {
-			const configFile = language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
-			if (fileExists(cwd, configFile)) {
+			if (file.typeConfig) {
 				sv.file(
-					configFile,
+					file.typeConfig,
 					transforms.json(({ data }) => {
 						const include: string[] = (data.include ??= ['src']);
 						if (!include.includes(`playwright.config.${language}`)) {
@@ -111,6 +110,16 @@ export default defineAddon({
 					})
 				);
 			}
+		} else if (isKit) {
+			svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
+				override({
+					typescript: {
+						config: js.common.parseExpression(
+							`(config) => { if (!config.include.includes('../playwright.config.${language}')) config.include.push('../playwright.config.${language}') }`
+						)
+					}
+				});
+			});
 		}
 	},
 
