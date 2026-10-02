@@ -19,8 +19,7 @@ type ParseBase = {
 	 *
 	 * @example
 	 * ```ts
-	 * // or '@sveltejs/sv-utils' — undecided
-	 * import { parse, svelte } from './sv-utils.js';
+	 * import { parse, svelte } from '@sveltejs/sv-utils';
 	 *
 	 * const content = '<p>Hello World</p>';
 	 *
