@@ -314,16 +314,17 @@ function parseLanguageTagInput(input: string): {
 		.filter(Boolean) // remove empty segments
 		.map((tag) => tag.toLowerCase());
 
-	const validLanguageTags: string[] = [];
-	const invalidLanguageTags: string[] = [];
+	// Note: using Set to deduplicate user input
+	const validLanguageTags: Set<string> = new Set();
+	const invalidLanguageTags: Set<string> = new Set();
 
 	for (const tag of probablyLanguageTags) {
-		if (isValidLanguageTag(tag)) validLanguageTags.push(tag);
-		else invalidLanguageTags.push(tag);
+		if (isValidLanguageTag(tag)) validLanguageTags.add(tag);
+		else invalidLanguageTags.add(tag);
 	}
 
 	return {
-		validLanguageTags,
-		invalidLanguageTags
+		validLanguageTags: [...validLanguageTags],
+		invalidLanguageTags: [...invalidLanguageTags]
 	};
 }
