@@ -58,10 +58,6 @@ Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and m
 
 - [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Adapters-adapter-node)
 
-#### Files to review
-
-- [ ] `.env.production`
-
 ## Final verification
 
 - [ ] Review every migration task and ignore any irrelevant findings.

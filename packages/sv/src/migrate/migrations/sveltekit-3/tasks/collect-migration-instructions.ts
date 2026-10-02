@@ -9,7 +9,7 @@ export const GENERATED_MARKER =
 
 type MigrationTask = {
 	title: string;
-	/** If installed, always report; `checks` only list files. */
+	/** Only report the task when this package is a dependency. */
 	dependency?: string;
 	checks?: Array<{
 		include: string | string[];
@@ -360,25 +360,7 @@ const file = asset('foo.png');\n` +
 	},
 	{
 		title: 'Move adapter-node `ORIGIN` to `paths.origin`',
-		// ORIGIN can be set where no scan reaches (hosting dashboard, ...)
 		dependency: '@sveltejs/adapter-node',
-		checks: [
-			{
-				include: [
-					'Dockerfile*',
-					'**/Dockerfile*',
-					'.env*',
-					'**/.env*',
-					'**/*.{js,ts,mjs,mts,cjs,cts,json,jsonc,yml,yaml,toml,sh}'
-				],
-				patterns: [
-					/\bprocess\.env\.ORIGIN\b/,
-					/\benv\s*\[\s*['"]ORIGIN['"]\s*\]/,
-					/^\s*(?:ENV|ARG)\s+ORIGIN\b/m,
-					/^\s*(?:export\s+)?ORIGIN\s*[:=]/m
-				]
-			}
-		],
 		summary: 'The adapter-node `ORIGIN` environment variable is removed.',
 		instructions:
 			'Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and move the public-facing origin to `paths.origin` in `sveltekit(...)`. Do not delete `ORIGIN`: it is ignored by adapter-node now and may have other uses.',
@@ -512,7 +494,7 @@ export default defineMigrationTask({
 					);
 				}
 
-				if (files.size > 0 || task.dependency) findings.push({ task, files: [...files].sort() });
+				if (files.size > 0) findings.push({ task, files: [...files].sort() });
 			}
 		}
 
