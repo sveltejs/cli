@@ -33,7 +33,7 @@ git -C $TMP/repo push --dry-run $TEMPLATE_REPO main
 git clone --depth 1 --single-branch --branch $ADDON_REF $ADDON_REPO $TMP/addon
 ADDON_SHA=$(git -C $TMP/addon rev-parse --short HEAD)
 cd $TMP/addon
-pnpm install --frozen-lockfile --ignore-workspace
+pnpm ci
 pnpm build
 
 # generate the app: same recipe as the add-on repo's `pnpm smoke`
@@ -63,8 +63,8 @@ sed -i "s|file:$TMP/addon=|sv-addon-railway=|" README.md
 	tail -n +4 README.md
 } > README.next && mv README.next README.md
 
-# Railpack defaults to pnpm 9 (rejects the generated workspace file); 11+ breaks onlyBuiltDependencies
-pnpm pkg set packageManager=pnpm@$(npm view pnpm dist-tags.latest-10)
+# Railpack defaults to pnpm 9: pin the pnpm that generated the workspace file
+pnpm pkg set packageManager=pnpm@$(pnpm -v)
 
 # gate: build like Railway does before pushing anything (env vars come from the template at build time)
 DATABASE_URL=postgres://build:build@localhost:5432/build BETTER_AUTH_SECRET=build pnpm build

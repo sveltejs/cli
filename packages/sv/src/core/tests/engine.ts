@@ -26,7 +26,7 @@ describe('applyAddons cancel propagation', () => {
 		const child = defineAddon({
 			id: 'child',
 			options: defineAddonOptions().build(),
-			setup: ({ dependsOn }) => dependsOn('dep' as never),
+			setup: ({ dependsOn }) => dependsOn('dep'),
 			run: () => expect.fail('child should not have run')
 		});
 		const workspace = await createWorkspace({ cwd: makeWorkspace() });
@@ -46,7 +46,7 @@ describe('applyAddons cancel propagation', () => {
 		const child = defineAddon({
 			id: 'child',
 			options: defineAddonOptions().build(),
-			setup: ({ runsAfter }) => runsAfter('dep' as never),
+			setup: ({ runsAfter }) => runsAfter('dep'),
 			run: () => {
 				ran = true;
 			}

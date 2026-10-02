@@ -8,22 +8,29 @@ import {
 	pnpm,
 	svelteConfig
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0-next.3' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0-next.10' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0-next.4' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0-next.6' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0-next.6' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0-next.8' }
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0' }
 ] as const;
 
 /** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */
 const ADAPTER_HINT_REGEX =
 	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
-const options = defineAddonOptions()
+export type SveltekitAdapterOptions = {
+	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	cfTarget: 'workers' | 'pages';
+};
+
+const options = defineAddonOptions<SveltekitAdapterOptions>()
 	.add('adapter', {
 		type: 'select',
 		question: 'Which SvelteKit adapter would you like to use?',
@@ -42,8 +49,8 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
-	id: 'sveltekit-adapter',
+const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> = defineAddon({
+	id: ADDON_IDS.sveltekitAdapter,
 	alias: 'adapter',
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
@@ -230,3 +237,5 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;

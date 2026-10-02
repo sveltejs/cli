@@ -2,9 +2,6 @@
 title: [create your own]
 ---
 
-> [!NOTE]
-> Community add-ons are currently **experimental**. The API may change. Don't use them in production yet!
-
 This guide covers how to create, test, and publish community add-ons for the Svelte CLI.
 
 ## Quick start
@@ -37,9 +34,10 @@ export default defineAddon({
 		})
 		.build(),
 
-	setup: ({ dependsOn, isKit, unsupported, addOption }) => {
+	setup: ({ dependsOn, runsAfter, isKit, unsupported, addOption }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
-		dependsOn('vitest');
+		dependsOn('vitest'); // required add-on
+		runsAfter('prettier'); // ordering only
 
 		// dynamically add options (e.g. based on workspace state or fetched data)
 		// addOption('key', { question: '...', type: 'boolean', default: true });

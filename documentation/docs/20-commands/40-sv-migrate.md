@@ -30,7 +30,7 @@ After a successful task-based migration, `sv` formats the changes using the proj
 
 ### `sveltekit-3`
 
-Upgrades a SvelteKit 2 app to SvelteKit 3. Read the [SvelteKit 3 changelog](https://github.com/sveltejs/kit/blob/version-3/packages/kit/CHANGELOG.md) before running it.
+Upgrades a SvelteKit 2 app to SvelteKit 3. Read the [SvelteKit 3 changelog](https://github.com/sveltejs/kit/blob/main/packages/kit/CHANGELOG.md#300) before running it.
 
 The migration is divided into these tasks:
 
