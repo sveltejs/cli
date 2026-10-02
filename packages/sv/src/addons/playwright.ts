@@ -1,5 +1,12 @@
 import { log } from '@clack/prompts';
-import { color, dedent, resolveCommandArray, transforms } from '@sveltejs/sv-utils';
+import {
+	color,
+	dedent,
+	fileExists,
+	isKit3,
+	resolveCommandArray,
+	transforms
+} from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addToDemoPage } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
@@ -9,7 +16,7 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, language, file, isKit, directory }) => {
+	run: ({ sv, language, file, isKit, directory, cwd, dependencyVersion }) => {
 		sv.devDependency('@playwright/test', '^1.60.0');
 
 		sv.file(
@@ -90,6 +97,21 @@ export default defineAddon({
 				}
 			})
 		);
+
+		if (isKit3(dependencyVersion('@sveltejs/kit'))) {
+			const configFile = language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+			if (fileExists(cwd, configFile)) {
+				sv.file(
+					configFile,
+					transforms.json(({ data }) => {
+						const include: string[] = (data.include ??= ['src']);
+						if (!include.includes(`playwright.config.${language}`)) {
+							include.push(`playwright.config.${language}`);
+						}
+					})
+				);
+			}
+		}
 	},
 
 	nextSteps: ({ isKit, packageManager }) => {
