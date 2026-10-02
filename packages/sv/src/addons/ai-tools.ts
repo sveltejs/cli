@@ -5,6 +5,7 @@ import { color, transforms } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
 import { getSharedFiles } from '../create/utils.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const REGEX_MD = /\.md$/;
 
@@ -174,7 +175,7 @@ const options = defineAddonOptions<AiToolsOptions>()
 	.build();
 
 const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
-	id: 'ai-tools',
+	id: ADDON_IDS.aiTools,
 	shortDescription: 'Svelte AI tools',
 	homepage: 'https://svelte.dev/docs/ai',
 	options,

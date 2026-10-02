@@ -14,6 +14,23 @@ type Options = {
 	types: LanguageType;
 };
 export declare function create({ cwd, ...options }: Options): void;
+declare const ADDON_IDS: {
+	readonly prettier: 'prettier';
+	readonly eslint: 'eslint';
+	readonly vitest: 'vitest';
+	readonly playwright: 'playwright';
+	readonly tailwindcss: 'tailwindcss';
+	readonly enhancedImg: 'enhanced-img';
+	readonly sveltekitAdapter: 'sveltekit-adapter';
+	readonly drizzle: 'drizzle';
+	readonly betterAuth: 'better-auth';
+	readonly mdsvex: 'mdsvex';
+	readonly paraglide: 'paraglide';
+	readonly storybook: 'storybook';
+	readonly aiTools: 'ai-tools';
+	readonly experimental: 'experimental';
+};
+type OfficialAddonId = (typeof ADDON_IDS)[keyof typeof ADDON_IDS];
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -103,59 +120,6 @@ type OptionValues<Args extends OptionDefinition> = {
 							? unknown
 							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
-type AiToolsOptions = {
-	ide: string[];
-	delivery: 'plugin' | 'tools';
-	tools: string[];
-	mcpSetup: 'local' | 'remote';
-};
-type BetterAuthOptions = {
-	demo: Array<'password' | 'github'>;
-};
-type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
-type DrizzleOptions = {
-	database: Database;
-	postgresql: 'postgres.js' | 'neon';
-	mysql: 'mysql2' | 'planetscale';
-	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
-	docker: boolean;
-};
-type ExperimentalOptions = {
-	features: string[];
-};
-type ParaglideOptions = {
-	languageTags: string;
-	demo: boolean;
-};
-type SveltekitAdapterOptions = {
-	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
-	cfTarget: 'workers' | 'pages';
-};
-type TailwindcssOptions = {
-	plugins: Array<'typography' | 'forms'>;
-};
-type VitestOptions = {
-	usages: Array<'unit' | 'component'>;
-};
-type NoOptions = {};
-type OfficialAddons = {
-	prettier: Addon<NoOptions, 'prettier'>;
-	eslint: Addon<NoOptions, 'eslint'>;
-	vitest: Addon<AddonOptions<VitestOptions>, 'vitest'>;
-	playwright: Addon<NoOptions, 'playwright'>;
-	tailwindcss: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'>;
-	enhancedImg: Addon<NoOptions, 'enhanced-img'>;
-	sveltekitAdapter: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'>;
-	drizzle: Addon<AddonOptions<DrizzleOptions>, 'drizzle'>;
-	betterAuth: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'>;
-	mdsvex: Addon<NoOptions, 'mdsvex'>;
-	paraglide: Addon<AddonOptions<ParaglideOptions>, 'paraglide'>;
-	storybook: Addon<NoOptions, 'storybook'>;
-	aiTools: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'>;
-	experimental: Addon<AddonOptions<ExperimentalOptions>, 'experimental'>;
-};
-type OfficialAddonOptions = OptionMap<OfficialAddons>;
-export declare const officialAddons: OfficialAddons;
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
 	cwd: string;
@@ -196,6 +160,7 @@ type SvApi = {
 		edit: FileEditMultiple
 	) => void;
 };
+type AddonId = OfficialAddonId | (string & {});
 type Addon<
 	Args extends OptionDefinition,
 	Id extends string = string,
@@ -209,9 +174,9 @@ type Addon<
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
-			dependsOn: (name: keyof typeof officialAddons) => void;
+			dependsOn: (id: AddonId) => void;
 			unsupported: (reason: string) => void;
-			runsAfter: (name: keyof typeof officialAddons) => void;
+			runsAfter: (id: AddonId) => void;
 			addOption: <K extends Extract<keyof Setup, string>>(
 				key: K,
 				question: SetupOptions<Setup>[K]
@@ -361,6 +326,59 @@ declare function applyAddons({
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }>;
+type AiToolsOptions = {
+	ide: string[];
+	delivery: 'plugin' | 'tools';
+	tools: string[];
+	mcpSetup: 'local' | 'remote';
+};
+type BetterAuthOptions = {
+	demo: Array<'password' | 'github'>;
+};
+type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
+type DrizzleOptions = {
+	database: Database;
+	postgresql: 'postgres.js' | 'neon';
+	mysql: 'mysql2' | 'planetscale';
+	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
+	docker: boolean;
+};
+type ExperimentalOptions = {
+	features: string[];
+};
+type ParaglideOptions = {
+	languageTags: string;
+	demo: boolean;
+};
+type SveltekitAdapterOptions = {
+	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	cfTarget: 'workers' | 'pages';
+};
+type TailwindcssOptions = {
+	plugins: Array<'typography' | 'forms'>;
+};
+type VitestOptions = {
+	usages: Array<'unit' | 'component'>;
+};
+type NoOptions = {};
+type OfficialAddons = {
+	prettier: Addon<NoOptions, 'prettier'>;
+	eslint: Addon<NoOptions, 'eslint'>;
+	vitest: Addon<AddonOptions<VitestOptions>, 'vitest'>;
+	playwright: Addon<NoOptions, 'playwright'>;
+	tailwindcss: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'>;
+	enhancedImg: Addon<NoOptions, 'enhanced-img'>;
+	sveltekitAdapter: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'>;
+	drizzle: Addon<AddonOptions<DrizzleOptions>, 'drizzle'>;
+	betterAuth: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'>;
+	mdsvex: Addon<NoOptions, 'mdsvex'>;
+	paraglide: Addon<AddonOptions<ParaglideOptions>, 'paraglide'>;
+	storybook: Addon<NoOptions, 'storybook'>;
+	aiTools: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'>;
+	experimental: Addon<AddonOptions<ExperimentalOptions>, 'experimental'>;
+};
+type OfficialAddonOptions = OptionMap<OfficialAddons>;
+export declare const officialAddons: OfficialAddons;
 type FileEditor = Workspace & {
 	content: string;
 };

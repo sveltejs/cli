@@ -10,6 +10,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0' },
@@ -49,7 +50,7 @@ const options = defineAddonOptions<SveltekitAdapterOptions>()
 	.build();
 
 const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> = defineAddon({
-	id: 'sveltekit-adapter',
+	id: ADDON_IDS.sveltekitAdapter,
 	alias: 'adapter',
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',

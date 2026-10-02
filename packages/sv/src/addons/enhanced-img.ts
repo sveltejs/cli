@@ -1,5 +1,6 @@
 import { color, pnpm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const REGEX_IMPORTED_IMG = /import (\w+) from '([^']+\.(?:png|jpe?g|webp|avif|gif))';/g;
 const REGEX_REGEX_CHARS = /[.*+?^${}()|[\]\\]/g;
@@ -9,7 +10,7 @@ function escapeRegex(value: string) {
 }
 
 export default defineAddon({
-	id: 'enhanced-img',
+	id: ADDON_IDS.enhancedImg,
 	shortDescription: 'image optimization',
 	homepage: 'https://svelte.dev/docs/kit/images',
 	options: {},

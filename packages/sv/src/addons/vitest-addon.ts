@@ -3,6 +3,7 @@ import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
 
 export type VitestOptions = { usages: Array<'unit' | 'component'> };
+import { ADDON_IDS } from './ids.ts';
 
 const options = defineAddonOptions<VitestOptions>()
 	.add('usages', {
@@ -21,7 +22,7 @@ const options = defineAddonOptions<VitestOptions>()
 let vitestV3Installed = false;
 
 const addon: Addon<AddonOptions<VitestOptions>, 'vitest'> = defineAddon({
-	id: 'vitest',
+	id: ADDON_IDS.vitest,
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,

@@ -16,6 +16,7 @@ import {
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
 import { addToDemoPage } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
@@ -35,17 +36,17 @@ const options = defineAddonOptions<BetterAuthOptions>()
 	.build();
 
 const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon({
-	id: 'better-auth',
+	id: ADDON_IDS.betterAuth,
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
 	options,
 	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
-		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
+		if (!dependencyVersion('drizzle-orm')) dependsOn(ADDON_IDS.drizzle);
 
-		runsAfter('sveltekitAdapter');
-		runsAfter('tailwindcss');
-		runsAfter('experimental');
+		runsAfter(ADDON_IDS.sveltekitAdapter);
+		runsAfter(ADDON_IDS.tailwindcss);
+		runsAfter(ADDON_IDS.experimental);
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
