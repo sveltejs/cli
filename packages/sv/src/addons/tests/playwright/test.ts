@@ -31,6 +31,7 @@ test.concurrent.for(testCases)('playwright $kind.type $variant', (testCase, { ex
 
 	const demoDir = path.resolve(cwd, 'src/routes/demo');
 	const withDemo = testCase.kind.type === 'demo';
+	expect(fs.existsSync(demoDir)).toBe(withDemo);
 	expect(fs.existsSync(path.resolve(demoDir, 'playwright/+page.svelte'))).toBe(withDemo);
 	expect(fs.existsSync(path.resolve(demoDir, `playwright/page.svelte.e2e.${language}`))).toBe(
 		withDemo
