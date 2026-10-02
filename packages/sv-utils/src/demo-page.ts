@@ -29,11 +29,17 @@ function walk(nodes: SvelteAst.SvelteNode[], visit: (node: SvelteAst.SvelteNode)
 const scriptTag = (language: 'ts' | 'js') => `<script${language === 'ts' ? ' lang="ts"' : ''}>`;
 
 const linksTemplate = (language: 'ts' | 'js') => dedent`
+	<!--
+		@component
+		Added by \`sv add\`. Lists the add-on demos in \`/demo/<add-on>\`.
+
+		To remove: delete this file and \`<${COMPONENT} />\` from +layout.svelte
+	-->
+
 	${scriptTag(language)}
 		import { resolve } from '$app/paths';
 	</script>
 
-	<!-- Added by \`sv add\`. To remove: delete this file and \`<${COMPONENT} />\` from +layout.svelte -->
 	<div class="sv-demo-links">
 		<p>sv addon demos</p>
 		<ul></ul>

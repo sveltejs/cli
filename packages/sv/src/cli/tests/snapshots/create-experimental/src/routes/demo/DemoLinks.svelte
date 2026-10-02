@@ -2,7 +2,12 @@
 	import { resolve } from '$app/paths';
 </script>
 
-<!-- Added by `sv add`. To remove: delete this file and `<DemoLinks />` from +layout.svelte -->
+<!--
+	@component
+	Added by `sv add`. Lists the add-on demos in `/demo/<add-on>`.
+
+	To remove: delete this file and `<DemoLinks />` from +layout.svelte
+-->
 
 <div class="sv-demo-links">
 	<p>sv addon demos</p>
