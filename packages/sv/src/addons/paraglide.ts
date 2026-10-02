@@ -287,7 +287,7 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 		}
 	},
 
-	nextSteps: () =>
+	nextSteps: ({ options }) =>
 		[
 			`Edit your messages in ${color.path('messages/en.json')}`,
 			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
