@@ -9,6 +9,8 @@ export const GENERATED_MARKER =
 
 type MigrationTask = {
 	title: string;
+	/** Only report the task when this package is a dependency. */
+	dependency?: string;
 	checks?: Array<{
 		include: string | string[];
 		patterns: Array<string | RegExp>;
@@ -358,20 +360,10 @@ const file = asset('foo.png');\n` +
 	},
 	{
 		title: 'Move adapter-node `ORIGIN` to `paths.origin`',
-		checks: [
-			{
-				include: ['Dockerfile*', '**/Dockerfile*', '**/*.{js,ts,mjs,mts,json,jsonc,yml,yaml,toml}'],
-				patterns: [
-					/\bprocess\.env\.ORIGIN\b/,
-					/\benv\s*\[\s*['"]ORIGIN['"]\s*\]/,
-					/^\s*(?:ENV|ARG)\s+ORIGIN\b/m,
-					/^\s*ORIGIN\s*[:=]/m
-				]
-			}
-		],
+		dependency: '@sveltejs/adapter-node',
 		summary: 'The adapter-node `ORIGIN` environment variable is removed.',
 		instructions:
-			'If this value configures adapter-node, move the public-facing origin to `paths.origin` in `sveltekit(...)`. Remove the environment variable only after confirming it has no unrelated use.',
+			'Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and move the public-facing origin to `paths.origin` in `sveltekit(...)`. Do not delete `ORIGIN`: it is ignored by adapter-node now and may have other uses.',
 		links: guideLink('Adapters-adapter-node')
 	},
 	{
@@ -478,10 +470,12 @@ export default defineMigrationTask({
 	description:
 		'Collect instructions for non-automated migration tasks; ' +
 		`creates ${REPORT_PATH} whose instructions you should follow to complete the migration`,
-	run: ({ sv }) => {
+	run: ({ sv, dependencyVersion }) => {
 		const findings: Finding[] = [];
 
 		for (const task of migrationTasks) {
+			if (task.dependency && !dependencyVersion(task.dependency)) continue;
+
 			const files = new Set<string>();
 			if (!task.checks) {
 				findings.push({ task, files: [] });
