@@ -189,6 +189,8 @@ export default defineAddon({
 			})
 		);
 
+		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
+
 		sv.file(
 			'project.inlang/settings.json',
 			transforms.json(({ data }) => {
@@ -197,7 +199,6 @@ export default defineAddon({
 				for (const key in DEFAULT_INLANG_PROJECT) {
 					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
 				}
-				const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 				const baseLocale = validLanguageTags[0];
 
 				data.baseLocale = baseLocale;
@@ -257,7 +258,6 @@ export default defineAddon({
 
 					// add links to other localized pages, the first one is the default
 					// language, thus it does not require any localized route
-					const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 					const links = validLanguageTags
 						.map((x) => `<button onclick={() => setLocale('${x}')}>${x}</button>`)
 						.join('');
@@ -271,7 +271,6 @@ export default defineAddon({
 			);
 		}
 
-		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 		for (const languageTag of validLanguageTags) {
 			sv.file(
 				`messages/${languageTag}.json`,
@@ -283,11 +282,14 @@ export default defineAddon({
 		}
 	},
 
-	nextSteps: ({ options }) =>
-		[
-			`Edit your messages in ${color.path('messages/en.json')}`,
+	nextSteps: ({ options }) => {
+		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
+
+		return [
+			`Edit your messages in ${color.path(DEFAULT_INLANG_PROJECT['plugin.inlang.messageFormat'].pathPattern)} (${validLanguageTags.map((locale) => `${locale}.json`).join(', ')})`,
 			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
-		].filter((line): line is string => Boolean(line))
+		].filter((line): line is string => Boolean(line));
+	}
 });
 
 const isValidLanguageTag = (languageTag: string): boolean =>
