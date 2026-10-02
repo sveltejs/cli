@@ -13,13 +13,16 @@ import {
 	coerceVersion,
 	defineEnv
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 import { addToDemoPage } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
-const options = defineAddonOptions()
+export type BetterAuthOptions = { demo: Array<'password' | 'github'> };
+
+const options = defineAddonOptions<BetterAuthOptions>()
 	.add('demo', {
 		question: 'Which demo would you like to include?',
 		type: 'multiselect',
@@ -32,7 +35,7 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
+const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon({
 	id: ADDON_IDS.betterAuth,
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
@@ -579,6 +582,8 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;
 type GenerateEnv = (demoGithub: boolean, isExample: boolean) => TransformFn;
 const generateEnv: GenerateEnv = (demoGithub, isExample) =>
 	transforms.text(({ content, text }) => {
