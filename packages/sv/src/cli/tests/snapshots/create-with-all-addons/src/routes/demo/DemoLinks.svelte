@@ -23,6 +23,8 @@
 			<li><a href={demo.href}>{demo.name}</a></li>
 		{/each}
 	</ul>
+
+	<a class="home" href={resolve('/')}>home</a>
 </div>
 
 <style>
@@ -71,5 +73,19 @@
 
 	a:hover {
 		color: #0b2f8a;
+	}
+
+	.home {
+		display: block;
+		margin-top: 0.5rem;
+		padding-top: 0.375rem;
+		border-top: 1px dashed rgb(61 53 0 / 0.3);
+		text-align: right;
+		font-size: 12px;
+	}
+
+	.home,
+	.home:visited {
+		color: #6b6420;
 	}
 </style>
