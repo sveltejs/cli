@@ -310,7 +310,7 @@ sv.file(`${demo.addonPath}/+page.svelte` /* your demo route */);
 - **`links`** - a `[path, transform]` pair for `<routes>/demo/DemoLinks.svelte` (created if missing).
 - **`layout`** - a `[path, transform]` pair for `<routes>/+layout.svelte` (created if missing).
 
-Both transforms are idempotent, so re-running an add-on won't duplicate entries. To opt out, delete `DemoLinks.svelte` and its usage in the layout.
+Both transforms are idempotent, so re-running an add-on won't duplicate entries. Only call them when the user asked for a demo (e.g. a `demo` option), so projects without demos don't get the post-it. To opt out, delete `DemoLinks.svelte` and its usage in the layout.
 
 ## Browser usage
 
