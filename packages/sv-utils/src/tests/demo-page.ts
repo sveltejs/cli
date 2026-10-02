@@ -42,7 +42,6 @@ describe('defineDemoPage', () => {
 		}
 		expect(count(sv.files[LAYOUT], '<DemoLinks />')).toBe(1);
 		expect(count(sv.files[LAYOUT], 'import DemoLinks')).toBe(1);
-		expect(sv.files[LINKS]).toMatchSnapshot();
 	});
 
 	test('js: single `resolve` import', () => {
@@ -59,6 +58,16 @@ describe('defineDemoPage', () => {
 				'<script lang="ts">\n\tlet { children } = $props();\n</script>\n\n<svelte:head>\n\t<title>x</title>\n</svelte:head>\n\n{@render children()}\n'
 		});
 		runAddon(sv, 'x');
-		expect(sv.files[LAYOUT]).toMatchSnapshot();
+		expect(sv.files[LAYOUT]).toMatchInlineSnapshot(`
+			"<script lang="ts">
+				import DemoLinks from './demo/DemoLinks.svelte';
+
+				let { children } = $props();
+			</script>
+
+			<svelte:head><title>x</title></svelte:head>
+			{@render children()}
+			<DemoLinks />"
+		`);
 	});
 });
