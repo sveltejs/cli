@@ -2,9 +2,10 @@ import { log } from '@clack/prompts';
 import { type AstTypes, svelteConfig, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { addEslintConfigPrettier, ESLINT_VERSION, getNodeTypesVersion } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
-	id: 'eslint',
+	id: ADDON_IDS.eslint,
 	shortDescription: 'linter',
 	homepage: 'https://eslint.org',
 	options: {},
