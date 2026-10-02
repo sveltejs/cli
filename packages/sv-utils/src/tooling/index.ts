@@ -1,6 +1,6 @@
+import * as commentJson from 'comment-json';
 import { print as esrapPrint } from 'esrap';
 import ts from 'esrap/languages/ts';
-import * as fleece from 'silver-fleece';
 import * as toml from 'smol-toml';
 import {
 	type AST as SvelteAst,
@@ -120,23 +120,11 @@ export function stripAst<T>(node: T, propsToRemove: string[]): T {
 }
 
 export function parseJson(content: string): any {
-	// some of the files we need to process contain comments. The default
-	// node JSON.parse fails parsing those comments.
-	// use https://github.com/Rich-Harris/golden-fleece#fleecepatchstr-value instead
-
-	return fleece.evaluate(content);
+	return commentJson.parse(content);
 }
 
 export function serializeJson(originalInput: string, data: unknown): string {
-	// some of the files we need to process contain comments. The default
-	// node JSON.parse fails parsing those comments.
-	const indentString = guessIndentString(originalInput);
-	let spaces: number | undefined;
-
-	// if indentString contains whitespaces, count them
-	if (indentString && indentString.includes(' ')) spaces = (indentString.match(/ /g) || []).length;
-
-	return fleece.stringify(data, { spaces });
+	return commentJson.stringify(data, null, guessIndentString(originalInput));
 }
 
 // Sourced from `golden-fleece`
