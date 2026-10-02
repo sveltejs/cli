@@ -2,9 +2,7 @@ import { log } from '@clack/prompts';
 import {
 	color,
 	dedent,
-	isKit3,
 	resolveCommandArray,
-	svelteConfig,
 	transforms
 } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
@@ -16,7 +14,7 @@ export default defineAddon({
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options: {},
-	run: ({ sv, language, file, isKit, directory, cwd, dependencyVersion }) => {
+	run: ({ sv, language, file, isKit, directory }) => {
 		sv.devDependency('@playwright/test', '^1.60.0');
 
 		sv.file(
@@ -98,28 +96,16 @@ export default defineAddon({
 			})
 		);
 
-		if (isKit3(dependencyVersion('@sveltejs/kit'))) {
-			if (file.typeConfig) {
-				sv.file(
-					file.typeConfig,
-					transforms.json(({ data }) => {
-						const include: string[] = (data.include ??= ['src']);
-						if (!include.includes(`playwright.config.${language}`)) {
-							include.push(`playwright.config.${language}`);
-						}
-					})
-				);
-			}
-		} else if (isKit) {
-			svelteConfig.edit({ sv, cwd }, ({ override, js }) => {
-				override({
-					typescript: {
-						config: js.common.parseExpression(
-							`(config) => { if (!config.include.includes('../playwright.config.${language}')) config.include.push('../playwright.config.${language}') }`
-						)
+		if (file.typeConfig) {
+			sv.file(
+				file.typeConfig,
+				transforms.json(({ data }) => {
+					const include: string[] = (data.include ??= ['src']);
+					if (!include.includes(`playwright.config.${language}`)) {
+						include.push(`playwright.config.${language}`);
 					}
-				});
-			});
+				})
+			);
 		}
 	},
 
