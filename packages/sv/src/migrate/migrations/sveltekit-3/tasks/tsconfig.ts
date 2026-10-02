@@ -62,7 +62,8 @@ export default defineMigrationTask({
 				}
 
 				// the generated config no longer carries `include`, so the project owns it now
-				const include = (data.include ??= ['src']);
+				const include = (data.include ??= []);
+				include.push('src');
 				include.push(...moved.filter((entry) => !include.includes(entry)));
 
 				// if types is set we need to add $app/types to it

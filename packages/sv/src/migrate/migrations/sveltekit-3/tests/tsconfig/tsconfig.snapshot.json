@@ -4,6 +4,7 @@
 		"strict": true
 	},
 	"include": [
+		"vite.config.ts",
 		"src",
 		"drizzle.config.ts"
 	]

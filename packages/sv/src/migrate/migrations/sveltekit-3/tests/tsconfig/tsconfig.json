@@ -9,7 +9,8 @@
 		"skipLibCheck": true,
 		"strict": true,
 		"moduleResolution": "bundler"
-	}
+	},
+	"include": ["vite.config.ts"]
 	// To make changes to top-level options such as include and exclude, we recommend extending
 	// the generated config; see https://svelte.dev/docs/kit/configuration#typescript
 }
