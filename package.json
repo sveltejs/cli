@@ -40,7 +40,7 @@
 	"devEngines": {
 		"packageManager": {
 			"name": "pnpm",
-			"version": "^11.27.1",
+			"version": "^11.28.3",
 			"onFail": "download"
 		},
 		"runtime": {
@@ -49,5 +49,5 @@
 			"onFail": "download"
 		}
 	},
-	"packageManager": "pnpm@11.27.1+sha512-qB1MIbmwmksK6/kO9eUn1CYr3aMi0mCCl4y1SQI6xtnK/Jixn/+qXHHbQ4pl9wIk7beNcxEYeGH/lkgNHNyiPA=="
+	"packageManager": "pnpm@11.28.3+sha512-1JdgoTsXVZSHdaXUyxvEuocf8tyUGt+FFjDQRO1yL5tb6L5XvvkxZgmMgMcGvWEsKC0FUm3R0K5mAYjAhoIPNQ=="
 }
