@@ -15,19 +15,6 @@ exports[`defineDemoPage > upserts into an existing layout 1`] = `
 exports[`defineDemoPage > x, y, z, then x/y/z again: one link each 1`] = `
 "<script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/state';
-
-	const KEY = 'sv-demo-visited';
-	let visited = $state(new Set());
-
-	// ticks each demo once visited, remembered across reloads
-	$effect(() => {
-		const seen = new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]'));
-
-		seen.add(page.url.pathname);
-		localStorage.setItem(KEY, JSON.stringify([...seen]));
-		visited = seen;
-	});
 </script>
 
 <!-- Added by \`sv add\`. To remove: delete this file and \`<DemoLinks />\` from +layout.svelte -->
@@ -36,38 +23,9 @@ exports[`defineDemoPage > x, y, z, then x/y/z again: one link each 1`] = `
 	<p>sv addon demos</p>
 
 	<ul>
-		<li>
-			<input
-				type="checkbox"
-				inert
-				checked={visited.has(resolve('/demo/x'))}
-				aria-label="visited x"
-			/>
-
-			<a href={resolve('/demo/x')}>x</a>
-		</li>
-
-		<li>
-			<input
-				type="checkbox"
-				inert
-				checked={visited.has(resolve('/demo/y'))}
-				aria-label="visited y"
-			/>
-
-			<a href={resolve('/demo/y')}>y</a>
-		</li>
-
-		<li>
-			<input
-				type="checkbox"
-				inert
-				checked={visited.has(resolve('/demo/z'))}
-				aria-label="visited z"
-			/>
-
-			<a href={resolve('/demo/z')}>z</a>
-		</li>
+		<li><a href={resolve('/demo/x')}>x</a></li>
+		<li><a href={resolve('/demo/y')}>y</a></li>
+		<li><a href={resolve('/demo/z')}>z</a></li>
 	</ul>
 </div>
 
@@ -116,15 +74,7 @@ exports[`defineDemoPage > x, y, z, then x/y/z again: one link each 1`] = `
 	}
 
 	li {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
 		padding: 0.125rem 0;
-	}
-
-	input {
-		margin: 0;
-		accent-color: #3d3500;
 	}
 
 	a {
@@ -133,12 +83,12 @@ exports[`defineDemoPage > x, y, z, then x/y/z again: one link each 1`] = `
 		text-underline-offset: 2px;
 	}
 
-	a:hover {
-		color: #0b2f8a;
+	a:visited {
+		color: #6b6420;
 	}
 
-	input:checked + a {
-		color: #6b6420;
+	a:hover {
+		color: #0b2f8a;
 	}
 </style>"
 `;

@@ -31,18 +31,6 @@ const scriptTag = (language: 'ts' | 'js') => `<script${language === 'ts' ? ' lan
 const linksTemplate = (language: 'ts' | 'js') => dedent`
 	${scriptTag(language)}
 		import { resolve } from '$app/paths';
-		import { page } from '$app/state';
-
-		const KEY = 'sv-demo-visited';
-		let visited = $state(new Set());
-
-		// ticks each demo once visited, remembered across reloads
-		$effect(() => {
-			const seen = new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]'));
-			seen.add(page.url.pathname);
-			localStorage.setItem(KEY, JSON.stringify([...seen]));
-			visited = seen;
-		});
 	</script>
 
 	<!-- Added by \`sv add\`. To remove: delete this file and \`<${COMPONENT} />\` from +layout.svelte -->
@@ -92,25 +80,18 @@ const linksTemplate = (language: 'ts' | 'js') => dedent`
 			list-style: none;
 		}
 		li {
-			display: flex;
-			align-items: center;
-			gap: 0.5rem;
 			padding: 0.125rem 0;
-		}
-		input {
-			margin: 0;
-			accent-color: #3d3500;
 		}
 		a {
 			color: #1a4fd6;
 			text-decoration: underline;
 			text-underline-offset: 2px;
 		}
+		a:visited {
+			color: #6b6420;
+		}
 		a:hover {
 			color: #0b2f8a;
-		}
-		input:checked + a {
-			color: #6b6420;
 		}
 	</style>
 `;
@@ -155,7 +136,7 @@ export function defineDemoPage(name: string, language: 'ts' | 'js', kitRoutes: s
 			js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
 			svelte.addFragment(
 				ul,
-				`<li><input type="checkbox" inert checked={visited.has(resolve('${href}'))} aria-label="visited ${name}" /><a href={resolve('${href}')}>${name}</a></li>`
+				`<li><a href={resolve('${href}')}>${name}</a></li>`
 			);
 		})(content || linksTemplate(language));
 

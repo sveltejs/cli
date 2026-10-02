@@ -1,37 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { page } from '$app/state';
-
-	const KEY = 'sv-demo-visited';
-	let visited = $state(new Set());
-
-	// ticks each demo once visited, remembered across reloads
-	$effect(() => {
-		const seen = new Set(JSON.parse(localStorage.getItem(KEY) ?? '[]'));
-
-		seen.add(page.url.pathname);
-		localStorage.setItem(KEY, JSON.stringify([...seen]));
-		visited = seen;
-	});
 </script>
 
 <!-- Added by `sv add`. To remove: delete this file and `<DemoLinks />` from +layout.svelte -->
 
 <div class="sv-demo-links">
 	<p>sv addon demos</p>
-
-	<ul>
-		<li>
-			<input
-				type="checkbox"
-				inert
-				checked={visited.has(resolve('/demo/better-auth'))}
-				aria-label="visited better-auth"
-			/>
-
-			<a href={resolve('/demo/better-auth')}>better-auth</a>
-		</li>
-	</ul>
+	<ul><li><a href={resolve('/demo/better-auth')}>better-auth</a></li></ul>
 </div>
 
 <style>
@@ -79,15 +54,7 @@
 	}
 
 	li {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
 		padding: 0.125rem 0;
-	}
-
-	input {
-		margin: 0;
-		accent-color: #3d3500;
 	}
 
 	a {
@@ -96,11 +63,11 @@
 		text-underline-offset: 2px;
 	}
 
-	a:hover {
-		color: #0b2f8a;
+	a:visited {
+		color: #6b6420;
 	}
 
-	input:checked + a {
-		color: #6b6420;
+	a:hover {
+		color: #0b2f8a;
 	}
 </style>
