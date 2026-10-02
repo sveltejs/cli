@@ -28,7 +28,7 @@ Create a mutable copy with `new URL(page.url.href)`, mutate that copy, and use i
 
 #### References
 
-- [Migrating to SvelteKit v3](https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3#$app-state-page.url-is-now-readonly)
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#$app-state-page.url-is-now-readonly)
 
 #### Files to review
 
@@ -44,7 +44,7 @@ If you rely on cross-origin access to static assets in dev, configure it in your
 
 #### References
 
-- [Migrating to SvelteKit v3](https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3#Security-CORS-for-static-assets-in-development-is-handled-by-Vite)
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Security-CORS-for-static-assets-in-development-is-handled-by-Vite)
 
 ## Final verification
 

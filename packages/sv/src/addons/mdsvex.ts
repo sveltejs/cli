@@ -1,8 +1,9 @@
 import { svelteConfig } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
+import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
-	id: 'mdsvex',
+	id: ADDON_IDS.mdsvex,
 	shortDescription: 'svelte + markdown',
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
