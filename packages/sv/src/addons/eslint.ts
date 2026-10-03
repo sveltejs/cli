@@ -29,7 +29,6 @@ export default defineAddon({
 		sv.devDependency('eslint-plugin-svelte', '^3.19.0');
 		sv.devDependency('globals', '^17.6.0');
 		sv.devDependency('@eslint/js', '^10.0.1');
-		sv.devDependency('@types/node', getNodeTypesVersion());
 
 		// the `eslint.config.js` imports `node:path`
 		sv.devDependency('@types/node', getNodeTypesVersion());

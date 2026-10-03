@@ -315,7 +315,6 @@ const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 		const kitVersion = dependencyVersion('@sveltejs/kit');
 
 		// the `drizzle.config.${language}` reads `process.env` (and may use `node:sqlite`)
-		sv.devDependency('@types/node', getNodeTypesVersion());
 		addToTypeConfigType({ sv, cwd, language, kitVersion, entry: 'node' });
 
 		// kit 3 dropped the `typescript.config` hook's `include` (and deprecates the hook itself),
