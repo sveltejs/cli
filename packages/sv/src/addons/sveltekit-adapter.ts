@@ -6,11 +6,11 @@ import {
 	loadPackageJson,
 	sanitizeName,
 	pnpm,
-	svelteConfig,
-	KIT3_TSCONFIG
+	svelteConfig
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
+import { addToTypeConfigType, getNodeTypesVersion } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 const adapters = [
@@ -59,7 +59,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, packageManager, file, cwd }) => {
+	run: ({ sv, options, packageManager, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -86,6 +86,11 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 		);
 
 		sv.devDependency(adapter.package, adapter.version);
+
+		if (options.adapter === 'node') {
+			sv.devDependency('@types/node', getNodeTypesVersion());
+			addToTypeConfigType({ sv, cwd, language, entry: 'node' });
+		}
 
 		if (adapter.package !== '@sveltejs/adapter-auto') {
 			sv.file(
@@ -197,19 +202,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 				);
 
 				// Add Cloudflare generated types to jsconfig/tsconfig
-				sv.file(
-					file.typeConfig,
-					transforms.json(({ data }) => {
-						data.compilerOptions ??= {};
-						const types: string[] = (data.compilerOptions.types ??= []);
-						if (!types.includes('./worker-configuration.d.ts')) {
-							types.push('./worker-configuration.d.ts');
-						}
-						// a child `types` replaces the one from `$app/tsconfig`, so `$app/types` must be re-added
-						const kit3 = [data.extends].flat().includes(KIT3_TSCONFIG);
-						if (kit3 && !types.includes('$app/types')) types.unshift('$app/types');
-					})
-				);
+				addToTypeConfigType({ sv, cwd, language, entry: './worker-configuration.d.ts' });
 
 				sv.file(
 					'src/app.d.ts',
