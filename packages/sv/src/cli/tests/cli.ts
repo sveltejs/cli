@@ -36,7 +36,7 @@ describe('cli', () => {
 				'prettier',
 				'eslint',
 				'vitest=usages:unit,component',
-				'playwright',
+				'playwright=demo:yes',
 				'tailwindcss=plugins:typography,forms',
 				'sveltekit-adapter=adapter:node',
 				'drizzle=database:sqlite+sqlite:libsql',
@@ -212,12 +212,7 @@ describe('cli', () => {
 			}
 
 			if (projectName === 'create-with-all-addons' && process.platform !== 'win32') {
-				// the generated project lives inside this repo, so it must not join its workspace
-				const installResult = await run('pnpm', [
-					'install',
-					'--no-frozen-lockfile',
-					'--ignore-workspace'
-				]);
+				const installResult = await run('pnpm', ['install', '--no-frozen-lockfile']);
 				expect(
 					installResult.exitCode,
 					`pnpm install failed:\n  stdout: ${installResult.stdout}\n  stderr: ${installResult.stderr}`

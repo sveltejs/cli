@@ -7,9 +7,10 @@ import {
 	ESLINT_VERSION,
 	prettierConfigPath
 } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
-	id: 'prettier',
+	id: ADDON_IDS.prettier,
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},

@@ -14,23 +14,23 @@ type Options = {
 	types: LanguageType;
 };
 export declare function create({ cwd, ...options }: Options): void;
-type OfficialAddons = {
-	prettier: Addon<any>;
-	eslint: Addon<any>;
-	vitest: Addon<any>;
-	playwright: Addon<any>;
-	tailwindcss: Addon<any>;
-	enhancedImg: Addon<any>;
-	sveltekitAdapter: Addon<any>;
-	drizzle: Addon<any>;
-	betterAuth: Addon<any>;
-	mdsvex: Addon<any>;
-	paraglide: Addon<any>;
-	storybook: Addon<any>;
-	aiTools: Addon<any>;
-	experimental: Addon<any>;
+declare const ADDON_IDS: {
+	readonly prettier: 'prettier';
+	readonly eslint: 'eslint';
+	readonly vitest: 'vitest';
+	readonly playwright: 'playwright';
+	readonly tailwindcss: 'tailwindcss';
+	readonly enhancedImg: 'enhanced-img';
+	readonly sveltekitAdapter: 'sveltekit-adapter';
+	readonly drizzle: 'drizzle';
+	readonly betterAuth: 'better-auth';
+	readonly mdsvex: 'mdsvex';
+	readonly paraglide: 'paraglide';
+	readonly storybook: 'storybook';
+	readonly aiTools: 'ai-tools';
+	readonly experimental: 'experimental';
 };
-export declare const officialAddons: OfficialAddons;
+type OfficialAddonId = (typeof ADDON_IDS)[keyof typeof ADDON_IDS];
 type BooleanQuestion = {
 	type: 'boolean';
 	default: boolean;
@@ -80,6 +80,31 @@ type Question<Args extends OptionDefinition = OptionDefinition> = BaseQuestion<A
 		| MultiSelectQuestion<any>
 	);
 type OptionDefinition = Record<string, Question<any>>;
+type QuestionFor<Value> = BaseQuestion<any> &
+	([Value] extends [boolean]
+		? BooleanQuestion
+		: [Value] extends [number]
+			? NumberQuestion
+			: [Value] extends [Array<infer Item>]
+				? MultiSelectQuestion<Item>
+				: [string] extends [Value]
+					? StringQuestion
+					: SelectQuestion<Value>);
+type AddonOptions<Values extends Record<string, unknown>> = {
+	[K in keyof Values]: QuestionFor<Values[K]>;
+} extends infer Questions extends OptionDefinition
+	? Questions
+	: never;
+type SameType<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+type MismatchedOptions<Args extends OptionDefinition, Values> = {
+	[K in keyof Args | keyof Values]: K extends keyof Args
+		? K extends keyof Values
+			? SameType<OptionValues<Args>[K], Values[K]> extends true
+				? never
+				: K
+			: K
+		: K;
+}[keyof Args | keyof Values];
 type OptionValues<Args extends OptionDefinition> = {
 	[K in keyof Args]: Args[K] extends StringQuestion
 		? string
@@ -135,6 +160,7 @@ type SvApi = {
 		edit: FileEditMultiple
 	) => void;
 };
+type AddonId = OfficialAddonId | (string & {});
 type Addon<
 	Args extends OptionDefinition,
 	Id extends string = string,
@@ -148,9 +174,9 @@ type Addon<
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
-			dependsOn: (name: keyof typeof officialAddons) => void;
+			dependsOn: (id: AddonId) => void;
 			unsupported: (reason: string) => void;
-			runsAfter: (name: keyof typeof officialAddons) => void;
+			runsAfter: (id: AddonId) => void;
 			addOption: <K extends Extract<keyof Setup, string>>(
 				key: K,
 				question: SetupOptions<Setup>[K]
@@ -246,14 +272,22 @@ type SetupResult = {
 type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 type MaybePromise<T> = Promise<T> | T;
 type Prettify<T> = { [K in keyof T]: T[K] } & unknown;
-type OptionBuilder<T extends OptionDefinition> = {
+type OptionBuilder<T extends OptionDefinition, Values extends Record<string, unknown> = never> = {
 	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
 		key: K,
 		question: Q
-	): OptionBuilder<T & Record<K, Q>>;
-	build(): Prettify<T>;
+	): OptionBuilder<T & Record<K, Q>, Values>;
+	build(
+		...check: [Values] extends [never]
+			? []
+			: [MismatchedOptions<T, Values>] extends [never]
+				? []
+				: [mismatchedOptions: MismatchedOptions<T, Values>]
+	): [Values] extends [never] ? Prettify<T> : AddonOptions<Values>;
 };
-export declare function defineAddonOptions(): OptionBuilder<{}>;
+export declare function defineAddonOptions<
+	Values extends Record<string, unknown> = never
+>(): OptionBuilder<{}, Values>;
 type InstallOptions<Addons extends AddonMap> = {
 	cwd: string;
 	addons: Addons;
@@ -292,6 +326,65 @@ declare function applyAddons({
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }>;
+type AiToolsOptions = {
+	ide: string[];
+	delivery: 'plugin' | 'tools';
+	tools: string[];
+	mcpSetup: 'local' | 'remote';
+};
+type BetterAuthOptions = {
+	demo: Array<'password' | 'github'>;
+};
+type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
+type DrizzleOptions = {
+	database: Database;
+	postgresql: 'postgres.js' | 'neon';
+	mysql: 'mysql2' | 'planetscale';
+	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
+	docker: boolean;
+};
+type ExperimentalOptions = {
+	features: string[];
+};
+type ParaglideOptions = {
+	languageTags: string;
+	demo: boolean;
+};
+type PlaywrightOptions = {
+	demo: boolean;
+};
+type SveltekitAdapterOptions = {
+	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	cfTarget: 'workers' | 'pages';
+};
+type TailwindcssOptions = {
+	plugins: Array<'typography' | 'forms'>;
+};
+type VitestOptions = {
+	usages: Array<'unit' | 'component'>;
+};
+type NoOptions = {};
+type OfficialAddons = {
+	[ADDON_IDS.prettier]: Addon<NoOptions, typeof ADDON_IDS.prettier>;
+	[ADDON_IDS.eslint]: Addon<NoOptions, typeof ADDON_IDS.eslint>;
+	[ADDON_IDS.vitest]: Addon<AddonOptions<VitestOptions>, typeof ADDON_IDS.vitest>;
+	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
+	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
+	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
+	[ADDON_IDS.sveltekitAdapter]: Addon<
+		AddonOptions<SveltekitAdapterOptions>,
+		typeof ADDON_IDS.sveltekitAdapter
+	>;
+	[ADDON_IDS.drizzle]: Addon<AddonOptions<DrizzleOptions>, typeof ADDON_IDS.drizzle>;
+	[ADDON_IDS.betterAuth]: Addon<AddonOptions<BetterAuthOptions>, typeof ADDON_IDS.betterAuth>;
+	[ADDON_IDS.mdsvex]: Addon<NoOptions, typeof ADDON_IDS.mdsvex>;
+	[ADDON_IDS.paraglide]: Addon<AddonOptions<ParaglideOptions>, typeof ADDON_IDS.paraglide>;
+	[ADDON_IDS.storybook]: Addon<NoOptions, typeof ADDON_IDS.storybook>;
+	[ADDON_IDS.aiTools]: Addon<AddonOptions<AiToolsOptions>, typeof ADDON_IDS.aiTools>;
+	[ADDON_IDS.experimental]: Addon<AddonOptions<ExperimentalOptions>, typeof ADDON_IDS.experimental>;
+};
+type OfficialAddonOptions = OptionMap<OfficialAddons>;
+export declare const officialAddons: OfficialAddons;
 type FileEditor = Workspace & {
 	content: string;
 };
@@ -305,6 +398,7 @@ export type {
 	AddonDefinition,
 	AddonInput,
 	AddonMap,
+	AddonOptions,
 	AddonReference,
 	AddonResult,
 	AddonSource,
@@ -318,6 +412,8 @@ export type {
 	LoadedAddon,
 	MultiSelectQuestion,
 	NumberQuestion,
+	OfficialAddonOptions,
+	OfficialAddons,
 	OptionBuilder,
 	OptionDefinition,
 	OptionMap,

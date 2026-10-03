@@ -3,6 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { detectPnpmMajor, writeAllowBuilds, writeLegacy } from '../pnpm-internals.ts';
 import { allowBuilds } from '../pnpm.ts';
+import { coerceVersion } from '../semver.ts';
 
 describe('pnpm >= 11: writes allowBuilds map', () => {
 	const transform = (...packages: string[]) => writeAllowBuilds(packages);
@@ -110,11 +111,11 @@ describe('allowBuilds version detection', () => {
 	});
 
 	it.runIf(detectPnpmMajor(root) !== undefined)(
-		'honours the `packageManager` pin of the given cwd',
+		'honours the `devEngines.packageManager` pin of the given cwd',
 		{ timeout: 30_000 },
 		() => {
 			const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'));
-			const pinned = Number(pkg.packageManager.split('@')[1].split('.')[0]);
+			const pinned = coerceVersion(pkg.devEngines.packageManager.version).major;
 
 			expect(detectPnpmMajor(root)).toBe(pinned);
 		}

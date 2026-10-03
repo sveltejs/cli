@@ -1,6 +1,7 @@
 import process from 'node:process';
 import { log } from '@clack/prompts';
-import { color, type SvelteAst, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import { color, fileExists, isKit3, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import type { SvApi } from '../core/config.ts';
 
 // This is in common because the eslint addon installs this version,
 // and the prettier addon uses this to check if the installed major version of
@@ -169,33 +170,6 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 		}
 	});
 
-type AddToDemoPage = (path: string, language: 'ts' | 'js') => TransformFn;
-export const addToDemoPage: AddToDemoPage = (path, language) =>
-	transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
-		for (const node of ast.fragment.nodes) {
-			if (node.type === 'RegularElement') {
-				const hrefAttribute = node.attributes.find(
-					(x) => x.type === 'Attribute' && x.name === 'href'
-				) as SvelteAst.Attribute;
-				if (!hrefAttribute || !hrefAttribute.value) continue;
-
-				if (!Array.isArray(hrefAttribute.value)) continue;
-
-				const hasDemo = hrefAttribute.value.some(
-					// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
-					(x) => x.type === 'Text' && x.data.includes(`/demo/${path}`)
-				);
-				if (hasDemo) {
-					return false;
-				}
-			}
-		}
-
-		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-
-		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
-	});
-
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.
  *
@@ -219,4 +193,29 @@ export function getNodeTypesVersion(): string {
 	// In those cases, we'll decrement the major by 2.
 	const previousLTSMajor = isEvenMajor ? majorNum - 2 : majorNum - 1;
 	return `^${previousLTSMajor}`;
+}
+
+/**
+ * Kit 3 no longer generates an `include`, so root files outside `src` (like tool configs) must be
+ * listed in the project's own ts/jsconfig to be type-checked. No-op before Kit 3.
+ */
+export function addToTypeConfigInclude(opts: {
+	sv: SvApi;
+	cwd: string;
+	language: 'ts' | 'js';
+	kitVersion: string | undefined;
+	entry: string;
+}): void {
+	if (!isKit3(opts.kitVersion)) return;
+
+	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+	if (!fileExists(opts.cwd, configFile)) return;
+
+	opts.sv.file(
+		configFile,
+		transforms.json(({ data }) => {
+			const include: string[] = (data.include ??= ['src']);
+			if (!include.includes(opts.entry)) include.push(opts.entry);
+		})
+	);
 }

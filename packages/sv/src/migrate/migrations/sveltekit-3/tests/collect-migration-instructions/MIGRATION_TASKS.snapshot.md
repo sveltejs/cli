@@ -28,7 +28,7 @@ Create a mutable copy with `new URL(page.url.href)`, mutate that copy, and use i
 
 #### References
 
-- [Migrating to SvelteKit v3](https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3#$app-state-page.url-is-now-readonly)
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#$app-state-page.url-is-now-readonly)
 
 #### Files to review
 
@@ -44,7 +44,19 @@ If you rely on cross-origin access to static assets in dev, configure it in your
 
 #### References
 
-- [Migrating to SvelteKit v3](https://next.svelte.dev/docs/kit/migrating-to-sveltekit-3#Security-CORS-for-static-assets-in-development-is-handled-by-Vite)
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Security-CORS-for-static-assets-in-development-is-handled-by-Vite)
+
+### Move adapter-node `ORIGIN` to `paths.origin`
+
+The adapter-node `ORIGIN` environment variable is removed.
+
+#### What to do
+
+Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and move the public-facing origin to `paths.origin` in `sveltekit(...)`. Do not delete `ORIGIN`: it is ignored by adapter-node now and may have other uses.
+
+#### References
+
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Adapters-adapter-node)
 
 ## Final verification
 

@@ -11,14 +11,18 @@ import {
 	createPrinter,
 	type TransformFn,
 	coerceVersion,
+	defineDemoPage,
 	defineEnv
 } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
-import { addToDemoPage } from './common.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
+import { ADDON_IDS } from './ids.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
-const options = defineAddonOptions()
+export type BetterAuthOptions = { demo: Array<'password' | 'github'> };
+
+const options = defineAddonOptions<BetterAuthOptions>()
 	.add('demo', {
 		question: 'Which demo would you like to include?',
 		type: 'multiselect',
@@ -31,18 +35,18 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
-	id: 'better-auth',
+const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon({
+	id: ADDON_IDS.betterAuth,
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
 	options,
 	setup: ({ isKit, dependencyVersion, unsupported, dependsOn, runsAfter }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
-		if (!dependencyVersion('drizzle-orm')) dependsOn('drizzle');
+		if (!dependencyVersion('drizzle-orm')) dependsOn(ADDON_IDS.drizzle);
 
-		runsAfter('sveltekitAdapter');
-		runsAfter('tailwindcss');
-		runsAfter('experimental');
+		runsAfter(ADDON_IDS.sveltekitAdapter);
+		runsAfter(ADDON_IDS.tailwindcss);
+		runsAfter(ADDON_IDS.experimental);
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
@@ -333,21 +337,21 @@ export default defineAddon({
 		);
 
 		if (hasDemo) {
-			sv.file(`${directory.kitRoutes}/demo/+page.svelte`, addToDemoPage('better-auth', language));
+			const demo = defineDemoPage('better-auth', language, directory.kitRoutes);
+			sv.file(...demo.links);
+			sv.file(...demo.layout);
 
-			sv.file(
-				`${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`,
-				(content) => {
-					if (content) {
-						const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.server.${language}`;
-						log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
-						return false;
-					}
+			sv.file(`${demo.addonPath}/login/+page.server.${language}`, (content) => {
+				if (content) {
+					const filePath = `${demo.addonPath}/login/+page.server.${language}`;
+					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
+					return false;
+				}
 
-					const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
+				const d1AuthLine = d1 ? '\n\t\t\t\t\t\t\tconst { auth } = event.locals;\n' : '';
 
-					const signInEmailAction = demoPassword
-						? `
+				const signInEmailAction = demoPassword
+					? `
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const email = parseEntry(formData.get('email'));
@@ -394,10 +398,10 @@ export default defineAddon({
 
 							return redirect(302, '/demo/better-auth');
 						},`
-						: '';
+					: '';
 
-					const signInSocialAction = demoGithub
-						? `
+				const signInSocialAction = demoGithub
+					? `
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
 							const provider = parseEntry(formData.get('provider')) || 'github';
@@ -415,11 +419,11 @@ export default defineAddon({
 							}
 							return fail(400, { message: 'Social sign-in failed' });
 						},`
-						: '';
+					: '';
 
-					const needsAPIError = demoPassword;
+				const needsAPIError = demoPassword;
 
-					return dedent`
+				return dedent`
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
@@ -439,12 +443,11 @@ export default defineAddon({
 					export const actions${ts(': Actions')} = {${signInEmailAction}${signInSocialAction}
 					};
 				`;
-				}
-			);
+			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/login/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/login/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/login/+page.svelte`;
+					const filePath = `${demo.addonPath}/login/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -503,9 +506,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.server.${language}`, (content) => {
+			sv.file(`${demo.addonPath}/+page.server.${language}`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.server.${language}`;
+					const filePath = `${demo.addonPath}/+page.server.${language}`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -535,9 +538,9 @@ export default defineAddon({
 				`;
 			});
 
-			sv.file(`${directory.kitRoutes}/demo/better-auth/+page.svelte`, (content) => {
+			sv.file(`${demo.addonPath}/+page.svelte`, (content) => {
 				if (content) {
-					const filePath = `${directory.kitRoutes}/demo/better-auth/+page.svelte`;
+					const filePath = `${demo.addonPath}/+page.svelte`;
 					log.warn(`Existing ${color.warning(filePath)} file. Could not update.`);
 					return false;
 				}
@@ -581,6 +584,8 @@ export default defineAddon({
 		return steps;
 	}
 });
+
+export default addon;
 type GenerateEnv = (demoGithub: boolean, isExample: boolean) => TransformFn;
 const generateEnv: GenerateEnv = (demoGithub, isExample) =>
 	transforms.text(({ content, text }) => {

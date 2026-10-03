@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { LayoutProps } from './$types';
 	import Header from './Header.svelte';
 	import './layout.css';
 	import type { LayoutProps } from './$types';
