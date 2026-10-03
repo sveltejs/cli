@@ -150,9 +150,10 @@ describe('dependency package-manager settings', () => {
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
 		const yaml = parse.yaml(fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')).data;
+		const catalog = yaml.get('catalog') as { get(key: string): unknown };
 		expect(result.installNeeded).toBe(true);
 		expect(pkg.devDependencies.foo).toBe('catalog:');
-		expect(yaml.getIn(['catalog', 'foo'])).toBe('2.0.0');
+		expect(catalog.get('foo')).toBe('2.0.0');
 	});
 
 	it('keeps named catalog references and updates the named catalog', async () => {
@@ -179,8 +180,10 @@ describe('dependency package-manager settings', () => {
 
 		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
 		const yaml = parse.yaml(fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')).data;
+		const catalogs = yaml.get('catalogs') as { get(key: string): unknown };
+		const frontend = catalogs.get('frontend') as { get(key: string): unknown };
 		expect(pkg.devDependencies.foo).toBe('catalog:frontend');
-		expect(yaml.getIn(['catalogs', 'frontend', 'foo'])).toBe('^2.0.0');
+		expect(frontend.get('foo')).toBe('^2.0.0');
 	});
 });
 
