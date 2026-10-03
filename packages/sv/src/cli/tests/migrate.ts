@@ -31,6 +31,7 @@ const selectableTasks: TaskWithOptions[] = [
 ];
 
 function mockExit() {
+	vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 	vi.spyOn(process, 'exit').mockImplementation(((code: string | number | null | undefined) => {
 		throw new Error(`exit ${code}`);
 	}) as never);
