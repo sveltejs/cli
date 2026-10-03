@@ -6,10 +6,6 @@ import { defineMigrationTask } from '../../../index.ts';
 const LIB_ALIAS = /(?<=['"`])\$lib(\/(.+)['"`]|['"`])/g;
 const STYLE_TAG = /(<style\b[^>]*>)([\s\S]*?)(<\/style\s*>)/gi;
 
-function libSubpathImports(libDir: string): Record<string, string> {
-	return { '#lib': `./${libDir}/index.js`, '#lib/*': `./${libDir}/*` };
-}
-
 export default defineMigrationTask({
 	id: 'lib-alias',
 	description: 'Replace the $lib alias with #lib subpath imports',
@@ -17,7 +13,14 @@ export default defineMigrationTask({
 		sv.file(
 			'package.json',
 			transforms.json(({ data }) => {
-				data.imports = { ...libSubpathImports(directory.lib), ...data.imports };
+				data.imports = { '#lib/*': `./${directory.lib}/*`, ...data.imports };
+
+				for (const index of ['index.js', 'index.ts']) {
+					if (fs.existsSync(path.join(cwd, directory.lib, index))) {
+						data.imports = { '#lib': `./${directory.lib}/${index}` };
+						break;
+					}
+				}
 			})
 		);
 
@@ -44,7 +47,7 @@ export default defineMigrationTask({
 						// Add explicit file extensions
 						if (import_path && !import_path.endsWith('.js') && !import_path.endsWith('.ts')) {
 							for (const ending of ['.js', '.ts', '/index.js', '/index.ts']) {
-								if (fs.existsSync(`${cwd}/${directory.lib}/${import_path}${ending}`)) {
+								if (fs.existsSync(path.join(cwd, directory.lib, import_path + ending))) {
 									// By default TS wants .js file endings even if it's actually a .ts file
 									return match.slice(0, -1) + ending.replace('.ts', '.js') + match.slice(-1);
 								}
