@@ -241,7 +241,7 @@ export function addToTypeConfigType(opts: {
 			data.compilerOptions.types ??= [];
 			const types: string[] = data.compilerOptions.types;
 			if (!types.includes(opts.entry)) types.push(opts.entry);
-			if (!isKit3(opts.kitVersion) && !types.includes('$app/types')) types.unshift('$app/types');
+			if (isKit3(opts.kitVersion) && !types.includes('$app/types')) types.unshift('$app/types');
 		})
 	);
 }
