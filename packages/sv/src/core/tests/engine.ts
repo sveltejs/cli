@@ -186,4 +186,3 @@ describe('dependency package-manager settings', () => {
 		expect(frontend.get('foo')).toBe('^2.0.0');
 	});
 });
-
