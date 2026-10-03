@@ -6,6 +6,8 @@ import {
 	fileExists,
 	isRangeWithin,
 	loadFile,
+	minVersion,
+	parse,
 	saveFile,
 	resolveCommand,
 	type AgentName,
@@ -28,7 +30,7 @@ import {
 } from './config.ts';
 import { TESTING } from './env.ts';
 import type { Question } from './options.ts';
-import { createWorkspace, type Workspace } from './workspace.ts';
+import { createWorkspace, findWorkspaceRoot, type Workspace } from './workspace.ts';
 
 function alphabetizeRecord(obj: Record<string, string>) {
 	const ordered: Record<string, string> = {};
@@ -38,12 +40,145 @@ function alphabetizeRecord(obj: Record<string, string>) {
 	return ordered;
 }
 
+type DependencyUpdate = { pkg: string; version: string; dev: boolean };
+type CatalogUpdate = { pkg: string; version: string; catalog: string };
+
+function isRangeWithinSafe(declared: string, requested: string): boolean {
+	try {
+		return isRangeWithin(declared, requested);
+	} catch {
+		return false;
+	}
+}
+
+function readNpmrcSaveExact(cwd: string, workspaceRoot: string): boolean | undefined {
+	let directory = path.resolve(cwd);
+	const root = path.resolve(workspaceRoot);
+
+	while (true) {
+		const npmrc = path.join(directory, '.npmrc');
+		if (fs.existsSync(npmrc)) {
+			const match = fs
+				.readFileSync(npmrc, 'utf8')
+				.match(/^\s*save-exact\s*=\s*(true|false)\s*$/im);
+			if (match) return match[1] === 'true';
+		}
+
+		if (directory === root) break;
+		const parent = path.dirname(directory);
+		if (parent === directory) break;
+		directory = parent;
+	}
+
+	return undefined;
+}
+
+function shouldSaveExact(workspace: Workspace): boolean {
+	const workspaceRoot = findWorkspaceRoot(workspace.cwd);
+
+	if (workspace.packageManager === 'pnpm') {
+		const workspaceConfig = path.join(workspaceRoot, 'pnpm-workspace.yaml');
+		if (fs.existsSync(workspaceConfig)) {
+			const saveExact = parse
+				.yaml(fs.readFileSync(workspaceConfig, 'utf8'))
+				.data.get('saveExact');
+			if (typeof saveExact === 'boolean') return saveExact;
+		}
+	}
+
+	if (workspace.packageManager === 'pnpm' || workspace.packageManager === 'npm') {
+		return readNpmrcSaveExact(workspace.cwd, workspaceRoot) ?? false;
+	}
+
+	return false;
+}
+
+function applySaveExact(version: string, saveExact: boolean): string {
+	if (!saveExact) return version;
+	try {
+		return minVersion(version);
+	} catch {
+		return version;
+	}
+}
+
+function catalogName(specifier: string | undefined): string | undefined {
+	if (!specifier?.startsWith('catalog:')) return undefined;
+	return specifier.slice('catalog:'.length) || 'default';
+}
+
+function updatePnpmCatalogs(
+	updates: CatalogUpdate[],
+	sv: SvApi,
+	workspace: Workspace,
+	saveExact: boolean
+): boolean {
+	if (updates.length === 0) return false;
+
+	const workspaceRoot = findWorkspaceRoot(workspace.cwd);
+	const workspaceConfig = path.join(workspaceRoot, 'pnpm-workspace.yaml');
+	if (!fs.existsSync(workspaceConfig)) {
+		throw new Error("Cannot update a 'catalog:' dependency without 'pnpm-workspace.yaml'");
+	}
+
+	const relativeConfig = path.relative(workspace.cwd, workspaceConfig);
+	let changed = false;
+	sv.file(
+		relativeConfig,
+		transforms.yaml(({ data }) => {
+			let fileChanged = false;
+			for (const { pkg, version, catalog } of updates) {
+				const yamlPath =
+					catalog === 'default' ? ['catalog', pkg] : ['catalogs', catalog, pkg];
+				const declared = data.getIn(yamlPath);
+				if (
+					typeof declared === 'string' &&
+					isRangeWithinSafe(declared, version)
+				) {
+					continue;
+				}
+
+				data.setIn(yamlPath, applySaveExact(version, saveExact));
+				fileChanged = true;
+			}
+
+			if (!fileChanged) return false;
+			changed = true;
+		})
+	);
+
+	return changed;
+}
+
 function updatePackages(
-	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	sv: SvApi
+	dependencies: DependencyUpdate[],
+	sv: SvApi,
+	workspace: Workspace
 ): { installNeeded: boolean } {
 	let installNeeded = false;
 	if (dependencies.length === 0) return { installNeeded };
+
+	const saveExact = shouldSaveExact(workspace);
+	const currentPackage = loadPackageJson(workspace.cwd).data;
+	const packageUpdates: DependencyUpdate[] = [];
+	const catalogUpdates: CatalogUpdate[] = [];
+
+	for (const update of dependencies) {
+		const dependency = update.dev ? 'devDependencies' : 'dependencies';
+		const declared = currentPackage[dependency]?.[update.pkg];
+		const catalog = workspace.packageManager === 'pnpm' ? catalogName(declared) : undefined;
+		if (catalog) {
+			catalogUpdates.push({ ...update, catalog });
+		} else {
+			packageUpdates.push(update);
+		}
+	}
+
+	if (updatePnpmCatalogs(catalogUpdates, sv, workspace, saveExact)) {
+		installNeeded = true;
+	}
+
+	if (packageUpdates.length === 0) return { installNeeded };
 
 	const pkgPath = filePaths.packageJson;
 	sv.file(
@@ -51,20 +186,22 @@ function updatePackages(
 		transforms.json<Package>(({ content, data }) => {
 			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
-			for (const { dev, pkg, version } of dependencies) {
+			let packageChanged = false;
+			for (const { dev, pkg, version } of packageUpdates) {
 				const dependency = dev ? 'devDependencies' : 'dependencies';
 				data[dependency] ??= {};
 
 				// keep a stricter existing range (e.g. `^9.2.0` when the add-on asks for `^9.0.0`)
 				const declared = data[dependency][pkg];
-				if (declared && isRangeWithin(declared, version)) continue;
+				if (declared && isRangeWithinSafe(declared, version)) continue;
 
-				installNeeded = true;
-				data[dependency][pkg] = version;
+				packageChanged = true;
+				data[dependency][pkg] = applySaveExact(version, saveExact);
 			}
 
-			if (!installNeeded) return false; // do not edit the file if no changes were made
+			if (!packageChanged) return false;
 
+			installNeeded = true;
 			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
 			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
 		})
@@ -433,7 +570,7 @@ export function prepareSvApi(
 	return {
 		sv,
 		finalize: () => {
-			const { installNeeded } = updatePackages(dependencies, sv);
+			const { installNeeded } = updatePackages(dependencies, sv, workspace);
 
 			return {
 				modifiedFiles,
