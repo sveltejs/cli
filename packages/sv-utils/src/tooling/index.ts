@@ -21,11 +21,20 @@ export type {
 	TsEstree as AstTypes
 };
 
+const SCRIPT_CLOSING_TAG_PLACEHOLDER = '__SV_SCRIPT_CLOSING_TAG_PLACEHOLDER__';
+const SCRIPT_TEXT_REGEX =
+	/\/\/[^\r\n]*|\/\*[\s\S]*?\*\/|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`/g;
+
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
 	comments: Comments;
 } {
-	const ast = parseSvelte(`<script lang="ts">${content}</script>`);
+	// Svelte parses this JS/TS inside a <script> wrapper, so a closing tag in a comment or string stops parsing early.
+	// Temporarily replace the complete token; serializeScript restores it after printing.
+	const safeContent = content.replace(SCRIPT_TEXT_REGEX, (text) =>
+		text.replace(/<\/script>/g, SCRIPT_CLOSING_TAG_PLACEHOLDER)
+	);
+	const ast = parseSvelte(`<script lang="ts">${safeContent}</script>`);
 	ensureScript(ast);
 
 	const comments = new Comments();
@@ -60,9 +69,8 @@ export function serializeScript(
 			indent: guessIndentString(previousContent)
 		}
 	);
-	return code;
+	return code.replaceAll(SCRIPT_CLOSING_TAG_PLACEHOLDER, '</script>');
 }
-
 export function parseCss(content: string): SvelteAst.CSS.StyleSheetBase {
 	return svelteParseCss(content);
 }

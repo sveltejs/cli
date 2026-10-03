@@ -186,6 +186,20 @@ test('integration - preserves comments', () => {
 	`);
 });
 
+test('integration - preserves script closing tags in comments and strings', () => {
+	const code = dedent`
+		// Ignore </script> in this comment
+		const quoted = '</script>';
+		const templated = \`</script>\`;
+	`;
+	const { ast, comments } = parseScript(code);
+	const output = serializeScript(ast, comments, code);
+
+	expect(output).toContain('// Ignore </script> in this comment');
+	expect(output).toContain("const quoted = '</script>';");
+	expect(output).toContain('const templated = `</script>`;');
+});
+
 test('integration - removes comments', () => {
 	const code = dedent`
 		let foo = {
