@@ -88,7 +88,6 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 		sv.devDependency(adapter.package, adapter.version);
 
 		if (options.adapter === 'node') {
-			// the adapter's ambient types import `node:http`
 			sv.devDependency('@types/node', getNodeTypesVersion());
 			addToTypeConfigType({
 				sv,
