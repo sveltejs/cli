@@ -24,8 +24,9 @@ export type Workspace = {
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
-		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
-		/** `${directory.routes}/layout.css` or `src/app.css` */
+		/** @type {string} absolute path */
+		typeConfig: `${string}/jsconfig.json` | `${string}/tsconfig.json` | undefined;
+		/** `${directory.kitRoutes}/layout.css` or `src/app.css` */
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
