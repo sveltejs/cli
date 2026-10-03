@@ -42,6 +42,24 @@ function alphabetizeRecord(obj: Record<string, string>) {
 
 type DependencyUpdate = { pkg: string; version: string; dev: boolean };
 type CatalogUpdate = { pkg: string; version: string; catalog: string };
+type YamlMapLike = {
+	get(key: string): unknown;
+	set(key: string, value: unknown): void;
+};
+
+function asYamlMap(value: unknown, path: string): YamlMapLike {
+	if (
+		!value ||
+		typeof value !== 'object' ||
+		!('get' in value) ||
+		typeof value.get !== 'function' ||
+		!('set' in value) ||
+		typeof value.set !== 'function'
+	) {
+		throw new Error(`Invalid pnpm catalog configuration at '${path}'`);
+	}
+	return value as YamlMapLike;
+}
 
 function isRangeWithinSafe(declared: string, requested: string): boolean {
 	try {
@@ -128,9 +146,14 @@ function updatePnpmCatalogs(
 		transforms.yaml(({ data }) => {
 			let fileChanged = false;
 			for (const { pkg, version, catalog } of updates) {
-				const yamlPath =
-					catalog === 'default' ? ['catalog', pkg] : ['catalogs', catalog, pkg];
-				const declared = data.getIn(yamlPath);
+				const catalogMap =
+					catalog === 'default'
+						? asYamlMap(data.get('catalog'), 'catalog')
+						: asYamlMap(
+								asYamlMap(data.get('catalogs'), 'catalogs').get(catalog),
+								`catalogs.${catalog}`
+							);
+				const declared = catalogMap.get(pkg);
 				if (
 					typeof declared === 'string' &&
 					isRangeWithinSafe(declared, version)
@@ -138,7 +161,7 @@ function updatePnpmCatalogs(
 					continue;
 				}
 
-				data.setIn(yamlPath, applySaveExact(version, saveExact));
+				catalogMap.set(pkg, applySaveExact(version, saveExact));
 				fileChanged = true;
 			}
 
