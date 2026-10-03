@@ -6,6 +6,7 @@ import {
 	fileExists,
 	isRangeWithin,
 	loadFile,
+	loadPackageJson,
 	minVersion,
 	parse,
 	saveFile,
