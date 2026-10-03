@@ -130,7 +130,10 @@ const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 		}
 		sv.devDependency('drizzle-orm', '^0.45.2');
 		sv.devDependency('drizzle-kit', '^0.31.10');
+
+		// the `drizzle.config.${language}` reads `process.env` (and may use `node:sqlite`)
 		sv.devDependency('@types/node', getNodeTypesVersion());
+		addToTypeConfigType({ sv, cwd, language, entry: 'node' });
 
 		// MySQL
 		if (options.mysql === 'mysql2') sv.devDependency('mysql2', '^3.22.4');
@@ -312,13 +315,9 @@ const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 			})
 		);
 
-		const kitVersion = dependencyVersion('@sveltejs/kit');
-
-		// the `drizzle.config.${language}` reads `process.env` (and may use `node:sqlite`)
-		addToTypeConfigType({ sv, cwd, language, entry: 'node' });
-
 		// kit 3 dropped the `typescript.config` hook's `include` (and deprecates the hook itself),
 		// so the project's own ts/jsconfig has to cover the drizzle config
+		const kitVersion = dependencyVersion('@sveltejs/kit');
 		if (isKit3(kitVersion)) {
 			addToTypeConfigInclude({
 				sv,
