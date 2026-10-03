@@ -6,7 +6,8 @@ import {
 	loadPackageJson,
 	sanitizeName,
 	pnpm,
-	svelteConfig
+	svelteConfig,
+	KIT3_TSCONFIG
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
@@ -200,8 +201,13 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 					file.typeConfig,
 					transforms.json(({ data }) => {
 						data.compilerOptions ??= {};
-						data.compilerOptions.types ??= [];
-						data.compilerOptions.types.push('./worker-configuration.d.ts');
+						const types: string[] = (data.compilerOptions.types ??= []);
+						if (!types.includes('./worker-configuration.d.ts')) {
+							types.push('./worker-configuration.d.ts');
+						}
+						// a child `types` replaces the one from `$app/tsconfig`, so `$app/types` must be re-added
+						const kit3 = [data.extends].flat().includes(KIT3_TSCONFIG);
+						if (kit3 && !types.includes('$app/types')) types.unshift('$app/types');
 					})
 				);
 

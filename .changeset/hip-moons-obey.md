@@ -2,4 +2,4 @@
 "sv": patch
 ---
 
-breaking: key `officialAddons` by add-on id (`sveltekitAdapter` -> `'sveltekit-adapter'`, `betterAuth` -> `'better-auth'`, `aiTools` -> `'ai-tools'`). This fixes `runsAfter('sveltekitAdapter')` silently doing nothing. `dependsOn`/`runsAfter` now also accept community add-on ids, which must be part of the same command.
+fix: Add-on ordering through the API now works with official and community add-ons. Key `officialAddons` by add-on id, using `'sveltekit-adapter'`, `'better-auth'`, and `'ai-tools'` instead of `sveltekitAdapter`, `betterAuth`, and `aiTools`. `dependsOn` and `runsAfter` also accept community add-on ids when those add-ons are included in the same command. The CLI interface is unchanged.

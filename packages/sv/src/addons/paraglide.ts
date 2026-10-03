@@ -193,6 +193,8 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 			})
 		);
 
+		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
+
 		sv.file(
 			'project.inlang/settings.json',
 			transforms.json(({ data }) => {
@@ -201,7 +203,6 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 				for (const key in DEFAULT_INLANG_PROJECT) {
 					data[key] = DEFAULT_INLANG_PROJECT[key as keyof typeof DEFAULT_INLANG_PROJECT];
 				}
-				const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 				const baseLocale = validLanguageTags[0];
 
 				data.baseLocale = baseLocale;
@@ -263,7 +264,6 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 
 					// add links to other localized pages, the first one is the default
 					// language, thus it does not require any localized route
-					const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 					const links = validLanguageTags
 						.map((x) => `<button onclick={() => setLocale('${x}')}>${x}</button>`)
 						.join('');
@@ -277,7 +277,6 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 			);
 		}
 
-		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
 		for (const languageTag of validLanguageTags) {
 			sv.file(
 				`messages/${languageTag}.json`,
@@ -289,11 +288,12 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 		}
 	},
 
-	nextSteps: () =>
-		[
-			`Edit your messages in ${color.path('messages/en.json')}`,
+	nextSteps: ({ options }) => {
+		return [
+			`Edit your messages in ${color.path(DEFAULT_INLANG_PROJECT['plugin.inlang.messageFormat'].pathPattern)}`,
 			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
-		].filter((line): line is string => Boolean(line))
+		].filter((line): line is string => Boolean(line));
+	}
 });
 
 export default addon;
@@ -308,11 +308,13 @@ function parseLanguageTagInput(input: string): {
 	validLanguageTags: string[];
 	invalidLanguageTags: string[];
 } {
-	const probablyLanguageTags = input
-		.replace(/[,:\s]/g, ' ') // replace common separators with spaces
-		.split(' ')
-		.filter(Boolean) // remove empty segments
-		.map((tag) => tag.toLowerCase());
+	const probablyLanguageTags = new Set(
+		input
+			.replace(/[,\s:]/g, ' ') // replace common separators with spaces
+			.split(' ')
+			.filter(Boolean) // remove empty segments
+			.map((tag) => tag.toLowerCase())
+	);
 
 	const validLanguageTags: string[] = [];
 	const invalidLanguageTags: string[] = [];
