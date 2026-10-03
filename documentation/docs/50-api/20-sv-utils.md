@@ -292,6 +292,29 @@ if (packageManager === 'pnpm') {
 }
 ```
 
+## Demo pages
+
+### `defineDemoPage`
+
+Wires an add-on demo into a SvelteKit project. Every demo is listed in a floating `DemoLinks` post-it rendered from the root layout, whatever the template. It returns the pieces you spread into `sv.file()`:
+
+```js
+// @noErrors
+import { defineDemoPage } from '@sveltejs/sv-utils';
+
+const demo = defineDemoPage('my-addon', language, directory.kitRoutes);
+
+sv.file(...demo.links); // adds `/demo/my-addon` to `<routes>/demo/DemoLinks.svelte`
+sv.file(...demo.layout); // renders `<DemoLinks />` in `<routes>/+layout.svelte`
+sv.file(`${demo.addonPath}/+page.svelte` /* your demo route */);
+```
+
+- **`addonPath`** - `<routes>/demo/<name>`, where your own demo route belongs.
+- **`links`** - a `[path, transform]` pair for `<routes>/demo/DemoLinks.svelte` (created if missing).
+- **`layout`** - a `[path, transform]` pair for `<routes>/+layout.svelte` (created if missing).
+
+Both transforms are idempotent, so re-running an add-on won't duplicate entries. Only call them when the user asked for a demo (e.g. a `demo` option), so projects without demos don't get the post-it. To opt out, delete `DemoLinks.svelte` and its usage in the layout.
+
 ## Browser usage
 
 The package root pulls in Node-only APIs (file system, package manager detection, shell lookups, terminal colors). For browser bundles - in-browser playgrounds, sandboxes, ... - import `@sveltejs/sv-utils/browser` instead, which exposes the environment-agnostic subset: `parse`, `transforms`, the language namespaces (`js`, `svelte`, `css`, `html`, `json`, `text`), `Walker`, `dedent`, the version helpers, `sanitizeName`, `minimizeDiff`, `createPrinter` and `downloadJson`.
