@@ -124,6 +124,7 @@ function migrateMatcher(
 	const importDeclarations: Array<{ declaration: AstTypes.ImportDeclaration; source: string }> = [];
 	const body: AstTypes.Program['body'] = [];
 	const paramMatcherTypes = new Set(['ParamMatcher']);
+	const typescript = target.endsWith('.ts');
 	let declaresMatch = false;
 	let exportsMatch = false;
 
@@ -172,7 +173,7 @@ function migrateMatcher(
 
 		if (statement.type === 'ExportNamedDeclaration') {
 			if (statement.declaration) {
-				stripParamMatcherType(statement.declaration, paramMatcherTypes);
+				stripParamMatcherType(statement.declaration, paramMatcherTypes, typescript);
 				if (declares(statement.declaration, 'match')) {
 					declaresMatch = true;
 					exportsMatch = true;
@@ -187,7 +188,7 @@ function migrateMatcher(
 			continue;
 		}
 
-		stripParamMatcherType(statement, paramMatcherTypes);
+		stripParamMatcherType(statement, paramMatcherTypes, typescript);
 		declaresMatch ||= declares(statement, 'match');
 		body.push(statement);
 	}
@@ -346,8 +347,13 @@ function generateImportCode(context: ModuleContext): string[] {
 
 function stripParamMatcherType(
 	node: AstTypes.Program['body'][number],
-	paramMatcherTypes: Set<string>
+	paramMatcherTypes: Set<string>,
+	typescript: boolean
 ): void {
+	if (node.type === 'FunctionDeclaration') {
+		if (typescript && node.id?.name === 'match') annotateParam(node);
+		return;
+	}
 	if (node.type !== 'VariableDeclaration') return;
 
 	const declaration = node.declarations.find(
@@ -373,6 +379,26 @@ function stripParamMatcherType(
 	) {
 		declaration.init = declaration.init.expression;
 	}
+
+	// the `ParamMatcher` annotation was the only source of the parameter type
+	if (typescript) annotateParam(declaration.init);
+}
+
+function annotateParam(init: AstTypes.Node | null | undefined): void {
+	if (
+		init?.type !== 'ArrowFunctionExpression' &&
+		init?.type !== 'FunctionExpression' &&
+		init?.type !== 'FunctionDeclaration'
+	)
+		return;
+
+	const [param] = init.params;
+	if (param?.type !== 'Identifier' || param.typeAnnotation) return;
+
+	param.typeAnnotation = {
+		type: 'TSTypeAnnotation',
+		typeAnnotation: { type: 'TSStringKeyword' }
+	} as never;
 }
 
 function stripParamMatcherComments(content: string): string {
