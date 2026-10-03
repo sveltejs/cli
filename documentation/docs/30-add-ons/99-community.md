@@ -146,7 +146,7 @@ export default setupGlobal({ TEST_DIR });
 
 Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
 
-Keep [`@sveltejs/sv-utils`](sv-utils) bundled (the template does): most breaking changes land there. Unbundled, your add-on runs against whatever copy `sv` ships. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
+[`@sveltejs/sv-utils`](sv-utils) is bundled as well to pin its version. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
 
 ### `package.json`
 
