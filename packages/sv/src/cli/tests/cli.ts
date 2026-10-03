@@ -36,7 +36,7 @@ describe('cli', () => {
 				'prettier',
 				'eslint',
 				'vitest=usages:unit,component',
-				'playwright',
+				'playwright=demo:yes',
 				'tailwindcss=plugins:typography,forms',
 				'sveltekit-adapter=adapter:node',
 				'drizzle=database:sqlite+sqlite:libsql',

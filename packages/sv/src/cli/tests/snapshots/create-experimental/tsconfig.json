@@ -3,8 +3,8 @@
 	"compilerOptions": {
 		"strict": true,
 		"types": [
-			"./worker-configuration.d.ts",
-			"node"
+			"$app/types",
+			"./worker-configuration.d.ts"
 		]
 	},
 	"include": [

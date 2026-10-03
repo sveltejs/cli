@@ -87,7 +87,7 @@ export default defineMigrationTask({
 				// if types is set we need to add $app/types to it
 				if (data.compilerOptions?.types) {
 					const types = data.compilerOptions.types as string[];
-					if (!types.includes('$app/types')) types.push('$app/types');
+					if (!types.includes('$app/types')) types.unshift('$app/types');
 				}
 
 				for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
