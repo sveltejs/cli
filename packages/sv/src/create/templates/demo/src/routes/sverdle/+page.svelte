@@ -2,13 +2,16 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { confetti } from '@neoconfetti/svelte';
-	import { prefersReducedMotion } from 'svelte/motion';
+	import { MediaQuery } from 'svelte/reactivity';
 	import type { PageProps } from './$types';
 
 	/**
 	 * @type {import('./$types').PageProps}
 	 */
 	let { data }: PageProps = $props();
+
+	/** Whether the user prefers reduced motion */
+	const reducedMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
 
 	let shake = $state(false);
 
@@ -194,7 +197,7 @@
 	<div
 		style="position: absolute; left: 50%; top: 30%"
 		use:confetti={{
-			particleCount: prefersReducedMotion.current ? 0 : undefined,
+			particleCount: reducedMotion.current ? 0 : undefined,
 			force: 0.7,
 			stageWidth: window.innerWidth,
 			stageHeight: window.innerHeight,

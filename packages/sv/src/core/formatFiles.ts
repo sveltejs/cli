@@ -4,8 +4,7 @@ import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import * as resolve from 'empathic/resolve';
 import * as walk from 'empathic/walk';
-import { exec, NonZeroExitError } from 'tinyexec';
-import { isNodeError } from './common.js';
+import { exec } from 'tinyexec';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
@@ -114,14 +113,12 @@ async function run(
 		await exec(command, args, { nodeOptions: { cwd, stdio: 'pipe' }, throwOnError: true });
 		return {};
 	} catch (e) {
-		if (e instanceof NonZeroExitError) {
-			// failures can land on either stream, so report both
-			const { stdout, stderr } = e.output ?? {};
-			const message = [stderr, stdout].filter(Boolean).join('\n').trim();
-			return { error: message };
-		}
-		if (!isNodeError(e)) return { error: 'unknown error' };
-		if (e.code === 'ENOENT') return { notFound: true, error: `${command} not found` };
-		return { error: e.message };
+		// @ts-expect-error tinyexec rethrows the spawn error as-is
+		if (e?.code === 'ENOENT') return { notFound: true, error: `${command} not found` };
+		// @ts-expect-error `output` is only present on tinyexec's `NonZeroExitError`
+		const output = e?.output as { stderr?: string; stdout?: string } | undefined;
+		// failures can land on either stream, so report both
+		const message = [output?.stderr, output?.stdout].filter(Boolean).join('\n').trim();
+		return { error: message || (e instanceof Error ? e.message : 'unknown error') };
 	}
 }
