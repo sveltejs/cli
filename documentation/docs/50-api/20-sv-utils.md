@@ -9,7 +9,7 @@ npm install -D @sveltejs/sv-utils
 ```
 
 > [!NOTE]
-> We recommend bundling `@sveltejs/sv-utils` in your add-on. Most breaking changes land in `sv-utils`, not `sv`. Without your own copy, your add-on runs against the one shipped with `sv`, which may not be compatible and can break your add-on until you update it. See [bundling](community#Bundling).
+> Bundle `@sveltejs/sv-utils` in your add-on (the [template](community#Quick-start) does). Most breaking changes land here, not in `sv`. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
 
 ## transforms
 

@@ -64,8 +64,6 @@ The CLI is split into two packages with a clear boundary:
 
 This separation means transforms are testable without a workspace and composable across add-ons.
 
-We recommend bundling `@sveltejs/sv-utils` in your add-on: most breaking changes land there, and bundling keeps you on a version you control. See [bundling](#Bundling).
-
 ## Development
 
 You can run your add-on locally using the `file:` protocol:
@@ -148,7 +146,7 @@ export default setupGlobal({ TEST_DIR });
 
 Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
 
-`sv` ships its own copy of [`@sveltejs/sv-utils`](sv-utils), so an add-on that leaves it unbundled will still load. Nothing verifies the version: your add-on runs against whatever `sv` provides, and following its breaking changes is up to you. Bundle it to stay on a version you control.
+Keep [`@sveltejs/sv-utils`](sv-utils) bundled (the template does): most breaking changes land there. Unbundled, your add-on runs against whatever copy `sv` ships. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
 
 ### `package.json`
 
