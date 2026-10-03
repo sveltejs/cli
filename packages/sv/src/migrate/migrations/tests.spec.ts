@@ -143,7 +143,6 @@ test('sveltekit-3 package-json respects monorepo package-manager settings', asyn
 	}
 });
 
-
 /**
  * Some files might be deleted by migrations, but required to test the migration each time.
  * That's why we keep those template files which are copied before each test run

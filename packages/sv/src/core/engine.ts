@@ -157,10 +157,7 @@ function updatePnpmCatalogs(
 								`catalogs.${catalog}`
 							);
 				const declared = catalogMap.get(pkg);
-				if (
-					typeof declared === 'string' &&
-					isRangeWithin(declared, version)
-				) {
+				if (typeof declared === 'string' && isRangeWithin(declared, version)) {
 					continue;
 				}
 
