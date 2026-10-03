@@ -127,7 +127,7 @@ type Workspace = {
 	language: 'ts' | 'js';
 	file: {
 		viteConfig: 'vite.config.js' | 'vite.config.ts';
-		typeConfig: `${string}/jsconfig.json` | `${string}/tsconfig.json` | undefined;
+		typeConfig: `${string}jsconfig.json` | `${string}tsconfig.json` | undefined;
 		stylesheet: `${string}/layout.css` | 'src/app.css';
 		package: 'package.json';
 		gitignore: '.gitignore';
