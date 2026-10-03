@@ -21,19 +21,16 @@ export type {
 	TsEstree as AstTypes
 };
 
-const SCRIPT_CLOSING_TAG_PLACEHOLDER = '__SV_SCRIPT_CLOSING_TAG_PLACEHOLDER__';
-const SCRIPT_TEXT_REGEX =
-	/\/\/[^\r\n]*|\/\*[\s\S]*?\*\/|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`/g;
+// same length as `</script`, so AST positions still match the source
+const SCRIPT_CLOSE = '</script';
+const SCRIPT_CLOSE_SAFE = '<_script';
 
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
 	comments: Comments;
 } {
-	// Svelte parses this JS/TS inside a <script> wrapper, so a closing tag in a comment or string stops parsing early.
-	// Temporarily replace the complete token; serializeScript restores it after printing.
-	const safeContent = content.replace(SCRIPT_TEXT_REGEX, (text) =>
-		text.replace(/<\/script>/g, SCRIPT_CLOSING_TAG_PLACEHOLDER)
-	);
+	// parsed inside a <script> wrapper, so any `</script` (only valid in strings/comments) would close it early
+	const safeContent = content.replaceAll(SCRIPT_CLOSE, SCRIPT_CLOSE_SAFE);
 	const ast = parseSvelte(`<script lang="ts">${safeContent}</script>`);
 	ensureScript(ast);
 
@@ -69,8 +66,9 @@ export function serializeScript(
 			indent: guessIndentString(previousContent)
 		}
 	);
-	return code.replaceAll(SCRIPT_CLOSING_TAG_PLACEHOLDER, '</script>');
+	return code.replaceAll(SCRIPT_CLOSE_SAFE, SCRIPT_CLOSE);
 }
+
 export function parseCss(content: string): SvelteAst.CSS.StyleSheetBase {
 	return svelteParseCss(content);
 }
