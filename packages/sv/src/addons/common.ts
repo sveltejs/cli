@@ -1,6 +1,13 @@
 import process from 'node:process';
 import { log } from '@clack/prompts';
-import { color, fileExists, isKit3, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import {
+	color,
+	fileExists,
+	isKit3,
+	KIT3_TSCONFIG,
+	type TransformFn,
+	transforms
+} from '@sveltejs/sv-utils';
 import type { SvApi } from '../core/config.ts';
 
 // This is in common because the eslint addon installs this version,
@@ -220,15 +227,10 @@ export function addToTypeConfigInclude(opts: {
 	);
 }
 
-/**
- * Add's an entry to `compilerOptions.types`. If the project is Kit 3, this will also ensure
- * `$app/types` is added
- */
 export function addToTypeConfigType(opts: {
 	sv: SvApi;
 	cwd: string;
 	language: 'ts' | 'js';
-	kitVersion: string | undefined;
 	entry: string;
 }): void {
 	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
@@ -241,7 +243,9 @@ export function addToTypeConfigType(opts: {
 			data.compilerOptions.types ??= [];
 			const types: string[] = data.compilerOptions.types;
 			if (!types.includes(opts.entry)) types.push(opts.entry);
-			if (isKit3(opts.kitVersion) && !types.includes('$app/types')) types.unshift('$app/types');
+			// a child `types` replaces the one from `$app/tsconfig`, so `$app/types` must be re-added
+			const extendsAppTsconfig = [data.extends].flat().includes(KIT3_TSCONFIG);
+			if (extendsAppTsconfig && !types.includes('$app/types')) types.unshift('$app/types');
 		})
 	);
 }
