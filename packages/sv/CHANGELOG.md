@@ -456,16 +456,16 @@
 
 
 - feat: decouple sv / sv-utils, explicit public API, deprecation pass ([#1046](https://github.com/sveltejs/cli/pull/1046))
-
+  
   **`@sveltejs/sv-utils`**
-
+  
   - Rename file helpers: `readFile` -> `loadFile`, `writeFile` -> `saveFile`, `getPackageJson` -> `loadPackageJson`
   - Add `pnpm.onlyBuiltDependencies()` transform for `pnpm-workspace.yaml`
   - Export `YamlDocument` type from parsers
   - Remove `commonFilePaths`, `installPackages` (moved internal to `sv`)
-
+  
   **`sv`**
-
+  
   - `create()` signature changed to `create({ cwd, ...options })`. The old `create(cwd, options)` is deprecated and will be removed in the next major release.
   - `sv.pnpmBuildDependency()` is deprecated and will be removed in the next major release. Use `sv.file()` with `pnpm.onlyBuiltDependencies()` from `@sveltejs/sv-utils` instead.
   - `workspace.file.prettierignore`, `.prettierrc`, `.eslintConfig`, `.vscodeSettings`, `.vscodeExtensions` are deprecated and will be removed in the next major release. Use the raw strings directly (e.g. `'.prettierignore'`).
@@ -877,7 +877,7 @@
 
 
 - feat(vitest): update to vitest `4.0` ([#760](https://github.com/sveltejs/cli/pull/760))
-
+  
   - removing `@vitest/browser` in favor of `@vitest/browser-playwright`
   - run browser tests in headless mode
 
@@ -1023,7 +1023,7 @@
 
 
 - feat(cli): rework preconditions: ([#650](https://github.com/sveltejs/cli/pull/650))
-
+  
   - remove `--no-preconditions` option from `sv add`
   - add `--no-git-check` option to `sv add`. With this flag, even if some files are dirty, no prompt will be shown
 
@@ -1046,7 +1046,7 @@
 
 
 - feat: improve minimal template ([#643](https://github.com/sveltejs/cli/pull/643))
-
+  
   - move `favicon.svg` to `src/lib/assets` folder (to show inline/immutable assets)
   - add `static/robots.txt` (to keep static folder)
   - add `routes/+layout.svelte` (to show layout)

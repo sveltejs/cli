@@ -13,7 +13,7 @@
 - feat: allow `js.function.call` to accept AST expression nodes as arguments ([#1232](https://github.com/sveltejs/cli/pull/1232))
 
 - fix(sv-utils): detect pnpm version from the target project, and update `pnpm.allowBuilds` signature. ([#1320](https://github.com/sveltejs/cli/pull/1320))
-
+  
   ```diff
   -pnpm.allowBuilds('sharp')
   +pnpm.allowBuilds({ cwd, packages: ['sharp'] })
@@ -49,7 +49,7 @@
 ### Minor Changes
 
 - fix(sv-utils): detect pnpm version from the target project, and update `pnpm.allowBuilds` signature. ([#1320](https://github.com/sveltejs/cli/pull/1320))
-
+  
   ```diff
   -pnpm.allowBuilds('sharp')
   +pnpm.allowBuilds({ cwd, packages: ['sharp'] })
@@ -181,16 +181,16 @@
 
 
 - feat: decouple sv / sv-utils, explicit public API, deprecation pass ([#1046](https://github.com/sveltejs/cli/pull/1046))
-
+  
   **`@sveltejs/sv-utils`**
-
+  
   - Rename file helpers: `readFile` -> `loadFile`, `writeFile` -> `saveFile`, `getPackageJson` -> `loadPackageJson`
   - Add `pnpm.onlyBuiltDependencies()` transform for `pnpm-workspace.yaml`
   - Export `YamlDocument` type from parsers
   - Remove `commonFilePaths`, `installPackages` (moved internal to `sv`)
-
+  
   **`sv`**
-
+  
   - `create()` signature changed to `create({ cwd, ...options })`. The old `create(cwd, options)` is deprecated and will be removed in the next major release.
   - `sv.pnpmBuildDependency()` is deprecated and will be removed in the next major release. Use `sv.file()` with `pnpm.onlyBuiltDependencies()` from `@sveltejs/sv-utils` instead.
   - `workspace.file.prettierignore`, `.prettierrc`, `.eslintConfig`, `.vscodeSettings`, `.vscodeExtensions` are deprecated and will be removed in the next major release. Use the raw strings directly (e.g. `'.prettierignore'`).

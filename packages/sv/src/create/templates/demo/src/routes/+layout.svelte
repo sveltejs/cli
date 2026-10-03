@@ -2,7 +2,6 @@
 	import type { LayoutProps } from './$types';
 	import Header from './Header.svelte';
 	import './layout.css';
-	import type { LayoutProps } from './$types';
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children }: LayoutProps = $props();
