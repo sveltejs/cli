@@ -48,6 +48,5 @@
 			"version": "^22.18.0",
 			"onFail": "download"
 		}
-	},
-	"packageManager": "pnpm@11.28.3+sha512-1JdgoTsXVZSHdaXUyxvEuocf8tyUGt+FFjDQRO1yL5tb6L5XvvkxZgmMgMcGvWEsKC0FUm3R0K5mAYjAhoIPNQ=="
+	}
 }

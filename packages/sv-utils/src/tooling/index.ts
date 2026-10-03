@@ -21,11 +21,17 @@ export type {
 	TsEstree as AstTypes
 };
 
+// same length as `</script`, so AST positions still match the source
+const SCRIPT_CLOSE = '</script';
+const SCRIPT_CLOSE_SAFE = '<_script';
+
 export function parseScript(content: string): {
 	ast: TsEstree.Program;
 	comments: Comments;
 } {
-	const ast = parseSvelte(`<script lang="ts">${content}</script>`);
+	// parsed inside a <script> wrapper, so any `</script` (only valid in strings/comments) would close it early
+	const safeContent = content.replaceAll(SCRIPT_CLOSE, SCRIPT_CLOSE_SAFE);
+	const ast = parseSvelte(`<script lang="ts">${safeContent}</script>`);
 	ensureScript(ast);
 
 	const comments = new Comments();
@@ -60,7 +66,7 @@ export function serializeScript(
 			indent: guessIndentString(previousContent)
 		}
 	);
-	return code;
+	return code.replaceAll(SCRIPT_CLOSE_SAFE, SCRIPT_CLOSE);
 }
 
 export function parseCss(content: string): SvelteAst.CSS.StyleSheetBase {

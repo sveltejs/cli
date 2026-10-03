@@ -5,6 +5,9 @@
 	},
 	"include": [
 		"src",
+		"vite.config.ts",
+		"playwright.config.ts",
+		"tests",
 		"drizzle.config.ts"
 	]
 }

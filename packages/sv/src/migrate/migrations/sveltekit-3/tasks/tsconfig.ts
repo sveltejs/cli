@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import type { SvApi } from '../../../../core/config.ts';
@@ -31,6 +32,21 @@ const INHERITED_OPTIONS: Record<string, unknown> = {
 	verbatimModuleSyntax: true
 };
 
+/**
+ * Root entries type-checked by the Kit 2 generated config (vite config, `test`, `tests`), plus the
+ * configs `sv create` adds to `include`. Only the ones present in the project are kept.
+ */
+const ROOT_INCLUDES = [
+	'vite.config.ts',
+	'vite.config.js',
+	'drizzle.config.ts',
+	'drizzle.config.js',
+	'playwright.config.ts',
+	'playwright.config.js',
+	'test',
+	'tests'
+];
+
 type TypeConfig = {
 	extends?: string | string[];
 	include?: string[];
@@ -62,13 +78,16 @@ export default defineMigrationTask({
 				}
 
 				// the generated config no longer carries `include`, so the project owns it now
-				const include = (data.include ??= ['src']);
+				const include = (data.include ??= [
+					'src',
+					...ROOT_INCLUDES.filter((entry) => fs.existsSync(path.join(cwd, entry)))
+				]);
 				include.push(...moved.filter((entry) => !include.includes(entry)));
 
 				// if types is set we need to add $app/types to it
 				if (data.compilerOptions?.types) {
 					const types = data.compilerOptions.types as string[];
-					if (!types.includes('$app/types')) types.push('$app/types');
+					if (!types.includes('$app/types')) types.unshift('$app/types');
 				}
 
 				for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {

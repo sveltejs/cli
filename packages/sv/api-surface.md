@@ -350,6 +350,9 @@ type ParaglideOptions = {
 	languageTags: string;
 	demo: boolean;
 };
+type PlaywrightOptions = {
+	demo: boolean;
+};
 type SveltekitAdapterOptions = {
 	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
 	cfTarget: 'workers' | 'pages';
@@ -365,7 +368,7 @@ type OfficialAddons = {
 	[ADDON_IDS.prettier]: Addon<NoOptions, typeof ADDON_IDS.prettier>;
 	[ADDON_IDS.eslint]: Addon<NoOptions, typeof ADDON_IDS.eslint>;
 	[ADDON_IDS.vitest]: Addon<AddonOptions<VitestOptions>, typeof ADDON_IDS.vitest>;
-	[ADDON_IDS.playwright]: Addon<NoOptions, typeof ADDON_IDS.playwright>;
+	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
 	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
 	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
 	[ADDON_IDS.sveltekitAdapter]: Addon<
