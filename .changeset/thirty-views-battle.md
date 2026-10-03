@@ -2,4 +2,4 @@
 "sv": patch
 ---
 
-fix(sv): Bump `svelte` to match `kit`'s minimum peer dependency
+fix(cli): Bump `svelte` to match `kit`'s minimum peer dependency
