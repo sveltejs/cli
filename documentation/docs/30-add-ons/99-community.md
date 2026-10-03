@@ -62,7 +62,7 @@ The CLI is split into two packages with a clear boundary:
 - [**`sv`**](sv) = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
 - [**`@sveltejs/sv-utils`**](sv-utils) = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
 
-[Why are there two packages.](faq#why-are-there-two-packages-sv-and-sveltejs-sv-utils)
+[Why are there two packages.](faq#Why-are-there-two-packages-sv-and-sveltejs-sv-utils)
 
 ## Development
 
