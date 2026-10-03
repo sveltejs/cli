@@ -6,7 +6,7 @@ import {
 	loadPackageJson,
 	sanitizeName,
 	pnpm,
-	svelteConfig,
+	svelteConfig
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
