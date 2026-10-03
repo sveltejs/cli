@@ -253,3 +253,29 @@ export function addToTypeConfigInclude(opts: {
 		})
 	);
 }
+
+/**
+ * Add's an entry to `compilerOptions.types`. If the project is Kit 3, this will also ensure
+ * `$app/types` is added
+ */
+export function addToTypeConfigType(opts: {
+	sv: SvApi;
+	cwd: string;
+	language: 'ts' | 'js';
+	kitVersion: string | undefined;
+	entry: string;
+}): void {
+	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+	if (!fileExists(opts.cwd, configFile)) return;
+
+	opts.sv.file(
+		configFile,
+		transforms.json(({ data }) => {
+			data.compilerOptions ??= {};
+			data.compilerOptions.types ??= [];
+			const types: string[] = data.compilerOptions.types;
+			if (!types.includes(opts.entry)) types.push(opts.entry);
+			if (!isKit3(opts.kitVersion) && !types.includes('$app/types')) types.unshift('$app/types');
+		})
+	);
+}

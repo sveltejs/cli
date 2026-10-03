@@ -1,7 +1,12 @@
 import { log } from '@clack/prompts';
 import { type AstTypes, svelteConfig, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
-import { addEslintConfigPrettier, ESLINT_VERSION, getNodeTypesVersion } from './common.ts';
+import {
+	addEslintConfigPrettier,
+	addToTypeConfigType,
+	ESLINT_VERSION,
+	getNodeTypesVersion
+} from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
@@ -25,6 +30,16 @@ export default defineAddon({
 		sv.devDependency('globals', '^17.6.0');
 		sv.devDependency('@eslint/js', '^10.0.1');
 		sv.devDependency('@types/node', getNodeTypesVersion());
+
+		// the `eslint.config.js` imports `node:path`
+		sv.devDependency('@types/node', getNodeTypesVersion());
+		addToTypeConfigType({
+			sv,
+			cwd,
+			language,
+			kitVersion: dependencyVersion('@sveltejs/kit'),
+			entry: 'node'
+		});
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.60.1');
 
