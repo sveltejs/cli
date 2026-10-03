@@ -1,4 +1,3 @@
-import * as commentJson from 'comment-json';
 import { print as esrapPrint } from 'esrap';
 import ts from 'esrap/languages/ts';
 import * as toml from 'smol-toml';
@@ -11,6 +10,7 @@ import {
 import * as yaml from 'yaml';
 import * as Walker from 'zimmerframe';
 import type { BaseNode, TsEstree } from './js/ts-estree.ts';
+import { parseJsonc, patchJsonc } from './jsonc.ts';
 import { ensureScript } from './svelte/index.ts';
 
 export type {
@@ -120,11 +120,11 @@ export function stripAst<T>(node: T, propsToRemove: string[]): T {
 }
 
 export function parseJson(content: string): any {
-	return commentJson.parse(content);
+	return parseJsonc(content);
 }
 
 export function serializeJson(originalInput: string, data: unknown): string {
-	return commentJson.stringify(data, null, guessIndentString(originalInput));
+	return patchJsonc(originalInput, data, guessIndentString(originalInput));
 }
 
 // Sourced from `golden-fleece`

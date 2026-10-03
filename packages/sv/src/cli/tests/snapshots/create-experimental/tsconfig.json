@@ -6,9 +6,5 @@
 			"./worker-configuration.d.ts"
 		]
 	},
-	"include": [
-		"src",
-		"vite.config.ts",
-		"drizzle.config.ts"
-	]
+	"include": ["src", "vite.config.ts", "drizzle.config.ts"]
 }

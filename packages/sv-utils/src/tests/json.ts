@@ -18,14 +18,8 @@ describe('JSON comments', () => {
 
 		expect(serializeJson(source, data)).toBe(`{
 	"compilerOptions": {
-		"lib": [
-			"ES2023",
-			"DOM"
-		], // sync with app.html browser check
-		"types": [
-			"node",
-			"$app/types"
-		],
+		"lib": ["ES2023", "DOM"], // sync with app.html browser check
+		"types": ["node", "$app/types"],
 
 		// Stricter Typechecking Options
 		"noUncheckedIndexedAccess": true
@@ -50,6 +44,43 @@ describe('JSON comments', () => {
 	"second": 2,
 	// first
 	"first": 1
+}`);
+	});
+	it('keeps untouched text byte-identical', () => {
+		const source = '{\r\n    "a" :  1,  /* note */\r\n    "b": [ 1,2 ],\r\n}\r\n';
+		expect(serializeJson(source, parseJson(source))).toBe(source);
+	});
+
+	it('removes entries with their comments and keeps trailing commas', () => {
+		const source = `{
+	// old
+	"old": true,
+	"plugins": ["a", "b",],
+}
+`;
+		const data = parseJson(source);
+		delete data.old;
+		data.plugins.push('c');
+
+		expect(serializeJson(source, data)).toBe(`{
+	"plugins": ["a", "b", "c"],
+}
+`);
+	});
+
+	it('expands an inline array once it no longer fits on one line', () => {
+		const source = `{
+	"recommendations": ["svelte.svelte-vscode"]
+}`;
+		const data = parseJson(source);
+		data.recommendations.push('esbenp.prettier-vscode', 'dbaeumer.vscode-eslint');
+
+		expect(serializeJson(source, data)).toBe(`{
+	"recommendations": [
+		"svelte.svelte-vscode",
+		"esbenp.prettier-vscode",
+		"dbaeumer.vscode-eslint"
+	]
 }`);
 	});
 });
