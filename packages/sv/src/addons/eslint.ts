@@ -32,13 +32,7 @@ export default defineAddon({
 
 		// the `eslint.config.js` imports `node:path`
 		sv.devDependency('@types/node', getNodeTypesVersion());
-		addToTypeConfigType({
-			sv,
-			cwd,
-			language,
-			kitVersion: dependencyVersion('@sveltejs/kit'),
-			entry: 'node'
-		});
+		addToTypeConfigType({ sv, cwd, language, entry: 'node' });
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.60.1');
 
