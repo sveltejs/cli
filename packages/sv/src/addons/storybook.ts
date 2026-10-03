@@ -1,15 +1,16 @@
 import process from 'node:process';
 import { defineAddon } from '../core/config.ts';
 import { getNodeTypesVersion } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
-	id: 'storybook',
+	id: ADDON_IDS.storybook,
 	shortDescription: 'frontend workshop',
 	homepage: 'https://storybook.js.org',
 	options: {},
 	setup: ({ runsAfter }) => {
-		runsAfter('vitest');
-		runsAfter('eslint');
+		runsAfter(ADDON_IDS.vitest);
+		runsAfter(ADDON_IDS.eslint);
 	},
 	run: async ({ sv }) => {
 		const args = [`create-storybook@latest`, '--skip-install', '--no-dev'];

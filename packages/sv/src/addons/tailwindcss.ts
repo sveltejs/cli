@@ -1,6 +1,8 @@
 import { transforms } from '@sveltejs/sv-utils';
-import { defineAddon, defineAddonOptions } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 import { addPrettierTailwind, prettierConfigPath } from './common.ts';
+import { ADDON_IDS } from './ids.ts';
 
 const plugins = [
 	{
@@ -15,7 +17,9 @@ const plugins = [
 	}
 ] as const;
 
-const options = defineAddonOptions()
+export type TailwindcssOptions = { plugins: Array<'typography' | 'forms'> };
+
+const options = defineAddonOptions<TailwindcssOptions>()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which plugins would you like to add?',
@@ -25,8 +29,8 @@ const options = defineAddonOptions()
 	})
 	.build();
 
-export default defineAddon({
-	id: 'tailwindcss',
+const addon: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'> = defineAddon({
+	id: ADDON_IDS.tailwindcss,
 	alias: 'tailwind',
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
@@ -128,3 +132,5 @@ export default defineAddon({
 		}
 	}
 });
+
+export default addon;
