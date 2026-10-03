@@ -287,10 +287,8 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 	},
 
 	nextSteps: ({ options }) => {
-		const { validLanguageTags } = parseLanguageTagInput(options.languageTags);
-
 		return [
-			`Edit your messages in ${color.path(DEFAULT_INLANG_PROJECT['plugin.inlang.messageFormat'].pathPattern)} (${validLanguageTags.map((locale) => `${locale}.json`).join(', ')})`,
+			`Edit your messages in ${color.path(DEFAULT_INLANG_PROJECT['plugin.inlang.messageFormat'].pathPattern)}`,
 			options.demo && `Visit ${color.route('/demo/paraglide')} route to view the demo`
 		].filter((line): line is string => Boolean(line));
 	}
