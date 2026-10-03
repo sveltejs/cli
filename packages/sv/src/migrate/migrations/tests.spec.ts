@@ -1,8 +1,11 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { parse } from '@sveltejs/sv-utils';
 import { describe, expect, test } from 'vitest';
 import { prepareSvApi } from '../../core/engine.ts';
 import { createWorkspace } from '../../core/workspace.ts';
+import packageJsonTask from './sveltekit-3/tasks/package-json.ts';
 
 const baseDir = import.meta.dirname;
 const migrationDirectories = getDirectoryNames(baseDir);
@@ -92,6 +95,54 @@ for (const migrationDirectory of migrationDirectories) {
 		}
 	});
 }
+
+test('sveltekit-3 package-json respects monorepo package-manager settings', async () => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sv-migrate-package-manager-'));
+	const cwd = path.join(root, 'packages', 'app');
+	fs.mkdirSync(cwd, { recursive: true });
+
+	try {
+		fs.writeFileSync(path.join(root, 'package.json'), '{"private":true}');
+		fs.writeFileSync(path.join(root, '.npmrc'), '# project config\nsave-exact = true\n');
+		fs.writeFileSync(
+			path.join(root, 'pnpm-workspace.yaml'),
+			"packages:\n  - 'packages/*'\ncatalog:\n  '@sveltejs/kit': 2.70.3\n  '@sveltejs/adapter-static': 3.0.10\n"
+		);
+		fs.writeFileSync(
+			path.join(cwd, 'package.json'),
+			JSON.stringify({
+				name: 'app',
+				private: true,
+				devDependencies: {
+					'@sveltejs/kit': 'catalog:',
+					'@sveltejs/adapter-static': 'catalog:',
+					vite: '^7.0.0'
+				}
+			})
+		);
+
+		// The selected package manager can differ from the repository configuration.
+		const workspace = await createWorkspace({ cwd, packageManager: 'npm' });
+		const { sv, finalize } = prepareSvApi(workspace);
+		await packageJsonTask.run({ sv, ...workspace });
+		finalize();
+
+		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+		const yaml = parse.yaml(fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')).data;
+		const catalog = yaml.get('catalog') as { get(key: string): unknown };
+
+		expect(pkg.devDependencies).toMatchObject({
+			'@sveltejs/kit': 'catalog:',
+			'@sveltejs/adapter-static': 'catalog:',
+			vite: '8.0.12'
+		});
+		expect(catalog.get('@sveltejs/kit')).toBe('3.0.0');
+		expect(catalog.get('@sveltejs/adapter-static')).toBe('4.0.0');
+	} finally {
+		fs.rmSync(root, { recursive: true, force: true });
+	}
+});
+
 
 /**
  * Some files might be deleted by migrations, but required to test the migration each time.

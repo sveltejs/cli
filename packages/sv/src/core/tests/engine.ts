@@ -98,7 +98,7 @@ describe('dependency package-manager settings', () => {
 			path.join(cwd, 'package.json'),
 			JSON.stringify({ name: 't', private: true, devDependencies: { foo: '^1.0.0' } })
 		);
-		fs.writeFileSync(path.join(cwd, '.npmrc'), 'save-exact=true\n');
+		fs.writeFileSync(path.join(cwd, '.npmrc'), '# project config\nsave-exact = true\n');
 		const workspace = await createWorkspace({ cwd, packageManager: 'pnpm' });
 		const { sv, finalize } = prepareSvApi(workspace);
 

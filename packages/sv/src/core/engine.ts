@@ -16,6 +16,7 @@ import {
 	type Package,
 	minimizeDiff
 } from '@sveltejs/sv-utils';
+import * as walk from 'empathic/walk';
 import { exec } from 'tinyexec';
 import { filePaths } from './common.ts';
 import {
@@ -62,31 +63,41 @@ function asYamlMap(value: unknown, path: string): YamlMapLike {
 	return value as YamlMapLike;
 }
 
-function isRangeWithinSafe(declared: string, requested: string): boolean {
-	try {
-		return isRangeWithin(declared, requested);
-	} catch {
-		return false;
+function readIniValue(content: string, key: string): string | undefined {
+	let inSection = false;
+	for (const rawLine of content.split(/\r?\n/)) {
+		const line = rawLine.trim();
+		if (!line || line.startsWith('#') || line.startsWith(';')) continue;
+		if (line.startsWith('[') && line.endsWith(']')) {
+			inSection = true;
+			continue;
+		}
+		if (inSection) continue;
+
+		const separator = line.indexOf('=');
+		if (separator === -1) continue;
+		if (line.slice(0, separator).trim() !== key) continue;
+
+		let value = line.slice(separator + 1).trim();
+		if (
+			(value.startsWith('"') && value.endsWith('"')) ||
+			(value.startsWith("'") && value.endsWith("'"))
+		) {
+			value = value.slice(1, -1);
+		}
+		return value;
 	}
+	return undefined;
 }
 
 function readNpmrcSaveExact(cwd: string, workspaceRoot: string): boolean | undefined {
-	let directory = path.resolve(cwd);
-	const root = path.resolve(workspaceRoot);
-
-	while (true) {
+	for (const directory of walk.up(path.resolve(cwd), { last: path.resolve(workspaceRoot) })) {
 		const npmrc = path.join(directory, '.npmrc');
-		if (fs.existsSync(npmrc)) {
-			const match = fs
-				.readFileSync(npmrc, 'utf8')
-				.match(/^\s*save-exact\s*=\s*(true|false)\s*$/im);
-			if (match) return match[1] === 'true';
-		}
+		if (!fs.existsSync(npmrc)) continue;
 
-		if (directory === root) break;
-		const parent = path.dirname(directory);
-		if (parent === directory) break;
-		directory = parent;
+		const value = readIniValue(fs.readFileSync(npmrc, 'utf8'), 'save-exact')?.toLowerCase();
+		if (value === 'true') return true;
+		if (value === 'false') return false;
 	}
 
 	return undefined;
@@ -94,22 +105,13 @@ function readNpmrcSaveExact(cwd: string, workspaceRoot: string): boolean | undef
 
 function shouldSaveExact(workspace: Workspace): boolean {
 	const workspaceRoot = findWorkspaceRoot(workspace.cwd);
-
-	if (workspace.packageManager === 'pnpm') {
-		const workspaceConfig = path.join(workspaceRoot, 'pnpm-workspace.yaml');
-		if (fs.existsSync(workspaceConfig)) {
-			const saveExact = parse
-				.yaml(fs.readFileSync(workspaceConfig, 'utf8'))
-				.data.get('saveExact');
-			if (typeof saveExact === 'boolean') return saveExact;
-		}
+	const workspaceConfig = path.join(workspaceRoot, 'pnpm-workspace.yaml');
+	if (fs.existsSync(workspaceConfig)) {
+		const saveExact = parse.yaml(fs.readFileSync(workspaceConfig, 'utf8')).data.get('saveExact');
+		if (typeof saveExact === 'boolean') return saveExact;
 	}
 
-	if (workspace.packageManager === 'pnpm' || workspace.packageManager === 'npm') {
-		return readNpmrcSaveExact(workspace.cwd, workspaceRoot) ?? false;
-	}
-
-	return false;
+	return readNpmrcSaveExact(workspace.cwd, workspaceRoot) ?? false;
 }
 
 function applySaveExact(version: string, saveExact: boolean): string {
@@ -157,7 +159,7 @@ function updatePnpmCatalogs(
 				const declared = catalogMap.get(pkg);
 				if (
 					typeof declared === 'string' &&
-					isRangeWithinSafe(declared, version)
+					isRangeWithin(declared, version)
 				) {
 					continue;
 				}
@@ -190,7 +192,7 @@ function updatePackages(
 	for (const update of dependencies) {
 		const dependency = update.dev ? 'devDependencies' : 'dependencies';
 		const declared = currentPackage[dependency]?.[update.pkg];
-		const catalog = workspace.packageManager === 'pnpm' ? catalogName(declared) : undefined;
+		const catalog = catalogName(declared);
 		if (catalog) {
 			catalogUpdates.push({ ...update, catalog });
 		} else {
@@ -217,7 +219,7 @@ function updatePackages(
 
 				// keep a stricter existing range (e.g. `^9.2.0` when the add-on asks for `^9.0.0`)
 				const declared = data[dependency][pkg];
-				if (declared && isRangeWithinSafe(declared, version)) continue;
+				if (declared && isRangeWithin(declared, version)) continue;
 
 				packageChanged = true;
 				data[dependency][pkg] = applySaveExact(version, saveExact);
