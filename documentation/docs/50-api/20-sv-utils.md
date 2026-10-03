@@ -9,7 +9,7 @@ npm install -D @sveltejs/sv-utils
 ```
 
 > [!NOTE]
-> Bundle `@sveltejs/sv-utils` in your add-on (the [template](community#Quick-start) does). Most breaking changes land here, not in `sv`. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
+> Bundle `@sveltejs/sv-utils` in your add-on to pin its version. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
 
 ## transforms
 
