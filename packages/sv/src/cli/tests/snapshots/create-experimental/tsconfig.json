@@ -3,7 +3,9 @@
 	"compilerOptions": {
 		"strict": true,
 		"types": [
-			"./worker-configuration.d.ts"
+			"$app/types",
+			"./worker-configuration.d.ts",
+			"node"
 		]
 	},
 	"include": [

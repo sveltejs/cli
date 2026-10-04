@@ -10,6 +10,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
+import { addToTypeConfigType, getNodeTypesVersion } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 const adapters = [
@@ -58,7 +59,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, packageManager, file, cwd }) => {
+	run: ({ sv, options, packageManager, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
 		// removes previously installed adapters
@@ -85,6 +86,11 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 		);
 
 		sv.devDependency(adapter.package, adapter.version);
+
+		if (options.adapter === 'node') {
+			sv.devDependency('@types/node', getNodeTypesVersion());
+			addToTypeConfigType({ sv, cwd, language, entry: 'node' });
+		}
 
 		if (adapter.package !== '@sveltejs/adapter-auto') {
 			sv.file(
@@ -196,14 +202,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 				);
 
 				// Add Cloudflare generated types to jsconfig/tsconfig
-				sv.file(
-					file.typeConfig,
-					transforms.json(({ data }) => {
-						data.compilerOptions ??= {};
-						data.compilerOptions.types ??= [];
-						data.compilerOptions.types.push('./worker-configuration.d.ts');
-					})
-				);
+				addToTypeConfigType({ sv, cwd, language, entry: './worker-configuration.d.ts' });
 
 				sv.file(
 					'src/app.d.ts',

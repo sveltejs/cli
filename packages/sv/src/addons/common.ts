@@ -4,7 +4,7 @@ import {
 	color,
 	fileExists,
 	isKit3,
-	type SvelteAst,
+	KIT3_TSCONFIG,
 	type TransformFn,
 	transforms
 } from '@sveltejs/sv-utils';
@@ -177,33 +177,6 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 		}
 	});
 
-type AddToDemoPage = (path: string, language: 'ts' | 'js') => TransformFn;
-export const addToDemoPage: AddToDemoPage = (path, language) =>
-	transforms.svelteScript({ language }, ({ ast, js, svelte }) => {
-		for (const node of ast.fragment.nodes) {
-			if (node.type === 'RegularElement') {
-				const hrefAttribute = node.attributes.find(
-					(x) => x.type === 'Attribute' && x.name === 'href'
-				) as SvelteAst.Attribute;
-				if (!hrefAttribute || !hrefAttribute.value) continue;
-
-				if (!Array.isArray(hrefAttribute.value)) continue;
-
-				const hasDemo = hrefAttribute.value.some(
-					// we use includes as it could be "/demo/${path}" or "resolve("demo/${path}")" or "resolve('demo/${path}')"
-					(x) => x.type === 'Text' && x.data.includes(`/demo/${path}`)
-				);
-				if (hasDemo) {
-					return false;
-				}
-			}
-		}
-
-		js.imports.addNamed(ast.instance.content, { imports: ['resolve'], from: '$app/paths' });
-
-		svelte.addFragment(ast, `<a href={resolve('/demo/${path}')}>${path}</a>`, { mode: 'prepend' });
-	});
-
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.
  *
@@ -250,6 +223,29 @@ export function addToTypeConfigInclude(opts: {
 		transforms.json(({ data }) => {
 			const include: string[] = (data.include ??= ['src']);
 			if (!include.includes(opts.entry)) include.push(opts.entry);
+		})
+	);
+}
+
+export function addToTypeConfigType(opts: {
+	sv: SvApi;
+	cwd: string;
+	language: 'ts' | 'js';
+	entry: string;
+}): void {
+	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+	if (!fileExists(opts.cwd, configFile)) return;
+
+	opts.sv.file(
+		configFile,
+		transforms.json(({ data }) => {
+			data.compilerOptions ??= {};
+			data.compilerOptions.types ??= [];
+			const types: string[] = data.compilerOptions.types;
+			if (!types.includes(opts.entry)) types.push(opts.entry);
+			// a child `types` replaces the one from `$app/tsconfig`, so `$app/types` must be re-added
+			const extendsAppTsconfig = [data.extends].flat().includes(KIT3_TSCONFIG);
+			if (extendsAppTsconfig && !types.includes('$app/types')) types.unshift('$app/types');
 		})
 	);
 }
