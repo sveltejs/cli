@@ -20,7 +20,10 @@ export default defineMigrationTask({
 		const configSource = svelteConfig.find(cwd);
 
 		if (!configSource) return; // no config found
-		if (configSource.kind === 'vite') return; // already migrated vite config
+		if (configSource.kind === 'vite') {
+			sv.file(configSource.path, removeFilesLib);
+			return;
+		}
 
 		const originalConfigObject = svelteConfig.read(cwd);
 		if (!originalConfigObject) return;
@@ -136,6 +139,12 @@ export default defineMigrationTask({
 							delete keyedConfig.prerender;
 						}
 					}
+				}
+
+				// `files.lib` was removed alongside the `$lib` alias; a leftover fails config validation
+				if (key === 'files' && value.type === 'ObjectExpression') {
+					removeProperty(value, 'lib');
+					if (value.properties.length === 0) delete keyedConfig.files;
 				}
 
 				// `csrf: { checkOrigin: false }` is deprecated; the equivalent is now
@@ -285,6 +294,44 @@ function removeProperty(value: AstTypes.ObjectExpression, name: string): void {
 		(prop) => prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === name
 	);
 	if (index !== -1) value.properties.splice(index, 1);
+}
+
+/**
+ * Drops the `files.lib` option from the
+ * options object passed to `sveltekit()`, deleting `files` itself when it only contained `lib`.
+ * Returns whether anything was removed.
+ */
+export function removeFilesLib(content: string): string | false {
+	return transforms.script(({ ast }) => {
+		let dropped = false;
+		Walker.walk(ast as AstTypes.Node, null, {
+			CallExpression(node, { next }) {
+				if (node.callee.type === 'Identifier' && node.callee.name === 'sveltekit') {
+					const options = node.arguments[0];
+					if (options?.type === 'ObjectExpression' && dropFilesLib(options)) dropped = true;
+				}
+				next();
+			}
+		});
+		if (!dropped) return false;
+	})(content);
+}
+
+function dropFilesLib(config: AstTypes.ObjectExpression): boolean {
+	const filesProp = config.properties.find(
+		(prop): prop is AstTypes.Property =>
+			prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === 'files'
+	);
+	if (!filesProp) return false;
+	const files = filesProp.value;
+	if (files.type !== 'ObjectExpression') return false;
+
+	const before = files.properties.length;
+	removeProperty(files, 'lib');
+	if (files.properties.length === before) return false;
+	if (files.properties.length === 0)
+		config.properties.splice(config.properties.indexOf(filesProp), 1);
+	return true;
 }
 
 /**
