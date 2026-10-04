@@ -1,5 +1,37 @@
 # sv
 
+## 1.1.0
+
+### Minor Changes
+
+- feat: type the options of official add-ons (`OfficialAddonOptions`), and let add-on authors declare theirs with `defineAddonOptions<Values>()` ([#1335](https://github.com/sveltejs/cli/pull/1335))
+
+### Patch Changes
+
+- chore(create): bump `create-vite` to 9.2.1 ([#1340](https://github.com/sveltejs/cli/pull/1340))
+
+- fix: Add-on ordering through the API now works with official and community add-ons. Key `officialAddons` by add-on id, using `'sveltekit-adapter'`, `'better-auth'`, and `'ai-tools'` instead of `sveltekitAdapter`, `betterAuth`, and `aiTools`. `dependsOn` and `runsAfter` also accept community add-on ids when those add-ons are included in the same command. The CLI interface is unchanged. ([#1330](https://github.com/sveltejs/cli/pull/1330))
+
+- fix(sveltekit-adapter): keep `$app/types` in tsconfig `types` with Cloudflare on SvelteKit 3 ([#1346](https://github.com/sveltejs/cli/pull/1346))
+
+- fix(sv): install `@types/node` and add `node` to `tsconfig.json` when needed ([#1391](https://github.com/sveltejs/cli/pull/1391))
+  fix(sv): preserve `$app/types` when overriding tsconfig's `compilerOptions.types` in Kit 3
+- fix(migrate): always report the adapter-node `ORIGIN` task when `@sveltejs/adapter-node` is installed ([#1373](https://github.com/sveltejs/cli/pull/1373))
+
+- feat(playwright): add a `demo` option so the `/demo/playwright` page is only created on request ([#1360](https://github.com/sveltejs/cli/pull/1360))
+
+- fix(sv): update `demo` template to use `prefersReducedMotion` ([#1407](https://github.com/sveltejs/cli/pull/1407))
+
+- fix(cli): Bump `svelte` to match `kit`'s minimum peer dependency ([#1390](https://github.com/sveltejs/cli/pull/1390))
+
+- fix: keep root config files and `test(s)` folders in Kit 3 `tsconfig` `include` ([#1379](https://github.com/sveltejs/cli/pull/1379))
+
+- fix(migrate): keep the `string` parameter type of TypeScript param matchers when migrating to `defineParams` ([#1384](https://github.com/sveltejs/cli/pull/1384))
+
+- fix(paraglide): display next steps according to user input and deduplicate provided locales ([#1386](https://github.com/sveltejs/cli/pull/1386))
+- Updated dependencies [[`88c40ee`](https://github.com/sveltejs/cli/commit/88c40ee2414e34da5dd759775037c427fd6d15ee), [`8bafea4`](https://github.com/sveltejs/cli/commit/8bafea41b33b53d0895a63c5139d71d006fcd682)]:
+  - @sveltejs/sv-utils@1.0.1
+
 ## 1.0.1
 
 ### Patch Changes
