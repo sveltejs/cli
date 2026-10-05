@@ -1,7 +1,6 @@
 ---
-"@sveltejs/sv-utils": patch
 "sv": patch
 ---
 
-Adding `engineStrict` to `pnpm-workspace.yaml` file when package manager is `pnpm`
+fix(sv): templates set `engineStrict` in `pnpm-workspace.yaml` when package manager is `pnpm`
   
