@@ -6,6 +6,10 @@ import { defineMigrationTask } from '../../../index.ts';
 const LIB_ALIAS = /(?<=['"`])\$lib(\/(.+)['"`]|['"`])/g;
 const STYLE_TAG = /(<style\b[^>]*>)([\s\S]*?)(<\/style\s*>)/gi;
 
+function libSubpathImports(libDir: string): Record<string, string> {
+	return { '#lib': `./${libDir}/index.js`, '#lib/*': `./${libDir}/*` };
+}
+
 export default defineMigrationTask({
 	id: 'lib-alias',
 	description: 'Replace the $lib alias with #lib subpath imports',
@@ -13,14 +17,7 @@ export default defineMigrationTask({
 		sv.file(
 			'package.json',
 			transforms.json(({ data }) => {
-				data.imports = { '#lib/*': `./${directory.lib}/*`, ...data.imports };
-
-				for (const index of ['index.js', 'index.ts']) {
-					if (fs.existsSync(path.join(cwd, directory.lib, index))) {
-						data.imports = { '#lib': `./${directory.lib}/${index}` };
-						break;
-					}
-				}
+				data.imports = { ...libSubpathImports(directory.lib), ...data.imports };
 			})
 		);
 

@@ -1,5 +1,6 @@
 {
 	"imports": {
+		"#lib": "./src/lib/index.js",
 		"#lib/*": "./src/lib/*",
 		"#existing": "./src/existing.js"
 	}
