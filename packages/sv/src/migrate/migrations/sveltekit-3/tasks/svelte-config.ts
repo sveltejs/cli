@@ -21,7 +21,9 @@ export default defineMigrationTask({
 
 		if (!configSource) return; // no config found
 		if (configSource.kind === 'vite') {
-			sv.file(configSource.path, removeFilesLib);
+			svelteConfig.edit({ sv, cwd }, ({ config }) => {
+				if (!removeFilesLib(config)) return false;
+			});
 			return;
 		}
 
@@ -82,12 +84,12 @@ export default defineMigrationTask({
 
 			for (const prop of newConfigProperties) {
 				if (prop.type !== 'Property') continue;
-				if (prop.key.type !== 'Identifier') continue;
-				if (prop.key.name === 'kit') continue;
+				const key = js.object.propertyName(prop);
+				if (!key || key === 'kit') continue;
 
 				const propAttachment = attachments.get(prop);
-				keyedConfig[prop.key.name] = prop.value;
-				if (propAttachment) propComments.set(prop.key.name, propAttachment);
+				keyedConfig[key] = prop.value;
+				if (propAttachment) propComments.set(key, propAttachment);
 			}
 
 			for (const [key, value] of Object.entries(keyedConfig)) {
@@ -95,29 +97,19 @@ export default defineMigrationTask({
 				// is rejected by its config validation. Drop it instead of moving it to vite.config.
 				// Tracing is also no longer experimental.
 				if (key === 'experimental' && value.type === 'ObjectExpression') {
-					removeProperty(value, 'handleRenderingErrors');
-					removeProperty(value, 'instrumentation');
+					js.object.removeProperty(value, { name: 'handleRenderingErrors' });
+					js.object.removeProperty(value, { name: 'instrumentation' });
 
-					const index = value.properties.findIndex(
-						(prop) =>
-							prop.type === 'Property' &&
-							prop.key.type === 'Identifier' &&
-							prop.key.name === 'tracing'
-					);
-					if (index !== -1) {
-						keyedConfig.tracing = (value.properties[index] as AstTypes.Property).value;
-						value.properties.splice(index, 1);
+					const tracing = js.object.findProperty(value, { name: 'tracing' });
+					if (tracing) {
+						keyedConfig.tracing = tracing.value;
+						js.object.removeProperty(value, { name: 'tracing' });
 					}
 				}
 
 				// prerender.origin is removed in favor of paths.origin
 				if (key === 'prerender' && value.type === 'ObjectExpression') {
-					const originProp = value.properties.find(
-						(prop): prop is AstTypes.Property & { key: AstTypes.Identifier } =>
-							prop.type === 'Property' &&
-							prop.key.type === 'Identifier' &&
-							prop.key.name === 'origin'
-					);
+					const originProp = js.object.findProperty(value, { name: 'origin' });
 					if (originProp) {
 						// prerender may come before paths and may be merged so we need to ensure the current object first
 						keyedConfig.paths ??= {
@@ -133,7 +125,7 @@ export default defineMigrationTask({
 							shorthand: false,
 							computed: false
 						});
-						removeProperty(value, 'origin');
+						js.object.removeProperty(value, { name: 'origin' });
 						if (value.properties.length === 0) {
 							// drop the empty prerender object entirely
 							delete keyedConfig.prerender;
@@ -143,7 +135,7 @@ export default defineMigrationTask({
 
 				// `files.lib` was removed alongside the `$lib` alias; a leftover fails config validation
 				if (key === 'files' && value.type === 'ObjectExpression') {
-					removeProperty(value, 'lib');
+					js.object.removeProperty(value, { name: 'lib' });
 					if (value.properties.length === 0) delete keyedConfig.files;
 				}
 
@@ -153,7 +145,8 @@ export default defineMigrationTask({
 				if (key === 'csrf' && value.type === 'ObjectExpression') {
 					const checkOrigin = findDisabledCheckOrigin(value);
 					if (checkOrigin) {
-						checkOrigin.key.name = 'trustedOrigins';
+						checkOrigin.key = { type: 'Identifier', name: 'trustedOrigins' };
+						checkOrigin.computed = false;
 						checkOrigin.value = {
 							type: 'ArrayExpression',
 							elements: [{ type: 'Literal', value: '*' }]
@@ -211,8 +204,9 @@ export default defineMigrationTask({
 			// (csrf having become trustedOrigins). only the root is remapped, so nested same-named
 			// properties (e.g. `experimental`) aren't confused - those rode along by identity above.
 			for (const prop of rootConfig?.properties ?? []) {
-				if (prop.type === 'Property' && prop.key.type === 'Identifier') {
-					apply(prop, propComments.get(prop.key.name));
+				if (prop.type === 'Property') {
+					const key = js.object.propertyName(prop);
+					if (key) apply(prop, propComments.get(key));
 				}
 			}
 		});
@@ -288,49 +282,19 @@ function forEachNode(root: unknown, visit: (node: AstTypes.Node) => void): void 
 	}
 }
 
-/** Removes a statically named property from an object literal. */
-function removeProperty(value: AstTypes.ObjectExpression, name: string): void {
-	const index = value.properties.findIndex(
-		(prop) => prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === name
-	);
-	if (index !== -1) value.properties.splice(index, 1);
-}
-
 /**
- * Drops the `files.lib` option from the
- * options object passed to `sveltekit()`, deleting `files` itself when it only contained `lib`.
+ * Drops the `files.lib` option from a kit config object, deleting `files` itself when it only
+ * contained `lib`.
  * Returns whether anything was removed.
  */
-export function removeFilesLib(content: string): string | false {
-	return transforms.script(({ ast }) => {
-		let dropped = false;
-		Walker.walk(ast as AstTypes.Node, null, {
-			CallExpression(node, { next }) {
-				if (node.callee.type === 'Identifier' && node.callee.name === 'sveltekit') {
-					const options = node.arguments[0];
-					if (options?.type === 'ObjectExpression' && dropFilesLib(options)) dropped = true;
-				}
-				next();
-			}
-		});
-		if (!dropped) return false;
-	})(content);
-}
-
-function dropFilesLib(config: AstTypes.ObjectExpression): boolean {
-	const filesProp = config.properties.find(
-		(prop): prop is AstTypes.Property =>
-			prop.type === 'Property' && prop.key.type === 'Identifier' && prop.key.name === 'files'
-	);
+function removeFilesLib(config: AstTypes.ObjectExpression): boolean {
+	const filesProp = js.object.findProperty(config, { name: 'files' });
 	if (!filesProp) return false;
 	const files = filesProp.value;
 	if (files.type !== 'ObjectExpression') return false;
 
-	const before = files.properties.length;
-	removeProperty(files, 'lib');
-	if (files.properties.length === before) return false;
-	if (files.properties.length === 0)
-		config.properties.splice(config.properties.indexOf(filesProp), 1);
+	if (!js.object.removeProperty(files, { name: 'lib' })) return false;
+	if (files.properties.length === 0) js.object.removeProperty(config, { name: 'files' });
 	return true;
 }
 
@@ -390,13 +354,7 @@ function collectComments(
 /** Returns the `checkOrigin: false` property of a `csrf` object, if present. */
 function findDisabledCheckOrigin(
 	value: AstTypes.ObjectExpression
-): (AstTypes.Property & { key: AstTypes.Identifier }) | undefined {
-	return value.properties.find(
-		(p): p is AstTypes.Property & { key: AstTypes.Identifier } =>
-			p.type === 'Property' &&
-			p.key.type === 'Identifier' &&
-			p.key.name === 'checkOrigin' &&
-			p.value.type === 'Literal' &&
-			p.value.value === false
-	);
+): AstTypes.Property | undefined {
+	const property = js.object.findProperty(value, { name: 'checkOrigin' });
+	return property?.value.type === 'Literal' && property.value.value === false ? property : undefined;
 }

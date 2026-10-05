@@ -452,11 +452,32 @@ declare function prepend(
 	element: string | estree.Expression | estree.SpreadElement
 ): void;
 declare namespace object_d_exports {
-	export { create, overrideProperties, property, propertyNode };
+	export {
+		create,
+		findProperty,
+		overrideProperties,
+		property,
+		propertyName,
+		propertyNode,
+		removeProperty
+	};
 }
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
 type ObjectMap$1 = Record<string, ObjectValues | estree.Expression>;
+declare function propertyName(property: estree.Property): string | undefined;
+declare function findProperty(
+	node: estree.ObjectExpression,
+	options: {
+		name: string;
+	}
+): estree.Property | undefined;
+declare function removeProperty(
+	node: estree.ObjectExpression,
+	options: {
+		name: string;
+	}
+): boolean;
 declare function property<T extends estree.Expression | estree.Identifier>(
 	node: estree.ObjectExpression,
 	options: {
@@ -1060,6 +1081,7 @@ type SvelteConfEdit = (file: {
 	comments: Comments;
 	js: typeof index_d_exports$3;
 	location: SvelteConfigLocation;
+	config: estree.ObjectExpression;
 	property: <T extends estree.Expression | estree.Identifier>(
 		name: string,
 		opts: {
