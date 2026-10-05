@@ -60,6 +60,23 @@ export default defineMigrationTask({
 				}
 			}
 
+			// The two files were separate modules, so their top-level bindings could use the same
+			// names. Rename bindings moved from svelte.config before combining the programs.
+			const existingBindings = js.scope.topLevelBindings([ast]);
+			const movedProgram = {
+				...originalConfigObject.ast,
+				body: [...originalImports, ...originalStatements]
+			};
+			const movedBindings = js.scope.topLevelBindings([movedProgram]);
+			const usedBindings = new Set([...existingBindings, ...movedBindings]);
+			const renames = new Map<string, string>();
+			for (const name of movedBindings) {
+				if (existingBindings.has(name)) {
+					renames.set(name, js.identifiers.uniqueName(name, usedBindings));
+				}
+			}
+			js.identifiers.renameReferences([originalConfigObject.ast], renames);
+
 			// imports go to the very top; the remaining statements go after all imports but before
 			// the generated `export default`
 			ast.body.unshift(...originalImports);
