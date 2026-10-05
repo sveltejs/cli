@@ -1,5 +1,17 @@
 # sv
 
+## 1.1.1
+
+### Patch Changes
+
+- fix(migrate): rewrite `$lib` in project instead of only `src` ([#1395](https://github.com/sveltejs/cli/pull/1395))
+  fix(migrate): remove the obsolete `files.lib` config option
+  fix(migrate): deconflict top level declarations between `svelte.config.js` and `vite.config.js` when merging them
+  fix(migrate): bump `@sveltejs/package` to `3.0`
+  fix(migrate): fix navigation hooks migration
+- Updated dependencies [[`e8aec04`](https://github.com/sveltejs/cli/commit/e8aec0413f8846f005bbb364a57a058e1936aa8e)]:
+  - @sveltejs/sv-utils@1.0.2
+
 ## 1.1.0
 
 ### Minor Changes
