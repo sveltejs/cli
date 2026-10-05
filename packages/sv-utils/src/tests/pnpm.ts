@@ -1,12 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import {
-	detectPnpmMajor,
-	writeAllowBuilds,
-	writeEngineStrict,
-	writeLegacy
-} from '../pnpm-internals.ts';
+import { detectPnpmMajor, writeAllowBuilds, writeLegacy } from '../pnpm-internals.ts';
 import { allowBuilds } from '../pnpm.ts';
 import { coerceVersion } from '../semver.ts';
 
@@ -123,22 +118,6 @@ describe('allowBuilds version detection', () => {
 			const pinned = coerceVersion(pkg.devEngines.packageManager.version).major;
 
 			expect(detectPnpmMajor(root)).toBe(pinned);
-		}
-	);
-});
-
-describe('writes engineStrict', () => {
-	const transform = () => writeEngineStrict();
-
-	it('adds `engineStrict` in empty file', () => {
-		expect(transform()('')).toBe('engineStrict: true\n');
-	});
-
-	it.each([{ value: true }, { value: false }])(
-		'does not overwrite when already set to $value',
-		({ value }) => {
-			const input = `engineStrict: ${value}\n`;
-			expect(transform()(input)).toBe(input);
 		}
 	);
 });

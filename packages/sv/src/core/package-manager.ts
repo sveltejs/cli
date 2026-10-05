@@ -9,7 +9,9 @@ import {
 	color,
 	detect,
 	pnpm,
-	resolveCommand
+	resolveCommand,
+	transforms,
+	type TransformFn
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
@@ -148,9 +150,8 @@ export function addAllowBuildsIfPnpm(options: {
 }
 
 /**
- * `pnpm.engineStrict` only transforms content. Add-ons get the read/write for free through
- * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
- * `pnpm-workspace.yaml` by hand.
+ * adds `engineStrict` to `pnpm-workspace.yaml` if not set.
+ * creates the file if it does not exist.
  */
 export function addEngineStrictIfPnpm(options: {
 	cwd: string;
@@ -162,6 +163,18 @@ export function addEngineStrictIfPnpm(options: {
 	const found = find.up('pnpm-workspace.yaml', { cwd });
 	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
 	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.engineStrict()(content);
+
+	function writeEngineStrict(): TransformFn {
+		return transforms.yaml(({ data }) => {
+			const existing = data.get('engineStrict');
+			// if not set, set to true
+			if (existing === undefined) {
+				data.set('engineStrict', true);
+			}
+		});
+	}
+
+	const newContent = writeEngineStrict()(content);
+
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }

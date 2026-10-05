@@ -87,13 +87,3 @@ export function writeLegacy(packages: string[]): TransformFn {
 		data.set('onlyBuiltDependencies', items);
 	});
 }
-
-export function writeEngineStrict(): TransformFn {
-	return transforms.yaml(({ data }) => {
-		const existing = data.get('engineStrict');
-		// if not set, set to true
-		if (existing === undefined) {
-			data.set('engineStrict', true);
-		}
-	});
-}
