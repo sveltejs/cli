@@ -259,6 +259,7 @@ svelteConfig.edit({ sv, cwd }, ({ ast, property, override, js }) => {
 
 - **`property(name, { fallback })`** - get-or-create an option's value to mutate in place (arrays, nested objects).
 - **`override(props, { dropLeadingComments })`** - set/replace options; `dropLeadingComments` clears a now-stale leading comment (e.g. the adapter-auto note when switching adapters).
+- **`config`** - the resolved raw config object for edits that need lower-level AST operations. In a Vite config this is the object passed to `sveltekit()`.
 
 It writes through `sv.file`, so the edit is tracked like any other. If the project has neither config file, a `svelte.config.js` is created.
 

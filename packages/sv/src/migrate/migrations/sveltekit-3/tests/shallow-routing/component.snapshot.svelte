@@ -3,8 +3,8 @@
 
 	let count = $state(0);
 
-	beforeNavigate(({ shallow }) => {
-		if (shallow) return;
+	beforeNavigate(({ shallow, type }) => {
+		if (shallow && type === 'goto') return;
 
 		count = 0;
 	});

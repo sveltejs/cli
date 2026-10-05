@@ -7,8 +7,8 @@ pushState(...args);
 goto('/foo', { shallow: true, state });
 goto('/bar', { shallow: true, replace: true, state });
 
-beforeNavigate(({ shallow }) => {
-	if (shallow) return;
+beforeNavigate(({ shallow, type }) => {
+	if (shallow && type === 'goto') return;
 
 	console.log('before navigation');
 });
