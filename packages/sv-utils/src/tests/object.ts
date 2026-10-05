@@ -5,7 +5,8 @@ import { common, object } from '../tooling/js/index.ts';
 function parseObject(properties: string) {
 	const { ast } = parseScript(`const value = { ${properties} };`);
 	const declaration = ast.body[0];
-	if (declaration?.type !== 'VariableDeclaration') throw new Error('Expected a variable declaration');
+	if (declaration?.type !== 'VariableDeclaration')
+		throw new Error('Expected a variable declaration');
 	const value = declaration.declarations[0]?.init;
 	if (value?.type !== 'ObjectExpression') throw new Error('Expected an object expression');
 	return value;

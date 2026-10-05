@@ -369,9 +369,9 @@ function collectComments(
 }
 
 /** Returns the `checkOrigin: false` property of a `csrf` object, if present. */
-function findDisabledCheckOrigin(
-	value: AstTypes.ObjectExpression
-): AstTypes.Property | undefined {
+function findDisabledCheckOrigin(value: AstTypes.ObjectExpression): AstTypes.Property | undefined {
 	const property = js.object.findProperty(value, { name: 'checkOrigin' });
-	return property?.value.type === 'Literal' && property.value.value === false ? property : undefined;
+	return property?.value.type === 'Literal' && property.value.value === false
+		? property
+		: undefined;
 }
