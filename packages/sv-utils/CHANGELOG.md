@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 1.0.2
+
+### Patch Changes
+
+- feat(sv-utils): add helpers for finding and removing static object properties ([#1395](https://github.com/sveltejs/cli/pull/1395))
+
 ## 1.0.1
 
 ### Patch Changes
