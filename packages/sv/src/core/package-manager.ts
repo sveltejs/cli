@@ -151,16 +151,18 @@ export function addAllowBuildsIfPnpm(options: {
 
 /**
  * add engine strict configuration according to selected package manager
- *
- * handled package managers are: pnpm
  */
 export function addEngineStrict(options: {
 	cwd: string;
 	packageManager: AgentName | null | undefined;
 }) {
-	const { packageManager } = options;
-	if (packageManager === 'pnpm') {
-		addEngineStrictForPnpm(options);
+	switch (options.packageManager) {
+		case 'pnpm':
+			addEngineStrictForPnpm(options);
+			break;
+		default:
+			addEngineStrictForNpm(options);
+			break;
 	}
 }
 
@@ -182,10 +184,41 @@ export function addEngineStrictForPnpm(options: {
 	function writeEngineStrict(): TransformFn {
 		return transforms.yaml(({ data }) => {
 			const existing = data.get('engineStrict');
-			// if not set, set to true
-			if (existing === undefined) {
-				data.set('engineStrict', true);
+			if (existing !== undefined) {
+				return false;
 			}
+			data.set('engineStrict', true);
+		});
+	}
+
+	const newContent = writeEngineStrict()(content);
+
+	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
+}
+
+/**
+ * adds `engine-strict` to `.npmrc` if not set.
+ * creates the file if it does not exist.
+ */
+export function addEngineStrictForNpm(options: {
+	cwd: string;
+	packageManager: AgentName | null | undefined;
+}): void {
+	const { cwd, packageManager } = options;
+	if (packageManager === 'pnpm') return;
+
+	const found = find.up('.npmrc', { cwd });
+	const filePath = found ?? path.join(cwd, '.npmrc');
+	const content = found ? fs.readFileSync(found, 'utf-8') : '';
+
+	function writeEngineStrict(): TransformFn {
+		return transforms.text(({ content, text }) => {
+			const existing = content.includes('engine-strict');
+			if (existing) {
+				return false;
+			}
+			console.log('adding engine-strict=true');
+			return text.upsert(content, 'engine-strict', { value: 'true' });
 		});
 	}
 
