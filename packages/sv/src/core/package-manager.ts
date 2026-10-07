@@ -150,10 +150,25 @@ export function addAllowBuildsIfPnpm(options: {
 }
 
 /**
+ * add engine strict configuration according to selected package manager
+ *
+ * handled package managers are: pnpm
+ */
+export function addEngineStrict(options: {
+	cwd: string;
+	packageManager: AgentName | null | undefined;
+}) {
+	const { packageManager } = options;
+	if (packageManager === 'pnpm') {
+		addEngineStrictForPnpm(options);
+	}
+}
+
+/**
  * adds `engineStrict` to `pnpm-workspace.yaml` if not set.
  * creates the file if it does not exist.
  */
-export function addEngineStrictIfPnpm(options: {
+export function addEngineStrictForPnpm(options: {
 	cwd: string;
 	packageManager: AgentName | null | undefined;
 }): void {
