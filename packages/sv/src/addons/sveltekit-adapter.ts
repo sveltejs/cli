@@ -74,7 +74,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 		// update adapter in kit config
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
 			// finds any existing adapter's import declaration
-			const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
+			const imports = ast.body.filter((node) => node.type === 'ImportDeclaration');
 			const adapterImports = imports.find(
 				(importDecl) =>
 					typeof importDecl.source.value === 'string' &&
@@ -97,7 +97,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
 
-			// for non-auto adapters, also drop the now-stale adapter-auto explanatory comment
+			// for non-auto adapters, drop the adapter-auto explanatory comment
 			override(
 				{ adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true }) },
 				adapter.package === '@sveltejs/adapter-auto'
