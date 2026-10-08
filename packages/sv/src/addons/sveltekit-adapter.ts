@@ -71,6 +71,8 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 			addToTypeConfigType({ sv, cwd, language, entry: 'node' });
 		}
 
+		let previousAdapter: string | undefined;
+
 		// update adapter in kit config
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
 			// finds any existing adapter's import declaration
@@ -84,6 +86,10 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 
 			let adapterName = 'adapter';
 			if (adapterImports) {
+				const foundPackage = adapterImports.source.value;
+				if (typeof foundPackage === 'string' && foundPackage !== adapter.package) {
+					previousAdapter = foundPackage;
+				}
 				// replaces the import's source with the new adapter
 				adapterImports.source.value = adapter.package;
 				// reset raw value, so that the string is re-generated
@@ -106,16 +112,13 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 			);
 		});
 
-		// removes previously installed adapters
+		// removes the previously installed adapter
 		sv.file(
 			file.package,
 			transforms.json(({ data }) => {
-				const devDeps = data['devDependencies'];
-
-				for (const pkg of Object.keys(devDeps)) {
-					if (pkg.startsWith('@sveltejs/adapter-')) {
-						delete devDeps[pkg];
-					}
+				if (previousAdapter) {
+					delete data['devDependencies']?.[previousAdapter];
+					delete data['dependencies']?.[previousAdapter];
 				}
 			})
 		);
