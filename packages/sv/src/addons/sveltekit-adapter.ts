@@ -16,6 +16,7 @@ import { ADDON_IDS } from './ids.ts';
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0' },
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0' },
+	{ id: 'bun', package: '@sveltejs/adapter-bun', version: '^1.0.0' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0' },
 	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0' },
@@ -27,7 +28,7 @@ const ADAPTER_HINT_REGEX =
 	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
 export type SveltekitAdapterOptions = {
-	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	adapter: 'auto' | 'node' | 'bun' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
 	cfTarget: 'workers' | 'pages';
 };
 
