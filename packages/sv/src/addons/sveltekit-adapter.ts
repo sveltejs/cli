@@ -22,13 +22,14 @@ const adapters = [
 	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0' }
 ] as const;
+type AdapterId = (typeof adapters)[number]['id'];
 
 /** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */
 const ADAPTER_HINT_REGEX =
 	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
 export type SveltekitAdapterOptions = {
-	adapter: 'auto' | 'node' | 'bun' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	adapter: AdapterId;
 	cfTarget: 'workers' | 'pages';
 };
 
