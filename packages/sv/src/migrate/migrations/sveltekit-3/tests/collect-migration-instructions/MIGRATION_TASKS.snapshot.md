@@ -64,7 +64,7 @@ Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and m
 
 #### What to do
 
-The automatic migration only analyzes static URLs. Inspect each `redirect` call: if the destination can be an external URL at runtime, pass `{ external: true }` for a blanket allow, or `{ external: [...] }` for a list of permitted origins.
+The automatic migration only analyzes static URLs. Inspect each `redirect` call: if the destination can be an external URL at runtime, pass `{ external: true }` for a blanket allow, or `{ external: [...] }` for a list of permitted origins, or keep it as is when determining that this should only handle app-internal redirects.
 
 #### References
 

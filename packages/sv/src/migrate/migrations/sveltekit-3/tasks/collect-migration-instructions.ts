@@ -471,7 +471,7 @@ const file = asset('foo.png');\n` +
 		],
 		summary: '`redirect(...)` to an external URL now requires an `external` option.',
 		instructions:
-			'The automatic migration only analyzes static URLs. Inspect each `redirect` call: if the destination can be an external URL at runtime, pass `{ external: true }` for a blanket allow, or `{ external: [...] }` for a list of permitted origins.',
+			'The automatic migration only analyzes static URLs. Inspect each `redirect` call: if the destination can be an external URL at runtime, pass `{ external: true }` for a blanket allow, or `{ external: [...] }` for a list of permitted origins, or keep it as is when determining that this should only handle app-internal redirects.',
 		links: guideLink('Miscellaneous-External-redirects-must-be-opted-into')
 	}
 ];
