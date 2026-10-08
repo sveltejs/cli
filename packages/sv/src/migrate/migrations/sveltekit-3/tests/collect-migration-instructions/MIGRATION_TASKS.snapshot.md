@@ -58,6 +58,22 @@ Find where `ORIGIN` is set (`.env` files, scripts, hosting dashboard, ...) and m
 
 - [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Adapters-adapter-node)
 
+### Review `redirect(...)` destinations for external URLs
+
+`redirect(...)` to an external URL now requires an `external` option.
+
+#### What to do
+
+The automatic migration only analyzes static URLs. Inspect each `redirect` call: if the destination can be an external URL at runtime, pass `{ external: true }` for a blanket allow, or `{ external: [...] }` for a list of permitted origins.
+
+#### References
+
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#Miscellaneous-External-redirects-must-be-opted-into)
+
+#### Files to review
+
+- [ ] `src/routes/+server.ts`
+
 ## Final verification
 
 - [ ] Review every migration task and ignore any irrelevant findings.
