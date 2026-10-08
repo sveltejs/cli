@@ -62,29 +62,6 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 	run: ({ sv, options, packageManager, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
 
-		// removes previously installed adapters
-		sv.file(
-			file.package,
-			transforms.json(({ data }) => {
-				const devDeps = data['devDependencies'];
-
-				for (const pkg of Object.keys(devDeps)) {
-					if (pkg.startsWith('@sveltejs/adapter-')) {
-						delete devDeps[pkg];
-					}
-				}
-
-				// in sk 3, we will keep "preview": "vite preview" like any other adapter
-				if (options.adapter === 'cloudflare') {
-					const preview =
-						options.cfTarget === 'workers'
-							? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
-							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
-					data.scripts.preview = preview;
-				}
-			})
-		);
-
 		sv.devDependency(adapter.package, adapter.version);
 
 		if (options.adapter === 'node') {
@@ -92,13 +69,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 			addToTypeConfigType({ sv, cwd, language, entry: 'node' });
 		}
 
-		if (adapter.package !== '@sveltejs/adapter-auto') {
-			sv.file(
-				'README.md',
-				transforms.text(({ content }) => content.replace(ADAPTER_HINT_REGEX, ''))
-			);
-		}
-
+		// update adapter in kit config
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
 			// finds any existing adapter's import declaration
 			const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
@@ -132,6 +103,27 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 					: { dropLeadingComments: ['adapter'] }
 			);
 		});
+
+		// removes previously installed adapters
+		sv.file(
+			file.package,
+			transforms.json(({ data }) => {
+				const devDeps = data['devDependencies'];
+
+				for (const pkg of Object.keys(devDeps)) {
+					if (pkg.startsWith('@sveltejs/adapter-')) {
+						delete devDeps[pkg];
+					}
+				}
+			})
+		);
+
+		if (adapter.package !== '@sveltejs/adapter-auto') {
+			sv.file(
+				'README.md',
+				transforms.text(({ content }) => content.replace(ADAPTER_HINT_REGEX, ''))
+			);
+		}
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.97.0');
@@ -198,6 +190,15 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 						json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
 						json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
+
+						// in sk 3, we will keep "preview": "vite preview" like any other adapter
+						if (options.adapter === 'cloudflare') {
+							const preview =
+								options.cfTarget === 'workers'
+									? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+									: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
+							data.scripts.preview = preview;
+						}
 					})
 				);
 
