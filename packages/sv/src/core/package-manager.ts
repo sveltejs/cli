@@ -217,7 +217,6 @@ export function addEngineStrictForNpm(options: {
 			if (existing) {
 				return false;
 			}
-			console.log('adding engine-strict=true');
 			return text.upsert(content, 'engine-strict', { value: 'true' });
 		});
 	}
