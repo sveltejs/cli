@@ -182,26 +182,24 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 					: transforms.json(({ data }) => applyWranglerConfig(data))
 			);
 
-			if (file.typeConfig) {
-				// Setup wrangler types command and prepend to check/build
-				sv.file(
-					file.package,
-					transforms.json(({ data, json }) => {
+			sv.file(
+				file.package,
+				transforms.json(({ data, json }) => {
+					if (file.typeConfig) {
+						// Setup wrangler types command and prepend to check/build
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 						json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
 						json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
+					}
 
-						// in sk 3, we will keep "preview": "vite preview" like any other adapter
-						if (options.adapter === 'cloudflare') {
-							const preview =
-								options.cfTarget === 'workers'
-									? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
-									: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
-							data.scripts.preview = preview;
-						}
-					})
-				);
+					data.scripts.preview =
+						options.cfTarget === 'workers'
+							? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
+				})
+			);
 
+			if (file.typeConfig) {
 				// Add Cloudflare generated types to jsconfig/tsconfig
 				addToTypeConfigType({ sv, cwd, language, entry: './worker-configuration.d.ts' });
 
