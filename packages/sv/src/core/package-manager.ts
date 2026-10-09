@@ -177,9 +177,8 @@ export function addEngineStrictForPnpm(options: {
 	const { cwd, packageManager } = options;
 	if (packageManager !== 'pnpm') return;
 
-	const found = find.up('pnpm-workspace.yaml', { cwd });
-	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-	const content = found ? fs.readFileSync(found, 'utf-8') : '';
+	const filePath = path.join(cwd, 'pnpm-workspace.yaml');
+	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
 
 	function writeEngineStrict(): TransformFn {
 		return transforms.yaml(({ data }) => {
@@ -207,9 +206,8 @@ export function addEngineStrictForNpm(options: {
 	const { cwd, packageManager } = options;
 	if (packageManager === 'pnpm') return;
 
-	const found = find.up('.npmrc', { cwd });
-	const filePath = found ?? path.join(cwd, '.npmrc');
-	const content = found ? fs.readFileSync(found, 'utf-8') : '';
+	const filePath = path.join(cwd, '.npmrc');
+	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
 
 	function writeEngineStrict(): TransformFn {
 		return transforms.text(({ content, text }) => {
