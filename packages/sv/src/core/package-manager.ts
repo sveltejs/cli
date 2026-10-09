@@ -201,10 +201,9 @@ export function addEngineStrictForNpm(options: {
 	const filePath = path.join(cwd, '.npmrc');
 	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
 
-	const newContent = transforms.text(({ content, text }) => {
-		if (content.includes('engine-strict')) return false;
-		return text.upsert(content, 'engine-strict', { value: 'true' });
-	})(content);
+	const newContent = transforms.text(({ content, text }) =>
+		text.upsert(content, 'engine-strict', { value: 'true' })
+	)(content);
 
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
