@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { parse } from '@sveltejs/sv-utils';
 import { describe, expect, it } from 'vitest';
 import { defineAddon, defineAddonOptions, type LoadedAddon } from '../config.ts';
 import { applyAddons, prepareSvApi, setupAddons } from '../engine.ts';
@@ -87,5 +88,101 @@ describe('sv.removeFile', () => {
 
 		expect(fs.readFileSync(path.join(cwd, 'keep.js'), 'utf8')).toBe('keep me');
 		expect(finalize().unmodifiedFiles).toEqual(new Set(['keep.js']));
+	});
+});
+
+describe('dependency package-manager settings', () => {
+	it('respects save-exact from .npmrc', async () => {
+		const cwd = makeWorkspace();
+		fs.writeFileSync(
+			path.join(cwd, 'package.json'),
+			JSON.stringify({ name: 't', private: true, devDependencies: { foo: '^1.0.0' } })
+		);
+		fs.writeFileSync(path.join(cwd, '.npmrc'), '# project config\nsave-exact = true\n');
+		const workspace = await createWorkspace({ cwd, packageManager: 'pnpm' });
+		const { sv, finalize } = prepareSvApi(workspace);
+
+		sv.devDependency('foo', '^2.0.0');
+		finalize();
+
+		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+		expect(pkg.devDependencies.foo).toBe('2.0.0');
+	});
+
+	it('respects pnpm 11 saveExact from pnpm-workspace.yaml', async () => {
+		const cwd = makeWorkspace();
+		fs.writeFileSync(
+			path.join(cwd, 'package.json'),
+			JSON.stringify({ name: 't', private: true, devDependencies: { foo: '^1.0.0' } })
+		);
+		fs.writeFileSync(path.join(cwd, 'pnpm-workspace.yaml'), 'saveExact: true\n');
+		const workspace = await createWorkspace({ cwd, packageManager: 'pnpm' });
+		const { sv, finalize } = prepareSvApi(workspace);
+
+		sv.devDependency('foo', '^2.0.0');
+		finalize();
+
+		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+		expect(pkg.devDependencies.foo).toBe('2.0.0');
+	});
+
+	it('keeps default catalog references and updates the catalog version', async () => {
+		const root = makeWorkspace();
+		const cwd = path.join(root, 'packages', 'app');
+		fs.mkdirSync(cwd, { recursive: true });
+		fs.writeFileSync(
+			path.join(cwd, 'package.json'),
+			JSON.stringify({
+				name: 'app',
+				private: true,
+				devDependencies: { foo: 'catalog:' }
+			})
+		);
+		fs.writeFileSync(
+			path.join(root, 'pnpm-workspace.yaml'),
+			"packages:\n  - 'packages/*'\nsaveExact: true\ncatalog:\n  foo: 1.0.0\n"
+		);
+		const workspace = await createWorkspace({ cwd, packageManager: 'pnpm' });
+		const { sv, finalize } = prepareSvApi(workspace);
+
+		sv.devDependency('foo', '^2.0.0');
+		const result = finalize();
+
+		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+		const yaml = parse.yaml(fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')).data;
+		const catalog = yaml.get('catalog') as { get(key: string): unknown };
+		expect(result.installNeeded).toBe(true);
+		expect(pkg.devDependencies.foo).toBe('catalog:');
+		expect(catalog.get('foo')).toBe('2.0.0');
+	});
+
+	it('keeps named catalog references and updates the named catalog', async () => {
+		const root = makeWorkspace();
+		const cwd = path.join(root, 'packages', 'app');
+		fs.mkdirSync(cwd, { recursive: true });
+		fs.writeFileSync(
+			path.join(cwd, 'package.json'),
+			JSON.stringify({
+				name: 'app',
+				private: true,
+				devDependencies: { foo: 'catalog:frontend' }
+			})
+		);
+		fs.writeFileSync(
+			path.join(root, 'pnpm-workspace.yaml'),
+			"packages:\n  - 'packages/*'\ncatalogs:\n  frontend:\n    foo: ^1.0.0\n"
+		);
+		const workspace = await createWorkspace({ cwd, packageManager: 'pnpm' });
+		const { sv, finalize } = prepareSvApi(workspace);
+
+		sv.devDependency('foo', '^2.0.0');
+		finalize();
+
+		const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+		const yaml = parse.yaml(fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8')).data;
+		const catalogs = yaml.get('catalogs') as { get(key: string): unknown };
+		const frontend = catalogs.get('frontend') as { get(key: string): unknown };
+		expect(pkg.devDependencies.foo).toBe('catalog:frontend');
+		expect(frontend.get('foo')).toBe('^2.0.0');
 	});
 });
