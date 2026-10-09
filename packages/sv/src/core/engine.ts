@@ -106,7 +106,7 @@ function readNpmrcSaveExact(cwd: string, workspaceRoot: string): boolean | undef
 function shouldSaveExact(workspace: Workspace): boolean {
 	const workspaceRoot = findWorkspaceRoot(workspace.cwd);
 	const workspaceConfig = path.join(workspaceRoot, 'pnpm-workspace.yaml');
-	if (fs.existsSync(workspaceConfig)) {
+	if (workspace.packageManager === 'pnpm' && fs.existsSync(workspaceConfig)) {
 		const saveExact = parse.yaml(fs.readFileSync(workspaceConfig, 'utf8')).data.get('saveExact');
 		if (typeof saveExact === 'boolean') return saveExact;
 	}
