@@ -10,8 +10,7 @@ import {
 	detect,
 	pnpm,
 	resolveCommand,
-	transforms,
-	type TransformFn
+	transforms
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
@@ -180,17 +179,10 @@ export function addEngineStrictForPnpm(options: {
 	const filePath = path.join(cwd, 'pnpm-workspace.yaml');
 	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
 
-	function writeEngineStrict(): TransformFn {
-		return transforms.yaml(({ data }) => {
-			const existing = data.get('engineStrict');
-			if (existing !== undefined) {
-				return false;
-			}
-			data.set('engineStrict', true);
-		});
-	}
-
-	const newContent = writeEngineStrict()(content);
+	const newContent = transforms.yaml(({ data }) => {
+		if (data.get('engineStrict') !== undefined) return false;
+		data.set('engineStrict', true);
+	})(content);
 
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
@@ -209,17 +201,10 @@ export function addEngineStrictForNpm(options: {
 	const filePath = path.join(cwd, '.npmrc');
 	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
 
-	function writeEngineStrict(): TransformFn {
-		return transforms.text(({ content, text }) => {
-			const existing = content.includes('engine-strict');
-			if (existing) {
-				return false;
-			}
-			return text.upsert(content, 'engine-strict', { value: 'true' });
-		});
-	}
-
-	const newContent = writeEngineStrict()(content);
+	const newContent = transforms.text(({ content, text }) => {
+		if (content.includes('engine-strict')) return false;
+		return text.upsert(content, 'engine-strict', { value: 'true' });
+	})(content);
 
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
