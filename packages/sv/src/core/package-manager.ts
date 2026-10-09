@@ -10,7 +10,8 @@ import {
 	detect,
 	pnpm,
 	resolveCommand,
-	transforms
+	transforms,
+	type TransformFn
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
@@ -141,11 +142,8 @@ export function addAllowBuildsIfPnpm(options: {
 	const { cwd, packageManager, packages } = options;
 	if (packageManager !== 'pnpm') return;
 
-	const found = find.up('pnpm-workspace.yaml', { cwd });
-	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.allowBuilds({ cwd, packages })(content);
-	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
+	const filePath = find.up('pnpm-workspace.yaml', { cwd }) ?? path.join(cwd, 'pnpm-workspace.yaml');
+	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
 }
 
 /**
@@ -164,15 +162,13 @@ export function addEngineStrict(options: {
  * creates the file if it does not exist.
  */
 function addEngineStrictForPnpm(cwd: string): void {
-	const filePath = path.join(cwd, 'pnpm-workspace.yaml');
-	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
-
-	const newContent = transforms.yaml(({ data }) => {
-		if (data.get('engineStrict') !== undefined) return false;
-		data.set('engineStrict', true);
-	})(content);
-
-	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
+	transformFile(
+		path.join(cwd, 'pnpm-workspace.yaml'),
+		transforms.yaml(({ data }) => {
+			if (data.get('engineStrict') !== undefined) return false;
+			data.set('engineStrict', true);
+		})
+	);
 }
 
 /**
@@ -180,12 +176,15 @@ function addEngineStrictForPnpm(cwd: string): void {
  * creates the file if it does not exist.
  */
 function addEngineStrictForNpm(cwd: string): void {
-	const filePath = path.join(cwd, '.npmrc');
+	transformFile(
+		path.join(cwd, '.npmrc'),
+		transforms.text(({ content, text }) => text.upsert(content, 'engine-strict', { value: 'true' }))
+	);
+}
+
+/** Missing file is treated as empty, so the transform can create it. */
+function transformFile(filePath: string, transform: TransformFn): void {
 	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
-
-	const newContent = transforms.text(({ content, text }) =>
-		text.upsert(content, 'engine-strict', { value: 'true' })
-	)(content);
-
+	const newContent = transform(content);
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
