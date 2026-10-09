@@ -134,11 +134,7 @@ function isInstalled(agent: AgentName): boolean {
  * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
  * `pnpm-workspace.yaml` by hand.
  */
-export function addAllowBuildsIfPnpm(options: {
-	cwd: string;
-	packageManager: AgentName | null | undefined;
-	packages: string[];
-}): void {
+export function addAllowBuildsIfPnpm(options: ProjectOptions & { packages: string[] }): void {
 	const { cwd, packageManager, packages } = options;
 	if (packageManager !== 'pnpm') return;
 
@@ -146,21 +142,17 @@ export function addAllowBuildsIfPnpm(options: {
 	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
 }
 
-/**
- * add engine strict configuration according to selected package manager
- */
-export function addEngineStrict(options: {
+type ProjectOptions = {
 	cwd: string;
 	packageManager: AgentName | null | undefined;
-}) {
+};
+
+/** pnpm reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
+export function addEngineStrict(options: ProjectOptions): void {
 	if (options.packageManager === 'pnpm') addEngineStrictForPnpm(options.cwd);
 	else addEngineStrictForNpm(options.cwd);
 }
 
-/**
- * adds `engineStrict` to `pnpm-workspace.yaml` if not set.
- * creates the file if it does not exist.
- */
 function addEngineStrictForPnpm(cwd: string): void {
 	transformFile(
 		path.join(cwd, 'pnpm-workspace.yaml'),
@@ -171,10 +163,6 @@ function addEngineStrictForPnpm(cwd: string): void {
 	);
 }
 
-/**
- * adds `engine-strict` to `.npmrc` if not set.
- * creates the file if it does not exist.
- */
 function addEngineStrictForNpm(cwd: string): void {
 	transformFile(
 		path.join(cwd, '.npmrc'),
