@@ -66,11 +66,18 @@ export function addHooksHandle(
 		newHandleName: string;
 		handleContent: string;
 		comments: Comments;
+		/**
+		 * The module that exports the `Handle` type. Kit 3 moved it to `@sveltejs/kit/hooks`,
+		 * while Kit 2 only exports it from `@sveltejs/kit`.
+		 * @default '@sveltejs/kit/hooks'
+		 */
+		typesFrom?: '@sveltejs/kit' | '@sveltejs/kit/hooks';
 	}
 ): void {
+	const typesFrom = options.typesFrom ?? '@sveltejs/kit/hooks';
 	if (options.language === 'ts') {
 		imports.addNamed(node, {
-			from: '@sveltejs/kit/hooks',
+			from: typesFrom,
 			imports: { Handle: 'Handle' },
 			isType: true
 		});
@@ -197,7 +204,7 @@ export function addHooksHandle(
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		} else if (options.comments) {
 			common.addJsDocTypeComment(newHandleDecl, options.comments, {
-				type: "import('@sveltejs/kit/hooks').Handle"
+				type: `import('${typesFrom}').Handle`
 			});
 		}
 		node.body.push(newHandleDecl);
@@ -213,7 +220,7 @@ export function addHooksHandle(
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		} else if (options.comments) {
 			common.addJsDocTypeComment(handleDecl, options.comments, {
-				type: "import('@sveltejs/kit/hooks').Handle"
+				type: `import('${typesFrom}').Handle`
 			});
 		}
 
@@ -235,7 +242,7 @@ export function addHooksHandle(
 		variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 	} else if (options.comments) {
 		common.addJsDocTypeComment(newHandleDecl, options.comments, {
-			type: "import('@sveltejs/kit/hooks').Handle"
+			type: `import('${typesFrom}').Handle`
 		});
 	}
 
@@ -345,7 +352,7 @@ export function addHooksHandle(
 			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
 		} else if (options.comments) {
 			common.addJsDocTypeComment(finalHandleDecl, options.comments, {
-				type: "import('@sveltejs/kit/hooks').Handle"
+				type: `import('${typesFrom}').Handle`
 			});
 		}
 		node.body.push(newHandleDecl);
