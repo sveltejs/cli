@@ -1,5 +1,15 @@
 # sv
 
+## 1.2.0
+
+### Minor Changes
+
+- feat(sveltekit-adapter): add `bun` option ([#1414](https://github.com/sveltejs/cli/pull/1414))
+
+### Patch Changes
+
+- fix(migrate): add a migration-task for non-static `redirect` calls ([#1415](https://github.com/sveltejs/cli/pull/1415))
+
 ## 1.1.1
 
 ### Patch Changes
