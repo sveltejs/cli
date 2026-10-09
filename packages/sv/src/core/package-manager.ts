@@ -134,94 +134,45 @@ function isInstalled(agent: AgentName): boolean {
  * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
  * `pnpm-workspace.yaml` by hand.
  */
-export function addAllowBuildsIfPnpm(options: {
-	cwd: string;
-	packageManager: AgentName | null | undefined;
-	packages: string[];
-}): void {
+export function addAllowBuildsIfPnpm(options: ProjectOptions & { packages: string[] }): void {
 	const { cwd, packageManager, packages } = options;
 	if (packageManager !== 'pnpm') return;
 
-	const found = find.up('pnpm-workspace.yaml', { cwd });
-	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-	const newContent = pnpm.allowBuilds({ cwd, packages })(content);
-	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
+	const filePath = find.up('pnpm-workspace.yaml', { cwd }) ?? path.join(cwd, 'pnpm-workspace.yaml');
+	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
 }
 
-/**
- * add engine strict configuration according to selected package manager
- */
-export function addEngineStrict(options: {
+type ProjectOptions = {
 	cwd: string;
 	packageManager: AgentName | null | undefined;
-}) {
-	switch (options.packageManager) {
-		case 'pnpm':
-			addEngineStrictForPnpm(options);
-			break;
-		default:
-			addEngineStrictForNpm(options);
-			break;
-	}
+};
+
+/** pnpm reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
+export function addEngineStrict(options: ProjectOptions): void {
+	if (options.packageManager === 'pnpm') addEngineStrictForPnpm(options.cwd);
+	else addEngineStrictForNpm(options.cwd);
 }
 
-/**
- * adds `engineStrict` to `pnpm-workspace.yaml` if not set.
- * creates the file if it does not exist.
- */
-export function addEngineStrictForPnpm(options: {
-	cwd: string;
-	packageManager: AgentName | null | undefined;
-}): void {
-	const { cwd, packageManager } = options;
-	if (packageManager !== 'pnpm') return;
-
-	const found = find.up('pnpm-workspace.yaml', { cwd });
-	const filePath = found ?? path.join(cwd, 'pnpm-workspace.yaml');
-	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-
-	function writeEngineStrict(): TransformFn {
-		return transforms.yaml(({ data }) => {
-			const existing = data.get('engineStrict');
-			if (existing !== undefined) {
-				return false;
-			}
+function addEngineStrictForPnpm(cwd: string): void {
+	transformFile(
+		path.join(cwd, 'pnpm-workspace.yaml'),
+		transforms.yaml(({ data }) => {
+			if (data.get('engineStrict') !== undefined) return false;
 			data.set('engineStrict', true);
-		});
-	}
-
-	const newContent = writeEngineStrict()(content);
-
-	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
+		})
+	);
 }
 
-/**
- * adds `engine-strict` to `.npmrc` if not set.
- * creates the file if it does not exist.
- */
-export function addEngineStrictForNpm(options: {
-	cwd: string;
-	packageManager: AgentName | null | undefined;
-}): void {
-	const { cwd, packageManager } = options;
-	if (packageManager === 'pnpm') return;
+function addEngineStrictForNpm(cwd: string): void {
+	transformFile(
+		path.join(cwd, '.npmrc'),
+		transforms.text(({ content, text }) => text.upsert(content, 'engine-strict', { value: 'true' }))
+	);
+}
 
-	const found = find.up('.npmrc', { cwd });
-	const filePath = found ?? path.join(cwd, '.npmrc');
-	const content = found ? fs.readFileSync(found, 'utf-8') : '';
-
-	function writeEngineStrict(): TransformFn {
-		return transforms.text(({ content, text }) => {
-			const existing = content.includes('engine-strict');
-			if (existing) {
-				return false;
-			}
-			return text.upsert(content, 'engine-strict', { value: 'true' });
-		});
-	}
-
-	const newContent = writeEngineStrict()(content);
-
+/** Missing file is treated as empty, so the transform can create it. */
+function transformFile(filePath: string, transform: TransformFn): void {
+	const content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
+	const newContent = transform(content);
 	if (newContent && newContent !== content) fs.writeFileSync(filePath, newContent, 'utf-8');
 }
