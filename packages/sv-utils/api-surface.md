@@ -811,6 +811,7 @@ declare function addHooksHandle(
 		newHandleName: string;
 		handleContent: string;
 		comments: Comments;
+		typesFrom?: '@sveltejs/kit' | '@sveltejs/kit/hooks';
 	}
 ): void;
 declare namespace vite_d_exports {
@@ -1012,6 +1013,9 @@ export declare function minimizeDiff(old: string, updated: string): string;
 export declare const downloadJson: (url: string) => Promise<any>;
 export declare function isKit3(kitRange: string | undefined): boolean;
 export declare function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib';
+export declare function resolveHooksTypesFrom(
+	kitRange: string | undefined
+): '@sveltejs/kit/hooks' | '@sveltejs/kit';
 export declare function libSubpathImports(libDir: string): Record<string, string>;
 export declare const KIT3_TSCONFIG = '$app/tsconfig';
 export declare const KIT3_TSCONFIG_DEFAULT: Record<string, unknown>;
