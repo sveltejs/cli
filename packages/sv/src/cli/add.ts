@@ -642,6 +642,11 @@ export async function promptAddonQuestions({
 		answers[loaded.addon.id] ??= {};
 	}
 
+	// Setup dependencies must reflect the options selected by the user, rather
+	// than the add-on's defaults. A second question pass after setup still handles
+	// options introduced dynamically and options of newly added dependencies.
+	await promptQuestionsForAddons(addons, answers);
+
 	// run setup if we have access to workspace
 	// prepare addons (both official and non-official)
 	let setupResults: Record<string, SetupResult> = {};
@@ -761,10 +766,6 @@ export async function promptAddonQuestions({
 	];
 	await common.runAndValidateVerifications(verifications);
 
-	// Setup can depend on the user's template/mode choice, so ask the initially
-	// selected add-ons before computing their dependency graph. The final pass
-	// below still handles dynamically added questions and dependencies.
-	await promptQuestionsForAddons(addons, answers);
 	// Ask questions introduced during setup, and options of implicit dependencies.
 	await promptQuestionsForAddons(addons, answers);
 
