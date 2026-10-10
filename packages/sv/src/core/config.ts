@@ -1,4 +1,5 @@
 import type { OfficialAddonId } from '../addons/ids.ts';
+import type { OfficialAddonOptions } from '../addons/index.ts';
 import type {
 	AddonOptions,
 	BaseQuestion,
@@ -78,8 +79,18 @@ export type Addon<
 	/** Setup the addon. Will be called before the addon is run. */
 	setup?: (
 		workspace: Workspace & {
-			/** Required add-ons. Implies `runsAfter`. Official ids are installed automatically, others must be part of the same run. */
-			dependsOn: (id: AddonId) => void;
+			/** Resolved add-on options, including defaults, before the add-on runs. */
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
+			/**
+			 * Required add-ons. Implies `runsAfter`. Official ids are installed automatically, others must be part of the same run.
+			 * The optional dependency options are defaults; explicitly selected add-ons keep their own CLI options.
+			 */
+			dependsOn: <DependencyId extends AddonId>(
+				id: DependencyId,
+				options?: DependencyId extends OfficialAddonId
+					? Partial<OfficialAddonOptions[DependencyId]>
+					: Record<string, unknown>
+			) => void;
 
 			/**
 			 * Why is this addon not supported?
@@ -274,6 +285,8 @@ export function getErrorHint(source: AddonSource): string {
 
 export type SetupResult = {
 	dependsOn: string[];
+	/** Default option values supplied for automatically added dependencies. */
+	dependencyOptions?: Record<string, Record<string, unknown>>;
 	unsupported: string[];
 	runsAfter: string[];
 	additionalOptions: Record<string, Question>;

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { isDeepStrictEqual } from 'node:util';
 import * as p from '@clack/prompts';
 import { type AgentName, color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
@@ -345,6 +346,57 @@ export async function resolveNonOfficialAddons(
  * Walks the `dependsOn` graph and returns the first cycle found as a path
  * (e.g. `['a', 'b', 'a']`), or `undefined` when the graph is acyclic.
  */
+export function resolveDependencyOptions(
+	rootAddonIds: string[],
+	setupResults: Record<string, SetupResult>
+): Record<string, Record<string, unknown>> {
+	const explicitAddons = new Set(rootAddonIds);
+	const candidates = new Map<string, Map<string, Array<{ depth: number; value: unknown }>>>();
+	const queue = rootAddonIds.map((id) => ({ id, depth: 0 }));
+	const visitedDepth = new Map<string, number>();
+
+	while (queue.length > 0) {
+		const { id, depth } = queue.shift()!;
+		const previousDepth = visitedDepth.get(id);
+		if (previousDepth !== undefined && previousDepth <= depth) continue;
+		visitedDepth.set(id, depth);
+
+		const setupResult = setupResults[id];
+		if (!setupResult) continue;
+
+		for (const dependencyId of setupResult.dependsOn) {
+			if (!explicitAddons.has(dependencyId)) {
+				const byOption = candidates.get(dependencyId) ?? new Map();
+				candidates.set(dependencyId, byOption);
+				for (const [name, value] of Object.entries(
+					setupResult.dependencyOptions?.[dependencyId] ?? {}
+				)) {
+					const values = byOption.get(name) ?? [];
+					values.push({ depth, value });
+					byOption.set(name, values);
+				}
+			}
+			queue.push({ id: dependencyId, depth: depth + 1 });
+		}
+	}
+
+	const resolved: Record<string, Record<string, unknown>> = {};
+	for (const [dependencyId, byOption] of candidates) {
+		for (const [name, values] of byOption) {
+			const nearestDepth = Math.min(...values.map(({ depth }) => depth));
+			const nearestValues = values
+				.filter(({ depth }) => depth === nearestDepth)
+				.map(({ value }) => value);
+			if (nearestValues.every((value) => isDeepStrictEqual(value, nearestValues[0]))) {
+				resolved[dependencyId] ??= {};
+				resolved[dependencyId][name] = nearestValues[0];
+			}
+		}
+	}
+
+	return resolved;
+}
+
 export function findDependencyCycle(
 	addonIds: string[],
 	setupResults: Record<string, SetupResult>
@@ -373,6 +425,65 @@ export function findDependencyCycle(
 		const cycle = visit(id);
 		if (cycle) return cycle;
 	}
+}
+
+
+async function promptQuestionsForAddons(
+	addons: LoadedAddon[],
+	answers: Record<string, OptionValues<any>>
+) {
+	for (const loaded of addons) {
+		const addon = loaded.addon;
+		const addonId = addon.id;
+		const questionPrefix = addons.length > 1 ? `${addonId}: ` : '';
+
+		answers[addonId] ??= {};
+		const values = answers[addonId];
+
+		for (const [questionId, question] of Object.entries(addon.options)) {
+			const shouldAsk = question.condition?.(values);
+			if (shouldAsk === false || values[questionId] !== undefined) continue;
+
+			let answer;
+			const message = questionPrefix + question.question;
+			if (question.type === 'boolean') {
+				answer = await p.confirm({ message, initialValue: question.default });
+			}
+			if (question.type === 'select') {
+				answer = await p.select({
+					message,
+					initialValue: question.default,
+					options: question.options
+				});
+			}
+			if (question.type === 'multiselect') {
+				answer = await p.multiselect({
+					message,
+					initialValues: question.default,
+					required: question.required,
+					options: question.options
+				});
+			}
+			if (question.type === 'string' || question.type === 'number') {
+				answer = await p.text({
+					message,
+					initialValue: question.default?.toString() ?? (question.type === 'number' ? '0' : ''),
+					placeholder: question.placeholder,
+					validate: question.validate
+				});
+				if (question.type === 'number') {
+					answer = Number(answer);
+				}
+			}
+			if (p.isCancel(answer)) {
+				p.cancel('Operation cancelled.');
+				process.exit(1);
+			}
+
+			values[questionId] = answer;
+		}
+	}
+
 }
 
 export async function promptAddonQuestions({
@@ -531,13 +642,18 @@ export async function promptAddonQuestions({
 		answers[loaded.addon.id] ??= {};
 	}
 
+	// Setup dependencies must reflect the options selected by the user, rather
+	// than the add-on's defaults. A second question pass after setup still handles
+	// options introduced dynamically and options of newly added dependencies.
+	await promptQuestionsForAddons(addons, answers);
+
 	// run setup if we have access to workspace
 	// prepare addons (both official and non-official)
 	let setupResults: Record<string, SetupResult> = {};
 
 	// If we have selected addons, run setup on them (regardless of official status)
 	if (addons.length > 0) {
-		setupResults = await setupAddons(addons, workspace);
+		setupResults = await setupAddons(addons, workspace, answers);
 	}
 
 	// prompt which addons to apply (only when no addons were specified)
@@ -545,7 +661,7 @@ export async function promptAddonQuestions({
 	if (addons.length === 0) {
 		// For the prompt, we only show official addons
 		const officialLoaded = officialAddons.map((a) => createLoadedAddon(a));
-		const results = await setupAddons(officialLoaded, workspace);
+		const results = await setupAddons(officialLoaded, workspace, answers);
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
 			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
@@ -573,19 +689,20 @@ export async function promptAddonQuestions({
 		}
 
 		// Re-run setup for all selected addons (including any that were added via CLI options)
-		setupResults = await setupAddons(addons, workspace);
+		setupResults = await setupAddons(addons, workspace, answers);
 	}
 
 	// Ensure all selected addons have setup results
 	// This should always be the case, but we add a safeguard
 	const missingSetupResults = addons.filter((a) => !setupResults[a.addon.id]);
 	if (missingSetupResults.length > 0) {
-		const additionalSetupResults = await setupAddons(missingSetupResults, workspace);
+		const additionalSetupResults = await setupAddons(missingSetupResults, workspace, answers);
 		Object.assign(setupResults, additionalSetupResults);
 	}
 
-	// add inter-addon dependencies
-	// We need to iterate until no new dependencies are added (to handle transitive dependencies)
+	// Add inter-addon dependencies. Keep the originally requested IDs separate
+	// so dependency defaults never suppress prompts for explicitly selected addons.
+	const rootAddonIds = addons.map((addon) => addon.addon.id);
 	let hasNewDependencies = true;
 	while (hasNewDependencies) {
 		hasNewDependencies = false;
@@ -619,7 +736,7 @@ export async function promptAddonQuestions({
 		// Run setup for any newly added dependencies
 		const newlyAddedAddons = addons.filter((a) => !setupResults[a.addon.id]);
 		if (newlyAddedAddons.length > 0) {
-			const newSetupResults = await setupAddons(newlyAddedAddons, workspace);
+			const newSetupResults = await setupAddons(newlyAddedAddons, workspace, answers);
 			Object.assign(setupResults, newSetupResults);
 		}
 	}
@@ -635,6 +752,12 @@ export async function promptAddonQuestions({
 		);
 	}
 
+	for (const [id, defaults] of Object.entries(
+		resolveDependencyOptions(rootAddonIds, setupResults)
+	)) {
+		answers[id] = { ...defaults, ...answers[id] };
+	}
+
 	// run verifications after inter-addon deps have been added
 	const addonDefinitions = addons.map((a) => a.addon);
 	const verifications = [
@@ -643,58 +766,8 @@ export async function promptAddonQuestions({
 	];
 	await common.runAndValidateVerifications(verifications);
 
-	// ask remaining questions
-	for (const loaded of addons) {
-		const addon = loaded.addon;
-		const addonId = addon.id;
-		const questionPrefix = addons.length > 1 ? `${addonId}: ` : '';
-
-		answers[addonId] ??= {};
-		const values = answers[addonId];
-
-		for (const [questionId, question] of Object.entries(addon.options)) {
-			const shouldAsk = question.condition?.(values);
-			if (shouldAsk === false || values[questionId] !== undefined) continue;
-
-			let answer;
-			const message = questionPrefix + question.question;
-			if (question.type === 'boolean') {
-				answer = await p.confirm({ message, initialValue: question.default });
-			}
-			if (question.type === 'select') {
-				answer = await p.select({
-					message,
-					initialValue: question.default,
-					options: question.options
-				});
-			}
-			if (question.type === 'multiselect') {
-				answer = await p.multiselect({
-					message,
-					initialValues: question.default,
-					required: question.required,
-					options: question.options
-				});
-			}
-			if (question.type === 'string' || question.type === 'number') {
-				answer = await p.text({
-					message,
-					initialValue: question.default?.toString() ?? (question.type === 'number' ? '0' : ''),
-					placeholder: question.placeholder,
-					validate: question.validate
-				});
-				if (question.type === 'number') {
-					answer = Number(answer);
-				}
-			}
-			if (p.isCancel(answer)) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
-			}
-
-			values[questionId] = answer;
-		}
-	}
+	// Ask questions introduced during setup, and options of implicit dependencies.
+	await promptQuestionsForAddons(addons, answers);
 
 	return { loadedAddons: addons, answers };
 }
@@ -725,7 +798,7 @@ export async function runAddonsApply({
 		const setups = loadedAddons.length
 			? loadedAddons
 			: officialAddons.map((a) => createLoadedAddon(a));
-		setupResults = await setupAddons(setups, workspace);
+		setupResults = await setupAddons(setups, workspace, answers);
 	}
 	// we'll return early when no addons are selected,
 	// indicating that installing deps was skipped and no PM was selected
