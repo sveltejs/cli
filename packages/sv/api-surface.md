@@ -120,212 +120,6 @@ type OptionValues<Args extends OptionDefinition> = {
 							? unknown
 							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
-type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
-type Workspace = {
-	cwd: string;
-	dependencyVersion: (pkg: string) => string | undefined;
-	language: 'ts' | 'js';
-	file: {
-		viteConfig: 'vite.config.js' | 'vite.config.ts';
-		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
-		stylesheet: `${string}/layout.css` | 'src/app.css';
-		package: 'package.json';
-		gitignore: '.gitignore';
-		getRelative: ({ from, to }: { from?: string; to: string }) => string;
-		findUp: (filename: string) => string;
-	};
-	isKit: boolean;
-	directory: {
-		src: string;
-		lib: string;
-		kitRoutes: string;
-	};
-	packageManager: AgentName;
-};
-type ConditionDefinition = (Workspace: Workspace) => boolean;
-type FileEdit = (content: string) => string | false;
-type FileEditMultiple = (content: string, path: string) => string | false;
-type SvApi = {
-	dependency: (pkg: string, version: string) => void;
-	devDependency: (pkg: string, version: string) => void;
-	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
-	file: (path: string, edit: FileEdit) => void;
-	removeFile: (path: string) => void;
-	files: (
-		options: {
-			include: string | string[];
-			exclude?: string[];
-			where?: (content: string) => boolean;
-		},
-		edit: FileEditMultiple
-	) => void;
-};
-type AddonId = OfficialAddonId | (string & {});
-type Addon<
-	Args extends OptionDefinition,
-	Id extends string = string,
-	Setup extends Record<string, unknown> = Record<string, unknown>
-> = {
-	id: Id;
-	alias?: string;
-	shortDescription?: string;
-	homepage?: string;
-	hidden?: boolean;
-	options: Args;
-	setup?: (
-		workspace: Workspace & {
-			dependsOn: (id: AddonId) => void;
-			unsupported: (reason: string) => void;
-			runsAfter: (id: AddonId) => void;
-			addOption: <K extends Extract<keyof Setup, string>>(
-				key: K,
-				question: SetupOptions<Setup>[K]
-			) => void;
-		}
-	) => MaybePromise<void>;
-	run: (
-		workspace: Workspace & {
-			options: WorkspaceOptions<Args> & Record<string, unknown>;
-			sv: SvApi;
-			cancel: (reason: string) => void;
-		}
-	) => MaybePromise<void>;
-	nextSteps?: (
-		workspace: Workspace & {
-			options: WorkspaceOptions<Args> & Record<string, unknown>;
-		}
-	) => string[];
-};
-type SetupOptions<T extends Record<string, unknown>> = {
-	[K in keyof T]: BaseQuestion<any> &
-		(T[K] extends boolean
-			? BooleanQuestion
-			: T[K] extends string
-				? StringQuestion
-				: T[K] extends number
-					? NumberQuestion
-					: T[K] extends Array<infer V>
-						? MultiSelectQuestion<V>
-						: Question<any>);
-};
-export declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
-	config: Addon<Args, Id>
-): Addon<Args, Id>;
-export declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
-	const Id extends string,
-	Args extends OptionDefinition
->(
-	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>, 'options'> & {
-		options: Args;
-	}
-) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
-type AddonInput = {
-	readonly specifier: string;
-	readonly options: string[];
-};
-type AddonSource =
-	| {
-			readonly kind: 'official';
-			readonly id: string;
-	  }
-	| {
-			readonly kind: 'file';
-			readonly path: string;
-	  }
-	| {
-			readonly kind: 'npm';
-			readonly packageName: string;
-			readonly npmUrl: string;
-			readonly registryUrl: string;
-			readonly tag: string;
-	  };
-type AddonReference = {
-	readonly specifier: string;
-	readonly options: string[];
-	readonly source: AddonSource;
-};
-type LoadedAddon = {
-	readonly reference: AddonReference;
-	readonly addon: AddonDefinition;
-};
-type PreparedAddon = LoadedAddon & {
-	readonly setupResult: SetupResult;
-};
-type ConfiguredAddon = PreparedAddon & {
-	readonly answers: OptionValues<any>;
-};
-type AddonResult = {
-	readonly id: string;
-	readonly status:
-		| 'success'
-		| {
-				canceled: string[];
-		  };
-	readonly files: string[];
-};
-type SetupResult = {
-	dependsOn: string[];
-	unsupported: string[];
-	runsAfter: string[];
-	additionalOptions: Record<string, Question>;
-};
-type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
-type MaybePromise<T> = Promise<T> | T;
-type Prettify<T> = { [K in keyof T]: T[K] } & unknown;
-type OptionBuilder<T extends OptionDefinition, Values extends Record<string, unknown> = never> = {
-	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
-		key: K,
-		question: Q
-	): OptionBuilder<T & Record<K, Q>, Values>;
-	build(
-		...check: [Values] extends [never]
-			? []
-			: [MismatchedOptions<T, Values>] extends [never]
-				? []
-				: [mismatchedOptions: MismatchedOptions<T, Values>]
-	): [Values] extends [never] ? Prettify<T> : AddonOptions<Values>;
-};
-export declare function defineAddonOptions<
-	Values extends Record<string, unknown> = never
->(): OptionBuilder<{}, Values>;
-type InstallOptions<Addons extends AddonMap> = {
-	cwd: string;
-	addons: Addons;
-	options: OptionMap<Addons>;
-	packageManager?: AgentName;
-};
-type AddonMap = Record<string, Addon<any, any>>;
-type AddonById<Addons extends AddonMap, Id extends string> = Extract<
-	Addons[keyof Addons],
-	{
-		id: Id;
-	}
->;
-type OptionMap<Addons extends AddonMap> = {
-	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
-};
-export declare function add<Addons extends AddonMap>({
-	addons,
-	cwd,
-	options,
-	packageManager
-}: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>>;
-type ApplyAddonOptions = {
-	loadedAddons: LoadedAddon[];
-	options: OptionMap<AddonMap>;
-	workspace: Workspace;
-	setupResults: Record<string, SetupResult>;
-};
-declare function applyAddons({
-	loadedAddons,
-	workspace,
-	setupResults,
-	options
-}: ApplyAddonOptions): Promise<{
-	filesToFormat: string[];
-	status: Record<string, string[] | 'success'>;
-	installNeeded: boolean;
-}>;
 type AiToolsOptions = {
 	ide: string[];
 	delivery: 'plugin' | 'tools';
@@ -423,6 +217,219 @@ type OfficialAddons = {
 };
 type OfficialAddonOptions = OptionMap<OfficialAddons>;
 export declare const officialAddons: OfficialAddons;
+type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
+type Workspace = {
+	cwd: string;
+	dependencyVersion: (pkg: string) => string | undefined;
+	language: 'ts' | 'js';
+	file: {
+		viteConfig: 'vite.config.js' | 'vite.config.ts';
+		typeConfig: 'jsconfig.json' | 'tsconfig.json' | undefined;
+		stylesheet: `${string}/layout.css` | 'src/app.css';
+		package: 'package.json';
+		gitignore: '.gitignore';
+		getRelative: ({ from, to }: { from?: string; to: string }) => string;
+		findUp: (filename: string) => string;
+	};
+	isKit: boolean;
+	directory: {
+		src: string;
+		lib: string;
+		kitRoutes: string;
+	};
+	packageManager: AgentName;
+};
+type ConditionDefinition = (Workspace: Workspace) => boolean;
+type FileEdit = (content: string) => string | false;
+type FileEditMultiple = (content: string, path: string) => string | false;
+type SvApi = {
+	dependency: (pkg: string, version: string) => void;
+	devDependency: (pkg: string, version: string) => void;
+	execute: (args: string[], stdio: 'inherit' | 'pipe') => Promise<void>;
+	file: (path: string, edit: FileEdit) => void;
+	removeFile: (path: string) => void;
+	files: (
+		options: {
+			include: string | string[];
+			exclude?: string[];
+			where?: (content: string) => boolean;
+		},
+		edit: FileEditMultiple
+	) => void;
+};
+type AddonId = OfficialAddonId | (string & {});
+type Addon<
+	Args extends OptionDefinition,
+	Id extends string = string,
+	Setup extends Record<string, unknown> = Record<string, unknown>
+> = {
+	id: Id;
+	alias?: string;
+	shortDescription?: string;
+	homepage?: string;
+	hidden?: boolean;
+	options: Args;
+	setup?: (
+		workspace: Workspace & {
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
+			dependsOn: <DependencyId extends AddonId>(
+				id: DependencyId,
+				options?: DependencyId extends OfficialAddonId
+					? Partial<OfficialAddonOptions[DependencyId]>
+					: Record<string, unknown>
+			) => void;
+			unsupported: (reason: string) => void;
+			runsAfter: (id: AddonId) => void;
+			addOption: <K extends Extract<keyof Setup, string>>(
+				key: K,
+				question: SetupOptions<Setup>[K]
+			) => void;
+		}
+	) => MaybePromise<void>;
+	run: (
+		workspace: Workspace & {
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
+			sv: SvApi;
+			cancel: (reason: string) => void;
+		}
+	) => MaybePromise<void>;
+	nextSteps?: (
+		workspace: Workspace & {
+			options: WorkspaceOptions<Args> & Record<string, unknown>;
+		}
+	) => string[];
+};
+type SetupOptions<T extends Record<string, unknown>> = {
+	[K in keyof T]: BaseQuestion<any> &
+		(T[K] extends boolean
+			? BooleanQuestion
+			: T[K] extends string
+				? StringQuestion
+				: T[K] extends number
+					? NumberQuestion
+					: T[K] extends Array<infer V>
+						? MultiSelectQuestion<V>
+						: Question<any>);
+};
+export declare function defineAddon<const Id extends string, Args extends OptionDefinition>(
+	config: Addon<Args, Id>
+): Addon<Args, Id>;
+export declare function defineAddon<SetupValues extends Record<string, unknown>>(): <
+	const Id extends string,
+	Args extends OptionDefinition
+>(
+	config: Omit<Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>, 'options'> & {
+		options: Args;
+	}
+) => Addon<Args & SetupOptions<SetupValues>, Id, SetupValues>;
+type AddonInput = {
+	readonly specifier: string;
+	readonly options: string[];
+};
+type AddonSource =
+	| {
+			readonly kind: 'official';
+			readonly id: string;
+	  }
+	| {
+			readonly kind: 'file';
+			readonly path: string;
+	  }
+	| {
+			readonly kind: 'npm';
+			readonly packageName: string;
+			readonly npmUrl: string;
+			readonly registryUrl: string;
+			readonly tag: string;
+	  };
+type AddonReference = {
+	readonly specifier: string;
+	readonly options: string[];
+	readonly source: AddonSource;
+};
+type LoadedAddon = {
+	readonly reference: AddonReference;
+	readonly addon: AddonDefinition;
+};
+type PreparedAddon = LoadedAddon & {
+	readonly setupResult: SetupResult;
+};
+type ConfiguredAddon = PreparedAddon & {
+	readonly answers: OptionValues<any>;
+};
+type AddonResult = {
+	readonly id: string;
+	readonly status:
+		| 'success'
+		| {
+				canceled: string[];
+		  };
+	readonly files: string[];
+};
+type SetupResult = {
+	dependsOn: string[];
+	dependencyOptions?: Record<string, Record<string, unknown>>;
+	unsupported: string[];
+	runsAfter: string[];
+	additionalOptions: Record<string, Question>;
+};
+type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
+type MaybePromise<T> = Promise<T> | T;
+type Prettify<T> = { [K in keyof T]: T[K] } & unknown;
+type OptionBuilder<T extends OptionDefinition, Values extends Record<string, unknown> = never> = {
+	add<K extends string, const Q extends Question<T & Record<K, Q>>>(
+		key: K,
+		question: Q
+	): OptionBuilder<T & Record<K, Q>, Values>;
+	build(
+		...check: [Values] extends [never]
+			? []
+			: [MismatchedOptions<T, Values>] extends [never]
+				? []
+				: [mismatchedOptions: MismatchedOptions<T, Values>]
+	): [Values] extends [never] ? Prettify<T> : AddonOptions<Values>;
+};
+export declare function defineAddonOptions<
+	Values extends Record<string, unknown> = never
+>(): OptionBuilder<{}, Values>;
+type InstallOptions<Addons extends AddonMap> = {
+	cwd: string;
+	addons: Addons;
+	options: OptionMap<Addons>;
+	packageManager?: AgentName;
+};
+type AddonMap = Record<string, Addon<any, any>>;
+type AddonById<Addons extends AddonMap, Id extends string> = Extract<
+	Addons[keyof Addons],
+	{
+		id: Id;
+	}
+>;
+type OptionMap<Addons extends AddonMap> = {
+	[Id in Addons[keyof Addons]['id']]: Partial<OptionValues<AddonById<Addons, Id>['options']>>;
+};
+export declare function add<Addons extends AddonMap>({
+	addons,
+	cwd,
+	options,
+	packageManager
+}: InstallOptions<Addons>): Promise<ReturnType<typeof applyAddons>>;
+type ApplyAddonOptions = {
+	loadedAddons: LoadedAddon[];
+	options: OptionMap<AddonMap>;
+	workspace: Workspace;
+	setupResults: Record<string, SetupResult>;
+};
+declare function applyAddons({
+	loadedAddons,
+	workspace,
+	setupResults,
+	options
+}: ApplyAddonOptions): Promise<{
+	filesToFormat: string[];
+	status: Record<string, string[] | 'success'>;
+	installNeeded: boolean;
+}>;
 type FileEditor = Workspace & {
 	content: string;
 };
