@@ -427,6 +427,65 @@ export function findDependencyCycle(
 	}
 }
 
+
+async function promptQuestionsForAddons(
+	addons: LoadedAddon[],
+	answers: Record<string, OptionValues<any>>
+) {
+	for (const loaded of addons) {
+		const addon = loaded.addon;
+		const addonId = addon.id;
+		const questionPrefix = addons.length > 1 ? `${addonId}: ` : '';
+
+		answers[addonId] ??= {};
+		const values = answers[addonId];
+
+		for (const [questionId, question] of Object.entries(addon.options)) {
+			const shouldAsk = question.condition?.(values);
+			if (shouldAsk === false || values[questionId] !== undefined) continue;
+
+			let answer;
+			const message = questionPrefix + question.question;
+			if (question.type === 'boolean') {
+				answer = await p.confirm({ message, initialValue: question.default });
+			}
+			if (question.type === 'select') {
+				answer = await p.select({
+					message,
+					initialValue: question.default,
+					options: question.options
+				});
+			}
+			if (question.type === 'multiselect') {
+				answer = await p.multiselect({
+					message,
+					initialValues: question.default,
+					required: question.required,
+					options: question.options
+				});
+			}
+			if (question.type === 'string' || question.type === 'number') {
+				answer = await p.text({
+					message,
+					initialValue: question.default?.toString() ?? (question.type === 'number' ? '0' : ''),
+					placeholder: question.placeholder,
+					validate: question.validate
+				});
+				if (question.type === 'number') {
+					answer = Number(answer);
+				}
+			}
+			if (p.isCancel(answer)) {
+				p.cancel('Operation cancelled.');
+				process.exit(1);
+			}
+
+			values[questionId] = answer;
+		}
+	}
+
+}
+
 export async function promptAddonQuestions({
 	options,
 	loadedAddons,
@@ -702,58 +761,12 @@ export async function promptAddonQuestions({
 	];
 	await common.runAndValidateVerifications(verifications);
 
-	// ask remaining questions
-	for (const loaded of addons) {
-		const addon = loaded.addon;
-		const addonId = addon.id;
-		const questionPrefix = addons.length > 1 ? `${addonId}: ` : '';
-
-		answers[addonId] ??= {};
-		const values = answers[addonId];
-
-		for (const [questionId, question] of Object.entries(addon.options)) {
-			const shouldAsk = question.condition?.(values);
-			if (shouldAsk === false || values[questionId] !== undefined) continue;
-
-			let answer;
-			const message = questionPrefix + question.question;
-			if (question.type === 'boolean') {
-				answer = await p.confirm({ message, initialValue: question.default });
-			}
-			if (question.type === 'select') {
-				answer = await p.select({
-					message,
-					initialValue: question.default,
-					options: question.options
-				});
-			}
-			if (question.type === 'multiselect') {
-				answer = await p.multiselect({
-					message,
-					initialValues: question.default,
-					required: question.required,
-					options: question.options
-				});
-			}
-			if (question.type === 'string' || question.type === 'number') {
-				answer = await p.text({
-					message,
-					initialValue: question.default?.toString() ?? (question.type === 'number' ? '0' : ''),
-					placeholder: question.placeholder,
-					validate: question.validate
-				});
-				if (question.type === 'number') {
-					answer = Number(answer);
-				}
-			}
-			if (p.isCancel(answer)) {
-				p.cancel('Operation cancelled.');
-				process.exit(1);
-			}
-
-			values[questionId] = answer;
-		}
-	}
+	// Setup can depend on the user's template/mode choice, so ask the initially
+	// selected add-ons before computing their dependency graph. The final pass
+	// below still handles dynamically added questions and dependencies.
+	await promptQuestionsForAddons(addons, answers);
+	// Ask questions introduced during setup, and options of implicit dependencies.
+	await promptQuestionsForAddons(addons, answers);
 
 	return { loadedAddons: addons, answers };
 }
