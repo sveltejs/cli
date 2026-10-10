@@ -1,5 +1,6 @@
 import process from 'node:process';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as p from '@clack/prompts';
 import {
 	createLoadedAddon,
 	defineAddon,
@@ -80,6 +81,70 @@ describe('dependency option defaults', () => {
 		});
 		expect(answers['better-auth']).toEqual({ demo: [] });
 	});
+	it('uses an interactively selected dashboard mode to add dependencies', async () => {
+		const options = defineAddonOptions<{ template: 'base' | 'dashboard' }>()
+			.add('template', {
+				question: 'Template',
+				type: 'select',
+				default: 'base',
+				options: [
+					{ value: 'base', label: 'Base' },
+					{ value: 'dashboard', label: 'Dashboard' }
+				]
+			})
+			.build();
+		const addon = defineAddon({
+			id: 'test-interactive-template',
+			options,
+			setup: ({ options, dependsOn }) => {
+				if (options.template === 'dashboard') {
+					dependsOn('drizzle', { database: 'postgresql', postgresql: 'postgres.js', docker: false });
+					dependsOn('better-auth', { demo: [] });
+				}
+			},
+			run: () => {}
+		});
+		const workspace = await createWorkspace({
+			cwd: process.cwd(),
+			packageManager: 'npm',
+			override: { isKit: true, dependencies: {} }
+		});
+
+		const select = vi.spyOn(p, 'select');
+		try {
+			for (const template of ['dashboard', 'base'] as const) {
+				select.mockResolvedValueOnce(template);
+				const { answers, loadedAddons } = await promptAddonQuestions({
+					options: {
+						cwd: process.cwd(),
+						install: false,
+						gitCheck: false,
+						downloadCheck: false,
+						addons: { 'test-interactive-template': [] }
+					},
+					loadedAddons: [createLoadedAddon(addon)],
+					workspace
+				});
+				expect(answers['test-interactive-template'].template).toBe(template);
+				expect(loadedAddons.map(({ addon }) => addon.id)).toEqual(
+					template === 'dashboard'
+						? ['test-interactive-template', 'drizzle', 'better-auth']
+						: ['test-interactive-template']
+				);
+				if (template === 'dashboard') {
+					expect(answers.drizzle).toMatchObject({
+						database: 'postgresql',
+						postgresql: 'postgres.js',
+						docker: false
+					});
+					expect(answers['better-auth']).toEqual({ demo: [] });
+				}
+			}
+		} finally {
+			select.mockRestore();
+		}
+	});
+
 	it('uses the nearest dependency defaults for implicit add-ons', () => {
 		expect(
 			resolveDependencyOptions(['dashboard'], {
