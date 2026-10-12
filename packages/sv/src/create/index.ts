@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { sanitizeName } from '@sveltejs/sv-utils';
 import { filePaths, type PackageJSON } from '../core/common.ts';
-import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
+import { mkdirp, copy, dist_dir, getSharedFiles, replace, kv } from './utils.ts';
 
 export type TemplateType = (typeof templateTypes)[number];
 export type LanguageType = (typeof languageTypes)[number];
@@ -59,7 +59,7 @@ export function create({ cwd, ...options }: Options): void {
 
 export type TemplateMetadata = { name: TemplateType; title: string; description: string };
 export const templates: TemplateMetadata[] = publicTemplateTypes.map((dir) => {
-	const meta_file = dist(`templates/${dir}/meta.json`);
+	const meta_file = path.join(dist_dir, 'templates', dir, 'meta.json');
 	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
 
 	return {
@@ -70,7 +70,7 @@ export const templates: TemplateMetadata[] = publicTemplateTypes.map((dir) => {
 });
 
 function write_template_files(template: string, types: LanguageType, name: string, cwd: string) {
-	const dir = dist(`templates/${template}`);
+	const dir = path.join(dist_dir, 'templates', template);
 	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'), kv(name));
 	copy(`${dir}/package.json`, `${cwd}/package.json`, undefined, kv(name));
 
