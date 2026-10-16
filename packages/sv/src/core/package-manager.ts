@@ -149,24 +149,19 @@ type ProjectOptions = {
 
 /** pnpm reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
 export function addEngineStrict(options: ProjectOptions): void {
-	if (options.packageManager === 'pnpm') addEngineStrictForPnpm(options.cwd);
-	else addEngineStrictForNpm(options.cwd);
-}
-
-function addEngineStrictForPnpm(cwd: string): void {
-	transformFile(
-		path.join(cwd, 'pnpm-workspace.yaml'),
-		transforms.yaml(({ data }) => {
-			data.set('engineStrict', true);
-		})
-	);
-}
-
-function addEngineStrictForNpm(cwd: string): void {
-	transformFile(
-		path.join(cwd, '.npmrc'),
-		transforms.text(({ content, text }) => text.upsert(content, 'engine-strict', { value: 'true' }))
-	);
+	if (options.packageManager === 'pnpm') {
+		transformFile(
+			path.join(options.cwd, 'pnpm-workspace.yaml'),
+			transforms.yaml(({ data }) => data.set('engineStrict', true))
+		);
+	} else {
+		transformFile(
+			path.join(options.cwd, '.npmrc'),
+			transforms.text(({ content, text }) =>
+				text.upsert(content, 'engine-strict', { value: 'true' })
+			)
+		);
+	}
 }
 
 /** Missing file is treated as empty, so the transform can create it. */
