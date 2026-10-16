@@ -104,7 +104,7 @@ export async function add<Addons extends AddonMap>({
 		createLoadedAddon(addon as AddonDefinition)
 	);
 
-	const setupResults = await setupAddons(loadedAddons, workspace);
+	const setupResults = await setupAddons(loadedAddons, workspace, options);
 
 	return await applyAddons({ loadedAddons, workspace, options, setupResults });
 }
@@ -189,7 +189,8 @@ export async function applyAddons({
 /** Setup addons - takes LoadedAddon[] and returns setup results */
 export async function setupAddons(
 	loadedAddons: LoadedAddon[],
-	workspace: Workspace
+	workspace: Workspace,
+	addonOptions: Record<string, OptionValues<any>> = {}
 ): Promise<Record<string, SetupResult>> {
 	const setupResults: Record<string, SetupResult> = {};
 
@@ -199,15 +200,29 @@ export async function setupAddons(
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
+			dependencyOptions: {},
 			runsAfter: [],
 			additionalOptions
 		};
 		try {
+			const options: OptionValues<any> = { ...(addonOptions[addon.id] ?? {}) };
+			for (const [id, question] of Object.entries(addon.options)) {
+				if (question.condition?.(options) !== false) options[id] ??= question.default;
+			}
+
 			await addon.setup?.({
 				...workspace,
-				dependsOn: (name) => {
+				options,
+				dependsOn: (name, dependencyOptions) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
+					if (dependencyOptions) {
+						setupResult.dependencyOptions ??= {};
+						setupResult.dependencyOptions[name] = {
+							...setupResult.dependencyOptions[name],
+							...dependencyOptions
+						};
+					}
 				},
 				unsupported: (reason) => setupResult.unsupported.push(reason),
 				runsAfter: (name) => setupResult.runsAfter.push(name),

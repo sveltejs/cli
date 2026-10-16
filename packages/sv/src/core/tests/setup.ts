@@ -110,6 +110,72 @@ describe('setupAddons', () => {
 		expect(results['typed-addon'].additionalOptions).toHaveProperty('extra');
 	});
 
+	it('passes resolved add-on options into setup and collects dependency defaults', async () => {
+		const options = defineAddonOptions<{ template: 'base' | 'dashboard' }>()
+			.add('template', {
+				question: 'Which template?',
+				type: 'select',
+				default: 'base',
+				options: [
+					{ value: 'base', label: 'Base' },
+					{ value: 'dashboard', label: 'Dashboard' }
+				]
+			})
+			.build();
+		let selectedTemplate: string | undefined;
+		const addon = defineAddon({
+			id: 'template-addon',
+			options,
+			setup: ({ options, dependsOn }) => {
+				selectedTemplate = options.template;
+				if (options.template === 'dashboard') {
+					dependsOn('drizzle', {
+						database: 'postgresql',
+						postgresql: 'postgres.js',
+						docker: false
+					});
+				}
+			},
+			run: () => {}
+		});
+
+		const results = await setupAddons([toLoaded(addon)], workspace, {
+			'template-addon': { template: 'dashboard' }
+		});
+
+		expect(selectedTemplate).toBe('dashboard');
+		expect(results['template-addon'].dependencyOptions).toEqual({
+			drizzle: { database: 'postgresql', postgresql: 'postgres.js', docker: false }
+		});
+	});
+
+	it('uses option defaults when setup runs without explicit CLI values', async () => {
+		let selectedTemplate: string | undefined;
+		const options = defineAddonOptions<{ template: 'base' | 'dashboard' }>()
+			.add('template', {
+				question: 'Which template?',
+				type: 'select',
+				default: 'base',
+				options: [
+					{ value: 'base', label: 'Base' },
+					{ value: 'dashboard', label: 'Dashboard' }
+				]
+			})
+			.build();
+		const addon = defineAddon({
+			id: 'default-template-addon',
+			options,
+			setup: ({ options }) => {
+				selectedTemplate = options.template;
+			},
+			run: () => {}
+		});
+
+		await setupAddons([toLoaded(addon)], workspace);
+
+		expect(selectedTemplate).toBe('base');
+	});
+
 	it('should await async setup', async () => {
 		const addon: AddonDefinition = {
 			id: 'async-addon',
