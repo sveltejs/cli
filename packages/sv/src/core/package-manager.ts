@@ -157,7 +157,6 @@ function addEngineStrictForPnpm(cwd: string): void {
 	transformFile(
 		path.join(cwd, 'pnpm-workspace.yaml'),
 		transforms.yaml(({ data }) => {
-			if (data.get('engineStrict') !== undefined) return false;
 			data.set('engineStrict', true);
 		})
 	);
