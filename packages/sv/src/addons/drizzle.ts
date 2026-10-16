@@ -16,7 +16,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions, OptionValues } from '../core/options.ts';
-import { addToTypeConfigInclude, getNodeTypesVersion } from './common.ts';
+import { addToTypeConfigInclude, addToTypeConfigType, getNodeTypesVersion } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
@@ -130,7 +130,10 @@ const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 		}
 		sv.devDependency('drizzle-orm', '^0.45.2');
 		sv.devDependency('drizzle-kit', '^0.31.10');
+
+		// the `drizzle.config.${language}` reads `process.env` (and may use `node:sqlite`)
 		sv.devDependency('@types/node', getNodeTypesVersion());
+		addToTypeConfigType({ sv, cwd, language, entry: 'node' });
 
 		// MySQL
 		if (options.mysql === 'mysql2') sv.devDependency('mysql2', '^3.22.4');

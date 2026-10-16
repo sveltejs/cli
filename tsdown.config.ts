@@ -199,7 +199,6 @@ export default defineConfig([
 export async function buildCliTemplates() {
 	const start = performance.now();
 	await buildTemplates(path.resolve('packages/sv/dist'));
-	await buildTemplates(path.resolve('packages/sv/src/create/dist'));
 	const [green, reset] = ['\x1b[32m', '\x1b[0m'];
 	console.log(`${green}✔${reset} Templates built in ${Math.round(performance.now() - start)}ms`);
 }

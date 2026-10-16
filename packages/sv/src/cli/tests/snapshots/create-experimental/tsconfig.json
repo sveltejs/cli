@@ -4,7 +4,8 @@
 		"strict": true,
 		"types": [
 			"$app/types",
-			"./worker-configuration.d.ts"
+			"./worker-configuration.d.ts",
+			"node"
 		]
 	},
 	"include": [

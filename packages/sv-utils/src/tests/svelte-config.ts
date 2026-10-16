@@ -146,6 +146,15 @@ describe('svelteConfig.read', () => {
 });
 
 describe('svelteConfig.edit routing', () => {
+	test('exposes the resolved config object', () => {
+		const result = applyEdit(VITE_CONFIG, 'vite', ({ config }) => {
+			expect(config.type).toBe('ObjectExpression');
+			return false;
+		});
+
+		expect(result).toBe(false);
+	});
+
 	test('routes svelte-level options to the config root (vite location)', () => {
 		const result = applyEdit(VITE_CONFIG, 'vite', addExtension);
 		expect(result).toContain('sveltekit({');
@@ -226,6 +235,20 @@ describe('svelteConfig.edit routing', () => {
 		// the alias must land in the exported config, after `const unused`, not in the dead const
 		expect(result.indexOf('alias:')).toBeGreaterThan(result.indexOf('export default'));
 		// the unused const stays a bare sveltekit()
+		expect(result).toMatch(/const unused = \{ plugins: \[sveltekit\(\)\] \}/);
+	});
+
+	test('finds a nested call in the exported plugins instead of a stray call', () => {
+		const result = applyEdit(
+			VITE_CONFIG_TWO_CALLS.replace(
+				'plugins: [sveltekit({ adapter: adapter() })]',
+				'plugins: [enabled && sveltekit({ adapter: adapter() })]'
+			),
+			'vite',
+			addAlias
+		);
+		if (!result) throw new Error('Edit failed or not required');
+		expect(result.indexOf('alias:')).toBeGreaterThan(result.indexOf('export default'));
 		expect(result).toMatch(/const unused = \{ plugins: \[sveltekit\(\)\] \}/);
 	});
 

@@ -43,19 +43,20 @@ function sveltekitLocalName(ast: AstTypes.Program): string {
 	return 'sveltekit';
 }
 
-/** Finds the `sveltekit(...)` plugin call anywhere in the program (used to detect a `vite.config` config). */
-export function findSveltekitCall(ast: AstTypes.Program): AstTypes.CallExpression | undefined {
-	const name = sveltekitLocalName(ast);
+function findNamedCall(root: AstTypes.Node, name: string): AstTypes.CallExpression | undefined {
 	let call: AstTypes.CallExpression | undefined;
-	Walker.walk(ast as AstTypes.Node, null, {
+	Walker.walk(root, null, {
 		CallExpression(node, { next }) {
-			if (node.callee.type === 'Identifier' && node.callee.name === name) {
-				call ??= node;
-			}
+			if (node.callee.type === 'Identifier' && node.callee.name === name) call ??= node;
 			next();
 		}
 	});
 	return call;
+}
+
+/** Finds the `sveltekit(...)` plugin call anywhere in the program (used to detect a `vite.config` config). */
+export function findSveltekitCall(ast: AstTypes.Program): AstTypes.CallExpression | undefined {
+	return findNamedCall(ast as AstTypes.Node, sveltekitLocalName(ast));
 }
 
 /** Unwraps `... satisfies T` / `... as T` and asserts the result is an object literal. */
@@ -83,17 +84,18 @@ function sveltekitArg(ast: AstTypes.Program): AstTypes.ObjectExpression {
 	const name = sveltekitLocalName(ast);
 
 	const viteConfig = vite.getConfig(ast);
-	const plugins = vite.configProperty(ast, viteConfig, {
-		name: 'plugins',
-		fallback: array.create()
-	});
+	const plugins = object.findProperty(viteConfig, { name: 'plugins' })
+		? vite.configProperty(ast, viteConfig, {
+				name: 'plugins',
+				fallback: array.create()
+			})
+		: undefined;
 
 	let call: AstTypes.CallExpression | undefined;
-	if (plugins.type === 'ArrayExpression') {
-		call = plugins.elements.find(
-			(el): el is AstTypes.CallExpression =>
-				el?.type === 'CallExpression' && el.callee.type === 'Identifier' && el.callee.name === name
-		);
+	if (plugins?.type === 'ArrayExpression') {
+		for (const plugin of plugins.elements) {
+			if (plugin) call ??= findNamedCall(plugin as AstTypes.Node, name);
+		}
 	}
 	// fall back to a broad search (e.g. plugins assembled via a variable or spread)
 	call ??= findSveltekitCall(ast);

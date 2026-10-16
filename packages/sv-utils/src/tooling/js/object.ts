@@ -6,6 +6,38 @@ type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
 type ObjectMap = Record<string, ObjectValues | AstTypes.Expression>;
 
+/** Returns a property's statically known name, excluding dynamic computed keys. */
+export function propertyName(property: AstTypes.Property): string | undefined {
+	if (property.key.type === 'Identifier') {
+		return property.computed ? undefined : property.key.name;
+	}
+	if (property.key.type === 'Literal' && typeof property.key.value === 'string') {
+		return property.key.value;
+	}
+}
+
+/** Finds a statically named property without creating it. */
+export function findProperty(
+	node: AstTypes.ObjectExpression,
+	options: { name: string }
+): AstTypes.Property | undefined {
+	return node.properties.find(
+		(property): property is AstTypes.Property =>
+			property.type === 'Property' && propertyName(property) === options.name
+	);
+}
+
+/** Removes a statically named property. Returns whether it existed. */
+export function removeProperty(
+	node: AstTypes.ObjectExpression,
+	options: { name: string }
+): boolean {
+	const property = findProperty(node, options);
+	if (!property) return false;
+	node.properties.splice(node.properties.indexOf(property), 1);
+	return true;
+}
+
 // Used to disambiguate user-supplied objects (which may have a `type` property)
 // from actual AST Expression nodes when populating an ObjectExpression.
 const AST_EXPRESSION_TYPES = new Set([
@@ -52,8 +84,7 @@ export function propertyNode<T extends AstTypes.Expression | AstTypes.Identifier
 	node: AstTypes.ObjectExpression,
 	options: { name: string; fallback: T }
 ): AstTypes.Property {
-	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	let prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
+	let prop = findProperty(node, options);
 
 	if (!prop) {
 		let isShorthand = false;
@@ -109,8 +140,7 @@ function overrideProperty<T extends AstTypes.Expression>(
 	node: AstTypes.ObjectExpression,
 	options: { name: string; value: T }
 ): T {
-	const properties = node.properties.filter((x): x is AstTypes.Property => x.type === 'Property');
-	const prop = properties.find((x) => (x.key as AstTypes.Identifier).name === options.name);
+	const prop = findProperty(node, options);
 
 	if (!prop) {
 		return property(node, {
@@ -175,12 +205,7 @@ function populateObjectExpression(options: {
 
 		if (options.override) {
 			// Get existing property to potentially merge with
-			const existingProperties = options.objectExpression.properties.filter(
-				(x): x is AstTypes.Property => x.type === 'Property'
-			);
-			const existingProperty = existingProperties.find(
-				(x) => (x.key as AstTypes.Identifier).name === prop
-			);
+			const existingProperty = findProperty(options.objectExpression, { name: prop });
 			const existingExpression =
 				existingProperty?.value.type === 'ObjectExpression' ? existingProperty.value : undefined;
 

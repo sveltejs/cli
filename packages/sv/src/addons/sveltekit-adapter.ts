@@ -6,28 +6,30 @@ import {
 	loadPackageJson,
 	sanitizeName,
 	pnpm,
-	svelteConfig,
-	KIT3_TSCONFIG
+	svelteConfig
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
+import { addToTypeConfigType, getNodeTypesVersion } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 const adapters = [
 	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0' },
 	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0' },
+	{ id: 'bun', package: '@sveltejs/adapter-bun', version: '^1.0.0' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0' },
 	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0' }
 ] as const;
+type AdapterId = (typeof adapters)[number]['id'];
 
 /** The README blockquote pointing at the adapters docs, only relevant while on `adapter-auto`. */
 const ADAPTER_HINT_REGEX =
 	/(?:\r?\n)*^> [^\r\n]*\(https:\/\/svelte\.dev\/docs\/kit\/adapters\)[^\r\n]*$/m;
 
 export type SveltekitAdapterOptions = {
-	adapter: 'auto' | 'node' | 'static' | 'vercel' | 'cloudflare' | 'netlify';
+	adapter: AdapterId;
 	cfTarget: 'workers' | 'pages';
 };
 
@@ -59,44 +61,22 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 	setup: ({ isKit, unsupported }) => {
 		if (!isKit) unsupported('Requires SvelteKit');
 	},
-	run: ({ sv, options, packageManager, file, cwd }) => {
+	run: ({ sv, options, packageManager, file, cwd, language }) => {
 		const adapter = adapters.find((a) => a.id === options.adapter)!;
-
-		// removes previously installed adapters
-		sv.file(
-			file.package,
-			transforms.json(({ data }) => {
-				const devDeps = data['devDependencies'];
-
-				for (const pkg of Object.keys(devDeps)) {
-					if (pkg.startsWith('@sveltejs/adapter-')) {
-						delete devDeps[pkg];
-					}
-				}
-
-				// in sk 3, we will keep "preview": "vite preview" like any other adapter
-				if (options.adapter === 'cloudflare') {
-					const preview =
-						options.cfTarget === 'workers'
-							? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
-							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
-					data.scripts.preview = preview;
-				}
-			})
-		);
 
 		sv.devDependency(adapter.package, adapter.version);
 
-		if (adapter.package !== '@sveltejs/adapter-auto') {
-			sv.file(
-				'README.md',
-				transforms.text(({ content }) => content.replace(ADAPTER_HINT_REGEX, ''))
-			);
+		if (options.adapter === 'node') {
+			sv.devDependency('@types/node', getNodeTypesVersion());
+			addToTypeConfigType({ sv, cwd, language, entry: 'node' });
 		}
 
+		let previousAdapter: string | undefined;
+
+		// update adapter in kit config
 		svelteConfig.edit({ sv, cwd }, ({ ast, override, js }) => {
 			// finds any existing adapter's import declaration
-			const imports = ast.body.filter((n) => n.type === 'ImportDeclaration');
+			const imports = ast.body.filter((node) => node.type === 'ImportDeclaration');
 			const adapterImports = imports.find(
 				(importDecl) =>
 					typeof importDecl.source.value === 'string' &&
@@ -106,6 +86,10 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 
 			let adapterName = 'adapter';
 			if (adapterImports) {
+				const foundPackage = adapterImports.source.value;
+				if (typeof foundPackage === 'string' && foundPackage !== adapter.package) {
+					previousAdapter = foundPackage;
+				}
 				// replaces the import's source with the new adapter
 				adapterImports.source.value = adapter.package;
 				// reset raw value, so that the string is re-generated
@@ -119,7 +103,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 				js.imports.addDefault(ast, { from: adapter.package, as: adapterName });
 			}
 
-			// for non-auto adapters, also drop the now-stale adapter-auto explanatory comment
+			// for non-auto adapters, drop the adapter-auto explanatory comment
 			override(
 				{ adapter: js.functions.createCall({ name: adapterName, args: [], useIdentifiers: true }) },
 				adapter.package === '@sveltejs/adapter-auto'
@@ -127,6 +111,24 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 					: { dropLeadingComments: ['adapter'] }
 			);
 		});
+
+		// removes the previously installed adapter
+		sv.file(
+			file.package,
+			transforms.json(({ data }) => {
+				if (previousAdapter) {
+					delete data['devDependencies']?.[previousAdapter];
+					delete data['dependencies']?.[previousAdapter];
+				}
+			})
+		);
+
+		if (adapter.package !== '@sveltejs/adapter-auto') {
+			sv.file(
+				'README.md',
+				transforms.text(({ content }) => content.replace(ADAPTER_HINT_REGEX, ''))
+			);
+		}
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.97.0');
@@ -185,31 +187,26 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 					: transforms.json(({ data }) => applyWranglerConfig(data))
 			);
 
-			if (file.typeConfig) {
-				// Setup wrangler types command and prepend to check/build
-				sv.file(
-					file.package,
-					transforms.json(({ data, json }) => {
+			sv.file(
+				file.package,
+				transforms.json(({ data, json }) => {
+					if (file.typeConfig) {
+						// Setup wrangler types command and prepend to check/build
 						json.packageScriptsUpsert(data, 'gen', 'wrangler types');
 						json.packageScriptsUpsert(data, 'check', 'wrangler types --check', { mode: 'prepend' });
 						json.packageScriptsUpsert(data, 'build', 'wrangler types --check', { mode: 'prepend' });
-					})
-				);
+					}
 
+					data.scripts.preview =
+						options.cfTarget === 'workers'
+							? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
+				})
+			);
+
+			if (file.typeConfig) {
 				// Add Cloudflare generated types to jsconfig/tsconfig
-				sv.file(
-					file.typeConfig,
-					transforms.json(({ data }) => {
-						data.compilerOptions ??= {};
-						const types: string[] = (data.compilerOptions.types ??= []);
-						if (!types.includes('./worker-configuration.d.ts')) {
-							types.push('./worker-configuration.d.ts');
-						}
-						// a child `types` replaces the one from `$app/tsconfig`, so `$app/types` must be re-added
-						const kit3 = [data.extends].flat().includes(KIT3_TSCONFIG);
-						if (kit3 && !types.includes('$app/types')) types.unshift('$app/types');
-					})
-				);
+				addToTypeConfigType({ sv, cwd, language, entry: './worker-configuration.d.ts' });
 
 				sv.file(
 					'src/app.d.ts',

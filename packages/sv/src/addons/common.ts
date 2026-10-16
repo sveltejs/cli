@@ -1,6 +1,13 @@
 import process from 'node:process';
 import { log } from '@clack/prompts';
-import { color, fileExists, isKit3, type TransformFn, transforms } from '@sveltejs/sv-utils';
+import {
+	color,
+	fileExists,
+	isKit3,
+	KIT3_TSCONFIG,
+	type TransformFn,
+	transforms
+} from '@sveltejs/sv-utils';
 import type { SvApi } from '../core/config.ts';
 
 // This is in common because the eslint addon installs this version,
@@ -216,6 +223,29 @@ export function addToTypeConfigInclude(opts: {
 		transforms.json(({ data }) => {
 			const include: string[] = (data.include ??= ['src']);
 			if (!include.includes(opts.entry)) include.push(opts.entry);
+		})
+	);
+}
+
+export function addToTypeConfigType(opts: {
+	sv: SvApi;
+	cwd: string;
+	language: 'ts' | 'js';
+	entry: string;
+}): void {
+	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
+	if (!fileExists(opts.cwd, configFile)) return;
+
+	opts.sv.file(
+		configFile,
+		transforms.json(({ data }) => {
+			data.compilerOptions ??= {};
+			data.compilerOptions.types ??= [];
+			const types: string[] = data.compilerOptions.types;
+			if (!types.includes(opts.entry)) types.push(opts.entry);
+			// a child `types` replaces the one from `$app/tsconfig`, so `$app/types` must be re-added
+			const extendsAppTsconfig = [data.extends].flat().includes(KIT3_TSCONFIG);
+			if (extendsAppTsconfig && !types.includes('$app/types')) types.unshift('$app/types');
 		})
 	);
 }

@@ -29,6 +29,7 @@ const config = {
 		},
 		prerender: { origin: 'https://example.com' },
 		paths: { ...paths, base },
+		'files': { 'lib': 'src/foo', assets: 'static' },
 		preloadStrategy: 'modulepreload',
 		// adapter is selected via the helper above
 		adapter: adapter(adapterConfig)

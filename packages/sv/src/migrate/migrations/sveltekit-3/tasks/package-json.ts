@@ -6,8 +6,7 @@ const KIT3_MIN_VERSIONS = {
 	vite: '^8.0.12',
 	'@sveltejs/vite-plugin-svelte': '^7.0.0',
 	svelte: '^5.57.1',
-	// First version supporting TypeScript 6, via svelte2tsx@~0.7.55
-	'@sveltejs/package': '^2.5.8',
+	'@sveltejs/package': '^3.0.0',
 	'svelte-check': '^4.7.5',
 	typescript: '^6.0.0'
 };

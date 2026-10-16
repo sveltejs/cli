@@ -9,20 +9,20 @@ goto('/foo', { shallow: true });
 goto('/bar', { shallow: true, replace: true, state: getState() });
 goto('/unchanged');
 
-beforeNavigate(({ shallow }) => {
-	if (shallow) return;
+beforeNavigate(({ shallow, type }) => {
+	if (shallow && type === 'goto') return;
 
 	console.log('before navigation');
 });
 
 afterNavigate((navigation) => {
-	if (navigation.shallow) return;
+	if (navigation.shallow && navigation.type === 'goto') return;
 
 	console.log(navigation.to);
 });
 
-onNavigate(({ to, shallow }) => {
-	if (shallow) return;
+onNavigate(({ to, shallow, type }) => {
+	if (shallow && type === 'goto') return;
 
 	return cleanup();
 });
