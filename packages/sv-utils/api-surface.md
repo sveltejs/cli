@@ -867,14 +867,25 @@ declare function appendElement(
 ): void;
 declare function addFromRawHtml(fragment: SvelteAst.Fragment, html: string): void;
 declare namespace text_d_exports {
-	export { upsert };
+	export { defaults, override, upsert };
 }
 type CommentEntry = {
 	text: string;
 	mode: 'append' | 'prepend';
 };
 type CommentOption = string | Array<string | CommentEntry>;
-declare function upsert(
+declare function defaults(
+	content: string,
+	key: string,
+	options?: {
+		value?: string;
+		comment?: CommentOption;
+		separator?: boolean;
+	}
+): string;
+/** @deprecated Use `defaults` (same behavior) or `override`. */
+declare const upsert: typeof defaults;
+declare function override(
 	content: string,
 	key: string,
 	options?: {

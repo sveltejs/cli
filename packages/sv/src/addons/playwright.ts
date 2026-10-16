@@ -36,7 +36,7 @@ const addon: Addon<AddonOptions<PlaywrightOptions>, 'playwright'> = defineAddon(
 			file.gitignore,
 			transforms.text(({ content, text }) => {
 				if (!content) return false;
-				return text.upsert(content, 'test-results', { comment: 'Playwright' });
+				return text.defaults(content, 'test-results', { comment: 'Playwright' });
 			})
 		);
 
