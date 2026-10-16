@@ -2,13 +2,13 @@ type CommentEntry = { text: string; mode: 'append' | 'prepend' };
 type CommentOption = string | Array<string | CommentEntry>;
 
 /**
- * Upsert a line into flat file content (.env, .gitignore, etc.)
+ * Add a line to flat file content (.env, .gitignore, etc.) if missing, never overwrites.
  * - key + value → "KEY=value" (skips if KEY= already present)
  * - key only → "key" line (skips if already present, e.g. gitignore entry)
  * - comment → string, string[], or { text, mode }[] for prepend/append comments
  * - separator → adds a blank line before this entry (for visual grouping)
  */
-export function upsert(
+export function defaults(
 	content: string,
 	key: string,
 	options?: { value?: string; comment?: CommentOption; separator?: boolean }
@@ -37,6 +37,25 @@ export function upsert(
 	for (const c of appendComments) addition += `\n# ${c.text}`;
 
 	return append(content, addition);
+}
+
+/** @deprecated Use `defaults` (same behavior) or `override`. */
+export const upsert: typeof defaults = defaults;
+
+/** Like `defaults`, but replaces the value of an existing `KEY=` line. */
+export function override(
+	content: string,
+	key: string,
+	options?: { value?: string; comment?: CommentOption; separator?: boolean }
+): string {
+	key = key.trim();
+	const value = options?.value;
+	const lines = content.split('\n');
+	const index =
+		value === undefined ? -1 : lines.findIndex((line) => line.split('=')[0].trim() === key);
+	if (index === -1) return defaults(content, key, options);
+	lines[index] = `${key}=${value}`;
+	return lines.join('\n');
 }
 
 function normalizeComments(comment: CommentOption | undefined): CommentEntry[] {
