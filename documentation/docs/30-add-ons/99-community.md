@@ -62,7 +62,7 @@ The CLI is split into two packages with a clear boundary:
 - [**`sv`**](sv) = **where and when** to do it. It owns paths, workspace detection, dependency tracking, and file I/O. The engine orchestrates add-on execution.
 - [**`@sveltejs/sv-utils`**](sv-utils) = **what** to do to content. It provides parsers, language tooling, and typed transforms. Everything here is pure - no file system, no workspace awareness.
 
-This separation means transforms are testable without a workspace and composable across add-ons.
+[Why are there two packages.](faq#Why-are-there-two-packages-sv-and-sveltejs-sv-utils)
 
 ## Development
 
@@ -85,9 +85,9 @@ The `file:` protocol also works for custom or private add-ons that you don't int
 The `sv/testing` module provides utilities for testing your add-on. `createSetupTest` is a factory that takes your vitest imports and returns a `setupTest` function. It creates real SvelteKit projects from templates, runs your add-on, and gives you access to the resulting files.
 
 ```js
-import { expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
+import { expect } from '@playwright/test';
 import { createSetupTest } from 'sv/testing';
 import * as vitest from 'vitest';
 import addon from './index.js';
@@ -146,7 +146,7 @@ export default setupGlobal({ TEST_DIR });
 
 Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
 
-`sv` ships its own copy of [`@sveltejs/sv-utils`](sv-utils), so an add-on that leaves it unbundled will still load. Nothing verifies the version: your add-on runs against whatever `sv` provides, and following its breaking changes is up to you. Bundle it to stay on a version you control.
+[`@sveltejs/sv-utils`](sv-utils) is bundled as well to pin its version. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
 
 ### `package.json`
 

@@ -180,17 +180,29 @@ function migrateNavigationHook(call: AstTypes.CallExpression): boolean {
 		return false;
 	}
 
-	const shallow = shallowTest(callback);
-	if (!shallow) return false;
+	const properties = navigationHookProperties(callback);
+	if (!properties) return false;
+	const [shallow, type] = properties;
+	const test: AstTypes.LogicalExpression = {
+		type: 'LogicalExpression',
+		operator: '&&',
+		left: shallow,
+		right: {
+			type: 'BinaryExpression',
+			operator: '===',
+			left: type,
+			right: js.common.createLiteral('goto')
+		}
+	};
 
 	const guard: AstTypes.IfStatement = {
 		type: 'IfStatement',
-		test: shallow,
+		test,
 		consequent: { type: 'ReturnStatement', argument: null }
 	};
 
 	if (callback.body.type === 'BlockStatement') {
-		if (startsWithShallowGuard(callback.body, shallow)) return false;
+		if (startsWithNavigationGuard(callback.body, shallow, type)) return false;
 		callback.body.body.unshift(guard);
 	} else {
 		callback.body = {
@@ -202,30 +214,54 @@ function migrateNavigationHook(call: AstTypes.CallExpression): boolean {
 	return true;
 }
 
-function shallowTest(
+function navigationHookProperties(
 	callback: AstTypes.ArrowFunctionExpression | AstTypes.FunctionExpression
-): AstTypes.Expression | undefined {
+): [shallow: AstTypes.Expression, type: AstTypes.Expression] | undefined {
 	const parameter = callback.params[0];
 	if (!parameter) {
 		callback.params.push({
 			type: 'ObjectPattern',
-			properties: [patternProperty('shallow')]
+			properties: [patternProperty('shallow'), patternProperty('type')]
 		});
-		return js.variables.createIdentifier('shallow');
+		return [js.variables.createIdentifier('shallow'), js.variables.createIdentifier('type')];
 	}
 
-	if (parameter.type === 'Identifier') return member(parameter.name, 'shallow');
+	if (parameter.type === 'Identifier') {
+		return [member(parameter.name, 'shallow'), member(parameter.name, 'type')];
+	}
 	if (parameter.type === 'AssignmentPattern' && parameter.left.type === 'Identifier') {
-		return member(parameter.left.name, 'shallow');
+		return [member(parameter.left.name, 'shallow'), member(parameter.left.name, 'type')];
 	}
 	if (parameter.type !== 'ObjectPattern') return undefined;
 
+	const shallow = patternIdentifier(parameter, 'shallow');
+	const type = patternIdentifier(parameter, 'type');
+	if (shallow === null || type === null) return undefined;
+
+	for (const name of [shallow ? undefined : 'shallow', type ? undefined : 'type']) {
+		if (!name) continue;
+		const restIndex = parameter.properties.findIndex((entry) => entry.type === 'RestElement');
+		const property = patternProperty(name);
+		if (restIndex === -1) parameter.properties.push(property);
+		else parameter.properties.splice(restIndex, 0, property);
+	}
+
+	return [
+		shallow ?? js.variables.createIdentifier('shallow'),
+		type ?? js.variables.createIdentifier('type')
+	];
+}
+
+function patternIdentifier(
+	parameter: AstTypes.ObjectPattern,
+	name: string
+): AstTypes.Identifier | null | undefined {
 	for (const entry of parameter.properties) {
 		if (entry.type !== 'Property') continue;
 		const key = entry.key;
 		if (
-			(key.type !== 'Identifier' || key.name !== 'shallow') &&
-			(key.type !== 'Literal' || key.value !== 'shallow')
+			(key.type !== 'Identifier' || key.name !== name) &&
+			(key.type !== 'Literal' || key.value !== name)
 		) {
 			continue;
 		}
@@ -233,26 +269,29 @@ function shallowTest(
 		if (entry.value.type === 'AssignmentPattern' && entry.value.left.type === 'Identifier') {
 			return js.variables.createIdentifier(entry.value.left.name);
 		}
-		return undefined;
+		return null;
 	}
-
-	const restIndex = parameter.properties.findIndex((entry) => entry.type === 'RestElement');
-	const shallowProperty = patternProperty('shallow');
-	if (restIndex === -1) parameter.properties.push(shallowProperty);
-	else parameter.properties.splice(restIndex, 0, shallowProperty);
-	return js.variables.createIdentifier('shallow');
 }
 
-function startsWithShallowGuard(
+function startsWithNavigationGuard(
 	body: AstTypes.BlockStatement,
-	shallow: AstTypes.Expression
+	shallow: AstTypes.Expression,
+	type: AstTypes.Expression
 ): boolean {
 	const first = body.body[0];
 	return (
 		first?.type === 'IfStatement' &&
 		first.consequent.type === 'ReturnStatement' &&
 		first.consequent.argument === null &&
-		sameExpression(first.test, shallow)
+		first.test.type === 'LogicalExpression' &&
+		first.test.operator === '&&' &&
+		sameExpression(first.test.left, shallow) &&
+		first.test.right.type === 'BinaryExpression' &&
+		first.test.right.operator === '===' &&
+		first.test.right.left.type !== 'PrivateIdentifier' &&
+		sameExpression(first.test.right.left, type) &&
+		first.test.right.right.type === 'Literal' &&
+		first.test.right.right.value === 'goto'
 	);
 }
 

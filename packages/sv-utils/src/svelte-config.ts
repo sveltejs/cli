@@ -128,6 +128,8 @@ export type SvelteConfEdit = (file: {
 	comments: Comments;
 	js: typeof jsNs;
 	location: SvelteConfigLocation;
+	/** The resolved config root. In a Vite config this is the object passed to `sveltekit()`. */
+	config: AstTypes.ObjectExpression;
 	/**
 	 * Get-or-create a top-level config option's value, placed in the correct location for its name
 	 * (kit-level options end up under `kit` in a `svelte.config`, flattened in a `vite.config`).
@@ -155,10 +157,7 @@ function dropLeadingComments(
 	name: string,
 	comments: Comments
 ): void {
-	const prop = container.properties.find(
-		(p): p is AstTypes.Property =>
-			p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === name
-	);
+	const prop = jsNs.object.findProperty(container, { name });
 	const start = prop?.loc?.start.line;
 	if (start === undefined) return;
 
@@ -215,7 +214,15 @@ function editContent(
 			}
 		};
 
-		return editFn({ ast, comments, js, location, property, override });
+		return editFn({
+			ast,
+			comments,
+			js,
+			location,
+			config,
+			property,
+			override
+		});
 	})(content);
 }
 

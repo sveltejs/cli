@@ -1,5 +1,19 @@
 # @sveltejs/sv-utils
 
+## 1.0.2
+
+### Patch Changes
+
+- feat(sv-utils): add helpers for finding and removing static object properties ([#1395](https://github.com/sveltejs/cli/pull/1395))
+
+## 1.0.1
+
+### Patch Changes
+
+- fix: parsing `.js/.ts` files with comments of `</script>` no longer fails unexpectedly ([#1393](https://github.com/sveltejs/cli/pull/1393))
+
+- feat: add `defineDemoPage`, listing add-on demos in a floating `DemoLinks` post-it rendered from the root layout ([#1360](https://github.com/sveltejs/cli/pull/1360))
+
 ## 1.0.0
 
 ### Major Changes

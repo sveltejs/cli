@@ -27,6 +27,7 @@ export default defineConfig({
 				trustedOrigins: ['*']
 			},
 			paths: { ...paths, base, origin: 'https://example.com' },
+			files: { assets: 'static' },
 			// adapter is selected via the helper above
 			adapter: adapter(adapterConfig),
 			tracing: { server: true }

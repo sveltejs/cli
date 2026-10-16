@@ -23,7 +23,7 @@ export default defineMigrationTask({
 
 		sv.files(
 			{
-				include: `${directory.src}/**/*.{svelte,svelte.ts,svelte.js,ts,js,svx,md}`,
+				include: `**/*.{svelte,svelte.ts,svelte.js,ts,js,svx,md}`,
 				where: (content) => content.includes('$lib')
 			},
 			(content, file) => {
@@ -44,7 +44,7 @@ export default defineMigrationTask({
 						// Add explicit file extensions
 						if (import_path && !import_path.endsWith('.js') && !import_path.endsWith('.ts')) {
 							for (const ending of ['.js', '.ts', '/index.js', '/index.ts']) {
-								if (fs.existsSync(`${cwd}/${directory.lib}/${import_path}${ending}`)) {
+								if (fs.existsSync(path.join(cwd, directory.lib, import_path + ending))) {
 									// By default TS wants .js file endings even if it's actually a .ts file
 									return match.slice(0, -1) + ending.replace('.ts', '.js') + match.slice(-1);
 								}
