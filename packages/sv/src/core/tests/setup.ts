@@ -16,7 +16,7 @@ const workspace: Workspace = {
 	language: 'ts',
 	file: {
 		viteConfig: 'vite.config.ts',
-		typeConfig: 'tsconfig.json',
+		typeConfig: '/test/project/tsconfig.json',
 		stylesheet: 'src/app.css',
 		package: 'package.json',
 		gitignore: '.gitignore',
