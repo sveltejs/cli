@@ -8,7 +8,7 @@ import type { Common } from './index.ts';
  * @returns an absolute path to the `dist` directory
  * containing templates, add-ons and shared files
  *
- * this function can be called during runtime or devttime
+ * this function can be called during runtime or devtime
  */
 const resolve_dist_dir = (): string => {
 	const root = walk
