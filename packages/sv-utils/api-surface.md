@@ -54,7 +54,9 @@ type TomlTableWithoutBigInt = {
 	[key: string]: TomlValueWithoutBigInt;
 };
 type TomlValueWithoutBigInt =
-	Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt;
+	| Exclude<TomlPrimitive, bigint>
+	| TomlValueWithoutBigInt[]
+	| TomlTableWithoutBigInt;
 interface ParseOptions {
 	maxDepth?: number;
 	integersAsBigInt?: IntegersAsBigInt;

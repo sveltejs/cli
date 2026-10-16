@@ -37,7 +37,7 @@ import {
 	setupPlaygroundProject,
 	validatePlaygroundUrl
 } from '../create/playground.ts';
-import { dist } from '../create/utils.ts';
+import { dist_dir } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	classifyAddons,
@@ -499,7 +499,7 @@ export async function createVirtualWorkspace({
 	}
 
 	// Let's read the package.json of the template we will use and add the dependencies to the override
-	const templatePackageJsonPath = dist(`templates/${template}`);
+	const templatePackageJsonPath = path.join(dist_dir, 'templates', template);
 	const { data: packageJson } = loadPackageJson(templatePackageJsonPath);
 	override.dependencies = {
 		...packageJson.devDependencies,
