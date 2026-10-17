@@ -1,5 +1,19 @@
 # sv
 
+## 1.2.0
+
+### Minor Changes
+
+- feat(sveltekit-adapter): add `bun` option ([#1414](https://github.com/sveltejs/cli/pull/1414))
+
+### Patch Changes
+
+- fix(sv): set `engineStrict` in `pnpm-workspace.yaml` for pnpm projects, `engine-strict` in `.npmrc` otherwise ([#1344](https://github.com/sveltejs/cli/pull/1344))
+
+- fix(migrate): add a migration-task for non-static `redirect` calls ([#1415](https://github.com/sveltejs/cli/pull/1415))
+
+- fix(storybook): allow `esbuild` build script when running `create-storybook` with `pnpm dlx` ([#1426](https://github.com/sveltejs/cli/pull/1426))
+
 ## 1.1.1
 
 ### Patch Changes
