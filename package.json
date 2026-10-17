@@ -31,7 +31,7 @@
 		"eslint-plugin-svelte": "^3.19.0",
 		"oxfmt": "^0.72.0",
 		"sv": "workspace:*",
-		"svelte": "^5.56.9",
+		"svelte": "^5.57.2",
 		"tsdown": "^0.23.0",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.70.0",
