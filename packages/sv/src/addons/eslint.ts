@@ -64,7 +64,7 @@ export default defineAddon({
 				eslintConfigs.push(jsConfig);
 
 				if (typescript) {
-					const tsConfig = js.common.parseExpression('ts.configs.recommended');
+					const tsConfig = js.common.parseExpression('ts.configs.recommendedTypeChecked');
 					eslintConfigs.push(tsConfig);
 				}
 
@@ -91,8 +91,10 @@ export default defineAddon({
 						' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'
 				});
 
+				const tsOptions = { projectService: { allowDefaultProject: ['*.js'] } };
 				const globalsConfig = js.object.create({
 					languageOptions: {
+						parserOptions: typescript ? tsOptions : undefined,
 						globals: globalsObjLiteral
 					},
 					rules: typescript ? rules : undefined
