@@ -1032,9 +1032,10 @@ export declare function resolveCommandArray(
 	args: string[]
 ): string[];
 declare namespace pnpm_d_exports {
-	export { allowBuilds };
+	export { allowBuilds, supportsWorkspaceSettings };
 }
 declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
+declare function supportsWorkspaceSettings(cwd: string): boolean;
 export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;
