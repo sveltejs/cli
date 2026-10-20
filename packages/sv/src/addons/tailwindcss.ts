@@ -1,7 +1,12 @@
 import { transforms } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
-import { addPrettierTailwind, prettierConfigPath } from './common.ts';
+import {
+	addOxfmtTailwind,
+	addPrettierTailwind,
+	oxfmtConfigPath,
+	prettierConfigPath
+} from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 const plugins = [
@@ -37,6 +42,7 @@ const addon: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'> = defineAddo
 	options,
 	run: ({ sv, options, file, isKit, directory, dependencyVersion, language }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
+		const oxfmtInstalled = Boolean(dependencyVersion('oxfmt'));
 
 		sv.devDependency('tailwindcss', '^4.3.0');
 		sv.devDependency('@tailwindcss/vite', '^4.3.0');
@@ -129,6 +135,10 @@ const addon: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'> = defineAddo
 				prettierConfigPath(),
 				addPrettierTailwind({ stylesheet: file.getRelative({ to: file.stylesheet }) })
 			);
+		}
+
+		if (oxfmtInstalled) {
+			sv.file(oxfmtConfigPath(), addOxfmtTailwind());
 		}
 	}
 });

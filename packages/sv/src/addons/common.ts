@@ -218,6 +218,11 @@ export const createOxfmtConfig = (opts: { tailwind: boolean }): TransformFn =>
 		// TODO: handle prettier in case it is already added
 	});
 
+export const addOxfmtTailwind = (): TransformFn =>
+	transforms.json(({ data }) => {
+		data.sortTailwindCSS = true;
+	});
+
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.
  *
