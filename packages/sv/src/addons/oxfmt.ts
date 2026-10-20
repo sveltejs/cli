@@ -26,6 +26,7 @@ export default defineAddon({
 			transforms.json(({ data, json }) => {
 				json.packageScriptsUpsert(data, 'fmt', 'oxfmt');
 				json.packageScriptsUpsert(data, 'fmt:check', 'oxfmt --check');
+				json.packageScriptsUpsert(data, 'lint', 'oxfmt --check', { mode: 'prepend' });
 			})
 		);
 
