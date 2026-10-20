@@ -178,6 +178,47 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 	});
 
 /**
+ * Path of the oxfmt config file we generate. We always emit a `.json` file (with a `$schema`)
+ */
+export function oxfmtConfigPath(): string {
+	return '.oxfmtrc.json';
+}
+
+/**
+ * Creates a `.oxfmtrc.json`` file with our defaults. Bails (leaving the file untouched)
+ * if a config is already defined.
+ */
+export const createOxfmtConfig = (opts: { tailwind: boolean }): TransformFn =>
+	transforms.json(({ data }) => {
+		// @see https://oxc.rs/docs/guide/usage/formatter/ignore-files.html
+		const ignorePatterns = [
+			'package-lock.json',
+			'pnpm-lock.yaml',
+			'yarn.lock',
+			'bun.lock',
+			'bun.lockb',
+			'/static/**'
+		];
+
+		const defaultConfig = {
+			$schema: './node_modules/oxfmt/configuration_schema.json',
+			useTabs: true,
+			singleQuote: true,
+			trailingComma: 'none',
+			printWidth: 100,
+			svelte: true,
+			ignorePatterns,
+			...(opts.tailwind && { sortTailwindCSS: true })
+		};
+
+		for (const [key, value] of Object.entries(defaultConfig)) {
+			data[key] = value;
+		}
+
+		// TODO: handle prettier in case it is already added
+	});
+
+/**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.
  *
  * If the installed version of Node.js is from a `Current` release, then the major is decremented to
