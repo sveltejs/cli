@@ -9,6 +9,7 @@ import eslint from './eslint.ts';
 import experimental, { type ExperimentalOptions } from './experimental.ts';
 import { ADDON_IDS, type OfficialAddonId } from './ids.ts';
 import mdsvex from './mdsvex.ts';
+import oxfmt from './oxfmt.ts';
 import paraglide, { type ParaglideOptions } from './paraglide.ts';
 import playwright, { type PlaywrightOptions } from './playwright.ts';
 import prettier from './prettier.ts';
@@ -24,6 +25,7 @@ export type { OfficialAddonId };
 
 export type OfficialAddons = {
 	[ADDON_IDS.prettier]: Addon<NoOptions, typeof ADDON_IDS.prettier>;
+	[ADDON_IDS.oxfmt]: Addon<NoOptions, typeof ADDON_IDS.oxfmt>;
 	[ADDON_IDS.eslint]: Addon<NoOptions, typeof ADDON_IDS.eslint>;
 	[ADDON_IDS.vitest]: Addon<AddonOptions<VitestOptions>, typeof ADDON_IDS.vitest>;
 	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
@@ -49,6 +51,7 @@ export type OfficialAddonOptions = OptionMap<OfficialAddons>;
 // We generally try to order them by perceived popularity
 export const officialAddons: OfficialAddons = {
 	[ADDON_IDS.prettier]: prettier,
+	[ADDON_IDS.oxfmt]: oxfmt,
 	[ADDON_IDS.eslint]: eslint,
 	[ADDON_IDS.vitest]: vitest,
 	[ADDON_IDS.playwright]: playwright,
