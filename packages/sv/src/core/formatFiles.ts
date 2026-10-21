@@ -9,6 +9,8 @@ import { isNodeError } from './common.js';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
+// TODO: format using `oxfmt` if this is the selected formatter
+
 export type FormatStrategy =
 	/** Run the nearest `format`/`fmt` script up to the workspace root, else format the files. */
 	| 'project-script-then-files-only'
