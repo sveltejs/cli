@@ -13,7 +13,7 @@ ADDON_REF=${ADDON_REF:-main}
 TEMPLATE_REPO=${TEMPLATE_REPO:-git@github.com:sveltejs/kit-template-railway.git}
 
 VERSION=$(get_sv_version)
-SV=$(cd "$(dirname "$0")/../../.." && pwd)/dist/bin.mjs
+SV=$(cd "$(dirname "$0")/../packages/sv" && pwd)/dist/bin.mjs
 
 # outside the repo: a generated app inside it would resolve the cli pnpm workspace
 TMP=$(mktemp -d)
