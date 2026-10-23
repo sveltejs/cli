@@ -2,7 +2,7 @@ type CommentEntry = { text: string; mode: 'append' | 'prepend' };
 type CommentOption = string | Array<string | CommentEntry>;
 
 /**
- * Add a line to flat file content (.env, .gitignore, etc.) if missing, never overwrites.
+ * Add a line to flat file content if missing.
  * - key + value → "KEY=value" (skips if KEY= already present)
  * - key only → "key" line (skips if already present, e.g. gitignore entry)
  * - comment → string, string[], or { text, mode }[] for prepend/append comments
