@@ -39,7 +39,7 @@ export function add(
 	return append(content, addition);
 }
 
-/** @deprecated Use `add` (same behavior) or `set`. */
+/** @deprecated Use {@link add} (same behavior) or {@link set}. */
 export const upsert: typeof add = add;
 
 /** Like `add`, but replaces the value of an existing `KEY=` line. */

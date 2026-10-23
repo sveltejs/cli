@@ -881,7 +881,7 @@ declare function add(
 		separator?: boolean;
 	}
 ): string;
-/** @deprecated Use `add` (same behavior) or `set`. */
+/** @deprecated Use {@link add} (same behavior) or {@link set}. */
 declare const upsert: typeof add;
 declare function set(
 	content: string,
