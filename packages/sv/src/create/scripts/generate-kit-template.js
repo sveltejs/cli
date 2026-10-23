@@ -174,7 +174,7 @@ export async function generate_kit_template(dist, shared) {
 			if (shared.has(name)) continue;
 
 			// ignore the .gitignore contents and anything gitignores
-			if (!gitignore.accepts(name) || name === '.ignore') continue;
+			if (!gitignore.accepts(name) || name === '.ignore' || name === '.meta.json') continue;
 
 			if (/\.(ts|svelte)$/.test(name)) {
 				const contents = fs.readFileSync(path.join(cwd, name), 'utf8');
