@@ -865,14 +865,14 @@ declare function appendElement(
 ): void;
 declare function addFromRawHtml(fragment: SvelteAst.Fragment, html: string): void;
 declare namespace text_d_exports {
-	export { defaults, override, upsert };
+	export { add, set, upsert };
 }
 type CommentEntry = {
 	text: string;
 	mode: 'append' | 'prepend';
 };
 type CommentOption = string | Array<string | CommentEntry>;
-declare function defaults(
+declare function add(
 	content: string,
 	key: string,
 	options?: {
@@ -881,9 +881,9 @@ declare function defaults(
 		separator?: boolean;
 	}
 ): string;
-/** @deprecated Use `defaults` (same behavior) or `override`. */
-declare const upsert: typeof defaults;
-declare function override(
+/** @deprecated Use `add` (same behavior) or `set`. */
+declare const upsert: typeof add;
+declare function set(
 	content: string,
 	key: string,
 	options?: {

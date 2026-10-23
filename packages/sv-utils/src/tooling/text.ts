@@ -8,7 +8,7 @@ type CommentOption = string | Array<string | CommentEntry>;
  * - comment → string, string[], or { text, mode }[] for prepend/append comments
  * - separator → adds a blank line before this entry (for visual grouping)
  */
-export function defaults(
+export function add(
 	content: string,
 	key: string,
 	options?: { value?: string; comment?: CommentOption; separator?: boolean }
@@ -39,11 +39,11 @@ export function defaults(
 	return append(content, addition);
 }
 
-/** @deprecated Use `defaults` (same behavior) or `override`. */
-export const upsert: typeof defaults = defaults;
+/** @deprecated Use `add` (same behavior) or `set`. */
+export const upsert: typeof add = add;
 
-/** Like `defaults`, but replaces the value of an existing `KEY=` line. */
-export function override(
+/** Like `add`, but replaces the value of an existing `KEY=` line. */
+export function set(
 	content: string,
 	key: string,
 	options?: { value?: string; comment?: CommentOption; separator?: boolean }
@@ -53,7 +53,7 @@ export function override(
 	const lines = content.split('\n');
 	const index =
 		value === undefined ? -1 : lines.findIndex((line) => line.split('=')[0].trim() === key);
-	if (index === -1) return defaults(content, key, options);
+	if (index === -1) return add(content, key, options);
 	lines[index] = `${key}=${value}`;
 	return lines.join('\n');
 }

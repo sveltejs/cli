@@ -186,8 +186,8 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 			transforms.text(({ content, text }) => {
 				if (!content) return false;
 
-				content = text.defaults(content, paraglideOutDir, { comment: 'Paraglide' });
-				content = text.defaults(content, 'project.inlang/cache/');
+				content = text.add(content, paraglideOutDir, { comment: 'Paraglide' });
+				content = text.add(content, 'project.inlang/cache/');
 
 				return content;
 			})
