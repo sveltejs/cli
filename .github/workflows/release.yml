@@ -52,14 +52,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Template Repo
+      - name: Update kit starter
         if: steps.changesets.outputs.published == 'true'
-        run: pnpm template:update-kit
+        run: pnpm update:kit-starter
         env:
           UPDATE_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_TEMPLATE_SSH_KEY }}
 
-      - name: Update Railway Template Repo
+      - name: Update Railway starter
         if: steps.changesets.outputs.published == 'true'
-        run: pnpm template:update-railway
+        run: pnpm update:railway-starter
         env:
           UPDATE_RAILWAY_TEMPLATE_SSH_KEY: ${{ secrets.UPDATE_RAILWAY_TEMPLATE_SSH_KEY }}

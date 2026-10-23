@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "UPDATING TEMPLATE REPO: https://github.com/sveltejs/kit-template-railway..."
+echo "UPDATING STARTER REPO: https://github.com/sveltejs/kit-template-railway..."
 
 set -e
 
