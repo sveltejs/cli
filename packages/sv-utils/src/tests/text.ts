@@ -83,9 +83,7 @@ describe('text.add', () => {
 	});
 
 	it('with separator adds blank line before', () => {
-		expect(add('FOO=bar\n', 'BAZ', { value: 'qux', separator: true })).toBe(
-			'FOO=bar\n\nBAZ=qux\n'
-		);
+		expect(add('FOO=bar\n', 'BAZ', { value: 'qux', separator: true })).toBe('FOO=bar\n\nBAZ=qux\n');
 	});
 
 	it('with separator on empty content does not add blank line', () => {
@@ -93,9 +91,9 @@ describe('text.add', () => {
 	});
 
 	it('with separator and comment', () => {
-		expect(
-			add('FOO=bar\n', 'BAZ', { value: 'qux', separator: true, comment: 'New section' })
-		).toBe('FOO=bar\n\n# New section\nBAZ=qux\n');
+		expect(add('FOO=bar\n', 'BAZ', { value: 'qux', separator: true, comment: 'New section' })).toBe(
+			'FOO=bar\n\n# New section\nBAZ=qux\n'
+		);
 	});
 });
 
