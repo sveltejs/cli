@@ -17,6 +17,7 @@ import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
+	addEngineStrict,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -36,7 +37,7 @@ import {
 	setupPlaygroundProject,
 	validatePlaygroundUrl
 } from '../create/playground.ts';
-import { dist } from '../create/utils.ts';
+import { dist_dir } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	classifyAddons,
@@ -416,6 +417,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
+	addEngineStrict({ cwd: projectPath, packageManager });
 	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
 
 	let depsInstalled = false;
@@ -497,7 +499,7 @@ export async function createVirtualWorkspace({
 	}
 
 	// Let's read the package.json of the template we will use and add the dependencies to the override
-	const templatePackageJsonPath = dist(`templates/${template}`);
+	const templatePackageJsonPath = path.join(dist_dir, 'templates', template);
 	const { data: packageJson } = loadPackageJson(templatePackageJsonPath);
 	override.dependencies = {
 		...packageJson.devDependencies,
