@@ -1,7 +1,7 @@
 // @ts-check
 import fs from 'node:fs';
 import path from 'node:path';
-import { convert_typescript, generate_kit_template, strip_jsdoc } from './generate-kit-template.js';
+import { strip_typescript, generate_kit_template, strip_jsdoc } from './generate-kit-template.js';
 import { generate_vite_template } from './generate-vite-template.js';
 
 const pkgRoot = path.resolve(import.meta.dirname, '..');
@@ -52,7 +52,7 @@ export async function generate_shared(dist) {
 		if (name.endsWith('.ts') && !include.includes('typescript')) {
 			// file includes types in TypeScript and JSDoc —
 			// create .js file, with and without JSDoc
-			const js = await convert_typescript(contents);
+			const js = await strip_typescript(contents);
 			const js_name = name.replace(/\.ts$/, '.js');
 
 			// typescript

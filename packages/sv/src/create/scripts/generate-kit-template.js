@@ -13,7 +13,7 @@ import { mkdirp } from './build-templates.js';
 const pkgRoot = path.resolve(import.meta.dirname, '..');
 
 /** @param {string} content */
-export async function convert_typescript(content) {
+export async function strip_typescript(content) {
 	let { code } = transform(content, {
 		transforms: ['typescript'],
 		disableESTransforms: true
@@ -183,7 +183,7 @@ export async function generate_kit_template(dist, shared) {
 					if (name.endsWith('app.d.ts')) types.checkjs.push({ name, contents });
 					types.typescript.push({ name, contents });
 				} else if (name.endsWith('.ts')) {
-					const js = await convert_typescript(contents);
+					const js = await strip_typescript(contents);
 
 					types.typescript.push({
 						name,
