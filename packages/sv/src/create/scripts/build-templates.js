@@ -8,6 +8,7 @@ import { transform } from 'sucrase';
 import oxfmtConfig from '../../../../../oxfmt.config.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
+/** @import { PackageJSON } from '../../core/common.ts' */
 
 const pkgRoot = path.resolve(import.meta.dirname, '..');
 const require = createRequire(import.meta.url);
@@ -45,6 +46,41 @@ function strip_jsdoc(content) {
 				return `/**${description.replace(/\* $/, '')}*/${whitespace}`;
 			}
 		);
+}
+
+/**
+ * Derive the per-language `package.json` variants from the template's
+ * TypeScript-complete `package.json`. `checkjs` only rewrites the tsconfig
+ * path in the check scripts; `none` drops typechecking entirely.
+ * @param {PackageJSON} pkg
+ * @param {string} template
+ * @returns {Record<LanguageType, PackageJSON>}
+ */
+function package_variants(pkg, template) {
+	const typescript = pkg;
+	const checkjs = structuredClone(pkg);
+	const none = structuredClone(pkg);
+
+	for (const key of ['check', 'check:watch']) {
+		if (typeof checkjs.scripts?.[key] === 'string') {
+			checkjs.scripts[key] = checkjs.scripts[key].replaceAll('./tsconfig.json', './jsconfig.json');
+		}
+	}
+
+	if (none.scripts) {
+		delete none.scripts.check;
+		delete none.scripts['check:watch'];
+	}
+
+	if (none.devDependencies) {
+		delete none.devDependencies['svelte-check'];
+
+		// `typescript` is only a typechecking dependency, except for the
+		// library template where packaging (`svelte-package`) needs it
+		if (template !== 'library') delete none.devDependencies.typescript;
+	}
+
+	return { typescript, checkjs, none };
 }
 
 /**
@@ -90,10 +126,7 @@ async function generate_templates(dist, shared) {
 			.map(({ parentPath, name }) => path.join(path.relative(cwd, parentPath), name))
 			.sort();
 		for (const name of files) {
-			// the package.template.json thing is a bit annoying — basically we want
-			// to be able to develop and deploy the app from here, but have a different
-			// package.json in newly created projects (based on package.template.json)
-			if (name === 'package.template.json') {
+			if (name === 'package.json') {
 				const packagesDir = path.resolve(pkgRoot, '..', '..', '..');
 				const getVersion = (/** @type {string} */ pkgDir) => {
 					const pkgPath = path.join(packagesDir, pkgDir, 'package.json');
@@ -111,7 +144,11 @@ async function generate_templates(dist, shared) {
 				contents = replaceWorkspace(contents, 'sv', getVersion('sv'));
 				contents = replaceWorkspace(contents, '@sveltejs/sv-utils', getVersion('sv-utils'));
 
+				const variants = package_variants(JSON.parse(contents), template);
 				fs.writeFileSync(path.join(dir, 'package.json'), contents);
+				for (const lang of /** @type {LanguageType[]} */ (['typescript', 'checkjs', 'none'])) {
+					types[lang].push({ name, contents: JSON.stringify(variants[lang], null, '\t') + '\n' });
+				}
 				continue;
 			}
 
