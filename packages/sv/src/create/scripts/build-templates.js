@@ -152,6 +152,16 @@ async function generate_templates(dist, shared) {
 				continue;
 			}
 
+			if (name === 'tsconfig.json' || name === 'jsconfig.json') {
+				const contents = fs.readFileSync(path.join(cwd, name), 'utf8');
+
+				types.typescript.push({ name: 'tsconfig.json', contents });
+				types.checkjs.push({ name: 'jsconfig.json', contents });
+				types.none.push({ name: 'jsconfig.json', contents });
+
+				continue;
+			}
+
 			// ignore files that are written conditionally
 			if (shared.has(name)) continue;
 
