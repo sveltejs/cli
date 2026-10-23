@@ -104,14 +104,3 @@ export function mkdirp(dir) {
 		throw e;
 	}
 }
-
-/**
- * @param {string} dist
- */
-export async function buildTemplates(dist) {
-	mkdirp(dist);
-
-	const shared = await generate_shared(dist);
-	await generate_kit_template(dist, shared);
-	generate_vite_template(dist);
-}
