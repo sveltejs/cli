@@ -3,10 +3,16 @@ type CommentOption = string | Array<string | CommentEntry>;
 
 /**
  * Add a line to flat file content if missing.
- * - key + value → "KEY=value" (skips if KEY= already present)
- * - key only → "key" line (skips if already present, e.g. gitignore entry)
- * - comment → string, string[], or { text, mode }[] for prepend/append comments
- * - separator → adds a blank line before this entry (for visual grouping)
+ *
+ * @example
+ * ```ts
+ * add('', 'node_modules'); // 'node_modules\n'
+ * add('', 'PORT', { value: '5173' }); // 'PORT=5173\n'
+ * add('PORT=5173\n', 'PORT', { value: '3000' }); // 'PORT=5173\n' (skipped, use `set` to overwrite)
+ * add('', 'PORT', { value: '5173', comment: 'dev server port' }); // '# dev server port\nPORT=5173\n'
+ * add('', 'PORT', { value: '5173', comment: [{ text: 'dev server port', mode: 'append' }] }); // 'PORT=5173\n# dev server port\n'
+ * add('A=1\n', 'B', { value: '2', separator: true }); // 'A=1\n\nB=2\n' (blank line before the entry)
+ * ```
  */
 export function add(
 	content: string,
@@ -42,7 +48,15 @@ export function add(
 /** @deprecated Use {@link add} (same behavior) or {@link set}. */
 export const upsert: typeof add = add;
 
-/** Like `add`, but replaces the value of an existing `KEY=` line. */
+/** Like `add`, but replaces the value of an existing `KEY=` line.
+ *
+ * @example
+ * ```ts
+ * set('', 'PORT', { value: '5173' }); // 'PORT=5173\n'
+ * set('PORT=3000\n', 'PORT', { value: '5173' }); // 'PORT=5173\n'
+ * set('PORT=3000\n', 'NODE_ENV', { value: 'development' }); // 'PORT=3000\nNODE_ENV=development\n'
+ * ```
+ */
 export function set(
 	content: string,
 	key: string,
