@@ -476,8 +476,3 @@ export async function buildTemplates(dist) {
 	await generate_templates(dist, shared);
 	generate_vite_template(dist);
 }
-
-const dist = process.argv[2];
-if (dist === 'dist') {
-	buildTemplates(dist);
-}
