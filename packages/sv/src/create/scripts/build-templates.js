@@ -106,10 +106,6 @@ async function generate_templates(dist, shared) {
 
 		const gitignore = parser.compile(fs.readFileSync(gitignore_file, 'utf-8'));
 
-		const ignore_file = path.join(cwd, '.ignore');
-		if (!fs.existsSync(ignore_file)) throw new Error('Template must have a .ignore file');
-		const ignore = parser.compile(fs.readFileSync(ignore_file, 'utf-8'));
-
 		const meta_file = path.join(cwd, '.meta.json');
 		if (!fs.existsSync(meta_file)) throw new Error('Template must have a .meta.json file');
 
@@ -165,8 +161,8 @@ async function generate_templates(dist, shared) {
 			// ignore files that are written conditionally
 			if (shared.has(name)) continue;
 
-			// ignore contents of .gitignore or .ignore
-			if (!gitignore.accepts(name) || !ignore.accepts(name) || name === '.ignore') continue;
+			// ignore the .gitignore contents and anything gitignores
+			if (!gitignore.accepts(name) || name === '.ignore') continue;
 
 			if (/\.(ts|svelte)$/.test(name)) {
 				const contents = fs.readFileSync(path.join(cwd, name), 'utf8');
