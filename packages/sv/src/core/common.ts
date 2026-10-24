@@ -23,7 +23,8 @@ export const PackageJSONSchema = v.looseObject({
 	devDependencies: v.optional(StringRecordSchema),
 	repository: v.optional(v.union([v.string(), v.looseObject({ url: v.optional(v.string()) })])),
 	dist: v.optional(v.looseObject({ tarball: v.optional(v.string()) })),
-	exports: v.optional(v.union([v.string(), v.array(v.string()), v.record(v.string(), v.any())]))
+	exports: v.optional(v.union([v.string(), v.array(v.string()), v.record(v.string(), v.any())])),
+	scripts: v.optional(StringRecordSchema)
 });
 export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
 
