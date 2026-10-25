@@ -12,6 +12,14 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('eslint $variant', (testCase, { expect, ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
+	if (testCase.variant.startsWith('kit')) {
+		const configFile = testCase.variant.endsWith('ts') ? 'tsconfig.json' : 'jsconfig.json';
+		const config = JSON.parse(fs.readFileSync(path.resolve(cwd, configFile), 'utf8'));
+		expect(config.include, 'ESLint config must be type-checked for Kit 3').toContain(
+			'eslint.config.js'
+		);
+	}
+
 	const unlintedFile = 'let foo = "";\nif (Boolean(foo)) {\n//\n}';
 	fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unlintedFile, 'utf8');
 

@@ -44,6 +44,14 @@ const { test, testCases } = setupTest(
 test.concurrent.for(testCases)('prettier $kind.type $variant', (testCase, { expect, ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
+	if (testCase.variant.startsWith('kit')) {
+		const configFile = testCase.variant.endsWith('ts') ? 'tsconfig.json' : 'jsconfig.json';
+		const config = JSON.parse(fs.readFileSync(path.resolve(cwd, configFile), 'utf8'));
+		expect(config.include, 'Prettier config must be type-checked for Kit 3').toContain(
+			'prettier.config.js'
+		);
+	}
+
 	if (testCase.kind.type === 'default') {
 		const unformattedFile = 'const foo = "bar"';
 		fs.writeFileSync(path.resolve(cwd, 'src/lib/foo.js'), unformattedFile, 'utf8');
