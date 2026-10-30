@@ -2,19 +2,28 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { styleText } from 'node:util';
 
-async function updateAddonDependencies() {
-	const addonsBasePath = path.resolve('packages', 'sv', 'src', 'addons');
-	const addonsFiles = fs
-		.readdirSync(addonsBasePath, { withFileTypes: true })
+/**
+ * Updates the dependency versions in the source files under `packages/sv/src/<sourceDir>`.
+ * Each file is scanned for dependency declarations in three forms:
+ * - `sv.dependency()` / `sv.devDependency()` calls
+ * - `{ package: '...', version: '...' }` object literals
+ * - custom cases annotated with an `update-deps` comment followed by the version string (ex: `update-deps: node@22`)
+ * Every matched version is bumped to the latest published version (via `getLatestVersion`) and the file is rewritten.
+ * @param {string} sourceDir
+ */
+async function updateSourceDependencies(sourceDir) {
+	const basePath = path.resolve('packages', 'sv', 'src', sourceDir);
+	const sourceFiles = fs
+		.readdirSync(basePath, { withFileTypes: true })
 		.filter((item) => item.isFile())
 		.map((item) => item.name)
 		.filter((x) => x !== 'node_modules' && !x.startsWith('_'));
 
-	for (const addonFile of addonsFiles) {
-		const filePath = `${addonsBasePath}/${addonFile}`;
+	for (const sourceFile of sourceFiles) {
+		const filePath = path.join(basePath, sourceFile);
 		if (!fs.existsSync(filePath)) continue;
 
-		console.log(`Checking deps for ${styleText(['cyanBright', 'bold'], addonFile)} add-on`);
+		console.log(`Checking deps for ${styleText(['cyanBright', 'bold'], sourceFile)}`);
 
 		let content = fs.readFileSync(filePath, { encoding: 'utf8' });
 
@@ -139,12 +148,24 @@ async function updatePackageFiles(basePath, fileName, type) {
  * @returns {Promise<string>}
  */
 async function getLatestVersion(name) {
+	if (name.startsWith('node@')) {
+		const [, major] = name.split('@');
+		const response = await fetch('https://nodejs.org/dist/index.json');
+		const releases = await response.json();
+		// the dist index is ordered newest-first
+		const latest = releases.find((/** @type {{ version: string }} */ release) =>
+			release.version.startsWith(`v${major}.`)
+		);
+		if (!latest) throw new Error(`No node release found for major ${major}`);
+		return latest.version.slice(1);
+	}
 	const response = await fetch(`https://registry.npmjs.org/${name}/latest`);
 	const json = await response.json();
 	return json.version;
 }
 
-await updateAddonDependencies();
+await updateSourceDependencies('addons');
+await updateSourceDependencies('core');
 
 // Update template package.template.json files
 await updatePackageFiles('packages/sv/src/create/templates', 'package.template.json', 'template');

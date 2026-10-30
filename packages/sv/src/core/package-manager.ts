@@ -165,8 +165,8 @@ export function addEngineStrict(options: ProjectOptions): void {
 }
 
 const devEngines = {
-	runtime: { name: 'node', version: '^22.23.4', onFail: 'download' },
-	packageManager: { name: 'pnpm', version: '^11.28.3', onFail: 'download' }
+	runtime: { name: 'node', version: /* update-deps: node@22 */ '^22.23.4', onFail: 'download' },
+	packageManager: { name: 'pnpm', version: /* update-deps: pnpm */ '^11.28.3', onFail: 'download' }
 } as const;
 
 export function addDevEnginesIfPnpm(options: ProjectOptions): void {
