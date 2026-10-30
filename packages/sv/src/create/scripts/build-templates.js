@@ -1,8 +1,7 @@
 // @ts-check
 import fs from 'node:fs';
 import path from 'node:path';
-import { strip_typescript, generate_kit_template, strip_jsdoc } from './generate-kit-template.js';
-import { generate_vite_template } from './generate-vite-template.js';
+import { strip_typescript, strip_jsdoc } from './generate-kit-template.js';
 
 const pkgRoot = path.resolve(import.meta.dirname, '..');
 
@@ -91,7 +90,6 @@ export async function generate_shared(dist) {
 
 	fs.writeFileSync(path.join(dist, 'shared.json'), JSON.stringify({ files }, null, '\t'));
 
-	shared.delete('package.json');
 	return shared;
 }
 
