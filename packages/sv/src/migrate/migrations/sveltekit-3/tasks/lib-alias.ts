@@ -13,7 +13,9 @@ function libSubpathImports(libDir: string): Record<string, string> {
 export default defineMigrationTask({
 	id: 'lib-alias',
 	description: 'Replace the $lib alias with #lib subpath imports',
-	run: ({ sv, cwd, directory }) => {
+	run: ({ sv, cwd, directory, dependencyVersion }) => {
+		const isLibrary = Boolean(dependencyVersion('@sveltejs/package'));
+
 		sv.file(
 			'package.json',
 			transforms.json(({ data }) => {
@@ -43,10 +45,11 @@ export default defineMigrationTask({
 						match = match.replace('$lib', '#lib');
 						// Add explicit file extensions
 						if (import_path && !import_path.endsWith('.js') && !import_path.endsWith('.ts')) {
-							for (const ending of ['.js', '.ts', '/index.js', '/index.ts']) {
+							for (const ending of ['.ts', '.js', '/index.ts', '/index.js']) {
 								if (fs.existsSync(path.join(cwd, directory.lib, import_path + ending))) {
-									// By default TS wants .js file endings even if it's actually a .ts file
-									return match.slice(0, -1) + ending.replace('.ts', '.js') + match.slice(-1);
+									// always import as `.js` for library
+									const specifier = isLibrary ? ending.replace('.ts', '.js') : ending;
+									return match.slice(0, -1) + specifier + match.slice(-1);
 								}
 							}
 						}
