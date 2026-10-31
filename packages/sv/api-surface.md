@@ -16,6 +16,7 @@ type Options = {
 export declare function create({ cwd, ...options }: Options): void;
 declare const ADDON_IDS: {
 	readonly prettier: 'prettier';
+	readonly oxfmt: 'oxfmt';
 	readonly eslint: 'eslint';
 	readonly vitest: 'vitest';
 	readonly playwright: 'playwright';
@@ -404,6 +405,7 @@ type VitestOptions = {
 type NoOptions = {};
 type OfficialAddons = {
 	[ADDON_IDS.prettier]: Addon<NoOptions, typeof ADDON_IDS.prettier>;
+	[ADDON_IDS.oxfmt]: Addon<NoOptions, typeof ADDON_IDS.oxfmt>;
 	[ADDON_IDS.eslint]: Addon<NoOptions, typeof ADDON_IDS.eslint>;
 	[ADDON_IDS.vitest]: Addon<AddonOptions<VitestOptions>, typeof ADDON_IDS.vitest>;
 	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
