@@ -42,6 +42,7 @@ export {
 	KIT3_TSCONFIG,
 	KIT3_TSCONFIG_DEFAULT,
 	isKit3,
+	resolveHooksTypesFrom,
 	libSubpathImports,
 	resolveLibPrefix
 } from './kit3.ts';

@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { log } from '@clack/prompts';
 import {
+	resolveHooksTypesFrom,
 	resolveLibPrefix,
 	type AstTypes,
 	Walker,
@@ -49,7 +50,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		runsAfter(ADDON_IDS.experimental);
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
-		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
+		const kitRange = dependencyVersion('@sveltejs/kit');
+		const lib = resolveLibPrefix(kitRange);
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
@@ -331,7 +333,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					language,
 					newHandleName: 'handleBetterAuth',
 					handleContent,
-					comments
+					comments,
+					typesFrom: resolveHooksTypesFrom(kitRange)
 				});
 			})
 		);
