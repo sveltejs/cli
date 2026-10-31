@@ -1,5 +1,27 @@
 # sv
 
+## 1.2.0
+
+### Minor Changes
+
+- feat(sveltekit-adapter): add `bun` option ([#1414](https://github.com/sveltejs/cli/pull/1414))
+
+### Patch Changes
+
+- fix(sveltekit-adapter): remove legacy Cloudflare platform types ([#1435](https://github.com/sveltejs/cli/pull/1435))
+
+- fix(sv): set `engineStrict` in `pnpm-workspace.yaml` for pnpm projects, `engine-strict` in `.npmrc` otherwise ([#1344](https://github.com/sveltejs/cli/pull/1344))
+
+- fix(addons): include eslint and prettier JS configs in Kit 3 type checking ([#1438](https://github.com/sveltejs/cli/pull/1438))
+
+- fix(migrate): add a migration-task for non-static `redirect` calls ([#1415](https://github.com/sveltejs/cli/pull/1415))
+
+- fix(storybook): allow `esbuild` build script when running `create-storybook` with `pnpm dlx` ([#1426](https://github.com/sveltejs/cli/pull/1426))
+
+- fix: bundle a single `esrap` so JSDoc-typed parameters in `.svelte` files are no longer wrapped in parentheses ([#1428](https://github.com/sveltejs/cli/pull/1428))
+- Updated dependencies [[`cee3023`](https://github.com/sveltejs/cli/commit/cee30231aee953f5cec8f5bec627251a50277bf9), [`23513c9`](https://github.com/sveltejs/cli/commit/23513c979607b2df184ee3023ca317a1df0c30b3), [`3e82521`](https://github.com/sveltejs/cli/commit/3e825211455be784c17c5b1ed1e57149b6f0b4e2), [`d15e84f`](https://github.com/sveltejs/cli/commit/d15e84f26d2130683bbb378743a3af810bc89329)]:
+  - @sveltejs/sv-utils@1.1.0
+
 ## 1.1.1
 
 ### Patch Changes
