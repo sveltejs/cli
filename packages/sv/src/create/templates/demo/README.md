@@ -1,52 +1,49 @@
-# Default SvelteKit template
+# sv
 
-This README isn't part of the template; it is ignored, and replaced with [the shared README](../../shared/README.md) when a project is created.
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-The default template is automatically deployed to Cloudflare Pages and Vercel on every commit. Commits to `main` will update production deployments:
+## Creating a project
 
-- https://cloudflare.demo.svelte.dev
-- https://kit-default-template-svelte.vercel.app/
+If you're seeing this, you've probably already done this step. Congrats!
 
-## Cloudflare Pages settings
-
-### Build command
-
-```
-npm i -g pnpm && pnpm i && pnpm build -r
+```sh
+# create a new project
+npx sv create my-app
 ```
 
-### Build output directory
+## Adding features
 
-```
-/packages/create-svelte/templates/default/.svelte-kit/cloudflare
-```
+Add features to your project with `sv add`:
 
-### Environment variables
-
-```
-NPM_FLAGS=--version
+```sh
+npx sv add
 ```
 
-## Netlify settings
+For example, to add Tailwind CSS:
 
-Most settings are contained in [netlify.toml](netlify.toml).
-
-### Build directory
-
-```
-packages/create-svelte/templates/default
+```sh
+npx sv add tailwindcss
 ```
 
-## Vercel settings
+## Developing
 
-### Install command
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-```
-npm install -g pnpm && pnpm install && pnpm build -r
+```sh
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
 ```
 
-### Root directory
+## Building
 
+To create a production version of your app:
+
+```sh
+npm run build
 ```
-packages/create-svelte/templates/default
-```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
