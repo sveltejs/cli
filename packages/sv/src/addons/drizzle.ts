@@ -234,7 +234,7 @@ const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 		if (hasPrettier) {
 			sv.file(
 				'.prettierignore',
-				transforms.text(({ content, text }) => text.upsert(content, '/drizzle/'))
+				transforms.text(({ content, text }) => text.add(content, '/drizzle/'))
 			);
 		}
 
@@ -243,7 +243,7 @@ const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 				file.gitignore,
 				transforms.text(({ content, text }) => {
 					if (content.length === 0) return false;
-					return text.upsert(content, '*.db', { comment: 'SQLite' });
+					return text.add(content, '*.db', { comment: 'SQLite' });
 				})
 			);
 		}
@@ -588,19 +588,19 @@ const generateEnv: GenerateEnv = (opts, isExample) =>
 		const DB_URL_KEY = 'DATABASE_URL';
 
 		if (opts.database === 'd1') {
-			content = text.upsert(content, 'CLOUDFLARE_ACCOUNT_ID', {
+			content = text.add(content, 'CLOUDFLARE_ACCOUNT_ID', {
 				value: '""',
 				comment: ['Cloudflare D1'],
 				separator: true
 			});
-			content = text.upsert(content, 'CLOUDFLARE_DATABASE_ID', { value: '""' });
-			content = text.upsert(content, 'CLOUDFLARE_D1_TOKEN', { value: '""' });
+			content = text.add(content, 'CLOUDFLARE_DATABASE_ID', { value: '""' });
+			content = text.add(content, 'CLOUDFLARE_D1_TOKEN', { value: '""' });
 			return content;
 		}
 
 		// Calculate value and comment based on database options
 		let value: string;
-		const comment: NonNullable<Parameters<typeof text.upsert>[2]>['comment'] = ['Drizzle'];
+		const comment: NonNullable<Parameters<typeof text.add>[2]>['comment'] = ['Drizzle'];
 
 		if (opts.docker) {
 			const protocol = opts.database === 'mysql' ? 'mysql' : 'postgres';
@@ -634,11 +634,11 @@ const generateEnv: GenerateEnv = (opts, isExample) =>
 			value = '';
 		}
 
-		content = text.upsert(content, DB_URL_KEY, { value, comment, separator: true });
+		content = text.add(content, DB_URL_KEY, { value, comment, separator: true });
 
 		// Turso requires an auth token
 		if (opts.sqlite === 'turso') {
-			content = text.upsert(content, 'DATABASE_AUTH_TOKEN', {
+			content = text.add(content, 'DATABASE_AUTH_TOKEN', {
 				value: isExample ? `""` : `"${crypto.randomUUID()}"`
 			});
 		}

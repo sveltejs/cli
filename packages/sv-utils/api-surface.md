@@ -867,14 +867,25 @@ declare function appendElement(
 ): void;
 declare function addFromRawHtml(fragment: SvelteAst.Fragment, html: string): void;
 declare namespace text_d_exports {
-	export { upsert };
+	export { add, set, upsert };
 }
 type CommentEntry = {
 	text: string;
 	mode: 'append' | 'prepend';
 };
 type CommentOption = string | Array<string | CommentEntry>;
-declare function upsert(
+declare function add(
+	content: string,
+	key: string,
+	options?: {
+		value?: string;
+		comment?: CommentOption;
+		separator?: boolean;
+	}
+): string;
+/** @deprecated Use {@link add} (same behavior) or {@link set}. */
+declare const upsert: typeof add;
+declare function set(
 	content: string,
 	key: string,
 	options?: {
