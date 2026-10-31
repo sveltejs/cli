@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "UPDATING TEMPLATE REPO: https://github.com/sveltejs/kit-template-default..."
+echo "UPDATING STARTER REPO: https://github.com/sveltejs/kit-template-default..."
 
 set -e
 
@@ -15,7 +15,7 @@ get_sv_version() {
 
 VERSION=$(get_sv_version)
 DIR=$(get_abs_filename $(dirname "$0"))
-TMP=$(get_abs_filename "$DIR/../../../node_modules/.tmp")
+TMP=$(get_abs_filename "$DIR/../node_modules/.tmp")
 
 mkdir -p $TMP
 cd $TMP
@@ -31,7 +31,7 @@ git clone --depth 1 --single-branch --branch main git@github.com:sveltejs/kit-te
 
 # empty out the repo
 cd kit-template-default
-node $DIR/update-template-repo-contents.js $TMP/kit-template-default
+node $DIR/update-kit-starter-contents.js $TMP/kit-template-default
 
 if [ "$CI" ]; then
 	git config user.email 'noreply@svelte.dev'

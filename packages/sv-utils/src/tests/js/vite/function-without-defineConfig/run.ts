@@ -1,0 +1,8 @@
+import type { AstTypes } from '../../../../tooling/index.ts';
+import { imports, vite } from '../../../../tooling/js/index.ts';
+
+export function run(ast: AstTypes.Program): void {
+	const vitePluginName = 'myPlugin';
+	imports.addDefault(ast, { as: vitePluginName, from: 'my-plugin' });
+	vite.addPlugin(ast, { code: `${vitePluginName}()` });
+}

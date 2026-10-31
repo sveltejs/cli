@@ -17,7 +17,9 @@
 		"test:ci": "vitest run --silent --project=!addons",
 		"test:ecosystem-ci": "vitest run --exclude='**/storybook/test.ts'",
 		"test:ui": "vitest --ui",
-		"update-deps": "node ./scripts/update-dependencies.js && pnpm update -r --latest --include-github-actions && pnpm format"
+		"update-deps": "node ./scripts/update-dependencies.js && pnpm update -r --latest --include-github-actions && pnpm format",
+		"update:railway-starter": "./scripts/update-railway-starter.sh",
+		"update:kit-starter": "./scripts/update-kit-starter.sh"
 	},
 	"devDependencies": {
 		"@changesets/changelog-github": "1.0.0",
@@ -31,7 +33,7 @@
 		"eslint-plugin-svelte": "^3.19.0",
 		"oxfmt": "^0.72.0",
 		"sv": "workspace:*",
-		"svelte": "^5.56.9",
+		"svelte": "^5.57.2",
 		"tsdown": "^0.23.0",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.70.0",
