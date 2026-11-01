@@ -4,7 +4,7 @@ import { log } from '@clack/prompts';
 import { color, transforms } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
-import { getSharedFiles } from '../create/utils.ts';
+import { dist_dir } from '../create/utils.ts';
 import { ADDON_IDS } from './ids.ts';
 
 const REGEX_MD = /\.md$/;
@@ -119,7 +119,7 @@ const wantsLooseTools = (client: Client | undefined, delivery: string | undefine
 const wantsMcpConfig = (client: Client | undefined, delivery: string | undefined) =>
 	Boolean(client?.mcpOptions) && wantsLooseTools(client, delivery);
 
-// Static for curated labels; derive from getSharedFiles() (include 'skills'/'agents') to go dynamic.
+// Static for curated labels; derive from ai-tools.json (the `skills/`/`agents/` entries) to go dynamic.
 const TOOLS: Record<string, { label: string; kind: 'mcp' | 'skill' | 'agent'; hint?: string }> = {
 	mcp: { label: 'MCP server', kind: 'mcp' },
 	'svelte-code-writer': { label: 'svelte-code-writer', kind: 'skill', hint: 'skill' },
@@ -212,10 +212,20 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 		const filesAdded: string[] = [];
 		const filesExistingAlready: string[] = [];
 
-		const sharedFiles = getSharedFiles();
-		const mcpFiles = sharedFiles.filter((file) => file.include.includes('mcp'));
-		const skillFiles = sharedFiles.filter((file) => file.include.includes('skills'));
-		const agentFiles = sharedFiles.filter((file) => file.include.includes('agents'));
+		const { files } = JSON.parse(
+			fs.readFileSync(path.join(dist_dir, 'addons', 'ai-tools.json'), 'utf-8')
+		) as {
+			files: Array<{ name: string; contents: string }>;
+		};
+		// Content is namespaced by kind (`mcp/`, `skills/`, `agents/`); strip the
+		// prefix so the rest of the addon works with plain relative paths.
+		const at = (kind: string) =>
+			files
+				.filter((file) => file.name.startsWith(`${kind}/`))
+				.map((file) => ({ ...file, name: file.name.slice(kind.length + 1) }));
+		const mcpFiles = at('mcp');
+		const skillFiles = at('skills');
+		const agentFiles = at('agents');
 		const agentFile = mcpFiles.find((file) => file.name === 'AGENTS.md');
 
 		const addFile = (path: string, contents: string) => {

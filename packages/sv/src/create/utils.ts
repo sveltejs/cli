@@ -79,3 +79,39 @@ export function getSharedFiles(): Common['files'] {
 	const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
 	return files;
 }
+
+/**
+ * List all files under `cwd` (recursive) as sorted paths relative to `cwd`.
+ * Shared by the build scripts (`build-kit-template.js`, `build-addon-content.js`)
+ * so templates, the vite template, and addons enumerate source files identically.
+ */
+export function listFiles(cwd: string): string[] {
+	return fs
+		.readdirSync(cwd, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile())
+		.map(({ parentPath, name }) => path.join(path.relative(cwd, parentPath), name))
+		.sort();
+}
+
+/**
+ * Save a single asset file verbatim into an `assets` output dir, prefixing
+ * leading-dot names with `DOT-` so dotfiles survive publishing. Runtime
+ * renames them back via `fetchAssets()`. Shared by template and addon builds so all
+ * three emit assets with the same logic.
+ */
+export function saveAsset({
+	from,
+	assetsDir,
+	name,
+	destName
+}: {
+	from: string;
+	assetsDir: string;
+	name: string;
+	destName?: string;
+}): string {
+	const dest = path.join(assetsDir, (destName ?? name).replace(/^\./, 'DOT-'));
+	mkdirp(path.dirname(dest));
+	fs.copyFileSync(from, dest);
+	return dest;
+}
