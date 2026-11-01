@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { parse } from '@sveltejs/sv-utils';
@@ -228,6 +229,98 @@ describe('cli', () => {
 						`Error addon test: '${cmd}' -> ${JSON.stringify(res, null, 2)}`
 					).toBe(0);
 				}
+			}
+		}
+	);
+
+	const installCases = [
+		{ projectName: 'create-minimal-pnpm-11', pnpmVersion: '11.28.10' },
+		{ projectName: 'create-minimal-pnpm-10', pnpmVersion: '10.34.9' }
+	];
+
+	it.for(installCases)(
+		'should create a project and install its dependencies with pnpm $projectName',
+		{ timeout: 600_000 },
+		async (installCase) => {
+			const { projectName, pnpmVersion } = installCase;
+			const projectPath = path.relative(ROOT, path.resolve(TEST_DIR, projectName));
+
+			const projectArgs = [
+				SV_BIN_PATH,
+				'create',
+				projectPath,
+				'--template',
+				'minimal',
+				'--types',
+				'ts',
+				'--no-add-ons',
+				'--install',
+				'pnpm'
+			];
+
+			// CI makes pnpm non-interactive
+			const env = { ...process.env, CI: 'true' };
+			const result = await exec('node', projectArgs, { nodeOptions: { env } });
+
+			expect(
+				result.exitCode,
+				`Error with cli:\n  cmd: node ${projectArgs.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
+			).toBe(0);
+			expect(fs.existsSync(projectPath)).toBe(true);
+
+			const treeFiles: Array<{ relative: string; generated: string }> = [];
+			const readTree = (projectDir: string) => {
+				for (const relativeFile of fs.readdirSync(projectDir, { recursive: true }) as string[]) {
+					if (!fs.statSync(path.resolve(projectDir, relativeFile)).isFile()) continue;
+					if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
+
+					const normalized = relativeFile.replace(/\\/g, '/');
+					if (normalized.startsWith('node_modules/')) continue;
+					if (relativeFile === 'pnpm-lock.yaml') continue;
+
+					const generated = fs.readFileSync(path.resolve(projectDir, relativeFile), 'utf-8');
+					treeFiles.push({
+						relative: relativeFile,
+						generated: normalizeGeneratedFile(normalized, generated)
+					});
+				}
+			};
+
+			fs.rmSync(path.resolve(projectPath, 'node_modules'), { force: true, recursive: true });
+			fs.rmSync(path.resolve(projectPath, 'pnpm-lock.yaml'), { force: true });
+
+			/**
+			 * pnpm 10 has no workspace guard, so the install runs
+			 * from a copy of the project placed outside the repo
+			 */
+			const tempBase = fs.mkdtempSync(path.join(os.tmpdir(), 'sv-install-pnpm-'));
+			const installedProject = path.join(tempBase, 'project');
+			try {
+				fs.cpSync(projectPath, installedProject, { recursive: true });
+				const install = await exec(
+					'pnpm',
+					['with', pnpmVersion, 'install', '--no-frozen-lockfile'],
+					{ nodeOptions: { cwd: installedProject, env } }
+				);
+				expect(
+					install.exitCode,
+					`pnpm install failed:\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+				).toBe(0);
+				readTree(installedProject);
+			} finally {
+				fs.rmSync(tempBase, { force: true, recursive: true });
+			}
+
+			const snapPath = path.resolve(SNAPSHOTS_DIR, projectName);
+
+			// full tree of the created project, after the install ran — the
+			// same files the pre-install cases snapshot, so a template change
+			// or post-install file mutation is visible directly in the diff
+			for (const { relative, generated } of treeFiles) {
+				await expect(generated).toMatchFileSnapshot(
+					path.resolve(snapPath, relative),
+					`file "${relative}" does not match snapshot`
+				);
 			}
 		}
 	);
