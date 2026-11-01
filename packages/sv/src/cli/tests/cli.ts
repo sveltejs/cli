@@ -14,6 +14,7 @@ const ADAPTER_HINT =
 const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
 const SV_BIN_PATH = path.resolve(ROOT, 'packages', 'sv', 'dist', 'bin.mjs');
 const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'cli');
+const SNAPSHOTS_DIR = path.resolve(ROOT, 'packages', 'sv', 'src', 'cli', 'tests', 'snapshots');
 
 beforeAll(() => {
 	if (fs.existsSync(TEST_DIR)) {
@@ -127,16 +128,7 @@ describe('cli', () => {
 				expect(readme).toContain(ADAPTER_HINT);
 			}
 
-			const snapPath = path.resolve(
-				ROOT,
-				'packages',
-				'sv',
-				'src',
-				'cli',
-				'tests',
-				'snapshots',
-				projectName
-			);
+			const snapPath = path.resolve(SNAPSHOTS_DIR, projectName);
 			const relativeFiles = snapshot
 				? (fs.readdirSync(projectPath, { recursive: true }) as string[])
 				: [];
@@ -163,40 +155,8 @@ describe('cli', () => {
 					continue;
 				}
 
-				let generated = fs.readFileSync(path.resolve(projectPath, relativeFile), 'utf-8');
-				if (relativeFile === 'package.json') {
-					const { data: generatedPackageJson } = parse.json(generated);
-					// remove @types/node from generated package.json as we test on different node versions
-					delete generatedPackageJson.devDependencies['@types/node'];
-					// Normalize workspace package versions to avoid snapshot drift on version bumps
-					for (const pkg of ['sv', '@sveltejs/sv-utils']) {
-						if (generatedPackageJson.peerDependencies?.[pkg]) {
-							generatedPackageJson.peerDependencies[pkg] = '^0.0.0';
-						}
-						if (generatedPackageJson.devDependencies?.[pkg]) {
-							generatedPackageJson.devDependencies[pkg] = '^0.0.0';
-						}
-					}
-					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
-				}
-
-				generated = generated.replaceAll('\r\n', '\n'); // make it work on Windows too
-				if (!generated.endsWith('\n')) generated += '\n'; // ensure trailing newline
-
-				// Normalize sv version in README.md to avoid snapshot drift
-				if (relativeFile === 'README.md') {
-					generated = generated.replace(SV_VERSION_REGEX, 'sv@0.0.0');
-				}
-
-				// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift
-				if (relativeFile === 'wrangler.jsonc') {
-					generated = generated.replace(
-						/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
-						'"compatibility_date": "2020-01-01"'
-					);
-				}
-
-				await expect(generated).toMatchFileSnapshot(
+				const generated = fs.readFileSync(path.resolve(projectPath, relativeFile), 'utf-8');
+				await expect(normalizeGeneratedFile(relativeFile, generated)).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
 				);
@@ -279,3 +239,42 @@ describe('cli', () => {
 		}
 	);
 });
+
+/** Normalizes a generated project file the same way for every snapshot case. */
+function normalizeGeneratedFile(relativeFile: string, raw: string) {
+	let generated = raw;
+
+	if (relativeFile === 'package.json') {
+		const { data: generatedPackageJson } = parse.json(generated);
+		// remove @types/node from generated package.json as we test on different node versions
+		delete generatedPackageJson.devDependencies['@types/node'];
+		// Normalize workspace package versions to avoid snapshot drift on version bumps
+		for (const pkg of ['sv', '@sveltejs/sv-utils']) {
+			if (generatedPackageJson.peerDependencies?.[pkg]) {
+				generatedPackageJson.peerDependencies[pkg] = '^0.0.0';
+			}
+			if (generatedPackageJson.devDependencies?.[pkg]) {
+				generatedPackageJson.devDependencies[pkg] = '^0.0.0';
+			}
+		}
+		generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
+	}
+
+	generated = generated.replaceAll('\r\n', '\n'); // make it work on Windows too
+	if (!generated.endsWith('\n')) generated += '\n'; // ensure trailing newline
+
+	// Normalize sv version in README.md to avoid snapshot drift
+	if (relativeFile === 'README.md') {
+		generated = generated.replace(SV_VERSION_REGEX, 'sv@0.0.0');
+	}
+
+	// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift
+	if (relativeFile === 'wrangler.jsonc') {
+		generated = generated.replace(
+			/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
+			'"compatibility_date": "2020-01-01"'
+		);
+	}
+
+	return generated;
+}
