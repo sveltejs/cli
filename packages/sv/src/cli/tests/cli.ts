@@ -216,14 +216,10 @@ describe('cli', () => {
 					['run', 'test']
 				];
 				for (const cmd of cmds) {
-					// use npm here so the install doesn't walk up into the monorepo's
-					// pnpm workspace and try to resolve packages from there
 					const res = await run('npm', cmd, {
 						nodeOptions: {
 							env: {
 								...process.env,
-								// allow npm under a repo whose packageManager is pnpm
-								COREPACK_ENABLE_STRICT: '0',
 								// tsdown's optional `*` peers crash npm's arborist peer resolver
 								// (`edgesOut` null); skip strict peer resolution for this install
 								npm_config_legacy_peer_deps: 'true'
@@ -241,35 +237,37 @@ describe('cli', () => {
 });
 
 /** Normalizes a generated project file the same way for every snapshot case. */
-function normalizeGeneratedFile(relativeFile: string, raw: string) {
+function normalizeGeneratedFile(filename: string, raw: string) {
 	let generated = raw;
 
-	if (relativeFile === 'package.json') {
-		const { data: generatedPackageJson } = parse.json(generated);
+	if (filename === 'package.json') {
+		const { data: json } = parse.json(generated);
+
 		// remove @types/node from generated package.json as we test on different node versions
-		delete generatedPackageJson.devDependencies['@types/node'];
+		delete json.devDependencies['@types/node'];
+
 		// Normalize workspace package versions to avoid snapshot drift on version bumps
 		for (const pkg of ['sv', '@sveltejs/sv-utils']) {
-			if (generatedPackageJson.peerDependencies?.[pkg]) {
-				generatedPackageJson.peerDependencies[pkg] = '^0.0.0';
-			}
-			if (generatedPackageJson.devDependencies?.[pkg]) {
-				generatedPackageJson.devDependencies[pkg] = '^0.0.0';
+			for (const dependency of ['peerDependencies', 'devDependencies']) {
+				if (json[dependency]?.[pkg]) json[dependency][pkg] = '^0.0.0';
 			}
 		}
-		generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
+		generated = JSON.stringify(json, null, 3).replaceAll('   ', '\t');
 	}
 
-	generated = generated.replaceAll('\r\n', '\n'); // make it work on Windows too
-	if (!generated.endsWith('\n')) generated += '\n'; // ensure trailing newline
+	// make it work on Windows too
+	generated = generated.replaceAll('\r\n', '\n');
+
+	// ensure trailing newline
+	if (!generated.endsWith('\n')) generated += '\n';
 
 	// Normalize sv version in README.md to avoid snapshot drift
-	if (relativeFile === 'README.md') {
+	if (filename === 'README.md') {
 		generated = generated.replace(SV_VERSION_REGEX, 'sv@0.0.0');
 	}
 
-	// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift
-	if (relativeFile === 'wrangler.jsonc') {
+	// Normalize the cloudflare adapter's `compatibility_date` to avoid daily drift
+	if (filename === 'wrangler.jsonc') {
 		generated = generated.replace(
 			/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
 			'"compatibility_date": "2020-01-01"'
