@@ -62,7 +62,7 @@ describe('pnpm create pipeline', () => {
 			yaml = fs.readFileSync(path.join(dir, 'pnpm-workspace.yaml'), 'utf8');
 		},
 		// `pnpm --version` inside `allowBuilds` may resolve the pinned pnpm on first run
-		{ timeout: 30_000 }
+		30_000
 	);
 
 	it('writes `devEngines` into `package.json`', () => {
