@@ -9,8 +9,6 @@ import { isNodeError } from './common.js';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
-// TODO: format using `oxfmt` if this is the selected formatter
-
 export type FormatStrategy =
 	/** Run the nearest `format`/`fmt` script up to the workspace root, else format the files. */
 	| 'project-script-then-files-only'
@@ -67,15 +65,20 @@ export function resolveFormatAction(cwd: string, strategy: FormatStrategy): Form
 		if (script) return { kind: 'script', ...script };
 	}
 
-	if (isPrettierInstalled(cwd)) return { kind: 'prettier' };
+	if (isPkgInstalled(cwd, 'prettier')) return { kind: 'prettier' };
+
+	if (isPkgInstalled(cwd, 'oxfmt')) {
+		return { kind: 'script', dir: cwd, name: 'fmt' };
+	}
+
 	return { kind: 'skip' };
 }
 
 /**
- * Whether `prettier` resolves from `cwd` via Node's module resolution.
+ * Whether `pkg` resolves from `cwd` via Node's module resolution.
  */
-export function isPrettierInstalled(cwd: string): boolean {
-	return Boolean(resolve.from(cwd, 'prettier', true));
+export function isPkgInstalled(cwd: string, pkg: string): boolean {
+	return Boolean(resolve.from(cwd, pkg, true));
 }
 
 /** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
