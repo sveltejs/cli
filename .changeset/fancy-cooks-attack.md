@@ -2,5 +2,5 @@
 "sv": minor
 ---
 
-feat(sv): add oxfmt add-on
+feat(sv): add oxfmt add-on, format using oxfmt.
 
