@@ -9,6 +9,33 @@ import { buildTemplates } from './packages/sv/src/create/scripts/build-templates
  */
 const API_SURFACE_DIR = 'dts-api-surface';
 
+const PACKAGE_ROOT_REGEX = /^(.*node_modules\/((?:@[^/]+\/)?[^/]+))\//;
+
+/** Fails the build when two versions of one package get bundled (e.g. svelte pulling an older esrap). */
+function noDuplicateBundledPackages() {
+	return {
+		name: 'no-duplicate-bundled-packages',
+		generateBundle(_: unknown, bundle: Record<string, { type: string; moduleIds?: string[] }>) {
+			const roots = new Map<string, Set<string>>();
+			for (const chunk of Object.values(bundle)) {
+				for (const id of chunk.moduleIds ?? []) {
+					const match = PACKAGE_ROOT_REGEX.exec(id.replaceAll('\\', '/'));
+					if (!match) continue;
+					const [, root, name] = match;
+					if (!roots.has(name)) roots.set(name, new Set());
+					roots.get(name)!.add(root);
+				}
+			}
+			const duplicates = [...roots].filter(([, set]) => set.size > 1);
+			if (duplicates.length === 0) return;
+			const details = duplicates.map(([name, set]) => `${name}:\n  ${[...set].join('\n  ')}`);
+			throw new Error(
+				`Multiple copies of bundled packages (dedupe the lockfile):\n${details.join('\n')}`
+			);
+		}
+	};
+}
+
 /** Shared `deps` settings for every `sv` build (runtime + DTS-only api-surface). */
 const svDeps = {
 	// These are root-level devDependencies used only by testing.ts.
@@ -55,7 +82,7 @@ export default defineConfig([
 		},
 		failOnWarn: true,
 		deps: svDeps,
-		plugins: [],
+		plugins: [noDuplicateBundledPackages()],
 		inputOptions: {
 			experimental: {
 				resolveNewUrlToAsset: false
@@ -135,6 +162,7 @@ export default defineConfig([
 		},
 		dts: false,
 		failOnWarn: true,
+		plugins: [noDuplicateBundledPackages()],
 		// `yaml` ships a CJS node build (reached through `createRequire`) and an ESM browser
 		// build. Resolving its `browser` field keeps the shared chunk free of node builtins;
 		// the node entry works fine with it too.

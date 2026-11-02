@@ -1,6 +1,6 @@
 {
 	"name": "sv",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"description": "A command line interface (CLI) for creating and maintaining Svelte applications",
 	"keywords": [
 		"create",
@@ -51,7 +51,7 @@
 		"modern-tar": "^0.7.7",
 		"ps-tree": "^1.2.0",
 		"sucrase": "^3.35.1",
-		"svelte": "^5.56.9",
+		"svelte": "^5.57.2",
 		"tinyexec": "^1.2.4",
 		"valibot": "^1.4.1"
 	}
