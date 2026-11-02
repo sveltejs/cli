@@ -25,7 +25,7 @@ beforeAll(() => {
 
 describe('cli', () => {
 	const testCases = [
-		{ projectName: 'create-only', args: ['--no-add-ons'] },
+		{ projectName: 'create-minimal', args: ['--no-add-ons'] },
 		{
 			projectName: 'create-adapter-auto',
 			args: ['--add', 'sveltekit-adapter=adapter:auto'],
@@ -125,7 +125,7 @@ describe('cli', () => {
 			const readme = fs.readFileSync(path.resolve(projectPath, 'README.md'), 'utf-8');
 			if (projectName === 'create-with-all-addons' || projectName === 'create-experimental') {
 				expect(readme).not.toContain(ADAPTER_HINT);
-			} else if (projectName === 'create-only' || projectName === 'create-adapter-auto') {
+			} else if (projectName === 'create-minimal' || projectName === 'create-adapter-auto') {
 				expect(readme).toContain(ADAPTER_HINT);
 			}
 
