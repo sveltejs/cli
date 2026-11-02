@@ -85,7 +85,7 @@ describe('pnpm create pipeline', () => {
 				"devEngines": {
 					"runtime": {
 						"name": "node",
-						"version": "^22.18.0",
+						"version": "^22.23.4",
 						"onFail": "download"
 					},
 					"packageManager": {
