@@ -1,5 +1,5 @@
 {
-	"name": "create-only",
+	"name": "create-minimal",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
