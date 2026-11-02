@@ -203,10 +203,7 @@ describe('cli', () => {
 				packageJson.peerDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../../sv-utils';
-				fs.writeFileSync(
-					packageJsonPath,
-					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
-				);
+				fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, '\t'));
 
 				const cmds = [
 					// list of cmds to test
@@ -252,7 +249,7 @@ function normalizeGeneratedFile(filename: string, raw: string) {
 				if (json[dependency]?.[pkg]) json[dependency][pkg] = '^0.0.0';
 			}
 		}
-		generated = JSON.stringify(json, null, 3).replaceAll('   ', '\t');
+		generated = JSON.stringify(json, null, '\t');
 	}
 
 	// make it work on Windows too
