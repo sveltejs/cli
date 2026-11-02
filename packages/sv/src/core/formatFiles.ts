@@ -2,10 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as p from '@clack/prompts';
 import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
-import * as resolve from 'empathic/resolve';
 import * as walk from 'empathic/walk';
 import { exec, NonZeroExitError } from 'tinyexec';
-import { isNodeError } from './common.js';
+import { isNodeError, isPkgInstalled } from './common.js';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
@@ -72,13 +71,6 @@ export function resolveFormatAction(cwd: string, strategy: FormatStrategy): Form
 	}
 
 	return { kind: 'skip' };
-}
-
-/**
- * Whether `pkg` resolves from `cwd` via Node's module resolution.
- */
-export function isPkgInstalled(cwd: string, pkg: string): boolean {
-	return Boolean(resolve.from(cwd, pkg, true));
 }
 
 /** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
