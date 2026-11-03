@@ -46,6 +46,17 @@ const { test, testCases } = setupTest(
 						delivery: 'plugin'
 					}
 				}
+			},
+			{
+				type: 'plugin-opt-in-skills',
+				options: {
+					'ai-tools': {
+						ide: ['claude-code', 'opencode', 'cursor'],
+						delivery: 'plugin',
+						tools: ['mcp'],
+						optInSkills: ['svelte-mcp-feedback']
+					}
+				}
 			}
 		],
 		browser: false,
@@ -104,6 +115,25 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		expect(JSON.parse(getContent('.opencode/opencode.json')).plugin).toEqual([
 			'@sveltejs/opencode'
 		]);
+		expect(fs.existsSync(path.resolve(cwd, '.opencode/skills'))).toBe(false);
+		return;
+	}
+
+	if (testCase.kind.type === 'plugin-opt-in-skills') {
+		// opt-in skills aren't bundled with the plugins, so they're written for every client
+		for (const dir of ['.claude/skills', '.opencode/skills', '.cursor/skills']) {
+			expect(fs.readdirSync(path.resolve(cwd, dir))).toEqual(['svelte-mcp-feedback']);
+			expect(getContent(`${dir}/svelte-mcp-feedback/SKILL.md`)).toContain(
+				'name: svelte-mcp-feedback'
+			);
+		}
+		// still nothing else for the plugin clients
+		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude/agents'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.opencode/agents'))).toBe(false);
+		// cursor still gets the individual tools it picked
+		expect(fs.existsSync(path.resolve(cwd, '.cursor/mcp.json'))).toBe(true);
+		expect(fs.existsSync(path.resolve(cwd, '.cursor/agents'))).toBe(false);
 		return;
 	}
 
@@ -278,6 +308,8 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 	for (const dir of skillDirs) {
 		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-code-writer/SKILL.md'))).toBe(true);
 		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-core-bestpractices/SKILL.md'))).toBe(true);
+		// opt-in only
+		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-mcp-feedback'))).toBe(false);
 	}
 
 	// opencode should NOT have skills (plugin handles it)

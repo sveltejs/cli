@@ -54,3 +54,11 @@ The MCP setup you want to use (`'local'` or `'remote'`). Only relevant when addi
 ```sh
 npx sv add ai-tools="mcpSetup:local"
 ```
+
+### optInSkills
+
+Which opt-in [skills](https://svelte.dev/docs/ai/skills) to add, like `'svelte-mcp-feedback'` (reports Svelte mistakes you correct to the [ai-tools](https://github.com/sveltejs/ai-tools) repo so the MCP autofixer can catch them). None are added by default. Opt-in skills aren't bundled with the Svelte plugin, so this is asked for every client that supports skills, even when you choose the plugin.
+
+```sh
+npx sv add ai-tools="ide:claude-code+delivery:plugin+optInSkills:svelte-mcp-feedback"
+```

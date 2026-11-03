@@ -79,6 +79,8 @@ const CLIENTS: Record<string, Client> = {
 		pluginOnly: true,
 		agentPath: 'AGENTS.md',
 		configPath: '.opencode/opencode.json',
+		// only used for opt-in skills the plugin doesn't ship (svelte-mcp-feedback)
+		skillsPath: '.opencode/skills',
 		schema: 'https://opencode.ai/config.json',
 		customData: { plugin: ['@sveltejs/opencode'] },
 		extraFiles: [
@@ -127,11 +129,21 @@ const TOOLS: Record<string, { label: string; kind: 'mcp' | 'skill' | 'agent'; hi
 	'svelte-file-editor': { label: 'svelte-file-editor', kind: 'agent', hint: 'sub-agent' }
 };
 
+// Opt-in skills are never bundled with the plugins: asked separately (default none)
+// and written as loose files for every client with a skills folder.
+const OPT_IN_SKILLS: Record<string, { label: string; hint?: string }> = {
+	'svelte-mcp-feedback': {
+		label: 'svelte-mcp-feedback',
+		hint: 'reports Svelte mistakes you correct to sveltejs/ai-tools'
+	}
+};
+
 export type AiToolsOptions = {
 	ide: string[];
 	delivery: 'plugin' | 'tools';
 	tools: string[];
 	mcpSetup: 'local' | 'remote';
+	optInSkills: string[];
 };
 
 const options = defineAddonOptions<AiToolsOptions>()
@@ -172,6 +184,19 @@ const options = defineAddonOptions<AiToolsOptions>()
 			(tools === undefined || tools.includes('mcp')) &&
 			ide.some((i) => wantsMcpConfig(CLIENTS[i], delivery))
 	})
+	.add('optInSkills', {
+		question: 'Would you like to add any opt-in skills?',
+		type: 'multiselect',
+		default: [],
+		options: Object.entries(OPT_IN_SKILLS).map(([value, s]) => ({
+			value,
+			label: s.label,
+			hint: s.hint
+		})),
+		required: false,
+		// asked regardless of delivery: the plugins don't ship these skills
+		condition: ({ ide }) => ide.some((i) => CLIENTS[i]?.skillsPath)
+	})
 	.build();
 
 const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
@@ -187,6 +212,7 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 		const selectedSkills = selected.filter((t) => TOOLS[t]?.kind === 'skill');
 		const selectedAgents = selected.filter((t) => TOOLS[t]?.kind === 'agent');
 		const wantsMcp = selected.includes('mcp');
+		const selectedOptInSkills = (options.optInSkills ?? []).filter((s) => s in OPT_IN_SKILLS);
 
 		const getLocalConfig = (o?: {
 			typeLocal?: 'stdio' | 'local';
@@ -232,6 +258,14 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 		for (const ide of options.ide) {
 			const client = CLIENTS[ide];
 			if (!client) continue;
+
+			// opt-in skills aren't part of any plugin, so they're written in plugin mode too
+			if (selectedOptInSkills.length > 0 && client.skillsPath) {
+				for (const file of skillFiles) {
+					if (!selectedOptInSkills.includes(file.name.split('/')[0])) continue;
+					addFile(`${client.skillsPath}/${file.name}`, file.contents);
+				}
+			}
 
 			// plugin mode: write only the settings file (the plugin bundles MCP + skills + sub-agents)
 			if (client.pluginSettings && usePlugin) {
@@ -320,14 +354,17 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 				}
 			}
 
-			if (skillsPath) {
+			// plugin-only clients (opencode) get skills and sub-agents from their plugin
+			const looseTools = wantsLooseTools(client, options.delivery);
+
+			if (skillsPath && looseTools) {
 				for (const file of skillFiles) {
 					if (!selectedSkills.includes(file.name.split('/')[0])) continue;
 					addFile(`${skillsPath}/${file.name}`, file.contents);
 				}
 			}
 
-			if (agentsPath) {
+			if (agentsPath && looseTools) {
 				for (const file of agentFiles) {
 					if (!selectedAgents.includes(file.name.replace(REGEX_MD, ''))) continue;
 					const ext = agentExtension ?? '.md';
