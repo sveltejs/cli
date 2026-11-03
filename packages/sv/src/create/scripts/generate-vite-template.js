@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { mkdirp } from './build-templates.js';
+import { mkdirp } from '../utils.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
 

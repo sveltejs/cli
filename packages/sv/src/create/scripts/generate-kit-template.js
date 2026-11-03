@@ -5,7 +5,7 @@ import parser from 'gitignore-parser';
 import { format } from 'oxfmt';
 import { transform } from 'sucrase';
 import oxfmtConfig from '../../../../../oxfmt.config.ts';
-import { mkdirp } from './build-templates.js';
+import { mkdirp } from '../utils.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
 /** @import { PackageJSON } from '../../core/common.ts' */
@@ -97,9 +97,8 @@ function package_variants(pkg, template) {
 
 /**
  * @param {string} dist
- * @param {Set<string>} shared
  */
-export async function generate_kit_template(dist, shared) {
+export async function generate_kit_template(dist) {
 	const templates = fs.readdirSync(path.resolve(pkgRoot, 'templates'));
 
 	for (const template of templates) {
@@ -169,9 +168,6 @@ export async function generate_kit_template(dist, shared) {
 
 				continue;
 			}
-
-			// ignore files that are written conditionally
-			if (shared.has(name)) continue;
 
 			// ignore the .gitignore contents and anything gitignores
 			if (!gitignore.accepts(name) || name === '.ignore' || name === '.meta.json') continue;
