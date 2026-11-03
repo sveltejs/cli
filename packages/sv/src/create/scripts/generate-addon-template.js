@@ -29,13 +29,13 @@ export function generate_addon_content(dist) {
 
 		const files = [];
 		for (const name of names) {
-			if (name === 'assets' || name.startsWith(`assets${path.sep}`)) {
+			if (name.startsWith('assets/')) {
 				// Same as templates: verbatim copy, `DOT-` prefix so dotfiles
 				// survive publishing. Runtime renames back via `fetchAssets()`.
 				saveAsset({
 					from: path.join(contentDir, name),
 					assetsDir: path.join(addonsDist, folder, 'assets'),
-					name: path.relative('assets', name)
+					name: name.slice('assets/'.length)
 				});
 				continue;
 			}

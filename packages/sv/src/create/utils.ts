@@ -80,25 +80,18 @@ export function getSharedFiles(): Common['files'] {
 	return files;
 }
 
-/**
- * List all files under `cwd` (recursive) as sorted paths relative to `cwd`.
- * Shared by the build scripts (`build-kit-template.js`, `build-addon-content.js`)
- * so templates, the vite template, and addons enumerate source files identically.
- */
+/** Sorted `/`-separated paths relative to `cwd` (posix even on Windows: names are matched by prefix and shipped in dist). */
 export function listFiles(cwd: string): string[] {
 	return fs
 		.readdirSync(cwd, { recursive: true, withFileTypes: true })
 		.filter((entry) => entry.isFile())
-		.map(({ parentPath, name }) => path.join(path.relative(cwd, parentPath), name))
+		.map(({ parentPath, name }) =>
+			path.posix.join(path.relative(cwd, parentPath).replaceAll(path.sep, '/'), name)
+		)
 		.sort();
 }
 
-/**
- * Save a single asset file verbatim into an `assets` output dir, prefixing
- * leading-dot names with `DOT-` so dotfiles survive publishing. Runtime
- * renames them back via `fetchAssets()`. Shared by template and addon builds so all
- * three emit assets with the same logic.
- */
+/** `DOT-` prefix so dotfiles survive publishing; renamed back at runtime by `fetchAssets()`. */
 export function saveAsset({
 	from,
 	assetsDir,
