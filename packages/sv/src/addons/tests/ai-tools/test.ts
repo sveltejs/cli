@@ -12,7 +12,7 @@ const { test, testCases } = setupTest(
 				type: 'default-local',
 				options: {
 					'ai-tools': {
-						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
+						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'pi', 'vscode'],
 						mcpSetup: 'local',
 						delivery: 'tools',
 						tools: ['mcp', 'svelte-code-writer', 'svelte-core-bestpractices', 'svelte-file-editor']
@@ -23,7 +23,7 @@ const { test, testCases } = setupTest(
 				type: 'default-remote',
 				options: {
 					'ai-tools': {
-						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'vscode'],
+						ide: ['claude-code', 'cursor', 'gemini', 'opencode', 'pi', 'vscode'],
 						mcpSetup: 'remote',
 						delivery: 'tools',
 						tools: ['mcp', 'svelte-code-writer', 'svelte-core-bestpractices', 'svelte-file-editor']
@@ -42,7 +42,7 @@ const { test, testCases } = setupTest(
 				type: 'plugin',
 				options: {
 					'ai-tools': {
-						ide: ['claude-code', 'opencode'],
+						ide: ['claude-code', 'opencode', 'pi'],
 						delivery: 'plugin'
 					}
 				}
@@ -51,7 +51,7 @@ const { test, testCases } = setupTest(
 				type: 'plugin-opt-in-skills',
 				options: {
 					'ai-tools': {
-						ide: ['claude-code', 'opencode', 'cursor'],
+						ide: ['claude-code', 'opencode', 'pi', 'cursor'],
 						delivery: 'plugin',
 						tools: ['mcp'],
 						optInSkills: ['svelte-mcp-feedback']
@@ -116,12 +116,14 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 			'@sveltejs/opencode'
 		]);
 		expect(fs.existsSync(path.resolve(cwd, '.opencode/skills'))).toBe(false);
+		// pi stays configured through its own package
+		expect(JSON.parse(getContent('.pi/settings.json')).packages).toEqual(['npm:@sveltejs/pi']);
 		return;
 	}
 
 	if (testCase.kind.type === 'plugin-opt-in-skills') {
 		// opt-in skills aren't bundled with the plugins, so they're written for every client
-		for (const dir of ['.claude/skills', '.opencode/skills', '.cursor/skills']) {
+		for (const dir of ['.claude/skills', '.opencode/skills', '.pi/skills', '.cursor/skills']) {
 			expect(fs.readdirSync(path.resolve(cwd, dir))).toEqual(['svelte-mcp-feedback']);
 			expect(getContent(`${dir}/svelte-mcp-feedback/SKILL.md`)).toContain(
 				'name: svelte-mcp-feedback'
@@ -131,6 +133,7 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(false);
 		expect(fs.existsSync(path.resolve(cwd, '.claude/agents'))).toBe(false);
 		expect(fs.existsSync(path.resolve(cwd, '.opencode/agents'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.pi/agents'))).toBe(false);
 		// cursor still gets the individual tools it picked
 		expect(fs.existsSync(path.resolve(cwd, '.cursor/mcp.json'))).toBe(true);
 		expect(fs.existsSync(path.resolve(cwd, '.cursor/agents'))).toBe(false);
@@ -150,12 +153,18 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		$schema: 'https://svelte.dev/opencode/schema.json'
 	});
 
+	// should create .pi/svelte.json with schema
+	expect(JSON.parse(getContent('.pi/svelte.json'))).toEqual({
+		$schema: 'https://svelte.dev/pi/schema.json'
+	});
+
 	const fullConf: Record<string, any> = {};
 	const ides = {
 		'claude-code': '.mcp.json',
 		cursor: '.cursor/mcp.json',
 		gemini: '.gemini/settings.json',
 		opencode: '.opencode/opencode.json',
+		pi: '.pi/settings.json',
 		vscode: '.vscode/mcp.json'
 	} as const;
 
@@ -224,6 +233,15 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 			    },
 			    "filePath": ".opencode/opencode.json",
 			  },
+			  "pi": {
+			    "content": {
+			      "$schema": "https://pi.dev/schemas/settings.schema.json",
+			      "packages": [
+			        "npm:@sveltejs/pi",
+			      ],
+			    },
+			    "filePath": ".pi/settings.json",
+			  },
 			  "vscode": {
 			    "content": {
 			      "servers": {
@@ -285,6 +303,15 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 			    },
 			    "filePath": ".opencode/opencode.json",
 			  },
+			  "pi": {
+			    "content": {
+			      "$schema": "https://pi.dev/schemas/settings.schema.json",
+			      "packages": [
+			        "npm:@sveltejs/pi",
+			      ],
+			    },
+			    "filePath": ".pi/settings.json",
+			  },
 			  "vscode": {
 			    "content": {
 			      "servers": {
@@ -303,7 +330,7 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 	expect(getContent('.claude/CLAUDE.md')).toBe('@../AGENTS.md\n');
 	expect(fs.existsSync(path.resolve(cwd, 'AGENTS.md'))).toBe(true);
 
-	// skills should be installed for all clients except opencode (plugin handles it)
+	// skills should be installed for all clients except opencode and pi (plugin handles it)
 	const skillDirs = ['.claude/skills', '.cursor/skills', '.gemini/skills', '.github/skills'];
 	for (const dir of skillDirs) {
 		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-code-writer/SKILL.md'))).toBe(true);
@@ -312,13 +339,15 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		expect(fs.existsSync(path.resolve(cwd, dir, 'svelte-mcp-feedback'))).toBe(false);
 	}
 
-	// opencode should NOT have skills (plugin handles it)
+	// opencode adn pi should NOT have skills (plugin handles it)
 	expect(fs.existsSync(path.resolve(cwd, '.opencode/skills'))).toBe(false);
+	expect(fs.existsSync(path.resolve(cwd, '.pi/skills'))).toBe(false);
 
-	// sub-agents should be installed for all clients except opencode
+	// sub-agents should be installed for all clients except opencode and pi
 	expect(fs.existsSync(path.resolve(cwd, '.claude/agents/svelte-file-editor.md'))).toBe(true);
 	expect(fs.existsSync(path.resolve(cwd, '.cursor/agents/svelte-file-editor.md'))).toBe(true);
 	expect(fs.existsSync(path.resolve(cwd, '.gemini/agents/svelte-file-editor.md'))).toBe(true);
 	expect(fs.existsSync(path.resolve(cwd, '.github/agents/svelte-file-editor.agent.md'))).toBe(true);
 	expect(fs.existsSync(path.resolve(cwd, '.opencode/agents'))).toBe(false);
+	expect(fs.existsSync(path.resolve(cwd, '.pi/agents'))).toBe(false);
 });
