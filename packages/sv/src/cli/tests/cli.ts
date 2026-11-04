@@ -235,8 +235,8 @@ describe('cli', () => {
 
 	// Pinned at pnpm's behavior boundaries
 	const installCases = [
-		{ projectName: 'create-minimal-pnpm-11', pnpmVersion: '11.0.9' },
-		{ projectName: 'create-minimal-pnpm-10', pnpmVersion: '10.25.0' }
+		{ projectName: 'create-minimal-pnpm-11.0', pnpmVersion: '11.0.9' },
+		{ projectName: 'create-minimal-pnpm-10.25', pnpmVersion: '10.25.0' }
 	];
 
 	it.for(installCases)(

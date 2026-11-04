@@ -15,7 +15,7 @@ To recreate this project with the same configuration:
 
 ```sh
 # recreate this project
-pnpm dlx sv@0.0.0 create --template minimal --types ts --install pnpm packages/sv/.test-output/cli/create-minimal-pnpm-10
+pnpm dlx sv@0.0.0 create --template minimal --types ts --install pnpm packages/sv/.test-output/cli/create-minimal-pnpm-11.0
 ```
 
 ## Adding features
