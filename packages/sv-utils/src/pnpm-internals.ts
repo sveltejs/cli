@@ -59,6 +59,25 @@ export function readsWorkspaceSettings(version: string | undefined): boolean {
 	return !version || !isVersionUnsupportedBelow(version, '10.5.0');
 }
 
+export function allowBuildsForVersion(
+	version: string | undefined,
+	packages: string[]
+): TransformFn {
+	// scripts are blocked starting 10.0, and needs to be explicitly enabled
+
+	// settings move from `package.json` to `pnpm-worksplace.yaml`
+	// https://github.com/pnpm/pnpm/releases/tag/v10.5.0
+	// not implemented
+	if (version && isVersionUnsupportedBelow(version, '10.5.0')) return () => false;
+
+	// `allowBuilds` is introduced in 10.26
+	// https://pnpm.io/blog/releases/10.26#allowbuilds
+	if (version && isVersionUnsupportedBelow(version, '10.26.0')) return writeLegacy(packages);
+
+	// modern syntax
+	return writeAllowBuilds(packages);
+}
+
 export function writeAllowBuilds(packages: string[]): TransformFn {
 	return transforms.yaml(({ data }) => {
 		const doc = data as unknown as YamlDoc;

@@ -2,41 +2,28 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+	allowBuildsForVersion,
 	detectPnpmMajor,
 	readsWorkspaceSettings,
 	writeAllowBuilds,
 	writeLegacy
 } from '../pnpm-internals.ts';
-import { allowBuilds } from '../pnpm.ts';
 import { coerceVersion } from '../semver.ts';
 
-describe('pnpm >= 11: writes allowBuilds map', () => {
+describe('writeAllowBuilds', () => {
 	const transform = (...packages: string[]) => writeAllowBuilds(packages);
 
 	it('creates allowBuilds map in empty file', () => {
 		expect(transform('esbuild')('')).toBe('allowBuilds:\n  esbuild: true\n');
 	});
-
-	it('appends to existing allowBuilds map', () => {
-		const input = `packages:
-  - 'packages/*'
-allowBuilds:
-  bar: true
-`;
-		expect(transform('esbuild')(input)).toBe(`packages:
-  - 'packages/*'
-allowBuilds:
-  bar: true
-  esbuild: true
-`);
-	});
-
-	it('preserves false entries when adding new packages', () => {
+	it('preserves entries when adding new packages', () => {
 		const input = `allowBuilds:
-  core-js: false
+  foo: true
+  bar: false
 `;
 		expect(transform('esbuild')(input)).toBe(`allowBuilds:
-  core-js: false
+  foo: true
+  bar: false
   esbuild: true
 `);
 	});
@@ -77,7 +64,7 @@ allowBuilds:
 	});
 });
 
-describe('pnpm < 11: writes onlyBuiltDependencies list', () => {
+describe('writeLegacy', () => {
 	const transform = (...packages: string[]) => writeLegacy(packages);
 
 	it('creates onlyBuiltDependencies list in empty file', () => {
@@ -112,21 +99,29 @@ describe('pnpm < 10.5: no settings in pnpm-workspace.yaml', () => {
 	});
 });
 
-describe('allowBuilds version detection', () => {
+describe('allowBuildsForVersion per pnpm version', () => {
+	const shape = (version: string | undefined, ...packages: string[]) =>
+		allowBuildsForVersion(version, packages);
+
+	it.each([
+		['10.4.0', false],
+		['10.5.0', 'onlyBuiltDependencies:\n  - esbuild\n'],
+		['10.25.10', 'onlyBuiltDependencies:\n  - esbuild\n'],
+		['10.26.0', 'allowBuilds:\n  esbuild: true\n'],
+		['10.34.9', 'allowBuilds:\n  esbuild: true\n'],
+		['11.0.0', 'allowBuilds:\n  esbuild: true\n'],
+		// undetectable version assumes the modern syntax
+		[undefined, 'allowBuilds:\n  esbuild: true\n']
+	] as Array<[string | undefined, string | boolean]>)('%s', (version, expected) => {
+		expect(shape(version, 'esbuild')('')).toBe(expected);
+	});
+});
+
+describe('pnpm version detection', () => {
 	const root = path.resolve(import.meta.dirname, '../../../..');
 
-	it('writes the shape matching the pnpm version of the given cwd', () => {
-		const major = detectPnpmMajor(root);
-		const expected =
-			major !== undefined && major < 11
-				? 'onlyBuiltDependencies:\n  - esbuild\n  - workerd\n'
-				: 'allowBuilds:\n  esbuild: true\n  workerd: true\n';
-
-		expect(allowBuilds({ cwd: root, packages: ['esbuild', 'workerd'] })('')).toBe(expected);
-	});
-
 	it.runIf(detectPnpmMajor(root) !== undefined)(
-		'honours the `devEngines.packageManager` pin of the given cwd',
+		'honours `devEngines.packageManager` from the given cwd',
 		{ timeout: 30_000 },
 		() => {
 			const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'));
