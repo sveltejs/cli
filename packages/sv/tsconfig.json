@@ -4,10 +4,8 @@
 	"exclude": [
 		"dist/**",
 		"src/create/templates/**",
+		"src/create/playground/**",
 		"src/cli/tests/snapshots/**",
 		"src/migrate/migrations/**/tests/**"
-	],
-	"compilerOptions": {
-		"checkJs": false
-	}
+	]
 }

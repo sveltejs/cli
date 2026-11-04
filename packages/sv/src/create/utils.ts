@@ -2,11 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as walk from 'empathic/walk';
 import { isNodeError } from '../core/common.ts';
-import type { Common } from './index.ts';
 
 /**
  * @returns an absolute path to the `dist` directory
- * containing templates, add-ons and shared files
+ * containing templates and add-on content
  *
  * this function can be called during runtime or devtime
  */
@@ -72,12 +71,6 @@ export function copy(
 			fs.copyFileSync(from, to);
 		}
 	}
-}
-
-export function getSharedFiles(): Common['files'] {
-	const shared = path.join(dist_dir, 'shared.json');
-	const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
-	return files;
 }
 
 /** Sorted `/`-separated paths relative to `cwd` (posix even on Windows: names are matched by prefix and shipped in dist). */
