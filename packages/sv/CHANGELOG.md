@@ -1,5 +1,19 @@
 # sv
 
+## 1.3.0
+
+### Minor Changes
+
+- feat: add Pi client, set up through the `@sveltejs/pi` package by default ([#1446](https://github.com/sveltejs/cli/pull/1446))
+
+- feat(ai-tools): add an `optInSkills` option (e.g. `svelte-mcp-feedback`), asked for every client that supports skills (including when using the Svelte plugin) ([#1448](https://github.com/sveltejs/cli/pull/1448))
+
+### Patch Changes
+
+- chore(ai-tools): sync skills ([#1447](https://github.com/sveltejs/cli/pull/1447))
+
+- fix(migrate): use `ts` extension when the project is an app ([#1443](https://github.com/sveltejs/cli/pull/1443))
+
 ## 1.2.0
 
 ### Minor Changes
