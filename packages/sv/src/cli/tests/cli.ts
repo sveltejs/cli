@@ -233,9 +233,10 @@ describe('cli', () => {
 		}
 	);
 
+	// Pinned at pnpm's behavior boundaries
 	const installCases = [
-		{ projectName: 'create-minimal-pnpm-11', pnpmVersion: '11.28.10' },
-		{ projectName: 'create-minimal-pnpm-10', pnpmVersion: '10.34.9' }
+		{ projectName: 'create-minimal-pnpm-11', pnpmVersion: '11.0.9' },
+		{ projectName: 'create-minimal-pnpm-10', pnpmVersion: '10.25.0' }
 	];
 
 	it.for(installCases)(
@@ -246,7 +247,6 @@ describe('cli', () => {
 			const projectPath = path.relative(ROOT, path.resolve(TEST_DIR, projectName));
 
 			const projectArgs = [
-				SV_BIN_PATH,
 				'create',
 				projectPath,
 				'--template',
@@ -260,11 +260,14 @@ describe('cli', () => {
 
 			// CI makes pnpm non-interactive
 			const env = { ...process.env, CI: 'true' };
-			const result = await exec('node', projectArgs, { nodeOptions: { env } });
+			const command = 'pnpm';
+			const args = ['with', pnpmVersion, 'exec', 'sv', ...projectArgs];
+
+			const result = await exec(command, args, { nodeOptions: { env } });
 
 			expect(
 				result.exitCode,
-				`Error with cli:\n  cmd: node ${projectArgs.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
+				`Error with cli:\n  cmd: ${command} ${args.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
 			).toBe(0);
 			expect(fs.existsSync(projectPath)).toBe(true);
 
@@ -294,7 +297,7 @@ describe('cli', () => {
 			fs.rmSync(path.resolve(projectPath, 'pnpm-lock.yaml'), { force: true });
 
 			/**
-			 * pnpm 10 has no workspace guard, so the install runs
+			 * pnpm 10.25 has no workspace guard, so the install runs
 			 * from a copy of the project placed outside the repo
 			 */
 			const tempBase = fs.mkdtempSync(path.join(os.tmpdir(), 'sv-install-pnpm-'));

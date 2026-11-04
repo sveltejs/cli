@@ -69,9 +69,9 @@ describe('pnpm create pipeline', () => {
 	it('writes `devEngines` into `package.json`', () => {
 		const json = JSON.parse(pkg);
 
-		// the runtime pin matches the node major running `sv` exactly: derive the
+		// the runtime pin matches the node running `sv` down to its patch: derive the
 		// expectation from the running node the same way, so the test holds on any version
-		const runtimeVersion = `^${Number(process.versions.node.split('.')[0])}`;
+		const runtimeVersion = `^${process.versions.node}`;
 
 		expect(json.devEngines).toStrictEqual({
 			packageManager: {
@@ -117,7 +117,7 @@ describe('pnpm create pipeline', () => {
 
 		const json = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
 		// the `x.y.z` version is the update-deps-managed fallback, standing in for the
-		// runtime-derived `^<major>` pin that requires a detectable node version
+		// runtime-derived `^<major.minor>` pin that requires a detectable node version
 		expect(json.devEngines.runtime).toStrictEqual({
 			name: 'node',
 			version: expect.stringMatching(/^\^\d+\.\d+\.\d+$/),

@@ -191,8 +191,8 @@ export function addDevEnginesIfPnpm(options: ProjectOptions): void {
 	const pnpmVersion = detectPnpmVersion(options.cwd);
 	const pmVersion = pnpmVersion ? `^${coerceVersion(pnpmVersion).version}` : fallbackPnpmVersion;
 
-	const [nodeMajor] = (process.versions.node ?? '').split('.');
-	const runtimeVersion = nodeMajor ? `^${Number(nodeMajor)}` : fallbackNodeVersion;
+	const nodeVersion = coerceVersion(process.versions.node ?? '').version;
+	const runtimeVersion = nodeVersion ? `^${nodeVersion}` : fallbackNodeVersion;
 
 	const devEngines = {
 		packageManager: { name: 'pnpm', version: pmVersion, onFail: 'download' },

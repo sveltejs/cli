@@ -25,13 +25,13 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"devEngines": {
-		"runtime": {
-			"name": "node",
+		"packageManager": {
+			"name": "pnpm",
 			"version": "^0.0.0",
 			"onFail": "download"
 		},
-		"packageManager": {
-			"name": "pnpm",
+		"runtime": {
+			"name": "node",
 			"version": "^0.0.0",
 			"onFail": "download"
 		}
