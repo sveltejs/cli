@@ -29,7 +29,6 @@ export default defineConfig(
 			'**/dist/*',
 			'**/dts-api-surface/**',
 			'packages/sv/src/create/playground/**/*',
-			'packages/sv/src/create/scripts/**/*',
 			'packages/sv/src/create/templates/**/*',
 			'packages/sv/src/cli/tests/snapshots/*',
 			'packages/sv/src/**/tests/**/{output,input}.ts',
