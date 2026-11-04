@@ -12,7 +12,7 @@ import {
 	Walker
 } from '@sveltejs/sv-utils';
 import { filePaths } from '../core/common.ts';
-import { getSharedFiles } from './utils.ts';
+import { dist_dir } from './utils.ts';
 
 export function validatePlaygroundUrl(link: string): boolean {
 	try {
@@ -189,36 +189,29 @@ export function setupPlaygroundProject(
 		fs.writeFileSync(filePath, file.content, 'utf8');
 	}
 
-	// add playground shared files
+	// add PlaygroundLayout.svelte
 	{
-		const playgroundFiles = getSharedFiles().filter((file) => file.include.includes('playground'));
-
-		for (const file of playgroundFiles) {
-			let contentToWrite = file.contents;
-
-			if (file.name === 'src/lib/PlaygroundLayout.svelte') {
-				// getting raw content
-				const { ast, generateCode } = parse.svelte(file.contents);
-				// change title and url placeholders
-				svelte.ensureScript(ast);
-				// tsgo can't infer visitor node types from zimmerframe's distributive conditional
-				Walker.walk(ast.instance.content as AstTypes.Node, null, {
-					Literal(node) {
-						if (node.value === '$sv-title-$sv') {
-							node.value = playground.name;
-							node.raw = undefined;
-						} else if (node.value === '$sv-url-$sv') {
-							node.value = url;
-							node.raw = undefined;
-						}
-					}
-				});
-
-				contentToWrite = generateCode();
+		const layout = fs.readFileSync(
+			path.join(dist_dir, 'playground', 'PlaygroundLayout.svelte'),
+			'utf-8'
+		);
+		const { ast, generateCode } = parse.svelte(layout);
+		// change title and url placeholders
+		svelte.ensureScript(ast);
+		// tsgo can't infer visitor node types from zimmerframe's distributive conditional
+		Walker.walk(ast.instance.content as AstTypes.Node, null, {
+			Literal(node) {
+				if (node.value === '$sv-title-$sv') {
+					node.value = playground.name;
+					node.raw = undefined;
+				} else if (node.value === '$sv-url-$sv') {
+					node.value = url;
+					node.raw = undefined;
+				}
 			}
+		});
 
-			fs.writeFileSync(path.join(cwd, file.name), contentToWrite, 'utf-8');
-		}
+		fs.writeFileSync(path.join(cwd, 'src/lib/PlaygroundLayout.svelte'), generateCode(), 'utf-8');
 	}
 
 	// add app import to +page.svelte
