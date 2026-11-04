@@ -330,6 +330,7 @@ type AiToolsOptions = {
 	delivery: 'plugin' | 'tools';
 	tools: string[];
 	mcpSetup: 'local' | 'remote';
+	optInSkills: string[];
 };
 type BetterAuthOptions = {
 	demo: Array<'password' | 'github'>;
