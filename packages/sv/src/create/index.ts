@@ -4,10 +4,9 @@ import { sanitizeName } from '@sveltejs/sv-utils';
 import { filePaths, type PackageJSON } from '../core/common.ts';
 import { mkdirp, copy, dist_dir, replace, kv } from './utils.ts';
 
+const publicTemplateTypes = ['minimal', 'demo', 'library', 'addon'] as const;
 export type TemplateType = (typeof publicTemplateTypes)[number] | 'svelte';
 export type LanguageType = 'typescript' | 'checkjs' | 'none';
-
-const publicTemplateTypes = ['minimal', 'demo', 'library', 'addon'] as const;
 
 export type Options = {
 	cwd: string;
