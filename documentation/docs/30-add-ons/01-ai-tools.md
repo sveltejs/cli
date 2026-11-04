@@ -57,7 +57,7 @@ npx sv add ai-tools="mcpSetup:local"
 
 ### optInSkills
 
-Which opt-in [skills](https://svelte.dev/docs/ai/skills) to add, like `'svelte-mcp-feedback'` (reports Svelte mistakes you correct to the [ai-tools](https://github.com/sveltejs/ai-tools) repo so the MCP autofixer can catch them). None are added by default. Opt-in skills aren't bundled with the Svelte plugin, so this is asked for every client that supports skills, even when you choose the plugin.
+Which opt-in [skills](https://svelte.dev/docs/ai/skills) to add, like `'svelte-mcp-feedback'` (reports Svelte mistakes you correct to the [ai-tools](https://github.com/sveltejs/ai-tools) repo so the MCP autofixer can catch them). None are added by default. Opt-in skills aren't bundled with the Svelte plugin, so this is asked for every client that supports skills, even when you choose the plugin. The question is skipped when every selected client can already load the opt-in skills from one of its skills folders (for example Cursor also loads `.claude/skills`, and Pi also loads `.agents/skills`). Skills are only written for the clients that can't load them yet, so `sv` doesn't add a second copy for a client that already sees one.
 
 ```sh
 npx sv add ai-tools="ide:claude-code+delivery:plugin+optInSkills:svelte-mcp-feedback"

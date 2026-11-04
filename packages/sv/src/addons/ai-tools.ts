@@ -29,6 +29,8 @@ type Client = {
 	agentLink?: { path: string; contents: string };
 	configPath?: string;
 	skillsPath?: string;
+	// other project folders the client also loads skills from (besides skillsPath)
+	alsoReadsSkillsFrom?: string[];
 	agentsPath?: string;
 	agentExtension?: string;
 	customData?: Record<string, any>;
@@ -61,6 +63,8 @@ const CLIENTS: Record<string, Client> = {
 		agentPath: 'AGENTS.md',
 		configPath: '.cursor/mcp.json',
 		skillsPath: '.cursor/skills',
+		// https://cursor.com/docs/context/skills
+		alsoReadsSkillsFrom: ['.agents/skills', '.claude/skills', '.codex/skills'],
 		agentsPath: '.cursor/agents',
 		mcpOptions: {}
 	},
@@ -69,6 +73,8 @@ const CLIENTS: Record<string, Client> = {
 		agentPath: 'GEMINI.md',
 		configPath: '.gemini/settings.json',
 		skillsPath: '.gemini/skills',
+		// https://geminicli.com/docs/cli/skills/
+		alsoReadsSkillsFrom: ['.agents/skills'],
 		agentsPath: '.gemini/agents',
 		schema:
 			'https://raw.githubusercontent.com/google-gemini/gemini-cli/main/schemas/settings.schema.json',
@@ -81,6 +87,9 @@ const CLIENTS: Record<string, Client> = {
 		configPath: '.opencode/opencode.json',
 		// only used for opt-in skills the plugin doesn't ship (svelte-mcp-feedback)
 		skillsPath: '.opencode/skills',
+		// https://opencode.ai/v2/docs/skills/ - `.claude/skills` is left out on purpose: OpenCode 2
+		// doesn't load it automatically (worst case, an OpenCode 1 user loads a second copy)
+		alsoReadsSkillsFrom: ['.agents/skills'],
 		schema: 'https://opencode.ai/config.json',
 		customData: { plugin: ['@sveltejs/opencode'] },
 		extraFiles: [
@@ -99,6 +108,8 @@ const CLIENTS: Record<string, Client> = {
 		configPath: '.pi/settings.json',
 		// only used for opt-in skills the package doesn't ship (svelte-mcp-feedback)
 		skillsPath: '.pi/skills',
+		// https://pi.dev/docs/latest/skills
+		alsoReadsSkillsFrom: ['.agents/skills'],
 		schema: 'https://pi.dev/schemas/settings.schema.json',
 		customData: { packages: ['npm:@sveltejs/pi'] },
 		extraFiles: [
@@ -115,6 +126,8 @@ const CLIENTS: Record<string, Client> = {
 		agentPath: 'AGENTS.md',
 		configPath: '.vscode/mcp.json',
 		skillsPath: '.github/skills',
+		// https://code.visualstudio.com/docs/copilot/customization/agent-skills
+		alsoReadsSkillsFrom: ['.claude/skills', '.agents/skills'],
 		agentsPath: '.github/agents',
 		agentExtension: '.agent.md',
 		mcpOptions: {
@@ -156,12 +169,52 @@ const OPT_IN_SKILLS: Record<string, { label: string; hint?: string }> = {
 	}
 };
 
+// every project folder a client loads skills from (none if it has no skills folder)
+const skillDirsOf = (client: Client) =>
+	client.skillsPath ? [client.skillsPath, ...(client.alsoReadsSkillsFrom ?? [])] : [];
+const hasSkillIn = (cwd: string, dir: string, skill: string) =>
+	fs.existsSync(path.resolve(cwd, dir, skill, 'SKILL.md'));
+// checked per client: a skill in `.claude/skills` is visible to Cursor but not to Pi
+const isSkillInstalled = (cwd: string, client: Client, skill: string) =>
+	skillDirsOf(client).some((dir) => hasSkillIn(cwd, dir, skill));
+// how many clients load skills from `dir`: clients whose own folder is shared get written first
+const readersOf = (dir: string) =>
+	Object.values(CLIENTS).filter((client) => skillDirsOf(client).includes(dir)).length;
+
 export type AiToolsOptions = {
 	ide: string[];
 	delivery: 'plugin' | 'tools';
 	tools: string[];
 	mcpSetup: 'local' | 'remote';
 	optInSkills: string[];
+};
+
+// `isInstalled` lets setup account for the skills already in the project (static definition: none)
+const optInSkillsQuestion = (
+	isInstalled: (client: Client, skill: string) => boolean = () => false
+) => {
+	// opt-in skills still missing for at least one of the given clients
+	const missingFor = (ides: string[]) =>
+		Object.keys(OPT_IN_SKILLS).filter((skill) =>
+			ides.some((i) => CLIENTS[i]?.skillsPath && !isInstalled(CLIENTS[i], skill))
+		);
+
+	return {
+		question: 'Would you like to add any opt-in skills?',
+		type: 'multiselect' as const,
+		default: [],
+		// options can't depend on the selected clients, so list what's missing for any client
+		options: missingFor(Object.keys(CLIENTS)).map((value) => ({
+			value,
+			label: OPT_IN_SKILLS[value].label,
+			hint: OPT_IN_SKILLS[value].hint
+		})),
+		required: false,
+		// asked regardless of delivery (the plugins don't ship these skills), but only when
+		// something is missing for the selected clients
+		// loosely typed: `addOption` passes untyped option values
+		condition: ({ ide }: Record<string, any>) => missingFor(ide as string[]).length > 0
+	};
 };
 
 const options = defineAddonOptions<AiToolsOptions>()
@@ -202,19 +255,8 @@ const options = defineAddonOptions<AiToolsOptions>()
 			(tools === undefined || tools.includes('mcp')) &&
 			ide.some((i) => wantsMcpConfig(CLIENTS[i], delivery))
 	})
-	.add('optInSkills', {
-		question: 'Would you like to add any opt-in skills?',
-		type: 'multiselect',
-		default: [],
-		options: Object.entries(OPT_IN_SKILLS).map(([value, s]) => ({
-			value,
-			label: s.label,
-			hint: s.hint
-		})),
-		required: false,
-		// asked regardless of delivery: the plugins don't ship these skills
-		condition: ({ ide }) => ide.some((i) => CLIENTS[i]?.skillsPath)
-	})
+	// static definition lists every opt-in skill so CLI args (validated before setup) and docs see them all
+	.add('optInSkills', optInSkillsQuestion())
 	.build();
 
 const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
@@ -222,7 +264,14 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 	shortDescription: 'Svelte AI tools',
 	homepage: 'https://svelte.dev/docs/ai',
 	options,
-	run: ({ sv, options }) => {
+	setup: ({ cwd, addOption }) => {
+		// skip the question when the selected clients already have every opt-in skill
+		addOption(
+			'optInSkills',
+			optInSkillsQuestion((client, skill) => isSkillInstalled(cwd, client, skill))
+		);
+	},
+	run: ({ sv, options, cwd }) => {
 		const usePlugin = options.delivery === 'plugin';
 
 		// pure-plugin path skips the tools question; file-only clients then fall back to all
@@ -273,17 +322,31 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 			});
 		};
 
+		// Opt-in skills aren't part of any plugin, so they're written in plugin mode too.
+		// Clients load skills from several folders (Cursor and VS Code also read `.claude/skills`),
+		// so each skill is only written for clients that can't see it yet, counting the folders written
+		// in this run. Clients whose folder is read by others (Claude Code) go first, so e.g.
+		// Claude Code + Cursor share `.claude/skills` instead of Cursor loading two copies.
+		const optInClients = options.ide
+			.map((ide) => CLIENTS[ide])
+			.filter((client): client is Client => Boolean(client?.skillsPath))
+			.sort((a, b) => readersOf(b.skillsPath!) - readersOf(a.skillsPath!));
+		for (const skill of selectedOptInSkills) {
+			const files = skillFiles.filter((file) => file.name.split('/')[0] === skill);
+			const writtenDirs = new Set<string>();
+			for (const client of optInClients) {
+				const visible = skillDirsOf(client).some(
+					(dir) => writtenDirs.has(dir) || hasSkillIn(cwd, dir, skill)
+				);
+				if (visible) continue;
+				for (const file of files) addFile(`${client.skillsPath}/${file.name}`, file.contents);
+				writtenDirs.add(client.skillsPath!);
+			}
+		}
+
 		for (const ide of options.ide) {
 			const client = CLIENTS[ide];
 			if (!client) continue;
-
-			// opt-in skills aren't part of any plugin, so they're written in plugin mode too
-			if (selectedOptInSkills.length > 0 && client.skillsPath) {
-				for (const file of skillFiles) {
-					if (!selectedOptInSkills.includes(file.name.split('/')[0])) continue;
-					addFile(`${client.skillsPath}/${file.name}`, file.contents);
-				}
-			}
 
 			// plugin mode: write only the settings file (the plugin bundles MCP + skills + sub-agents)
 			if (client.pluginSettings && usePlugin) {

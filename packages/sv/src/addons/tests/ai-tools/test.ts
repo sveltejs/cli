@@ -57,12 +57,46 @@ const { test, testCases } = setupTest(
 						optInSkills: ['svelte-mcp-feedback']
 					}
 				}
+			},
+			{
+				type: 'opt-in-skills-shared',
+				options: {
+					'ai-tools': {
+						// cursor first on purpose: Claude Code's folder must still be written first
+						ide: ['cursor', 'claude-code', 'gemini'],
+						delivery: 'tools',
+						tools: [],
+						optInSkills: ['svelte-mcp-feedback']
+					}
+				}
+			},
+			{
+				type: 'opt-in-skills-agents',
+				options: {
+					'ai-tools': {
+						ide: ['claude-code', 'pi', 'gemini'],
+						delivery: 'plugin',
+						tools: [],
+						optInSkills: ['svelte-mcp-feedback']
+					}
+				}
 			}
 		],
 		browser: false,
 		// test only one as it's not depending on project variants
 		filter: (addonTestCase) => addonTestCase.variant === 'kit-ts',
-		preAdd: ({ cwd }) => {
+		preAdd: ({ cwd, addonTestCase }) => {
+			// opt-in skill already in the project, in a folder only some clients load
+			const preinstalled: Record<string, string> = {
+				'plugin-opt-in-skills': '.claude/skills',
+				'opt-in-skills-agents': '.agents/skills'
+			};
+			const dir = preinstalled[addonTestCase.kind.type];
+			if (dir) {
+				fs.mkdirSync(path.resolve(cwd, dir, 'svelte-mcp-feedback'), { recursive: true });
+				fs.writeFileSync(path.resolve(cwd, dir, 'svelte-mcp-feedback/SKILL.md'), 'user copy');
+			}
+
 			// prepare an existing file
 			fs.mkdirSync(path.resolve(cwd, `.cursor`));
 			fs.writeFileSync(
@@ -122,13 +156,19 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 	}
 
 	if (testCase.kind.type === 'plugin-opt-in-skills') {
-		// opt-in skills aren't bundled with the plugins, so they're written for every client
-		for (const dir of ['.claude/skills', '.opencode/skills', '.pi/skills', '.cursor/skills']) {
+		// opt-in skills aren't bundled with the plugins, so the clients that can't see
+		// `.claude/skills` (OpenCode 2, Pi) get their own copy
+		for (const dir of ['.opencode/skills', '.pi/skills']) {
 			expect(fs.readdirSync(path.resolve(cwd, dir))).toEqual(['svelte-mcp-feedback']);
 			expect(getContent(`${dir}/svelte-mcp-feedback/SKILL.md`)).toContain(
 				'name: svelte-mcp-feedback'
 			);
 		}
+		// Claude Code already had it: left untouched
+		expect(fs.readdirSync(path.resolve(cwd, '.claude/skills'))).toEqual(['svelte-mcp-feedback']);
+		expect(getContent('.claude/skills/svelte-mcp-feedback/SKILL.md')).toBe('user copy');
+		// Cursor also loads `.claude/skills`: no second copy
+		expect(fs.existsSync(path.resolve(cwd, '.cursor/skills'))).toBe(false);
 		// still nothing else for the plugin clients
 		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(false);
 		expect(fs.existsSync(path.resolve(cwd, '.claude/agents'))).toBe(false);
@@ -137,6 +177,32 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		// cursor still gets the individual tools it picked
 		expect(fs.existsSync(path.resolve(cwd, '.cursor/mcp.json'))).toBe(true);
 		expect(fs.existsSync(path.resolve(cwd, '.cursor/agents'))).toBe(false);
+		return;
+	}
+
+	if (testCase.kind.type === 'opt-in-skills-shared') {
+		// written once in `.claude/skills`, which Cursor also loads
+		expect(getContent('.claude/skills/svelte-mcp-feedback/SKILL.md')).toContain(
+			'name: svelte-mcp-feedback'
+		);
+		expect(fs.existsSync(path.resolve(cwd, '.cursor/skills'))).toBe(false);
+		// Gemini doesn't load `.claude/skills`, so it gets its own copy
+		expect(getContent('.gemini/skills/svelte-mcp-feedback/SKILL.md')).toContain(
+			'name: svelte-mcp-feedback'
+		);
+		return;
+	}
+
+	if (testCase.kind.type === 'opt-in-skills-agents') {
+		// the copy in `.agents/skills` is left untouched
+		expect(getContent('.agents/skills/svelte-mcp-feedback/SKILL.md')).toBe('user copy');
+		// Pi and Gemini load `.agents/skills`: no second copy
+		expect(fs.existsSync(path.resolve(cwd, '.pi/skills'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.gemini/skills'))).toBe(false);
+		// Claude Code doesn't, so it gets its own
+		expect(getContent('.claude/skills/svelte-mcp-feedback/SKILL.md')).toContain(
+			'name: svelte-mcp-feedback'
+		);
 		return;
 	}
 
