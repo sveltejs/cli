@@ -1,11 +1,10 @@
 // @ts-check
 import fs from 'node:fs';
 import path from 'node:path';
-import parser from 'gitignore-parser';
 import { format } from 'oxfmt';
 import { transform } from 'sucrase';
 import oxfmtConfig from '../../../../../oxfmt.config.ts';
-import { mkdirp } from './build-templates.js';
+import { mkdirp } from '../utils.ts';
 
 /** @import { File, LanguageType } from '../index.ts' */
 /** @import { PackageJSON } from '../../core/common.ts' */
@@ -97,9 +96,8 @@ function package_variants(pkg, template) {
 
 /**
  * @param {string} dist
- * @param {Set<string>} shared
  */
-export async function generate_kit_template(dist, shared) {
+export async function generate_kit_template(dist) {
 	const templates = fs.readdirSync(path.resolve(pkgRoot, 'templates'));
 
 	for (const template of templates) {
@@ -110,13 +108,6 @@ export async function generate_kit_template(dist, shared) {
 		mkdirp(assets);
 
 		const cwd = path.resolve(pkgRoot, 'templates', template);
-
-		const gitignore_file = path.join(cwd, '.gitignore');
-		if (!fs.existsSync(gitignore_file)) {
-			throw new Error(`"${template}" template must have a .gitignore file`);
-		}
-
-		const gitignore = parser.compile(fs.readFileSync(gitignore_file, 'utf-8'));
 
 		const meta_file = path.join(cwd, '.meta.json');
 		if (!fs.existsSync(meta_file)) throw new Error('Template must have a .meta.json file');
@@ -134,6 +125,8 @@ export async function generate_kit_template(dist, shared) {
 			.map(({ parentPath, name }) => path.join(path.relative(cwd, parentPath), name))
 			.sort();
 		for (const name of files) {
+			if (name === '.meta.json') continue;
+
 			if (name === 'package.json') {
 				const packagesDir = path.resolve(pkgRoot, '..', '..', '..');
 				const getVersion = (/** @type {string} */ pkgDir) => {
@@ -169,12 +162,6 @@ export async function generate_kit_template(dist, shared) {
 
 				continue;
 			}
-
-			// ignore files that are written conditionally
-			if (shared.has(name)) continue;
-
-			// ignore the .gitignore contents and anything gitignores
-			if (!gitignore.accepts(name) || name === '.ignore' || name === '.meta.json') continue;
 
 			if (/\.(ts|svelte)$/.test(name)) {
 				const contents = fs.readFileSync(path.join(cwd, name), 'utf8');

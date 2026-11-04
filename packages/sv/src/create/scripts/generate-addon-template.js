@@ -5,6 +5,8 @@ import { saveAsset, listFiles, mkdirp } from '../utils.ts';
 const addonsDir = path.resolve(import.meta.dirname, '../../addons');
 
 /**
+ * Bundle every folder in `src/addons/<addon_name>/` that shares a `src/addons/<addon_name>.ts`
+ * into an `addons/<folder>.json` manifest.
  * @param {string} dist
  */
 export function generate_addon_content(dist) {
