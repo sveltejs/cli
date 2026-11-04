@@ -49,6 +49,7 @@ afterEach(() => {
 describe('pnpm create pipeline', () => {
 	let pkg: string;
 	let yaml: string;
+	let npmrc: boolean;
 
 	beforeAll(
 		() => {
@@ -61,6 +62,7 @@ describe('pnpm create pipeline', () => {
 
 			pkg = fs.readFileSync(path.join(dir, 'package.json'), 'utf8');
 			yaml = fs.readFileSync(path.join(dir, 'pnpm-workspace.yaml'), 'utf8');
+			npmrc = fs.existsSync(path.join(dir, '.npmrc'));
 		},
 		// `pnpm --version` inside `allowBuilds` may resolve the pinned pnpm on first run
 		30_000
@@ -126,6 +128,9 @@ describe('pnpm create pipeline', () => {
 	});
 
 	it('writes `engineStrict` and the allow-builds config into `pnpm-workspace.yaml`', () => {
+		// `engineStrict` belongs in the workspace yaml alone — no `.npmrc` side file
+		expect(npmrc).toBe(false);
+
 		if (yaml.includes('onlyBuiltDependencies')) {
 			// pnpm < 11: legacy allow-builds list
 			expect(yaml).toMatchInlineSnapshot(`
