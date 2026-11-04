@@ -79,3 +79,32 @@ export function getSharedFiles(): Common['files'] {
 	const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
 	return files;
 }
+
+/** Sorted `/`-separated paths relative to `cwd` (posix even on Windows: names are matched by prefix and shipped in dist). */
+export function listFiles(cwd: string): string[] {
+	return fs
+		.readdirSync(cwd, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile())
+		.map(({ parentPath, name }) =>
+			path.posix.join(path.relative(cwd, parentPath).replaceAll(path.sep, '/'), name)
+		)
+		.sort();
+}
+
+/** `DOT-` prefix so dotfiles survive publishing; renamed back at runtime by `fetchAssets()`. */
+export function saveAsset({
+	from,
+	assetsDir,
+	name,
+	destName
+}: {
+	from: string;
+	assetsDir: string;
+	name: string;
+	destName?: string;
+}): string {
+	const dest = path.join(assetsDir, (destName ?? name).replace(/^\./, 'DOT-'));
+	mkdirp(path.dirname(dest));
+	fs.copyFileSync(from, dest);
+	return dest;
+}
