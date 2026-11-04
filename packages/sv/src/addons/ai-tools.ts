@@ -13,7 +13,7 @@ type Client = {
 	label: string;
 	// committing this settings file enables the Svelte plugin for the client (Claude Code)
 	pluginSettings?: { path: string; marketplace: string; repo: string; id: string };
-	// always delivered through its own plugin/config, never loose files (opencode)
+	// always delivered through its own plugin/config, never loose files (opencode, pi)
 	pluginOnly?: boolean;
 	schema?: string;
 	mcpOptions?: {
@@ -86,6 +86,22 @@ const CLIENTS: Record<string, Client> = {
 				path: '.opencode/svelte.json',
 				data: {
 					$schema: 'https://svelte.dev/opencode/schema.json'
+				}
+			}
+		]
+	},
+	pi: {
+		label: 'Pi',
+		pluginOnly: true,
+		agentPath: 'AGENTS.md',
+		configPath: '.pi/settings.json',
+		schema: 'https://pi.dev/schemas/settings.schema.json',
+		customData: { packages: ['npm:@sveltejs/pi'] },
+		extraFiles: [
+			{
+				path: '.pi/svelte.json',
+				data: {
+					$schema: 'https://svelte.dev/pi/schema.json'
 				}
 			}
 		]
