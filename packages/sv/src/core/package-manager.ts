@@ -129,6 +129,11 @@ function isInstalled(agent: AgentName): boolean {
 	return installed;
 }
 
+type ProjectOptions = {
+	cwd: string;
+	packageManager: AgentName | null | undefined;
+};
+
 /**
  * `pnpm.allowBuilds` only transforms content. Add-ons get the read/write for free through
  * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
@@ -141,11 +146,6 @@ export function addAllowBuildsIfPnpm(options: ProjectOptions & { packages: strin
 	const filePath = find.up('pnpm-workspace.yaml', { cwd }) ?? path.join(cwd, 'pnpm-workspace.yaml');
 	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
 }
-
-type ProjectOptions = {
-	cwd: string;
-	packageManager: AgentName | null | undefined;
-};
 
 /** pnpm >= 10.5 reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
 export function addEngineStrict(options: ProjectOptions): void {
