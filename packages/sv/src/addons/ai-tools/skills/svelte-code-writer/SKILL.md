@@ -1,6 +1,6 @@
 ---
 name: svelte-code-writer
-description: CLI tools for Svelte 5 documentation lookup and code analysis. MUST be used whenever creating, editing or analyzing any Svelte component (.svelte) or Svelte module (.svelte.ts/.svelte.js). If possible, this skill should be executed within the svelte-file-editor agent for optimal results.
+description: CLI tools for Svelte 5 documentation lookup and code analysis. MUST be used whenever creating, editing or analyzing any Svelte component (`.svelte`) or Svelte module (`.svelte.ts`/`.svelte.js`). If possible, this skill should be executed within the `svelte-file-editor` subagent for optimal results.
 ---
 
 ## CLI tools
@@ -40,7 +40,7 @@ Analyzes Svelte code and suggests fixes for common issues.
 **Options:**
 
 - `--async` - Enable async Svelte mode (default: false)
-- `--svelte-version` - Target version: 4 or 5 (default: 5)
+- `--svelte-version` - Target version, ideally the full version from `package.json` (e.g. `5.16.0`) so version-specific suggestions are enabled. The major must be 4 or 5 (default: 5)
 
 **Examples:**
 
