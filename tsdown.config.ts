@@ -2,6 +2,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
 import { generate_shared } from './packages/sv/src/create/scripts/build-templates.js';
+import { generate_addon_content } from './packages/sv/src/create/scripts/generate-addon-template.js';
 import { generate_kit_template } from './packages/sv/src/create/scripts/generate-kit-template.js';
 import { generate_vite_template } from './packages/sv/src/create/scripts/generate-vite-template.js';
 import { mkdirp } from './packages/sv/src/create/utils.ts';
@@ -236,6 +237,7 @@ export async function generate_cli_templates() {
 	const shared = await generate_shared(dist_dir);
 	await generate_kit_template(dist_dir, shared);
 	generate_vite_template(dist_dir);
+	generate_addon_content(dist_dir);
 
 	const [green, reset] = ['\x1b[32m', '\x1b[0m'];
 	console.log(`${green}✔${reset} Templates built in ${Math.round(performance.now() - start)}ms`);
