@@ -11,11 +11,12 @@ import {
 	pnpm,
 	resolveCommand,
 	transforms,
-	type TransformFn
+	type TransformFn,
+	coerceVersion
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
-import { exec } from 'tinyexec';
+import { exec, execSync } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -164,13 +165,39 @@ export function addEngineStrict(options: ProjectOptions): void {
 	}
 }
 
-const devEngines = {
-	runtime: { name: 'node', version: /* update-deps: node@22 */ '^22.23.4', onFail: 'download' },
-	packageManager: { name: 'pnpm', version: /* update-deps: pnpm */ '^11.28.3', onFail: 'download' }
-} as const;
+const fallbackNodeVersion = /* update-deps: node@26 */ '^26.13.0';
+const fallbackPnpmVersion = /* update-deps: pnpm */ '^11.28.10';
+
+const pnpmVersionByCwd = new Map<string, string | undefined>();
+function detectPnpmVersion(cwd: string): string | undefined {
+	// guard against relative paths
+	const key = path.resolve(cwd);
+	if (pnpmVersionByCwd.has(key)) return pnpmVersionByCwd.get(key);
+
+	let version: string | undefined;
+	try {
+		const out = execSync('pnpm', ['--version'], { nodeOptions: { cwd: key }, throwOnError: true });
+		version = coerceVersion(out.stdout.trim()).version;
+	} catch {
+		version = undefined;
+	}
+	pnpmVersionByCwd.set(key, version);
+	return version;
+}
 
 export function addDevEnginesIfPnpm(options: ProjectOptions): void {
 	if (options.packageManager !== 'pnpm') return;
+
+	const pnpmVersion = detectPnpmVersion(options.cwd);
+	const pmVersion = pnpmVersion ? `^${coerceVersion(pnpmVersion).version}` : fallbackPnpmVersion;
+
+	const [nodeMajor] = (process.versions.node ?? '').split('.');
+	const runtimeVersion = nodeMajor ? `^${Number(nodeMajor)}` : fallbackNodeVersion;
+
+	const devEngines = {
+		packageManager: { name: 'pnpm', version: pmVersion, onFail: 'download' },
+		runtime: { name: 'node', version: runtimeVersion, onFail: 'download' }
+	};
 
 	transformFile(
 		path.join(options.cwd, 'package.json'),

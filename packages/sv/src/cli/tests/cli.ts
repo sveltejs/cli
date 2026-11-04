@@ -340,6 +340,14 @@ function normalizeGeneratedFile(filename: string, raw: string) {
 		// remove @types/node from generated package.json as we test on different node versions
 		delete json.devDependencies['@types/node'];
 
+		// `devEngines` pins are derived from the `cwd`
+		if (typeof json.devEngines?.runtime?.version === 'string') {
+			json.devEngines.runtime.version = '^0.0.0';
+		}
+		if (typeof json.devEngines?.packageManager?.version === 'string') {
+			json.devEngines.packageManager.version = '^0.0.0';
+		}
+
 		// Normalize workspace package versions to avoid snapshot drift on version bumps
 		for (const pkg of ['sv', '@sveltejs/sv-utils']) {
 			for (const dependency of ['peerDependencies', 'devDependencies']) {

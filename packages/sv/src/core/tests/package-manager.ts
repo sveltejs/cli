@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import process from 'node:process';
 import type { AgentName } from '@sveltejs/sv-utils';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { addAllowBuildsIfPnpm, addDevEnginesIfPnpm, addEngineStrict } from '../package-manager.ts';
@@ -66,7 +67,25 @@ describe('pnpm create pipeline', () => {
 	);
 
 	it('writes `devEngines` into `package.json`', () => {
-		expect(pkg).toMatchInlineSnapshot(`
+		const json = JSON.parse(pkg);
+
+		// the runtime pin matches the node major running `sv` exactly: derive the
+		// expectation from the running node the same way, so the test holds on any version
+		const runtimeVersion = `^${Number(process.versions.node.split('.')[0])}`;
+
+		expect(json.devEngines).toStrictEqual({
+			packageManager: {
+				name: 'pnpm',
+				version: expect.stringMatching(/^\^\d+\.\d+\.\d+$/),
+				onFail: 'download'
+			},
+			runtime: { name: 'node', version: runtimeVersion, onFail: 'download' }
+		});
+
+		// everything else in the generated `package.json` must stay untouched: snapshot it
+		// without the environment-derived `devEngines` to avoid drift across node versions
+		delete (json as Record<string, unknown>).devEngines;
+		expect(JSON.stringify(json, null, '\t')).toMatchInlineSnapshot(`
 			"{
 				"name": "test-app",
 				"private": true,
@@ -81,21 +100,29 @@ describe('pnpm create pipeline', () => {
 					"@sveltejs/kit": "^2.0.0",
 					"svelte": "^5.0.0",
 					"vite": "^7.0.0"
-				},
-				"devEngines": {
-					"runtime": {
-						"name": "node",
-						"version": "^22.23.4",
-						"onFail": "download"
-					},
-					"packageManager": {
-						"name": "pnpm",
-						"version": "^11.28.3",
-						"onFail": "download"
-					}
 				}
 			}"
 		`);
+	});
+
+	it('falls back to the update-deps-managed pins for undetectable runtimes', () => {
+		const dir = createProjectDir();
+		const nodeDescriptor = Object.getOwnPropertyDescriptor(process.versions, 'node');
+		Object.defineProperty(process.versions, 'node', { value: undefined, configurable: true });
+		try {
+			addDevEnginesIfPnpm({ cwd: dir, packageManager: 'pnpm' });
+		} finally {
+			Object.defineProperty(process.versions, 'node', nodeDescriptor!);
+		}
+
+		const json = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+		// the `x.y.z` version is the update-deps-managed fallback, standing in for the
+		// runtime-derived `^<major>` pin that requires a detectable node version
+		expect(json.devEngines.runtime).toStrictEqual({
+			name: 'node',
+			version: expect.stringMatching(/^\^\d+\.\d+\.\d+$/),
+			onFail: 'download'
+		});
 	});
 
 	it('writes `engineStrict` and the allow-builds config into `pnpm-workspace.yaml`', () => {
