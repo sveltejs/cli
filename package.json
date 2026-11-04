@@ -24,7 +24,7 @@
 	"devDependencies": {
 		"@changesets/changelog-github": "1.0.0",
 		"@changesets/cli": "^3.0.0",
-		"@playwright/test": "^1.60.0",
+		"@playwright/test": "^1.64.1",
 		"@sveltejs/eslint-config": "^10.0.1",
 		"@types/node": "^22.18.0",
 		"@typescript/native-preview": "7.0.0-dev.20260707.2",
