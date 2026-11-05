@@ -29,7 +29,7 @@ Svelte is an MIT-licensed open source project with its ongoing development made 
 
 ## License
 
-[MIT](https://github.com/sveltejs/kit/blob/main/LICENSE)
+[MIT](LICENSE)
 
 ## Acknowledgements
 
