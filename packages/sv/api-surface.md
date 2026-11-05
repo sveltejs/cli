@@ -330,6 +330,7 @@ type AiToolsOptions = {
 	delivery: 'plugin' | 'tools';
 	tools: string[];
 	mcpSetup: 'local' | 'remote';
+	agentsMd: boolean;
 	optInSkills: string[];
 };
 type BetterAuthOptions = {
