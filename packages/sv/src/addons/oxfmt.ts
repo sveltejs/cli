@@ -10,7 +10,6 @@ export default defineAddon({
 	options: {},
 	run: ({ sv, dependencyVersion, file }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
-		// TODO: check if prettier is installed
 
 		sv.devDependency('oxfmt', '^0.70.0');
 
