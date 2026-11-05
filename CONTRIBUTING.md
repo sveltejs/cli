@@ -13,6 +13,12 @@ We follow the standard fork-based workflow:
 
 Please keep your pull requests focused to feature or issue. Focused smaller changes are easier to review and faster to merge.
 
+## Synced files
+
+Some files in this repository are synced from other repositories, so changes to those files should be made in their source repository instead. Direct edits will be overwritten by `pnpm update-deps`:
+
+- `packages/sv/src/addons/ai-tools/**` -> [sveltejs/ai-tools](https://github.com/sveltejs/ai-tools)
+
 ## Preparing
 
 This project is a monorepo managed with `pnpm` workspaces. Install it [here](https://pnpm.io/installation).
@@ -131,7 +137,7 @@ Use `pnpm format` to format the code.
 
 ## Updating dependencies
 
-Run `pnpm update-deps` to recursively update the dependencies of all: addons, `create` templates, `package.json`s and github actions to latest.
+Run `pnpm update-deps` to recursively update the dependencies of all: addons, `create` templates, `package.json`s and github actions to latest. As well as [sync upstream files](#synced-files).
 
 ## Deprecation
 
