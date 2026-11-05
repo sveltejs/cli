@@ -147,9 +147,9 @@ type ProjectOptions = {
 	packageManager: AgentName | null | undefined;
 };
 
-/** pnpm reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
+/** pnpm >= 10.5 reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
 export function addEngineStrict(options: ProjectOptions): void {
-	if (options.packageManager === 'pnpm') {
+	if (options.packageManager === 'pnpm' && pnpm.supportsWorkspaceSettings(options.cwd)) {
 		transformFile(
 			path.join(options.cwd, 'pnpm-workspace.yaml'),
 			transforms.yaml(({ data }) => data.set('engineStrict', true))
