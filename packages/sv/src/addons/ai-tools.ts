@@ -13,7 +13,7 @@ type Client = {
 	label: string;
 	// committing this settings file enables the Svelte plugin for the client (Claude Code)
 	pluginSettings?: { path: string; marketplace: string; repo: string; id: string };
-	// always delivered through its own plugin/config, never loose files (opencode, pi)
+	// always delivered through its own plugin/config, never loose files nor an agent file (opencode, pi)
 	pluginOnly?: boolean;
 	schema?: string;
 	mcpOptions?: {
@@ -83,7 +83,6 @@ const CLIENTS: Record<string, Client> = {
 	opencode: {
 		label: 'OpenCode',
 		pluginOnly: true,
-		agentPath: 'AGENTS.md',
 		configPath: '.opencode/opencode.json',
 		// only used for opt-in skills the plugin doesn't ship (svelte-mcp-feedback)
 		skillsPath: '.opencode/skills',
@@ -104,7 +103,6 @@ const CLIENTS: Record<string, Client> = {
 	pi: {
 		label: 'Pi',
 		pluginOnly: true,
-		agentPath: 'AGENTS.md',
 		configPath: '.pi/settings.json',
 		// only used for opt-in skills the package doesn't ship (svelte-mcp-feedback)
 		skillsPath: '.pi/skills',
@@ -151,6 +149,10 @@ const wantsLooseTools = (client: Client | undefined, delivery: string | undefine
 	acceptsTools(client) && (!client!.pluginSettings || delivery !== 'plugin');
 const wantsMcpConfig = (client: Client | undefined, delivery: string | undefined) =>
 	Boolean(client?.mcpOptions) && wantsLooseTools(client, delivery);
+// the Svelte plugins replace the agent file too: plugin-only clients (no agentPath) never get one,
+// Claude Code only outside of plugin mode
+const writesAgentFile = (client: Client | undefined, delivery: string | undefined) =>
+	Boolean(client?.agentPath) && !(client!.pluginSettings && delivery === 'plugin');
 
 // Static for curated labels; derive from ai-tools.json (the `skills/`/`agents/` entries) to go dynamic.
 const TOOLS: Record<string, { label: string; kind: 'mcp' | 'skill' | 'agent'; hint?: string }> = {
@@ -186,6 +188,7 @@ export type AiToolsOptions = {
 	delivery: 'plugin' | 'tools';
 	tools: string[];
 	mcpSetup: 'local' | 'remote';
+	agentsMd: boolean;
 	optInSkills: string[];
 };
 
@@ -255,6 +258,12 @@ const options = defineAddonOptions<AiToolsOptions>()
 			(tools === undefined || tools.includes('mcp')) &&
 			ide.some((i) => wantsMcpConfig(CLIENTS[i], delivery))
 	})
+	.add('agentsMd', {
+		question: 'Would you like to add an AGENTS.md (or similar) with instructions for agents?',
+		type: 'boolean',
+		default: true,
+		condition: ({ ide, delivery }) => ide.some((i) => writesAgentFile(CLIENTS[i], delivery))
+	})
 	// static definition lists every opt-in skill so CLI args (validated before setup) and docs see them all
 	.add('optInSkills', optInSkillsQuestion())
 	.build();
@@ -280,6 +289,8 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 		const selectedAgents = selected.filter((t) => TOOLS[t]?.kind === 'agent');
 		const wantsMcp = selected.includes('mcp');
 		const selectedOptInSkills = (options.optInSkills ?? []).filter((s) => s in OPT_IN_SKILLS);
+		// unanswered (e.g. CLI args from before the question existed) keeps the previous behavior
+		const wantsAgentFile = options.agentsMd !== false;
 
 		const getLocalConfig = (o?: {
 			typeLocal?: 'stdio' | 'local';
@@ -375,8 +386,6 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 				continue;
 			}
 
-			if (!client.agentPath) continue;
-
 			const {
 				mcpOptions,
 				agentPath,
@@ -390,20 +399,23 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 				extraFiles
 			} = client;
 
-			if (!filesAdded.includes(agentPath)) {
-				sv.file(agentPath, (content) => {
-					if (content) {
-						// several clients share AGENTS.md, so the same path can land here more than once
-						if (!filesExistingAlready.includes(agentPath)) filesExistingAlready.push(agentPath);
+			if (agentPath && wantsAgentFile) {
+				if (!filesAdded.includes(agentPath)) {
+					sv.file(agentPath, (content) => {
+						if (content) {
+							// several clients share AGENTS.md, so the same path can land here more than once
+							if (!filesExistingAlready.includes(agentPath)) filesExistingAlready.push(agentPath);
 
-						return false;
-					}
-					filesAdded.push(agentPath);
-					return agentFile?.contents ?? '';
-				});
+							return false;
+						}
+						filesAdded.push(agentPath);
+						return agentFile?.contents ?? '';
+					});
+				}
+
+				// the pointer file only makes sense when the file it imports is there
+				if (agentLink) addFile(agentLink.path, agentLink.contents);
 			}
-
-			if (agentLink) addFile(agentLink.path, agentLink.contents);
 
 			const writeMcp = Boolean(mcpOptions) && wantsMcp;
 			if (configPath && (writeMcp || customData)) {
