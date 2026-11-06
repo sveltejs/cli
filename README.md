@@ -2,7 +2,7 @@
 
 # sv - the Svelte CLI
 
-Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details about getting started with a newly created app.
+Home of the [Svelte CLI](https://npmx.dev/sv) (`sv`). A few [official add-ons](https://svelte.dev/docs/cli/sv-add#Official-add-ons). As well as the published docs at [svelte.dev/docs/cli](https://svelte.dev/docs/cli/overview).
 
 ### Packages
 
@@ -15,7 +15,11 @@ Read the [SvelteKit documentation](https://svelte.dev/docs/kit) for more details
 
 Please see the [contributing guide](CONTRIBUTING.md) for more information.
 
-File an issue for discussion before sending a PR for a new add-on. Most new add-ons will likely be recommended to be implemented as community add-ons. This repository will only hold a very limited number of add-ons at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
+### New Add-ons
+
+Most add-ons should be implemented as community add-ons. This repository will only hold a very limited number of add-ons at the maintainers discretion that address widely held needs, are considered best-in-class, and are widely used in the Svelte community.
+
+File an issue for discussion before sending a PR for a new add-on.
 
 ## Supporting Svelte
 
@@ -25,7 +29,7 @@ Svelte is an MIT-licensed open source project with its ongoing development made 
 
 ## License
 
-[MIT](https://github.com/sveltejs/kit/blob/main/LICENSE)
+[MIT](LICENSE)
 
 ## Acknowledgements
 
