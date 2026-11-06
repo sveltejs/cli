@@ -15,7 +15,7 @@ import { findWorkspaceRoot } from './workspace.ts';
  * directly, so projects without such a script are left untouched.
  */
 export async function formatFiles(options: { cwd: string }): Promise<void> {
-	p.log.info('Looking for a format/fmt script to format changes with');
+	p.log.info('Looking for a script to format changes with');
 	const script = findFormatScript(options.cwd);
 	if (!script) {
 		p.log.info(
@@ -24,12 +24,18 @@ export async function formatFiles(options: { cwd: string }): Promise<void> {
 		return;
 	}
 
-	// found — the script owns its scope, its config and its tooling
 	const packageManager = await detectPackageManager(script.dir);
 	const cmd = resolveCommand(packageManager, 'run', [script.name])!;
-	await withSpinner(`Running ${packageManager} run ${script.name}`, () =>
-		run(cmd.command, cmd.args, script.dir)
-	);
+
+	const { start, stop } = p.spinner();
+	start(`Running ${packageManager} run ${script.name}`);
+	const { error } = await run(cmd.command, cmd.args, script.dir);
+	if (error !== undefined) {
+		stop('Failed to format files');
+		p.log.error(error);
+		return;
+	}
+	stop('Successfully formatted files');
 }
 
 /** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
@@ -43,22 +49,6 @@ export function findFormatScript(cwd: string): { dir: string; name: 'format' | '
 		if (data.scripts?.fmt) return { dir: directory, name: 'fmt' };
 	}
 	return;
-}
-
-async function withSpinner(
-	startMsg: string,
-	task: () => Promise<{ error?: string }>
-): Promise<void> {
-	const { start, stop } = p.spinner();
-	start(startMsg);
-	const { error } = await task();
-	if (error !== undefined) {
-		stop('Failed to format files');
-		p.log.error(error);
-
-		return;
-	}
-	stop('Successfully formatted files');
 }
 
 async function run(
