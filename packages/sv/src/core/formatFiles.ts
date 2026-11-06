@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as p from '@clack/prompts';
-import { loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
+import { color, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import * as walk from 'empathic/walk';
 import { exec, NonZeroExitError } from 'tinyexec';
 import { isNodeError } from './common.js';
@@ -15,10 +15,16 @@ import { findWorkspaceRoot } from './workspace.ts';
  * directly, so projects without such a script are left untouched.
  */
 export async function formatFiles(options: { cwd: string }): Promise<void> {
+	p.log.info('Looking for a format/fmt script to format changes with');
 	const script = findFormatScript(options.cwd);
-	if (!script) return;
+	if (!script) {
+		p.log.info(
+			`No ${color.command('format')}/${color.command('fmt')} script found, skipping formatting`
+		);
+		return;
+	}
 
-	// the script owns its scope, its config and its tooling
+	// found — the script owns its scope, its config and its tooling
 	const packageManager = await detectPackageManager(script.dir);
 	const cmd = resolveCommand(packageManager, 'run', [script.name])!;
 	await withSpinner(`Running ${packageManager} run ${script.name}`, () =>
