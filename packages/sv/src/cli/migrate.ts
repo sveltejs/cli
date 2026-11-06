@@ -136,7 +136,7 @@ export const migrate = new Command('migrate')
 			if (!tasks) return;
 
 			resetMigrationTaskCount();
-			const modifiedFiles = await applyTasks(verifiedOptions, tasks, legacyMigration);
+			await applyTasks(verifiedOptions, tasks, legacyMigration);
 			if (legacyMigration) return;
 
 			const workspace = await createWorkspace({ cwd: verifiedOptions.cwd });
@@ -155,11 +155,7 @@ export const migrate = new Command('migrate')
 				await installDependencies(packageManager, workspace.cwd, flags);
 			}
 
-			await formatFiles({
-				cwd: workspace.cwd,
-				packageManager: workspace.packageManager,
-				filesToFormat: modifiedFiles.values().toArray()
-			});
+			await formatFiles({ cwd: workspace.cwd });
 
 			reportNextSteps();
 		});

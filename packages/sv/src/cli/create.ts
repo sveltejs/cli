@@ -369,13 +369,11 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	}
 
 	let argsFormattedAddons: string[] = [];
-	let addOnFilesToFormat: string[] = [];
 	let addOnSuccessfulAddons: LoadedAddon[] = [];
 	let addonSetupResults: Record<string, SetupResult> = {};
 	if (loadedAddons.length > 0) {
 		const {
 			argsFormattedAddons: argsFormatted,
-			filesToFormat,
 			successfulAddons,
 			setupResults
 		} = await runAddonsApply({
@@ -394,7 +392,6 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			fromCommand: 'create'
 		});
 		argsFormattedAddons = argsFormatted;
-		addOnFilesToFormat = filesToFormat;
 		addOnSuccessfulAddons = successfulAddons;
 		addonSetupResults = setupResults;
 	}
@@ -424,15 +421,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	if (packageManager) {
 		depsInstalled = await installDependencies(packageManager, projectPath);
 		if (depsInstalled) {
-			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
-				? ['.']
-				: addOnFilesToFormat;
-
-			await formatFiles({
-				packageManager,
-				cwd: projectPath,
-				filesToFormat
-			});
+			await formatFiles({ cwd: projectPath });
 		}
 	}
 
