@@ -1,0 +1,3 @@
+engineStrict: true
+onlyBuiltDependencies:
+  - esbuild

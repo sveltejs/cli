@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { parse } from '@sveltejs/sv-utils';
@@ -14,6 +15,7 @@ const ADAPTER_HINT =
 const ROOT = path.dirname(find.up('pnpm-workspace.yaml', { cwd: import.meta.dirname })!);
 const SV_BIN_PATH = path.resolve(ROOT, 'packages', 'sv', 'dist', 'bin.mjs');
 const TEST_DIR = path.resolve(ROOT, 'packages', 'sv', '.test-output', 'cli');
+const SNAPSHOTS_DIR = path.resolve(ROOT, 'packages', 'sv', 'src', 'cli', 'tests', 'snapshots');
 
 beforeAll(() => {
 	if (fs.existsSync(TEST_DIR)) {
@@ -23,7 +25,7 @@ beforeAll(() => {
 
 describe('cli', () => {
 	const testCases = [
-		{ projectName: 'create-only', args: ['--no-add-ons'] },
+		{ projectName: 'create-minimal', args: ['--no-add-ons'] },
 		{
 			projectName: 'create-adapter-auto',
 			args: ['--add', 'sveltekit-adapter=adapter:auto'],
@@ -123,20 +125,11 @@ describe('cli', () => {
 			const readme = fs.readFileSync(path.resolve(projectPath, 'README.md'), 'utf-8');
 			if (projectName === 'create-with-all-addons' || projectName === 'create-experimental') {
 				expect(readme).not.toContain(ADAPTER_HINT);
-			} else if (projectName === 'create-only' || projectName === 'create-adapter-auto') {
+			} else if (projectName === 'create-minimal' || projectName === 'create-adapter-auto') {
 				expect(readme).toContain(ADAPTER_HINT);
 			}
 
-			const snapPath = path.resolve(
-				ROOT,
-				'packages',
-				'sv',
-				'src',
-				'cli',
-				'tests',
-				'snapshots',
-				projectName
-			);
+			const snapPath = path.resolve(SNAPSHOTS_DIR, projectName);
 			const relativeFiles = snapshot
 				? (fs.readdirSync(projectPath, { recursive: true }) as string[])
 				: [];
@@ -163,40 +156,8 @@ describe('cli', () => {
 					continue;
 				}
 
-				let generated = fs.readFileSync(path.resolve(projectPath, relativeFile), 'utf-8');
-				if (relativeFile === 'package.json') {
-					const { data: generatedPackageJson } = parse.json(generated);
-					// remove @types/node from generated package.json as we test on different node versions
-					delete generatedPackageJson.devDependencies['@types/node'];
-					// Normalize workspace package versions to avoid snapshot drift on version bumps
-					for (const pkg of ['sv', '@sveltejs/sv-utils']) {
-						if (generatedPackageJson.peerDependencies?.[pkg]) {
-							generatedPackageJson.peerDependencies[pkg] = '^0.0.0';
-						}
-						if (generatedPackageJson.devDependencies?.[pkg]) {
-							generatedPackageJson.devDependencies[pkg] = '^0.0.0';
-						}
-					}
-					generated = JSON.stringify(generatedPackageJson, null, 3).replaceAll('   ', '\t');
-				}
-
-				generated = generated.replaceAll('\r\n', '\n'); // make it work on Windows too
-				if (!generated.endsWith('\n')) generated += '\n'; // ensure trailing newline
-
-				// Normalize sv version in README.md to avoid snapshot drift
-				if (relativeFile === 'README.md') {
-					generated = generated.replace(SV_VERSION_REGEX, 'sv@0.0.0');
-				}
-
-				// Normalize the cloudflare adapter's `compatibility_date` (set to today) to avoid daily drift
-				if (relativeFile === 'wrangler.jsonc') {
-					generated = generated.replace(
-						/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
-						'"compatibility_date": "2020-01-01"'
-					);
-				}
-
-				await expect(generated).toMatchFileSnapshot(
+				const generated = fs.readFileSync(path.resolve(projectPath, relativeFile), 'utf-8');
+				await expect(normalizeGeneratedFile(relativeFile, generated)).toMatchFileSnapshot(
 					path.resolve(snapPath, relativeFile),
 					`file "${relativeFile}" does not match snapshot`
 				);
@@ -243,10 +204,7 @@ describe('cli', () => {
 				packageJson.peerDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['sv'] = 'file:../../../..';
 				packageJson.devDependencies['@sveltejs/sv-utils'] = 'file:../../../../../sv-utils';
-				fs.writeFileSync(
-					packageJsonPath,
-					JSON.stringify(packageJson, null, 3).replaceAll('   ', '\t')
-				);
+				fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, '\t'));
 
 				const cmds = [
 					// list of cmds to test
@@ -256,14 +214,10 @@ describe('cli', () => {
 					['run', 'test']
 				];
 				for (const cmd of cmds) {
-					// use npm here so the install doesn't walk up into the monorepo's
-					// pnpm workspace and try to resolve packages from there
 					const res = await run('npm', cmd, {
 						nodeOptions: {
 							env: {
 								...process.env,
-								// allow npm under a repo whose packageManager is pnpm
-								COREPACK_ENABLE_STRICT: '0',
 								// tsdown's optional `*` peers crash npm's arborist peer resolver
 								// (`edgesOut` null); skip strict peer resolution for this install
 								npm_config_legacy_peer_deps: 'true'
@@ -278,4 +232,152 @@ describe('cli', () => {
 			}
 		}
 	);
+
+	// Pinned at pnpm's behavior boundaries
+	const installCases = [
+		{ projectName: 'create-minimal-pnpm-11.0', pnpmVersion: '11.0.9' },
+		{ projectName: 'create-minimal-pnpm-10.25', pnpmVersion: '10.25.0' }
+	];
+
+	it.for(installCases)(
+		'should create a project and install its dependencies with pnpm $projectName',
+		{ timeout: 600_000 },
+		async (installCase) => {
+			const { projectName, pnpmVersion } = installCase;
+			const projectPath = path.relative(ROOT, path.resolve(TEST_DIR, projectName));
+
+			const projectArgs = [
+				'create',
+				projectPath,
+				'--template',
+				'minimal',
+				'--types',
+				'ts',
+				'--no-add-ons',
+				'--install',
+				'pnpm'
+			];
+
+			// CI makes pnpm non-interactive
+			const env = { ...process.env, CI: 'true' };
+			const command = 'pnpm';
+			const args = ['with', pnpmVersion, 'exec', 'sv', ...projectArgs];
+
+			const result = await exec(command, args, { nodeOptions: { env } });
+
+			expect(
+				result.exitCode,
+				`Error with cli:\n  cmd: ${command} ${args.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
+			).toBe(0);
+			expect(fs.existsSync(projectPath)).toBe(true);
+
+			const treeFiles: Array<{ relative: string; generated: string }> = [];
+			const readTree = (projectDir: string) => {
+				for (const relativeFile of fs.readdirSync(projectDir, { recursive: true }) as string[]) {
+					if (!fs.statSync(path.resolve(projectDir, relativeFile)).isFile()) continue;
+					if (['.svg', '.env'].some((ext) => relativeFile.endsWith(ext))) continue;
+
+					const normalized = relativeFile.replace(/\\/g, '/');
+					if (normalized.startsWith('node_modules/')) continue;
+					if (relativeFile === 'pnpm-lock.yaml') continue;
+
+					// `.svelte-kit` is generated by `svelte-kit sync` during install and is
+					// gitignored in the snapshot dirs, so it can't be compared here
+					if (normalized.startsWith('.svelte-kit/')) continue;
+
+					const generated = fs.readFileSync(path.resolve(projectDir, relativeFile), 'utf-8');
+					treeFiles.push({
+						relative: relativeFile,
+						generated: normalizeGeneratedFile(normalized, generated)
+					});
+				}
+			};
+
+			fs.rmSync(path.resolve(projectPath, 'node_modules'), { force: true, recursive: true });
+			fs.rmSync(path.resolve(projectPath, 'pnpm-lock.yaml'), { force: true });
+
+			/**
+			 * pnpm 10.25 has no workspace guard, so the install runs
+			 * from a copy of the project placed outside the repo
+			 */
+			const tempBase = fs.mkdtempSync(path.join(os.tmpdir(), 'sv-install-pnpm-'));
+			const installedProject = path.join(tempBase, 'project');
+			try {
+				fs.cpSync(projectPath, installedProject, { recursive: true });
+				const install = await exec(
+					'pnpm',
+					['with', pnpmVersion, 'install', '--no-frozen-lockfile'],
+					{ nodeOptions: { cwd: installedProject, env } }
+				);
+				expect(
+					install.exitCode,
+					`pnpm install failed:\n  stdout: ${install.stdout}\n  stderr: ${install.stderr}`
+				).toBe(0);
+				readTree(installedProject);
+			} finally {
+				fs.rmSync(tempBase, { force: true, recursive: true });
+			}
+
+			const snapPath = path.resolve(SNAPSHOTS_DIR, projectName);
+
+			// full tree of the created project, after the install ran — the
+			// same files the pre-install cases snapshot, so a template change
+			// or post-install file mutation is visible directly in the diff
+			for (const { relative, generated } of treeFiles) {
+				await expect(generated).toMatchFileSnapshot(
+					path.resolve(snapPath, relative),
+					`file "${relative}" does not match snapshot`
+				);
+			}
+		}
+	);
 });
+
+/** Normalizes a generated project file the same way for every snapshot case. */
+function normalizeGeneratedFile(filename: string, raw: string) {
+	let generated = raw;
+
+	if (filename === 'package.json') {
+		const { data: json } = parse.json(generated);
+
+		// remove @types/node from generated package.json as we test on different node versions
+		delete json.devDependencies['@types/node'];
+
+		// `devEngines` pins are derived from the `cwd`
+		if (typeof json.devEngines?.runtime?.version === 'string') {
+			json.devEngines.runtime.version = '^0.0.0';
+		}
+		if (typeof json.devEngines?.packageManager?.version === 'string') {
+			json.devEngines.packageManager.version = '^0.0.0';
+		}
+
+		// Normalize workspace package versions to avoid snapshot drift on version bumps
+		for (const pkg of ['sv', '@sveltejs/sv-utils']) {
+			for (const dependency of ['peerDependencies', 'devDependencies']) {
+				if (json[dependency]?.[pkg]) json[dependency][pkg] = '^0.0.0';
+			}
+		}
+		generated = JSON.stringify(json, null, '\t');
+	}
+
+	// make it work on Windows too
+	generated = generated.replaceAll('\r\n', '\n');
+
+	// ensure trailing newline
+	if (!generated.endsWith('\n')) generated += '\n';
+
+	// Normalize sv version in README.md to avoid snapshot drift
+	if (filename === 'README.md') {
+		generated = generated.replace(SV_VERSION_REGEX, 'sv@0.0.0');
+	}
+
+	// Normalize the cloudflare adapter's `compatibility_date` to avoid daily drift
+	if (filename === 'wrangler.jsonc') {
+		generated = generated.replace(
+			/"compatibility_date": "\d{4}-\d{2}-\d{2}"/,
+			'"compatibility_date": "2020-01-01"'
+		);
+	}
+
+	return generated;
+}

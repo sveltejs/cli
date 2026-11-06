@@ -7,7 +7,9 @@ import {
 	type AgentName,
 	commandExists,
 	color,
+	coerceVersion,
 	detect,
+	isVersionUnsupportedBelow,
 	pnpm,
 	resolveCommand,
 	transforms,
@@ -15,7 +17,7 @@ import {
 } from '@sveltejs/sv-utils';
 import { Option } from 'commander';
 import * as find from 'empathic/find';
-import { exec } from 'tinyexec';
+import { exec, execSync } from 'tinyexec';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -129,6 +131,11 @@ function isInstalled(agent: AgentName): boolean {
 	return installed;
 }
 
+type ProjectOptions = {
+	cwd: string;
+	packageManager: AgentName | null | undefined;
+};
+
 /**
  * `pnpm.allowBuilds` only transforms content. Add-ons get the read/write for free through
  * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
@@ -142,26 +149,78 @@ export function addAllowBuildsIfPnpm(options: ProjectOptions & { packages: strin
 	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
 }
 
-type ProjectOptions = {
-	cwd: string;
-	packageManager: AgentName | null | undefined;
-};
-
 /** pnpm >= 10.5 reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
 export function addEngineStrict(options: ProjectOptions): void {
-	if (options.packageManager === 'pnpm' && pnpm.supportsWorkspaceSettings(options.cwd)) {
-		transformFile(
-			path.join(options.cwd, 'pnpm-workspace.yaml'),
-			transforms.yaml(({ data }) => data.set('engineStrict', true))
-		);
-	} else {
+	const writeToNpmrc = () =>
 		transformFile(
 			path.join(options.cwd, '.npmrc'),
 			transforms.text(({ content, text }) =>
 				text.upsert(content, 'engine-strict', { value: 'true' })
 			)
 		);
+
+	// setting moved from `package.json` to `pnpm-workspace.yaml`
+	// https://github.com/pnpm/pnpm/releases/tag/v10.5.0
+	if (options.packageManager === 'pnpm') {
+		const version = detectPnpmVersion(options.cwd);
+
+		if (version && isVersionUnsupportedBelow(version, '10.5.0')) {
+			writeToNpmrc();
+			return;
+		}
+
+		// modern `pnpm` syntax
+		transformFile(
+			path.join(options.cwd, 'pnpm-workspace.yaml'),
+			transforms.yaml(({ data }) => data.set('engineStrict', true))
+		);
+		return;
 	}
+
+	// other package managers
+	writeToNpmrc();
+}
+
+const fallbackNodeVersion = /* update-deps: node@26 */ '^26.13.0';
+const fallbackPnpmVersion = /* update-deps: pnpm */ '^11.28.10';
+
+const pnpmVersionByCwd = new Map<string, string | undefined>();
+function detectPnpmVersion(cwd: string): string | undefined {
+	// guard against relative paths
+	const key = path.resolve(cwd);
+	if (pnpmVersionByCwd.has(key)) return pnpmVersionByCwd.get(key);
+
+	let version: string | undefined;
+	try {
+		const out = execSync('pnpm', ['--version'], { nodeOptions: { cwd: key }, throwOnError: true });
+		version = coerceVersion(out.stdout.trim()).version;
+	} catch {
+		version = undefined;
+	}
+	pnpmVersionByCwd.set(key, version);
+	return version;
+}
+
+export function addDevEnginesIfPnpm(options: ProjectOptions): void {
+	if (options.packageManager !== 'pnpm') return;
+
+	const pnpmVersion = detectPnpmVersion(options.cwd);
+	const pmVersion = pnpmVersion ? `^${coerceVersion(pnpmVersion).version}` : fallbackPnpmVersion;
+
+	const nodeVersion = coerceVersion(process.versions.node ?? '').version;
+	const runtimeVersion = nodeVersion ? `^${nodeVersion}` : fallbackNodeVersion;
+
+	const devEngines = {
+		packageManager: { name: 'pnpm', version: pmVersion, onFail: 'download' },
+		runtime: { name: 'node', version: runtimeVersion, onFail: 'download' }
+	};
+
+	transformFile(
+		path.join(options.cwd, 'package.json'),
+		transforms.json((file) => {
+			file.data.devEngines ??= devEngines;
+		})
+	);
 }
 
 /** Missing file is treated as empty, so the transform can create it. */
