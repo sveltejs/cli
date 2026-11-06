@@ -56,7 +56,12 @@ export function isRangeWithin(subset: string, superset: string): boolean {
 	}
 }
 
+/**
+ * @returns `true` when `version` is older than `below`,
+ * Unparseable inputs (`latest`, `workspace:*`, ...) return `undefined`.
+ */
 export function isVersionUnsupportedBelow(version: string, below: string): boolean | undefined {
+	// this function has an obtuse name, consider renaming to `isOlderThan` in the next major
 	const version_c = coerce(version);
 	const below_c = coerce(below);
 	if (!version_c || !below_c) return undefined;
