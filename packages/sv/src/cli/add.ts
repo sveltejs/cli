@@ -850,8 +850,7 @@ export async function runAddonsApply({
 	await formatFiles({
 		packageManager: packageManager ?? workspace.packageManager,
 		cwd: options.cwd,
-		filesToFormat,
-		strategy: 'files-only'
+		filesToFormat
 	});
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);

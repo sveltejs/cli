@@ -431,8 +431,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			await formatFiles({
 				packageManager,
 				cwd: projectPath,
-				filesToFormat,
-				strategy: 'files-only'
+				filesToFormat
 			});
 		}
 	}

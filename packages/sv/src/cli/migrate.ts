@@ -158,8 +158,7 @@ export const migrate = new Command('migrate')
 			await formatFiles({
 				cwd: workspace.cwd,
 				packageManager: workspace.packageManager,
-				filesToFormat: modifiedFiles.values().toArray(),
-				strategy: 'project-script-then-files-only'
+				filesToFormat: modifiedFiles.values().toArray()
 			});
 
 			reportNextSteps();

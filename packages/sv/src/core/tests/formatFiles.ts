@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { isPrettierInstalled, resolveFormatAction } from '../formatFiles.ts';
+import { findFormatScript, isPrettierInstalled } from '../formatFiles.ts';
 
 const dirs: string[] = [];
 
@@ -33,48 +33,37 @@ afterEach(() => {
 	}
 });
 
-describe('resolveFormatAction', () => {
-	it('skips when the project has no formatter', () => {
-		const cwd = makeProject();
-		expect(resolveFormatAction(cwd, 'files-only')).toEqual({ kind: 'skip' });
-		expect(resolveFormatAction(cwd, 'project-script-then-files-only')).toEqual({ kind: 'skip' });
-	});
-
-	it('skips when prettier cannot be resolved (not installed)', () => {
+describe('isPrettierInstalled', () => {
+	it('is false when prettier is declared but not installed', () => {
 		const cwd = makeProject({ devDependencies: { prettier: '^3.0.0' } });
 		expect(isPrettierInstalled(cwd)).toBe(false);
-		expect(resolveFormatAction(cwd, 'files-only')).toEqual({ kind: 'skip' });
 	});
 
-	it("uses a 'format' script before prettier", () => {
-		const cwd = makeProject({
-			scripts: { format: 'biome check --write' },
-			devDependencies: { prettier: '^3.0.0' }
-		});
-		addPrettierFixture(cwd);
-		expect(resolveFormatAction(cwd, 'project-script-then-files-only')).toEqual({
-			kind: 'script',
-			dir: cwd,
-			name: 'format'
-		});
-		expect(resolveFormatAction(cwd, 'files-only')).toEqual({ kind: 'prettier' });
-	});
-
-	it("uses a 'fmt' script", () => {
-		const cwd = makeProject({ scripts: { fmt: 'dprint fmt' } });
-		expect(resolveFormatAction(cwd, 'project-script-then-files-only')).toEqual({
-			kind: 'script',
-			dir: cwd,
-			name: 'fmt'
-		});
-	});
-
-	it('uses prettier when the package resolves', () => {
+	it('is true when prettier resolves from the project', () => {
 		const cwd = makeProject({ devDependencies: { prettier: '^3.0.0' } });
 		addPrettierFixture(cwd);
 		expect(isPrettierInstalled(cwd)).toBe(true);
-		expect(resolveFormatAction(cwd, 'project-script-then-files-only')).toEqual({
-			kind: 'prettier'
-		});
+	});
+});
+
+describe('findFormatScript', () => {
+	it("finds a 'format' script", () => {
+		const cwd = makeProject({ scripts: { format: 'biome check --write' } });
+		expect(findFormatScript(cwd)).toEqual({ dir: cwd, name: 'format' });
+	});
+
+	it("finds a 'fmt' script", () => {
+		const cwd = makeProject({ scripts: { fmt: 'dprint fmt' } });
+		expect(findFormatScript(cwd)).toEqual({ dir: cwd, name: 'fmt' });
+	});
+
+	it('prefers `format` over `fmt`', () => {
+		const cwd = makeProject({ scripts: { fmt: 'dprint fmt', format: 'prettier --write .' } });
+		expect(findFormatScript(cwd)).toEqual({ dir: cwd, name: 'format' });
+	});
+
+	it('returns undefined when there is none', () => {
+		const cwd = makeProject();
+		expect(findFormatScript(cwd)).toBeUndefined();
 	});
 });
