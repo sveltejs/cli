@@ -1,8 +1,7 @@
-import {
-	allowBuildsByVersion,
-	detectPnpmVersion,
-	readsWorkspaceSettings
-} from './pnpm-internals.ts';
+import { execSync } from 'node:child_process';
+import path from 'node:path';
+import { allowBuildsByVersion, readsWorkspaceSettings } from './pnpm-internals.ts';
+import { coerceVersion } from './semver.ts';
 import { type TransformFn } from './tooling/transforms.ts';
 
 /**
@@ -43,4 +42,33 @@ export function allowBuilds(options: {
  */
 export function supportsWorkspaceSettings(cwd: string): boolean {
 	return readsWorkspaceSettings(detectPnpmVersion(cwd));
+}
+
+const versionByCwd = new Map<string, string | undefined>();
+/**
+ * Detects the version of pnpm that would run in `cwd`. `pnpm --version` resolves
+ * `packageManager` / `devEngines.packageManager` from there, so the invoker's pin does
+ * not leak into the target project.
+ *
+ * Results are memoised per directory: pnpm self-manages versions, so a miss can download
+ * a whole pnpm release before answering.
+ */
+export function detectPnpmVersion(cwd: string): string | undefined {
+	const key = path.resolve(cwd);
+	if (versionByCwd.has(key)) return versionByCwd.get(key);
+
+	let version: string | undefined;
+	try {
+		const out = execSync('pnpm --version', {
+			encoding: 'utf-8',
+			stdio: ['ignore', 'pipe', 'ignore'],
+			cwd: key
+		});
+		version = coerceVersion(out.trim()).version;
+	} catch {
+		version = undefined;
+	}
+
+	versionByCwd.set(key, version);
+	return version;
 }

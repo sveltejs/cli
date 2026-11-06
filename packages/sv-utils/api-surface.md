@@ -891,7 +891,7 @@ export declare function resolveCommandArray(
 	args: string[]
 ): string[];
 declare namespace pnpm_d_exports {
-	export { allowBuilds, supportsWorkspaceSettings };
+	export { allowBuilds, detectPnpmVersion, supportsWorkspaceSettings };
 }
 declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
 /**
@@ -901,6 +901,7 @@ declare function allowBuilds(options: { cwd: string; packages: string[] }): Tran
  * logic. It is superseded by {@link detectPnpmVersion}, which you can use to write the branching logic.
  */
 declare function supportsWorkspaceSettings(cwd: string): boolean;
+declare function detectPnpmVersion(cwd: string): string | undefined;
 export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;
