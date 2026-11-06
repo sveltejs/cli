@@ -178,6 +178,82 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 	});
 
 /**
+ * Path of the oxfmt config file we generate. We always emit a `.json` file (with a `$schema`)
+ */
+export function oxfmtConfigPath(): string {
+	return 'oxfmt.config.ts';
+}
+
+/**
+ * Creates a `oxfmt.config.ts` file with our defaults. Bails (leaving the file untouched)
+ * if a config is already defined.
+ */
+export const createOxfmtConfig = (opts: { tailwind: boolean }): TransformFn =>
+	transforms.script(({ ast, comments, js }) => {
+		if (ast.body.some((node) => node.type === 'ExportDefaultDeclaration')) {
+			log.warn(`A ${color.warning('oxfmt')} config already exists. Skipping initialization.`);
+			return false;
+		}
+
+		// @see https://oxc.rs/docs/guide/usage/formatter/ignore-files.html
+		const ignorePatterns = [
+			"'package-lock.json'",
+			"'pnpm-lock.yaml'",
+			"'yarn.lock'",
+			"'bun.lock'",
+			"'bun.lockb'",
+			"'/static/**'"
+		];
+
+		const defaultConfig = [
+			'useTabs: true',
+			'singleQuote: true',
+			"trailingComma: 'none'",
+			'printWidth: 100',
+			'svelte: true',
+			`ignorePatterns: [${ignorePatterns.join(', ')}]`,
+			...(opts.tailwind ? ['sortTailwindCSS: true'] : [])
+		];
+
+		js.common.appendFromString(ast, {
+			comments,
+			code: `
+				import { defineConfig } from 'oxfmt';
+
+				export default defineConfig({
+					${defaultConfig.join(', ')}
+				});
+			`
+		});
+		// TODO: handle prettier in case it is already added
+	});
+
+/**
+ * Augments an existing `oxfmt.config.ts` config object with the tailwindcss setting.
+ * Used when oxfmt was added before tailwindcss.
+ */
+export const addOxfmtTailwind = (): TransformFn =>
+	transforms.script(({ ast, js }) => {
+		if (!ast.body.some((node) => node.type === 'ExportDefaultDeclaration')) return false;
+
+		const { value } = js.exports.createDefault(ast, {
+			fallback: js.functions.createCall({ name: 'defineConfig', args: [] })
+		});
+
+		if (value.type !== 'CallExpression') return false;
+
+		const config = js.functions.getArgument(value, {
+			index: 0,
+			fallback: js.object.create({})
+		});
+
+		js.object.property(config, {
+			name: 'sortTailwindCSS',
+			fallback: js.common.createLiteral(true)
+		});
+	});
+
+/**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.
  *
  * If the installed version of Node.js is from a `Current` release, then the major is decremented to

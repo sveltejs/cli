@@ -9,6 +9,7 @@ import {
 	resolveCommandArray
 } from '@sveltejs/sv-utils';
 import { Option, type Argument, type Command, type Help, type HelpConfiguration } from 'commander';
+import * as resolve from 'empathic/resolve';
 import * as v from 'valibot';
 import pkg from '../../package.json' with { type: 'json' };
 import type { LoadedAddon, Verification } from './config.ts';
@@ -408,4 +409,11 @@ export async function runAndValidateVerifications(verifications: Verification[])
 
 export function isNodeError(err: unknown): err is Error & NodeJS.ErrnoException {
 	return err instanceof Error;
+}
+
+/**
+ * Whether `pkg` resolves from `cwd` via Node's module resolution.
+ */
+export function isPkgInstalled(cwd: string, pkg: string): boolean {
+	return Boolean(resolve.from(cwd, pkg, true));
 }
