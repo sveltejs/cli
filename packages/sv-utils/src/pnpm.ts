@@ -35,7 +35,12 @@ export function allowBuilds(options: {
 	return allowBuildsByVersion(detectPnpmVersion(options.cwd), options.packages);
 }
 
-/** Whether the pnpm that would run in `cwd` reads settings from `pnpm-workspace.yaml`. */
+/**
+ * Whether the pnpm that would run in `cwd` reads settings from `pnpm-workspace.yaml`.
+ *
+ * @deprecated This function doesn't provide the resolution needed for version-specific
+ * logic. It is superseded by {@link detectPnpmVersion}, which you can use to write the branching logic.
+ */
 export function supportsWorkspaceSettings(cwd: string): boolean {
 	return readsWorkspaceSettings(detectPnpmVersion(cwd));
 }
