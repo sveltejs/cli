@@ -14,19 +14,19 @@ import pkg from '../../package.json' with { type: 'json' };
 import type { LoadedAddon, Verification } from './config.ts';
 import { UnsupportedError } from './errors.ts';
 
-const StringRecordSchema = v.record(v.string(), v.string());
-export const PackageJSONSchema = v.looseObject({
+const StringRecord = v.record(v.string(), v.string());
+export const PackageJSON = v.looseObject({
 	name: v.string(),
 	version: v.string(),
-	peerDependencies: v.optional(StringRecordSchema),
-	dependencies: v.optional(StringRecordSchema),
-	devDependencies: v.optional(StringRecordSchema),
+	peerDependencies: v.optional(StringRecord),
+	dependencies: v.optional(StringRecord),
+	devDependencies: v.optional(StringRecord),
 	repository: v.optional(v.union([v.string(), v.looseObject({ url: v.optional(v.string()) })])),
 	dist: v.optional(v.looseObject({ tarball: v.optional(v.string()) })),
 	exports: v.optional(v.union([v.string(), v.array(v.string()), v.record(v.string(), v.any())])),
-	scripts: v.optional(StringRecordSchema)
+	scripts: v.optional(StringRecord)
 });
-export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
+export type PackageJSON = v.InferOutput<typeof PackageJSON>;
 
 export const cliOptions = {
 	noDownloadCheck: new Option(
