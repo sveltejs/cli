@@ -1,14 +1,10 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
 	allowBuildsByVersion,
-	detectPnpmMajor,
 	readsWorkspaceSettings,
 	writeAllowBuilds,
 	writeLegacy
 } from '../pnpm-internals.ts';
-import { coerceVersion } from '../semver.ts';
 
 describe('writeAllowBuilds', () => {
 	const transform = (...packages: string[]) => writeAllowBuilds(packages);
@@ -128,19 +124,4 @@ describe('allowBuildsForVersion', () => {
 	] as Array<[string | undefined, string | boolean]>)('%s', (version, expected) => {
 		expect(shape(version, 'esbuild')('')).toBe(expected);
 	});
-});
-
-describe('pnpm version detection', () => {
-	const root = path.resolve(import.meta.dirname, '../../../..');
-
-	it.runIf(detectPnpmMajor(root) !== undefined)(
-		'honours the `devEngines.packageManager` from of the given cwd',
-		{ timeout: 30_000 },
-		() => {
-			const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'));
-			const pinned = coerceVersion(pkg.devEngines.packageManager.version).major;
-
-			expect(detectPnpmMajor(root)).toBe(pinned);
-		}
-	);
 });

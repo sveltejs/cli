@@ -50,11 +50,6 @@ export function detectPnpmVersion(cwd: string): string | undefined {
 	return version;
 }
 
-export function detectPnpmMajor(cwd: string): number | undefined {
-	const version = detectPnpmVersion(cwd);
-	return version ? coerceVersion(version).major : undefined;
-}
-
 /** Before 10.5, `pnpm-workspace.yaml` must list `packages`, so a settings-only one breaks `pnpm install`. */
 export function readsWorkspaceSettings(version: string | undefined): boolean {
 	return !version || !isVersionUnsupportedBelow(version, '10.5.0');
