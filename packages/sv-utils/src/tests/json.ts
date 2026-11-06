@@ -1,5 +1,58 @@
 import { describe, expect, it } from 'vitest';
+import { parseJson, serializeJson } from '../tooling/index.ts';
 import { arrayUpsert, packageScriptsUpsert } from '../tooling/json.ts';
+
+describe('JSON comments', () => {
+	it('preserves comments and blank lines when editing JSONC', () => {
+		const source = `{
+	"compilerOptions": {
+		"lib": ["ES2023", "DOM"], // sync with app.html browser check
+		"types": ["node"],
+
+		// Stricter Typechecking Options
+		"noUncheckedIndexedAccess": true
+	}
+}`;
+		const data = parseJson(source);
+		data.compilerOptions.types.push('$app/types');
+
+		expect(serializeJson(source, data)).toBe(`{
+	"compilerOptions": {
+		"lib": [
+			"ES2023",
+			"DOM"
+		], // sync with app.html browser check
+		"types": [
+			"node",
+			"$app/types"
+		],
+
+		// Stricter Typechecking Options
+		"noUncheckedIndexedAccess": true
+	}
+}`);
+	});
+
+	it('preserves comments when object properties are reordered', () => {
+		const source = `{
+	// first
+	"first": 1,
+	// second
+	"second": 2
+}`;
+		const data = parseJson(source);
+		const first = data.first;
+		delete data.first;
+		data.first = first;
+
+		expect(serializeJson(source, data)).toBe(`{
+	// second
+	"second": 2,
+	// first
+	"first": 1
+}`);
+	});
+});
 
 describe('arrayUpsert', () => {
 	it('append', () => {
