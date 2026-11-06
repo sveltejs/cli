@@ -6,6 +6,9 @@ import {
 	fileExists,
 	isRangeWithin,
 	loadFile,
+	loadPackageJson,
+	minVersion,
+	parse,
 	saveFile,
 	resolveCommand,
 	type AgentName,
@@ -13,6 +16,7 @@ import {
 	type Package,
 	minimizeDiff
 } from '@sveltejs/sv-utils';
+import * as walk from 'empathic/walk';
 import { exec } from 'tinyexec';
 import { filePaths } from './common.ts';
 import {
@@ -28,7 +32,7 @@ import {
 } from './config.ts';
 import { TESTING } from './env.ts';
 import type { Question } from './options.ts';
-import { createWorkspace, type Workspace } from './workspace.ts';
+import { createWorkspace, findWorkspaceRoot, type Workspace } from './workspace.ts';
 
 function alphabetizeRecord(obj: Record<string, string>) {
 	const ordered: Record<string, string> = {};
@@ -38,12 +42,166 @@ function alphabetizeRecord(obj: Record<string, string>) {
 	return ordered;
 }
 
+type DependencyUpdate = { pkg: string; version: string; dev: boolean };
+type CatalogUpdate = { pkg: string; version: string; catalog: string };
+type YamlMapLike = {
+	get(key: string): unknown;
+	set(key: string, value: unknown): void;
+};
+
+function asYamlMap(value: unknown, path: string): YamlMapLike {
+	if (
+		!value ||
+		typeof value !== 'object' ||
+		!('get' in value) ||
+		typeof value.get !== 'function' ||
+		!('set' in value) ||
+		typeof value.set !== 'function'
+	) {
+		throw new Error(`Invalid pnpm catalog configuration at '${path}'`);
+	}
+	return value as YamlMapLike;
+}
+
+function readIniValue(content: string, key: string): string | undefined {
+	let inSection = false;
+	for (const rawLine of content.split(/\r?\n/)) {
+		const line = rawLine.trim();
+		if (!line || line.startsWith('#') || line.startsWith(';')) continue;
+		if (line.startsWith('[') && line.endsWith(']')) {
+			inSection = true;
+			continue;
+		}
+		if (inSection) continue;
+
+		const separator = line.indexOf('=');
+		if (separator === -1) continue;
+		if (line.slice(0, separator).trim() !== key) continue;
+
+		let value = line.slice(separator + 1).trim();
+		if (
+			(value.startsWith('"') && value.endsWith('"')) ||
+			(value.startsWith("'") && value.endsWith("'"))
+		) {
+			value = value.slice(1, -1);
+		}
+		return value;
+	}
+	return undefined;
+}
+
+function readNpmrcSaveExact(cwd: string, workspaceRoot: string): boolean | undefined {
+	for (const directory of walk.up(path.resolve(cwd), { last: path.resolve(workspaceRoot) })) {
+		const npmrc = path.join(directory, '.npmrc');
+		if (!fs.existsSync(npmrc)) continue;
+
+		const value = readIniValue(fs.readFileSync(npmrc, 'utf8'), 'save-exact')?.toLowerCase();
+		if (value === 'true') return true;
+		if (value === 'false') return false;
+	}
+
+	return undefined;
+}
+
+function shouldSaveExact(workspace: Workspace): boolean {
+	const workspaceRoot = findWorkspaceRoot(workspace.cwd);
+	const workspaceConfig = path.join(workspaceRoot, 'pnpm-workspace.yaml');
+	if (workspace.packageManager === 'pnpm' && fs.existsSync(workspaceConfig)) {
+		const saveExact = parse.yaml(fs.readFileSync(workspaceConfig, 'utf8')).data.get('saveExact');
+		if (typeof saveExact === 'boolean') return saveExact;
+	}
+
+	return readNpmrcSaveExact(workspace.cwd, workspaceRoot) ?? false;
+}
+
+function applySaveExact(version: string, saveExact: boolean): string {
+	if (!saveExact) return version;
+	try {
+		return minVersion(version);
+	} catch {
+		return version;
+	}
+}
+
+function catalogName(specifier: string | undefined): string | undefined {
+	if (!specifier?.startsWith('catalog:')) return undefined;
+	return specifier.slice('catalog:'.length) || 'default';
+}
+
+function updatePnpmCatalogs(
+	updates: CatalogUpdate[],
+	sv: SvApi,
+	workspace: Workspace,
+	saveExact: boolean
+): boolean {
+	if (updates.length === 0) return false;
+
+	const workspaceRoot = findWorkspaceRoot(workspace.cwd);
+	const workspaceConfig = path.join(workspaceRoot, 'pnpm-workspace.yaml');
+	if (!fs.existsSync(workspaceConfig)) {
+		throw new Error("Cannot update a 'catalog:' dependency without 'pnpm-workspace.yaml'");
+	}
+
+	const relativeConfig = path.relative(workspace.cwd, workspaceConfig);
+	let changed = false;
+	sv.file(
+		relativeConfig,
+		transforms.yaml(({ data }) => {
+			let fileChanged = false;
+			for (const { pkg, version, catalog } of updates) {
+				const catalogMap =
+					catalog === 'default'
+						? asYamlMap(data.get('catalog'), 'catalog')
+						: asYamlMap(
+								asYamlMap(data.get('catalogs'), 'catalogs').get(catalog),
+								`catalogs.${catalog}`
+							);
+				const declared = catalogMap.get(pkg);
+				if (typeof declared === 'string' && isRangeWithin(declared, version)) {
+					continue;
+				}
+
+				catalogMap.set(pkg, applySaveExact(version, saveExact));
+				fileChanged = true;
+			}
+
+			if (!fileChanged) return false;
+			changed = true;
+		})
+	);
+
+	return changed;
+}
+
 function updatePackages(
-	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
-	sv: SvApi
+	dependencies: DependencyUpdate[],
+	sv: SvApi,
+	workspace: Workspace
 ): { installNeeded: boolean } {
 	let installNeeded = false;
 	if (dependencies.length === 0) return { installNeeded };
+
+	const saveExact = shouldSaveExact(workspace);
+	const currentPackage = loadPackageJson(workspace.cwd).data;
+	const packageUpdates: DependencyUpdate[] = [];
+	const catalogUpdates: CatalogUpdate[] = [];
+
+	for (const update of dependencies) {
+		const dependency = update.dev ? 'devDependencies' : 'dependencies';
+		const declared = currentPackage[dependency]?.[update.pkg];
+		const catalog = catalogName(declared);
+		if (catalog) {
+			catalogUpdates.push({ ...update, catalog });
+		} else {
+			packageUpdates.push(update);
+		}
+	}
+
+	if (updatePnpmCatalogs(catalogUpdates, sv, workspace, saveExact)) {
+		installNeeded = true;
+	}
+
+	if (packageUpdates.length === 0) return { installNeeded };
 
 	const pkgPath = filePaths.packageJson;
 	sv.file(
@@ -51,7 +209,8 @@ function updatePackages(
 		transforms.json<Package>(({ content, data }) => {
 			if (!content) throw new Error(`Invalid workspace: missing '${pkgPath}'`);
 
-			for (const { dev, pkg, version } of dependencies) {
+			let packageChanged = false;
+			for (const { dev, pkg, version } of packageUpdates) {
 				const dependency = dev ? 'devDependencies' : 'dependencies';
 				data[dependency] ??= {};
 
@@ -59,12 +218,13 @@ function updatePackages(
 				const declared = data[dependency][pkg];
 				if (declared && isRangeWithin(declared, version)) continue;
 
-				installNeeded = true;
-				data[dependency][pkg] = version;
+				packageChanged = true;
+				data[dependency][pkg] = applySaveExact(version, saveExact);
 			}
 
-			if (!installNeeded) return false; // do not edit the file if no changes were made
+			if (!packageChanged) return false;
 
+			installNeeded = true;
 			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
 			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
 		})
@@ -433,7 +593,7 @@ export function prepareSvApi(
 	return {
 		sv,
 		finalize: () => {
-			const { installNeeded } = updatePackages(dependencies, sv);
+			const { installNeeded } = updatePackages(dependencies, sv, workspace);
 
 			return {
 				modifiedFiles,
