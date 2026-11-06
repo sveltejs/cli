@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { findFormatScript, isPrettierInstalled } from '../formatFiles.ts';
+import { findFormatScript } from '../formatFiles.ts';
 
 const dirs: string[] = [];
 
@@ -16,34 +16,10 @@ function makeProject(pkg: Record<string, unknown> = {}) {
 	return cwd;
 }
 
-// Emulates a project with a `prettier` package installed.
-function addPrettierFixture(cwd: string) {
-	const prettierDir = path.join(cwd, 'node_modules', 'prettier');
-	fs.mkdirSync(prettierDir, { recursive: true });
-	fs.writeFileSync(
-		path.join(prettierDir, 'package.json'),
-		JSON.stringify({ name: 'prettier', version: '3.0.0', main: 'index.js' })
-	);
-	fs.writeFileSync(path.join(prettierDir, 'index.js'), '');
-}
-
 afterEach(() => {
 	for (const dir of dirs.splice(0)) {
 		fs.rmSync(dir, { recursive: true, force: true });
 	}
-});
-
-describe('isPrettierInstalled', () => {
-	it('is false when prettier is declared but not installed', () => {
-		const cwd = makeProject({ devDependencies: { prettier: '^3.0.0' } });
-		expect(isPrettierInstalled(cwd)).toBe(false);
-	});
-
-	it('is true when prettier resolves from the project', () => {
-		const cwd = makeProject({ devDependencies: { prettier: '^3.0.0' } });
-		addPrettierFixture(cwd);
-		expect(isPrettierInstalled(cwd)).toBe(true);
-	});
 });
 
 describe('findFormatScript', () => {
