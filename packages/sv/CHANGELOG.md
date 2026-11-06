@@ -1,5 +1,11 @@
 # sv
 
+## 1.4.0
+
+### Minor Changes
+
+- feat(ai-tools): ask a separate question for `AGENTS.md` when needed ([#1454](https://github.com/sveltejs/cli/pull/1454))
+
 ## 1.3.0
 
 ### Minor Changes
