@@ -8,12 +8,12 @@ npx sv
 
 ## Commands
 
-| Command                                                                                            | Description                           |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| [`sv create \[path\]](https://svelte.dev/docs/cli/sv-create)                       | Scaffold a new Svelte(Kit) project    |
-| [`sv add \[add-on...\]](https://svelte.dev/docs/cli/sv-add)                        | Apply add-ons into a project          |
-| [`sv migrate \[migration\]](https://svelte.dev/docs/cli/sv-migrate)                | Migrate Svelte(Kit) codebases         |
-| [`sv check`](https://svelte.dev/docs/cli/sv-check)                                 | Analyze your code with `svelte-check` |
+| Command                                                             | Description                           |
+| ------------------------------------------------------------------- | ------------------------------------- |
+| [`sv create \[path\]](https://svelte.dev/docs/cli/sv-create)        | Scaffold a new Svelte(Kit) project    |
+| [`sv add \[add-on...\]](https://svelte.dev/docs/cli/sv-add)         | Apply add-ons into a project          |
+| [`sv migrate \[migration\]](https://svelte.dev/docs/cli/sv-migrate) | Migrate Svelte(Kit) codebases         |
+| [`sv check`](https://svelte.dev/docs/cli/sv-check)                  | Analyze your code with `svelte-check` |
 
 Run `sv <command> --help` to see all options for a command.
 
