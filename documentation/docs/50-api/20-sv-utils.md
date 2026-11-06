@@ -2,7 +2,7 @@
 title: sv-utils
 ---
 
-`@sveltejs/sv-utils` is an add-on utility for parsing, transforming, and generating code..
+`@sveltejs/sv-utils` is an add-on utility for parsing, transforming, and generating code.
 
 ```sh
 npm install -D @sveltejs/sv-utils
@@ -276,10 +276,11 @@ Lower-level building blocks, both reading candidate files through an injected `r
 
 Returns a transform for `pnpm-workspace.yaml` that adds packages to the pnpm "allow builds" config. Use with `sv.file` when the project uses pnpm.
 
-`cwd` is the target project: the pnpm version that would run there (via `pnpm --version`) decides the shape, so the invoker's `packageManager` pin is not used.
+`cwd` is the target project: the pnpm version that would run there (via `pnpm.detectPnpmVersion`) decides the shape, so the invoker's `packageManager` pin is not used.
 
-- pnpm `>= 11`: writes to the unified `allowBuilds` map (`{ pkg: true }`), migrating any legacy `onlyBuiltDependencies` list into the map.
-- pnpm `< 11`: writes to the legacy `onlyBuiltDependencies` list.
+- pnpm `< 10.5`: no-op.
+- pnpm `10.5` to `10.25`: writes `onlyBuiltDependencies`.
+- pnpm `>= 10.26`: writes `allowBuilds` map (`{ pkg: true }`), migrating any legacy `onlyBuiltDependencies`.
 
 ```js
 // @noErrors
@@ -290,6 +291,88 @@ if (packageManager === 'pnpm') {
 		file.findUp('pnpm-workspace.yaml'),
 		pnpm.allowBuilds({ cwd, packages: ['my-native-dep'] })
 	);
+}
+```
+
+### `pnpm.detectPnpmVersion`
+
+Detects the version of pnpm that would run in `cwd`: Uses `pnpm --version` internally. Results are memoised per directory. Use it to branch on the target project's pnpm version, the same way `pnpm.allowBuilds` does internally.
+
+```js
+// @noErrors
+import { pnpm } from '@sveltejs/sv-utils';
+
+// inside an add-on's `run({ sv, cwd })`:
+const version = pnpm.detectPnpmVersion(cwd);
+```
+
+> [!NOTE]
+> `pnpm.supportsWorkspaceSettings` is deprecated. Use `pnpm.detectPnpmVersion` instead, and branch on the version yourself.
+
+### Detecting the package manager
+
+sv-utils re-exports a thin slice of [`package-manager-detector`](https://github.com/antfu/package-manager-detector):
+
+- **`detect({ cwd })`** - resolves the package manager that would run in `cwd` (the `packageManager` pin and lockfiles), returning `{ name, agent, version }` or `null` when not found.
+- **`resolveCommand(agent, command, args)`** - real command for an agent, e.g. `resolveCommand('pnpm', 'execute-local', ['vite', 'build'])` returns `{ command: 'pnpm', args: ['exec', 'vite', 'build'] }`, while npm returns `{ command: 'npx', args: ['vite', 'build'] }`. Returns `null` when the combination doesn't exist.
+- **`resolveCommandArray(agent, command, args)`** - the same, flattened into one array for `spawn`-style APIs.
+- **`constructCommand(value, args)`** - lower-level: merges arguments into a single agent command from `COMMANDS`.
+
+The full registry is exported too: `AGENTS` (every supported agent's behaviors) and `COMMANDS` (every agent's command syntax), plus the `AgentName` type.
+
+```js
+// @noErrors
+import { detect, resolveCommandArray } from '@sveltejs/sv-utils';
+
+const pm = await detect({ cwd });
+if (pm?.name === 'pnpm') {
+	// ['pnpm', 'add', '-D', 'sharp']
+	const cmd = resolveCommandArray(pm.agent, 'add', ['-D', 'sharp']);
+}
+```
+
+## Env access
+
+`defineEnv` abstracts over the two env modes a project can use: kit 2 without `experimental.explicitEnvironmentVariables` reads `$env/dynamic/*` / `$env/static/*`, while kit 3 (and kit 2 with that flag enabled) declares env vars with `defineEnvVars` in `src/env.ts` and reads them from `$app/env/*`. Declare once, reference anywhere - the right imports are added for you.
+
+```js
+// @noErrors
+import { defineEnv } from '@sveltejs/sv-utils';
+
+// inside an add-on's `run({ sv, cwd })`:
+const env = defineEnv({ sv, cwd, dependencyVersion });
+
+// declares the var (writes `src/env.ts` in declared mode, nothing in legacy mode)
+env.define({ name: 'DATABASE_URL', description: 'The database connection string.' });
+
+// inside a `transforms.script` callback: adds the env import matching the mode
+const dbUrl = env.reference(ast, js, { name: 'DATABASE_URL' });
+```
+
+- **`env.define(spec)`** - declares an env var. In declared mode this maintains `export const variables = defineEnvVars({ ... })` in `src/env.{js,ts}`; in legacy mode it's a no-op (var files like `.env` are your concern).
+- **`env.reference(ast, js, { name, scope?, static? })`** - adds the matching named import into the program and returns the expression to interpolate: `$app/env/{private|public}` in declared mode, `$env/static/*` or `env` from `$env/dynamic/*` (in which case the returned expression is `env.NAME`) in legacy mode.
+- **`env.importEnv(ast, js, imports)`** - adds a named import from the env module (`building`, `dev`, `browser`, ...) resolved across modes (`$app/env` declared, `$app/environment` legacy).
+- **`env.mode`** - the resolved `'legacy' | 'declared'` mode, if you must branch yourself.
+
+## Kit version helpers
+
+Helpers for add-ons that support kit 2 and 3:
+
+- **`isKit3(kitRange)`** - whether a `@sveltejs/kit` range resolves to v3+, including the `next` dist-tag.
+- **`resolveLibPrefix(kitRange)`** - the prefix for `src/lib` imports: `#lib` in kit 3 (which dropped the built-in `$lib` alias in favor of subpath imports), `$lib` otherwise.
+- **`libSubpathImports(libDir)`** - the `package.json#imports` entries backing `#lib`, e.g. `{ '#lib': './src/lib/index.js', '#lib/*': './src/lib/*' }`.
+- **`KIT3_TSCONFIG`** - `$app/tsconfig`, the config kit 3 generates into `node_modules`, replacing `.svelte-kit/tsconfig.json`.
+- **`KIT3_TSCONFIG_DEFAULT`** - the options `$app/tsconfig` already sets. A local copy of the same value is noise, but a different value is a deliberate override and must stay.
+
+```js
+// @noErrors
+import { isKit3, resolveLibPrefix, libSubpathImports } from '@sveltejs/sv-utils';
+
+const prefix = resolveLibPrefix(dependencyVersion('@sveltejs/kit')); // e.g. '#lib'
+if (prefix === '#lib') {
+	sv.file('package.json', (content) => {
+		// merge `libSubpathImports('src/lib')` into `package.json#imports`
+	});
 }
 ```
 
