@@ -4,10 +4,12 @@
 		"strict": true
 	},
 	"include": [
-		"src",
-		"vite.config.ts",
-		"playwright.config.ts",
-		"tests",
+		"src/**/*.ts",
+		"src/**/*.js",
+		"src/**/*.svelte",
+		"tests/**/*.ts",
+		"*.ts",
+		"*.js",
 		"drizzle.config.ts"
 	]
 }

@@ -6,6 +6,7 @@ import { defineMigrationTask } from '../../../index.ts';
 import { addMigrationTask } from '../../../migration-task.ts';
 
 const GENERATED_CONFIG = /(^|\/)\.svelte-kit\/tsconfig\.json$/;
+const GENERATED_INCLUDE = /(^|\/)\.svelte-kit(?:\/|$)/;
 const LEADING_PARENT = /^\.\.\//;
 
 /** The config SvelteKit now generates into `node_modules`, replacing `.svelte-kit/tsconfig.json`. */
@@ -81,7 +82,8 @@ export default defineMigrationTask({
 				const include = (data.include ??= [
 					'src',
 					...ROOT_INCLUDES.filter((entry) => fs.existsSync(path.join(cwd, entry)))
-				]);
+				]).filter((entry) => !GENERATED_INCLUDE.test(entry));
+				data.include = include;
 				include.push(...moved.filter((entry) => !include.includes(entry)));
 
 				// if types is set we need to add $app/types to it
