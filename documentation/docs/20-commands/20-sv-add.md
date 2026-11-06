@@ -16,6 +16,8 @@ npx sv add [add-ons]
 
 You can select multiple space-separated add-ons from [the list below](#Official-add-ons), or you can use the interactive prompt.
 
+After every successful run. `sv add` will run the repo's (or monorepo's) `format` or `fmt` script when one exists.
+
 ## Options
 
 ### `-C`, `--cwd`
