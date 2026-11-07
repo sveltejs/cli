@@ -420,9 +420,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let depsInstalled = false;
 	if (packageManager) {
 		depsInstalled = await installDependencies(packageManager, projectPath);
-		if (depsInstalled) {
-			await formatFiles({ cwd: projectPath });
-		}
+		if (depsInstalled) await formatFiles({ cwd: projectPath });
 	}
 
 	return { directory: projectPath, addOnNextSteps, packageManager, depsInstalled };

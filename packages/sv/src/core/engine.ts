@@ -121,11 +121,9 @@ export async function applyAddons({
 	setupResults,
 	options
 }: ApplyAddonOptions): Promise<{
-	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }> {
-	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
 	const canceledAddons = new Set<string>();
 	let installNeeded = false;
@@ -153,11 +151,7 @@ export async function applyAddons({
 			packageManager: workspace.packageManager
 		});
 
-		const {
-			files,
-			cancels,
-			installNeeded: addonInstallNeeded
-		} = await runAddon({
+		const { cancels, installNeeded: addonInstallNeeded } = await runAddon({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
@@ -165,7 +159,6 @@ export async function applyAddons({
 			multiple: ordered.length > 1
 		});
 
-		files.forEach((f) => filesToFormat.add(f));
 		if (addonInstallNeeded) installNeeded = true;
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
@@ -176,7 +169,6 @@ export async function applyAddons({
 	}
 
 	return {
-		filesToFormat: Array.from(filesToFormat),
 		status,
 		installNeeded
 	};
