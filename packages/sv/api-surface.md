@@ -321,7 +321,6 @@ declare function applyAddons({
 	setupResults,
 	options
 }: ApplyAddonOptions): Promise<{
-	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }>;

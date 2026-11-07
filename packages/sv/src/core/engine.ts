@@ -121,19 +121,15 @@ export async function applyAddons({
 	setupResults,
 	options
 }: ApplyAddonOptions): Promise<{
-	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }> {
-	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
 	const canceledAddons = new Set<string>();
 	let installNeeded = false;
 
 	const addonDefs = loadedAddons.map((l) => l.addon);
 	const ordered = orderAddons(addonDefs, setupResults);
-
-	let hasFormatter = false;
 
 	for (const addon of ordered) {
 		// Skip addons whose `dependsOn` dependency was canceled. Running them would
@@ -154,14 +150,8 @@ export async function applyAddons({
 			cwd: workspace.cwd,
 			packageManager: workspace.packageManager
 		});
-		// If we don't have a formatter yet, check if the addon adds one
-		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
 
-		const {
-			files,
-			cancels,
-			installNeeded: addonInstallNeeded
-		} = await runAddon({
+		const { cancels, installNeeded: addonInstallNeeded } = await runAddon({
 			workspace: addonWorkspace,
 			workspaceOptions,
 			addon,
@@ -169,7 +159,6 @@ export async function applyAddons({
 			multiple: ordered.length > 1
 		});
 
-		files.forEach((f) => filesToFormat.add(f));
 		if (addonInstallNeeded) installNeeded = true;
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
@@ -180,7 +169,6 @@ export async function applyAddons({
 	}
 
 	return {
-		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
 		status,
 		installNeeded
 	};

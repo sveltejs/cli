@@ -1,108 +1,54 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import * as p from '@clack/prompts';
-import { type AgentName, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
-import * as resolve from 'empathic/resolve';
+import { color, loadPackageJson, resolveCommand } from '@sveltejs/sv-utils';
 import * as walk from 'empathic/walk';
 import { exec, NonZeroExitError } from 'tinyexec';
 import { isNodeError } from './common.js';
 import { detectPackageManager } from './package-manager.ts';
 import { findWorkspaceRoot } from './workspace.ts';
 
-export type FormatStrategy =
-	/** Run the nearest `format`/`fmt` script up to the workspace root, else format the files. */
-	| 'project-script-then-files-only'
-	/** Run `prettier --write` on the given files (if `prettier` is available). */
-	| 'files-only';
-
-type FormatAction =
-	| { kind: 'script'; dir: string; name: 'format' | 'fmt' }
-	| { kind: 'prettier' }
-	| { kind: 'skip' };
-
-export async function formatFiles(options: {
-	packageManager: AgentName;
-	cwd: string;
-	filesToFormat: string[];
-	strategy: FormatStrategy;
-}): Promise<void> {
-	if (options.filesToFormat.length === 0) return;
-
-	const action = resolveFormatAction(options.cwd, options.strategy);
-	if (action.kind === 'skip') return;
-
-	if (action.kind === 'script') {
-		// the script owns its scope (whole repo/monorepo) and deps - we don't care what runs under it
-		const packageManager = await detectPackageManager(action.dir);
-		const cmd = resolveCommand(packageManager, 'run', [action.name])!;
-		await withSpinner(`Running ${packageManager} run ${action.name}`, () =>
-			run(cmd.command, cmd.args, action.dir)
+/**
+ * The one formatting policy, shared by `sv create`, `sv add` and `sv migrate`:
+ * run the nearest `format`/`fmt` script up to the workspace root. The script
+ * owns its scope, its config and its tooling — `sv` never invokes a formatter
+ * directly, so projects without such a script are left untouched.
+ */
+export async function formatFiles(options: { cwd: string }): Promise<void> {
+	p.log.info('Looking for a script to format changes with');
+	const script = findFormatScript(options.cwd);
+	if (!script) {
+		p.log.info(
+			`No ${color.command('format')}/${color.command('fmt')} script found, skipping formatting`
 		);
 		return;
 	}
 
-	const args = ['--write', '--ignore-unknown', ...options.filesToFormat];
-	await withSpinner('Formatting modified files', async () => {
-		// Prefer calling `prettier` from the project's `node_modules/.bin`. Going through the
-		// package manager can fail on unrelated state (e.g. pnpm refusing to run while build
-		// scripts are unapproved), but it's the only way to reach binaries under Yarn PnP.
-		let result = await run('prettier', args, options.cwd);
-		if (result.error) {
-			const cmd = resolveCommand(options.packageManager, 'execute-local', ['prettier', ...args])!;
-			result = await run(cmd.command, cmd.args, options.cwd);
-		}
-		return result;
-	});
-}
+	const packageManager = await detectPackageManager(script.dir);
+	const cmd = resolveCommand(packageManager, 'run', [script.name])!;
 
-/**
- * Checks if a format script is available (`format`/`fmt`). If not, run `prettier`
- * if it's resolvable from `cwd`. Otherwise, skip altogether if no formatter is detectable.
- */
-export function resolveFormatAction(cwd: string, strategy: FormatStrategy): FormatAction {
-	if (strategy === 'project-script-then-files-only') {
-		const script = findFormatScript(cwd);
-		if (script) return { kind: 'script', ...script };
-	}
-
-	if (isPrettierInstalled(cwd)) return { kind: 'prettier' };
-	return { kind: 'skip' };
-}
-
-/**
- * Whether `prettier` resolves from `cwd` via Node's module resolution.
- */
-export function isPrettierInstalled(cwd: string): boolean {
-	return Boolean(resolve.from(cwd, 'prettier', true));
-}
-
-/** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
-function findFormatScript(cwd: string): { dir: string; name: 'format' | 'fmt' } | undefined {
-	const workspaceRoot = findWorkspaceRoot(cwd);
-	for (const directory of walk.up(path.resolve(cwd), { last: workspaceRoot })) {
-		if (fs.existsSync(path.join(directory, 'package.json'))) {
-			const { data } = loadPackageJson(directory);
-			if (data.scripts?.format) return { dir: directory, name: 'format' };
-			if (data.scripts?.fmt) return { dir: directory, name: 'fmt' };
-		}
-	}
-	return undefined;
-}
-
-async function withSpinner(
-	startMsg: string,
-	task: () => Promise<{ error?: string }>
-): Promise<void> {
 	const { start, stop } = p.spinner();
-	start(startMsg);
-	const { error } = await task();
+	start(`Running ${packageManager} run ${script.name}`);
+	const { error } = await run(cmd.command, cmd.args, script.dir);
 	if (error !== undefined) {
 		stop('Failed to format files');
 		p.log.error(error);
-
 		return;
 	}
 	stop('Successfully formatted files');
+}
+
+/** Nearest dir from `cwd` up to the workspace root with a `format` or `fmt` package.json script. */
+export function findFormatScript(cwd: string): { dir: string; name: 'format' | 'fmt' } | undefined {
+	const workspaceRoot = findWorkspaceRoot(cwd);
+	for (const directory of walk.up(path.resolve(cwd), { last: workspaceRoot })) {
+		if (!fs.existsSync(path.join(directory, 'package.json'))) return;
+
+		const { data } = loadPackageJson(directory);
+		if (data.scripts?.format) return { dir: directory, name: 'format' };
+		if (data.scripts?.fmt) return { dir: directory, name: 'fmt' };
+	}
+	return;
 }
 
 async function run(
