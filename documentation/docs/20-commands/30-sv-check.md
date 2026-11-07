@@ -4,7 +4,7 @@ title: sv check
 
 `sv check` runs [`svelte-check`](https://npmx.dev/package/svelte-check) in your project and reports errors and warnings such as unused CSS, accessibility hints, and JavaScript/TypeScript compiler errors.
 
-It runs `svelte-check` through your project's package manager, so the package must be installed locally:
+It runs `svelte-check` internally, and only if it is installed in your project (global installs are ignored):
 
 ```sh
 npm i -D svelte-check
