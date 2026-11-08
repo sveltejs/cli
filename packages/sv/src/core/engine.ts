@@ -123,7 +123,8 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
-	dependencyChanged: boolean;
+	// TODO[next-major]: rename `installNeeded` to `dependencyChanged` (breaking API change)
+	installNeeded: boolean;
 }> {
 	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
@@ -182,7 +183,7 @@ export async function applyAddons({
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
 		status,
-		dependencyChanged
+		installNeeded: dependencyChanged
 	};
 }
 

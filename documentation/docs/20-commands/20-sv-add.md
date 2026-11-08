@@ -35,7 +35,11 @@ Do not warn about downloads from community add-ons.
 
 ### `--install <package-manager>`
 
-Installs dependencies with a specified package manager:
+Shorthand for `--install --package-manager <package-manager>`. Installs dependencies with the specified package manager.
+
+### `--package-manager <package-manager>`
+
+Selects the package manager for the project:
 
 - `npm`
 - `pnpm`
@@ -43,9 +47,9 @@ Installs dependencies with a specified package manager:
 - `bun`
 - `deno`
 
-### `--no-install`
+### `--[no-]install`
 
-Do not prompt to install dependencies.
+Whether to install dependencies.
 
 ## Official add-ons
 
