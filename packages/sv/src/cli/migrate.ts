@@ -65,8 +65,8 @@ export const migrate = new Command('migrate')
 		'migration tasks to run. Omit list of tasks to show available tasks. Use `--task all` to run all migration tasks.'
 	)
 	.option('--confirm', 'skip the final confirmation prompt')
-	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
+	.addOption(common.cliOptions.noInstall)
 	.action((migrationName, options) => {
 		if (hasInstallConflict(process.argv)) {
 			common.errorAndExit(
