@@ -29,6 +29,7 @@ export const PackageJSONSchema = v.looseObject({
 export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
 
 export const cliOptions = {
+	gitCheck: new Option('--no-git-check', 'even if some files are dirty, no prompt will be shown'),
 	noDownloadCheck: new Option(
 		'--no-download-check',
 		'do not warn about downloads from community add-ons'

@@ -59,7 +59,7 @@ export const migrate = new Command('migrate')
 		'--files <glob>',
 		'only run the migration on a subset of files matching the provided glob pattern'
 	)
-	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.addOption(common.cliOptions.gitCheck)
 	.option(
 		'--tasks [task...]',
 		'migration tasks to run. Omit list of tasks to show available tasks. Use `--task all` to run all migration tasks.'
