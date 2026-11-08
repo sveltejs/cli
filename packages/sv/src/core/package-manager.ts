@@ -16,15 +16,106 @@ import {
 import { Option } from 'commander';
 import * as find from 'empathic/find';
 import { exec } from 'tinyexec';
+import { errorAndExit } from './common.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
 );
 
-export const installOption: Option = new Option(
-	'--install <package-manager>',
-	'installs dependencies with a specified package manager'
+export const pmOption: Option = new Option(
+	'--package-manager <pm>',
+	'package manager to use for installing dependencies'
 ).choices(AGENT_NAMES);
+
+export const installOption: Option = new Option(
+	'--install [package-manager]',
+	'installs dependencies, optionally with a specified package manager (shorthand for `--install --package-manager <pm>`)'
+).choices(AGENT_NAMES);
+
+/**
+ * Identifies how the user chose to handle dependency installation.
+ *
+ * - `unset`: no related flag was passed (or a `--install`) → per-command default behaviour (prompt when needed)
+ * - `select`: `--package-manager <pm>` → the pm selection is recorded, but dependencies are never installed
+ * - `install`: `--install <pm>` (shorthand for `--install --package-manager <pm>`) → install with the given pm, no prompt
+ * - `no-install`: `--no-install` (or a programmatic `install: false`) → skip dependency installation
+ */
+export type InstallMode =
+	| { kind: 'unset' }
+	| { kind: 'select'; packageManager: AgentName }
+	| { kind: 'install'; packageManager: AgentName }
+	// installing nothing implies no package manager; left out at construction time in most cases
+	| { kind: 'no-install'; packageManager: AgentName | undefined };
+
+type InstallOptions = {
+	install?: boolean | AgentName;
+	packageManager?: AgentName;
+};
+
+/**
+ * Parses the `--install`, `--no-install` and `--package-manager` flags into a single
+ * {@link InstallMode}.
+ *
+ * The result may be `{ kind: 'unset' }`; call {@link resolve_unset} before it's used.
+ */
+export function parse_install_flags(options: InstallOptions): InstallMode {
+	if (typeof options.install === 'string') {
+		if (options.packageManager !== undefined) {
+			errorAndExit(
+				`The ${color.command('--install <package-manager>')} and ${color.command(
+					'--package-manager'
+				)} options cannot be used together. Use ${color.command('--install <pm>')}.`
+			);
+		}
+		return { kind: 'install', packageManager: options.install };
+	}
+
+	if (options.install === false) {
+		if (options.packageManager !== undefined) {
+			p.log.warn(
+				`The ${color.command('--no-install')} flag is redundant, simply call ${color.command('--package-manager <pm>')}.`
+			);
+			return { kind: 'select', packageManager: options.packageManager };
+		}
+		return { kind: 'no-install', packageManager: undefined };
+	}
+
+	if (options.packageManager !== undefined) {
+		return options.install === true
+			? { kind: 'install', packageManager: options.packageManager }
+			: { kind: 'select', packageManager: options.packageManager };
+	}
+
+	return { kind: 'unset' };
+}
+
+/**
+ * Replaces the `{ kind: 'unset' }` placeholder returned by {@link parse_install_flags}
+ * with a concrete {@link InstallMode} — prompting (or falling back to detection) when
+ * needed. Never returns `unset`.
+ */
+export async function resolve_unset(options: {
+	installMode: InstallMode;
+	cwd: string;
+}): Promise<Exclude<InstallMode, { kind: 'unset' }>> {
+	// explicitly chosen mode, it stays as-is
+	switch (options.installMode.kind) {
+		case 'select':
+		case 'install':
+		case 'no-install':
+			return options.installMode;
+		case 'unset':
+			break;
+		default:
+			void (options.installMode satisfies never);
+	}
+
+	const pm = await packageManagerPrompt(options.cwd);
+
+	return pm
+		? { kind: 'install', packageManager: pm }
+		: { kind: 'no-install', packageManager: undefined };
+}
 
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
 	const detected = await detect({ cwd });
