@@ -44,15 +44,12 @@ const OptionsSchema = v.strictObject({
 });
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-// infers the workspace cwd if a `package.json` resides in a parent directory
-const defaultPkgPath = pkg.up();
-const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
 	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonInput[] = []) =>
 		addonArgsHandler(previous, value)
 	)
-	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
+	.addOption(common.cliOptions.cwd)
 	.addOption(common.cliOptions.gitCheck)
 	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(common.cliOptions.noInstall)
@@ -87,6 +84,10 @@ export const add = new Command('add')
 		}
 	})
 	.action(async (addonInputs: AddonInput[], opts) => {
+		// infers the workspace cwd if a `package.json` resides in a parent directory
+		const defaultPkgPath = pkg.up();
+		opts.cwd ??= defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
+
 		// validate workspace
 		if (opts.cwd === undefined) {
 			common.errorAndExit(
