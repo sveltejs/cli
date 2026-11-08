@@ -118,7 +118,11 @@ To keep changes reviewable, pass one task ID at a time, review and commit the re
 
 ### `--install <package-manager>`
 
-Install dependencies with a specified package manager:
+Shorthand for `--install --package-manager <package-manager>`. Installs dependencies with the specified package manager.
+
+### `--package-manager <package-manager>`
+
+Selects the package manager for the project:
 
 - `npm`
 - `pnpm`
@@ -126,6 +130,6 @@ Install dependencies with a specified package manager:
 - `bun`
 - `deno`
 
-### `--no-install`
+### `--[no-]install`
 
-Skip installing dependencies after the migration.
+Whether to install dependencies.
