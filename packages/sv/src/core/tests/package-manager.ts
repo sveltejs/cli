@@ -2,7 +2,11 @@ import process from 'node:process';
 import * as p from '@clack/prompts';
 import { type AgentName } from '@sveltejs/sv-utils';
 import { describe, expect, it, vi } from 'vitest';
-import { parse_install_flags, type InstallMode } from '../package-manager.ts';
+import {
+	assertNoInstallConflict,
+	parse_install_flags,
+	type InstallMode
+} from '../package-manager.ts';
 
 function mockExit() {
 	vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
@@ -80,5 +84,56 @@ describe('parse_install_flags', () => {
 
 		expect(parse_install_flags(options)).toEqual(expected);
 		expect(warn).toHaveBeenCalledTimes(warns ? 1 : 0);
+	});
+});
+
+const conflictScenarios: Array<{
+	/** raw argv, as `process.argv` would deliver it (minus the node/script paths) */
+	argv: string[];
+	throws?: boolean;
+}> = [
+	{
+		argv: ['create', '--install', '--no-install'],
+		throws: true
+	},
+	{
+		// last-wins in commander makes the order irrelevant at the parsed level, but the conflict exists either way
+		argv: ['create', '--no-install', '--install'],
+		throws: true
+	},
+	{
+		argv: ['create', '--install=pnpm', '--no-install'],
+		throws: true
+	},
+	{
+		argv: ['create', '--install', 'pnpm', '--no-install'],
+		throws: true
+	},
+	{
+		argv: ['create', '--install']
+	},
+	{
+		argv: ['create', '--install', 'pnpm']
+	},
+	{
+		argv: ['create', '--no-install']
+	},
+	{
+		argv: ['create', '--install', 'pnpm', '--package-manager', 'npm']
+	},
+	{
+		argv: []
+	}
+];
+
+describe('assertNoInstallConflict', () => {
+	it.each(conflictScenarios)('$argv.join(" ")', ({ argv, throws }) => {
+		if (throws) {
+			mockExit();
+			expect(() => assertNoInstallConflict(argv)).toThrow('exit 1');
+			return;
+		}
+
+		expect(() => assertNoInstallConflict(argv)).not.toThrow();
 	});
 });

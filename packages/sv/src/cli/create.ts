@@ -18,6 +18,7 @@ import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
 	addEngineStrict,
+	assertNoInstallConflict,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -149,6 +150,8 @@ export const create = new Command('create')
 				console.error(color.error(`Error: Invalid playground URL: ${options.fromPlayground}`));
 				process.exit(1);
 			}
+
+			assertNoInstallConflict(process.argv);
 
 			const { directory, addOnNextSteps, packageManager, depsInstalled } = await createProject(
 				cwd,

@@ -53,6 +53,24 @@ type InstallOptions = {
 };
 
 /**
+ * Exits when `--install` (any form) is combined with `--no-install`.
+ *
+ * Lives on the raw argv because commander collapses both flags into a single
+ * `install` value (last flag wins) — the conflict is invisible at the
+ * parsed-options level, so {@link parse_install_flags} cannot catch it.
+ */
+export function assertNoInstallConflict(argv: string[]): void {
+	if (
+		argv.some((arg) => arg === '--install' || arg.startsWith('--install=')) &&
+		argv.includes('--no-install')
+	) {
+		errorAndExit(
+			`The ${color.command('--install')} and ${color.command('--no-install')} options cannot be used together.`
+		);
+	}
+}
+
+/**
  * Parses the `--install`, `--no-install` and `--package-manager` flags into a single
  * {@link InstallMode}.
  *

@@ -9,6 +9,7 @@ import { prepareSvApi } from '../core/engine.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
+	assertNoInstallConflict,
 	installDependencies,
 	installOption,
 	resolve_unset,
@@ -85,6 +86,8 @@ export const migrate = new Command('migrate')
 			);
 
 			const verifiedOptions = v.parse(OptionsSchema, options);
+
+			assertNoInstallConflict(process.argv);
 
 			const pkg = ensureValidWorkspace(verifiedOptions.cwd);
 			if (!pkg) return;

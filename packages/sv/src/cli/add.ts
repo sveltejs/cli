@@ -25,6 +25,7 @@ import { formatFiles, isPrettierInstalled } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
+	assertNoInstallConflict,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -116,6 +117,8 @@ export const add = new Command('add')
 			const addonRefs = classifyAddons(addonInputs, options.cwd);
 
 			const workspace = await createWorkspace({ cwd: options.cwd });
+
+			assertNoInstallConflict(process.argv);
 
 			// Resolve all addons (official and community) - returns LoadedAddon[]
 			const loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
