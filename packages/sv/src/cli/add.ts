@@ -83,29 +83,29 @@ export const add = new Command('add')
 			].join('\n');
 		}
 	})
-	.action(async (addonInputs: AddonInput[], opts) => {
-		// infers the workspace cwd if a `package.json` resides in a parent directory
-		const defaultPkgPath = pkg.up();
-		opts.cwd ??= defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
-
-		// validate workspace
-		if (opts.cwd === undefined) {
-			common.errorAndExit(
-				'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
-			);
-		} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
-			// when `--cwd` is specified, we'll validate that it's a valid workspace
-			common.errorAndExit(
-				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
-			);
-		}
-
-		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
-		const addonRefs = classifyAddons(addonInputs, options.cwd);
-
-		const workspace = await createWorkspace({ cwd: options.cwd });
-
+	.action((addonInputs: AddonInput[], opts) => {
 		common.runCommand(async () => {
+			// infers the workspace cwd if a `package.json` resides in a parent directory
+			const defaultPkgPath = pkg.up();
+			opts.cwd ??= defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
+
+			// validate workspace
+			if (opts.cwd === undefined) {
+				common.errorAndExit(
+					'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
+				);
+			} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
+				// when `--cwd` is specified, we'll validate that it's a valid workspace
+				common.errorAndExit(
+					`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
+				);
+			}
+
+			const options = v.parse(OptionsSchema, { ...opts, addons: {} });
+			const addonRefs = classifyAddons(addonInputs, options.cwd);
+
+			const workspace = await createWorkspace({ cwd: options.cwd });
+
 			// Resolve all addons (official and community) - returns LoadedAddon[]
 			const loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
 

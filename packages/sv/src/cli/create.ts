@@ -131,15 +131,15 @@ export const create = new Command('create')
 		}
 	})
 	.action((projectPath, opts) => {
-		const cwd = v.parse(ProjectPathSchema, projectPath);
-		const options = v.parse(OptionsSchema, opts);
-
-		if (options.fromPlayground && !validatePlaygroundUrl(options.fromPlayground)) {
-			console.error(color.error(`Error: Invalid playground URL: ${options.fromPlayground}`));
-			process.exit(1);
-		}
-
 		common.runCommand(async () => {
+			const cwd = v.parse(ProjectPathSchema, projectPath);
+			const options = v.parse(OptionsSchema, opts);
+
+			if (options.fromPlayground && !validatePlaygroundUrl(options.fromPlayground)) {
+				console.error(color.error(`Error: Invalid playground URL: ${options.fromPlayground}`));
+				process.exit(1);
+			}
+
 			const { directory, addOnNextSteps, packageManager, depsInstalled } = await createProject(
 				cwd,
 				options

@@ -77,14 +77,14 @@ export const migrate = new Command('migrate')
 			return;
 		}
 
-		let verifiedMigrationName: string | symbol | undefined = v.parse(
-			MigrationScheme,
-			migrationName
-		);
-
-		const verifiedOptions = v.parse(OptionsSchema, options);
-
 		common.runCommand(async () => {
+			let verifiedMigrationName: string | symbol | undefined = v.parse(
+				MigrationScheme,
+				migrationName
+			);
+
+			const verifiedOptions = v.parse(OptionsSchema, options);
+
 			const pkg = ensureValidWorkspace(verifiedOptions.cwd);
 			if (!pkg) return;
 
