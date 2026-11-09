@@ -18,10 +18,13 @@ import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
 	addEngineStrict,
+	assertNoInstallConflict,
 	detectPackageManager,
 	installDependencies,
 	installOption,
-	packageManagerPrompt
+	resolve_unset,
+	parse_install_flags,
+	pmOption
 } from '../core/package-manager.ts';
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
 import {
@@ -70,20 +73,27 @@ const addonNameOption = new Option(
 );
 
 const ProjectPathSchema = v.optional(v.string());
-const OptionsSchema = v.strictObject({
-	types: v.pipe(
-		v.optional(v.union([v.picklist(langs), v.boolean()])),
-		v.transform((lang) => langMap[String(lang)])
-	),
-	addOns: v.boolean(),
-	add: v.array(v.string()),
-	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
-	template: v.optional(v.picklist(templateChoices)),
-	fromPlayground: v.optional(v.string()),
-	dirCheck: v.boolean(),
-	downloadCheck: v.boolean(),
-	addonName: v.optional(v.string())
-});
+const OptionsSchema = v.pipe(
+	v.strictObject({
+		types: v.pipe(
+			v.optional(v.union([v.picklist(langs), v.boolean()])),
+			v.transform((lang) => langMap[String(lang)])
+		),
+		addOns: v.boolean(),
+		add: v.array(v.string()),
+		install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)])),
+		packageManager: v.optional(v.picklist(AGENT_NAMES)),
+		template: v.optional(v.picklist(templateChoices)),
+		fromPlayground: v.optional(v.string()),
+		dirCheck: v.boolean(),
+		downloadCheck: v.boolean(),
+		addonName: v.optional(v.string())
+	}),
+	v.transform(({ install, packageManager, ...options }) => ({
+		...options,
+		installMode: parse_install_flags({ install, packageManager })
+	}))
+);
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
 
@@ -101,6 +111,7 @@ export const create = new Command('create')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
 	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(installOption)
+	.addOption(pmOption)
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
@@ -119,27 +130,29 @@ export const create = new Command('create')
 				...s.options,
 				...addonSection,
 				s.styleTitle('Non-interactive usage:'),
-				'  Provide --template, --types, --add, and --install (or --no-install) to skip prompts entirely.',
+				'  Provide --template, --types, --add, and --package-manager <pm> or --[no-]install to skip prompts entirely.',
 				'  Note: --add and --no-add-ons cannot be used together.',
 				'',
 				s.styleTitle('Examples:'),
 				'  sv create my-app --template minimal --types ts --add prettier eslint --install pnpm',
-				'  sv create my-app --template minimal --types ts --add prettier vitest="usages:unit" tailwindcss="plugins:none" --install pnpm',
+				'  sv create my-app --template minimal --types ts --add prettier vitest="usages:unit" tailwindcss="plugins:none" --package-manager pnpm',
 				'  sv create my-app --template minimal --types ts --add drizzle="database:postgresql+client:postgres.js" --no-install',
 				''
 			].join('\n');
 		}
 	})
 	.action((projectPath, opts) => {
-		const cwd = v.parse(ProjectPathSchema, projectPath);
-		const options = v.parse(OptionsSchema, opts);
-
-		if (options.fromPlayground && !validatePlaygroundUrl(options.fromPlayground)) {
-			console.error(color.error(`Error: Invalid playground URL: ${options.fromPlayground}`));
-			process.exit(1);
-		}
-
 		common.runCommand(async () => {
+			const cwd = v.parse(ProjectPathSchema, projectPath);
+			const options = v.parse(OptionsSchema, opts);
+
+			if (options.fromPlayground && !validatePlaygroundUrl(options.fromPlayground)) {
+				console.error(color.error(`Error: Invalid playground URL: ${options.fromPlayground}`));
+				process.exit(1);
+			}
+
+			assertNoInstallConflict(process.argv);
+
 			const { directory, addOnNextSteps, packageManager, depsInstalled } = await createProject(
 				cwd,
 				options
@@ -320,7 +333,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 		const result = await promptAddonQuestions({
 			options: {
 				cwd: projectPath,
-				install: false,
+				installMode: { kind: 'no-install', packageManager: undefined },
 				gitCheck: false,
 				downloadCheck: options.downloadCheck,
 				addons: addonsOptionsMap
@@ -353,12 +366,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	p.log.success('Project created');
 
 	// Resolve the package manager early in case it's used in an add-on.
-	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(projectPath)
-				: options.install;
+	options.installMode = await resolve_unset({ ...options, cwd: projectPath });
+	const { packageManager } = options.installMode;
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
@@ -383,7 +392,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			options: {
 				cwd: projectPath,
 				// in the create command, we don't want to install dependencies, we want to do it after the project is created
-				install: false,
+				installMode: { kind: 'no-install', packageManager: undefined },
 				gitCheck: false,
 				downloadCheck: options.downloadCheck,
 				addons: addonsOptionsMap
@@ -421,7 +430,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
 
 	let depsInstalled = false;
-	if (packageManager) {
+	if (options.installMode.kind === 'install') {
+		const { packageManager } = options.installMode;
 		depsInstalled = await installDependencies(packageManager, projectPath);
 		if (depsInstalled) {
 			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')

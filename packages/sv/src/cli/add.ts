@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import { type AgentName, color, resolveCommandArray } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import * as v from 'valibot';
@@ -25,9 +25,13 @@ import { formatFiles, isPrettierInstalled } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
+	assertNoInstallConflict,
+	detectPackageManager,
 	installDependencies,
 	installOption,
-	packageManagerPrompt
+	resolve_unset,
+	parse_install_flags,
+	pmOption
 } from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../core/verifiers.ts';
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
@@ -35,28 +39,33 @@ import { createWorkspace, type Workspace } from '../core/workspace.ts';
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();
 
-const OptionsSchema = v.strictObject({
-	cwd: v.string(),
-	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
-	gitCheck: v.boolean(),
-	downloadCheck: v.boolean(),
-	addons: v.record(v.string(), v.optional(v.array(v.string())))
-});
+const OptionsSchema = v.pipe(
+	v.strictObject({
+		cwd: v.string(),
+		install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)])),
+		packageManager: v.optional(v.picklist(AGENT_NAMES)),
+		gitCheck: v.boolean(),
+		downloadCheck: v.boolean(),
+		addons: v.record(v.string(), v.optional(v.array(v.string())))
+	}),
+	v.transform(({ install, packageManager, ...options }) => ({
+		...options,
+		installMode: parse_install_flags({ install, packageManager })
+	}))
+);
 type Options = v.InferOutput<typeof OptionsSchema>;
 
-// infers the workspace cwd if a `package.json` resides in a parent directory
-const defaultPkgPath = pkg.up();
-const defaultCwd = defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
 export const add = new Command('add')
 	.description('applies specified add-ons into a project')
 	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonInput[] = []) =>
 		addonArgsHandler(previous, value)
 	)
-	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
-	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.addOption(common.cliOptions.cwd)
+	.addOption(common.cliOptions.gitCheck)
 	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(common.cliOptions.noInstall)
 	.addOption(installOption)
+	.addOption(pmOption)
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
@@ -86,25 +95,31 @@ export const add = new Command('add')
 			].join('\n');
 		}
 	})
-	.action(async (addonInputs: AddonInput[], opts) => {
-		// validate workspace
-		if (opts.cwd === undefined) {
-			common.errorAndExit(
-				'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
-			);
-		} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
-			// when `--cwd` is specified, we'll validate that it's a valid workspace
-			common.errorAndExit(
-				`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
-			);
-		}
-
-		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
-		const addonRefs = classifyAddons(addonInputs, options.cwd);
-
-		const workspace = await createWorkspace({ cwd: options.cwd });
-
+	.action((addonInputs: AddonInput[], opts) => {
 		common.runCommand(async () => {
+			// infers the workspace cwd if a `package.json` resides in a parent directory
+			const defaultPkgPath = pkg.up();
+			opts.cwd ??= defaultPkgPath ? path.dirname(defaultPkgPath) : undefined;
+
+			// validate workspace
+			if (opts.cwd === undefined) {
+				common.errorAndExit(
+					'Invalid workspace: Please verify that you are inside of a Svelte project. You can also specify the working directory with `--cwd <path>`'
+				);
+			} else if (!fs.existsSync(path.resolve(opts.cwd, 'package.json'))) {
+				// when `--cwd` is specified, we'll validate that it's a valid workspace
+				common.errorAndExit(
+					`Invalid workspace: Path '${path.resolve(opts.cwd)}' is not a valid workspace.`
+				);
+			}
+
+			const options = v.parse(OptionsSchema, { ...opts, addons: {} });
+			const addonRefs = classifyAddons(addonInputs, options.cwd);
+
+			const workspace = await createWorkspace({ cwd: options.cwd });
+
+			assertNoInstallConflict(process.argv);
+
 			// Resolve all addons (official and community) - returns LoadedAddon[]
 			const loadedAddons = await resolveAddons(addonRefs, options.downloadCheck);
 
@@ -738,7 +753,11 @@ export async function runAddonsApply({
 			setupResults: {}
 		};
 
-	const { filesToFormat, status, installNeeded } = await applyAddons({
+	const {
+		filesToFormat,
+		status,
+		installNeeded: dependencyChanged
+	} = await applyAddons({
 		loadedAddons,
 		workspace,
 		setupResults,
@@ -772,18 +791,14 @@ export async function runAddonsApply({
 		);
 	}
 
-	// nothing new landed in `package.json`, so there is nothing to install and nothing to ask about
-	let packageManager: AgentName | null | undefined = null;
-	if (options.install === true) {
-		// prompt user when `package.json` has changed
-		if (installNeeded) {
-			packageManager = await packageManagerPrompt(options.cwd);
-		}
-	} else if (options.install === false) {
-		// user choose not to install
-	} else {
-		packageManager = options.install;
+	if (dependencyChanged) options.installMode = await resolve_unset(options);
+	else {
+		options.installMode = {
+			kind: 'no-install',
+			packageManager: await detectPackageManager(options.cwd)
+		};
 	}
+	const { packageManager } = options.installMode;
 
 	addAllowBuildsIfPnpm({ cwd: workspace.cwd, packageManager, packages: ['esbuild'] });
 
@@ -841,10 +856,13 @@ export async function runAddonsApply({
 		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
 	}
 
-	let depsInstalled = false;
 	if (packageManager) {
 		workspace.packageManager = packageManager;
-		depsInstalled = await installDependencies(packageManager, options.cwd);
+	}
+
+	let depsInstalled = false;
+	if (options.installMode.kind === 'install') {
+		depsInstalled = await installDependencies(options.installMode.packageManager, options.cwd);
 	}
 
 	// the formatter has to be on disk: either we just installed it, or it was already there

@@ -9,9 +9,12 @@ import { prepareSvApi } from '../core/engine.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
+	assertNoInstallConflict,
 	installDependencies,
 	installOption,
-	packageManagerPrompt
+	resolve_unset,
+	parse_install_flags,
+	pmOption
 } from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory } from '../core/verifiers.ts';
 import { createWorkspace } from '../core/workspace.ts';
@@ -38,53 +41,54 @@ export function normalizeTasksOption(tasks: string[] | true | undefined) {
 	return tasks === true ? [] : tasks;
 }
 
-const OptionsSchema = v.strictObject({
-	cwd: v.optional(v.string(), './'),
-	files: v.optional(v.string()),
-	gitCheck: v.boolean(),
-	tasks: v.pipe(
-		v.optional(v.union([v.array(v.string()), v.literal(true)])),
-		v.transform(normalizeTasksOption)
-	),
-	confirm: v.optional(v.boolean(), false),
-	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true)
-});
+const OptionsSchema = v.pipe(
+	v.strictObject({
+		cwd: v.optional(v.string(), './'),
+		files: v.optional(v.string()),
+		gitCheck: v.boolean(),
+		tasks: v.pipe(
+			v.optional(v.union([v.array(v.string()), v.literal(true)])),
+			v.transform(normalizeTasksOption)
+		),
+		confirm: v.optional(v.boolean(), false),
+		install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)])),
+		packageManager: v.optional(v.picklist(AGENT_NAMES))
+	}),
+	v.transform(({ install, packageManager, ...options }) => ({
+		...options,
+		installMode: parse_install_flags({ install, packageManager })
+	}))
+);
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')
 	.argument('[migration]', `migration to run`)
-	.option('--cwd <path>', 'working directory to run the migration in')
+	.addOption(common.cliOptions.cwd)
 	.option(
 		'--files <glob>',
 		'only run the migration on a subset of files matching the provided glob pattern'
 	)
-	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.addOption(common.cliOptions.gitCheck)
 	.option(
 		'--tasks [task...]',
 		'migration tasks to run. Omit list of tasks to show available tasks. Use `--task all` to run all migration tasks.'
 	)
 	.option('--confirm', 'skip the final confirmation prompt')
-	.option('--no-install', 'skip installing dependencies')
+	.addOption(pmOption)
 	.addOption(installOption)
+	.addOption(common.cliOptions.noInstall)
 	.action((migrationName, options) => {
-		if (hasInstallConflict(process.argv)) {
-			common.errorAndExit(
-				`The ${color.command('--install')} and ${color.command(
-					'--no-install'
-				)} options cannot be used together.`
-			);
-			return;
-		}
-
-		let verifiedMigrationName: string | symbol | undefined = v.parse(
-			MigrationScheme,
-			migrationName
-		);
-
-		const verifiedOptions = v.parse(OptionsSchema, options);
-
 		common.runCommand(async () => {
+			let verifiedMigrationName: string | symbol | undefined = v.parse(
+				MigrationScheme,
+				migrationName
+			);
+
+			const verifiedOptions = v.parse(OptionsSchema, options);
+
+			assertNoInstallConflict(process.argv);
+
 			const pkg = ensureValidWorkspace(verifiedOptions.cwd);
 			if (!pkg) return;
 
@@ -147,13 +151,13 @@ export const migrate = new Command('migrate')
 				strategy: 'project-script-then-files-only'
 			});
 
-			const packageManager =
-				verifiedOptions.install === false
-					? null
-					: verifiedOptions.install === true
-						? await packageManagerPrompt(workspace.cwd)
-						: verifiedOptions.install;
-			if (packageManager) {
+			verifiedOptions.installMode = await resolve_unset({
+				...verifiedOptions,
+				...workspace
+			});
+
+			if (verifiedOptions.installMode.kind === 'install') {
+				const { packageManager } = verifiedOptions.installMode;
 				// NPM installs will fail if the project contains dependencies that don't have compatible peer-dependencies,
 				// which is _a bit_ expected if they're migrating to a newer (or possibly next/rc) version of SvelteKit/Svelte.
 				const flags = packageManager === 'npm' ? ['--legacy-peer-deps'] : [];
@@ -360,13 +364,6 @@ function reportNextSteps(): void {
 		`Search for ${color.command(MIGRATION_TASK_MARKER)} to resolve ${total === 1 ? 'it' : 'them'}.`
 	];
 	p.note(body.join('\n'), 'Next steps', { format: (line) => line });
-}
-
-export function hasInstallConflict(argv: string[]) {
-	return (
-		argv.some((arg) => arg === '--install' || arg.startsWith('--install=')) &&
-		argv.includes('--no-install')
-	);
 }
 
 async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigration: boolean) {

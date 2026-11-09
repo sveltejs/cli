@@ -69,7 +69,11 @@ Specify the package name when creating an addon template. Accepts `@<org>/<pkg>`
 
 ### `--install <package-manager>`
 
-Installs dependencies with a specified package manager:
+Shorthand for `--install --package-manager <package-manager>`. Installs dependencies with the specified package manager.
+
+### `--package-manager <package-manager>`
+
+Selects the package manager for the project:
 
 - `npm`
 - `pnpm`
@@ -77,9 +81,9 @@ Installs dependencies with a specified package manager:
 - `bun`
 - `deno`
 
-### `--no-install`
+### `--[no-]install`
 
-Prevents installing dependencies.
+Whether to install dependencies.
 
 ### `--no-dir-check`
 

@@ -278,4 +278,21 @@ describe('cli', () => {
 			}
 		}
 	);
+
+	it('should error when `--install` and `--no-install` are used together', async () => {
+		const allArgs = [
+			SV_BIN_PATH,
+			'create',
+			'.test-output/cli/install-conflict',
+			'--install',
+			'--no-install'
+		];
+		const result = await exec('node', allArgs);
+
+		expect(
+			result.exitCode,
+			`Expected the cli to fail:\n  cmd: node ${allArgs.join(' ')}\n  stdout: ${result.stdout}\n  stderr: ${result.stderr}`
+		).toBe(1);
+		expect(result.stdout).toContain('options cannot be used together');
+	});
 });

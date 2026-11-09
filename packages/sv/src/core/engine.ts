@@ -41,9 +41,9 @@ function alphabetizeRecord(obj: Record<string, string>) {
 function updatePackages(
 	dependencies: Array<{ pkg: string; version: string; dev: boolean }>,
 	sv: SvApi
-): { installNeeded: boolean } {
-	let installNeeded = false;
-	if (dependencies.length === 0) return { installNeeded };
+): { dependencyChanged: boolean } {
+	let dependencyChanged = false;
+	if (dependencies.length === 0) return { dependencyChanged };
 
 	const pkgPath = filePaths.packageJson;
 	sv.file(
@@ -59,18 +59,18 @@ function updatePackages(
 				const declared = data[dependency][pkg];
 				if (declared && isRangeWithin(declared, version)) continue;
 
-				installNeeded = true;
+				dependencyChanged = true;
 				data[dependency][pkg] = version;
 			}
 
-			if (!installNeeded) return false; // do not edit the file if no changes were made
+			if (!dependencyChanged) return false; // do not edit the file if no changes were made
 
 			if (data.dependencies) data.dependencies = alphabetizeRecord(data.dependencies);
 			if (data.devDependencies) data.devDependencies = alphabetizeRecord(data.devDependencies);
 		})
 	);
 
-	return { installNeeded };
+	return { dependencyChanged };
 }
 
 export type InstallOptions<Addons extends AddonMap> = {
@@ -123,12 +123,13 @@ export async function applyAddons({
 }: ApplyAddonOptions): Promise<{
 	filesToFormat: string[];
 	status: Record<string, string[] | 'success'>;
+	// TODO[next-major]: rename `installNeeded` to `dependencyChanged` (breaking API change)
 	installNeeded: boolean;
 }> {
 	const filesToFormat = new Set<string>();
 	const status: Record<string, string[] | 'success'> = {};
 	const canceledAddons = new Set<string>();
-	let installNeeded = false;
+	let dependencyChanged = false;
 
 	const addonDefs = loadedAddons.map((l) => l.addon);
 	const ordered = orderAddons(addonDefs, setupResults);
@@ -160,7 +161,7 @@ export async function applyAddons({
 		const {
 			files,
 			cancels,
-			installNeeded: addonInstallNeeded
+			dependencyChanged: addonDependencyChanged
 		} = await runAddon({
 			workspace: addonWorkspace,
 			workspaceOptions,
@@ -170,7 +171,7 @@ export async function applyAddons({
 		});
 
 		files.forEach((f) => filesToFormat.add(f));
-		if (addonInstallNeeded) installNeeded = true;
+		dependencyChanged ||= addonDependencyChanged;
 		if (cancels.length === 0) {
 			status[addon.id] = 'success';
 		} else {
@@ -182,7 +183,7 @@ export async function applyAddons({
 	return {
 		filesToFormat: hasFormatter ? Array.from(filesToFormat) : [],
 		status,
-		installNeeded
+		installNeeded: dependencyChanged
 	};
 }
 
@@ -242,7 +243,7 @@ type RunAddon = {
 	multiple: boolean;
 };
 async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }: RunAddon) {
-	let modifiedFiles = new Set<string>();
+	const modifiedFiles = new Set<string>();
 
 	// apply default addon options
 	const options: OptionValues<any> = { ...workspaceOptions };
@@ -275,15 +276,20 @@ async function runAddon({ addon, loaded, multiple, workspace, workspaceOptions }
 		);
 	}
 
-	let installNeeded = false;
-	if (cancels.length === 0) {
-		({ modifiedFiles, installNeeded } = finalize());
+	if (cancels.length > 0) {
+		return {
+			files: Array.from(modifiedFiles),
+			cancels,
+			dependencyChanged: false
+		};
 	}
 
+	const result = finalize();
+
 	return {
-		files: Array.from(modifiedFiles),
+		files: Array.from(result.modifiedFiles),
 		cancels,
-		installNeeded
+		dependencyChanged: result.installNeeded
 	};
 }
 
@@ -347,6 +353,7 @@ export function prepareSvApi(
 	finalize: () => {
 		modifiedFiles: Set<string>;
 		unmodifiedFiles: Set<string>;
+		// TODO[next-major]: rename `installNeeded` to `dependencyChanged` (breaking API change)
 		installNeeded: boolean;
 	};
 } {
@@ -433,12 +440,12 @@ export function prepareSvApi(
 	return {
 		sv,
 		finalize: () => {
-			const { installNeeded } = updatePackages(dependencies, sv);
+			const { dependencyChanged } = updatePackages(dependencies, sv);
 
 			return {
 				modifiedFiles,
 				unmodifiedFiles,
-				installNeeded
+				installNeeded: dependencyChanged
 			};
 		}
 	};

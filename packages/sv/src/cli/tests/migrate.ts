@@ -9,7 +9,6 @@ import {
 } from '../../migrate/migration-task.ts';
 import {
 	formatAvailableTasks,
-	hasInstallConflict,
 	migrate,
 	normalizeTasksOption,
 	selectTasksFromArgs
@@ -115,17 +114,5 @@ describe('migration task tally', () => {
 		addMigrationTask('do this', { comments, node });
 		resetMigrationTaskCount();
 		expect(getMigrationTaskCount()).toBe(0);
-	});
-});
-
-describe('hasInstallConflict', () => {
-	it('detects --install and --no-install used together', () => {
-		expect(hasInstallConflict(['sv', 'migrate', '--install', 'pnpm', '--no-install'])).toBe(true);
-		expect(hasInstallConflict(['sv', 'migrate', '--install=pnpm', '--no-install'])).toBe(true);
-	});
-
-	it('allows either install option by itself', () => {
-		expect(hasInstallConflict(['sv', 'migrate', '--install', 'pnpm'])).toBe(false);
-		expect(hasInstallConflict(['sv', 'migrate', '--no-install'])).toBe(false);
 	});
 });
