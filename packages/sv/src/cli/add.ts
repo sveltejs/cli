@@ -739,7 +739,7 @@ export async function runAddonsApply({
 			setupResults: {}
 		};
 
-	const { filesToFormat, status, installNeeded } = await applyAddons({
+	const { filesToFormat, status, dependencyChanged } = await applyAddons({
 		loadedAddons,
 		workspace,
 		setupResults,
@@ -777,7 +777,7 @@ export async function runAddonsApply({
 	let packageManager: AgentName | null | undefined = null;
 	if (options.install === true) {
 		// prompt user when `package.json` has changed
-		if (installNeeded) {
+		if (dependencyChanged) {
 			packageManager = await packageManagerPrompt(options.cwd);
 		}
 	} else if (options.install === false) {
