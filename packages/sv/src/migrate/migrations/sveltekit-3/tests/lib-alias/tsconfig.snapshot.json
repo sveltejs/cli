@@ -1,0 +1,8 @@
+// @migration-task remove `rewriteRelativeImportExtensions` - the `#lib/*.ts` subpath imports are not relative paths, but the flag errors with TS2877
+{
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"rewriteRelativeImportExtensions": true
+	},
+	"include": ["src"]
+}
