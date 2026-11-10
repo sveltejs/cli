@@ -81,6 +81,19 @@ const file = asset('foo.png');\n` +
 		links: guideLink('$service-worker-(removed)')
 	},
 	{
+		title: 'Remove `rewriteRelativeImportExtensions` from tsconfig.json',
+		checks: [
+			{
+				include: '**/tsconfig.json',
+				patterns: [/["']rewriteRelativeImportExtensions["']/]
+			}
+		],
+		summary:
+			'`rewriteRelativeImportExtensions` will flag subpath imports with `.ts` as type errors.',
+		instructions: 'Remove `rewriteRelativeImportExtensions` from tsconfig.json.',
+		links: [...guideLink('$lib-is-now-lib'), ...guideLink('$app-tsconfig')]
+	},
+	{
 		title: 'Create a TypeScript project for the service worker',
 		checks: [
 			{
