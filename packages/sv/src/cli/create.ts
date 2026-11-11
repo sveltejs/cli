@@ -215,7 +215,9 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 				if (!hasNonIgnoredFiles) return;
 
 				const force = await p.confirm({
-					message: 'Directory not empty. Continue?',
+					message: ['Directory not empty:', color.path(path.resolve(directory)), 'Continue?'].join(
+						'\n'
+					),
 					initialValue: false
 				});
 				if (p.isCancel(force) || !force) {
