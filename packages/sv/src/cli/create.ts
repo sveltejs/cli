@@ -214,9 +214,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 				if (onlyGitFiles) return;
 
 				const force = await p.confirm({
-					message: ['Directory not empty:', color.path(path.resolve(directory)), 'Continue?'].join(
-						'\n'
-					),
+					message: `Directory not empty:\n${color.path(path.resolve(directory))}\n\nContinue?`,
 					initialValue: false
 				});
 				if (p.isCancel(force) || !force) {
