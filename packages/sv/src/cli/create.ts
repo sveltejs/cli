@@ -207,10 +207,10 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			force: async ({ results: { directory } }) => {
 				if (!options.dirCheck) return;
+				if (!directory) return;
+				if (!fs.existsSync(directory)) return;
 
-				if (!fs.existsSync(directory!)) return;
-
-				const files = fs.readdirSync(directory!);
+				const files = fs.readdirSync(directory);
 				const hasNonIgnoredFiles = files.some((file) => !file.startsWith('.git'));
 				if (!hasNonIgnoredFiles) return;
 
