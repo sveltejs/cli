@@ -79,6 +79,17 @@ export function addHooksHandle(
 			isType: true
 		});
 	}
+	function annotateHandleType(decl: AstTypes.VariableDeclaration) {
+		if (options.language === 'ts') {
+			const declarator = decl.declarations[0] as AstTypes.VariableDeclarator;
+			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
+		} else if (options.comments) {
+			common.addJsDocTypeComment(decl, options.comments, {
+				type: `import('${hooksTypesFrom}').Handle`
+			});
+		}
+	}
+
 	let isSpecifier: boolean = false;
 	let handleName = 'handle';
 	let exportDecl: AstTypes.ExportNamedDeclaration | undefined;
@@ -195,15 +206,7 @@ export function addHooksHandle(
 			name: options.newHandleName,
 			value: newHandle
 		});
-
-		if (options.language === 'ts') {
-			const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
-			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
-		} else if (options.comments) {
-			common.addJsDocTypeComment(newHandleDecl, options.comments, {
-				type: `import('${hooksTypesFrom}').Handle`
-			});
-		}
+		annotateHandleType(newHandleDecl);
 		node.body.push(newHandleDecl);
 
 		const handleDecl = variables.declaration(node, {
@@ -211,15 +214,7 @@ export function addHooksHandle(
 			name: handleName,
 			value: variables.createIdentifier(options.newHandleName)
 		});
-
-		if (options.language === 'ts') {
-			const declarator = handleDecl.declarations[0] as AstTypes.VariableDeclarator;
-			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
-		} else if (options.comments) {
-			common.addJsDocTypeComment(handleDecl, options.comments, {
-				type: `import('${hooksTypesFrom}').Handle`
-			});
-		}
+		annotateHandleType(handleDecl);
 
 		exports.createNamed(node, {
 			name: handleName,
@@ -234,14 +229,7 @@ export function addHooksHandle(
 		name: options.newHandleName,
 		value: newHandle
 	});
-	if (options.language === 'ts') {
-		const declarator = newHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
-		variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
-	} else if (options.comments) {
-		common.addJsDocTypeComment(newHandleDecl, options.comments, {
-			type: `import('${hooksTypesFrom}').Handle`
-		});
-	}
+	annotateHandleType(newHandleDecl);
 
 	// check if `handle` is using a sequence
 	let sequence: AstTypes.CallExpression | undefined;
@@ -344,14 +332,7 @@ export function addHooksHandle(
 			name: handleName,
 			value: sequenceCall
 		});
-		if (options.language === 'ts') {
-			const declarator = finalHandleDecl.declarations[0] as AstTypes.VariableDeclarator;
-			variables.typeAnnotateDeclarator(declarator, { typeName: 'Handle' });
-		} else if (options.comments) {
-			common.addJsDocTypeComment(finalHandleDecl, options.comments, {
-				type: `import('${hooksTypesFrom}').Handle`
-			});
-		}
+		annotateHandleType(finalHandleDecl);
 		node.body.push(newHandleDecl);
 		exports.createNamed(node, {
 			name: handleName,
