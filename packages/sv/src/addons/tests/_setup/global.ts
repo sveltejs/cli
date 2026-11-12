@@ -14,7 +14,12 @@ export default setupGlobal({
 	pre: async () => {
 		if (CI) {
 			// prefetch the storybook cli during ci to reduce fetching errors in tests
-			const { stdout } = await exec('pnpm', ['dlx', `create-storybook@latest`, '--version']);
+			const { stdout } = await exec('pnpm', [
+				'dlx',
+				'--allow-build=esbuild',
+				`create-storybook@latest`,
+				'--version'
+			]);
 			console.info('storybook version:', stdout);
 		}
 	}

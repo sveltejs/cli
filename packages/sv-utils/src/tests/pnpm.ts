@@ -1,7 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { detectPnpmMajor, writeAllowBuilds, writeLegacy } from '../pnpm-internals.ts';
+import {
+	detectPnpmMajor,
+	readsWorkspaceSettings,
+	writeAllowBuilds,
+	writeLegacy
+} from '../pnpm-internals.ts';
 import { allowBuilds } from '../pnpm.ts';
 import { coerceVersion } from '../semver.ts';
 
@@ -94,6 +99,16 @@ describe('pnpm < 11: writes onlyBuiltDependencies list', () => {
   - esbuild
 `;
 		expect(transform('esbuild')(input)).toBe(input);
+	});
+});
+
+describe('pnpm < 10.5: no settings in pnpm-workspace.yaml', () => {
+	it.each(['8.15.9', '9.15.0', '10.4.0'])('%s does not read them', (version) => {
+		expect(readsWorkspaceSettings(version)).toBe(false);
+	});
+
+	it.each(['10.5.0', '11.0.0', '12.4.2', undefined])('%s reads them', (version) => {
+		expect(readsWorkspaceSettings(version)).toBe(true);
 	});
 });
 

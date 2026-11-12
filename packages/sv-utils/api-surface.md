@@ -54,7 +54,9 @@ type TomlTableWithoutBigInt = {
 	[key: string]: TomlValueWithoutBigInt;
 };
 type TomlValueWithoutBigInt =
-	Exclude<TomlPrimitive, bigint> | TomlValueWithoutBigInt[] | TomlTableWithoutBigInt;
+	| Exclude<TomlPrimitive, bigint>
+	| TomlValueWithoutBigInt[]
+	| TomlTableWithoutBigInt;
 interface ParseOptions {
 	maxDepth?: number;
 	integersAsBigInt?: IntegersAsBigInt;
@@ -866,14 +868,25 @@ declare function appendElement(
 ): void;
 declare function addFromRawHtml(fragment: SvelteAst.Fragment, html: string): void;
 declare namespace text_d_exports {
-	export { upsert };
+	export { add, set, upsert };
 }
 type CommentEntry = {
 	text: string;
 	mode: 'append' | 'prepend';
 };
 type CommentOption = string | Array<string | CommentEntry>;
-declare function upsert(
+declare function add(
+	content: string,
+	key: string,
+	options?: {
+		value?: string;
+		comment?: CommentOption;
+		separator?: boolean;
+	}
+): string;
+/** @deprecated Use {@link add} (same behavior) or {@link set}. */
+declare const upsert: typeof add;
+declare function set(
 	content: string,
 	key: string,
 	options?: {
@@ -1034,9 +1047,10 @@ export declare function resolveCommandArray(
 	args: string[]
 ): string[];
 declare namespace pnpm_d_exports {
-	export { allowBuilds };
+	export { allowBuilds, supportsWorkspaceSettings };
 }
 declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
+declare function supportsWorkspaceSettings(cwd: string): boolean;
 export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;

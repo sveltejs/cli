@@ -12,8 +12,11 @@ export default defineAddon({
 		runsAfter(ADDON_IDS.vitest);
 		runsAfter(ADDON_IDS.eslint);
 	},
-	run: async ({ sv }) => {
+	run: async ({ sv, packageManager }) => {
 		const args = [`create-storybook@latest`, '--skip-install', '--no-dev'];
+
+		// pnpm >= 10 ignores dependency build scripts by default and newer versions fail `dlx` on them
+		if (packageManager === 'pnpm') args.unshift('--allow-build=esbuild');
 
 		// skips the onboarding prompt during tests
 		if (process.env.NODE_ENV?.toLowerCase() === 'test') args.push(...['--no-features', '--yes']);

@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import path from 'node:path';
-import { coerceVersion } from './semver.ts';
+import { coerceVersion, isVersionUnsupportedBelow } from './semver.ts';
 import { transforms, type TransformFn } from './tooling/transforms.ts';
 
 type YamlMap = {
@@ -19,34 +19,44 @@ type YamlDoc = {
 	createNode(value: unknown, options?: { flow?: boolean }): unknown;
 };
 
-const majorByCwd = new Map<string, number | undefined>();
+const versionByCwd = new Map<string, string | undefined>();
 
 /**
- * Detects the major version of pnpm that would run in `cwd`. `pnpm --version` resolves
+ * Detects the version of pnpm that would run in `cwd`. `pnpm --version` resolves
  * `packageManager` / `devEngines.packageManager` from there, so the invoker's pin does
  * not leak into the target project.
  *
  * Results are memoised per directory: pnpm self-manages versions, so a miss can download
  * a whole pnpm release before answering.
  */
-export function detectPnpmMajor(cwd: string): number | undefined {
+export function detectPnpmVersion(cwd: string): string | undefined {
 	const key = path.resolve(cwd);
-	if (majorByCwd.has(key)) return majorByCwd.get(key);
+	if (versionByCwd.has(key)) return versionByCwd.get(key);
 
-	let major: number | undefined;
+	let version: string | undefined;
 	try {
 		const out = execSync('pnpm --version', {
 			encoding: 'utf-8',
 			stdio: ['ignore', 'pipe', 'ignore'],
 			cwd: key
 		});
-		major = coerceVersion(out.trim()).major;
+		version = coerceVersion(out.trim()).version;
 	} catch {
-		major = undefined;
+		version = undefined;
 	}
 
-	majorByCwd.set(key, major);
-	return major;
+	versionByCwd.set(key, version);
+	return version;
+}
+
+export function detectPnpmMajor(cwd: string): number | undefined {
+	const version = detectPnpmVersion(cwd);
+	return version ? coerceVersion(version).major : undefined;
+}
+
+/** Before 10.5, `pnpm-workspace.yaml` must list `packages`, so a settings-only one breaks `pnpm install`. */
+export function readsWorkspaceSettings(version: string | undefined): boolean {
+	return !version || !isVersionUnsupportedBelow(version, '10.5.0');
 }
 
 export function writeAllowBuilds(packages: string[]): TransformFn {

@@ -1,5 +1,23 @@
 # @sveltejs/sv-utils
 
+## 1.1.0
+
+### Minor Changes
+
+- feat: add `text.add` and `text.set`, deprecate `text.upsert` ([#1424](https://github.com/sveltejs/cli/pull/1424))
+  
+  `text.upsert` is now deprecated in favor of `text.add` to better reflect its behaviour:
+   - `text.add` – Appends the value if missing (replaces `text.upsert`)
+   - `text.set` – Sets or overwrites the value regardless of its presence
+
+### Patch Changes
+
+- fix(sv-utils): resolve the config object when `vite.config` default-exports a function without `defineConfig` ([#1431](https://github.com/sveltejs/cli/pull/1431))
+
+- fix: bundle a single `esrap` so JSDoc-typed parameters in `.svelte` files are no longer wrapped in parentheses ([#1428](https://github.com/sveltejs/cli/pull/1428))
+
+- fix: skip `pnpm-workspace.yaml` settings on pnpm < 10.5 ([#1430](https://github.com/sveltejs/cli/pull/1430))
+
 ## 1.0.2
 
 ### Patch Changes

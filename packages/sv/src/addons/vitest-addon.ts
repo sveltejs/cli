@@ -54,7 +54,10 @@ const addon: Addon<AddonOptions<VitestOptions>, 'vitest'> = defineAddon({
 		);
 
 		const examplesDir = `${directory.lib}/vitest-examples`;
-		const [ts] = createPrinter(language === 'ts');
+		const [ts, jsdocs] = createPrinter(
+			language === 'ts',
+			!!file.typeConfig?.endsWith('jsconfig.json')
+		);
 
 		if (unitTesting || componentTesting) {
 			sv.file(
@@ -62,7 +65,7 @@ const addon: Addon<AddonOptions<VitestOptions>, 'vitest'> = defineAddon({
 				transforms.text(({ content }) => {
 					if (content) return false;
 
-					return dedent`
+					return dedent`${jsdocs('/** @param {string} name */\n')}
 						export function greet(name${ts(': string')})${ts(': string')} {
 							return 'Hello, ' + name + '!';
 						}

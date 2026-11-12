@@ -228,7 +228,7 @@ Namespaced helpers for AST manipulation:
 - **`svelte.*`** - ensureScript, addSlot, addFragment
 - **`json.*`** - arrayUpsert, packageScriptsUpsert
 - **`html.*`** - attribute manipulation
-- **`text.*`** - upsert lines in flat files (.env, .gitignore)
+- **`text.*`** - `add` (add if missing) or `set` lines in flat files (.env, .gitignore)
 
 ## Svelte config
 

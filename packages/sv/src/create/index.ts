@@ -2,14 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { sanitizeName } from '@sveltejs/sv-utils';
 import { filePaths, type PackageJSON } from '../core/common.ts';
-import { mkdirp, copy, dist, getSharedFiles, replace, kv } from './utils.ts';
-
-export type TemplateType = (typeof templateTypes)[number];
-export type LanguageType = (typeof languageTypes)[number];
+import { mkdirp, copy, dist_dir, replace, kv } from './utils.ts';
 
 const publicTemplateTypes = ['minimal', 'demo', 'library', 'addon'] as const;
-const templateTypes = ['minimal', 'demo', 'library', 'addon', 'svelte'] as const;
-const languageTypes = ['typescript', 'checkjs', 'none'] as const;
+export type TemplateType = (typeof publicTemplateTypes)[number] | 'svelte';
+export type LanguageType = 'typescript' | 'checkjs' | 'none';
 
 export type Options = {
 	cwd: string;
@@ -23,25 +20,14 @@ export type File = {
 	contents: string;
 };
 
-export type Condition = TemplateType | LanguageType | 'playground' | 'mcp' | 'skills' | 'agents';
-
-export type Common = {
-	files: Array<{
-		name: string;
-		include: Condition[];
-		exclude: Condition[];
-		contents: string;
-	}>;
-};
-
 export function create({ cwd, ...options }: Options): void {
 	mkdirp(cwd);
 
 	write_template_files(options.template, options.types, options.name, cwd);
 
-	// No need to write common files for 'svelte' template
+	// 'svelte' comes verbatim from create-vite
 	if (options.template !== 'svelte') {
-		write_common_files(cwd, options, options.name);
+		finalize_package_json(cwd, options.name);
 	}
 
 	// Files that are not relevant for 'addon' template
@@ -59,7 +45,7 @@ export function create({ cwd, ...options }: Options): void {
 
 export type TemplateMetadata = { name: TemplateType; title: string; description: string };
 export const templates: TemplateMetadata[] = publicTemplateTypes.map((dir) => {
-	const meta_file = dist(`templates/${dir}/meta.json`);
+	const meta_file = path.join(dist_dir, 'templates', dir, 'meta.json');
 	const { title, description } = JSON.parse(fs.readFileSync(meta_file, 'utf8'));
 
 	return {
@@ -70,7 +56,7 @@ export const templates: TemplateMetadata[] = publicTemplateTypes.map((dir) => {
 });
 
 function write_template_files(template: string, types: LanguageType, name: string, cwd: string) {
-	const dir = dist(`templates/${template}`);
+	const dir = path.join(dist_dir, 'templates', template);
 	copy(`${dir}/assets`, cwd, (name: string) => name.replace('DOT-', '.'), kv(name));
 	copy(`${dir}/package.json`, `${cwd}/package.json`, undefined, kv(name));
 
@@ -84,67 +70,15 @@ function write_template_files(template: string, types: LanguageType, name: strin
 	});
 }
 
-function write_common_files(cwd: string, options: Omit<Options, 'cwd'>, name: string) {
-	const files = getSharedFiles();
-
+function finalize_package_json(cwd: string, name: string) {
 	const pkg_file = path.join(cwd, filePaths.packageJson);
 	const pkg: PackageJSON = JSON.parse(fs.readFileSync(pkg_file, 'utf-8'));
-
-	sort_files(files).forEach((file) => {
-		const include = file.include.every((condition) => matches_condition(condition, options));
-		const exclude = file.exclude.some((condition) => matches_condition(condition, options));
-
-		if (exclude || !include) return;
-
-		if (file.name === filePaths.packageJson) {
-			const new_pkg: PackageJSON = JSON.parse(file.contents);
-			merge(pkg, new_pkg);
-		} else {
-			const dest = path.join(cwd, file.name);
-			mkdirp(path.dirname(dest));
-			fs.writeFileSync(dest, replace(file.contents, kv(name)));
-		}
-	});
 
 	pkg.dependencies = sort_keys(pkg.dependencies);
 	pkg.devDependencies = sort_keys(pkg.devDependencies);
 	pkg.name = sanitizeName(name, 'package');
 
 	fs.writeFileSync(pkg_file, JSON.stringify(pkg, null, '\t') + '\n');
-}
-
-function matches_condition(condition: Condition, options: Omit<Options, 'cwd'>) {
-	if (templateTypes.includes(condition as TemplateType)) {
-		return options.template === condition;
-	}
-	if (languageTypes.includes(condition as LanguageType)) {
-		return options.types === condition;
-	}
-	return Boolean(options[condition as never]);
-}
-
-function merge(target: any, source: any) {
-	for (const key in source) {
-		if (key in target) {
-			const target_value = target[key];
-			const source_value = source[key];
-
-			if (
-				typeof source_value !== typeof target_value ||
-				Array.isArray(source_value) !== Array.isArray(target_value)
-			) {
-				throw new Error('Mismatched values');
-			}
-
-			if (typeof source_value === 'object') {
-				merge(target_value, source_value);
-			} else {
-				target[key] = source_value;
-			}
-		} else {
-			target[key] = source[key];
-		}
-	}
 }
 
 function sort_keys<T>(obj?: Record<string, T>) {
@@ -156,22 +90,4 @@ function sort_keys<T>(obj?: Record<string, T>) {
 			sorted[key] = obj[key];
 			return sorted;
 		}, {});
-}
-
-/**
- * Sort files so that those which apply more generically come first so they
- * can be overwritten by files for more precise cases later.
- */
-function sort_files(files: Common['files']) {
-	return files.sort((f1, f2) => {
-		const f1_more_generic =
-			f1.include.every((include) => f2.include.includes(include)) &&
-			f1.exclude.every((exclude) => f2.exclude.includes(exclude));
-		const f2_more_generic =
-			f2.include.every((include) => f1.include.includes(include)) &&
-			f2.exclude.every((exclude) => f1.exclude.includes(exclude));
-		const same = f1_more_generic && f2_more_generic;
-		const different = !f1_more_generic && !f2_more_generic;
-		return same || different ? 0 : f1_more_generic ? -1 : 1;
-	});
 }
