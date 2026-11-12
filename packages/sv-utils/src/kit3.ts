@@ -13,15 +13,11 @@ export function resolveLibPrefix(kitRange: string | undefined): '#lib' | '$lib' 
 	return isKit3(kitRange) ? '#lib' : '$lib';
 }
 
-/**
- * The module that exports the hook types (`Handle`, `Reroute`). Kit 3 moved them to `@sveltejs/kit/hooks`.
- * Unlike `isKit3`, unknown ranges (`latest`, `catalog:`, `workspace:*`) resolve to Kit 3.
- */
+/** The module that exports the hook types (`Handle`, `Reroute`). Kit 3 moved them from `@sveltejs/kit` to `@sveltejs/kit/hooks`. */
 export function resolveHooksTypesFrom(
 	kitRange: string | undefined
 ): '@sveltejs/kit/hooks' | '@sveltejs/kit' {
-	const { major } = coerceVersion(kitRange ?? '');
-	return major !== undefined && major < 3 ? '@sveltejs/kit' : '@sveltejs/kit/hooks';
+	return isKit3(kitRange) ? '@sveltejs/kit/hooks' : '@sveltejs/kit';
 }
 
 /** The `package.json#imports` entries backing `#lib`. `libDir` is workspace-relative, e.g. `src/lib`. */

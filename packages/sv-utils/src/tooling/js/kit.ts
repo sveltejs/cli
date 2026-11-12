@@ -71,7 +71,10 @@ export function addHooksHandle(
 		kitVersion?: string;
 	}
 ): void {
-	const hooksTypesFrom = resolveHooksTypesFrom(options.kitVersion);
+	// callers that don't pass `kitVersion` keep the Kit 3 module they always got
+	const hooksTypesFrom = options.kitVersion
+		? resolveHooksTypesFrom(options.kitVersion)
+		: '@sveltejs/kit/hooks';
 	if (options.language === 'ts') {
 		imports.addNamed(node, {
 			from: hooksTypesFrom,
