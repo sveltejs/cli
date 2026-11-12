@@ -37,12 +37,13 @@ export { defineDemoPage, type DemoPage } from './demo-page.ts';
 // Env access (abstracts over legacy `$env/dynamic/*` vs declared `$app/env/*` + `src/env.ts`)
 export { defineEnv } from './env.ts';
 
-// Kit 3 specifics (version detection, `$lib` -> `#lib`, the generated tsconfig)
+// Kit 3 specifics (version detection, `$lib` -> `#lib`, hook types module, the generated tsconfig)
 export {
 	KIT3_TSCONFIG,
 	KIT3_TSCONFIG_DEFAULT,
 	isKit3,
 	libSubpathImports,
+	resolveHooksTypesFrom,
 	resolveLibPrefix
 } from './kit3.ts';
 
