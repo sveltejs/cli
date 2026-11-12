@@ -7,6 +7,6 @@ export function run(ast: AstTypes.Program, comments: Comments): void {
 		newHandleName: 'handleFoo',
 		handleContent: 'i18n.handle()',
 		comments,
-		typesFrom: '@sveltejs/kit'
+		kitVersion: '^2.70.3'
 	});
 }

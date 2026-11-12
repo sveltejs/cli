@@ -74,7 +74,7 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 		const lib = resolveLibPrefix(kitRange);
 		// kit 3 renamed the `Pathname` route type to `Path`
 		const pathType = isKit3(kitRange) ? 'Path' : 'Pathname';
-		const typesFrom = resolveHooksTypesFrom(kitRange);
+		const hooksTypesFrom = resolveHooksTypesFrom(kitRange);
 		const paraglideOutDir = `${directory.lib}/paraglide`;
 
 		sv.devDependency('@inlang/paraglide-js', '^2.18.2');
@@ -124,13 +124,13 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 
 				if (language === 'ts') {
 					js.imports.addNamed(ast, {
-						from: typesFrom,
+						from: hooksTypesFrom,
 						imports: ['Reroute'],
 						isType: true
 					});
 				} else {
 					js.common.addJsDocTypeComment(existingExport, comments, {
-						type: `import('${typesFrom}').Reroute`
+						type: `import('${hooksTypesFrom}').Reroute`
 					});
 				}
 			})
@@ -159,7 +159,7 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 					newHandleName: 'handleParaglide',
 					handleContent: hookHandleContent,
 					comments,
-					typesFrom
+					kitVersion: kitRange
 				});
 			})
 		);

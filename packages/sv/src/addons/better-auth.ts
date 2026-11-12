@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 import { log } from '@clack/prompts';
 import {
-	resolveHooksTypesFrom,
 	resolveLibPrefix,
 	type AstTypes,
 	Walker,
@@ -334,7 +333,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					newHandleName: 'handleBetterAuth',
 					handleContent,
 					comments,
-					typesFrom: resolveHooksTypesFrom(kitRange)
+					kitVersion: kitRange
 				});
 			})
 		);

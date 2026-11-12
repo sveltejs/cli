@@ -813,7 +813,7 @@ declare function addHooksHandle(
 		newHandleName: string;
 		handleContent: string;
 		comments: Comments;
-		typesFrom?: '@sveltejs/kit' | '@sveltejs/kit/hooks';
+		kitVersion?: string;
 	}
 ): void;
 declare namespace vite_d_exports {
