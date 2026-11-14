@@ -1,5 +1,23 @@
 # sv
 
+## 1.4.0
+
+### Minor Changes
+
+- feat(ai-tools): ask a separate question for `AGENTS.md` when needed ([#1454](https://github.com/sveltejs/cli/pull/1454))
+
+### Patch Changes
+
+- fix(sv check): only run `svelte-check` when it's installed in the project (global installs are ignored) ([#1460](https://github.com/sveltejs/cli/pull/1460))
+
+- fix(addons): import the `Handle` and `Reroute` types from `@sveltejs/kit` in SvelteKit 2 projects ([#1418](https://github.com/sveltejs/cli/pull/1418))
+
+- fix(migrate): mark `rewriteRelativeImportExtensions` with an `@migration-task` comment when the `lib-alias` task runs ([#1464](https://github.com/sveltejs/cli/pull/1464))
+
+- fix(create): print the directory when a conflict is detected and narrow conflict detection logic ([#1465](https://github.com/sveltejs/cli/pull/1465))
+- Updated dependencies [[`b680da8`](https://github.com/sveltejs/cli/commit/b680da84e8cb0fdb2da63bbaf8f7da3b9bace366)]:
+  - @sveltejs/sv-utils@1.1.1
+
 ## 1.3.0
 
 ### Minor Changes
