@@ -2,7 +2,7 @@
 
 # sv - the Svelte CLI
 
-Home of the [Svelte CLI](https://npmx.dev/sv) (`sv`). A few [official add-ons](https://svelte.dev/docs/cli/sv-add#Official-add-ons). As well as the published docs at [svelte.dev/docs/cli](https://svelte.dev/docs/cli/overview).
+Home of the [Svelte CLI](https://npmx.dev/sv) (`sv`), few [official add-ons](https://svelte.dev/docs/cli/sv-add#Official-add-ons), as well as the docs at [svelte.dev/docs/cli](https://svelte.dev/docs/cli/overview).
 
 ### Packages
 
