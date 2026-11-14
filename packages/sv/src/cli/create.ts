@@ -207,15 +207,14 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			force: async ({ results: { directory } }) => {
 				if (!options.dirCheck) return;
+				if (!directory) return;
+				if (!fs.existsSync(directory)) return;
 
-				if (!fs.existsSync(directory!)) return;
-
-				const files = fs.readdirSync(directory!);
-				const hasNonIgnoredFiles = files.some((file) => !file.startsWith('.git'));
-				if (!hasNonIgnoredFiles) return;
+				const onlyGitFiles = fs.readdirSync(directory).every((entry) => entry === '.git');
+				if (onlyGitFiles) return;
 
 				const force = await p.confirm({
-					message: 'Directory not empty. Continue?',
+					message: `Directory not empty:\n${color.path(path.resolve(directory))}\n\nContinue?`,
 					initialValue: false
 				});
 				if (p.isCancel(force) || !force) {
