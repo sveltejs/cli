@@ -136,16 +136,10 @@ export const migrate = new Command('migrate')
 			if (!tasks) return;
 
 			resetMigrationTaskCount();
-			const modifiedFiles = await applyTasks(verifiedOptions, tasks, legacyMigration);
+			await applyTasks(verifiedOptions, tasks, legacyMigration);
 			if (legacyMigration) return;
 
 			const workspace = await createWorkspace({ cwd: verifiedOptions.cwd });
-			await formatFiles({
-				cwd: workspace.cwd,
-				packageManager: workspace.packageManager,
-				filesToFormat: modifiedFiles.values().toArray(),
-				strategy: 'project-script-then-files-only'
-			});
 
 			const packageManager =
 				verifiedOptions.install === false
@@ -153,12 +147,15 @@ export const migrate = new Command('migrate')
 					: verifiedOptions.install === true
 						? await packageManagerPrompt(workspace.cwd)
 						: verifiedOptions.install;
+
 			if (packageManager) {
 				// NPM installs will fail if the project contains dependencies that don't have compatible peer-dependencies,
 				// which is _a bit_ expected if they're migrating to a newer (or possibly next/rc) version of SvelteKit/Svelte.
 				const flags = packageManager === 'npm' ? ['--legacy-peer-deps'] : [];
 				await installDependencies(packageManager, workspace.cwd, flags);
 			}
+
+			await formatFiles({ cwd: workspace.cwd });
 
 			reportNextSteps();
 		});

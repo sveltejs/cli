@@ -21,7 +21,7 @@ import {
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
 import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
-import { formatFiles, isPrettierInstalled } from '../core/formatFiles.ts';
+import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
@@ -716,7 +716,6 @@ export async function runAddonsApply({
 }): Promise<{
 	nextSteps: string[];
 	argsFormattedAddons: string[];
-	filesToFormat: string[];
 	successfulAddons: LoadedAddon[];
 	setupResults: Record<string, SetupResult>;
 }> {
@@ -733,12 +732,11 @@ export async function runAddonsApply({
 		return {
 			nextSteps: [],
 			argsFormattedAddons: [],
-			filesToFormat: [],
 			successfulAddons: [],
 			setupResults: {}
 		};
 
-	const { filesToFormat, status, installNeeded } = await applyAddons({
+	const { status, installNeeded } = await applyAddons({
 		loadedAddons,
 		workspace,
 		setupResults,
@@ -847,15 +845,7 @@ export async function runAddonsApply({
 		depsInstalled = await installDependencies(packageManager, options.cwd);
 	}
 
-	// the formatter has to be on disk: either we just installed it, or it was already there
-	if (depsInstalled || isPrettierInstalled(options.cwd)) {
-		await formatFiles({
-			packageManager: packageManager ?? workspace.packageManager,
-			cwd: options.cwd,
-			filesToFormat,
-			strategy: 'files-only'
-		});
-	}
+	await formatFiles({ cwd: options.cwd });
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);
 	if (packageManager && !depsInstalled) {
@@ -864,7 +854,7 @@ export async function runAddonsApply({
 		);
 	}
 
-	return { nextSteps, argsFormattedAddons, filesToFormat, successfulAddons, setupResults };
+	return { nextSteps, argsFormattedAddons, successfulAddons, setupResults };
 }
 
 export function getNextSteps(

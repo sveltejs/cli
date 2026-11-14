@@ -24,7 +24,7 @@ For task-based migrations, `sv migrate` shows the migration tasks before applyin
 
 To make migration changes easier to review, run one selectable task at a time and commit the result before starting the next one. The task system is intended to create focused commits, not independent migration paths. Do not expect a project to work after running only a few tasks. Most projects need all applicable tasks before the migration is complete.
 
-After a successful task-based migration, `sv` formats the changes using the project's `format` or `fmt` script when one exists, otherwise it formats changed files with Prettier when available. It then prompts to install updated dependencies. Some transformations leave `@migration-task` comments where manual work is required; search the project for that exact marker before considering the migration complete.
+After a successful task-based migration, `sv` will prompt to install updated dependencies and runs the repo's (or monorepo's) `format` or `fmt` script when one exists. Some transformations leave `@migration-task` comments where manual work is required; search the project for that exact marker before considering the migration complete.
 
 ## Task-based migrations
 
