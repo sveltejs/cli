@@ -15,7 +15,7 @@ Please keep your pull requests focused to feature or issue. Focused smaller chan
 
 ## Synced files
 
-Some files in this repository are synced from other repositories, so changes to those files should be made in their source repository instead. Direct edits will be overwritten by `pnpm update-deps`:
+The following folders are synced from other repositories, changes to these files should be made upstream. Direct edits will be overwritten by `pnpm update-deps`:
 
 - `packages/sv/src/addons/ai-tools/**` -> [sveltejs/ai-tools](https://github.com/sveltejs/ai-tools)
 
