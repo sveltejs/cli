@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 1.1.1
+
+### Patch Changes
+
+- feat(sv-utils): add `kitVersion` option to `kit.addHooksHandle` and a `resolveHooksTypesFrom` helper ([#1418](https://github.com/sveltejs/cli/pull/1418))
+
 ## 1.1.0
 
 ### Minor Changes
