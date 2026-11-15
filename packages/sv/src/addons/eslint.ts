@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { type AstTypes, svelteConfig, transforms } from '@sveltejs/sv-utils';
+import { type AstTypes, fileExists, isKit3, svelteConfig, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import {
 	addEslintConfigPrettier,
@@ -17,7 +17,13 @@ export default defineAddon({
 	options: {},
 	run: ({ sv, language, dependencyVersion, file, cwd }) => {
 		const typescript = language === 'ts';
+		const kitVersion = dependencyVersion('@sveltejs/kit');
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
+		// typed linting needs every linted file resolved by exactly one mechanism:
+		// the project service (file is in a tsconfig) or `allowDefaultProject` —
+		// never both. the addon adds the config file to the tsconfig include for
+		// Kit 3 projects with a tsconfig, which decides which side it is on
+		const configInTsconfigProject = isKit3(kitVersion) && fileExists(cwd, 'tsconfig.json');
 		// Only wire up `svelteConfig` when there's a separate `svelte.config.{js,ts}` file to import.
 		// When the config lives in `vite.config.js` instead, there's nothing importable here:
 		// `svelte-eslint-parser` falls back to its defaults when `svelteConfig` is omitted, and the
@@ -38,9 +44,19 @@ export default defineAddon({
 			sv,
 			cwd,
 			language,
-			kitVersion: dependencyVersion('@sveltejs/kit'),
+			kitVersion,
 			entry: 'eslint.config.js'
 		});
+
+		if (svelteConfigFile) {
+			addToTypeConfigInclude({
+				sv,
+				cwd,
+				language,
+				kitVersion,
+				entry: svelteConfigFile
+			});
+		}
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.60.1');
 
@@ -99,7 +115,9 @@ export default defineAddon({
 						' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'
 				});
 
-				const tsOptions = { projectService: { allowDefaultProject: ['*.js'] } };
+				const tsOptions = configInTsconfigProject
+					? { projectService: true }
+					: { projectService: { allowDefaultProject: ['*.js'] } };
 				const globalsConfig = js.object.create({
 					languageOptions: {
 						parserOptions: typescript ? tsOptions : undefined,

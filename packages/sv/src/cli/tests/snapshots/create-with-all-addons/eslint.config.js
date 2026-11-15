@@ -17,7 +17,7 @@ export default defineConfig(
 	svelte.configs.prettier,
 	{
 		languageOptions: {
-			parserOptions: { projectService: { allowDefaultProject: ['*.js'] } },
+			parserOptions: { projectService: true },
 			globals: { ...globals.browser, ...globals.node }
 		},
 		rules: {
