@@ -90,8 +90,14 @@ const file = asset('foo.png');\n` +
 			}
 		],
 		summary:
-			'`rewriteRelativeImportExtensions` will flag subpath imports with `.ts` as type errors.',
-		instructions: 'Remove `rewriteRelativeImportExtensions` from tsconfig.json.',
+			'`rewriteRelativeImportExtensions` only rewrites `.ts` extensions on relative imports. ' +
+			'Subpath imports ending in `.ts` — such as the `#lib/*.ts` imports added by the `lib-alias` migration — ' +
+			'are not rewritten, so TypeScript reports TS2877 for them.',
+		instructions:
+			'Remove `rewriteRelativeImportExtensions` from `compilerOptions` in tsconfig.json. ' +
+			'This is safe for SvelteKit projects: `$app/tsconfig` already sets `allowImportingTsExtensions`, ' +
+			'so `.ts` imports still type-check. Only keep the flag if you run `tsc` to emit and rely on it ' +
+			'rewriting relative `.ts` imports in the output.',
 		links: [...guideLink('$lib-is-now-lib'), ...guideLink('$app-tsconfig')]
 	},
 	{
