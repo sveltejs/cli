@@ -432,7 +432,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
-					const parseEntry = (input${ts(' : FormDataEntryValue | null')}): string =>
+					const parseEntry = (input${ts(' : FormDataEntryValue | null')})${ts(': string')} =>
 						input instanceof File ? input.name : (input ?? '');
 
 					export const load${ts(': PageServerLoad')} = (event) => {
