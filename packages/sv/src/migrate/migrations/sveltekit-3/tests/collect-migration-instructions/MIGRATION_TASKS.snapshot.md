@@ -18,6 +18,22 @@ Also search the project for `@migration-task` comments. They may describe additi
 
 ## Migration tasks
 
+### Remove obsolete `.svelte-kit` includes
+
+Files generated in `.svelte-kit` for SvelteKit 2 are obsolete and can override SvelteKit 3 types.
+
+#### What to do
+
+Remove every `.svelte-kit` entry from `include`. Preserve all user-owned source, test, and config entries.
+
+#### References
+
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#$app-tsconfig)
+
+#### Files to review
+
+- [ ] `tsconfig.json`
+
 ### Copy `page.url` before mutating it
 
 `page.url` and its search parameters are readonly in SvelteKit 3.
