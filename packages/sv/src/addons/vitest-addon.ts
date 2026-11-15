@@ -36,12 +36,12 @@ const addon: Addon<AddonOptions<VitestOptions>, 'vitest'> = defineAddon({
 			vitestV3Installed = coerceVersion(vitestVersion).major === 3;
 		}
 
-		sv.devDependency('vitest', '^4.1.8');
+		sv.devDependency('vitest', '^5.1.0');
 
 		if (componentTesting) {
-			sv.devDependency('@vitest/browser-playwright', '^4.1.8');
-			sv.devDependency('vitest-browser-svelte', '^2.1.1');
-			sv.devDependency('playwright', '^1.60.0');
+			sv.devDependency('@vitest/browser-playwright', '^5.1.0');
+			sv.devDependency('vitest-browser-svelte', '^3.1.0');
+			sv.devDependency('playwright', '^1.65.1');
 		}
 
 		sv.file(

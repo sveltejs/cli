@@ -112,7 +112,7 @@ export const migrate = new Command('migrate')
 
 			const migration = migrations.find((m) => m.id === verifiedMigrationName);
 			if (!migration) {
-				common.errorAndExit(`Migration ${verifiedMigrationName} not found`);
+				common.errorAndExit(`Migration ${String(verifiedMigrationName)} not found`);
 				return;
 			}
 			const legacyMigration = migration.legacy ?? false;

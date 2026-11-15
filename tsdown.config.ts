@@ -118,7 +118,7 @@ export default defineConfig([
 		outDir: `${API_SURFACE_DIR}/index`,
 		dts: {
 			generator: 'oxc',
-			emitDtsOnly: true
+			dtsOnly: true
 		},
 		failOnWarn: true,
 		deps: svDeps,
@@ -134,7 +134,7 @@ export default defineConfig([
 		outDir: `${API_SURFACE_DIR}/testing`,
 		dts: {
 			generator: 'oxc',
-			emitDtsOnly: true
+			dtsOnly: true
 		},
 		failOnWarn: true,
 		deps: svDeps,
@@ -211,7 +211,7 @@ export default defineConfig([
 		entry: ['src/index.ts'],
 		dts: {
 			generator: 'oxc',
-			emitDtsOnly: true
+			dtsOnly: true
 		},
 		failOnWarn: true,
 		deps: svUtilsDtsDeps
@@ -221,7 +221,7 @@ export default defineConfig([
 		entry: ['src/browser.ts'],
 		dts: {
 			generator: 'oxc',
-			emitDtsOnly: true
+			dtsOnly: true
 		},
 		failOnWarn: true,
 		deps: svUtilsDtsDeps

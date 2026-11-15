@@ -78,4 +78,5 @@ export declare function createSetupTest(
 	testCases: Array<AddonTestCase<AddonMap>>;
 	prepareServer: typeof prepareServer;
 };
+export {};
 ```

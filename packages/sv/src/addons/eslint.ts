@@ -27,8 +27,8 @@ export default defineAddon({
 		const svelteConfigFile = configLocation?.kind === 'svelte' ? configLocation.path : undefined;
 
 		sv.devDependency('eslint', ESLINT_VERSION);
-		sv.devDependency('eslint-plugin-svelte', '^3.19.0');
-		sv.devDependency('globals', '^17.6.0');
+		sv.devDependency('eslint-plugin-svelte', '^3.24.1');
+		sv.devDependency('globals', '^17.14.0');
 		sv.devDependency('@eslint/js', '^10.0.1');
 
 		// the `eslint.config.js` imports `node:path`
@@ -42,7 +42,7 @@ export default defineAddon({
 			entry: 'eslint.config.js'
 		});
 
-		if (typescript) sv.devDependency('typescript-eslint', '^8.60.1');
+		if (typescript) sv.devDependency('typescript-eslint', '^8.72.2');
 
 		if (prettierInstalled) sv.devDependency('eslint-config-prettier', '^10.1.8');
 

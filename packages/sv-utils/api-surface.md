@@ -44,124 +44,22 @@ declare class TomlDate extends Date {
 	static wrapAsLocalDate(jsDate: Date): TomlDate;
 	static wrapAsLocalTime(jsDate: Date): TomlDate;
 }
-type IntegersAsBigInt = undefined | boolean | 'asNeeded';
-type TomlPrimitive = string | number | bigint | boolean | TomlDate;
+type _Temporal = typeof globalThis extends {
+	Temporal: infer T;
+}
+	? T
+	: never;
+type AnyTemporalDateTime =
+	| InstanceType<_Temporal['Instant']>
+	| InstanceType<_Temporal['PlainDate']>
+	| InstanceType<_Temporal['PlainDateTime']>
+	| InstanceType<_Temporal['PlainTime']>
+	| InstanceType<_Temporal['ZonedDateTime']>;
+type TomlPrimitive = string | number | bigint | boolean | TomlDate | AnyTemporalDateTime;
 type TomlTable = {
 	[key: string]: TomlValue;
 };
 type TomlValue = TomlPrimitive | TomlValue[] | TomlTable;
-type TomlTableWithoutBigInt = {
-	[key: string]: TomlValueWithoutBigInt;
-};
-type TomlValueWithoutBigInt =
-	| Exclude<TomlPrimitive, bigint>
-	| TomlValueWithoutBigInt[]
-	| TomlTableWithoutBigInt;
-interface ParseOptions {
-	maxDepth?: number;
-	integersAsBigInt?: IntegersAsBigInt;
-}
-declare function parse$1(
-	toml: string,
-	options?: ParseOptions & {
-		integersAsBigInt: Exclude<IntegersAsBigInt, undefined | false>;
-	}
-): TomlTable;
-declare function parse$1(toml: string, options?: ParseOptions): TomlTableWithoutBigInt;
-/*!
- * Copyright (c) Squirrel Chat et al., All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holder nor the names of its contributors
- *    may be used to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-declare function stringify(
-	obj: any,
-	{
-		maxDepth,
-		numbersAsFloat
-	}?: {
-		maxDepth?: number;
-		numbersAsFloat?: boolean;
-	}
-): string;
-/*!
- * Copyright (c) Squirrel Chat et al., All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holder nor the names of its contributors
- *    may be used to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-type TomlErrorOptions = ErrorOptions & {
-	toml: string;
-	ptr: number;
-};
-declare class TomlError extends Error {
-	line: number;
-	column: number;
-	codeblock: string;
-	constructor(message: string, options: TomlErrorOptions);
-}
-declare namespace index_d_exports$6 {
-	export {
-		TomlDate,
-		TomlError,
-		TomlValue as TomlPrimitive,
-		TomlTable,
-		TomlTableWithoutBigInt,
-		TomlValue,
-		TomlValueWithoutBigInt,
-		_default as default,
-		parse$1 as parse,
-		stringify
-	};
-}
-declare const _default: {
-	parse: typeof parse$1;
-	stringify: typeof stringify;
-	TomlDate: typeof TomlDate;
-	TomlError: typeof TomlError;
-};
 declare module 'estree' {
 	interface TSTypeAnnotation {
 		type: 'TSTypeAnnotation';
@@ -260,53 +158,6 @@ declare module 'estree' {
 		importKind?: 'type' | 'value';
 	}
 }
-declare namespace index_d_exports$5 {
-	export {
-		estree as AstTypes,
-		CommentType,
-		Comments,
-		CommentsInternal,
-		SvelteAst,
-		guessIndentString,
-		guessQuoteStyle,
-		parseCss$1 as parseCss,
-		parseHtml$1 as parseHtml,
-		parseJson$1 as parseJson,
-		parseScript$1 as parseScript,
-		parseSvelte$1 as parseSvelte,
-		parseToml$1 as parseToml,
-		parseYaml$1 as parseYaml,
-		serializeCss,
-		serializeHtml,
-		serializeJson,
-		serializeScript,
-		serializeSvelte,
-		serializeToml,
-		serializeYaml,
-		stripAst,
-		transformToInternal
-	};
-}
-declare function parseScript$1(content: string): {
-	ast: estree.Program;
-	comments: Comments;
-};
-declare function serializeScript(
-	ast: estree.Node,
-	comments?: Comments,
-	previousContent?: string
-): string;
-declare function parseCss$1(content: string): SvelteAst.CSS.StyleSheetBase;
-declare function serializeCss(ast: SvelteAst.CSS.StyleSheetBase): string;
-declare function parseHtml$1(content: string): SvelteAst.Fragment;
-declare function serializeHtml(ast: SvelteAst.Fragment, previousContent?: string): string;
-declare function stripAst<T>(node: T, propsToRemove: string[]): T;
-declare function parseJson$1(content: string): any;
-declare function serializeJson(originalInput: string, data: unknown): string;
-declare function guessIndentString(str: string | undefined): string;
-declare function guessQuoteStyle(ast: estree.Node): 'single' | 'double' | undefined;
-declare function parseYaml$1(content: string): ReturnType<typeof yaml.parseDocument>;
-declare function serializeYaml(data: ReturnType<typeof yaml.parseDocument>): string;
 type CommentType = {
 	type: 'Line' | 'Block';
 	value: string;
@@ -324,18 +175,8 @@ declare class Comments {
 			position?: 'leading' | 'trailing';
 		}
 	): void;
-	remove(predicate: (comment: estree.Comment) => boolean | undefined | null): void;
+	remove(predicate: (comment: TsEstree.Comment) => boolean | undefined | null): void;
 }
-interface CommentsInternal {
-	original: estree.Comment[];
-	leading: WeakMap<BaseNode$1, CommentType[]>;
-	trailing: WeakMap<BaseNode$1, CommentType[]>;
-}
-declare function transformToInternal(comments: Comments | undefined): CommentsInternal;
-declare function parseSvelte$1(content: string): SvelteAst.Root;
-declare function serializeSvelte(ast: SvelteAst.SvelteNode, previousContent?: string): string;
-declare function parseToml$1(content: string): TomlTable;
-declare function serializeToml(data: TomlTable): string;
 type YamlDocument = {
 	get(key: string): unknown;
 	set(key: string, value: unknown): void;
@@ -345,7 +186,7 @@ type ParseBase = {
 	generateCode(): string;
 };
 declare function parseScript(source: string): {
-	ast: estree.Program;
+	ast: TsEstree.Program;
 	comments: Comments;
 } & ParseBase;
 declare function parseCss(source: string): {
@@ -444,14 +285,14 @@ declare function addAtRule(
 declare namespace array_d_exports {
 	export { append, create$1 as create, prepend };
 }
-declare function create$1(): estree.ArrayExpression;
+declare function create$1(): TsEstree.ArrayExpression;
 declare function append(
-	node: estree.ArrayExpression,
-	element: string | estree.Expression | estree.SpreadElement
+	node: TsEstree.ArrayExpression,
+	element: string | TsEstree.Expression | TsEstree.SpreadElement
 ): void;
 declare function prepend(
-	node: estree.ArrayExpression,
-	element: string | estree.Expression | estree.SpreadElement
+	node: TsEstree.ArrayExpression,
+	element: string | TsEstree.Expression | TsEstree.SpreadElement
 ): void;
 declare namespace object_d_exports {
 	export {
@@ -466,37 +307,37 @@ declare namespace object_d_exports {
 }
 type ObjectPrimitiveValues = string | number | boolean | undefined | null;
 type ObjectValues = ObjectPrimitiveValues | Record<string, any> | ObjectValues[];
-type ObjectMap$1 = Record<string, ObjectValues | estree.Expression>;
-declare function propertyName(property: estree.Property): string | undefined;
+type ObjectMap$1 = Record<string, ObjectValues | TsEstree.Expression>;
+declare function propertyName(property: TsEstree.Property): string | undefined;
 declare function findProperty(
-	node: estree.ObjectExpression,
+	node: TsEstree.ObjectExpression,
 	options: {
 		name: string;
 	}
-): estree.Property | undefined;
+): TsEstree.Property | undefined;
 declare function removeProperty(
-	node: estree.ObjectExpression,
+	node: TsEstree.ObjectExpression,
 	options: {
 		name: string;
 	}
 ): boolean;
-declare function property<T extends estree.Expression | estree.Identifier>(
-	node: estree.ObjectExpression,
+declare function property<T extends TsEstree.Expression | TsEstree.Identifier>(
+	node: TsEstree.ObjectExpression,
 	options: {
 		name: string;
 		fallback: T;
 	}
 ): T;
-declare function propertyNode<T extends estree.Expression | estree.Identifier>(
-	node: estree.ObjectExpression,
+declare function propertyNode<T extends TsEstree.Expression | TsEstree.Identifier>(
+	node: TsEstree.ObjectExpression,
 	options: {
 		name: string;
 		fallback: T;
 	}
-): estree.Property;
-declare function create(properties: ObjectMap$1): estree.ObjectExpression;
+): TsEstree.Property;
+declare function create(properties: ObjectMap$1): TsEstree.ObjectExpression;
 declare function overrideProperties(
-	objectExpression: estree.ObjectExpression,
+	objectExpression: TsEstree.ObjectExpression,
 	properties: ObjectMap$1
 ): void;
 declare namespace common_d_exports {
@@ -522,62 +363,62 @@ declare namespace common_d_exports {
 	};
 }
 declare function addJsDocTypeComment(
-	node: estree.Node,
+	node: TsEstree.Node,
 	comments: Comments,
 	options: {
 		type: string;
 	}
 ): void;
 declare function addJsDocComment(
-	node: estree.Node,
+	node: TsEstree.Node,
 	comments: Comments,
 	options: {
 		params: Record<string, string>;
 	}
 ): void;
 declare function typeAnnotate(
-	node: estree.Expression,
+	node: TsEstree.Expression,
 	options: {
 		type: string;
 	}
-): estree.TSAsExpression;
+): TsEstree.TSAsExpression;
 declare function createSatisfies(
-	node: estree.Expression,
+	node: TsEstree.Expression,
 	options: {
 		type: string;
 	}
-): estree.TSSatisfiesExpression;
-declare function createSpread(argument: estree.Expression): estree.SpreadElement;
-declare function createLiteral(value: string | number | boolean | null): estree.Literal;
-declare function areNodesEqual(node: estree.Node, otherNode: estree.Node): boolean;
-declare function createBlockStatement(): estree.BlockStatement;
+): TsEstree.TSSatisfiesExpression;
+declare function createSpread(argument: TsEstree.Expression): TsEstree.SpreadElement;
+declare function createLiteral(value: string | number | boolean | null): TsEstree.Literal;
+declare function areNodesEqual(node: TsEstree.Node, otherNode: TsEstree.Node): boolean;
+declare function createBlockStatement(): TsEstree.BlockStatement;
 declare function createExpressionStatement(options: {
-	expression: estree.Expression;
-}): estree.ExpressionStatement;
+	expression: TsEstree.Expression;
+}): TsEstree.ExpressionStatement;
 declare function appendFromString(
-	node: estree.BlockStatement | estree.Program,
+	node: TsEstree.BlockStatement | TsEstree.Program,
 	options: {
 		code: string;
 		comments?: Comments;
 	}
 ): void;
-declare function parseExpression(code: string): estree.Expression;
-declare function parseStatement(code: string): estree.Statement;
-declare function parseFromString<T extends estree.Node>(code: string): T;
+declare function parseExpression(code: string): TsEstree.Expression;
+declare function parseStatement(code: string): TsEstree.Statement;
+declare function parseFromString<T extends TsEstree.Node>(code: string): T;
 declare function appendStatement(
-	node: estree.BlockStatement | estree.Program,
+	node: TsEstree.BlockStatement | TsEstree.Program,
 	options: {
-		statement: estree.Statement;
+		statement: TsEstree.Statement;
 	}
 ): void;
-declare function contains(node: estree.Node, targetNode: estree.Node): boolean;
+declare function contains(node: TsEstree.Node, targetNode: TsEstree.Node): boolean;
 declare function replaceChild(
-	parent: estree.Node | SvelteAst.SvelteNode,
-	node: estree.Node,
-	replacement: estree.Node
+	parent: TsEstree.Node | SvelteAst.SvelteNode,
+	node: TsEstree.Node,
+	replacement: TsEstree.Node
 ): boolean;
 declare function hasTypeProperty(
-	node: estree.TSInterfaceDeclaration['body']['body'][number],
+	node: TsEstree.TSInterfaceDeclaration['body']['body'][number],
 	options: {
 		name: string;
 	}
@@ -586,22 +427,22 @@ declare function createTypeProperty(
 	name: string,
 	value: string,
 	optional?: boolean
-): estree.TSInterfaceBody['body'][number];
+): TsEstree.TSInterfaceBody['body'][number];
 declare namespace function_d_exports {
 	export { createArrow, createCall, getArgument };
 }
 declare function createCall(options: {
 	name: string;
-	args: Array<string | estree.Expression>;
+	args: Array<string | TsEstree.Expression>;
 	useIdentifiers?: boolean;
-}): estree.CallExpression;
+}): TsEstree.CallExpression;
 declare function createArrow(options: {
-	body: estree.Expression | estree.BlockStatement;
+	body: TsEstree.Expression | TsEstree.BlockStatement;
 	async: boolean;
 	params?: string[];
-}): estree.ArrowFunctionExpression;
-declare function getArgument<T extends estree.Expression>(
-	node: estree.CallExpression,
+}): TsEstree.ArrowFunctionExpression;
+declare function getArgument<T extends TsEstree.Expression>(
+	node: TsEstree.CallExpression,
 	options: {
 		index: number;
 		fallback: T;
@@ -625,27 +466,27 @@ declare namespace imports_d_exports {
 	};
 }
 declare function addEmpty(
-	node: estree.Program,
+	node: TsEstree.Program,
 	options: {
 		from: string;
 	}
 ): void;
 declare function addNamespace$1(
-	node: estree.Program,
+	node: TsEstree.Program,
 	options: {
 		from: string;
 		as: string;
 	}
 ): void;
 declare function addDefault(
-	node: estree.Program,
+	node: TsEstree.Program,
 	options: {
 		from: string;
 		as: string;
 	}
 ): void;
 declare function addNamed(
-	node: estree.Program,
+	node: TsEstree.Program,
 	options: {
 		imports: Record<string, string> | string[];
 		from: string;
@@ -654,21 +495,21 @@ declare function addNamed(
 ): void;
 type FoundImportBase = {
 	source: string;
-	sourceNode: estree.Literal;
-	path: estree.Node[];
+	sourceNode: TsEstree.Literal;
+	path: TsEstree.Node[];
 };
 type FoundImport =
 	| ({
 			kind: 'static';
-			node: estree.ImportDeclaration;
+			node: TsEstree.ImportDeclaration;
 	  } & FoundImportBase)
 	| ({
 			kind: 'dynamic';
-			node: estree.ImportExpression;
+			node: TsEstree.ImportExpression;
 	  } & FoundImportBase);
 declare function setSource(found: FoundImport, source: string): void;
 declare function findAll(
-	ast: estree.Node,
+	ast: TsEstree.Node,
 	options?: {
 		from?: string | RegExp;
 	}
@@ -678,25 +519,25 @@ type ImportBinding = {
 	imported: string;
 	local: string;
 	isType: boolean;
-	specifier: estree.ImportDeclaration['specifiers'][number];
-	declaration: estree.ImportDeclaration;
+	specifier: TsEstree.ImportDeclaration['specifiers'][number];
+	declaration: TsEstree.ImportDeclaration;
 };
 declare function bindings(
-	ast: estree.Program,
+	ast: TsEstree.Program,
 	options: {
 		from: string;
 		name?: string;
 	}
 ): ImportBinding[];
 declare function renameSource(
-	ast: estree.Node,
+	ast: TsEstree.Node,
 	options: {
 		from: string | RegExp;
 		to: string;
 	}
 ): boolean;
 declare function renameBinding(
-	roots: Array<estree.Program | SvelteAst.Fragment>,
+	roots: Array<TsEstree.Program | SvelteAst.Fragment>,
 	options: {
 		from: string;
 		name: string;
@@ -705,14 +546,14 @@ declare function renameBinding(
 	}
 ): boolean;
 declare function find(
-	ast: estree.Program,
+	ast: TsEstree.Program,
 	options: {
 		name: string;
 		from: string;
 	}
 ):
 	| {
-			statement: estree.ImportDeclaration;
+			statement: TsEstree.ImportDeclaration;
 			alias: string;
 	  }
 	| {
@@ -720,78 +561,78 @@ declare function find(
 			alias: undefined;
 	  };
 declare function remove(
-	ast: estree.Program,
+	ast: TsEstree.Program,
 	options: {
 		name: string;
 		from: string;
-		statement?: estree.ImportDeclaration;
+		statement?: TsEstree.ImportDeclaration;
 	}
 ): void;
 declare namespace identifiers_d_exports {
 	export { freeName, isReference, renameReferences, replaceReferences, uniqueName };
 }
-type Root$1 = estree.Program | SvelteAst.Fragment;
+type Root$1 = TsEstree.Program | SvelteAst.Fragment;
 declare function isReference(
-	node: estree.Node,
-	parent: estree.Node | SvelteAst.SvelteNode | undefined
+	node: TsEstree.Node,
+	parent: TsEstree.Node | SvelteAst.SvelteNode | undefined
 ): boolean;
 declare function uniqueName(base: string, used: Set<string>): string;
 declare function renameReferences(roots: Root$1[], renames: Map<string, string>): boolean;
 declare function replaceReferences(
 	roots: Root$1[],
 	names: string[],
-	build: () => estree.Expression
+	build: () => TsEstree.Expression
 ): boolean;
 declare function freeName(roots: Root$1[], base: string): string;
 declare namespace scope_d_exports {
 	export { collectPatternNames, findShadowedIdentifiers, nestedBindingNames, topLevelBindings };
 }
-type Root = estree.Program | SvelteAst.Fragment;
-declare function collectPatternNames(pattern: estree.Pattern): string[];
-declare function topLevelBindings(programs: estree.Program[]): Set<string>;
-declare function nestedBindingNames(statements: estree.Program['body']): Set<string>;
-declare function findShadowedIdentifiers(roots: Root[], names: string[]): Set<estree.Identifier>;
+type Root = TsEstree.Program | SvelteAst.Fragment;
+declare function collectPatternNames(pattern: TsEstree.Pattern): string[];
+declare function topLevelBindings(programs: TsEstree.Program[]): Set<string>;
+declare function nestedBindingNames(statements: TsEstree.Program['body']): Set<string>;
+declare function findShadowedIdentifiers(roots: Root[], names: string[]): Set<TsEstree.Identifier>;
 declare namespace variables_d_exports {
 	export { createIdentifier, declaration, typeAnnotateDeclarator };
 }
 declare function declaration(
-	node: estree.Program | estree.Declaration,
+	node: TsEstree.Program | TsEstree.Declaration,
 	options: {
 		kind: 'const' | 'let' | 'var';
 		name: string;
-		value: estree.Expression;
+		value: TsEstree.Expression;
 	}
-): estree.VariableDeclaration;
-declare function createIdentifier(name: string): estree.Identifier;
+): TsEstree.VariableDeclaration;
+declare function createIdentifier(name: string): TsEstree.Identifier;
 declare function typeAnnotateDeclarator(
-	node: estree.VariableDeclarator,
+	node: TsEstree.VariableDeclarator,
 	options: {
 		typeName: string;
 	}
-): estree.VariableDeclarator;
+): TsEstree.VariableDeclarator;
 declare namespace exports_d_exports {
 	export { ExportDefaultResult, addNamespace, createDefault, createNamed };
 }
 type ExportDefaultResult<T> = {
-	astNode: estree.ExportDefaultDeclaration;
+	astNode: TsEstree.ExportDefaultDeclaration;
 	value: T;
 	isFallback: boolean;
 };
-declare function createDefault<T extends estree.Expression>(
-	node: estree.Program,
+declare function createDefault<T extends TsEstree.Expression>(
+	node: TsEstree.Program,
 	options: {
 		fallback: T;
 	}
 ): ExportDefaultResult<T>;
 declare function createNamed(
-	node: estree.Program,
+	node: TsEstree.Program,
 	options: {
 		name: string;
-		fallback: estree.VariableDeclaration;
+		fallback: TsEstree.VariableDeclaration;
 	}
-): estree.ExportNamedDeclaration;
+): TsEstree.ExportNamedDeclaration;
 declare function addNamespace(
-	node: estree.Program,
+	node: TsEstree.Program,
 	options: {
 		from: string;
 		as?: string;
@@ -801,13 +642,13 @@ declare namespace kit_d_exports {
 	export { addGlobalAppInterface, addHooksHandle };
 }
 declare function addGlobalAppInterface(
-	node: estree.TSProgram,
+	node: TsEstree.TSProgram,
 	options: {
 		name: 'Error' | 'Locals' | 'PageData' | 'PageState' | 'Platform';
 	}
-): estree.TSInterfaceDeclaration;
+): TsEstree.TSInterfaceDeclaration;
 declare function addHooksHandle(
-	node: estree.Program,
+	node: TsEstree.Program,
 	options: {
 		language: 'ts' | 'js';
 		newHandleName: string;
@@ -820,21 +661,21 @@ declare namespace vite_d_exports {
 	export { addPlugin, configProperty, getConfig };
 }
 declare const addPlugin: (
-	ast: estree.Program,
+	ast: TsEstree.Program,
 	options: {
 		code: string;
 		mode?: 'append' | 'prepend';
 	}
 ) => void;
-declare function configProperty<T extends estree.Expression | estree.Identifier>(
-	ast: estree.Program,
-	config: estree.ObjectExpression,
+declare function configProperty<T extends TsEstree.Expression | TsEstree.Identifier>(
+	ast: TsEstree.Program,
+	config: TsEstree.ObjectExpression,
 	options: {
 		name: string;
 		fallback: T;
 	}
 ): T;
-declare const getConfig: (ast: estree.Program) => estree.ObjectExpression;
+declare const getConfig: (ast: TsEstree.Program) => TsEstree.ObjectExpression;
 declare namespace index_d_exports$3 {
 	export {
 		array_d_exports as array,
@@ -948,7 +789,7 @@ type TransformOptions = {
 export declare const transforms: {
 	script(
 		cb: (file: {
-			ast: estree.Program;
+			ast: TsEstree.Program;
 			comments: Comments;
 			content: string;
 			js: typeof index_d_exports$3;
@@ -1086,21 +927,21 @@ type SvelteConfigLocation = {
 };
 type SvelteConfigObjects = {
 	location: SvelteConfigLocation;
-	config: estree.ObjectExpression;
-	kit: estree.ObjectExpression;
-	ast: estree.Program;
+	config: TsEstree.ObjectExpression;
+	kit: TsEstree.ObjectExpression;
+	ast: TsEstree.Program;
 	comments: Comments;
 };
 type ConfigFileReader = (path: string) => string | null;
 type ConfigSource = string | ConfigFileReader;
 type ObjectMap = Parameters<typeof overrideProperties>[1];
 type SvelteConfEdit = (file: {
-	ast: estree.Program;
+	ast: TsEstree.Program;
 	comments: Comments;
 	js: typeof index_d_exports$3;
 	location: SvelteConfigLocation;
-	config: estree.ObjectExpression;
-	property: <T extends estree.Expression | estree.Identifier>(
+	config: TsEstree.ObjectExpression;
+	property: <T extends TsEstree.Expression | TsEstree.Identifier>(
 		name: string,
 		opts: {
 			fallback: T;
@@ -1160,8 +1001,8 @@ type ReferenceOpts = {
 type DefineEnv = {
 	mode: EnvMode;
 	define: (spec: EnvVarSpec) => void;
-	reference: (ast: estree.Program, js: typeof index_d_exports$3, opts: ReferenceOpts) => string;
-	importEnv: (ast: estree.Program, js: typeof index_d_exports$3, imports: string[]) => void;
+	reference: (ast: TsEstree.Program, js: typeof index_d_exports$3, opts: ReferenceOpts) => string;
+	importEnv: (ast: TsEstree.Program, js: typeof index_d_exports$3, imports: string[]) => void;
 };
 export declare function defineEnv({ sv, cwd, dependencyVersion }: DefineEnvContext): DefineEnv;
 type ColorInput = string | string[];
@@ -1182,7 +1023,7 @@ export declare const color: {
 export {
 	AGENTS,
 	type AgentName,
-	type estree as AstTypes,
+	type TsEstree as AstTypes,
 	COMMANDS,
 	type Comments,
 	type ConfigFileReader,

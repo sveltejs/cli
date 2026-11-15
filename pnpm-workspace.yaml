@@ -15,5 +15,8 @@ packages:
   - '!.test-tmp/**'
   - '!**/.test-output/**'
 
+overrides:
+  minimatch: ^11.0.8
+
 allowBuilds:
   esbuild: true
