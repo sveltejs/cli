@@ -1,5 +1,6 @@
 import { normalizePosix } from '../../../../core/common.ts';
 import { defineMigrationTask } from '../../../index.ts';
+import { STALE_INCLUDE } from './tsconfig.ts';
 
 const REPORT_PATH = 'MIGRATION_TASKS.md';
 const GUIDE_URL = 'https://svelte.dev/docs/kit/migrating-to-sveltekit-3';
@@ -112,7 +113,7 @@ const file = asset('foo.png');\n` +
 		checks: [
 			{
 				include: ['**/tsconfig.json', '**/jsconfig.json'],
-				patterns: [/["']include["']\s*:\s*\[[^\]]*["'](?:\.\.?\/)*\.svelte-kit(?:\/[^"']*)?["']/]
+				patterns: [STALE_INCLUDE]
 			}
 		],
 		summary:
