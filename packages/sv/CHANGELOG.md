@@ -1,5 +1,59 @@
 # sv
 
+## 1.4.0
+
+### Minor Changes
+
+- feat(ai-tools): ask a separate question for `AGENTS.md` when needed ([#1454](https://github.com/sveltejs/cli/pull/1454))
+
+### Patch Changes
+
+- fix(sv check): only run `svelte-check` when it's installed in the project (global installs are ignored) ([#1460](https://github.com/sveltejs/cli/pull/1460))
+
+- fix(addons): import the `Handle` and `Reroute` types from `@sveltejs/kit` in SvelteKit 2 projects ([#1418](https://github.com/sveltejs/cli/pull/1418))
+
+- fix(migrate): mark `rewriteRelativeImportExtensions` with an `@migration-task` comment when the `lib-alias` task runs ([#1464](https://github.com/sveltejs/cli/pull/1464))
+
+- fix(create): print the directory when a conflict is detected and narrow conflict detection logic ([#1465](https://github.com/sveltejs/cli/pull/1465))
+- Updated dependencies [[`b680da8`](https://github.com/sveltejs/cli/commit/b680da84e8cb0fdb2da63bbaf8f7da3b9bace366)]:
+  - @sveltejs/sv-utils@1.1.1
+
+## 1.3.0
+
+### Minor Changes
+
+- feat: add Pi client, set up through the `@sveltejs/pi` package by default ([#1446](https://github.com/sveltejs/cli/pull/1446))
+
+- feat(ai-tools): add an `optInSkills` option (e.g. `svelte-mcp-feedback`), asked for every client that supports skills (including when using the Svelte plugin) ([#1448](https://github.com/sveltejs/cli/pull/1448))
+
+### Patch Changes
+
+- chore(ai-tools): sync skills ([#1447](https://github.com/sveltejs/cli/pull/1447))
+
+- fix(migrate): use `ts` extension when the project is an app ([#1443](https://github.com/sveltejs/cli/pull/1443))
+
+## 1.2.0
+
+### Minor Changes
+
+- feat(sveltekit-adapter): add `bun` option ([#1414](https://github.com/sveltejs/cli/pull/1414))
+
+### Patch Changes
+
+- fix(sveltekit-adapter): remove legacy Cloudflare platform types ([#1435](https://github.com/sveltejs/cli/pull/1435))
+
+- fix(sv): set `engineStrict` in `pnpm-workspace.yaml` for pnpm projects, `engine-strict` in `.npmrc` otherwise ([#1344](https://github.com/sveltejs/cli/pull/1344))
+
+- fix(addons): include eslint and prettier JS configs in Kit 3 type checking ([#1438](https://github.com/sveltejs/cli/pull/1438))
+
+- fix(migrate): add a migration-task for non-static `redirect` calls ([#1415](https://github.com/sveltejs/cli/pull/1415))
+
+- fix(storybook): allow `esbuild` build script when running `create-storybook` with `pnpm dlx` ([#1426](https://github.com/sveltejs/cli/pull/1426))
+
+- fix: bundle a single `esrap` so JSDoc-typed parameters in `.svelte` files are no longer wrapped in parentheses ([#1428](https://github.com/sveltejs/cli/pull/1428))
+- Updated dependencies [[`cee3023`](https://github.com/sveltejs/cli/commit/cee30231aee953f5cec8f5bec627251a50277bf9), [`23513c9`](https://github.com/sveltejs/cli/commit/23513c979607b2df184ee3023ca317a1df0c30b3), [`3e82521`](https://github.com/sveltejs/cli/commit/3e825211455be784c17c5b1ed1e57149b6f0b4e2), [`d15e84f`](https://github.com/sveltejs/cli/commit/d15e84f26d2130683bbb378743a3af810bc89329)]:
+  - @sveltejs/sv-utils@1.1.0
+
 ## 1.1.1
 
 ### Patch Changes

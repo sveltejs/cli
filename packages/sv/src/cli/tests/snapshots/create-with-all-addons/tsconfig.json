@@ -10,6 +10,8 @@
 	"include": [
 		"src",
 		"vite.config.ts",
+		"prettier.config.js",
+		"eslint.config.js",
 		"playwright.config.ts",
 		"drizzle.config.ts"
 	]

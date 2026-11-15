@@ -3,6 +3,7 @@ import { type AstTypes, svelteConfig, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import {
 	addEslintConfigPrettier,
+	addToTypeConfigInclude,
 	addToTypeConfigType,
 	ESLINT_VERSION,
 	getNodeTypesVersion
@@ -33,6 +34,13 @@ export default defineAddon({
 		// the `eslint.config.js` imports `node:path`
 		sv.devDependency('@types/node', getNodeTypesVersion());
 		addToTypeConfigType({ sv, cwd, language, entry: 'node' });
+		addToTypeConfigInclude({
+			sv,
+			cwd,
+			language,
+			kitVersion: dependencyVersion('@sveltejs/kit'),
+			entry: 'eslint.config.js'
+		});
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.60.1');
 

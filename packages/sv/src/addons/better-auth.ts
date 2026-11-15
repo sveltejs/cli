@@ -49,7 +49,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		runsAfter(ADDON_IDS.experimental);
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
-		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
+		const kitRange = dependencyVersion('@sveltejs/kit');
+		const lib = resolveLibPrefix(kitRange);
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
@@ -331,7 +332,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					language,
 					newHandleName: 'handleBetterAuth',
 					handleContent,
-					comments
+					comments,
+					kitVersion: kitRange
 				});
 			})
 		);
@@ -589,11 +591,11 @@ export default addon;
 type GenerateEnv = (demoGithub: boolean, isExample: boolean) => TransformFn;
 const generateEnv: GenerateEnv = (demoGithub, isExample) =>
 	transforms.text(({ content, text }) => {
-		content = text.upsert(content, 'ORIGIN', {
+		content = text.add(content, 'ORIGIN', {
 			value: isExample ? `""` : `"http://localhost:5173"`,
 			separator: true
 		});
-		content = text.upsert(content, 'BETTER_AUTH_SECRET', {
+		content = text.add(content, 'BETTER_AUTH_SECRET', {
 			value: isExample ? `""` : `"${crypto.randomUUID()}"`,
 			comment: [
 				'Better Auth',
@@ -604,11 +606,11 @@ const generateEnv: GenerateEnv = (demoGithub, isExample) =>
 		});
 
 		if (demoGithub) {
-			content = text.upsert(content, 'GITHUB_CLIENT_ID', {
+			content = text.add(content, 'GITHUB_CLIENT_ID', {
 				value: `""`,
 				comment: 'GitHub OAuth\n# https://www.better-auth.com/docs/authentication/github'
 			});
-			content = text.upsert(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
+			content = text.add(content, 'GITHUB_CLIENT_SECRET', { value: `""` });
 		}
 
 		return content;
