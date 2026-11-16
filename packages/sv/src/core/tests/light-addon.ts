@@ -1,10 +1,14 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { toJsonSchema } from '@valibot/to-json-schema';
+import { format } from 'oxfmt';
 import { describe, expect, it } from 'vitest';
+import oxfmtConfig from '../../../../../oxfmt.config.ts';
 import type { AddonDefinition, LoadedAddon } from '../config.ts';
 import { applyAddons, setupAddons } from '../engine.ts';
 import { localLightAddonFile } from '../fetch-packages.ts';
+import { LightAddonSchema } from '../light-addon-schema.ts';
 import { loadLightAddon } from '../light-addon.ts';
 import { createWorkspace } from '../workspace.ts';
 
@@ -64,52 +68,29 @@ async function run(cwd: string, a: AddonDefinition) {
 const read = (cwd: string, rel: string) => fs.readFileSync(path.join(cwd, rel), 'utf8');
 const devDeps = (cwd: string) => JSON.parse(read(cwd, 'package.json')).devDependencies;
 
-const kitRoutes = {
-	id: 'vite-plugin-kit-routes',
-	kit: true,
-	devDependencies: { 'vite-plugin-kit-routes': '^1.1.2' },
-	vite: [{ from: 'vite-plugin-kit-routes', import: 'kitRoutes', call: 'kitRoutes()' }],
-	nextSteps: ['Run the dev server to generate $lib/ROUTES']
-};
+// Published `sv.json` shapes. Frozen: never edit or delete one, only add new ones.
+const CONTRACT = path.join(import.meta.dirname, 'light-addon', 'contract');
+const fixture = (name: string) => loadLightAddon(path.join(CONTRACT, name, 'sv.json'));
+const fixtureJson = (name: string) =>
+	JSON.parse(fs.readFileSync(path.join(CONTRACT, name, 'sv.json'), 'utf8'));
 
-const checker = {
-	id: 'vite-plugin-checker',
-	devDependencies: {
-		'vite-plugin-checker': '^1.0.0',
-		'svelte-check': '^4.7.6',
-		typescript: '^6.0.3'
-	},
-	vite: [
-		{
-			from: 'vite-plugin-checker',
-			default: 'checker',
-			call: 'checker({ svelteCheck: true, enableBuild: false })'
-		}
-	]
-};
+describe('light add-on contract', () => {
+	it('JSON schema matches the committed one', async () => {
+		const json = JSON.stringify(toJsonSchema(LightAddonSchema));
+		const { code } = await format('light-addon.schema.json', json, oxfmtConfig);
+		await expect(code).toMatchFileSnapshot('../../../light-addon.schema.json');
+	});
 
-const devtools = {
-	id: 'devtools',
-	devDependencies: {
-		'@vitejs/devtools': '^0.8.3',
-		'@vitejs/devtools-vite': '^0.8.3',
-		'vite-devtools-svelte': '^0.7.0'
-	},
-	vite: [
-		{
-			from: 'vite-devtools-svelte',
-			import: 'svelteDevtools',
-			call: 'svelteDevtools()',
-			position: 'start'
-		},
-		{ from: '@vitejs/devtools', import: 'DevTools', call: 'DevTools()', position: 'start' }
-	]
-};
+	it.for(fs.readdirSync(CONTRACT))('%s still loads and applies', async (name) => {
+		const { status } = await run(project(), fixture(name));
+		expect(status[fixtureJson(name).id]).toBe('success');
+	});
+});
 
 describe('light add-on', () => {
 	it('kit-routes: deps, named vite plugin, next steps', async () => {
 		const cwd = project();
-		const a = addon(kitRoutes);
+		const a = fixture('kit-routes');
 		const { status, workspace } = await run(cwd, a);
 
 		expect(status[a.id]).toBe('success');
@@ -117,7 +98,9 @@ describe('light add-on', () => {
 		const vite = read(cwd, 'vite.config.ts');
 		expect(vite).toContain(`import { kitRoutes } from 'vite-plugin-kit-routes'`);
 		expect(vite.indexOf('kitRoutes()')).toBeGreaterThan(vite.indexOf('sveltekit()'));
-		expect(a.nextSteps?.({ ...workspace, options: {} })).toEqual(kitRoutes.nextSteps);
+		expect(a.nextSteps?.({ ...workspace, options: {} })).toEqual(
+			fixtureJson('kit-routes').nextSteps
+		);
 	});
 
 	it('kit-routes: requires SvelteKit', async () => {
@@ -125,7 +108,7 @@ describe('light add-on', () => {
 			cwd: project({ kit: false }),
 			packageManager: 'pnpm'
 		});
-		const a = addon(kitRoutes);
+		const a = fixture('kit-routes');
 		const [result] = await setupAddons(
 			[
 				{
@@ -144,7 +127,7 @@ describe('light add-on', () => {
 		pkg.devDependencies.typescript = '^5.9.0';
 		fs.writeFileSync(path.join(cwd, 'package.json'), JSON.stringify(pkg));
 
-		const a = addon(checker);
+		const a = fixture('vite-plugin-checker');
 		await run(cwd, a);
 		await run(cwd, a);
 
@@ -157,7 +140,7 @@ describe('light add-on', () => {
 
 	it('devtools: start plugins keep their authored order', async () => {
 		const cwd = project();
-		await run(cwd, addon(devtools));
+		await run(cwd, fixture('devtools'));
 
 		const vite = read(cwd, 'vite.config.ts');
 		const svelteDevtools = vite.indexOf('svelteDevtools()');

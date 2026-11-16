@@ -1,0 +1,22 @@
+{
+	"$schema": "../../../../../../light-addon.schema.json",
+	"id": "all-keys",
+	"description": "Uses every key of the contract",
+	"homepage": "https://example.com",
+	"kit": true,
+	"dependencies": { "all-keys": "^1.0.0" },
+	"devDependencies": { "all-keys-dev": "^1.0.0" },
+	"vite": [
+		{ "from": "all-keys/vite", "import": "allKeys", "call": "allKeys()", "position": "end" },
+		{ "from": "all-keys/vite-default", "default": "allKeysDefault", "call": "allKeysDefault()" }
+	],
+	"hooks": {
+		"server": [
+			{ "from": "all-keys/server", "import": "createHandle", "call": "createHandle()" },
+			{ "from": "all-keys/server-default", "default": "handleDefault", "call": "handleDefault" }
+		]
+	},
+	"files": [{ "from": "./template", "to": "$lib/all-keys" }],
+	"demo": "./demo",
+	"nextSteps": ["Done"]
+}

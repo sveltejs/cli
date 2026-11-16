@@ -21,7 +21,8 @@
 	},
 	"bin": "./dist/bin.mjs",
 	"files": [
-		"dist"
+		"dist",
+		"light-addon.schema.json"
 	],
 	"type": "module",
 	"exports": {
@@ -32,7 +33,8 @@
 		"./testing": {
 			"types": "./dist/src/testing.d.mts",
 			"default": "./dist/src/testing.mjs"
-		}
+		},
+		"./light-addon.schema.json": "./light-addon.schema.json"
 	},
 	"scripts": {
 		"check": "tsgo"
@@ -43,6 +45,7 @@
 	"devDependencies": {
 		"@clack/prompts": "1.5.0",
 		"@types/ps-tree": "^1.1.6",
+		"@valibot/to-json-schema": "^1.8.0",
 		"commander": "^15.0.0",
 		"create-vite": "^9.2.1",
 		"empathic": "^2.0.1",
@@ -51,6 +54,6 @@
 		"sucrase": "^3.35.1",
 		"svelte": "^5.57.2",
 		"tinyexec": "^1.2.4",
-		"valibot": "^1.4.1"
+		"valibot": "^1.5.0"
 	}
 }

@@ -3,44 +3,15 @@ import path from 'node:path';
 import { type AstTypes, defineDemoPage, js, transforms } from '@sveltejs/sv-utils';
 import * as v from 'valibot';
 import { defineAddon, type AddonDefinition, type SvApi } from './config.ts';
+import { type LightAddon, LightAddonSchema, type LightImport } from './light-addon-schema.ts';
 import type { Workspace } from './workspace.ts';
+
+// Interprets the contract in `light-addon-schema.ts`. Free to change as long as its behaviour holds.
 
 export const LIGHT_ADDON_FILE = 'sv.json';
 
 const REGEX_PASCAL_PARTS = /[^a-zA-Z0-9]+(.)?/g;
 const REGEX_FIRST_CHAR = /^./;
-
-const named = { from: v.string(), import: v.string(), call: v.string() };
-const byDefault = { from: v.string(), default: v.string(), call: v.string() };
-const position = { position: v.optional(v.picklist(['start', 'end'])) };
-
-const Import = v.union([v.strictObject(named), v.strictObject(byDefault)]);
-const VitePlugin = v.union([
-	v.strictObject({ ...named, ...position }),
-	v.strictObject({ ...byDefault, ...position })
-]);
-
-const Deps = v.record(v.string(), v.string());
-
-const LightAddonSchema = v.strictObject({
-	$schema: v.optional(v.string()),
-	id: v.pipe(v.string(), v.minLength(1)),
-	description: v.optional(v.string()),
-	homepage: v.optional(v.string()),
-	/** Required when nothing else implies it (`hooks` and `demo` do). */
-	kit: v.optional(v.boolean()),
-	dependencies: v.optional(Deps),
-	devDependencies: v.optional(Deps),
-	vite: v.optional(v.array(VitePlugin)),
-	hooks: v.optional(v.strictObject({ server: v.optional(v.array(Import)) })),
-	files: v.optional(v.array(v.strictObject({ from: v.string(), to: v.string() }))),
-	/** Folder copied to `<routes>/demo/<id>`, linked from the demo page. */
-	demo: v.optional(v.string()),
-	nextSteps: v.optional(v.array(v.string()))
-});
-
-export type LightAddon = v.InferOutput<typeof LightAddonSchema>;
-type ImportEntry = v.InferOutput<typeof Import>;
 
 /** `file:` points at a `sv.json` or a folder holding one. */
 export function findLightAddonFile(target: string): string | undefined {
@@ -117,7 +88,7 @@ function quoted(content: string, from: string) {
 	return content.includes(`'${from}'`) || content.includes(`"${from}"`);
 }
 
-function addImport(ast: AstTypes.Program, entry: ImportEntry) {
+function addImport(ast: AstTypes.Program, entry: LightImport) {
 	if ('default' in entry) js.imports.addDefault(ast, { as: entry.default, from: entry.from });
 	else js.imports.addNamed(ast, { imports: [entry.import], from: entry.from });
 }
@@ -143,7 +114,7 @@ function addVitePlugins(sv: SvApi, workspace: Workspace, plugins: LightAddon['vi
 	);
 }
 
-function addServerHooks(sv: SvApi, workspace: Workspace, id: string, hooks: ImportEntry[]) {
+function addServerHooks(sv: SvApi, workspace: Workspace, id: string, hooks: LightImport[]) {
 	const kitVersion = workspace.dependencyVersion('@sveltejs/kit');
 	sv.file(
 		`src/hooks.server.${workspace.language}`,

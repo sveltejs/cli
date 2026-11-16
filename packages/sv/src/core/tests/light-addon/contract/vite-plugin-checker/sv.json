@@ -1,0 +1,21 @@
+{
+	"id": "vite-plugin-checker",
+	"description": "svelte-check in your terminal and browser",
+	"homepage": "https://vite-plugin-checker.netlify.app/checkers/svelte-check",
+	"devDependencies": {
+		"vite-plugin-checker": "^1.0.0",
+		"svelte-check": "^4.7.6",
+		"typescript": "^6.0.3"
+	},
+	"vite": [
+		{
+			"from": "vite-plugin-checker",
+			"default": "checker",
+			"call": "checker({ svelteCheck: true, enableBuild: false })"
+		}
+	],
+	"nextSteps": [
+		"svelte-check now reports errors in your terminal and browser while the dev server runs",
+		"Use the enableBuild option to make vite build fail on errors"
+	]
+}

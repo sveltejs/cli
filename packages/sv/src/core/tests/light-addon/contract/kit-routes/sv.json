@@ -1,0 +1,7 @@
+{
+	"id": "vite-plugin-kit-routes",
+	"kit": true,
+	"devDependencies": { "vite-plugin-kit-routes": "^1.1.2" },
+	"vite": [{ "from": "vite-plugin-kit-routes", "import": "kitRoutes", "call": "kitRoutes()" }],
+	"nextSteps": ["Run the dev server to generate $lib/ROUTES"]
+}

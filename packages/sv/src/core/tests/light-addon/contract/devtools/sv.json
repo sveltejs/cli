@@ -1,0 +1,20 @@
+{
+	"id": "devtools",
+	"description": "Vite and Svelte development tools",
+	"homepage": "https://devtools.vite.dev",
+	"devDependencies": {
+		"@vitejs/devtools": "^0.8.3",
+		"@vitejs/devtools-vite": "^0.8.3",
+		"vite-devtools-svelte": "^0.7.0"
+	},
+	"vite": [
+		{
+			"from": "vite-devtools-svelte",
+			"import": "svelteDevtools",
+			"call": "svelteDevtools()",
+			"position": "start"
+		},
+		{ "from": "@vitejs/devtools", "import": "DevTools", "call": "DevTools()", "position": "start" }
+	],
+	"nextSteps": ["Start the dev server and open the Vite DevTools dock"]
+}

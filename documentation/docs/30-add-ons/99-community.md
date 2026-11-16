@@ -16,7 +16,7 @@ The newly created project will have a `README.md` and `CONTRIBUTING.md` to guide
 
 ## Light add-ons
 
-If your add-on only installs packages, registers a Vite plugin or a server hook, and copies files, you don't need any code. Put a `sv.json` at the root of your package (`sv` in `peerDependencies`, no `./sv` export) or anywhere on disk:
+If your add-on only installs packages, registers a Vite plugin or a server hook, and copies files, you don't need any code. Put a `sv.json` at the root of your package (`sv` in `peerDependencies`, no `./sv` export) or anywhere on disk. `sv/light-addon.schema.json` gives editors autocomplete:
 
 ```json
 {

@@ -1,0 +1,146 @@
+{
+	"type": "object",
+	"properties": {
+		"$schema": { "type": "string" },
+		"id": { "type": "string", "minLength": 1 },
+		"description": { "type": "string" },
+		"homepage": { "type": "string" },
+		"kit": {
+			"type": "boolean",
+			"description": "Requires SvelteKit. Implied by `hooks` and `demo`."
+		},
+		"dependencies": {
+			"type": "object",
+			"propertyNames": { "type": "string" },
+			"additionalProperties": { "type": "string" },
+			"description": "Added only when the project does not declare the package yet."
+		},
+		"devDependencies": {
+			"type": "object",
+			"propertyNames": { "type": "string" },
+			"additionalProperties": { "type": "string" },
+			"description": "Added only when the project does not declare the package yet."
+		},
+		"vite": {
+			"type": "array",
+			"items": {
+				"anyOf": [
+					{
+						"type": "object",
+						"properties": {
+							"from": { "type": "string", "description": "Module to import from." },
+							"import": { "type": "string", "description": "Named import." },
+							"call": {
+								"type": "string",
+								"description": "Expression to insert, e.g. `kitRoutes()`."
+							},
+							"position": {
+								"enum": ["start", "end"],
+								"type": "string",
+								"description": "Where in `plugins`. `start` entries keep their authored order. Default: `end`."
+							}
+						},
+						"required": ["from", "import", "call"],
+						"additionalProperties": false
+					},
+					{
+						"type": "object",
+						"properties": {
+							"from": { "type": "string", "description": "Module to import from." },
+							"default": { "type": "string", "description": "Local name of the default import." },
+							"call": {
+								"type": "string",
+								"description": "Expression to insert, e.g. `kitRoutes()`."
+							},
+							"position": {
+								"enum": ["start", "end"],
+								"type": "string",
+								"description": "Where in `plugins`. `start` entries keep their authored order. Default: `end`."
+							}
+						},
+						"required": ["from", "default", "call"],
+						"additionalProperties": false
+					}
+				]
+			},
+			"description": "Vite plugins. Skipped when `from` is already imported in the config."
+		},
+		"hooks": {
+			"type": "object",
+			"properties": {
+				"server": {
+					"type": "array",
+					"items": {
+						"anyOf": [
+							{
+								"type": "object",
+								"properties": {
+									"from": { "type": "string", "description": "Module to import from." },
+									"import": { "type": "string", "description": "Named import." },
+									"call": {
+										"type": "string",
+										"description": "Expression to insert, e.g. `kitRoutes()`."
+									}
+								},
+								"required": ["from", "import", "call"],
+								"additionalProperties": false
+							},
+							{
+								"type": "object",
+								"properties": {
+									"from": { "type": "string", "description": "Module to import from." },
+									"default": {
+										"type": "string",
+										"description": "Local name of the default import."
+									},
+									"call": {
+										"type": "string",
+										"description": "Expression to insert, e.g. `kitRoutes()`."
+									}
+								},
+								"required": ["from", "default", "call"],
+								"additionalProperties": false
+							}
+						]
+					},
+					"description": "`handle`s added to `src/hooks.server` (with `sequence`). Skipped when `from` is already imported."
+				}
+			},
+			"required": [],
+			"additionalProperties": false
+		},
+		"files": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"from": {
+						"type": "string",
+						"description": "Folder relative to `sv.json`. With `ts`/`js` subfolders, the project language picks one."
+					},
+					"to": {
+						"type": "string",
+						"description": "Project path. May start with `$lib` or `$routes`."
+					}
+				},
+				"required": ["from", "to"],
+				"additionalProperties": false
+			},
+			"description": "Copied file by file. Existing files are never overwritten."
+		},
+		"demo": {
+			"type": "string",
+			"description": "Folder copied to `<routes>/demo/<id>` and linked from the demo page."
+		},
+		"nextSteps": {
+			"type": "array",
+			"items": { "type": "string" },
+			"description": "Lines shown after the add-on ran."
+		}
+	},
+	"required": ["id"],
+	"additionalProperties": false,
+	"title": "sv light add-on",
+	"description": "A no-code `sv add` add-on.",
+	"$schema": "http://json-schema.org/draft-07/schema#"
+}
