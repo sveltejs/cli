@@ -9,7 +9,7 @@ import {
 	type SvelteConfigKind
 } from './tooling/js/svelte-config.ts';
 import { parseScript } from './tooling/parsers.ts';
-import { transforms } from './tooling/transforms.ts';
+import * as transforms from './tooling/transforms.ts';
 
 export type { SvelteConfigKind } from './tooling/js/svelte-config.ts';
 
