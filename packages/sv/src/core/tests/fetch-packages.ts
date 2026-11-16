@@ -202,9 +202,9 @@ describe('verifyPackage', () => {
 		({ name: 'x', version: '1.0.0', peerDependencies }) as const;
 
 	it('accepts an unbundled sv-utils on the same major', () => {
-		expect(verifyPackage(addon({ sv: '^1.0.0', '@sveltejs/sv-utils': '^1.0.0' }), 'x', '1.1.1')).toBe(
-			undefined
-		);
+		expect(
+			verifyPackage(addon({ sv: '^1.0.0', '@sveltejs/sv-utils': '^1.0.0' }), 'x', '1.1.1')
+		).toBe(undefined);
 	});
 	it('warns with a rerun command when sv-utils majors differ', () => {
 		const warning = verifyPackage(
