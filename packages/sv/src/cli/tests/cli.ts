@@ -38,6 +38,7 @@ describe('cli', () => {
 				'vitest=usages:unit,component',
 				'playwright=demo:yes',
 				'tailwindcss=plugins:typography,forms',
+				'devtools',
 				'sveltekit-adapter=adapter:node',
 				'drizzle=database:sqlite+sqlite:libsql',
 				'better-auth=demo:password,github',

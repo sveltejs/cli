@@ -20,6 +20,7 @@ declare const ADDON_IDS: {
 	readonly playwright: 'playwright';
 	readonly tailwindcss: 'tailwindcss';
 	readonly enhancedImg: 'enhanced-img';
+	readonly devtools: 'devtools';
 	readonly sveltekitAdapter: 'sveltekit-adapter';
 	readonly drizzle: 'drizzle';
 	readonly betterAuth: 'better-auth';
@@ -410,6 +411,7 @@ type OfficialAddons = {
 	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
 	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
 	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
+	[ADDON_IDS.devtools]: Addon<NoOptions, typeof ADDON_IDS.devtools>;
 	[ADDON_IDS.sveltekitAdapter]: Addon<
 		AddonOptions<SveltekitAdapterOptions>,
 		typeof ADDON_IDS.sveltekitAdapter

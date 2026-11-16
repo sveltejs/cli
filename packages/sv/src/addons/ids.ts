@@ -9,6 +9,7 @@ export const ADDON_IDS = {
 	playwright: 'playwright',
 	tailwindcss: 'tailwindcss',
 	enhancedImg: 'enhanced-img',
+	devtools: 'devtools',
 	sveltekitAdapter: 'sveltekit-adapter',
 	drizzle: 'drizzle',
 	betterAuth: 'better-auth',

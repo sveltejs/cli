@@ -36,6 +36,9 @@
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/typography": "^0.5.19",
 		"@tailwindcss/vite": "^4.3.0",
+		"@vitejs/devtools": "^0.8.3",
+		"@vitejs/devtools-vite": "^0.8.3",
+		"@vitejs/devtools-vitest": "^0.8.3",
 		"@vitest/browser-playwright": "^4.1.8",
 		"auth": "^1.6.24",
 		"better-auth": "^1.6.24",
@@ -56,6 +59,7 @@
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.3.0",
+		"vite-devtools-svelte": "^0.7.0",
 		"vitest": "^4.1.8",
 		"vitest-browser-svelte": "^2.1.1"
 	}
