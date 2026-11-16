@@ -14,6 +14,33 @@ npx sv create --template addon [path]
 
 The newly created project will have a `README.md` and `CONTRIBUTING.md` to guide you along.
 
+## Light add-ons
+
+If your add-on only installs packages, registers a Vite plugin or a server hook, and copies files, you don't need any code. Put a `sv.json` at the root of your package (`sv` in `peerDependencies`, no `./sv` export) or anywhere on disk:
+
+```json
+{
+	"id": "vite-plugin-kit-routes",
+	"kit": true,
+	"devDependencies": { "vite-plugin-kit-routes": "^1.1.2" },
+	"vite": [{ "from": "vite-plugin-kit-routes", "import": "kitRoutes", "call": "kitRoutes()" }],
+	"nextSteps": ["Run the dev server to generate `$lib/ROUTES`"]
+}
+```
+
+```sh
+npx sv add file:./sv.json
+```
+
+- `dependencies` / `devDependencies`: added only if the project doesn't declare them yet
+- `vite`: `{ from, import | default, call, position?: 'start' | 'end' }`, skipped if `from` is already imported
+- `hooks.server`: `{ from, import | default, call }`, added to `src/hooks.server` with `sequence`
+- `files`: `{ from, to }` folders, existing files are never overwritten. `to` can start with `$lib` or `$routes`
+- `demo`: a folder copied to `<routes>/demo/<id>` and linked from the demo page
+- `nextSteps`: lines shown once the add-on ran
+
+A `files` or `demo` folder with `ts`/`js` subfolders uses the one matching the project. `kit`, `hooks` and `demo` require SvelteKit. Unknown keys are rejected: anything more needs a regular add-on.
+
 ## Project structure
 
 Typically, an add-on looks like this:

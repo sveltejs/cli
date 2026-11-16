@@ -195,4 +195,31 @@ describe('downloadPackage', () => {
 			fs.rmSync(localDir, { recursive: true, force: true });
 		}
 	});
+
+	it('loads `sv.json` from a package without a `./sv` export, without importing code', async () => {
+		const name = `${PREFIX}${counter++}`;
+		const pkgJson = JSON.stringify({ name, version: '1.0.0', exports: './index.mjs' });
+		const tarball = await buffer(
+			packTar([
+				{ type: 'content', content: pkgJson, target: 'package/package.json' },
+				{ type: 'content', content: 'throw new Error("ran code")', target: 'package/index.mjs' },
+				{ type: 'content', content: '{ "id": "light" }', target: 'package/sv.json' }
+			])
+		);
+		vi.stubGlobal('fetch', () => Promise.resolve(new Response(gzipSync(tarball))));
+
+		try {
+			const details = await downloadPackage({
+				pkg: {
+					name,
+					version: '1.0.0',
+					exports: './index.mjs',
+					dist: { tarball: `https://registry.test/${name}` }
+				}
+			});
+			expect(details).toMatchObject({ id: 'light' });
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
 });

@@ -20,8 +20,9 @@ import {
 	getErrorHint
 } from '../core/config.ts';
 import { applyAddons, orderAddons, setupAddons } from '../core/engine.ts';
-import { downloadPackage, getPackageJSON } from '../core/fetch-packages.ts';
+import { downloadPackage, getPackageJSON, localLightAddonFile } from '../core/fetch-packages.ts';
 import { formatFiles, isPrettierInstalled } from '../core/formatFiles.ts';
+import { loadLightAddon } from '../core/light-addon.ts';
 import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
@@ -224,7 +225,14 @@ export async function resolveAddons(
 
 	// Separate official and community addons for resolution
 	const officialRefs = refs.filter((ref) => ref.source.kind === 'official');
-	const communityRefs = refs.filter((ref) => ref.source.kind !== 'official');
+	const lightRefs: Array<{ ref: AddonReference; file: string }> = [];
+	const communityRefs: AddonReference[] = [];
+	for (const ref of refs) {
+		if (ref.source.kind === 'official') continue;
+		const file = ref.source.kind === 'file' ? localLightAddonFile(ref.source.path) : undefined;
+		if (file) lightRefs.push({ ref, file });
+		else communityRefs.push(ref);
+	}
 
 	// Resolve official addons
 	for (const ref of officialRefs) {
@@ -234,6 +242,15 @@ export async function resolveAddons(
 			reference: ref,
 			addon
 		});
+	}
+
+	// No code runs here, so no download check
+	for (const { ref, file } of lightRefs) {
+		try {
+			loaded.push({ reference: ref, addon: loadLightAddon(file) });
+		} catch (e) {
+			common.errorAndExit(e instanceof Error ? e.message : String(e));
+		}
 	}
 
 	// Resolve community addons (file: and npm packages)

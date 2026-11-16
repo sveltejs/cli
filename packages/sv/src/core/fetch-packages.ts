@@ -11,6 +11,7 @@ import pkg from '../../package.json' with { type: 'json' };
 import * as common from './common.ts';
 import { PackageJSONSchema, type PackageJSON } from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
+import { findLightAddonFile, loadLightAddon } from './light-addon.ts';
 
 const packageJsonPath = packageJson.up({ cwd: import.meta.dirname });
 if (!packageJsonPath) throw new Error('Could not locate the `package.json` of `sv`');
@@ -139,7 +140,20 @@ export async function downloadPackage(options: DownloadOptions): Promise<AddonDe
 		);
 	}
 
+	const light = hasSvExport(pkg.exports) ? undefined : findLightAddonFile(dest);
+	if (light) return loadLightAddon(light);
+
 	return await importAddonCode(pkg.name, pkg.version, pkg.exports);
+}
+
+/** A `./sv` code export wins over a `sv.json` sitting next to it. */
+export function localLightAddonFile(target: string): string | undefined {
+	const file = findLightAddonFile(target);
+	if (!file || file === target) return file;
+	const pkgPath = path.join(target, 'package.json');
+	if (!fs.existsSync(pkgPath)) return file;
+	const { exports } = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+	return hasSvExport(exports) ? undefined : file;
 }
 
 export async function importAddonCode(
