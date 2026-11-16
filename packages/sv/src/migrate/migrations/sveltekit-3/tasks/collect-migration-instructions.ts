@@ -108,6 +108,20 @@ const file = asset('foo.png');\n` +
 		links: guideLink('$app-tsconfig-service-worker')
 	},
 	{
+		title: 'Remove obsolete `.svelte-kit` includes',
+		checks: [
+			{
+				include: ['**/tsconfig.json', '**/jsconfig.json'],
+				patterns: [/["']include["']\s*:\s*\[[^\]]*["'](?:\.\.?\/)*\.svelte-kit(?:\/[^"']*)?["']/]
+			}
+		],
+		summary:
+			'Files generated in `.svelte-kit` for SvelteKit 2 are obsolete and can override SvelteKit 3 types.',
+		instructions:
+			'Remove every `.svelte-kit` entry from `include`. Preserve all user-owned source, test, and config entries.',
+		links: guideLink('$app-tsconfig')
+	},
+	{
 		title: 'Make the service worker module-compatible',
 		checks: [
 			{

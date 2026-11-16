@@ -1,0 +1,14 @@
+{
+	"extends": "$app/tsconfig",
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.svelte",
+		"tests/**/*.ts",
+		"vite.config.ts",
+		".svelte-kit/ambient.d.ts",
+		".svelte-kit/env.d.ts",
+		".svelte-kit/types/**/$types.d.ts",
+		".svelte-kit/non-ambient.d.ts"
+	],
+	"exclude": ["node_modules", ".svelte-kit/output"]
+}
