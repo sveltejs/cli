@@ -32,7 +32,7 @@
 							"import": { "type": "string", "description": "Named import." },
 							"call": {
 								"type": "string",
-								"description": "Expression to insert, e.g. `kitRoutes()`."
+								"description": "Expression to insert, e.g. `checker()`."
 							},
 							"position": {
 								"enum": ["start", "end"],
@@ -50,7 +50,7 @@
 							"default": { "type": "string", "description": "Local name of the default import." },
 							"call": {
 								"type": "string",
-								"description": "Expression to insert, e.g. `kitRoutes()`."
+								"description": "Expression to insert, e.g. `checker()`."
 							},
 							"position": {
 								"enum": ["start", "end"],
@@ -79,7 +79,7 @@
 									"import": { "type": "string", "description": "Named import." },
 									"call": {
 										"type": "string",
-										"description": "Expression to insert, e.g. `kitRoutes()`."
+										"description": "Expression to insert, e.g. `checker()`."
 									}
 								},
 								"required": ["from", "import", "call"],
@@ -95,7 +95,7 @@
 									},
 									"call": {
 										"type": "string",
-										"description": "Expression to insert, e.g. `kitRoutes()`."
+										"description": "Expression to insert, e.g. `checker()`."
 									}
 								},
 								"required": ["from", "default", "call"],

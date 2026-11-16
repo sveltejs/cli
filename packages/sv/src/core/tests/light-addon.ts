@@ -88,27 +88,26 @@ describe('light add-on contract', () => {
 });
 
 describe('light add-on', () => {
-	it('kit-routes: deps, named vite plugin, next steps', async () => {
+	it('all-keys: deps, named vite plugin appended, next steps', async () => {
 		const cwd = project();
-		const a = fixture('kit-routes');
+		const a = fixture('all-keys');
 		const { status, workspace } = await run(cwd, a);
 
 		expect(status[a.id]).toBe('success');
-		expect(devDeps(cwd)['vite-plugin-kit-routes']).toBe('^1.1.2');
+		expect(devDeps(cwd)['all-keys-dev']).toBe('^1.0.0');
+		expect(JSON.parse(read(cwd, 'package.json')).dependencies['all-keys']).toBe('^1.0.0');
 		const vite = read(cwd, 'vite.config.ts');
-		expect(vite).toContain(`import { kitRoutes } from 'vite-plugin-kit-routes'`);
-		expect(vite.indexOf('kitRoutes()')).toBeGreaterThan(vite.indexOf('sveltekit()'));
-		expect(a.nextSteps?.({ ...workspace, options: {} })).toEqual(
-			fixtureJson('kit-routes').nextSteps
-		);
+		expect(vite).toContain(`import { allKeys } from 'all-keys/vite'`);
+		expect(vite.indexOf('allKeys()')).toBeGreaterThan(vite.indexOf('sveltekit()'));
+		expect(a.nextSteps?.({ ...workspace, options: {} })).toEqual(fixtureJson('all-keys').nextSteps);
 	});
 
-	it('kit-routes: requires SvelteKit', async () => {
+	it('all-keys: requires SvelteKit', async () => {
 		const workspace = await createWorkspace({
 			cwd: project({ kit: false }),
 			packageManager: 'pnpm'
 		});
-		const a = fixture('kit-routes');
+		const a = fixture('all-keys');
 		const [result] = await setupAddons(
 			[
 				{

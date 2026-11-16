@@ -4,7 +4,7 @@ import * as v from 'valibot';
 // Additive only: new optional keys are fine. Never rename, remove, tighten, or change what a key does.
 // `light-addon.schema.json` is generated from this file and snapshot-tested: a diff there is a contract change.
 
-const call = v.pipe(v.string(), v.description('Expression to insert, e.g. `kitRoutes()`.'));
+const call = v.pipe(v.string(), v.description('Expression to insert, e.g. `checker()`.'));
 const from = v.pipe(v.string(), v.description('Module to import from.'));
 const named = {
 	from,

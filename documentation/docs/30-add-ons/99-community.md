@@ -20,11 +20,16 @@ If your add-on only installs packages, registers a Vite plugin or a server hook,
 
 ```json
 {
-	"id": "vite-plugin-kit-routes",
-	"kit": true,
-	"devDependencies": { "vite-plugin-kit-routes": "^1.1.2" },
-	"vite": [{ "from": "vite-plugin-kit-routes", "import": "kitRoutes", "call": "kitRoutes()" }],
-	"nextSteps": ["Run the dev server to generate `$lib/ROUTES`"]
+	"id": "vite-plugin-checker",
+	"devDependencies": { "vite-plugin-checker": "^1.0.0", "svelte-check": "^4.7.6" },
+	"vite": [
+		{
+			"from": "vite-plugin-checker",
+			"default": "checker",
+			"call": "checker({ svelteCheck: true })"
+		}
+	],
+	"nextSteps": ["svelte-check now reports errors in your terminal and browser"]
 }
 ```
 
