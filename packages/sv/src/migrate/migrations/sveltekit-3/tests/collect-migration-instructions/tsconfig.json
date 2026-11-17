@@ -1,5 +1,8 @@
 {
 	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"rewriteRelativeImportExtensions": true
+	},
 	"include": [
 		"src/**/*.ts",
 		"src/**/*.svelte",

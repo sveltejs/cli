@@ -71,7 +71,7 @@ export default defineMigrationTask({
 
 				return (
 					createMigrationTaskComment(
-						'remove `rewriteRelativeImportExtensions` - the `#lib/*.ts` subpath imports are not relative paths, but the flag errors with TS2877'
+						'`rewriteRelativeImportExtensions` causes subpath imports with a `.ts` extension (`#lib/index.ts`) to report a type error (TS2877) and should be removed'
 					) +
 					'\n' +
 					content
