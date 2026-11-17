@@ -29,6 +29,7 @@
 		"@eslint/js": "^10.0.1",
 		"@inlang/paraglide-js": "^2.18.2",
 		"@libsql/client": "^0.17.3",
+		"@mdsvex/prettier-plugin": "next",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-node": "^6.0.0",
 		"@sveltejs/kit": "^3.0.0",

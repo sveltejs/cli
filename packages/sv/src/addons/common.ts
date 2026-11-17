@@ -115,6 +115,7 @@ export function prettierConfigPath(): string {
  */
 export const createPrettierConfig = (opts: {
 	tailwind: boolean;
+	mdsvex: boolean;
 	stylesheet?: string;
 }): TransformFn =>
 	transforms.script(({ ast, comments, js }) => {
@@ -124,6 +125,7 @@ export const createPrettierConfig = (opts: {
 		}
 
 		const plugins = ['prettier-plugin-svelte'];
+		if (opts.mdsvex) plugins.push('@mdsvex/prettier-plugin');
 		if (opts.tailwind) plugins.push('prettier-plugin-tailwindcss');
 
 		const properties = [
@@ -176,6 +178,34 @@ export const addPrettierTailwind = (opts: { stylesheet: string }): TransformFn =
 			});
 		}
 	});
+
+/**
+ * Augments an existing `prettier.config.js` config object with the mdsvex plugin.
+ * Used when prettier was added before mdsvex.
+ */
+export const addPrettierMdsvex: TransformFn = transforms.script(({ ast, js }) => {
+	if (!ast.body.some((node) => node.type === 'ExportDefaultDeclaration')) return false;
+
+	const { value } = js.exports.createDefault(ast, { fallback: js.object.create({}) });
+	if (value.type !== 'ObjectExpression') return false;
+
+	const plugins = js.object.property(value, { name: 'plugins', fallback: js.array.create() });
+	if (plugins.type !== 'ArrayExpression') return false;
+
+	js.array.append(plugins, '@mdsvex/prettier-plugin');
+
+	// prettier-plugin-tailwindcss must remain last.
+	const mdsvexIndex = plugins.elements.findIndex(
+		(plugin) => plugin?.type === 'Literal' && plugin.value === '@mdsvex/prettier-plugin'
+	);
+	const tailwindIndex = plugins.elements.findIndex(
+		(plugin) => plugin?.type === 'Literal' && plugin.value === 'prettier-plugin-tailwindcss'
+	);
+	if (tailwindIndex !== -1 && mdsvexIndex > tailwindIndex) {
+		const [mdsvexPlugin] = plugins.elements.splice(mdsvexIndex, 1);
+		plugins.elements.splice(tailwindIndex, 0, mdsvexPlugin);
+	}
+});
 
 /**
  * Returns the corresponding `@types/node` version for the version of Node.js running in the current process.

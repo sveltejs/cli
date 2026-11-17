@@ -14,8 +14,28 @@ const { test, testCases, prepareServer } = setupTest(
 			{
 				type: 'plugins',
 				options: { mdsvex: { plugins: ['callouts', 'figures', 'anchors', 'diagram'] } }
+			},
+			{
+				type: 'prettier',
+				options: { mdsvex: { plugins: [] } }
 			}
-		]
+		],
+		filter: (addonTestCase) =>
+			addonTestCase.kind.type !== 'prettier' || addonTestCase.variant === 'vite-js',
+		preAdd: ({ addonTestCase, cwd }) => {
+			if (addonTestCase.kind.type !== 'prettier') return;
+
+			const packageJsonPath = path.resolve(cwd, 'package.json');
+			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+			packageJson.devDependencies ??= {};
+			packageJson.devDependencies.prettier = '^3.8.3';
+			fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson), 'utf8');
+			fs.writeFileSync(
+				path.resolve(cwd, 'prettier.config.js'),
+				"export default { plugins: ['prettier-plugin-svelte', 'prettier-plugin-tailwindcss'] };\n",
+				'utf8'
+			);
+		}
 	}
 );
 
@@ -53,6 +73,9 @@ test('configures the plugin prompt', ({ expect: vExpect }) => {
 			.filter(({ label }) => label?.endsWith(' *'))
 			.map(({ value }) => value)
 	).toEqual(['code-blocks', 'figures', 'anchors', 'toc', 'external-links', 'page-data']);
+	vExpect(mdsvex.nextSteps?.({} as never).join('\n')).toContain(
+		'https://marketplace.visualstudio.com/items?itemName=mdsvex.vscode-pfm'
+	);
 });
 
 test.concurrent.for(testCases)('mdsvex $kind.type $variant', async (testCase, { page, ...ctx }) => {
@@ -72,6 +95,21 @@ test.concurrent.for(testCases)('mdsvex $kind.type $variant', async (testCase, { 
 		expect(viteConfig).toContain('plugins: [callouts(), diagram(), figures(), anchors()]');
 		expect(packageJson).toContain('"@mdsvex/plugin-callouts": "next"');
 		expect(packageJson).toContain('"mermaid": "^12.3.0"');
+	}
+
+	const vscodeExtensions = JSON.parse(
+		fs.readFileSync(path.join(cwd, '.vscode', 'extensions.json'), 'utf8')
+	);
+	expect(vscodeExtensions.recommendations).toContain('mdsvex.vscode-pfm');
+
+	if (testCase.kind.type === 'prettier') {
+		const packageJson = fs.readFileSync(path.join(cwd, 'package.json'), 'utf8');
+		const prettierConfig = fs.readFileSync(path.join(cwd, 'prettier.config.js'), 'utf8');
+		expect(packageJson).toContain('"@mdsvex/prettier-plugin": "next"');
+		expect(prettierConfig).toContain("'@mdsvex/prettier-plugin'");
+		expect(prettierConfig.indexOf("'@mdsvex/prettier-plugin'")).toBeLessThan(
+			prettierConfig.indexOf("'prettier-plugin-tailwindcss'")
+		);
 	}
 
 	const { close } = await prepareServer({ cwd, page });

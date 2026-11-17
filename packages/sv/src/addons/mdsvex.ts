@@ -1,6 +1,7 @@
-import { transforms } from '@sveltejs/sv-utils';
+import { color, transforms } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
+import { addPrettierMdsvex, prettierConfigPath } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 export type MdsvexPlugin =
@@ -199,10 +200,12 @@ const addon: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex> = defin
 	shortDescription: 'svelte + markdown',
 	homepage: 'https://next.mdsvex.pages.dev',
 	options,
-	run: ({ sv, options, file, isKit }) => {
+	run: ({ sv, options, file, isKit, dependencyVersion }) => {
 		const selected = plugins.filter((plugin) => options.plugins.includes(plugin.id));
+		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
 		sv.devDependency('mdsvex', 'next');
+		if (prettierInstalled) sv.devDependency('@mdsvex/prettier-plugin', 'next');
 		for (const plugin of selected) {
 			sv.devDependency(plugin.package, 'next');
 		}
@@ -283,7 +286,23 @@ const addon: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex> = defin
 				js.array.append(extensions, '.svx');
 			})
 		);
-	}
+
+		sv.file(
+			'.vscode/extensions.json',
+			transforms.json(({ data, json }) => {
+				json.arrayUpsert(data, 'recommendations', 'mdsvex.vscode-pfm');
+			})
+		);
+
+		if (prettierInstalled) {
+			sv.file(prettierConfigPath(), addPrettierMdsvex);
+		}
+	},
+	nextSteps: () => [
+		`Install the mdsvex extension for VS Code: ${color.website(
+			'https://marketplace.visualstudio.com/items?itemName=mdsvex.vscode-pfm'
+		)}`
+	]
 });
 
 export default addon;

@@ -24,3 +24,5 @@ and external links.
 - mdsvex installed and configured as a Vite plugin
 - `.svx` files enabled as Svelte components
 - any selected [first-party plugins](https://next.mdsvex.pages.dev/docs/plugins) installed and enabled
+- the mdsvex VS Code extension added to workspace recommendations
+- the mdsvex Prettier plugin installed and configured when Prettier is present
