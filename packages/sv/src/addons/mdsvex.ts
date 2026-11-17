@@ -8,7 +8,7 @@ export default defineAddon({
 	homepage: 'https://mdsvex.pngwn.io',
 	options: {},
 	run: ({ sv, cwd }) => {
-		sv.devDependency('mdsvex', '^0.12.7');
+		sv.devDependency('mdsvex', '^0.12.8');
 
 		svelteConfig.edit({ sv, cwd }, ({ ast, property, override, js }) => {
 			js.imports.addNamed(ast, { from: 'mdsvex', imports: ['mdsvex'] });

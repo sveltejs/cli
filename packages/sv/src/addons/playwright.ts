@@ -21,7 +21,7 @@ const addon: Addon<AddonOptions<PlaywrightOptions>, 'playwright'> = defineAddon(
 	homepage: 'https://playwright.dev',
 	options,
 	run: ({ sv, options, language, file, isKit, directory, cwd, dependencyVersion }) => {
-		sv.devDependency('@playwright/test', '^1.60.0');
+		sv.devDependency('@playwright/test', '^1.65.1');
 
 		sv.file(
 			file.package,
