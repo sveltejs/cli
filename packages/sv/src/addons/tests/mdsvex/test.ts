@@ -8,14 +8,71 @@ import { svxFile } from './fixtures.ts';
 
 const { test, testCases, prepareServer } = setupTest(
 	{ mdsvex },
-	{ kinds: [{ type: 'default', options: { mdsvex: { extensions: ['.svx', '.md'] } } }] }
+	{
+		kinds: [
+			{ type: 'default', options: { mdsvex: { plugins: [] } } },
+			{
+				type: 'plugins',
+				options: { mdsvex: { plugins: ['callouts', 'figures', 'anchors', 'diagram'] } }
+			}
+		]
+	}
 );
 
-test.concurrent.for(testCases)('mdsvex $variant', async (testCase, { page, ...ctx }) => {
+test('configures the plugin prompt', ({ expect: vExpect }) => {
+	vExpect(mdsvex.options.plugins.searchable).toBe(true);
+	vExpect(mdsvex.options.plugins.default).toEqual([
+		'page-data',
+		'anchors',
+		'toc',
+		'figures',
+		'code-blocks',
+		'external-links'
+	]);
+	vExpect(mdsvex.options.plugins.options.map(({ value }) => value)).toEqual([
+		'callouts',
+		'elements',
+		'steps',
+		'tabs',
+		'emoji',
+		'code-blocks',
+		'diagram',
+		'embeds',
+		'figures',
+		'anchors',
+		'toc',
+		'external-links',
+		'references',
+		'citations',
+		'numbering',
+		'page-data',
+		'link-check'
+	]);
+	vExpect(
+		mdsvex.options.plugins.options
+			.filter(({ label }) => label?.endsWith(' *'))
+			.map(({ value }) => value)
+	).toEqual(['code-blocks', 'figures', 'anchors', 'toc', 'external-links', 'page-data']);
+});
+
+test.concurrent.for(testCases)('mdsvex $kind.type $variant', async (testCase, { page, ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
 
 	// ...add test files
 	addFixture(cwd, testCase.variant);
+
+	if (testCase.kind.type === 'plugins') {
+		const viteConfigFile = fs.existsSync(path.join(cwd, 'vite.config.ts'))
+			? 'vite.config.ts'
+			: 'vite.config.js';
+		const viteConfig = fs.readFileSync(path.join(cwd, viteConfigFile), 'utf8');
+		const packageJson = fs.readFileSync(path.join(cwd, 'package.json'), 'utf8');
+		expect(viteConfig).toContain('heading_ids: true');
+		expect(viteConfig).toContain('unwrap_images: true');
+		expect(viteConfig).toContain('plugins: [callouts(), diagram(), figures(), anchors()]');
+		expect(packageJson).toContain('"@mdsvex/plugin-callouts": "next"');
+		expect(packageJson).toContain('"mermaid": "^12.3.0"');
+	}
 
 	const { close } = await prepareServer({ cwd, page });
 	// kill server process when we're done

@@ -8,6 +8,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [
+		mdsvex(),
 		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
@@ -15,9 +16,7 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter(),
-			preprocess: [mdsvex({ extensions: ['.svx', '.md'] })],
-			extensions: ['.svelte', '.svx', '.md']
+			adapter: adapter()
 		}),
 
 		paraglideVitePlugin({
