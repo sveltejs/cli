@@ -59,8 +59,8 @@ export const add = new Command('add')
 	.argument('[add-on...]', `add-ons to install`, (value: string, previous: AddonInput[] = []) =>
 		addonArgsHandler(previous, value)
 	)
-	.option('-C, --cwd <path>', 'path to working directory', defaultCwd)
-	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.addOption(common.cliOptions.cwd)
+	.addOption(common.cliOptions.noGitCheck)
 	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(common.cliOptions.noInstall)
 	.addOption(installOption)
@@ -95,6 +95,8 @@ export const add = new Command('add')
 		}
 	})
 	.action(async (addonInputs: AddonInput[], opts) => {
+		opts.cwd ??= defaultCwd;
+
 		// validate workspace
 		if (opts.cwd === undefined) {
 			common.errorAndExit(
