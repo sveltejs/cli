@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
-import { a11yStubAlias } from './packages/sv-utils/src/a11y-alias.ts';
 import { generate_addon_content } from './packages/sv/src/create/scripts/generate-addon-template.js';
 import { generate_kit_template } from './packages/sv/src/create/scripts/generate-kit-template.js';
 import { generate_vite_template } from './packages/sv/src/create/scripts/generate-vite-template.js';
@@ -210,8 +209,7 @@ export default defineConfig([
 		// the node entry works fine with it too.
 		inputOptions: {
 			resolve: {
-				aliasFields: [['browser']],
-				alias: a11yStubAlias
+				aliasFields: [['browser']]
 			}
 		},
 		outputOptions: {
@@ -225,6 +223,8 @@ export default defineConfig([
 				'@jridgewell/trace-mapping',
 				'@sveltejs/acorn-typescript',
 				'acorn',
+				'aria-query',
+				'axobject-query',
 				'decircular',
 				'dedent',
 				'diff',
