@@ -1,6 +1,5 @@
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { svelteDevtools } from 'vite-devtools-svelte';
-import { DevTools } from '@vitejs/devtools';
 import { mdsvex } from 'mdsvex';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
@@ -11,7 +10,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 export default defineConfig({
 	plugins: [
 		svelteDevtools(),
-		DevTools(),
 		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
@@ -57,5 +55,6 @@ export default defineConfig({
 				}
 			}
 		]
-	}
+	},
+	devtools: { apply: 'serve' }
 });

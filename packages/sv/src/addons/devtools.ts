@@ -21,17 +21,17 @@ export default defineAddon({
 		sv.file(
 			file.viteConfig,
 			transforms.script(({ ast, js }) => {
-				js.imports.addNamed(ast, {
-					imports: ['DevTools'],
-					from: '@vitejs/devtools'
+				js.object.overrideProperties(js.vite.getConfig(ast), {
+					devtools: {
+						apply: 'serve'
+					}
 				});
 				js.imports.addNamed(ast, {
 					imports: ['svelteDevtools'],
 					from: 'vite-devtools-svelte'
 				});
 
-				// Prepend in reverse order so the Svelte instrumentation runs first.
-				js.vite.addPlugin(ast, { code: 'DevTools()', mode: 'prepend' });
+				// The Svelte instrumentation must run before the Svelte plugin.
 				js.vite.addPlugin(ast, { code: 'svelteDevtools()', mode: 'prepend' });
 			})
 		);

@@ -21,14 +21,14 @@ test.concurrent.for(testCases)('devtools $variant', (testCase, { expect, ...ctx 
 	expect(pkg.devDependencies).toHaveProperty('@vitejs/devtools-vite', '^0.8.3');
 	expect(pkg.devDependencies).not.toHaveProperty('@vitejs/devtools-vitest');
 	expect(pkg.devDependencies).toHaveProperty('vite-devtools-svelte', '^0.7.0');
-	expect(source).toContain(`import { DevTools } from '@vitejs/devtools'`);
+	expect(source).not.toContain(`import { DevTools } from '@vitejs/devtools'`);
 	expect(source).toContain(`import { svelteDevtools } from 'vite-devtools-svelte'`);
+	expect(source).toMatch(/devtools:\s*\{\s*apply:\s*'serve'\s*\}/);
 
 	const svelteDevtoolsIndex = source.indexOf('svelteDevtools()');
-	const devtoolsIndex = source.indexOf('DevTools()');
 	const sveltePluginIndex = Math.max(source.indexOf('sveltekit('), source.indexOf('svelte()'));
 
 	expect(svelteDevtoolsIndex).toBeGreaterThan(-1);
-	expect(devtoolsIndex).toBeGreaterThan(svelteDevtoolsIndex);
-	expect(sveltePluginIndex).toBeGreaterThan(devtoolsIndex);
+	expect(source).not.toContain('DevTools()');
+	expect(sveltePluginIndex).toBeGreaterThan(svelteDevtoolsIndex);
 });
