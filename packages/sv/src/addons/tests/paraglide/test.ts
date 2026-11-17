@@ -23,17 +23,15 @@ test.concurrent.for(testCases)('paraglide $variant', async (testCase, { page, ..
 	// kill server process when we're done
 	ctx.onTestFinished(async () => await close());
 
-	for (const lang of langs) {
-		const filePath = path.resolve(cwd, `src/lib/paraglide/messages/${lang}.js`);
-		const fileContent = fs.readFileSync(filePath, 'utf8');
-		expect(fileContent).toContain(`hello_world`);
-	}
+	const messagesPath = path.resolve(cwd, 'src/lib/paraglide/messages.js');
+	const messages = fs.readFileSync(messagesPath, 'utf8');
+	expect(messages).toContain('virtual:paraglide/');
 
 	const settingsPath = path.resolve(cwd, 'project.inlang/settings.json');
 	const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
 	expect(settings.locales).toEqual(['en', 'fr', 'hu']);
 
-	const declarationsPath = path.resolve(cwd, 'src/lib/paraglide/messages/_index.d.ts');
+	const declarationsPath = path.resolve(cwd, 'src/lib/paraglide/messages.virtual.d.ts');
 	const declarations = fs.readFileSync(declarationsPath, 'utf8');
 	expect(declarations).toContain('hello_world');
 });

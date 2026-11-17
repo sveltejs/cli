@@ -28,6 +28,7 @@ export type MultiSelectQuestion<Value> = {
 	default: NoInfer<Value[]>;
 	options: Array<{ value: Value; label?: string; hint?: string }>;
 	required: boolean;
+	searchable?: boolean;
 };
 
 export type BaseQuestion<Args extends OptionDefinition> = {

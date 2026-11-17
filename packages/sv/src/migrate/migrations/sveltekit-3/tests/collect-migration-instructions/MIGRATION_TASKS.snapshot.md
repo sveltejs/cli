@@ -18,6 +18,23 @@ Also search the project for `@migration-task` comments. They may describe additi
 
 ## Migration tasks
 
+### Remove `rewriteRelativeImportExtensions` from tsconfig.json
+
+`rewriteRelativeImportExtensions` only rewrites `.ts` extensions on relative imports. Subpath imports ending in `.ts` — such as the `#lib/*.ts` imports added by the `lib-alias` migration — are not rewritten, so TypeScript reports TS2877 for them.
+
+#### What to do
+
+Remove `rewriteRelativeImportExtensions` from `compilerOptions` in tsconfig.json. This is safe for SvelteKit projects: `$app/tsconfig` already sets `allowImportingTsExtensions`, so `.ts` imports still type-check. Only keep the flag if you run `tsc` to emit and rely on it rewriting relative `.ts` imports in the output.
+
+#### References
+
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#$lib-is-now-lib)
+- [Migrating to SvelteKit v3](https://svelte.dev/docs/kit/migrating-to-sveltekit-3#$app-tsconfig)
+
+#### Files to review
+
+- [ ] `tsconfig.json`
+
 ### Remove obsolete `.svelte-kit` includes
 
 Files generated in `.svelte-kit` for SvelteKit 2 are obsolete and can override SvelteKit 3 types.
