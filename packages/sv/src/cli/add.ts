@@ -669,7 +669,8 @@ export async function promptAddonQuestions({
 				});
 			}
 			if (question.type === 'multiselect') {
-				answer = await p.multiselect({
+				const prompt = question.searchable ? p.autocompleteMultiselect : p.multiselect;
+				answer = await prompt({
 					message,
 					initialValues: question.default,
 					required: question.required,
