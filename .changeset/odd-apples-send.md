@@ -1,6 +1,5 @@
 ---
-"sv": patch
+'sv': patch
 ---
 
-Add SvelteKit 3 migration guidance for removing obsolete .svelte-kit includes.
-  
+fix(migrate): flag obsolete `.svelte-kit` includes in `tsconfig.json` when migrating to SvelteKit 3
