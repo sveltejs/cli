@@ -12,7 +12,9 @@ import {
 	type TransformFn,
 	coerceVersion,
 	defineDemoPage,
-	defineEnv
+	defineEnv,
+	fileExists,
+	isKit3
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
@@ -51,6 +53,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
 		const kitRange = dependencyVersion('@sveltejs/kit');
 		const lib = resolveLibPrefix(kitRange);
+		const kit3 = isKit3(kitRange);
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
@@ -129,6 +132,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,
 			transforms.script(({ ast, comments, js }) => {
+				const d1FromWorkers = d1 && kit3;
 				js.imports.addNamed(ast, {
 					from: `${lib}/server/db/index.${language}`,
 					imports: [d1 ? 'getDb' : 'db']
@@ -143,6 +147,9 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					imports: ['drizzleAdapter']
 				});
 				js.imports.addNamed(ast, { from: 'better-auth/minimal', imports: ['betterAuth'] });
+				if (d1FromWorkers) {
+					js.imports.addNamed(ast, { from: 'cloudflare:workers', imports: ['env'] });
+				}
 
 				const origin = env.reference(ast, js, { name: 'ORIGIN' });
 				const secret = env.reference(ast, js, { name: 'BETTER_AUTH_SECRET' });
@@ -183,7 +190,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 						],
 					}${ts(' satisfies Omit<Parameters<typeof betterAuth>[0], "database">')};
 
-					export const createAuth = (d1${ts(': D1Database')}) => betterAuth({
+					export const createAuth = (d1${ts(': D1Database')}${d1FromWorkers ? ' = env.DB' : ''}) => betterAuth({
 						...authConfig,
 						database: drizzleAdapter(getDb(d1), { provider: '${provider}' }),
 					});
@@ -292,6 +299,24 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 			})
 		);
 
+		const wranglerExt = fileExists(cwd, 'wrangler.toml')
+			? 'toml'
+			: fileExists(cwd, 'wrangler.json')
+				? 'json'
+				: 'jsonc';
+		const addD1Binding = (data: Record<string, any>) => {
+			if (!d1) return false;
+			data.d1_databases ??= [];
+			const hasBinding = data.d1_databases.some((db: { binding?: string }) => db.binding === 'DB');
+			if (!hasBinding) data.d1_databases.push({ binding: 'DB' });
+		};
+		sv.file(
+			`wrangler.${wranglerExt}`,
+			wranglerExt === 'toml'
+				? transforms.toml(({ data }) => addD1Binding(data))
+				: transforms.json(({ data }) => addD1Binding(data))
+		);
+
 		sv.file(
 			`src/hooks.server.${language}`,
 			transforms.script(({ ast, comments, js }) => {
@@ -305,12 +330,19 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 				});
 				env.importEnv(ast, js, ['building']);
 
-				const d1HandleSetup = d1
-					? dedent`
+				const d1FromWorkers = d1 && kit3;
+
+				let d1HandleSetup = '';
+				if (d1FromWorkers) {
+					d1HandleSetup = dedent`
+					event.locals.auth = createAuth();
+					const { auth } = event.locals;\n`;
+				} else if (d1) {
+					d1HandleSetup = dedent`
 					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found - are you running with wrangler?');
 					event.locals.auth = createAuth(event.platform.env.DB);
-					const { auth } = event.locals;\n`
-					: '';
+					const { auth } = event.locals;\n`;
+				}
 
 				const handleContent = dedent`
 				async ({ event, resolve }) => {${d1HandleSetup}
