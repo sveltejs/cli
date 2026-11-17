@@ -9,7 +9,7 @@ import { unpackTar } from 'modern-tar/fs';
 import * as v from 'valibot';
 import pkg from '../../package.json' with { type: 'json' };
 import * as common from './common.ts';
-import { PackageJSONSchema, type PackageJSON } from './common.ts';
+import { PackageJSON } from './common.ts';
 import type { AddonDefinition, AddonReference } from './config.ts';
 
 const packageJsonPath = packageJson.up({ cwd: import.meta.dirname });
@@ -20,7 +20,7 @@ const NODE_MODULES = path.join(path.dirname(packageJsonPath), 'node_modules');
 type PackageBlocklist = { npm_names: string[] };
 
 function parsePackageJSON(value: unknown, specifier: string): PackageJSON {
-	const result = v.safeParse(PackageJSONSchema, value);
+	const result = v.safeParse(PackageJSON, value);
 	if (!result.success) {
 		throw new Error(
 			`Invalid add-on package specified: '${specifier}' has invalid package metadata`
