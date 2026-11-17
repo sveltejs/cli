@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import * as p from '@clack/prompts';
-import { type AgentName, color, resolveCommandArray } from '@sveltejs/sv-utils';
+import { color, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as pkg from 'empathic/package';
 import * as v from 'valibot';
@@ -25,8 +25,11 @@ import { formatFiles, isPrettierInstalled } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
+	exitOnInstallConflict,
 	installDependencies,
 	installOption,
+	normalizeInstallFlags,
+	packageManagerOption,
 	packageManagerPrompt
 } from '../core/package-manager.ts';
 import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../core/verifiers.ts';
@@ -35,13 +38,17 @@ import { createWorkspace, type Workspace } from '../core/workspace.ts';
 const officialAddons = Object.values(_officialAddons);
 const addonOptions = getAddonOptionFlags();
 
-const OptionsSchema = v.strictObject({
-	cwd: v.string(),
-	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
-	gitCheck: v.boolean(),
-	downloadCheck: v.boolean(),
-	addons: v.record(v.string(), v.optional(v.array(v.string())))
-});
+const OptionsSchema = v.pipe(
+	v.strictObject({
+		cwd: v.string(),
+		install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
+		packageManager: v.optional(v.picklist(AGENT_NAMES)),
+		gitCheck: v.boolean(),
+		downloadCheck: v.boolean(),
+		addons: v.record(v.string(), v.optional(v.array(v.string())))
+	}),
+	v.transform(normalizeInstallFlags)
+);
 type Options = v.InferOutput<typeof OptionsSchema>;
 
 // infers the workspace cwd if a `package.json` resides in a parent directory
@@ -57,6 +64,7 @@ export const add = new Command('add')
 	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(common.cliOptions.noInstall)
 	.addOption(installOption)
+	.addOption(packageManagerOption)
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
@@ -99,10 +107,15 @@ export const add = new Command('add')
 			);
 		}
 
+		exitOnInstallConflict(process.argv);
 		const options = v.parse(OptionsSchema, { ...opts, addons: {} });
 		const addonRefs = classifyAddons(addonInputs, options.cwd);
 
-		const workspace = await createWorkspace({ cwd: options.cwd });
+		// an explicit package manager wins over detection, add-ons read it while running
+		const workspace = await createWorkspace({
+			cwd: options.cwd,
+			packageManager: options.packageManager
+		});
 
 		common.runCommand(async () => {
 			// Resolve all addons (official and community) - returns LoadedAddon[]
@@ -773,17 +786,10 @@ export async function runAddonsApply({
 		);
 	}
 
-	// nothing new landed in `package.json`, so there is nothing to install and nothing to ask about
-	let packageManager: AgentName | null | undefined = null;
-	if (options.install === true) {
-		// prompt user when `package.json` has changed
-		if (installNeeded) {
-			packageManager = await packageManagerPrompt(options.cwd);
-		}
-	} else if (options.install === false) {
-		// user choose not to install
-	} else {
-		packageManager = options.install;
+	// only prompt when `package.json` has changed, otherwise there is nothing to ask about
+	let packageManager = options.packageManager;
+	if (!packageManager && options.install && installNeeded) {
+		packageManager = await packageManagerPrompt(options.cwd);
 	}
 
 	addAllowBuildsIfPnpm({ cwd: workspace.cwd, packageManager, packages: ['esbuild'] });
@@ -839,13 +845,13 @@ export async function runAddonsApply({
 	if (fromCommand === 'add') {
 		if (!options.gitCheck) argsFormattedAddons.push('--no-git-check');
 
-		common.buildAndLogArgs(packageManager, 'add', argsFormattedAddons);
+		common.buildAndLogArgs(packageManager, options.install, 'add', argsFormattedAddons);
 	}
 
 	let depsInstalled = false;
 	if (packageManager) {
 		workspace.packageManager = packageManager;
-		depsInstalled = await installDependencies(packageManager, options.cwd);
+		if (options.install) depsInstalled = await installDependencies(packageManager, options.cwd);
 	}
 
 	// the formatter has to be on disk: either we just installed it, or it was already there
@@ -859,7 +865,7 @@ export async function runAddonsApply({
 	}
 
 	const nextSteps = getNextSteps(successfulAddons, workspace, answers, setupResults);
-	if (packageManager && !depsInstalled) {
+	if (packageManager && !depsInstalled && installNeeded) {
 		nextSteps.unshift(
 			`Install ${color.command(packageManager)}, then run ${color.command(resolveCommandArray(packageManager, 'install', []))}`
 		);

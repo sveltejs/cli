@@ -9,6 +9,7 @@ import { prepareSvApi } from '../core/engine.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
+	exitOnInstallConflict,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
@@ -68,14 +69,7 @@ export const migrate = new Command('migrate')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
 	.action((migrationName, options) => {
-		if (hasInstallConflict(process.argv)) {
-			common.errorAndExit(
-				`The ${color.command('--install')} and ${color.command(
-					'--no-install'
-				)} options cannot be used together.`
-			);
-			return;
-		}
+		exitOnInstallConflict(process.argv);
 
 		let verifiedMigrationName: string | symbol | undefined = v.parse(
 			MigrationScheme,
@@ -374,13 +368,6 @@ function reportNextSteps(): void {
 		`Search for ${color.command(MIGRATION_TASK_MARKER)} to resolve ${total === 1 ? 'it' : 'them'}.`
 	];
 	p.note(body.join('\n'), 'Next steps', { format: (line) => line });
-}
-
-export function hasInstallConflict(argv: string[]) {
-	return (
-		argv.some((arg) => arg === '--install' || arg.startsWith('--install=')) &&
-		argv.includes('--no-install')
-	);
 }
 
 async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigration: boolean) {

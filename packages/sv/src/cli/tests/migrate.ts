@@ -1,6 +1,7 @@
 import process from 'node:process';
 import type { AstTypes, Comments } from '@sveltejs/sv-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { hasInstallConflict } from '../../core/package-manager.ts';
 import { type TaskWithOptions } from '../../migrate/index.ts';
 import {
 	addMigrationTask,
@@ -9,7 +10,6 @@ import {
 } from '../../migrate/migration-task.ts';
 import {
 	formatAvailableTasks,
-	hasInstallConflict,
 	migrate,
 	normalizeTasksOption,
 	selectTasksFromArgs
