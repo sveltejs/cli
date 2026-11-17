@@ -8,7 +8,7 @@ const plugins = [
 	{
 		id: 'typography',
 		package: '@tailwindcss/typography',
-		version: '^0.5.19'
+		version: '^0.5.20'
 	},
 	{
 		id: 'forms',
@@ -38,10 +38,10 @@ const addon: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'> = defineAddo
 	run: ({ sv, options, file, isKit, directory, dependencyVersion, language }) => {
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('tailwindcss', '^4.3.0');
-		sv.devDependency('@tailwindcss/vite', '^4.3.0');
+		sv.devDependency('tailwindcss', '^4.3.5');
+		sv.devDependency('@tailwindcss/vite', '^4.3.5');
 
-		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.0');
+		if (prettierInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.1');
 
 		for (const plugin of plugins) {
 			if (!options.plugins.includes(plugin.id)) continue;

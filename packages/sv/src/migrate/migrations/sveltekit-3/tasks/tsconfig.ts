@@ -3,10 +3,20 @@ import path from 'node:path';
 import { svelteConfig, transforms, Walker, type AstTypes } from '@sveltejs/sv-utils';
 import type { SvApi } from '../../../../core/config.ts';
 import { defineMigrationTask } from '../../../index.ts';
-import { addMigrationTask } from '../../../migration-task.ts';
+import {
+	addMigrationTask,
+	createMigrationTaskComment,
+	MIGRATION_TASK_MARKER
+} from '../../../migration-task.ts';
 
 const GENERATED_CONFIG = /(^|\/)\.svelte-kit\/tsconfig\.json$/;
 const LEADING_PARENT = /^\.\.\//;
+
+/**
+ * An `include` array still listing `.svelte-kit` entries from kit 2
+ */
+export const STALE_INCLUDE =
+	/["']include["']\s*:\s*\[[^\]]*["'](?:\.\.?\/)*\.svelte-kit(?:\/[^"']*)?["']/;
 
 /** The config SvelteKit now generates into `node_modules`, replacing `.svelte-kit/tsconfig.json`. */
 const PARENT_CONFIG = '$app/tsconfig';
@@ -61,39 +71,53 @@ export default defineMigrationTask({
 
 		const moved = dropTypescriptOption(sv, cwd);
 
+		const editConfig = transforms.json<TypeConfig>(({ data }) => {
+			const extended = Array.isArray(data.extends) ? [...data.extends] : [data.extends];
+			const index = extended.findIndex((entry) => entry && GENERATED_CONFIG.test(entry));
+
+			// a prerequisite task may have retargeted `extends` already; the `include` paths below
+			// still have to move, so only bail when neither config is referenced
+			if (index === -1 && !extended.includes(PARENT_CONFIG)) return false;
+
+			if (index !== -1) {
+				extended[index] = PARENT_CONFIG;
+				data.extends = Array.isArray(data.extends) ? (extended as string[]) : PARENT_CONFIG;
+			}
+
+			// the generated config no longer carries `include`, so the project owns it now
+			const include = (data.include ??= [
+				'src',
+				...ROOT_INCLUDES.filter((entry) => fs.existsSync(path.join(cwd, entry)))
+			]);
+			include.push(...moved.filter((entry) => !include.includes(entry)));
+
+			// if types is set we need to add $app/types to it
+			if (data.compilerOptions?.types) {
+				const types = data.compilerOptions.types as string[];
+				if (!types.includes('$app/types')) types.unshift('$app/types');
+			}
+
+			for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
+				if (INHERITED_OPTIONS[key] === value) delete data.compilerOptions![key];
+			}
+		});
+
 		sv.file(
 			// `typeConfig` is resolved by walking up from `cwd`, so it can sit outside the project
 			path.relative(cwd, file.typeConfig),
-			transforms.json<TypeConfig>(({ data }) => {
-				const extended = Array.isArray(data.extends) ? [...data.extends] : [data.extends];
-				const index = extended.findIndex((entry) => entry && GENERATED_CONFIG.test(entry));
+			(content) => {
+				const edited = editConfig(content);
+				if (content.includes(MIGRATION_TASK_MARKER) || !STALE_INCLUDE.test(content)) return edited;
 
-				// a prerequisite task may have retargeted `extends` already; the `include` paths below
-				// still have to move, so only bail when neither config is referenced
-				if (index === -1 && !extended.includes(PARENT_CONFIG)) return false;
-
-				if (index !== -1) {
-					extended[index] = PARENT_CONFIG;
-					data.extends = Array.isArray(data.extends) ? (extended as string[]) : PARENT_CONFIG;
-				}
-
-				// the generated config no longer carries `include`, so the project owns it now
-				const include = (data.include ??= [
-					'src',
-					...ROOT_INCLUDES.filter((entry) => fs.existsSync(path.join(cwd, entry)))
-				]);
-				include.push(...moved.filter((entry) => !include.includes(entry)));
-
-				// if types is set we need to add $app/types to it
-				if (data.compilerOptions?.types) {
-					const types = data.compilerOptions.types as string[];
-					if (!types.includes('$app/types')) types.unshift('$app/types');
-				}
-
-				for (const [key, value] of Object.entries(data.compilerOptions ?? {})) {
-					if (INHERITED_OPTIONS[key] === value) delete data.compilerOptions![key];
-				}
-			})
+				// the JSON printer drops comments, so the marker has to be composed onto the final output
+				return (
+					createMigrationTaskComment(
+						'remove obsolete `.svelte-kit` includes - the files are no longer generated and can override SvelteKit 3 types'
+					) +
+					'\n' +
+					(edited === false ? content : edited)
+				);
+			}
 		);
 	}
 });

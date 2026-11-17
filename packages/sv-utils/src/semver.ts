@@ -1,4 +1,4 @@
-import { coerce, findMinimumForRange, isLess, isRangeSubset, tryParse } from 'verkit';
+import { coerce, findMinimumForRange, isLessThan, isRangeSubset, normalize } from 'verkit';
 
 type Version = {
 	major?: number;
@@ -20,7 +20,9 @@ export function minVersion(range: string): string {
 	}
 	const min = findMinimumForRange(cleaned);
 	if (!min) throw new Error(`Cannot determine min version from range: ${range}`);
-	return min;
+	const normalized = normalize(min);
+	if (!normalized) throw new Error(`Cannot determine min version from range: ${range}`);
+	return normalized;
 }
 
 /**
@@ -31,9 +33,14 @@ export function minVersion(range: string): string {
  */
 export function coerceVersion(str: string): Version {
 	const coerced = coerce(str);
-	const c = coerced ? tryParse(coerced) : null;
-	if (!c) return { major: undefined, minor: undefined, patch: undefined, version: undefined };
-	return { major: c.major, minor: c.minor, patch: c.patch, version: coerced! };
+	if (!coerced) return { major: undefined, minor: undefined, patch: undefined, version: undefined };
+	const version = normalize(coerced) ?? undefined;
+	return {
+		major: coerced.major,
+		minor: coerced.minor,
+		patch: coerced.patch,
+		version
+	};
 }
 
 /**
@@ -53,5 +60,5 @@ export function isVersionUnsupportedBelow(version: string, below: string): boole
 	const version_c = coerce(version);
 	const below_c = coerce(below);
 	if (!version_c || !below_c) return undefined;
-	return isLess(version_c, below_c);
+	return isLessThan(version_c, below_c);
 }
