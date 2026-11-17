@@ -54,6 +54,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		const kitRange = dependencyVersion('@sveltejs/kit');
 		const lib = resolveLibPrefix(kitRange);
 		const kit3 = isKit3(kitRange);
+		// Kit 2's `rewriteRelativeImportExtensions` rejects `.ts` on non-relative `$lib` imports (TS5097)
+		const libExt = kit3 ? `.${language}` : '';
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
@@ -134,7 +136,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 			transforms.script(({ ast, comments, js }) => {
 				const d1FromWorkers = d1 && kit3;
 				js.imports.addNamed(ast, {
-					from: `${lib}/server/db/index.${language}`,
+					from: kit3 ? `${lib}/server/db/index${libExt}` : `${lib}/server/db`,
 					imports: [d1 ? 'getDb' : 'db']
 				});
 				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
@@ -258,7 +260,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 				if (d1)
 					js.imports.addNamed(ast, {
 						imports: ['createAuth'],
-						from: `${lib}/server/auth.${language}`
+						from: `${lib}/server/auth${libExt}`
 					});
 
 				js.imports.addNamed(ast, {
@@ -326,7 +328,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 				});
 				js.imports.addNamed(ast, {
 					imports: [d1 ? 'createAuth' : 'auth'],
-					from: `${lib}/server/auth.${language}`
+					from: `${lib}/server/auth${libExt}`
 				});
 				env.importEnv(ast, js, ['building']);
 
@@ -461,7 +463,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
+					${!d1 ? `import { auth } from '${lib}/server/auth${libExt}';` : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
@@ -549,7 +551,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
+					${!d1 ? `import { auth } from '${lib}/server/auth${libExt}';` : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {
