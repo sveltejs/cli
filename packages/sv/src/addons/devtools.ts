@@ -5,7 +5,7 @@ import { ADDON_IDS } from './ids.ts';
 export default defineAddon({
 	id: ADDON_IDS.devtools,
 	shortDescription: 'Vite and Svelte development tools',
-	homepage: 'https://devtools.vite.dev',
+	homepage: 'https://github.com/sveltejs/vite-devtools-svelte',
 	options: {},
 	setup: ({ runsAfter }) => {
 		runsAfter(ADDON_IDS.vitest);
@@ -13,7 +13,7 @@ export default defineAddon({
 	run: ({ sv, file, dependencyVersion }) => {
 		sv.devDependency('@vitejs/devtools', '^0.8.3');
 		sv.devDependency('@vitejs/devtools-vite', '^0.8.3');
-		sv.devDependency('vite-devtools-svelte', '^0.7.0');
+		sv.devDependency('@sveltejs/vite-devtools-svelte', '^0.8.0');
 		if (dependencyVersion('vitest')) {
 			sv.devDependency('@vitejs/devtools-vitest', '^0.8.3');
 		}
@@ -28,7 +28,7 @@ export default defineAddon({
 				});
 				js.imports.addNamed(ast, {
 					imports: ['svelteDevtools'],
-					from: 'vite-devtools-svelte'
+					from: '@sveltejs/vite-devtools-svelte'
 				});
 
 				// The Svelte instrumentation must run before the Svelte plugin.
