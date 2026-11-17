@@ -70,6 +70,37 @@ const svDeps = {
 	]
 };
 
+// One chunk per heavy vendored dep: an add-on bundling sv-utils then drops whole files it never reaches.
+const SV_UTILS_CHUNKS = [
+	{
+		name: 'vendor-svelte',
+		test: /node_modules[\\/](svelte|acorn|@sveltejs[\\/]acorn-typescript|esrap|@jridgewell|locate-character)[\\/]/
+	},
+	{ name: 'vendor-yaml', test: /node_modules[\\/]yaml[\\/]/ },
+	{ name: 'vendor-toml', test: /node_modules[\\/]smol-toml[\\/]/ },
+	{ name: 'vendor-json', test: /node_modules[\\/]silver-fleece[\\/]/ },
+	{ name: 'vendor-diff', test: /node_modules[\\/]diff[\\/]/ },
+	{ name: 'vendor-semver', test: /node_modules[\\/]verkit[\\/]/ }
+];
+
+const TRANSFORMS_ENTRY = 'transforms';
+const TRANSFORMS_SRC = path.resolve('packages/sv-utils/src/tooling/transforms.ts');
+
+/**
+ * A bundled `export * as transforms` becomes an object, so `transforms.text` would keep every parser.
+ * Importing the entry file instead keeps a real namespace that add-on bundlers can treeshake.
+ */
+function keepTransformsNamespace() {
+	return {
+		name: 'keep-transforms-namespace',
+		resolveId(id: string, importer?: string) {
+			if (!importer || !id.startsWith('.')) return;
+			if (path.resolve(path.dirname(importer), id) !== TRANSFORMS_SRC) return;
+			return { id: `./${TRANSFORMS_ENTRY}.mjs`, external: true };
+		}
+	};
+}
+
 /** Shared `deps` settings for the sv-utils DTS-only builds. */
 const svUtilsDtsDeps = {
 	neverBundle: [/^svelte/, '@types/estree', 'estree', 'yaml', 'package-manager-detector'],
@@ -147,7 +178,11 @@ export default defineConfig([
 	// sv-utils: runtime build (bundles everything including svelte)
 	{
 		cwd: path.resolve('packages/sv-utils'),
-		entry: ['src/index.ts', 'src/browser.ts'],
+		entry: {
+			index: 'src/index.ts',
+			browser: 'src/browser.ts',
+			[TRANSFORMS_ENTRY]: TRANSFORMS_SRC
+		},
 		sourcemap: !process.env.CI,
 		exports: {
 			devExports: true,
@@ -161,12 +196,14 @@ export default defineConfig([
 				exports['./browser'] = isPublish
 					? { types: './dist/browser.d.mts', default: './dist/browser.mjs' }
 					: './src/browser.ts';
+				// internal, not public API
+				delete exports[`./${TRANSFORMS_ENTRY}`];
 				return exports;
 			}
 		},
 		dts: false,
 		failOnWarn: true,
-		plugins: [noDuplicateBundledPackages()],
+		plugins: [noDuplicateBundledPackages(), keepTransformsNamespace()],
 		// `yaml` ships a CJS node build (reached through `createRequire`) and an ESM browser
 		// build. Resolving its `browser` field keeps the shared chunk free of node builtins;
 		// the node entry works fine with it too.
@@ -174,6 +211,9 @@ export default defineConfig([
 			resolve: {
 				aliasFields: [['browser']]
 			}
+		},
+		outputOptions: {
+			codeSplitting: { groups: SV_UTILS_CHUNKS }
 		},
 		deps: {
 			onlyBundle: [
