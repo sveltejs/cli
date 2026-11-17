@@ -19,6 +19,7 @@ import {
 	createLoadedAddon,
 	getErrorHint,
 	type Addon,
+	type AddonAnswers,
 	type AddonDefinition,
 	type FileEdit,
 	type LoadedAddon,
@@ -186,11 +187,22 @@ export async function applyAddons({
 	};
 }
 
+export function withOptionDefaults(
+	addon: AddonDefinition,
+	values: OptionValues<any> = {}
+): OptionValues<any> {
+	const options = { ...values };
+	for (const [id, question] of Object.entries(addon.options)) {
+		if (question.condition?.(options) !== false) options[id] ??= question.default;
+	}
+	return options;
+}
+
 /** Setup addons - takes LoadedAddon[] and returns setup results */
 export async function setupAddons(
 	loadedAddons: LoadedAddon[],
 	workspace: Workspace,
-	addonOptions: Record<string, OptionValues<any>> = {}
+	answers: AddonAnswers = {}
 ): Promise<Record<string, SetupResult>> {
 	const setupResults: Record<string, SetupResult> = {};
 
@@ -200,27 +212,21 @@ export async function setupAddons(
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
-			dependencyOptions: {},
+			dependencyDefaults: {},
 			runsAfter: [],
 			additionalOptions
 		};
 		try {
-			const options: OptionValues<any> = { ...(addonOptions[addon.id] ?? {}) };
-			for (const [id, question] of Object.entries(addon.options)) {
-				if (question.condition?.(options) !== false) options[id] ??= question.default;
-			}
-
 			await addon.setup?.({
 				...workspace,
-				options,
-				dependsOn: (name, dependencyOptions) => {
+				options: withOptionDefaults(addon, answers[addon.id]),
+				dependsOn: (name, defaults) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
-					if (dependencyOptions) {
-						setupResult.dependencyOptions ??= {};
-						setupResult.dependencyOptions[name] = {
-							...setupResult.dependencyOptions[name],
-							...dependencyOptions
+					if (defaults) {
+						setupResult.dependencyDefaults[name] = {
+							...setupResult.dependencyDefaults[name],
+							...(defaults as OptionValues<any>)
 						};
 					}
 				},

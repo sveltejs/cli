@@ -110,70 +110,45 @@ describe('setupAddons', () => {
 		expect(results['typed-addon'].additionalOptions).toHaveProperty('extra');
 	});
 
-	it('passes resolved add-on options into setup and collects dependency defaults', async () => {
-		const options = defineAddonOptions<{ template: 'base' | 'dashboard' }>()
-			.add('template', {
-				question: 'Which template?',
-				type: 'select',
-				default: 'base',
-				options: [
-					{ value: 'base', label: 'Base' },
-					{ value: 'dashboard', label: 'Dashboard' }
-				]
-			})
-			.build();
-		let selectedTemplate: string | undefined;
+	describe('options and dependency defaults', () => {
+		let seenTemplate: string | undefined;
 		const addon = defineAddon({
 			id: 'template-addon',
-			options,
+			options: defineAddonOptions<{ template: 'base' | 'dashboard' }>()
+				.add('template', {
+					question: 'Which template?',
+					type: 'select',
+					default: 'base',
+					options: [
+						{ value: 'base', label: 'Base' },
+						{ value: 'dashboard', label: 'Dashboard' }
+					]
+				})
+				.build(),
 			setup: ({ options, dependsOn }) => {
-				selectedTemplate = options.template;
-				if (options.template === 'dashboard') {
-					dependsOn('drizzle', {
-						database: 'postgresql',
-						postgresql: 'postgres.js',
-						docker: false
-					});
-				}
+				seenTemplate = options.template;
+				if (options.template === 'dashboard') dependsOn('drizzle', { database: 'postgresql' });
 			},
 			run: () => {}
 		});
 
-		const results = await setupAddons([toLoaded(addon)], workspace, {
-			'template-addon': { template: 'dashboard' }
+		it('passes answers into setup and collects dependency defaults', async () => {
+			const results = await setupAddons([toLoaded(addon)], workspace, {
+				'template-addon': { template: 'dashboard' }
+			});
+
+			expect(seenTemplate).toBe('dashboard');
+			expect(results['template-addon'].dependencyDefaults).toEqual({
+				drizzle: { database: 'postgresql' }
+			});
 		});
 
-		expect(selectedTemplate).toBe('dashboard');
-		expect(results['template-addon'].dependencyOptions).toEqual({
-			drizzle: { database: 'postgresql', postgresql: 'postgres.js', docker: false }
+		it('falls back to option defaults without answers', async () => {
+			const results = await setupAddons([toLoaded(addon)], workspace);
+
+			expect(seenTemplate).toBe('base');
+			expect(results['template-addon'].dependencyDefaults).toEqual({});
 		});
-	});
-
-	it('uses option defaults when setup runs without explicit CLI values', async () => {
-		let selectedTemplate: string | undefined;
-		const options = defineAddonOptions<{ template: 'base' | 'dashboard' }>()
-			.add('template', {
-				question: 'Which template?',
-				type: 'select',
-				default: 'base',
-				options: [
-					{ value: 'base', label: 'Base' },
-					{ value: 'dashboard', label: 'Dashboard' }
-				]
-			})
-			.build();
-		const addon = defineAddon({
-			id: 'default-template-addon',
-			options,
-			setup: ({ options }) => {
-				selectedTemplate = options.template;
-			},
-			run: () => {}
-		});
-
-		await setupAddons([toLoaded(addon)], workspace);
-
-		expect(selectedTemplate).toBe('base');
 	});
 
 	it('should await async setup', async () => {

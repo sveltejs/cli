@@ -276,9 +276,9 @@ type Addon<
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			dependsOn: <DependencyId extends AddonId>(
 				id: DependencyId,
-				options?: DependencyId extends OfficialAddonId
+				defaults?: DependencyId extends OfficialAddonId
 					? Partial<OfficialAddonOptions[DependencyId]>
-					: Record<string, unknown>
+					: never
 			) => void;
 			unsupported: (reason: string) => void;
 			runsAfter: (id: AddonId) => void;
@@ -370,11 +370,12 @@ type AddonResult = {
 };
 type SetupResult = {
 	dependsOn: string[];
-	dependencyOptions?: Record<string, Record<string, unknown>>;
+	dependencyDefaults: AddonAnswers;
 	unsupported: string[];
 	runsAfter: string[];
 	additionalOptions: Record<string, Question>;
 };
+type AddonAnswers = Record<string, OptionValues<any>>;
 type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 type MaybePromise<T> = Promise<T> | T;
 type Prettify<T> = { [K in keyof T]: T[K] } & unknown;

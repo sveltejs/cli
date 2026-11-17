@@ -79,17 +79,17 @@ export type Addon<
 	/** Setup the addon. Will be called before the addon is run. */
 	setup?: (
 		workspace: Workspace & {
-			/** Resolved add-on options, including defaults, before the add-on runs. */
+			/** Answers known so far (CLI args or prompts), falling back to option defaults. */
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			/**
 			 * Required add-ons. Implies `runsAfter`. Official ids are installed automatically, others must be part of the same run.
-			 * The optional dependency options are defaults; explicitly selected add-ons keep their own CLI options.
+			 * `defaults` skip prompts of an official add-on pulled in automatically; ignored when the user selected it.
 			 */
 			dependsOn: <DependencyId extends AddonId>(
 				id: DependencyId,
-				options?: DependencyId extends OfficialAddonId
+				defaults?: DependencyId extends OfficialAddonId
 					? Partial<OfficialAddonOptions[DependencyId]>
-					: Record<string, unknown>
+					: never
 			) => void;
 
 			/**
@@ -285,12 +285,13 @@ export function getErrorHint(source: AddonSource): string {
 
 export type SetupResult = {
 	dependsOn: string[];
-	/** Default option values supplied for automatically added dependencies. */
-	dependencyOptions?: Record<string, Record<string, unknown>>;
+	dependencyDefaults: AddonAnswers;
 	unsupported: string[];
 	runsAfter: string[];
 	additionalOptions: Record<string, Question>;
 };
+
+export type AddonAnswers = Record<string, OptionValues<any>>;
 
 export type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 

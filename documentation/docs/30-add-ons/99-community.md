@@ -64,6 +64,19 @@ The CLI is split into two packages with a clear boundary:
 
 [Why are there two packages.](faq#Why-are-there-two-packages-sv-and-sveltejs-sv-utils)
 
+### Dependencies
+
+`setup` receives the options chosen so far, so dependencies can follow them. `dependsOn` also takes defaults for an official add-on: they answer its questions when the CLI pulls it in, and are ignored when the user selects it themselves.
+
+```js
+setup: ({ options, dependsOn, dependencyVersion }) => {
+	// don't reconfigure a database the project already has
+	if (options.auth && !dependencyVersion('drizzle-orm')) {
+		dependsOn('drizzle', { database: 'postgresql' });
+	}
+};
+```
+
 ## Development
 
 You can run your add-on locally using the `file:` protocol:
