@@ -782,71 +782,74 @@ declare function addFragment(
 		language?: 'ts' | 'js';
 	}
 ): void;
+declare namespace transforms_d_exports {
+	export { TransformFn, css, html, json, script, svelte, svelteScript, text, toml, yaml };
+}
 type TransformFn = (content: string) => string | false;
 type TransformOptions = {
 	onError?: (error: unknown) => void;
 };
-export declare const transforms: {
-	script(
-		cb: (file: {
-			ast: TsEstree.Program;
-			comments: Comments;
-			content: string;
-			js: typeof index_d_exports$3;
-		}) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	svelte(
-		cb: (file: {
-			ast: SvelteAst.Root;
-			content: string;
-			svelte: typeof index_d_exports$4;
-			js: typeof index_d_exports$3;
-		}) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	svelteScript(
-		scriptOptions: {
-			language: 'ts' | 'js';
-		},
-		cb: (file: {
-			ast: RootWithInstance;
-			content: string;
-			svelte: typeof index_d_exports$4;
-			js: typeof index_d_exports$3;
-		}) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	css(
-		cb: (file: {
-			ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
-			content: string;
-			css: typeof index_d_exports$1;
-		}) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	json<T = any>(
-		cb: (file: { data: T; content: string; json: typeof json_d_exports }) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	yaml(
-		cb: (file: { data: YamlDocument; content: string }) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	toml(
-		cb: (file: { data: TomlTable; content: string }) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	html(
-		cb: (file: {
-			ast: SvelteAst.Fragment;
-			content: string;
-			html: typeof index_d_exports$2;
-		}) => void | false,
-		options?: TransformOptions
-	): TransformFn;
-	text(cb: (file: { content: string; text: typeof text_d_exports }) => string | false): TransformFn;
-};
+declare function script(
+	cb: (file: {
+		ast: TsEstree.Program;
+		comments: Comments;
+		content: string;
+		js: typeof index_d_exports$3;
+	}) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function svelte(
+	cb: (file: {
+		ast: SvelteAst.Root;
+		content: string;
+		svelte: typeof index_d_exports$4;
+		js: typeof index_d_exports$3;
+	}) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function svelteScript(
+	scriptOptions: {
+		language: 'ts' | 'js';
+	},
+	cb: (file: {
+		ast: RootWithInstance;
+		content: string;
+		svelte: typeof index_d_exports$4;
+		js: typeof index_d_exports$3;
+	}) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function css(
+	cb: (file: {
+		ast: Omit<SvelteAst.CSS.StyleSheetBase, 'attributes' | 'content'>;
+		content: string;
+		css: typeof index_d_exports$1;
+	}) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function json<T = any>(
+	cb: (file: { data: T; content: string; json: typeof json_d_exports }) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function yaml(
+	cb: (file: { data: YamlDocument; content: string }) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function toml(
+	cb: (file: { data: TomlTable; content: string }) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function html(
+	cb: (file: {
+		ast: SvelteAst.Fragment;
+		content: string;
+		html: typeof index_d_exports$2;
+	}) => void | false,
+	options?: TransformOptions
+): TransformFn;
+declare function text(
+	cb: (file: { content: string; text: typeof text_d_exports }) => string | false
+): TransformFn;
 type Version = {
 	major?: number;
 	minor?: number;
@@ -1046,6 +1049,7 @@ export {
 	pnpm_d_exports as pnpm,
 	resolveCommand,
 	index_d_exports$4 as svelte,
-	text_d_exports as text
+	text_d_exports as text,
+	transforms_d_exports as transforms
 };
 ```
