@@ -3,6 +3,7 @@ import { color, coerceVersion, dedent, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import {
 	addEslintConfigPrettier,
+	addToTypeConfigInclude,
 	createPrettierConfig,
 	ESLINT_VERSION,
 	prettierConfigPath
@@ -14,7 +15,7 @@ export default defineAddon({
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},
-	run: ({ sv, dependencyVersion, file }) => {
+	run: ({ sv, dependencyVersion, file, cwd, language }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.0');
 
@@ -46,6 +47,14 @@ export default defineAddon({
 				stylesheet: tailwindcssInstalled ? file.getRelative({ to: file.stylesheet }) : undefined
 			})
 		);
+
+		addToTypeConfigInclude({
+			sv,
+			cwd,
+			language,
+			kitVersion: dependencyVersion('@sveltejs/kit'),
+			entry: prettierConfigPath()
+		});
 
 		const eslintInfo = checkEslint(dependencyVersion('eslint'));
 

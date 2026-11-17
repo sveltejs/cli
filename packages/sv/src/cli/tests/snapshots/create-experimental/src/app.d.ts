@@ -4,18 +4,12 @@ import type { User, Session } from 'better-auth';
 // for information about these interfaces
 declare global {
 	namespace App {
-		interface Platform {
-			env: Env;
-			ctx: ExecutionContext;
-			caches: CacheStorage;
-			cf?: IncomingRequestCfProperties
-		}
-
 		interface Locals { user?: User; session?: Session }
 
 		// interface Error {}
 		// interface PageData {}
 		// interface PageState {}
+		// interface Platform {}
 	}
 }
 

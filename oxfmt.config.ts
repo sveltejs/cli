@@ -15,7 +15,7 @@ export default defineConfig({
 		'packages/sv/src/cli/tests/snapshots/*',
 		'packages/sv/src/migrate/migrations/**/tests/*',
 		'packages/sv-utils/src/tests/**/output.ts',
-		'packages/sv/src/create/shared/+skills/*',
+		'packages/sv/src/addons/ai-tools/skills/*',
 		'**/CHANGELOG.md',
 		'packages/migrate/migrations/routes/*/samples.md',
 		'.changeset/**'

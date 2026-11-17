@@ -1,7 +1,23 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import * as walk from 'empathic/walk';
 import { isNodeError } from '../core/common.ts';
-import type { Common } from './index.ts';
+
+/**
+ * @returns an absolute path to the `dist` directory
+ * containing templates and add-on content
+ *
+ * this function can be called during runtime or devtime
+ */
+const resolve_dist_dir = (): string => {
+	const root = walk
+		.up(import.meta.dirname)
+		.find((dir) => fs.existsSync(path.join(dir, 'package.json')));
+	if (!root) throw new Error('could not locate package.json');
+	return path.join(root, 'dist');
+};
+
+export const dist_dir = resolve_dist_dir();
 
 export function mkdirp(dir: string): void {
 	try {
@@ -57,16 +73,31 @@ export function copy(
 	}
 }
 
-export function dist(currentPath: string): string {
-	// we need to make this check, because vitest is making the package root the cwd,
-	// but executing the cli from the command line already makes the dist folder the cwd.
-	const insideDistFolder = import.meta.url.includes('dist');
-
-	return path.resolve(import.meta.dirname, insideDistFolder ? '' : 'dist', currentPath);
+/** Sorted `/`-separated paths relative to `cwd` (posix even on Windows: names are matched by prefix and shipped in dist). */
+export function listFiles(cwd: string): string[] {
+	return fs
+		.readdirSync(cwd, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile())
+		.map(({ parentPath, name }) =>
+			path.posix.join(path.relative(cwd, parentPath).replaceAll(path.sep, '/'), name)
+		)
+		.sort();
 }
 
-export function getSharedFiles(): Common['files'] {
-	const shared = dist('shared.json');
-	const { files } = JSON.parse(fs.readFileSync(shared, 'utf-8')) as Common;
-	return files;
+/** `DOT-` prefix so dotfiles survive publishing; renamed back at runtime by `fetchAssets()`. */
+export function saveAsset({
+	from,
+	assetsDir,
+	name,
+	destName
+}: {
+	from: string;
+	assetsDir: string;
+	name: string;
+	destName?: string;
+}): string {
+	const dest = path.join(assetsDir, (destName ?? name).replace(/^\./, 'DOT-'));
+	mkdirp(path.dirname(dest));
+	fs.copyFileSync(from, dest);
+	return dest;
 }

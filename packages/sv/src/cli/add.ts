@@ -427,7 +427,6 @@ export function findDependencyCycle(
 	}
 }
 
-
 async function promptQuestionsForAddons(
 	addons: LoadedAddon[],
 	answers: Record<string, OptionValues<any>>
@@ -457,7 +456,8 @@ async function promptQuestionsForAddons(
 				});
 			}
 			if (question.type === 'multiselect') {
-				answer = await p.multiselect({
+				const prompt = question.searchable ? p.autocompleteMultiselect : p.multiselect;
+				answer = await prompt({
 					message,
 					initialValues: question.default,
 					required: question.required,
@@ -483,7 +483,6 @@ async function promptQuestionsForAddons(
 			values[questionId] = answer;
 		}
 	}
-
 }
 
 export async function promptAddonQuestions({

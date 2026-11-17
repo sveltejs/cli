@@ -165,7 +165,7 @@ describe('transforms', () => {
 			expect(result).toContain('name: new');
 		});
 
-		it('abort: returns fals if transform is cacelled', () => {
+		it('abort: returns false if transform is cancelled', () => {
 			const input = 'name: old\n';
 			expect(transforms.yaml(() => false)(input)).toBe(false);
 		});
@@ -180,7 +180,7 @@ describe('transforms', () => {
 			expect(result).toContain('name = "new"');
 		});
 
-		it('abort: returns fals if transform is cacelled', () => {
+		it('abort: returns false if transform is cancelled', () => {
 			const input = 'name = "old"\n';
 			expect(transforms.toml(() => false)(input)).toBe(false);
 		});

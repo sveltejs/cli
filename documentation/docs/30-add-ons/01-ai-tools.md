@@ -14,7 +14,7 @@ npx sv add ai-tools
 
 You can add the tooling either through the official Svelte plugin or as individual tools.
 
-- The Svelte plugin bundles everything (MCP server, [skills](https://svelte.dev/docs/ai/skills) and sub-agents) and keeps itself up to date. It's available for Claude Code and OpenCode. For Claude Code it's enabled through a committed `.claude/settings.json` - the first time you open the project you'll be asked to trust the workspace, then it installs automatically (no `/plugin install` needed).
+- The Svelte plugin bundles everything (MCP server, [skills](https://svelte.dev/docs/ai/skills) and sub-agents) and keeps itself up to date. It's available for Claude Code, OpenCode and Pi. For Claude Code it's enabled through a committed `.claude/settings.json` - the first time you open the project you'll be asked to trust the workspace, then it installs automatically (no `/plugin install` needed).
 - Individual tools, for clients without a plugin (or when you want to pick exactly what to add):
   - An MCP configuration for [local](https://svelte.dev/docs/ai/local-setup) or [remote](https://svelte.dev/docs/ai/remote-setup) setup
   - A [README for agents](https://agents.md/) to help you use the MCP server effectively
@@ -25,7 +25,7 @@ You can add the tooling either through the official Svelte plugin or as individu
 
 ### ide
 
-The client(s) you want to use like `'claude-code'`, `'cursor'`, `'gemini'`, `'opencode'`, `'vscode'`, `'other'`.
+The client(s) you want to use like `'claude-code'`, `'cursor'`, `'gemini'`, `'opencode'`, `'pi'`, `'vscode'`, `'other'`.
 
 ```sh
 npx sv add ai-tools="ide:cursor,vscode"
@@ -53,4 +53,20 @@ The MCP setup you want to use (`'local'` or `'remote'`). Only relevant when addi
 
 ```sh
 npx sv add ai-tools="mcpSetup:local"
+```
+
+### agentsMd
+
+Whether to add a [README for agents](https://agents.md/) (`AGENTS.md`, or `GEMINI.md` for Gemini, plus a `.claude/CLAUDE.md` pointing to `AGENTS.md` for Claude Code). Defaults to `true`. Not asked when no selected client would get one: the Svelte plugin (Claude Code with `delivery:plugin`, OpenCode and Pi) already covers it.
+
+```sh
+npx sv add ai-tools="ide:cursor+agentsMd:no"
+```
+
+### optInSkills
+
+Which opt-in [skills](https://svelte.dev/docs/ai/skills) to add, like `'svelte-mcp-feedback'` (reports Svelte mistakes you correct to the [ai-tools](https://github.com/sveltejs/ai-tools) repo so the MCP autofixer can catch them). None are added by default. Opt-in skills aren't bundled with the Svelte plugin, so this is asked for every client that supports skills, even when you choose the plugin. The question is skipped when every selected client can already load the opt-in skills from one of its skills folders (for example Cursor also loads `.claude/skills`, and Pi also loads `.agents/skills`). Skills are only written for the clients that can't load them yet, so `sv` doesn't add a second copy for a client that already sees one.
+
+```sh
+npx sv add ai-tools="ide:claude-code+delivery:plugin+optInSkills:svelte-mcp-feedback"
 ```

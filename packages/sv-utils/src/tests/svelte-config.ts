@@ -57,6 +57,26 @@ export default defineConfig({
 });
 `;
 
+// config functions exported without a `defineConfig` wrapper
+const VITE_CONFIG_FUNCTIONS = {
+	arrow: `import { sveltekit } from '@sveltejs/kit/vite';
+
+export default () => ({ plugins: [sveltekit()] });
+`,
+	function: `import { sveltekit } from '@sveltejs/kit/vite';
+
+export default function () {
+	return { plugins: [sveltekit()] };
+}
+`,
+	variable: `import { sveltekit } from '@sveltejs/kit/vite';
+
+const config = () => ({ plugins: [sveltekit()] });
+
+export default config;
+`
+};
+
 const SVELTE_CONFIG = `import adapter from '@sveltejs/adapter-auto';
 
 const config = {
@@ -251,6 +271,15 @@ describe('svelteConfig.edit routing', () => {
 		expect(result.indexOf('alias:')).toBeGreaterThan(result.indexOf('export default'));
 		expect(result).toMatch(/const unused = \{ plugins: \[sveltekit\(\)\] \}/);
 	});
+
+	test.each(Object.entries(VITE_CONFIG_FUNCTIONS))(
+		'edits the sveltekit() in a config function without defineConfig (%s)',
+		(_, content) => {
+			const result = applyEdit(content, 'vite', addAlias);
+			if (!result) throw new Error('Edit failed or not required');
+			expect(result).toMatch(/sveltekit\(\{\s*alias:/);
+		}
+	);
 
 	test('creates the default export when editing empty content', () => {
 		const result = applyEdit('', 'svelte', addExtension);

@@ -1,13 +1,44 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { defineConfig } from 'tsdown';
-import { buildTemplates } from './packages/sv/src/create/scripts/build-templates.js';
+import { generate_addon_content } from './packages/sv/src/create/scripts/generate-addon-template.js';
+import { generate_kit_template } from './packages/sv/src/create/scripts/generate-kit-template.js';
+import { generate_vite_template } from './packages/sv/src/create/scripts/generate-vite-template.js';
+import { dist_dir, mkdirp } from './packages/sv/src/create/utils.ts';
 
 /**
  * Throwaway output dir for the single-entry DTS builds that feed
  * `scripts/generate-api-surface.js`. Gitignored; never published.
  */
 const API_SURFACE_DIR = 'dts-api-surface';
+
+const PACKAGE_ROOT_REGEX = /^(.*node_modules\/((?:@[^/]+\/)?[^/]+))\//;
+
+/** Fails the build when two versions of one package get bundled (e.g. svelte pulling an older esrap). */
+function noDuplicateBundledPackages() {
+	return {
+		name: 'no-duplicate-bundled-packages',
+		generateBundle(_: unknown, bundle: Record<string, { type: string; moduleIds?: string[] }>) {
+			const roots = new Map<string, Set<string>>();
+			for (const chunk of Object.values(bundle)) {
+				for (const id of chunk.moduleIds ?? []) {
+					const match = PACKAGE_ROOT_REGEX.exec(id.replaceAll('\\', '/'));
+					if (!match) continue;
+					const [, root, name] = match;
+					if (!roots.has(name)) roots.set(name, new Set());
+					roots.get(name)!.add(root);
+				}
+			}
+			const duplicates = [...roots].filter(([, set]) => set.size > 1);
+			if (duplicates.length === 0) return;
+			const details = duplicates.map(([name, set]) => `${name}:\n  ${[...set].join('\n  ')}`);
+			throw new Error(
+				`Multiple copies of bundled packages (dedupe the lockfile):\n${details.join('\n')}`
+			);
+		}
+	};
+}
 
 /** Shared `deps` settings for every `sv` build (runtime + DTS-only api-surface). */
 const svDeps = {
@@ -55,7 +86,7 @@ export default defineConfig([
 		},
 		failOnWarn: true,
 		deps: svDeps,
-		plugins: [],
+		plugins: [noDuplicateBundledPackages()],
 		inputOptions: {
 			experimental: {
 				resolveNewUrlToAsset: false
@@ -71,7 +102,7 @@ export default defineConfig([
 		},
 		hooks: {
 			async 'build:before'() {
-				await buildCliTemplates();
+				await generate_cli_templates();
 			}
 		}
 	},
@@ -135,6 +166,7 @@ export default defineConfig([
 		},
 		dts: false,
 		failOnWarn: true,
+		plugins: [noDuplicateBundledPackages()],
 		// `yaml` ships a CJS node build (reached through `createRequire`) and an ESM browser
 		// build. Resolving its `browser` field keeps the shared chunk free of node builtins;
 		// the node entry works fine with it too.
@@ -196,10 +228,20 @@ export default defineConfig([
 	}
 ]);
 
-export async function buildCliTemplates() {
+export async function generate_cli_templates() {
 	const start = performance.now();
-	await buildTemplates(path.resolve('packages/sv/dist'));
-	await buildTemplates(path.resolve('packages/sv/src/create/dist'));
+
+	// where the runtime code — bundled CLI, published package and plain
+	// source/vitest runs alike — resolves templates/addons via `pkg_root
+	mkdirp(dist_dir);
+
+	await generate_kit_template(dist_dir);
+	generate_vite_template(dist_dir);
+	generate_addon_content(dist_dir);
+	fs.cpSync('packages/sv/src/create/playground', path.join(dist_dir, 'playground'), {
+		recursive: true
+	});
+
 	const [green, reset] = ['\x1b[32m', '\x1b[0m'];
 	console.log(`${green}✔${reset} Templates built in ${Math.round(performance.now() - start)}ms`);
 }

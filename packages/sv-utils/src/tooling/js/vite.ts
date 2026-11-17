@@ -22,6 +22,54 @@ function isConfigWrapper(
 	return knownWrappers.includes(calleeName) || isObjectCall;
 }
 
+type ConfigFunction =
+	| AstTypes.ArrowFunctionExpression
+	| AstTypes.FunctionExpression
+	| AstTypes.FunctionDeclaration;
+
+function isConfigFunction(node: AstTypes.Node): node is ConfigFunction {
+	return (
+		node.type === 'ArrowFunctionExpression' ||
+		node.type === 'FunctionExpression' ||
+		node.type === 'FunctionDeclaration'
+	);
+}
+
+/** Returns the object a config function returns, making it return one if it doesn't. */
+function returnedConfig(fn: ConfigFunction): AstTypes.ObjectExpression {
+	if (fn.body.type === 'BlockStatement') {
+		// Look for a return statement in the block: () => { return { ... }; }
+		const returnStatement = fn.body.body.find(
+			(stmt: AstTypes.Statement): stmt is AstTypes.ReturnStatement =>
+				stmt.type === 'ReturnStatement'
+		);
+
+		if (returnStatement && returnStatement.argument?.type === 'ObjectExpression') {
+			return returnStatement.argument;
+		}
+
+		// If no return statement with object found, create fallback object and add return statement
+		const configObject = object.create({});
+		const newReturnStatement: AstTypes.ReturnStatement = {
+			type: 'ReturnStatement',
+			argument: configObject
+		};
+		fn.body.body.push(newReturnStatement);
+		return configObject;
+	}
+
+	if (fn.body.type === 'ObjectExpression') {
+		// Expression body: () => ({ ... })
+		return fn.body;
+	}
+
+	// Arrow function doesn't return an object, create fallback and modify the function
+	const configObject = object.create({});
+	fn.body = configObject;
+	(fn as AstTypes.ArrowFunctionExpression).expression = true;
+	return configObject;
+}
+
 function exportDefaultConfig(
 	ast: AstTypes.Program,
 	options: {
@@ -47,6 +95,9 @@ function exportDefaultConfig(
 
 	// Handle TypeScript `satisfies` expressions
 	const rootObject = value.type === 'TSSatisfiesExpression' ? value.expression : value;
+
+	// Handle a config function without a wrapper: export default () => ({ ... })
+	if (isConfigFunction(rootObject)) return returnedConfig(rootObject);
 
 	// Handle wrapper functions (e.g., defineConfig({})) if ignoreWrapper is specified
 	let configObject: AstTypes.ObjectExpression;
@@ -76,37 +127,9 @@ function exportDefaultConfig(
 		fallback: object.create({})
 	});
 
-	// Check if the first argument is an arrow function that returns an object
-	if (firstArg.type === 'ArrowFunctionExpression') {
-		const arrowFunction = firstArg as AstTypes.ArrowFunctionExpression;
-		// Handle arrow function case: defineConfig(() => { return { ... }; })
-		if (arrowFunction.body.type === 'BlockStatement') {
-			// Look for a return statement in the block
-			const returnStatement = arrowFunction.body.body.find(
-				(stmt: AstTypes.Statement): stmt is AstTypes.ReturnStatement =>
-					stmt.type === 'ReturnStatement'
-			);
-
-			if (returnStatement && returnStatement.argument?.type === 'ObjectExpression') {
-				configObject = returnStatement.argument;
-			} else {
-				// If no return statement with object found, create fallback object and add return statement
-				configObject = object.create({});
-				const newReturnStatement: AstTypes.ReturnStatement = {
-					type: 'ReturnStatement',
-					argument: configObject
-				};
-				arrowFunction.body.body.push(newReturnStatement);
-			}
-		} else if (arrowFunction.body.type === 'ObjectExpression') {
-			// Handle arrow function with expression body: defineConfig(() => ({ ... }))
-			configObject = arrowFunction.body;
-		} else {
-			// Arrow function doesn't return an object, create fallback and modify the function
-			configObject = object.create({});
-			arrowFunction.body = configObject;
-			arrowFunction.expression = true;
-		}
+	if (isConfigFunction(firstArg)) {
+		// Function argument: defineConfig(() => ({ ... })) or defineConfig(() => { return { ... }; })
+		configObject = returnedConfig(firstArg);
 	} else if (firstArg.type === 'ObjectExpression') {
 		// Direct object argument: defineConfig({ ... })
 		configObject = firstArg;

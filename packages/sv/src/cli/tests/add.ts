@@ -1,6 +1,6 @@
 import process from 'node:process';
-import { describe, expect, it, vi } from 'vitest';
 import * as p from '@clack/prompts';
+import { describe, expect, it, vi } from 'vitest';
 import {
 	createLoadedAddon,
 	defineAddon,
@@ -9,6 +9,12 @@ import {
 } from '../../core/config.ts';
 import { createWorkspace } from '../../core/workspace.ts';
 import { promptAddonQuestions, resolveDependencyOptions } from '../add.ts';
+
+// ESM namespace exports can't be spied on
+vi.mock('@clack/prompts', async (importOriginal) => ({
+	...(await importOriginal<typeof import('@clack/prompts')>()),
+	select: vi.fn()
+}));
 
 function setupResult(
 	dependsOn: string[],
@@ -98,7 +104,11 @@ describe('dependency option defaults', () => {
 			options,
 			setup: ({ options, dependsOn }) => {
 				if (options.template === 'dashboard') {
-					dependsOn('drizzle', { database: 'postgresql', postgresql: 'postgres.js', docker: false });
+					dependsOn('drizzle', {
+						database: 'postgresql',
+						postgresql: 'postgres.js',
+						docker: false
+					});
 					dependsOn('better-auth', { demo: [] });
 				}
 			},
@@ -110,7 +120,7 @@ describe('dependency option defaults', () => {
 			override: { isKit: true, dependencies: {} }
 		});
 
-		const select = vi.spyOn(p, 'select');
+		const select = vi.mocked(p.select);
 		try {
 			for (const template of ['dashboard', 'base'] as const) {
 				select.mockResolvedValueOnce(template);
@@ -141,7 +151,7 @@ describe('dependency option defaults', () => {
 				}
 			}
 		} finally {
-			select.mockRestore();
+			select.mockReset();
 		}
 	});
 

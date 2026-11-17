@@ -17,6 +17,7 @@ import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
 	addAllowBuildsIfPnpm,
+	addEngineStrict,
 	detectPackageManager,
 	installDependencies,
 	installOption,
@@ -36,7 +37,7 @@ import {
 	setupPlaygroundProject,
 	validatePlaygroundUrl
 } from '../create/playground.ts';
-import { dist } from '../create/utils.ts';
+import { dist_dir } from '../create/utils.ts';
 import {
 	addonArgsHandler,
 	classifyAddons,
@@ -206,15 +207,14 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 			},
 			force: async ({ results: { directory } }) => {
 				if (!options.dirCheck) return;
+				if (!directory) return;
+				if (!fs.existsSync(directory)) return;
 
-				if (!fs.existsSync(directory!)) return;
-
-				const files = fs.readdirSync(directory!);
-				const hasNonIgnoredFiles = files.some((file) => !file.startsWith('.git'));
-				if (!hasNonIgnoredFiles) return;
+				const onlyGitFiles = fs.readdirSync(directory).every((entry) => entry === '.git');
+				if (onlyGitFiles) return;
 
 				const force = await p.confirm({
-					message: 'Directory not empty. Continue?',
+					message: `Directory not empty:\n${color.path(path.resolve(directory))}\n\nContinue?`,
 					initialValue: false
 				});
 				if (p.isCancel(force) || !force) {
@@ -416,6 +416,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
+	addEngineStrict({ cwd: projectPath, packageManager });
 	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
 
 	let depsInstalled = false;
@@ -497,7 +498,7 @@ export async function createVirtualWorkspace({
 	}
 
 	// Let's read the package.json of the template we will use and add the dependencies to the override
-	const templatePackageJsonPath = dist(`templates/${template}`);
+	const templatePackageJsonPath = path.join(dist_dir, 'templates', template);
 	const { data: packageJson } = loadPackageJson(templatePackageJsonPath);
 	override.dependencies = {
 		...packageJson.devDependencies,

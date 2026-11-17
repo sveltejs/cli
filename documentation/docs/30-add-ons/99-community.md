@@ -85,9 +85,9 @@ The `file:` protocol also works for custom or private add-ons that you don't int
 The `sv/testing` module provides utilities for testing your add-on. `createSetupTest` is a factory that takes your vitest imports and returns a `setupTest` function. It creates real SvelteKit projects from templates, runs your add-on, and gives you access to the resulting files.
 
 ```js
-import { expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
+import { expect } from '@playwright/test';
 import { createSetupTest } from 'sv/testing';
 import * as vitest from 'vitest';
 import addon from './index.js';
