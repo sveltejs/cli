@@ -192,7 +192,7 @@ const options = defineAddonOptions<MdsvexOptions>()
 		question: 'Which plugins would you like to add?',
 		options: promptPlugins.map((plugin) => ({
 			value: plugin.id,
-			label: defaultPlugins.includes(plugin.id) ? `${plugin.id} *` : plugin.id,
+			label: plugin.id,
 			hint: plugin.description
 		})),
 		default: [...defaultPlugins],

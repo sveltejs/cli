@@ -68,11 +68,9 @@ test('configures the plugin prompt', ({ expect: vExpect }) => {
 		'steps',
 		'tabs'
 	]);
-	vExpect(
-		mdsvex.options.plugins.options
-			.filter(({ label }) => label?.endsWith(' *'))
-			.map(({ value }) => value)
-	).toEqual(['anchors', 'code-blocks', 'external-links', 'figures', 'page-data', 'toc']);
+	vExpect(mdsvex.options.plugins.options.map(({ label }) => label)).toEqual(
+		mdsvex.options.plugins.options.map(({ value }) => value)
+	);
 	vExpect(mdsvex.nextSteps?.({} as never).join('\n')).toContain(
 		'https://marketplace.visualstudio.com/items?itemName=mdsvex.vscode-pfm'
 	);
