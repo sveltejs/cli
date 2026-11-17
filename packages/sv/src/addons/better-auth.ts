@@ -12,7 +12,8 @@ import {
 	type TransformFn,
 	coerceVersion,
 	defineDemoPage,
-	defineEnv
+	defineEnv,
+	isKit3
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
@@ -305,10 +306,20 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 				});
 				env.importEnv(ast, js, ['building']);
 
+				const d1FromWorkers = d1 && isKit3(kitRange);
+				if (d1FromWorkers) {
+					js.imports.addNamed(ast, {
+						imports: { env: 'cfEnv' },
+						from: 'cloudflare:workers'
+					});
+				}
+				const d1BindingCheck = d1FromWorkers ? 'cfEnv.DB' : 'event.platform?.env?.DB';
+				const d1Binding = d1FromWorkers ? 'cfEnv.DB' : 'event.platform.env.DB';
+
 				const d1HandleSetup = d1
 					? dedent`
-					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found - are you running with wrangler?');
-					event.locals.auth = createAuth(event.platform.env.DB);
+					if (!${d1BindingCheck}) throw new Error('D1 binding "DB" not found - are you running with wrangler?');
+					event.locals.auth = createAuth(${d1Binding});
 					const { auth } = event.locals;\n`
 					: '';
 
