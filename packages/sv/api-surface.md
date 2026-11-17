@@ -64,6 +64,7 @@ type MultiSelectQuestion<Value> = {
 		hint?: string;
 	}>;
 	required: boolean;
+	searchable?: boolean;
 };
 type BaseQuestion<Args extends OptionDefinition> = {
 	question: string;

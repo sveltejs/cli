@@ -1,5 +1,6 @@
 import { normalizePosix } from '../../../../core/common.ts';
 import { defineMigrationTask } from '../../../index.ts';
+import { STALE_INCLUDE } from './tsconfig.ts';
 
 const REPORT_PATH = 'MIGRATION_TASKS.md';
 const GUIDE_URL = 'https://svelte.dev/docs/kit/migrating-to-sveltekit-3';
@@ -89,8 +90,14 @@ const file = asset('foo.png');\n` +
 			}
 		],
 		summary:
-			'`rewriteRelativeImportExtensions` will flag subpath imports with `.ts` as type errors.',
-		instructions: 'Remove `rewriteRelativeImportExtensions` from tsconfig.json.',
+			'`rewriteRelativeImportExtensions` only rewrites `.ts` extensions on relative imports. ' +
+			'Subpath imports ending in `.ts` — such as the `#lib/*.ts` imports added by the `lib-alias` migration — ' +
+			'are not rewritten, so TypeScript reports TS2877 for them.',
+		instructions:
+			'Remove `rewriteRelativeImportExtensions` from `compilerOptions` in tsconfig.json. ' +
+			'This is safe for SvelteKit projects: `$app/tsconfig` already sets `allowImportingTsExtensions`, ' +
+			'so `.ts` imports still type-check. Only keep the flag if you run `tsc` to emit and rely on it ' +
+			'rewriting relative `.ts` imports in the output.',
 		links: [...guideLink('$lib-is-now-lib'), ...guideLink('$app-tsconfig')]
 	},
 	{
@@ -106,6 +113,20 @@ const file = asset('foo.png');\n` +
 		instructions:
 			'Exclude the service worker from the root tsconfig and ensure `src/service-worker/tsconfig.json` extends `$app/tsconfig/service-worker`. Move a flat `src/service-worker.ts` entry to `src/service-worker/index.ts` if necessary, preserving any tooling references.',
 		links: guideLink('$app-tsconfig-service-worker')
+	},
+	{
+		title: 'Remove obsolete `.svelte-kit` includes',
+		checks: [
+			{
+				include: ['**/tsconfig.json', '**/jsconfig.json'],
+				patterns: [STALE_INCLUDE]
+			}
+		],
+		summary:
+			'Files generated in `.svelte-kit` for SvelteKit 2 are obsolete and can override SvelteKit 3 types.',
+		instructions:
+			'Remove every `.svelte-kit` entry from `include`. Preserve all user-owned source, test, and config entries.',
+		links: guideLink('$app-tsconfig')
 	},
 	{
 		title: 'Make the service worker module-compatible',

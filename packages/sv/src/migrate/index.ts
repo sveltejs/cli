@@ -9,6 +9,7 @@ export type Migration = {
 	legacy?: boolean;
 	setup: (options: MigrationSetupOptions) => Promise<void> | void;
 	collect: (options: MigrationCollectOptions) => Promise<void> | void;
+	teardown?: (options: MigrationTeardownOptions) => Promise<void> | void;
 };
 
 export type MigrationSetupOptions = {
@@ -37,6 +38,12 @@ export type Task = {
 export type TaskWithOptions = Task & TaskOptions;
 
 export type TaskRunOptions = Workspace & { sv: SvApi };
+
+export type MigrationTeardownOptions = {
+	cwd: string;
+	dependenciesInstalled: boolean;
+	execute: SvApi['execute'];
+};
 
 export function defineMigration(migration: Migration) {
 	return migration;
