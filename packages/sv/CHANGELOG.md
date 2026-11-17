@@ -1,5 +1,59 @@
 # sv
 
+## 1.5.0
+
+### Minor Changes
+
+- feat(cli): add searchable multiselect options ([#1477](https://github.com/sveltejs/cli/pull/1477))
+
+### Patch Changes
+
+- fix(migrate): clear stale `.svelte-kit` files when migrating to SvelteKit 3 ([#1468](https://github.com/sveltejs/cli/pull/1468))
+
+- fix(migrate): flag obsolete `.svelte-kit` includes when migrating to SvelteKit 3 ([#1467](https://github.com/sveltejs/cli/pull/1467))
+
+- fix(better-auth): drop the `.ts` extension from `$lib` imports in SvelteKit 2 projects ([#1478](https://github.com/sveltejs/cli/pull/1478))
+
+- fix(better-auth): read the D1 binding from `cloudflare:workers` on SvelteKit 3 and add the `DB` binding to the wrangler config ([#1476](https://github.com/sveltejs/cli/pull/1476))
+
+- chore(deps): update dependencies ([#1469](https://github.com/sveltejs/cli/pull/1469))
+
+- fix(add): warn when an add-on's `@sveltejs/sv-utils` peer major differs from the one `sv` ships, and print the `npx sv@<version> add` command to rerun ([#1475](https://github.com/sveltejs/cli/pull/1475))
+- Updated dependencies [[`f47c7bd`](https://github.com/sveltejs/cli/commit/f47c7bde9f0446fd408b511a74471faf9e9b7f3c), [`3e57eee`](https://github.com/sveltejs/cli/commit/3e57eeec4ab1b04b0b558eb693b9a1c59bbac9ec)]:
+  - @sveltejs/sv-utils@1.1.2
+
+## 1.4.0
+
+### Minor Changes
+
+- feat(ai-tools): ask a separate question for `AGENTS.md` when needed ([#1454](https://github.com/sveltejs/cli/pull/1454))
+
+### Patch Changes
+
+- fix(sv check): only run `svelte-check` when it's installed in the project (global installs are ignored) ([#1460](https://github.com/sveltejs/cli/pull/1460))
+
+- fix(addons): import the `Handle` and `Reroute` types from `@sveltejs/kit` in SvelteKit 2 projects ([#1418](https://github.com/sveltejs/cli/pull/1418))
+
+- fix(migrate): mark `rewriteRelativeImportExtensions` with an `@migration-task` comment when the `lib-alias` task runs ([#1464](https://github.com/sveltejs/cli/pull/1464))
+
+- fix(create): print the directory when a conflict is detected and narrow conflict detection logic ([#1465](https://github.com/sveltejs/cli/pull/1465))
+- Updated dependencies [[`b680da8`](https://github.com/sveltejs/cli/commit/b680da84e8cb0fdb2da63bbaf8f7da3b9bace366)]:
+  - @sveltejs/sv-utils@1.1.1
+
+## 1.3.0
+
+### Minor Changes
+
+- feat: add Pi client, set up through the `@sveltejs/pi` package by default ([#1446](https://github.com/sveltejs/cli/pull/1446))
+
+- feat(ai-tools): add an `optInSkills` option (e.g. `svelte-mcp-feedback`), asked for every client that supports skills (including when using the Svelte plugin) ([#1448](https://github.com/sveltejs/cli/pull/1448))
+
+### Patch Changes
+
+- chore(ai-tools): sync skills ([#1447](https://github.com/sveltejs/cli/pull/1447))
+
+- fix(migrate): use `ts` extension when the project is an app ([#1443](https://github.com/sveltejs/cli/pull/1443))
+
 ## 1.2.0
 
 ### Minor Changes

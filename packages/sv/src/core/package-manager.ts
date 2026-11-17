@@ -18,6 +18,7 @@ import {
 import { Option } from 'commander';
 import * as find from 'empathic/find';
 import { exec, execSync } from 'tinyexec';
+import { errorAndExit } from './common.ts';
 
 export const AGENT_NAMES: AgentName[] = AGENTS.filter(
 	(agent): agent is AgentName => !agent.includes('@')
@@ -27,6 +28,45 @@ export const installOption: Option = new Option(
 	'--install <package-manager>',
 	'installs dependencies with a specified package manager'
 ).choices(AGENT_NAMES);
+
+export const packageManagerOption: Option = new Option(
+	'--package-manager <package-manager>',
+	'package manager to use (combine with --no-install to skip installing)'
+).choices(AGENT_NAMES);
+
+export function hasInstallConflict(argv: string[]): boolean {
+	return (
+		argv.some((arg) => arg === '--install' || arg.startsWith('--install=')) &&
+		argv.includes('--no-install')
+	);
+}
+
+/** `--install <pm>` is shorthand for `--package-manager <pm>` with install on. */
+export function normalizeInstallFlags<
+	T extends { install: boolean | AgentName; packageManager?: AgentName }
+>({
+	install,
+	packageManager,
+	...rest
+}: T): Omit<T, 'install' | 'packageManager'> & { install: boolean; packageManager?: AgentName } {
+	if (typeof install === 'boolean') return { ...rest, install, packageManager };
+	if (packageManager && packageManager !== install) {
+		errorAndExit(
+			`The ${color.command(`--install ${install}`)} and ${color.command(
+				`--package-manager ${packageManager}`
+			)} options cannot be used together.`
+		);
+	}
+	return { ...rest, install: true, packageManager: install };
+}
+
+export function exitOnInstallConflict(argv: string[]): void {
+	if (hasInstallConflict(argv)) {
+		errorAndExit(
+			`The ${color.command('--install')} and ${color.command('--no-install')} options cannot be used together.`
+		);
+	}
+}
 
 export async function packageManagerPrompt(cwd: string): Promise<AgentName | undefined> {
 	const detected = await detect({ cwd });

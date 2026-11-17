@@ -43,11 +43,17 @@ Installs dependencies with a specified package manager:
 - `bun`
 - `deno`
 
+### `--package-manager <package-manager>`
+
+Uses a specified package manager without prompting. Same values as `--install`. Combine with `--no-install` to set up the project for it without installing.
+
 ### `--no-install`
 
 Do not prompt to install dependencies.
 
 ## Official add-ons
+
+Official add-ons are developed and maintained in the [Svelte CLI repository](https://github.com/sveltejs/cli) by the Svelte team, and have been vetted for both quality and safety. The set is intentionally small — it covers widely used, best-in-class integrations, while everything else is published as a [community add-on](#Community-add-ons). Each add-on's page describes what it sets up and the options available for it.
 
 - [`ai-tools`](ai-tools)
 - [`better-auth`](better-auth)
@@ -68,7 +74,7 @@ Do not prompt to install dependencies.
 > [!NOTE]
 > Svelte maintainers have not reviewed community add-ons for malicious code!
 
-Community add-ons are npm packages published by the community. Look out for add-ons from your favourite libraries and tools. _(soon)_ Many developers are building `sv` add-ons to make their integrations a one-liner. You can find them on [npmx](https://www.npmx.dev/search?q=keyword:sv-add) by searching for the keyword: `sv-add`.
+Community add-ons are npm packages published by the community. Look out for add-ons from your favourite libraries and tools. Many developers are building `sv` add-ons to make their integrations a one-liner. You can find them on [npmx](https://www.npmx.dev/search?q=keyword:sv-add) by searching for the keyword: `sv-add`.
 
 ```sh
 # Install a community addon-on

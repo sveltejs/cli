@@ -1,6 +1,7 @@
 import dedent from 'dedent';
 import type { AstTypes, SvelteAst } from './tooling/index.ts';
-import { type TransformFn, transforms } from './tooling/transforms.ts';
+import type { TransformFn } from './tooling/transforms.ts';
+import * as transforms from './tooling/transforms.ts';
 
 type KitRoutes = string & {};
 type AddonName = string & {};

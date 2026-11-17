@@ -39,6 +39,18 @@ const { test, testCases } = setupTest(
 				}
 			},
 			{
+				type: 'no-agents-md',
+				options: {
+					'ai-tools': {
+						ide: ['claude-code', 'gemini', 'other'],
+						delivery: 'tools',
+						tools: ['mcp'],
+						mcpSetup: 'remote',
+						agentsMd: false
+					}
+				}
+			},
+			{
 				type: 'plugin',
 				options: {
 					'ai-tools': {
@@ -133,6 +145,17 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		return;
 	}
 
+	if (testCase.kind.type === 'no-agents-md') {
+		// declined: no agent file nor the pointer to it
+		expect(fs.existsSync(path.resolve(cwd, 'AGENTS.md'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, 'GEMINI.md'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude/CLAUDE.md'))).toBe(false);
+		// the rest is still configured
+		expect(fs.existsSync(path.resolve(cwd, '.mcp.json'))).toBe(true);
+		expect(fs.existsSync(path.resolve(cwd, '.gemini/settings.json'))).toBe(true);
+		return;
+	}
+
 	if (testCase.kind.type === 'plugin') {
 		// Claude Code: the plugin is enabled via a committed `.claude/settings.json`
 		const settings = JSON.parse(getContent('.claude/settings.json'));
@@ -152,6 +175,9 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 		expect(fs.existsSync(path.resolve(cwd, '.opencode/skills'))).toBe(false);
 		// pi stays configured through its own package
 		expect(JSON.parse(getContent('.pi/settings.json')).packages).toEqual(['npm:@sveltejs/pi']);
+		// the plugins replace the agent file as well
+		expect(fs.existsSync(path.resolve(cwd, 'AGENTS.md'))).toBe(false);
+		expect(fs.existsSync(path.resolve(cwd, '.claude/CLAUDE.md'))).toBe(false);
 		return;
 	}
 

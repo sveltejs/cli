@@ -29,6 +29,8 @@ export const PackageJSONSchema = v.looseObject({
 export type PackageJSON = v.InferOutput<typeof PackageJSONSchema>;
 
 export const cliOptions = {
+	cwd: new Option('-C, --cwd <path>', 'path to working directory'),
+	noGitCheck: new Option('--no-git-check', 'even if some files are dirty, no prompt will be shown'),
 	noDownloadCheck: new Option(
 		'--no-download-check',
 		'do not warn about downloads from community add-ons'
@@ -252,6 +254,7 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 
 export function buildAndLogArgs(
 	agent: AgentName | null | undefined,
+	install: boolean,
 	command: 'create' | 'add',
 	args: string[],
 	lastArgs: string[] = []
@@ -260,7 +263,8 @@ export function buildAndLogArgs(
 
 	// Handle install option
 	if (agent === null || agent === undefined) allArgs.push('--no-install');
-	else allArgs.push('--install', agent);
+	else if (install) allArgs.push('--install', agent);
+	else allArgs.push('--package-manager', agent, '--no-install');
 
 	const message = resolveCommandArray(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs]).join(
 		' '

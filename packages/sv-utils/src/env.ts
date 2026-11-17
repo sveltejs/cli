@@ -4,7 +4,7 @@ import { coerceVersion } from './semver.ts';
 import { svelteConfig, type ConfigFileReader, type SvFileApi } from './svelte-config.ts';
 import type { AstTypes } from './tooling/index.ts';
 import * as jsNs from './tooling/js/index.ts';
-import { transforms } from './tooling/transforms.ts';
+import * as transforms from './tooling/transforms.ts';
 
 export type EnvMode = 'declared' | 'legacy';
 

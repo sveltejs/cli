@@ -1,20 +1,22 @@
+import path from 'node:path';
 import process from 'node:process';
 import { color, resolveCommand, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
-import * as resolve from 'empathic/resolve';
+import * as find from 'empathic/find';
 import { execSync } from 'tinyexec';
-import { forwardExitCode } from '../core/common.ts';
+import { cliOptions, forwardExitCode } from '../core/common.ts';
 import { detectPackageManager } from '../core/package-manager.ts';
+import { findWorkspaceRoot } from '../core/workspace.ts';
 
 export const check = new Command('check')
 	.description('a CLI for checking your Svelte code')
 	// flags that we'll want to pass to `svelte-check`
 	.allowUnknownOption(true)
 	.allowExcessArguments(true)
-	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
+	.addOption(cliOptions.cwd)
 	.helpOption(false) // we'll pass the responsibility of presenting the help menu over to `svelte-check`
 	.action(async (options, check: Command) => {
-		const cwd: string = options.cwd;
+		const cwd: string = options.cwd ?? process.cwd();
 		const args: string[] = check.args;
 
 		await runCheck(cwd, args);
@@ -23,11 +25,16 @@ export const check = new Command('check')
 async function runCheck(cwd: string, args: string[]) {
 	const pm = await detectPackageManager(cwd);
 
-	// validates that `svelte-check` is locally installed
-	const resolved = resolve.from(cwd, 'svelte-check', true);
-	if (!resolved) {
+	// validates that `svelte-check` is locally installed in the project
+	const resolvedCwd = path.resolve(cwd);
+	const installed = find.up(path.join('node_modules', '.bin', 'svelte-check'), {
+		cwd: resolvedCwd,
+		last: findWorkspaceRoot(resolvedCwd)
+	});
+
+	if (!installed) {
 		console.error(
-			`'svelte-check' is not installed locally. Install it with: ${color.command(resolveCommandArray(pm, 'add', ['-D', 'svelte-check']))}`
+			`'svelte-check' is not installed in your project. Install it with: ${color.command(resolveCommandArray(pm, 'add', ['-D', 'svelte-check']))}`
 		);
 		process.exit(1);
 	}

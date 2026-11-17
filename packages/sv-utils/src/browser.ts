@@ -28,8 +28,8 @@ export * as text from './tooling/text.ts';
 export * as json from './tooling/json.ts';
 export * as svelte from './tooling/svelte/index.ts';
 
-// Transforms — sv-utils = what to do to content, sv = where and when to do it.
-export { transforms } from './tooling/transforms.ts';
+// Transforms: a namespace, not an object, so bundlers keep only the ones an add-on uses.
+export * as transforms from './tooling/transforms.ts';
 
 /**
  * Low-level parsers. Prefer `transforms` for add-on file edits — it picks the

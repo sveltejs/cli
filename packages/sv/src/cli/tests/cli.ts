@@ -45,7 +45,7 @@ describe('cli', () => {
 				'better-auth=demo:password,github',
 				'mdsvex',
 				'paraglide=languageTags:en,es+demo:yes',
-				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local+optInSkills:none'
+				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local+agentsMd:yes+optInSkills:none'
 				// 'storybook' // No storybook addon during tests!
 			]
 		},
@@ -381,3 +381,71 @@ function normalizeGeneratedFile(filename: string, raw: string) {
 
 	return generated;
 }
+
+describe('--package-manager', () => {
+	// outside the monorepo: its own `pnpm-workspace.yaml` must not be found or edited
+	const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'sv-pm-'));
+
+	it('create: uses the package manager without installing', { timeout: 60_000 }, async () => {
+		const cwd = path.join(tmp(), 'app');
+		const allArgs = [
+			SV_BIN_PATH,
+			'create',
+			cwd,
+			'--template',
+			'minimal',
+			'--types',
+			'ts',
+			'--no-add-ons',
+			'--package-manager',
+			'pnpm',
+			'--no-install'
+		];
+		const result = await exec('node', allArgs);
+		expect(result.exitCode, `${result.stdout}\n${result.stderr}`).toBe(0);
+
+		expect(fs.readFileSync(path.join(cwd, 'pnpm-workspace.yaml'), 'utf-8')).toContain('esbuild');
+		expect(fs.existsSync(path.join(cwd, 'node_modules'))).toBe(false);
+		expect(fs.readFileSync(path.join(cwd, 'README.md'), 'utf-8')).toContain(
+			'--package-manager pnpm --no-install'
+		);
+	});
+
+	it('add: wins over the detected package manager', { timeout: 60_000 }, async () => {
+		const cwd = tmp();
+		const pkg = { name: 'app', private: true, devDependencies: { '@sveltejs/kit': '^2.0.0' } };
+		fs.writeFileSync(path.join(cwd, 'package.json'), JSON.stringify(pkg));
+		fs.writeFileSync(path.join(cwd, 'package-lock.json'), '{"lockfileVersion":3}');
+		fs.writeFileSync(path.join(cwd, 'svelte.config.js'), 'export default { kit: {} };');
+		fs.writeFileSync(
+			path.join(cwd, 'vite.config.js'),
+			"import { sveltekit } from '@sveltejs/kit/vite';\nexport default { plugins: [sveltekit()] };"
+		);
+
+		const allArgs = [
+			SV_BIN_PATH,
+			'add',
+			'enhanced-img',
+			'--cwd',
+			cwd,
+			'--package-manager',
+			'pnpm',
+			'--no-install',
+			'--no-git-check'
+		];
+		const result = await exec('node', allArgs);
+		expect(result.exitCode, `${result.stdout}\n${result.stderr}`).toBe(0);
+
+		// `sharp` is only allowed when the add-on itself sees pnpm
+		expect(fs.readFileSync(path.join(cwd, 'pnpm-workspace.yaml'), 'utf-8')).toContain('sharp');
+		expect(fs.existsSync(path.join(cwd, 'node_modules'))).toBe(false);
+		expect(result.stdout).toContain('--package-manager pnpm --no-install');
+	});
+
+	it('errors when --install <pm> and --package-manager differ', async () => {
+		const allArgs = [SV_BIN_PATH, 'create', '--install', 'pnpm', '--package-manager', 'npm'];
+		const result = await exec('node', allArgs);
+		expect(result.exitCode).toBe(1);
+		expect(result.stdout).toContain('cannot be used together');
+	});
+});

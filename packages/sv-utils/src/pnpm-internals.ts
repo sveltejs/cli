@@ -1,7 +1,8 @@
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { coerceVersion, isVersionUnsupportedBelow } from './semver.ts';
-import { transforms, type TransformFn } from './tooling/transforms.ts';
+import type { TransformFn } from './tooling/transforms.ts';
+import * as transforms from './tooling/transforms.ts';
 
 type YamlMap = {
 	get(key: string): unknown;

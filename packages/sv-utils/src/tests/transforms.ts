@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { transforms } from '../tooling/transforms.ts';
+import * as transforms from '../tooling/transforms.ts';
 
 describe('transforms', () => {
 	describe('json', () => {

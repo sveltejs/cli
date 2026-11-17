@@ -12,7 +12,9 @@ import {
 	type TransformFn,
 	coerceVersion,
 	defineDemoPage,
-	defineEnv
+	defineEnv,
+	fileExists,
+	isKit3
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
@@ -49,7 +51,11 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		runsAfter(ADDON_IDS.experimental);
 	},
 	run: ({ sv, cwd, language, options, directory, dependencyVersion, file }) => {
-		const lib = resolveLibPrefix(dependencyVersion('@sveltejs/kit'));
+		const kitRange = dependencyVersion('@sveltejs/kit');
+		const lib = resolveLibPrefix(kitRange);
+		const kit3 = isKit3(kitRange);
+		// Kit 2's `rewriteRelativeImportExtensions` rejects `.ts` on non-relative `$lib` imports (TS5097)
+		const libExt = kit3 ? `.${language}` : '';
 		const svelteVersion = dependencyVersion('svelte');
 		const svelte5 = !!svelteVersion && coerceVersion(svelteVersion).major === 5;
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
@@ -61,8 +67,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		let drizzleDialect: Dialect;
 		let d1 = false;
 
-		sv.devDependency('auth', '^1.6.24');
-		sv.devDependency('better-auth', '^1.6.24');
+		sv.devDependency('auth', '^1.7.25');
+		sv.devDependency('better-auth', '^1.7.25');
 
 		// Read-only: extract dialect info from drizzle config without modifying it
 		sv.file(
@@ -128,8 +134,9 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		sv.file(
 			`${directory.lib}/server/auth.${language}`,
 			transforms.script(({ ast, comments, js }) => {
+				const d1FromWorkers = d1 && kit3;
 				js.imports.addNamed(ast, {
-					from: `${lib}/server/db/index.${language}`,
+					from: kit3 ? `${lib}/server/db/index${libExt}` : `${lib}/server/db`,
 					imports: [d1 ? 'getDb' : 'db']
 				});
 				js.imports.addNamed(ast, { from: '$app/server', imports: ['getRequestEvent'] });
@@ -142,6 +149,9 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					imports: ['drizzleAdapter']
 				});
 				js.imports.addNamed(ast, { from: 'better-auth/minimal', imports: ['betterAuth'] });
+				if (d1FromWorkers) {
+					js.imports.addNamed(ast, { from: 'cloudflare:workers', imports: ['env'] });
+				}
 
 				const origin = env.reference(ast, js, { name: 'ORIGIN' });
 				const secret = env.reference(ast, js, { name: 'BETTER_AUTH_SECRET' });
@@ -182,7 +192,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 						],
 					}${ts(' satisfies Omit<Parameters<typeof betterAuth>[0], "database">')};
 
-					export const createAuth = (d1${ts(': D1Database')}) => betterAuth({
+					export const createAuth = (d1${ts(': D1Database')}${d1FromWorkers ? ' = env.DB' : ''}) => betterAuth({
 						...authConfig,
 						database: drizzleAdapter(getDb(d1), { provider: '${provider}' }),
 					});
@@ -250,7 +260,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 				if (d1)
 					js.imports.addNamed(ast, {
 						imports: ['createAuth'],
-						from: `${lib}/server/auth.${language}`
+						from: `${lib}/server/auth${libExt}`
 					});
 
 				js.imports.addNamed(ast, {
@@ -291,6 +301,24 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 			})
 		);
 
+		const wranglerExt = fileExists(cwd, 'wrangler.toml')
+			? 'toml'
+			: fileExists(cwd, 'wrangler.json')
+				? 'json'
+				: 'jsonc';
+		const addD1Binding = (data: Record<string, any>) => {
+			if (!d1) return false;
+			data.d1_databases ??= [];
+			const hasBinding = data.d1_databases.some((db: { binding?: string }) => db.binding === 'DB');
+			if (!hasBinding) data.d1_databases.push({ binding: 'DB' });
+		};
+		sv.file(
+			`wrangler.${wranglerExt}`,
+			wranglerExt === 'toml'
+				? transforms.toml(({ data }) => addD1Binding(data))
+				: transforms.json(({ data }) => addD1Binding(data))
+		);
+
 		sv.file(
 			`src/hooks.server.${language}`,
 			transforms.script(({ ast, comments, js }) => {
@@ -300,16 +328,23 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 				});
 				js.imports.addNamed(ast, {
 					imports: [d1 ? 'createAuth' : 'auth'],
-					from: `${lib}/server/auth.${language}`
+					from: `${lib}/server/auth${libExt}`
 				});
 				env.importEnv(ast, js, ['building']);
 
-				const d1HandleSetup = d1
-					? dedent`
+				const d1FromWorkers = d1 && kit3;
+
+				let d1HandleSetup = '';
+				if (d1FromWorkers) {
+					d1HandleSetup = dedent`
+					event.locals.auth = createAuth();
+					const { auth } = event.locals;\n`;
+				} else if (d1) {
+					d1HandleSetup = dedent`
 					if (!event.platform?.env?.DB) throw new Error('D1 binding "DB" not found - are you running with wrangler?');
 					event.locals.auth = createAuth(event.platform.env.DB);
-					const { auth } = event.locals;\n`
-					: '';
+					const { auth } = event.locals;\n`;
+				}
 
 				const handleContent = dedent`
 				async ({ event, resolve }) => {${d1HandleSetup}
@@ -331,7 +366,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					language,
 					newHandleName: 'handleBetterAuth',
 					handleContent,
-					comments
+					comments,
+					kitVersion: kitRange
 				});
 			})
 		);
@@ -354,8 +390,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					? `
 						signInEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
+							const email = parseEntry(formData.get('email'));
+							const password = parseEntry(formData.get('password'));
 
 							try {
 								await auth.api.signInEmail({
@@ -376,9 +412,9 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 						},
 						signUpEmail: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const email = formData.get('email')?.toString() ?? '';
-							const password = formData.get('password')?.toString() ?? '';
-							const name = formData.get('name')?.toString() ?? '';
+							const email = parseEntry(formData.get('email'));
+							const password = parseEntry(formData.get('password'));
+							const name = parseEntry(formData.get('name'));
 
 							try {
 								await auth.api.signUpEmail({
@@ -404,8 +440,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					? `
 						signInSocial: async (event) => {${d1AuthLine}
 							const formData = await event.request.formData();
-							const provider = formData.get('provider')?.toString() ?? 'github';
-							const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
+							const provider = parseEntry(formData.get('provider')) || 'github';
+							const callbackURL = parseEntry(formData.get('callbackURL')) || '/demo/better-auth';
 
 							const result = await auth.api.signInSocial({
 								body: {
@@ -427,8 +463,11 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					import { fail, redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
+					${!d1 ? `import { auth } from '${lib}/server/auth${libExt}';` : ''}
 					${needsAPIError ? "import { APIError } from 'better-auth/api';" : ''}
+
+					const parseEntry = (input${ts(' : FormDataEntryValue | null')})${ts(': string')} =>
+						input instanceof File ? input.name : (input ?? '');
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (event.locals.user) {
@@ -515,7 +554,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					import { redirect } from '@sveltejs/kit';
 					${ts("import type { Actions } from './$types';")}
 					${ts("import type { PageServerLoad } from './$types';")}
-					${!d1 ? `import { auth } from '${lib}/server/auth.${language}';` : ''}
+					${!d1 ? `import { auth } from '${lib}/server/auth${libExt}';` : ''}
 
 					export const load${ts(': PageServerLoad')} = (event) => {
 						if (!event.locals.user) {

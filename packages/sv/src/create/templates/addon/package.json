@@ -29,12 +29,13 @@
 		"test": "vitest run"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.60.0",
+		"@playwright/test": "^1.65.1",
 		"@sveltejs/sv-utils": "workspace:*",
-		"@types/node": "^25.9.1",
+		"@types/node": "^26.6.6",
 		"sv": "workspace:*",
-		"tsdown": "^0.22.1",
-		"vitest": "^4.1.8"
+		"tsdown": "^0.23.7",
+		"vite": "^8.3.8",
+		"vitest": "^5.1.0"
 	},
 	"peerDependencies": {
 		"sv": "workspace:*"
