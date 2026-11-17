@@ -1,5 +1,5 @@
 import { log } from '@clack/prompts';
-import { type AstTypes, fileExists, isKit3, svelteConfig, transforms } from '@sveltejs/sv-utils';
+import { type AstTypes, svelteConfig, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import {
 	addEslintConfigPrettier,
@@ -19,11 +19,6 @@ export default defineAddon({
 		const typescript = language === 'ts';
 		const kitVersion = dependencyVersion('@sveltejs/kit');
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
-		// typed linting needs every linted file resolved by exactly one mechanism:
-		// the project service (file is in a tsconfig) or `allowDefaultProject` —
-		// never both. the addon adds the config file to the tsconfig include for
-		// Kit 3 projects with a tsconfig, which decides which side it is on
-		const configInTsconfigProject = isKit3(kitVersion) && fileExists(cwd, 'tsconfig.json');
 		// Only wire up `svelteConfig` when there's a separate `svelte.config.{js,ts}` file to import.
 		// When the config lives in `vite.config.js` instead, there's nothing importable here:
 		// `svelte-eslint-parser` falls back to its defaults when `svelteConfig` is omitted, and the
@@ -40,7 +35,8 @@ export default defineAddon({
 		// the `eslint.config.js` imports `node:path`
 		sv.devDependency('@types/node', getNodeTypesVersion());
 		addToTypeConfigType({ sv, cwd, language, entry: 'node' });
-		addToTypeConfigInclude({
+		// typed linting must resolve a file via the tsconfig OR `allowDefaultProject`, never both
+		const configInTsconfigProject = addToTypeConfigInclude({
 			sv,
 			cwd,
 			language,

@@ -212,11 +212,11 @@ export function addToTypeConfigInclude(opts: {
 	language: 'ts' | 'js';
 	kitVersion: string | undefined;
 	entry: string;
-}): void {
-	if (!isKit3(opts.kitVersion)) return;
+}): boolean {
+	if (!isKit3(opts.kitVersion)) return false;
 
 	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
-	if (!fileExists(opts.cwd, configFile)) return;
+	if (!fileExists(opts.cwd, configFile)) return false;
 
 	opts.sv.file(
 		configFile,
@@ -225,6 +225,7 @@ export function addToTypeConfigInclude(opts: {
 			if (!include.includes(opts.entry)) include.push(opts.entry);
 		})
 	);
+	return true;
 }
 
 export function addToTypeConfigType(opts: {
