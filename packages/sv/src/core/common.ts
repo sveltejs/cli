@@ -252,6 +252,7 @@ export function parseAddonOptions(optionFlags: string | undefined): string[] | u
 
 export function buildAndLogArgs(
 	agent: AgentName | null | undefined,
+	install: boolean,
 	command: 'create' | 'add',
 	args: string[],
 	lastArgs: string[] = []
@@ -260,7 +261,8 @@ export function buildAndLogArgs(
 
 	// Handle install option
 	if (agent === null || agent === undefined) allArgs.push('--no-install');
-	else allArgs.push('--install', agent);
+	else if (install) allArgs.push('--install', agent);
+	else allArgs.push('--package-manager', agent, '--no-install');
 
 	const message = resolveCommandArray(agent ?? 'npm', 'execute', [...allArgs, ...lastArgs]).join(
 		' '
