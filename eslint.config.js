@@ -24,7 +24,6 @@ export default defineConfig(
 	},
 	{
 		ignores: [
-			'**/temp/*',
 			'**/.test-output/*',
 			'**/dist/*',
 			'**/dts-api-surface/**',

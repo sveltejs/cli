@@ -17,6 +17,7 @@ export default defineAddon({
 	options: {},
 	run: ({ sv, language, dependencyVersion, file, cwd }) => {
 		const typescript = language === 'ts';
+		const kitVersion = dependencyVersion('@sveltejs/kit');
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 		// Only wire up `svelteConfig` when there's a separate `svelte.config.{js,ts}` file to import.
 		// When the config lives in `vite.config.js` instead, there's nothing importable here:
@@ -34,13 +35,24 @@ export default defineAddon({
 		// the `eslint.config.js` imports `node:path`
 		sv.devDependency('@types/node', getNodeTypesVersion());
 		addToTypeConfigType({ sv, cwd, language, entry: 'node' });
-		addToTypeConfigInclude({
+		// typed linting must resolve a file via the tsconfig OR `allowDefaultProject`, never both
+		const configInTsconfigProject = addToTypeConfigInclude({
 			sv,
 			cwd,
 			language,
-			kitVersion: dependencyVersion('@sveltejs/kit'),
+			kitVersion,
 			entry: 'eslint.config.js'
 		});
+
+		if (svelteConfigFile) {
+			addToTypeConfigInclude({
+				sv,
+				cwd,
+				language,
+				kitVersion,
+				entry: svelteConfigFile
+			});
+		}
 
 		if (typescript) sv.devDependency('typescript-eslint', '^8.72.2');
 
@@ -72,7 +84,7 @@ export default defineAddon({
 				eslintConfigs.push(jsConfig);
 
 				if (typescript) {
-					const tsConfig = js.common.parseExpression('ts.configs.recommended');
+					const tsConfig = js.common.parseExpression('ts.configs.recommendedTypeChecked');
 					eslintConfigs.push(tsConfig);
 				}
 
@@ -99,8 +111,12 @@ export default defineAddon({
 						' see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors'
 				});
 
+				const tsOptions = configInTsconfigProject
+					? { projectService: true }
+					: { projectService: { allowDefaultProject: ['*.js'] } };
 				const globalsConfig = js.object.create({
 					languageOptions: {
+						parserOptions: typescript ? tsOptions : undefined,
 						globals: globalsObjLiteral
 					},
 					rules: typescript ? rules : undefined
