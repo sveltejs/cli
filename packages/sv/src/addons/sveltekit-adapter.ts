@@ -14,13 +14,13 @@ import { addToTypeConfigType, getNodeTypesVersion } from './common.ts';
 import { ADDON_IDS } from './ids.ts';
 
 const adapters = [
-	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.0' },
-	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.0' },
-	{ id: 'bun', package: '@sveltejs/adapter-bun', version: '^1.0.0' },
-	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.0' },
-	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.0' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.0' },
-	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.0' }
+	{ id: 'auto', package: '@sveltejs/adapter-auto', version: '^8.0.1' },
+	{ id: 'node', package: '@sveltejs/adapter-node', version: '^6.0.2' },
+	{ id: 'bun', package: '@sveltejs/adapter-bun', version: '^1.0.1' },
+	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.1' },
+	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.3' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.2' },
+	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.1' }
 ] as const;
 type AdapterId = (typeof adapters)[number]['id'];
 
@@ -131,7 +131,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 		}
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
-			sv.devDependency('wrangler', '^4.97.0');
+			sv.devDependency('wrangler', '^4.162.0');
 
 			if (packageManager === 'pnpm') {
 				sv.file(

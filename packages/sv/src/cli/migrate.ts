@@ -9,6 +9,7 @@ import { prepareSvApi } from '../core/engine.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
+	exitOnInstallConflict,
 	installDependencies,
 	installOption,
 	packageManagerPrompt
@@ -54,12 +55,12 @@ type Options = v.InferOutput<typeof OptionsSchema>;
 export const migrate = new Command('migrate')
 	.description('a CLI for migrating Svelte(Kit) codebases')
 	.argument('[migration]', `migration to run`)
-	.option('--cwd <path>', 'working directory to run the migration in')
+	.addOption(common.cliOptions.cwd)
 	.option(
 		'--files <glob>',
 		'only run the migration on a subset of files matching the provided glob pattern'
 	)
-	.option('--no-git-check', 'even if some files are dirty, no prompt will be shown')
+	.addOption(common.cliOptions.noGitCheck)
 	.option(
 		'--tasks [task...]',
 		'migration tasks to run. Omit list of tasks to show available tasks. Use `--task all` to run all migration tasks.'
@@ -68,14 +69,7 @@ export const migrate = new Command('migrate')
 	.option('--no-install', 'skip installing dependencies')
 	.addOption(installOption)
 	.action((migrationName, options) => {
-		if (hasInstallConflict(process.argv)) {
-			common.errorAndExit(
-				`The ${color.command('--install')} and ${color.command(
-					'--no-install'
-				)} options cannot be used together.`
-			);
-			return;
-		}
+		exitOnInstallConflict(process.argv);
 
 		let verifiedMigrationName: string | symbol | undefined = v.parse(
 			MigrationScheme,
@@ -112,7 +106,7 @@ export const migrate = new Command('migrate')
 
 			const migration = migrations.find((m) => m.id === verifiedMigrationName);
 			if (!migration) {
-				common.errorAndExit(`Migration ${verifiedMigrationName} not found`);
+				common.errorAndExit(`Migration ${String(verifiedMigrationName)} not found`);
 				return;
 			}
 			const legacyMigration = migration.legacy ?? false;
@@ -374,13 +368,6 @@ function reportNextSteps(): void {
 		`Search for ${color.command(MIGRATION_TASK_MARKER)} to resolve ${total === 1 ? 'it' : 'them'}.`
 	];
 	p.note(body.join('\n'), 'Next steps', { format: (line) => line });
-}
-
-export function hasInstallConflict(argv: string[]) {
-	return (
-		argv.some((arg) => arg === '--install' || arg.startsWith('--install=')) &&
-		argv.includes('--no-install')
-	);
 }
 
 async function applyTasks(options: Options, tasks: TaskWithOptions[], legacyMigration: boolean) {

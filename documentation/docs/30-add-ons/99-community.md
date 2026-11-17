@@ -159,7 +159,17 @@ export default setupGlobal({ TEST_DIR });
 
 Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
 
-[`@sveltejs/sv-utils`](sv-utils) is bundled as well to pin its version. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
+[`@sveltejs/sv-utils`](sv-utils) is bundled as well to pin its version. To keep your add-on small, you can leave it unbundled by moving it to `peerDependencies` (tsdown never bundles peers):
+
+```jsonc
+"peerDependencies": {
+	"sv": "^1.4.0",
+	// resolved from the copy `sv` ships, `sv` warns on a major mismatch
+	"@sveltejs/sv-utils": "^1.1.0"
+}
+```
+
+Keep `sv` at the version you tested with: on mismatch, users are told to run `npx sv@1.4.0 add <your-addon>`. See [the trade-off](faq#Should-my-add-on-bundle-sveltejs-sv-utils).
 
 ### `package.json`
 

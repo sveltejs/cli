@@ -82,7 +82,7 @@ Upgrades a pre-release SvelteKit app to use the filesystem routing conventions i
 
 These options apply to both task-based and legacy migrations.
 
-### `--cwd <path>`
+### `-C`, `--cwd <path>`
 
 Run the migration in a different working directory. The path defaults to the current directory and must contain a `package.json`.
 

@@ -153,37 +153,37 @@ declare const adapters: readonly [
 	{
 		readonly id: 'auto';
 		readonly package: '@sveltejs/adapter-auto';
-		readonly version: '^8.0.0';
+		readonly version: '^8.0.1';
 	},
 	{
 		readonly id: 'node';
 		readonly package: '@sveltejs/adapter-node';
-		readonly version: '^6.0.0';
+		readonly version: '^6.0.2';
 	},
 	{
 		readonly id: 'bun';
 		readonly package: '@sveltejs/adapter-bun';
-		readonly version: '^1.0.0';
+		readonly version: '^1.0.1';
 	},
 	{
 		readonly id: 'static';
 		readonly package: '@sveltejs/adapter-static';
-		readonly version: '^4.0.0';
+		readonly version: '^4.0.1';
 	},
 	{
 		readonly id: 'vercel';
 		readonly package: '@sveltejs/adapter-vercel';
-		readonly version: '^7.0.0';
+		readonly version: '^7.0.3';
 	},
 	{
 		readonly id: 'cloudflare';
 		readonly package: '@sveltejs/adapter-cloudflare';
-		readonly version: '^8.0.0';
+		readonly version: '^8.0.2';
 	},
 	{
 		readonly id: 'netlify';
 		readonly package: '@sveltejs/adapter-netlify';
-		readonly version: '^7.0.0';
+		readonly version: '^7.0.1';
 	}
 ];
 type AdapterId = (typeof adapters)[number]['id'];
