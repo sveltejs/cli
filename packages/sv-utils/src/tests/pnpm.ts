@@ -108,7 +108,7 @@ describe('pnpm < 10.5: no settings in pnpm-workspace.yaml', () => {
 	});
 });
 
-describe('allowBuildsForVersion', () => {
+describe('allowBuildsByVersion', () => {
 	const shape = (version: string | undefined, ...packages: string[]) =>
 		allowBuildsByVersion(version, packages);
 
