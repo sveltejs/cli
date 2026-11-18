@@ -1,5 +1,5 @@
 {
-	"name": "create-only",
+	"name": "create-minimal-pnpm-10.25",
 	"version": "0.0.1",
 	"private": true,
 	"type": "module",
@@ -16,12 +16,24 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^8.0.1",
-		"@sveltejs/kit": "^3.2.0",
-		"@sveltejs/vite-plugin-svelte": "^7.3.1",
-		"svelte": "^5.57.3",
-		"svelte-check": "^4.7.8",
+		"@sveltejs/adapter-auto": "^8.0.0",
+		"@sveltejs/kit": "^3.0.0",
+		"@sveltejs/vite-plugin-svelte": "^7.2.0",
+		"svelte": "^5.57.2",
+		"svelte-check": "^4.6.0",
 		"typescript": "^6.0.3",
-		"vite": "^8.3.8"
+		"vite": "^8.3.0"
+	},
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "^0.0.0",
+			"onFail": "download"
+		},
+		"runtime": {
+			"name": "node",
+			"version": "^0.0.0",
+			"onFail": "download"
+		}
 	}
 }
