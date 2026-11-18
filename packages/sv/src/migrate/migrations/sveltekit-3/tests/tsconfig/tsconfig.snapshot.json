@@ -1,13 +1,18 @@
+// @migration-task remove obsolete `.svelte-kit` includes - the files are no longer generated and can override SvelteKit 3 types
 {
 	"extends": "$app/tsconfig",
+	"include": [
+		"src/**/*.ts",
+		"src/**/*.svelte",
+		"tests/**/*.ts",
+		"vite.config.ts",
+		".svelte-kit/ambient.d.ts",
+		".svelte-kit/env.d.ts",
+		".svelte-kit/types/**/$types.d.ts",
+		".svelte-kit/non-ambient.d.ts",
+		"drizzle.config.ts"
+	],
 	"compilerOptions": {
 		"strict": true
-	},
-	"include": [
-		"src",
-		"vite.config.ts",
-		"playwright.config.ts",
-		"tests",
-		"drizzle.config.ts"
-	]
+	}
 }

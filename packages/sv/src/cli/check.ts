@@ -4,7 +4,7 @@ import { color, resolveCommand, resolveCommandArray } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as find from 'empathic/find';
 import { execSync } from 'tinyexec';
-import { forwardExitCode } from '../core/common.ts';
+import { cliOptions, forwardExitCode } from '../core/common.ts';
 import { detectPackageManager } from '../core/package-manager.ts';
 import { findWorkspaceRoot } from '../core/workspace.ts';
 
@@ -13,10 +13,10 @@ export const check = new Command('check')
 	// flags that we'll want to pass to `svelte-check`
 	.allowUnknownOption(true)
 	.allowExcessArguments(true)
-	.option('-C, --cwd <path>', 'path to working directory', process.cwd())
+	.addOption(cliOptions.cwd)
 	.helpOption(false) // we'll pass the responsibility of presenting the help menu over to `svelte-check`
 	.action(async (options, check: Command) => {
-		const cwd: string = options.cwd;
+		const cwd: string = options.cwd ?? process.cwd();
 		const args: string[] = check.args;
 
 		await runCheck(cwd, args);

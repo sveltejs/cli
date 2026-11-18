@@ -1,5 +1,5 @@
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
-import { svelteDevtools } from 'vite-devtools-svelte';
+import { svelteDevtools } from '@sveltejs/vite-devtools-svelte';
 import { mdsvex } from 'mdsvex';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';

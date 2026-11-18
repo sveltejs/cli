@@ -31,8 +31,11 @@ They have a clear boundary:
 
 This keeps transforms testable without a workspace and composable across add-ons.
 
-## Why bundle `@sveltejs/sv-utils` in my add-on?
+## Should my add-on bundle `@sveltejs/sv-utils`?
 
-Most breaking changes land in `@sveltejs/sv-utils`, not `sv`. An add-on that leaves it unbundled still loads, but runs against whatever copy `sv` ships, so a future `sv` release can break it. Bundling pins the version you tested against, so users can trust your add-on keeps working.
+Most breaking changes land in `@sveltejs/sv-utils`, not `sv`. Each `sv` release ships one exact `@sveltejs/sv-utils` version, so you have two options:
 
-The [add-on template](community#Quick-start) already bundles it: keep it that way. See [bundling](community#Publishing-Bundling).
+- **Bundled** (template default): pins the version you tested against. Safest, costs ~1 MB.
+- **Unbundled**: declare it in `peerDependencies`. Your add-on stays tiny and runs against the copy `sv` ships. When majors differ, `sv` warns and prints the command to rerun with the `sv` you built for: `npx sv@<peerDependencies.sv> add <your-addon>`.
+
+If an unbundled add-on breaks for your users, they can run that command, and you can publish a fix for the latest `sv`. See [bundling](community#Publishing-Bundling).

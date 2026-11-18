@@ -1,5 +1,13 @@
 # @sveltejs/sv-utils
 
+## 1.1.2
+
+### Patch Changes
+
+- perf(sv-utils): make `transforms` treeshakable, so add-ons bundling sv-utils only ship what they use (up to 50x smaller) ([#1473](https://github.com/sveltejs/cli/pull/1473))
+
+- chore(deps): update dependencies ([#1469](https://github.com/sveltejs/cli/pull/1469))
+
 ## 1.1.1
 
 ### Patch Changes

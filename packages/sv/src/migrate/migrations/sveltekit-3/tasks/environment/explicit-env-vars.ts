@@ -458,12 +458,8 @@ export function addEnvDeclarationFile(
 				envVar.type === 'dynamic'
 					? js.functions.createArrow({
 							params: ['input'],
-							body: {
-								type: 'LogicalExpression',
-								operator: '??',
-								left: { type: 'Identifier', name: 'input' },
-								right: { type: 'Literal', value: '', raw: "''" }
-							},
+							// keep `undefined` like SvelteKit 2, so `A ?? B` fallbacks still work
+							body: { type: 'Identifier', name: 'input' },
 							async: false
 						})
 					: undefined
@@ -472,7 +468,7 @@ export function addEnvDeclarationFile(
 
 	if (has_dynamic) {
 		addMigrationTask(
-			'Review usage of dynamic environment variables. They fall back to the empty string if not present, which may not be what you want.',
+			'Review dynamic environment variables. They accept missing values (`undefined`), add stricter validation where a value is required.',
 			{ comments, node: exportDeclaration }
 		);
 	}
