@@ -2,4 +2,4 @@
 'sv': minor
 ---
 
-feat(addons): expose resolved setup options and dependency defaults
+feat(addons): expose resolved setup options and `dependsOn` preferred options

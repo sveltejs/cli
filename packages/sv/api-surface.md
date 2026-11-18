@@ -276,7 +276,7 @@ type Addon<
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			dependsOn: <DependencyId extends AddonId>(
 				id: DependencyId,
-				defaults?: DependencyId extends OfficialAddonId
+				preferredOptions?: DependencyId extends OfficialAddonId
 					? Partial<OfficialAddonOptions[DependencyId]>
 					: never
 			) => void;
@@ -370,7 +370,7 @@ type AddonResult = {
 };
 type SetupResult = {
 	dependsOn: string[];
-	dependencyDefaults: AddonAnswers;
+	preferredOptions: AddonAnswers;
 	unsupported: string[];
 	runsAfter: string[];
 	additionalOptions: Record<string, Question>;

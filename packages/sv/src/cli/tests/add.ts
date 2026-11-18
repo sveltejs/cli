@@ -11,7 +11,7 @@ import {
 	type SetupResult
 } from '../../core/config.ts';
 import { createWorkspace } from '../../core/workspace.ts';
-import { promptAddonQuestions, resolveDependencyDefaults } from '../add.ts';
+import { promptAddonQuestions, resolvePreferredOptions } from '../add.ts';
 
 // ESM namespace exports can't be spied on
 vi.mock('@clack/prompts', async (importOriginal) => ({
@@ -26,7 +26,7 @@ const POSTGRES = { database: 'postgresql', postgresql: 'postgres.js', docker: fa
 
 function dashboardAddon(
 	id = 'test-dashboard',
-	drizzleDefaults: Record<string, unknown> = POSTGRES
+	drizzlePreferred: Record<string, unknown> = POSTGRES
 ) {
 	return defineAddon({
 		id,
@@ -43,7 +43,7 @@ function dashboardAddon(
 			.build(),
 		setup: ({ options, dependsOn }) => {
 			if (options.template !== 'dashboard') return;
-			dependsOn('drizzle', drizzleDefaults as never);
+			dependsOn('drizzle', drizzlePreferred as never);
 			dependsOn('better-auth', { demo: [] });
 		},
 		run: () => {}
@@ -71,8 +71,8 @@ async function prompt(addons: Array<Addon<any, any>>, cliOptions: Record<string,
 
 const ids = (loaded: Array<{ addon: AddonDefinition }>) => loaded.map(({ addon }) => addon.id);
 
-describe('dependency defaults', () => {
-	it('adds dependencies with defaults from a CLI-selected template', async () => {
+describe('preferred options', () => {
+	it('adds dependencies with preferred options from a CLI-selected template', async () => {
 		const { answers, loadedAddons } = await prompt([dashboardAddon()], {
 			'test-dashboard': ['template:dashboard']
 		});
@@ -94,7 +94,7 @@ describe('dependency defaults', () => {
 		expect(ids(loadedAddons)).toEqual(expected);
 	});
 
-	it('runs dependency setup with the defaults of its parent', async () => {
+	it('runs dependency setup with the preferred options of its parent', async () => {
 		const drizzle = getAddonDetails('drizzle');
 		const originalSetup = drizzle.setup;
 		let seen: unknown;
@@ -120,7 +120,7 @@ describe('dependency defaults', () => {
 		expect(answers.drizzle).toEqual({ database: 'sqlite', sqlite: 'libsql' });
 	});
 
-	it('drops defaults made stale by a conflicting answer', async () => {
+	it('drops preferred options made stale by a conflicting answer', async () => {
 		select.mockResolvedValueOnce('sqlite').mockResolvedValueOnce('libsql');
 
 		const { answers } = await prompt(
@@ -132,25 +132,25 @@ describe('dependency defaults', () => {
 	});
 
 	it.each([
-		[{ database: 'oracle' }, /Invalid 'drizzle' default from 'test-dashboard'/],
-		[{ nope: true }, /Invalid 'drizzle' default from 'test-dashboard'/],
+		[{ database: 'oracle' }, /Invalid 'drizzle' preferred option from 'test-dashboard'/],
+		[{ nope: true }, /Invalid 'drizzle' preferred option from 'test-dashboard'/],
 		[{ database: 'sqlite', postgresql: 'neon' }, /Incompatible 'drizzle' option/]
-	])('rejects invalid defaults: %j', async (defaults, error) => {
+	])('rejects invalid preferred options: %j', async (preferred, error) => {
 		await expect(
-			prompt([dashboardAddon('test-dashboard', defaults)], {
+			prompt([dashboardAddon('test-dashboard', preferred)], {
 				'test-dashboard': ['template:dashboard']
 			})
 		).rejects.toThrow(error);
 	});
 });
 
-describe('resolveDependencyDefaults', () => {
+describe('resolvePreferredOptions', () => {
 	const drizzle = getAddonDetails('drizzle');
-	const parent = (id: string, defaults: Record<string, unknown>) => ({
+	const parent = (id: string, preferred: Record<string, unknown>) => ({
 		id,
 		setupResult: {
 			dependsOn: ['drizzle'],
-			dependencyDefaults: { drizzle: defaults },
+			preferredOptions: { drizzle: preferred },
 			unsupported: [],
 			runsAfter: ['drizzle'],
 			additionalOptions: {}
@@ -159,7 +159,7 @@ describe('resolveDependencyDefaults', () => {
 
 	it('leaves conflicting sibling values unanswered', () => {
 		expect(
-			resolveDependencyDefaults(drizzle, [
+			resolvePreferredOptions(drizzle, [
 				parent('a', { database: 'postgresql', docker: false }),
 				parent('b', { database: 'sqlite' })
 			])
@@ -168,7 +168,7 @@ describe('resolveDependencyDefaults', () => {
 
 	it('does not revive a value after a conflict', () => {
 		expect(
-			resolveDependencyDefaults(drizzle, [
+			resolvePreferredOptions(drizzle, [
 				parent('a', { database: 'postgresql' }),
 				parent('b', { database: 'sqlite' }),
 				parent('c', { database: 'postgresql' })

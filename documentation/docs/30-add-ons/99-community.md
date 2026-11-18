@@ -66,7 +66,7 @@ The CLI is split into two packages with a clear boundary:
 
 ### Dependencies
 
-`setup` receives the options chosen so far, so dependencies can follow them. `dependsOn` also takes defaults for an official add-on: they answer its questions when the CLI pulls it in, and are ignored when the user selects it themselves.
+`setup` receives the options chosen so far, so dependencies can follow them. `dependsOn` also takes preferred options for an official add-on: they answer its questions when the CLI pulls it in, and are ignored when the user selects it themselves.
 
 ```js
 setup: ({ options, dependsOn, dependencyVersion }) => {

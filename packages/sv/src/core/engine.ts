@@ -212,7 +212,7 @@ export async function setupAddons(
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
-			dependencyDefaults: {},
+			preferredOptions: {},
 			runsAfter: [],
 			additionalOptions
 		};
@@ -220,13 +220,13 @@ export async function setupAddons(
 			await addon.setup?.({
 				...workspace,
 				options: withOptionDefaults(addon, answers[addon.id]),
-				dependsOn: (name, defaults) => {
+				dependsOn: (name, preferredOptions) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
-					if (defaults) {
-						setupResult.dependencyDefaults[name] = {
-							...setupResult.dependencyDefaults[name],
-							...(defaults as OptionValues<any>)
+					if (preferredOptions) {
+						setupResult.preferredOptions[name] = {
+							...setupResult.preferredOptions[name],
+							...(preferredOptions as OptionValues<any>)
 						};
 					}
 				},

@@ -83,11 +83,11 @@ export type Addon<
 			options: WorkspaceOptions<Args> & Record<string, unknown>;
 			/**
 			 * Required add-ons. Implies `runsAfter`. Official ids are installed automatically, others must be part of the same run.
-			 * `defaults` skip prompts of an official add-on pulled in automatically; ignored when the user selected it.
+			 * `preferredOptions` skip prompts of an official add-on pulled in automatically; ignored when the user selected it.
 			 */
 			dependsOn: <DependencyId extends AddonId>(
 				id: DependencyId,
-				defaults?: DependencyId extends OfficialAddonId
+				preferredOptions?: DependencyId extends OfficialAddonId
 					? Partial<OfficialAddonOptions[DependencyId]>
 					: never
 			) => void;
@@ -196,12 +196,10 @@ export function defineAddon(
 //      ▼
 //   LoadedAddon[]       ──  Stage 3: Code loaded (addon definition present)
 //      │
-//      │  setupAddons()
+//      │  promptAddonQuestions(), one dependency level at a time:
+//      │    prompt → setupAddons() → `dependsOn` adds the next level with its `preferredOptions`
 //      ▼
 //   PreparedAddon[]     ──  Stage 4: Setup done (dependencies resolved, dynamic options merged)
-//      │
-//      │  promptAddonQuestions()
-//      ▼
 //   ConfiguredAddon[]   ──  Stage 5: User configured (answers collected)
 //      │
 //      │  applyAddons()
@@ -285,7 +283,7 @@ export function getErrorHint(source: AddonSource): string {
 
 export type SetupResult = {
 	dependsOn: string[];
-	dependencyDefaults: AddonAnswers;
+	preferredOptions: AddonAnswers;
 	unsupported: string[];
 	runsAfter: string[];
 	additionalOptions: Record<string, Question>;

@@ -364,47 +364,47 @@ export async function resolveNonOfficialAddons(
 	return selectedAddons;
 }
 
-/** Merges the parents' `dependsOn` defaults; values they disagree on are left for the user. */
-export function resolveDependencyDefaults(
+/** Merges the parents' `dependsOn` preferred options; values they disagree on are left for the user. */
+export function resolvePreferredOptions(
 	dependency: AddonDefinition,
 	parents: Array<{ id: string; setupResult: SetupResult }>
 ): OptionValues<any> {
-	const defaults: OptionValues<any> = {};
+	const preferred: OptionValues<any> = {};
 	const conflicts = new Set<string>();
 	for (const { id, setupResult } of parents) {
-		const parentDefaults = setupResult.dependencyDefaults[dependency.id];
-		if (!parentDefaults) continue;
-		validateDependencyDefaults(id, dependency, parentDefaults);
+		const parentPreferred = setupResult.preferredOptions[dependency.id];
+		if (!parentPreferred) continue;
+		validatePreferredOptions(id, dependency, parentPreferred);
 
-		for (const [key, value] of Object.entries(parentDefaults)) {
+		for (const [key, value] of Object.entries(parentPreferred)) {
 			if (conflicts.has(key)) continue;
-			if (key in defaults && !isDeepStrictEqual(defaults[key], value)) {
+			if (key in preferred && !isDeepStrictEqual(preferred[key], value)) {
 				conflicts.add(key);
-				delete defaults[key];
+				delete preferred[key];
 			} else {
-				defaults[key] = value;
+				preferred[key] = value;
 			}
 		}
 	}
-	return defaults;
+	return preferred;
 }
 
-function validateDependencyDefaults(
+function validatePreferredOptions(
 	parentId: string,
 	dependency: AddonDefinition,
-	defaults: OptionValues<any>
+	preferredOptions: OptionValues<any>
 ) {
-	for (const [key, value] of Object.entries(defaults)) {
+	for (const [key, value] of Object.entries(preferredOptions)) {
 		const question = dependency.options[key];
 		const allowed = question ? isAllowedValue(question, value) : false;
 		if (!allowed) {
 			throw new Error(
-				`Invalid '${dependency.id}' default from '${parentId}': '${key}: ${JSON.stringify(value)}'`
+				`Invalid '${dependency.id}' preferred option from '${parentId}': '${key}: ${JSON.stringify(value)}'`
 			);
 		}
 	}
-	// partial defaults are fine, so judge conditions as setup would see them
-	assertCompatibleOptions(dependency, withOptionDefaults(dependency, defaults));
+	// partial preferred options are fine, so judge conditions as setup would see them
+	assertCompatibleOptions(dependency, withOptionDefaults(dependency, preferredOptions));
 }
 
 function isAllowedValue(question: Question, value: unknown): boolean {
@@ -481,7 +481,7 @@ async function promptQuestionsForAddons(
 
 		for (const [questionId, question] of Object.entries(addon.options)) {
 			if (question.condition?.(values) === false) {
-				// a dependency default can outlive the answer it was paired with
+				// a preferred option can outlive the answer it was paired with
 				delete values[questionId];
 				continue;
 			}
@@ -711,7 +711,7 @@ export async function promptAddonQuestions({
 	const setupResults = await setupAddons(addons, workspace, answers);
 	const rootCount = addons.length;
 
-	// level by level, so a dependency only takes defaults from its nearest parents
+	// level by level, so a dependency only takes preferred options from its nearest parents
 	let parents = [...addons];
 	while (parents.length > 0) {
 		const dependencies: LoadedAddon[] = [];
@@ -735,7 +735,7 @@ export async function promptAddonQuestions({
 			setupResult: setupResults[addon.id]
 		}));
 		for (const { addon } of dependencies) {
-			answers[addon.id] = resolveDependencyDefaults(addon, parentResults);
+			answers[addon.id] = resolvePreferredOptions(addon, parentResults);
 		}
 
 		addons.push(...dependencies);

@@ -110,7 +110,7 @@ describe('setupAddons', () => {
 		expect(results['typed-addon'].additionalOptions).toHaveProperty('extra');
 	});
 
-	describe('options and dependency defaults', () => {
+	describe('options and preferred options', () => {
 		let seenTemplate: string | undefined;
 		const addon = defineAddon({
 			id: 'template-addon',
@@ -132,13 +132,13 @@ describe('setupAddons', () => {
 			run: () => {}
 		});
 
-		it('passes answers into setup and collects dependency defaults', async () => {
+		it('passes answers into setup and collects preferred options', async () => {
 			const results = await setupAddons([toLoaded(addon)], workspace, {
 				'template-addon': { template: 'dashboard' }
 			});
 
 			expect(seenTemplate).toBe('dashboard');
-			expect(results['template-addon'].dependencyDefaults).toEqual({
+			expect(results['template-addon'].preferredOptions).toEqual({
 				drizzle: { database: 'postgresql' }
 			});
 		});
@@ -147,7 +147,7 @@ describe('setupAddons', () => {
 			const results = await setupAddons([toLoaded(addon)], workspace);
 
 			expect(seenTemplate).toBe('base');
-			expect(results['template-addon'].dependencyDefaults).toEqual({});
+			expect(results['template-addon'].preferredOptions).toEqual({});
 		});
 	});
 
