@@ -110,7 +110,7 @@ describe('setupAddons', () => {
 		expect(results['typed-addon'].additionalOptions).toHaveProperty('extra');
 	});
 
-	describe('options and preferred options', () => {
+	describe('draft and preferred options', () => {
 		let seenTemplate: string | undefined;
 		const addon = defineAddon({
 			id: 'template-addon',
@@ -125,9 +125,9 @@ describe('setupAddons', () => {
 					]
 				})
 				.build(),
-			setup: ({ options, dependsOn }) => {
-				seenTemplate = options.template;
-				if (options.template === 'dashboard') dependsOn('drizzle', { database: 'postgresql' });
+			setup: ({ draftOptions, dependsOn }) => {
+				seenTemplate = draftOptions.template;
+				if (draftOptions.template === 'dashboard') dependsOn('drizzle', { database: 'postgresql' });
 			},
 			run: () => {}
 		});

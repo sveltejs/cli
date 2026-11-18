@@ -79,8 +79,8 @@ export type Addon<
 	/** Setup the addon. Will be called before the addon is run. */
 	setup?: (
 		workspace: Workspace & {
-			/** Answers known so far (CLI args or prompts), falling back to option defaults. */
-			options: WorkspaceOptions<Args> & Record<string, unknown>;
+			/** Options known so far (CLI args, prompts, `preferredOptions`, defaults). `run` gets the final `options`. */
+			draftOptions: WorkspaceOptions<Args> & Record<string, unknown>;
 			/**
 			 * Required add-ons. Implies `runsAfter`. Official ids are installed automatically, others must be part of the same run.
 			 * `preferredOptions` skip prompts of an official add-on pulled in automatically; ignored when the user selected it.

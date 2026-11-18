@@ -41,8 +41,8 @@ function dashboardAddon(
 				]
 			})
 			.build(),
-		setup: ({ options, dependsOn }) => {
-			if (options.template !== 'dashboard') return;
+		setup: ({ draftOptions, dependsOn }) => {
+			if (draftOptions.template !== 'dashboard') return;
 			dependsOn('drizzle', drizzlePreferred as never);
 			dependsOn('better-auth', { demo: [] });
 		},
@@ -99,7 +99,7 @@ describe('preferred options', () => {
 		const originalSetup = drizzle.setup;
 		let seen: unknown;
 		drizzle.setup = (workspace) => {
-			seen = workspace.options.database;
+			seen = workspace.draftOptions.database;
 			return originalSetup?.(workspace);
 		};
 		try {

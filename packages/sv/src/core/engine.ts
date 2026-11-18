@@ -219,7 +219,7 @@ export async function setupAddons(
 		try {
 			await addon.setup?.({
 				...workspace,
-				options: withOptionDefaults(addon, answers[addon.id]),
+				draftOptions: withOptionDefaults(addon, answers[addon.id]),
 				dependsOn: (name, preferredOptions) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);

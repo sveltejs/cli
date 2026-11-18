@@ -273,7 +273,7 @@ type Addon<
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
-			options: WorkspaceOptions<Args> & Record<string, unknown>;
+			draftOptions: WorkspaceOptions<Args> & Record<string, unknown>;
 			dependsOn: <DependencyId extends AddonId>(
 				id: DependencyId,
 				preferredOptions?: DependencyId extends OfficialAddonId
