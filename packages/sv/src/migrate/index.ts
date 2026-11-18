@@ -42,7 +42,8 @@ export type TaskRunOptions = Workspace & { sv: SvApi };
 export type MigrationTeardownOptions = {
 	cwd: string;
 	dependenciesInstalled: boolean;
-	execute: SvApi['execute'];
+	/** Runs a bin installed in the project, never downloads it. */
+	executeLocal: SvApi['execute'];
 };
 
 export function defineMigration(migration: Migration) {

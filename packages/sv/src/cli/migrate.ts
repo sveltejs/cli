@@ -5,7 +5,7 @@ import { color, loadPackageJson, type Package } from '@sveltejs/sv-utils';
 import { Command } from 'commander';
 import * as v from 'valibot';
 import * as common from '../core/common.ts';
-import { prepareSvApi } from '../core/engine.ts';
+import { executeCommand, prepareSvApi } from '../core/engine.ts';
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
@@ -157,14 +157,12 @@ export const migrate = new Command('migrate')
 			}
 
 			if (migration.teardown) {
-				const { sv } = prepareSvApi(workspace, {
-					executeOutputPrefix: `${migration.id}:`
-				});
 				// do not pass the sv api to avoid unintended side effects
 				await migration.teardown({
 					cwd: workspace.cwd,
 					dependenciesInstalled,
-					execute: sv.execute
+					executeLocal: (args, stdio) =>
+						executeCommand(workspace, 'execute-local', args, stdio, `${migration.id}:`)
 				});
 			}
 

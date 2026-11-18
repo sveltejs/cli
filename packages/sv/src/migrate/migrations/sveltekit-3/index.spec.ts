@@ -21,15 +21,15 @@ describe('teardown', () => {
 		fs.mkdirSync(path.dirname(staleFile), { recursive: true });
 		fs.writeFileSync(staleFile, "declare module '$app/environment';");
 
-		const execute = vi.fn();
+		const executeLocal = vi.fn();
 		await migration.teardown!({
 			cwd,
 			dependenciesInstalled: true,
-			execute
+			executeLocal
 		});
 
 		expect(fs.existsSync(path.join(cwd, '.svelte-kit'))).toBe(false);
-		expect(execute).toHaveBeenCalledWith(['svelte-kit', 'sync'], 'inherit');
+		expect(executeLocal).toHaveBeenCalledWith(['svelte-kit', 'sync'], 'inherit');
 	});
 
 	it('clears generated files without syncing when dependency installation is skipped', async () => {
@@ -37,14 +37,14 @@ describe('teardown', () => {
 		testDirectories.push(cwd);
 		fs.mkdirSync(path.join(cwd, '.svelte-kit'));
 
-		const execute = vi.fn();
+		const executeLocal = vi.fn();
 		await migration.teardown!({
 			cwd,
 			dependenciesInstalled: false,
-			execute
+			executeLocal
 		});
 
 		expect(fs.existsSync(path.join(cwd, '.svelte-kit'))).toBe(false);
-		expect(execute).not.toHaveBeenCalled();
+		expect(executeLocal).not.toHaveBeenCalled();
 	});
 });
