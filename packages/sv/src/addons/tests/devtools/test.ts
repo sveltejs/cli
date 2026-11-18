@@ -6,7 +6,13 @@ import { setupTest } from '../_setup/suite.ts';
 const { test, testCases } = setupTest(
 	{ devtools },
 	{
-		kinds: [{ type: 'default', options: { devtools: {} } }],
+		kinds: [
+			{ type: 'default', options: { devtools: {} } },
+			{
+				type: 'oxc-only',
+				options: { devtools: { plugins: ['oxc'] } }
+			}
+		],
 		browser: false
 	}
 );
@@ -18,12 +24,16 @@ test.concurrent.for(testCases)('devtools $variant', (testCase, { expect, ...ctx 
 	const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
 
 	expect(pkg.devDependencies).toHaveProperty('@vitejs/devtools', '^0.8.3');
-	expect(pkg.devDependencies).toHaveProperty('@vitejs/devtools-vite', '^0.8.3');
-	expect(pkg.devDependencies).not.toHaveProperty('@vitejs/devtools-vitest');
 	expect(pkg.devDependencies).toHaveProperty('@sveltejs/vite-devtools-svelte', '^0.8.0');
+	for (const plugin of ['vitest', 'oxc', 'rolldown', 'vite']) {
+		const selected = testCase.kind.type === 'default' ? plugin !== 'oxc' : plugin === 'oxc';
+		const assertion = expect(pkg.devDependencies);
+		if (selected) assertion.toHaveProperty(`@vitejs/devtools-${plugin}`, '^0.8.3');
+		else assertion.not.toHaveProperty(`@vitejs/devtools-${plugin}`);
+	}
 	expect(source).not.toContain(`import { DevTools } from '@vitejs/devtools'`);
 	expect(source).toContain(`import { svelteDevtools } from '@sveltejs/vite-devtools-svelte'`);
-	expect(source).toMatch(/devtools:\s*\{\s*apply:\s*'serve'\s*\}/);
+	expect(source).toMatch(/devtools:\s*\{\s*apply:\s*'serve',\s*clientAuth:\s*true\s*\}/);
 
 	const svelteDevtoolsIndex = source.indexOf('svelteDevtools()');
 	const sveltePluginIndex = Math.max(source.indexOf('sveltekit('), source.indexOf('svelte()'));

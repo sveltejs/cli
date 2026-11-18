@@ -56,5 +56,5 @@ export default defineConfig({
 			}
 		]
 	},
-	devtools: { apply: 'serve' }
+	devtools: { apply: 'serve', clientAuth: true }
 });

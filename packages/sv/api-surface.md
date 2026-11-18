@@ -338,6 +338,9 @@ type AiToolsOptions = {
 type BetterAuthOptions = {
 	demo: Array<'password' | 'github'>;
 };
+type DevtoolsOptions = {
+	plugins: Array<'vitest' | 'oxc' | 'rolldown' | 'vite'>;
+};
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 type DrizzleOptions = {
 	database: Database;
@@ -412,7 +415,7 @@ type OfficialAddons = {
 	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
 	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
 	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
-	[ADDON_IDS.devtools]: Addon<NoOptions, typeof ADDON_IDS.devtools>;
+	[ADDON_IDS.devtools]: Addon<AddonOptions<DevtoolsOptions>, typeof ADDON_IDS.devtools>;
 	[ADDON_IDS.sveltekitAdapter]: Addon<
 		AddonOptions<SveltekitAdapterOptions>,
 		typeof ADDON_IDS.sveltekitAdapter

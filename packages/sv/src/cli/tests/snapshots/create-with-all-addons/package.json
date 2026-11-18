@@ -38,6 +38,7 @@
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.5",
 		"@vitejs/devtools": "^0.8.3",
+		"@vitejs/devtools-rolldown": "^0.8.3",
 		"@vitejs/devtools-vite": "^0.8.3",
 		"@vitejs/devtools-vitest": "^0.8.3",
 		"@vitest/browser-playwright": "^5.1.0",

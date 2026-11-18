@@ -1,21 +1,39 @@
 import { color, transforms } from '@sveltejs/sv-utils';
-import { defineAddon } from '../core/config.ts';
+import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
+import type { AddonOptions } from '../core/options.ts';
 import { ADDON_IDS } from './ids.ts';
 
-export default defineAddon({
+const plugins = ['vitest', 'oxc', 'rolldown', 'vite'] as const;
+
+export type DevtoolsOptions = { plugins: Array<'vitest' | 'oxc' | 'rolldown' | 'vite'> };
+
+const options = defineAddonOptions<DevtoolsOptions>()
+	.add('plugins', {
+		type: 'multiselect',
+		question: 'Which Vite DevTools plugins would you like to add?',
+		options: plugins.map((plugin) => ({
+			value: plugin,
+			label: plugin,
+			hint: `@vitejs/devtools-${plugin}`
+		})),
+		default: plugins.filter((plugin) => plugin !== 'oxc'),
+		required: false
+	})
+	.build();
+
+const addon: Addon<AddonOptions<DevtoolsOptions>, 'devtools'> = defineAddon({
 	id: ADDON_IDS.devtools,
 	shortDescription: 'Vite and Svelte development tools',
 	homepage: 'https://github.com/sveltejs/vite-devtools-svelte',
-	options: {},
+	options,
 	setup: ({ runsAfter }) => {
 		runsAfter(ADDON_IDS.vitest);
 	},
-	run: ({ sv, file, dependencyVersion }) => {
+	run: ({ sv, file, options }) => {
 		sv.devDependency('@vitejs/devtools', '^0.8.3');
-		sv.devDependency('@vitejs/devtools-vite', '^0.8.3');
 		sv.devDependency('@sveltejs/vite-devtools-svelte', '^0.8.0');
-		if (dependencyVersion('vitest')) {
-			sv.devDependency('@vitejs/devtools-vitest', '^0.8.3');
+		for (const plugin of options.plugins) {
+			sv.devDependency(`@vitejs/devtools-${plugin}`, '^0.8.3');
 		}
 
 		sv.file(
@@ -23,7 +41,8 @@ export default defineAddon({
 			transforms.script(({ ast, js }) => {
 				js.object.overrideProperties(js.vite.getConfig(ast), {
 					devtools: {
-						apply: 'serve'
+						apply: 'serve',
+						clientAuth: true
 					}
 				});
 				js.imports.addNamed(ast, {
@@ -43,3 +62,5 @@ export default defineAddon({
 		)}`
 	]
 });
+
+export default addon;
