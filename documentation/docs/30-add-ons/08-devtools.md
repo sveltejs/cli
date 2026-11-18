@@ -26,9 +26,9 @@ npx sv add devtools
 Which Vite DevTools plugins to install:
 
 - `vitest`
-- `oxc`
 - `rolldown`
 - `vite`
+- `oxc`
 
 Vitest, Rolldown, and Vite are selected by default.
 

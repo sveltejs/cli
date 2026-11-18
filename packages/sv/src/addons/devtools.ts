@@ -3,7 +3,12 @@ import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
 import { ADDON_IDS } from './ids.ts';
 
-const plugins = ['vitest', 'oxc', 'rolldown', 'vite'] as const;
+const plugins = [
+	{ id: 'vitest', preselected: true },
+	{ id: 'rolldown', preselected: true },
+	{ id: 'vite', preselected: true },
+	{ id: 'oxc', preselected: false }
+] as const;
 
 export type DevtoolsOptions = { plugins: Array<'vitest' | 'oxc' | 'rolldown' | 'vite'> };
 
@@ -12,11 +17,11 @@ const options = defineAddonOptions<DevtoolsOptions>()
 		type: 'multiselect',
 		question: 'Which Vite DevTools plugins would you like to add?',
 		options: plugins.map((plugin) => ({
-			value: plugin,
-			label: plugin,
-			hint: `@vitejs/devtools-${plugin}`
+			value: plugin.id,
+			label: plugin.id,
+			hint: `@vitejs/devtools-${plugin.id}`
 		})),
-		default: plugins.filter((plugin) => plugin !== 'oxc'),
+		default: plugins.filter((plugin) => plugin.preselected).map((plugin) => plugin.id),
 		required: false
 	})
 	.build();
