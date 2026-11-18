@@ -155,7 +155,9 @@ export async function applyAddons({
 			packageManager: workspace.packageManager
 		});
 		// If we don't have a formatter yet, check if the addon adds one
-		if (!hasFormatter) hasFormatter = !!addonWorkspace.dependencyVersion('prettier');
+		if (!hasFormatter) {
+			hasFormatter = ['prettier', 'oxfmt'].some((name) => !!addonWorkspace.dependencyVersion(name));
+		}
 
 		const {
 			files,

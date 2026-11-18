@@ -4,6 +4,7 @@
  */
 export const ADDON_IDS = {
 	prettier: 'prettier',
+	oxfmt: 'oxfmt',
 	eslint: 'eslint',
 	vitest: 'vitest',
 	playwright: 'playwright',

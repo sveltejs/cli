@@ -431,7 +431,9 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	if (packageManager && options.install) {
 		depsInstalled = await installDependencies(packageManager, projectPath);
 		if (depsInstalled) {
-			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')
+			const filesToFormat = addOnSuccessfulAddons.some((addon) =>
+				['prettier', 'oxfmt'].includes(addon.addon.id)
+			)
 				? ['.']
 				: addOnFilesToFormat;
 
