@@ -2,12 +2,12 @@
 	"mcpServers": {
 		"svelte": {
 			"type": "stdio",
-			"command": "npx",
+			"command": "pnpm",
 			"env": {
 				
 			},
 			"args": [
-				"-y",
+				"dlx",
 				"@sveltejs/mcp"
 			]
 		}

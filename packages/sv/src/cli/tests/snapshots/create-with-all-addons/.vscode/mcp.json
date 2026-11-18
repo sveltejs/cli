@@ -1,9 +1,9 @@
 {
 	"servers": {
 		"svelte": {
-			"command": "npx",
+			"command": "pnpm",
 			"args": [
-				"-y",
+				"dlx",
 				"@sveltejs/mcp"
 			]
 		}
