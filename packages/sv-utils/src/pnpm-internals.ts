@@ -1,6 +1,4 @@
-import { execSync } from 'node:child_process';
-import path from 'node:path';
-import { coerceVersion, isVersionUnsupportedBelow } from './semver.ts';
+import { isVersionUnsupportedBelow } from './semver.ts';
 import type { TransformFn } from './tooling/transforms.ts';
 import * as transforms from './tooling/transforms.ts';
 
@@ -19,36 +17,6 @@ type YamlDoc = {
 	delete(key: string): boolean;
 	createNode(value: unknown, options?: { flow?: boolean }): unknown;
 };
-
-const versionByCwd = new Map<string, string | undefined>();
-
-/**
- * Detects the version of pnpm that would run in `cwd`. `pnpm --version` resolves
- * `packageManager` / `devEngines.packageManager` from there, so the invoker's pin does
- * not leak into the target project.
- *
- * Results are memoised per directory: pnpm self-manages versions, so a miss can download
- * a whole pnpm release before answering.
- */
-export function detectPnpmVersion(cwd: string): string | undefined {
-	const key = path.resolve(cwd);
-	if (versionByCwd.has(key)) return versionByCwd.get(key);
-
-	let version: string | undefined;
-	try {
-		const out = execSync('pnpm --version', {
-			encoding: 'utf-8',
-			stdio: ['ignore', 'pipe', 'ignore'],
-			cwd: key
-		});
-		version = coerceVersion(out.trim()).version;
-	} catch {
-		version = undefined;
-	}
-
-	versionByCwd.set(key, version);
-	return version;
-}
 
 /** Before 10.5, `pnpm-workspace.yaml` must list `packages`, so a settings-only one breaks `pnpm install`. */
 export function readsWorkspaceSettings(version: string | undefined): boolean {

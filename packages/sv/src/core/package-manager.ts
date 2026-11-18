@@ -8,7 +8,8 @@ import {
 	commandExists,
 	color,
 	detect,
-	pnpm,
+	isVersionUnsupportedBelow,
+	pm,
 	resolveCommand,
 	transforms,
 	type TransformFn
@@ -169,17 +170,18 @@ function isInstalled(agent: AgentName): boolean {
 	return installed;
 }
 
-/**
- * `pnpm.allowBuilds` only transforms content. Add-ons get the read/write for free through
- * `sv.file`, but the CLI itself runs outside that pipeline, so it locates (or creates)
- * `pnpm-workspace.yaml` by hand.
- */
-export function addAllowBuildsIfPnpm(options: ProjectOptions & { packages: string[] }): void {
+/** The CLI runs outside the add-on pipeline, so it hands `pm.allowBuilds` a direct-to-disk `sv`. */
+export function addAllowBuilds(options: ProjectOptions & { packages: string[] }): void {
 	const { cwd, packageManager, packages } = options;
-	if (packageManager !== 'pnpm') return;
+	if (!packageManager) return;
 
-	const filePath = find.up('pnpm-workspace.yaml', { cwd }) ?? path.join(cwd, 'pnpm-workspace.yaml');
-	transformFile(filePath, pnpm.allowBuilds({ cwd, packages }));
+	pm.allowBuilds({
+		sv: { file: (filePath, edit) => transformFile(path.resolve(cwd, filePath), edit) },
+		file: { findUp: (name) => find.up(name, { cwd }) ?? path.join(cwd, name) },
+		cwd,
+		packageManager,
+		packages
+	});
 }
 
 type ProjectOptions = {
@@ -187,9 +189,15 @@ type ProjectOptions = {
 	packageManager: AgentName | null | undefined;
 };
 
+/** Before 10.5, `pnpm-workspace.yaml` must list `packages`, so a settings-only one breaks `pnpm install`. */
+function pnpmReadsWorkspaceSettings(cwd: string): boolean {
+	const detected = pm.version({ cwd, packageManager: 'pnpm' });
+	return !detected || !isVersionUnsupportedBelow(detected.version, '10.5.0');
+}
+
 /** pnpm >= 10.5 reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
 export function addEngineStrict(options: ProjectOptions): void {
-	if (options.packageManager === 'pnpm' && pnpm.supportsWorkspaceSettings(options.cwd)) {
+	if (options.packageManager === 'pnpm' && pnpmReadsWorkspaceSettings(options.cwd)) {
 		transformFile(
 			path.join(options.cwd, 'pnpm-workspace.yaml'),
 			transforms.yaml(({ data }) => data.set('engineStrict', true))

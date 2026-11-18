@@ -1,4 +1,4 @@
-import { color, pnpm, transforms } from '@sveltejs/sv-utils';
+import { color, pm, transforms } from '@sveltejs/sv-utils';
 import { defineAddon } from '../core/config.ts';
 import { ADDON_IDS } from './ids.ts';
 
@@ -17,9 +17,7 @@ export default defineAddon({
 	run: ({ sv, file, packageManager, cwd }) => {
 		sv.devDependency('@sveltejs/enhanced-img', '^1.0.1');
 
-		if (packageManager === 'pnpm') {
-			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['sharp'] }));
-		}
+		pm.allowBuilds({ sv, file, cwd, packageManager, packages: ['sharp'] });
 
 		// only static imports: `static/` assets, remote URLs and runtime sources
 		// cannot be resolved at build time

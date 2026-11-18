@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { allowBuilds, version } from '../package-manager.ts';
 import {
 	allowBuildsByVersion,
-	detectPnpmVersion,
 	readsWorkspaceSettings,
 	writeAllowBuilds,
 	writeLegacy
@@ -130,17 +130,43 @@ describe('allowBuildsByVersion', () => {
 	});
 });
 
-describe('detectPnpmVersion', () => {
+describe('pm.version', () => {
 	const root = path.resolve(import.meta.dirname, '../../../..');
 
-	it.runIf(detectPnpmVersion(root) !== undefined)(
+	it.runIf(version({ cwd: root, packageManager: 'pnpm' }) !== undefined)(
 		'honours the `devEngines.packageManager` pin of the given cwd',
 		{ timeout: 30_000 },
 		() => {
 			const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf-8'));
 			const pinned = coerceVersion(pkg.devEngines.packageManager.version).major;
 
-			expect(coerceVersion(detectPnpmVersion(root)!).major).toBe(pinned);
+			expect(version({ cwd: root, packageManager: 'pnpm' })?.major).toBe(pinned);
 		}
 	);
+});
+
+describe('pm.allowBuilds', () => {
+	const root = path.resolve(import.meta.dirname, '../../../..');
+
+	const run = (packageManager: 'pnpm' | 'npm' | 'bun') => {
+		const edits: Array<{ path: string; result: string | false }> = [];
+		allowBuilds({
+			sv: { file: (p, edit) => edits.push({ path: p, result: edit('') }) },
+			file: { findUp: (name) => `../${name}` },
+			cwd: root,
+			packageManager,
+			packages: ['esbuild']
+		});
+		return edits;
+	};
+
+	it.each(['npm', 'bun'] as const)('%s: no-op', (packageManager) => {
+		expect(run(packageManager)).toEqual([]);
+	});
+
+	it('pnpm: edits the found-up pnpm-workspace.yaml', () => {
+		const edits = run('pnpm');
+		expect(edits).toHaveLength(1);
+		expect(edits[0].path).toBe('../pnpm-workspace.yaml');
+	});
 });
