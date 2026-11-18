@@ -43,7 +43,7 @@
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.2",
 		"diff": "^9.0.0",
-		"esrap": "^2.4.0",
+		"esrap": "^2.4.2",
 		"package-manager-detector": "^1.9.0",
 		"silver-fleece": "^1.2.1",
 		"smol-toml": "^1.9.1",
