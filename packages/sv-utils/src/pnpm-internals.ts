@@ -1,5 +1,7 @@
-import { isVersionUnsupportedBelow } from './semver.ts';
-import { type TransformFn } from './tooling/transforms.ts';
+import { execSync } from 'node:child_process';
+import path from 'node:path';
+import { coerceVersion, isVersionUnsupportedBelow } from './semver.ts';
+import type { TransformFn } from './tooling/transforms.ts';
 import * as transforms from './tooling/transforms.ts';
 
 type YamlMap = {
@@ -18,27 +20,45 @@ type YamlDoc = {
 	createNode(value: unknown, options?: { flow?: boolean }): unknown;
 };
 
+const versionByCwd = new Map<string, string | undefined>();
+
+/**
+ * Detects the version of pnpm that would run in `cwd`. `pnpm --version` resolves
+ * `packageManager` / `devEngines.packageManager` from there, so the invoker's pin does
+ * not leak into the target project.
+ *
+ * Results are memoised per directory: pnpm self-manages versions, so a miss can download
+ * a whole pnpm release before answering.
+ */
+export function detectPnpmVersion(cwd: string): string | undefined {
+	const key = path.resolve(cwd);
+	if (versionByCwd.has(key)) return versionByCwd.get(key);
+
+	let version: string | undefined;
+	try {
+		const out = execSync('pnpm --version', {
+			encoding: 'utf-8',
+			stdio: ['ignore', 'pipe', 'ignore'],
+			cwd: key
+		});
+		version = coerceVersion(out.trim()).version;
+	} catch {
+		version = undefined;
+	}
+
+	versionByCwd.set(key, version);
+	return version;
+}
+
 /** Before 10.5, `pnpm-workspace.yaml` must list `packages`, so a settings-only one breaks `pnpm install`. */
 export function readsWorkspaceSettings(version: string | undefined): boolean {
 	return !version || !isVersionUnsupportedBelow(version, '10.5.0');
 }
 
-/**
- * Extracted for testing purposes
- */
+/** `allowBuilds` landed in pnpm 10.26, older versions only read `onlyBuiltDependencies`. */
 export function allowBuildsByVersion(version: string | undefined, packages: string[]): TransformFn {
-	// scripts are blocked starting 10.0, and needs to be explicitly enabled
-
-	// settings move from `package.json` to `pnpm-workspace.yaml`
-	// https://github.com/pnpm/pnpm/releases/tag/v10.5.0
-	// not implemented
-	if (version && isVersionUnsupportedBelow(version, '10.5.0')) return () => false;
-
-	// `allowBuilds` is introduced in 10.26
-	// https://pnpm.io/blog/releases/10.26#allowbuilds
+	if (!readsWorkspaceSettings(version)) return () => false;
 	if (version && isVersionUnsupportedBelow(version, '10.26.0')) return writeLegacy(packages);
-
-	// modern syntax
 	return writeAllowBuilds(packages);
 }
 

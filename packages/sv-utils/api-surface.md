@@ -891,17 +891,10 @@ export declare function resolveCommandArray(
 	args: string[]
 ): string[];
 declare namespace pnpm_d_exports {
-	export { allowBuilds, detectPnpmVersion, supportsWorkspaceSettings };
+	export { allowBuilds, supportsWorkspaceSettings };
 }
 declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
-/**
- * Whether the pnpm that would run in `cwd` reads settings from `pnpm-workspace.yaml`.
- *
- * @deprecated This function doesn't provide the resolution needed for version-specific
- * logic. It is superseded by {@link detectPnpmVersion}, which you can use to write the branching logic.
- */
 declare function supportsWorkspaceSettings(cwd: string): boolean;
-declare function detectPnpmVersion(cwd: string): string | undefined;
 export declare function commandExists(command: string): boolean;
 type Package = {
 	name: string;

@@ -8,7 +8,6 @@ import {
 	commandExists,
 	color,
 	detect,
-	isVersionUnsupportedBelow,
 	pnpm,
 	resolveCommand,
 	transforms,
@@ -190,34 +189,19 @@ type ProjectOptions = {
 
 /** pnpm >= 10.5 reads its settings from `pnpm-workspace.yaml`, others from `.npmrc`. */
 export function addEngineStrict(options: ProjectOptions): void {
-	const writeToNpmrc = () =>
+	if (options.packageManager === 'pnpm' && pnpm.supportsWorkspaceSettings(options.cwd)) {
+		transformFile(
+			path.join(options.cwd, 'pnpm-workspace.yaml'),
+			transforms.yaml(({ data }) => data.set('engineStrict', true))
+		);
+	} else {
 		transformFile(
 			path.join(options.cwd, '.npmrc'),
 			transforms.text(({ content, text }) =>
 				text.upsert(content, 'engine-strict', { value: 'true' })
 			)
 		);
-
-	// setting moved from `package.json` to `pnpm-workspace.yaml`
-	// https://github.com/pnpm/pnpm/releases/tag/v10.5.0
-	if (options.packageManager === 'pnpm') {
-		const version = pnpm.detectPnpmVersion(options.cwd);
-
-		if (version && isVersionUnsupportedBelow(version, '10.5.0')) {
-			writeToNpmrc();
-			return;
-		}
-
-		// modern `pnpm` syntax
-		transformFile(
-			path.join(options.cwd, 'pnpm-workspace.yaml'),
-			transforms.yaml(({ data }) => data.set('engineStrict', true))
-		);
-		return;
 	}
-
-	// other package managers
-	writeToNpmrc();
 }
 
 /** Missing file is treated as empty, so the transform can create it. */
