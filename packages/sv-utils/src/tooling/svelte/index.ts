@@ -96,9 +96,26 @@ export function addFragment(
 	const source = options?.language === 'ts' ? `<script lang="ts"></script>${content}` : content;
 	const { ast: fragmentAst } = parseSvelte(source);
 
+	const added = fragmentAst.fragment.nodes;
+	const existing = ast.fragment.nodes;
+	if (added.length === 0) return;
+
+	// without a separator the printer keeps added nodes on the same line as their sibling
+	const newline: SvelteAst.Text = { type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 };
+
 	if (options?.mode === 'prepend') {
-		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
+		if (existing.length > 0 && !isWhitespace(added.at(-1)) && !isWhitespace(existing[0])) {
+			existing.unshift(newline);
+		}
+		existing.unshift(...added);
 	} else {
-		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
+		if (existing.length > 0 && !isWhitespace(existing.at(-1)) && !isWhitespace(added[0])) {
+			existing.push(newline);
+		}
+		existing.push(...added);
 	}
+}
+
+function isWhitespace(node: SvelteAst.Fragment['nodes'][number] | undefined): boolean {
+	return node?.type === 'Text' && node.data.trim() === '';
 }

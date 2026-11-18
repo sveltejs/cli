@@ -89,6 +89,7 @@ describe('transforms', () => {
 					const textNode = node.fragment.nodes[0];
 					if (textNode.type === 'Text') {
 						textNode.data = 'world';
+						textNode.raw = 'world';
 					}
 				}
 			})(input);
@@ -104,6 +105,7 @@ describe('transforms', () => {
 					const textNode = node.fragment.nodes[0];
 					if (textNode.type === 'Text') {
 						textNode.data = 'world';
+						textNode.raw = 'world';
 					}
 				}
 			})(input);
@@ -144,6 +146,7 @@ describe('transforms', () => {
 					const textNode = node.fragment.nodes[0];
 					if (textNode.type === 'Text') {
 						textNode.data = 'world';
+						textNode.raw = 'world';
 					}
 				}
 			})(input);
