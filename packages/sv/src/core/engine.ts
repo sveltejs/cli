@@ -334,6 +334,38 @@ function matchesFilesFilter(file: string, options: PrepareSvApiOptions) {
 	return !options.filesFilter || path.matchesGlob(file, options.filesFilter);
 }
 
+/** `execute` may download from the registry, `execute-local` only runs installed bins. */
+export async function executeCommand(
+	workspace: Workspace,
+	kind: 'execute' | 'execute-local',
+	commandArgs: string[],
+	stdio: 'inherit' | 'pipe',
+	outputPrefix = ''
+): Promise<void> {
+	const { command, args } = resolveCommand(workspace.packageManager, kind, commandArgs)!;
+
+	const executedCommand = [command, ...args].join(' ');
+	if (!TESTING) {
+		p.log.step(`${outputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`);
+	}
+
+	// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
+	if (kind === 'execute' && workspace.packageManager === 'npm') args.unshift('--yes');
+
+	try {
+		await exec(command, args, {
+			nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
+			throwOnError: true
+		});
+	} catch (error) {
+		let message = `Failed to execute scripts '${executedCommand}'`;
+		if (error instanceof Error) {
+			message += `: ${error.message}`;
+		}
+		throw new Error(message, { cause: error });
+	}
+}
+
 export function prepareSvApi(
 	workspace: Workspace,
 	options: PrepareSvApiOptions = {
@@ -397,32 +429,8 @@ export function prepareSvApi(
 				);
 			}
 		},
-		execute: async (commandArgs, stdio) => {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
-
-			const executedCommand = [command, ...args].join(' ');
-			if (!TESTING) {
-				p.log.step(
-					`${options?.executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
-				);
-			}
-
-			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') args.unshift('--yes');
-
-			try {
-				await exec(command, args, {
-					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
-					throwOnError: true
-				});
-			} catch (error) {
-				let message = `Failed to execute scripts '${executedCommand}'`;
-				if (error instanceof Error) {
-					message += `: ${error.message}`;
-				}
-				throw new Error(message, { cause: error });
-			}
-		},
+		execute: (commandArgs, stdio) =>
+			executeCommand(workspace, 'execute', commandArgs, stdio, options.executeOutputPrefix),
 		dependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: false });
 		},
