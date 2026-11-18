@@ -19,6 +19,7 @@ import {
 	createLoadedAddon,
 	getErrorHint,
 	type Addon,
+	type AddonAnswers,
 	type AddonDefinition,
 	type FileEdit,
 	type LoadedAddon,
@@ -104,7 +105,7 @@ export async function add<Addons extends AddonMap>({
 		createLoadedAddon(addon as AddonDefinition)
 	);
 
-	const setupResults = await setupAddons(loadedAddons, workspace);
+	const setupResults = await setupAddons(loadedAddons, workspace, options);
 
 	return await applyAddons({ loadedAddons, workspace, options, setupResults });
 }
@@ -186,10 +187,22 @@ export async function applyAddons({
 	};
 }
 
+export function withOptionDefaults(
+	addon: AddonDefinition,
+	values: OptionValues<any> = {}
+): OptionValues<any> {
+	const options = { ...values };
+	for (const [id, question] of Object.entries(addon.options)) {
+		if (question.condition?.(options) !== false) options[id] ??= question.default;
+	}
+	return options;
+}
+
 /** Setup addons - takes LoadedAddon[] and returns setup results */
 export async function setupAddons(
 	loadedAddons: LoadedAddon[],
-	workspace: Workspace
+	workspace: Workspace,
+	answers: AddonAnswers = {}
 ): Promise<Record<string, SetupResult>> {
 	const setupResults: Record<string, SetupResult> = {};
 
@@ -199,15 +212,23 @@ export async function setupAddons(
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
+			preferredOptions: {},
 			runsAfter: [],
 			additionalOptions
 		};
 		try {
 			await addon.setup?.({
 				...workspace,
-				dependsOn: (name) => {
+				draftOptions: withOptionDefaults(addon, answers[addon.id]),
+				dependsOn: (name, preferredOptions) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
+					if (preferredOptions) {
+						setupResult.preferredOptions[name] = {
+							...setupResult.preferredOptions[name],
+							...(preferredOptions as OptionValues<any>)
+						};
+					}
 				},
 				unsupported: (reason) => setupResult.unsupported.push(reason),
 				runsAfter: (name) => setupResult.runsAfter.push(name),

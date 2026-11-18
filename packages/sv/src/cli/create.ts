@@ -305,6 +305,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let loadedAddons: LoadedAddon[] = [];
 	let answers: Record<string, OptionValues<any>> = {};
 	let addonsOptionsMap: Record<string, string[] | undefined> = {};
+	let promptSetupResults: Record<string, SetupResult> | undefined;
 
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
@@ -339,6 +340,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 		loadedAddons = result.loadedAddons;
 		answers = result.answers;
+		promptSetupResults = result.setupResults;
 	}
 
 	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
@@ -394,7 +396,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 				addons: addonsOptionsMap
 			},
 			loadedAddons,
-			setupResults: undefined,
+			setupResults: promptSetupResults,
 			workspace,
 			fromCommand: 'create'
 		});
