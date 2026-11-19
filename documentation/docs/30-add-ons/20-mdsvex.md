@@ -2,7 +2,7 @@
 title: mdsvex
 ---
 
-[mdsvex](https://next.mdsvex.pages.dev) turns markdown files into Svelte components - basically MDX for Svelte. It allows you to use Svelte components in your markdown, or markdown in your Svelte components.
+[mdsvex](https://mdsvex.pngwn.at/) turns markdown files into Svelte components - basically MDX for Svelte. It allows you to use Svelte components in your markdown, or markdown in your Svelte components.
 
 ## Usage
 
@@ -23,6 +23,6 @@ and external links.
 
 - mdsvex installed and configured as a Vite plugin
 - `.svx` files enabled as Svelte components
-- any selected [first-party plugins](https://next.mdsvex.pages.dev/docs/plugins) installed and enabled
+- any selected [first-party plugins](https://mdsvex.pngwn.at/docs/plugins) installed and enabled
 - the mdsvex VS Code extension added to workspace recommendations
 - the mdsvex Prettier plugin installed and configured when Prettier is present

@@ -204,7 +204,7 @@ const options = defineAddonOptions<MdsvexOptions>()
 const addon: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex> = defineAddon({
 	id: ADDON_IDS.mdsvex,
 	shortDescription: 'svelte + markdown',
-	homepage: 'https://next.mdsvex.pages.dev',
+	homepage: 'https://mdsvex.pngwn.at/',
 	options,
 	run: ({ sv, options, file, isKit, dependencyVersion }) => {
 		const selected = plugins.filter((plugin) => options.plugins.includes(plugin.id));
