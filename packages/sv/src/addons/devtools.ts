@@ -15,7 +15,7 @@ export type DevtoolsOptions = { plugins: Array<(typeof plugins)[number]> };
 const options = defineAddonOptions<DevtoolsOptions>()
 	.add('plugins', {
 		type: 'multiselect',
-		question: 'Which other DevTools would you like to add?',
+		question: 'Which other DevTool plugins would you like to add?',
 		options: plugins.map((plugin) => ({
 			value: plugin,
 			label: plugin.id,
