@@ -2,4 +2,4 @@
 'sv': minor
 ---
 
-feat(devtools): add combined Vite and Svelte DevTools add-on
+feat(devtools): add DevTools as official add-on
