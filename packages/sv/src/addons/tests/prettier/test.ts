@@ -39,7 +39,7 @@ const { test, testCases } = setupTest(
 				packageJson.devDependencies.eslint =
 					addonTestCase.kind.type === 'supported-eslint' ? ESLINT_VERSION : '^8.0.0';
 			} else if (addonTestCase.kind.type === 'mdsvex') {
-				packageJson.devDependencies.mdsvex = 'next';
+				packageJson.devDependencies.mdsvex = '^1.0.0';
 			} else {
 				return;
 			}
@@ -83,7 +83,7 @@ test.concurrent.for(testCases)('prettier $kind.type $variant', (testCase, { expe
 	} else if (testCase.kind.type === 'mdsvex') {
 		const packageJson = fs.readFileSync(path.resolve(cwd, 'package.json'), 'utf8');
 		const prettierConfig = fs.readFileSync(path.resolve(cwd, 'prettier.config.js'), 'utf8');
-		expect(packageJson).toContain('"@mdsvex/prettier-plugin": "next"');
+		expect(packageJson).toContain('"@mdsvex/prettier-plugin": "^0.1.0"');
 		expect(prettierConfig).toContain(
 			"plugins: ['prettier-plugin-svelte', '@mdsvex/prettier-plugin']"
 		);

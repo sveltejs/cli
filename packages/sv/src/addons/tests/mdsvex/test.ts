@@ -91,7 +91,7 @@ test.concurrent.for(testCases)('mdsvex $kind.type $variant', async (testCase, { 
 		expect(viteConfig).toContain('heading_ids: true');
 		expect(viteConfig).toContain('unwrap_images: true');
 		expect(viteConfig).toContain('plugins: [callouts(), diagram(), figures(), anchors()]');
-		expect(packageJson).toContain('"@mdsvex/plugin-callouts": "next"');
+		expect(packageJson).toContain('"@mdsvex/plugin-callouts": "^0.1.0"');
 		expect(packageJson).toContain('"mermaid": "^12.3.0"');
 	}
 
@@ -103,7 +103,7 @@ test.concurrent.for(testCases)('mdsvex $kind.type $variant', async (testCase, { 
 	if (testCase.kind.type === 'prettier') {
 		const packageJson = fs.readFileSync(path.join(cwd, 'package.json'), 'utf8');
 		const prettierConfig = fs.readFileSync(path.join(cwd, 'prettier.config.js'), 'utf8');
-		expect(packageJson).toContain('"@mdsvex/prettier-plugin": "next"');
+		expect(packageJson).toContain('"@mdsvex/prettier-plugin": "^0.1.0"');
 		expect(prettierConfig).toContain("'@mdsvex/prettier-plugin'");
 		expect(prettierConfig.indexOf("'@mdsvex/prettier-plugin'")).toBeLessThan(
 			prettierConfig.indexOf("'prettier-plugin-tailwindcss'")

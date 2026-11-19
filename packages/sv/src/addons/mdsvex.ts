@@ -210,10 +210,10 @@ const addon: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex> = defin
 		const selected = plugins.filter((plugin) => options.plugins.includes(plugin.id));
 		const prettierInstalled = Boolean(dependencyVersion('prettier'));
 
-		sv.devDependency('mdsvex', 'next');
-		if (prettierInstalled) sv.devDependency('@mdsvex/prettier-plugin', 'next');
+		sv.devDependency('mdsvex', '^1.0.0');
+		if (prettierInstalled) sv.devDependency('@mdsvex/prettier-plugin', '^0.1.0');
 		for (const plugin of selected) {
-			sv.devDependency(plugin.package, 'next');
+			sv.devDependency(plugin.package, '^0.1.0');
 		}
 		if (options.plugins.includes('diagram')) {
 			// diagram() selects Mermaid when Pele is not installed.
