@@ -63,7 +63,7 @@ const addon: Addon<AddonOptions<DevtoolsOptions>, 'devtools'> = defineAddon({
 	nextSteps: () => [
 		`Start the development server and open the ${color.command('Vite DevTools')} dock`,
 		`Docs: ${color.website('https://devtools.vite.dev')} and ${color.website(
-			'https://github.com/baseballyama/vite-devtools-svelte'
+			'https://github.com/sveltejs/vite-devtools-svelte'
 		)}`
 	]
 });
