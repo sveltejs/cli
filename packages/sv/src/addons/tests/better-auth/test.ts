@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import { expect } from '@playwright/test';
 import { execSync } from 'tinyexec';
 import betterAuth from '../../better-auth.ts';
@@ -15,6 +16,13 @@ const { test, testCases, prepareServer } = setupTest(
 				options: {
 					drizzle: { database: 'sqlite', sqlite: 'turso' },
 					'better-auth': { demo: ['password', 'github'] }
+				}
+			},
+			{
+				type: 'mock-github',
+				options: {
+					drizzle: { database: 'sqlite', sqlite: 'turso' },
+					'better-auth': { demo: ['github-mock'] }
 				}
 			}
 		],
@@ -52,10 +60,54 @@ test.concurrent.for(testCases)('better-auth $variant', async (testCase, { page, 
 	});
 
 	/** ----- BROWSER SECTION ----- */
-	const { url, close } = await prepareServer({ cwd, page });
+	const isMockGithub = testCase.kind.type === 'mock-github';
+	const mockPort = testCase.variant === 'kit-ts' ? 41732 : 41731;
+	if (isMockGithub) {
+		envContent = envContent.replace(/ORIGIN=".*"/, `ORIGIN="http://127.0.0.1:${mockPort}"`);
+		fs.writeFileSync(envPath, envContent, 'utf8');
+	}
+	const { url, close } = await prepareServer({
+		cwd,
+		page,
+		...(isMockGithub
+			? { buildCommand: '', previewCommand: `pnpm dev --host 127.0.0.1 --port ${mockPort}` }
+			: {})
+	});
 	ctx.onTestFinished(async () => await close());
 
 	await page.goto(`${url}demo/better-auth`);
+
+	// Verify the opt-in GitHub demo redirects to Mockatoo without credentials.
+	if (isMockGithub) {
+		const authContent = fs.readFileSync(
+			path.resolve(cwd, `src/lib/server/auth.${language}`),
+			'utf8'
+		);
+		expect(authContent).toContain("from '@mockatoo/connect-better-auth'");
+		expect(authContent).toContain('socialProviders: dev');
+
+		await page.goto(`${url}demo/better-auth/login`);
+		await page.getByRole('button', { name: 'Sign in with GitHub' }).click();
+		await expect(page).toHaveURL(/https:\/\/app\.mockatoo\.globalunderdog\.com\/login\?next=/);
+		await expect(page.locator('#email')).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Log in with password' })).toBeVisible();
+
+		const email = process.env.MOCKATOO_TEST_EMAIL;
+		const password = process.env.MOCKATOO_TEST_PASSWORD;
+		if (!email || !password) {
+			console.log('::notice::Skipping Mockatoo full sign-in: test credentials are missing');
+			ctx.skip(true, 'MOCKATOO_TEST_EMAIL and MOCKATOO_TEST_PASSWORD are required');
+			return;
+		}
+
+		await page.locator('#email').fill(email);
+		await page.locator('#password').fill(password);
+		await page.getByRole('button', { name: 'Log in with password' }).click();
+		await page.getByRole('button', { name: 'Authorize' }).click();
+		await expect(page).toHaveURL(`${url}demo/better-auth`);
+		await expect(page.locator('h1')).toContainText('Hi,');
+		return;
+	}
 
 	// Verify login page loaded (contains email input)
 	const emailInput = page.locator('input[type="email"]');

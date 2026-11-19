@@ -129,7 +129,7 @@ type AiToolsOptions = {
 	optInSkills: string[];
 };
 type BetterAuthOptions = {
-	demo: Array<'password' | 'github'>;
+	demo: Array<'password' | 'github' | 'github-mock'>;
 };
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 type DrizzleOptions = {

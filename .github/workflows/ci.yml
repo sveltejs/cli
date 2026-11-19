@@ -85,3 +85,6 @@ jobs:
       - run: pnpm exec playwright install chromium
       - run: pnpm build
       - run: pnpm test:addons
+        env:
+          MOCKATOO_TEST_EMAIL: ${{ secrets.MOCKATOO_TEST_EMAIL }}
+          MOCKATOO_TEST_PASSWORD: ${{ secrets.MOCKATOO_TEST_PASSWORD }}

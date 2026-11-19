@@ -22,7 +22,9 @@ import { ADDON_IDS } from './ids.ts';
 
 type Dialect = 'mysql' | 'postgresql' | 'sqlite' | 'turso';
 
-export type BetterAuthOptions = { demo: Array<'password' | 'github'> };
+export type BetterAuthOptions = {
+	demo: Array<'password' | 'github' | 'github-mock'>;
+};
 
 const options = defineAddonOptions<BetterAuthOptions>()
 	.add('demo', {
@@ -31,7 +33,8 @@ const options = defineAddonOptions<BetterAuthOptions>()
 		default: ['password'],
 		options: [
 			{ value: 'password', label: 'Email & Password' },
-			{ value: 'github', label: 'GitHub OAuth' }
+			{ value: 'github', label: 'GitHub OAuth' },
+			{ value: 'github-mock', label: 'GitHub OAuth (Mockatoo in development)' }
 		],
 		required: false
 	})
@@ -61,7 +64,8 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 		const [ts, s5] = createPrinter(language === 'ts', svelte5);
 
 		const demoPassword = options.demo.includes('password');
-		const demoGithub = options.demo.includes('github');
+		const mockGithub = options.demo.includes('github-mock');
+		const demoGithub = options.demo.includes('github') || mockGithub;
 		const hasDemo = demoPassword || demoGithub;
 
 		let drizzleDialect: Dialect;
@@ -69,6 +73,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 
 		sv.devDependency('auth', '^1.7.25');
 		sv.devDependency('better-auth', '^1.7.25');
+		if (mockGithub) sv.devDependency('@mockatoo/connect-better-auth', '^0.3.3');
 
 		// Read-only: extract dialect info from drizzle config without modifying it
 		sv.file(
@@ -149,6 +154,13 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 					imports: ['drizzleAdapter']
 				});
 				js.imports.addNamed(ast, { from: 'better-auth/minimal', imports: ['betterAuth'] });
+				if (mockGithub) {
+					env.importEnv(ast, js, ['dev']);
+					js.imports.addNamed(ast, {
+						from: '@mockatoo/connect-better-auth',
+						imports: ['mockGitHub']
+					});
+				}
 				if (d1FromWorkers) {
 					js.imports.addNamed(ast, { from: 'cloudflare:workers', imports: ['env'] });
 				}
@@ -170,13 +182,14 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 
 				const githubProvider = demoGithub
 					? `
-				socialProviders: {
+				socialProviders: ${mockGithub ? 'dev ? {} : ' : ''}{
 					github: {
 						clientId: ${githubId},
 						clientSecret: ${githubSecret},
 					},
 				},`
 					: '';
+				const githubPlugin = mockGithub ? '\n\t\t\t\t\t\t...(dev ? [mockGitHub()] : []),' : '';
 
 				let authConfig = '';
 				if (d1) {
@@ -187,7 +200,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 						emailAndPassword: {
 							enabled: true
 						},${githubProvider}
-						plugins: [
+						plugins: [${githubPlugin}
 							sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 						],
 					}${ts(' satisfies Omit<Parameters<typeof betterAuth>[0], "database">')};
@@ -213,7 +226,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 						emailAndPassword: {
 							enabled: true
 						},${githubProvider}
-						plugins: [
+						plugins: [${githubPlugin}
 							sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
 						],
 					});`;
@@ -451,7 +464,7 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 							});
 
 							if (result.url) {
-								return redirect(302, result.url);
+								return redirect(302, result.url${mockGithub && kit3 ? ', { external: true }' : ''});
 							}
 							return fail(400, { message: 'Social sign-in failed' });
 						},`
@@ -603,14 +616,16 @@ const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon
 	},
 
 	nextSteps: ({ options, packageManager }) => {
+		const mockGithub = options.demo.includes('github-mock');
+		const demoGithub = options.demo.includes('github') || mockGithub;
 		const steps = [
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['auth:schema']))} to generate the auth schema`,
 			`Run ${color.command(resolveCommandArray(packageManager, 'run', ['db:push']))} to update your database`,
 			`Check ${color.env('ORIGIN')} & ${color.env('BETTER_AUTH_SECRET')} in ${color.path('.env')} and adjust it to your needs`
 		];
-		if (options.demo.includes('github')) {
+		if (demoGithub) {
 			steps.push(
-				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}`
+				`Set your ${color.env('GITHUB_CLIENT_ID')} and ${color.env('GITHUB_CLIENT_SECRET')} in ${color.path('.env')}${mockGithub ? ' for production' : ''}`
 			);
 		}
 		if (options.demo.length > 0) {
