@@ -15,7 +15,7 @@ export type DevtoolsOptions = { plugins: Array<'vitest' | 'oxc' | 'rolldown' | '
 const options = defineAddonOptions<DevtoolsOptions>()
 	.add('plugins', {
 		type: 'multiselect',
-		question: 'Which Vite DevTools plugins would you like to add?',
+		question: 'Which other DevTools would you like to add?',
 		options: plugins.map((plugin) => ({
 			value: plugin.id,
 			label: plugin.id,
