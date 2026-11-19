@@ -19,7 +19,7 @@ const options = defineAddonOptions<DevtoolsOptions>()
 		options: plugins.map((plugin) => ({
 			value: plugin,
 			label: plugin.id,
-			hint: `@vitejs/devtools-${plugin.id}`
+			hint: plugin.package
 		})),
 		default: plugins.filter((plugin) => plugin.preselected),
 		required: false
