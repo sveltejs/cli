@@ -42,7 +42,10 @@ The migration is divided into these tasks:
 - `external-redirects` opts external redirects into the new redirect behavior.
 - `shallow-routing` replaces shallow-routing APIs with `goto` calls.
 - `params` consolidates route parameter matchers into `src/params.js` or `src/params.ts`.
+- `imports` moves SvelteKit APIs from `@sveltejs/kit` to their new modules.
+- `lib-alias` replaces the `$lib` alias with `#lib` subpath imports.
 - `app-state` migrates `$app/stores` usage to `$app/state`.
+- `collect-migration-instructions` creates `MIGRATION_TASKS.md` whose instructions you should follow to complete the migration.
 
 The migration only changes patterns it can identify safely. Review `@migration-task` comments and the SvelteKit 3 changelog for changes that require manual work.
 
