@@ -8,7 +8,7 @@ import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
 import experimental, { type ExperimentalOptions } from './experimental.ts';
 import { ADDON_IDS, type OfficialAddonId } from './ids.ts';
-import mdsvex from './mdsvex.ts';
+import mdsvex, { type MdsvexOptions } from './mdsvex.ts';
 import paraglide, { type ParaglideOptions } from './paraglide.ts';
 import playwright, { type PlaywrightOptions } from './playwright.ts';
 import prettier from './prettier.ts';
@@ -35,7 +35,7 @@ export type OfficialAddons = {
 	>;
 	[ADDON_IDS.drizzle]: Addon<AddonOptions<DrizzleOptions>, typeof ADDON_IDS.drizzle>;
 	[ADDON_IDS.betterAuth]: Addon<AddonOptions<BetterAuthOptions>, typeof ADDON_IDS.betterAuth>;
-	[ADDON_IDS.mdsvex]: Addon<NoOptions, typeof ADDON_IDS.mdsvex>;
+	[ADDON_IDS.mdsvex]: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex>;
 	[ADDON_IDS.paraglide]: Addon<AddonOptions<ParaglideOptions>, typeof ADDON_IDS.paraglide>;
 	[ADDON_IDS.storybook]: Addon<NoOptions, typeof ADDON_IDS.storybook>;
 	[ADDON_IDS.aiTools]: Addon<AddonOptions<AiToolsOptions>, typeof ADDON_IDS.aiTools>;
