@@ -43,7 +43,7 @@ describe('cli', () => {
 				'sveltekit-adapter=adapter:node',
 				'drizzle=database:sqlite+sqlite:libsql',
 				'better-auth=demo:password,github',
-				'mdsvex',
+				'mdsvex=plugins:none',
 				'paraglide=languageTags:en,es+demo:yes',
 				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local+agentsMd:yes+optInSkills:none'
 				// 'storybook' // No storybook addon during tests!

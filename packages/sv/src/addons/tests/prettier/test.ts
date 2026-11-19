@@ -21,21 +21,29 @@ const { test, testCases } = setupTest(
 		kinds: [
 			{ type: 'default', options: { prettier: {} } },
 			{ type: 'supported-eslint', options: { prettier: {} } },
-			{ type: 'unsupported-eslint', options: { prettier: {} } }
+			{ type: 'unsupported-eslint', options: { prettier: {} } },
+			{ type: 'mdsvex', options: { prettier: {} } }
 		],
 		browser: false,
 		filter: (addonTestCase) =>
 			// Make '*-eslint' kinds only run once, on the 'vite-js' variant
-			!addonTestCase.kind.type.endsWith('-eslint') || addonTestCase.variant === 'vite-js',
+			(!addonTestCase.kind.type.endsWith('-eslint') && addonTestCase.kind.type !== 'mdsvex') ||
+			addonTestCase.variant === 'vite-js',
 		preAdd: ({ addonTestCase, cwd }) => {
-			if (!addonTestCase.kind.type.endsWith('-eslint')) return;
-
-			// Add (un)supported eslint version to devDependencies
 			const packageJsonPath = path.resolve(cwd, 'package.json');
 			const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 			packageJson.devDependencies ??= {};
-			packageJson.devDependencies.eslint =
-				addonTestCase.kind.type === 'supported-eslint' ? ESLINT_VERSION : '^8.0.0';
+
+			if (addonTestCase.kind.type.endsWith('-eslint')) {
+				// Add (un)supported eslint version to devDependencies
+				packageJson.devDependencies.eslint =
+					addonTestCase.kind.type === 'supported-eslint' ? ESLINT_VERSION : '^8.0.0';
+			} else if (addonTestCase.kind.type === 'mdsvex') {
+				packageJson.devDependencies.mdsvex = 'next';
+			} else {
+				return;
+			}
+
 			fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson), 'utf8');
 		}
 	}
@@ -72,5 +80,12 @@ test.concurrent.for(testCases)('prettier $kind.type $variant', (testCase, { expe
 
 		const packageJson = JSON.parse(fs.readFileSync(path.resolve(cwd, 'package.json'), 'utf8'));
 		expect(packageJson.devDependencies?.['eslint-config-prettier']).toBeUndefined();
+	} else if (testCase.kind.type === 'mdsvex') {
+		const packageJson = fs.readFileSync(path.resolve(cwd, 'package.json'), 'utf8');
+		const prettierConfig = fs.readFileSync(path.resolve(cwd, 'prettier.config.js'), 'utf8');
+		expect(packageJson).toContain('"@mdsvex/prettier-plugin": "next"');
+		expect(prettierConfig).toContain(
+			"plugins: ['prettier-plugin-svelte', '@mdsvex/prettier-plugin']"
+		);
 	}
 });

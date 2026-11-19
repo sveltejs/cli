@@ -69,12 +69,28 @@ The CLI is split into two packages with a clear boundary:
 `setup` receives `draftOptions`, the options chosen so far, so dependencies can follow them. `run` gets the final `options`. `dependsOn` also takes preferred options for an official add-on: they answer its questions when the CLI pulls it in, and are ignored when the user selects it themselves.
 
 ```js
-setup: ({ draftOptions, dependsOn, dependencyVersion }) => {
-	// don't reconfigure a database the project already has
-	if (draftOptions.auth && !dependencyVersion('drizzle-orm')) {
-		dependsOn('drizzle', { database: 'postgresql' });
-	}
-};
+import { defineAddon, defineAddonOptions } from 'sv';
+
+export default defineAddon({
+	id: 'my-auth',
+
+	options: defineAddonOptions()
+		.add('database', {
+			question: 'Store users in a database?',
+			type: 'boolean',
+			default: true
+		})
+		.build(),
+
+	setup: ({ draftOptions, dependsOn, dependencyVersion }) => {
+		// don't reconfigure a database the project already has
+		if (draftOptions.database && !dependencyVersion('drizzle-orm')) {
+			dependsOn('drizzle', { database: 'postgresql' });
+		}
+	},
+
+	run: ({ options }) => {}
+});
 ```
 
 ## Development

@@ -146,6 +146,27 @@ type DrizzleOptions = {
 type ExperimentalOptions = {
 	features: string[];
 };
+type MdsvexPlugin =
+	| 'callouts'
+	| 'elements'
+	| 'steps'
+	| 'tabs'
+	| 'emoji'
+	| 'code-blocks'
+	| 'diagram'
+	| 'embeds'
+	| 'figures'
+	| 'anchors'
+	| 'toc'
+	| 'external-links'
+	| 'references'
+	| 'citations'
+	| 'numbering'
+	| 'page-data'
+	| 'link-check';
+type MdsvexOptions = {
+	plugins: MdsvexPlugin[];
+};
 type ParaglideOptions = {
 	languageTags: string;
 	demo: boolean;
@@ -216,7 +237,7 @@ type OfficialAddons = {
 	>;
 	[ADDON_IDS.drizzle]: Addon<AddonOptions<DrizzleOptions>, typeof ADDON_IDS.drizzle>;
 	[ADDON_IDS.betterAuth]: Addon<AddonOptions<BetterAuthOptions>, typeof ADDON_IDS.betterAuth>;
-	[ADDON_IDS.mdsvex]: Addon<NoOptions, typeof ADDON_IDS.mdsvex>;
+	[ADDON_IDS.mdsvex]: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex>;
 	[ADDON_IDS.paraglide]: Addon<AddonOptions<ParaglideOptions>, typeof ADDON_IDS.paraglide>;
 	[ADDON_IDS.storybook]: Addon<NoOptions, typeof ADDON_IDS.storybook>;
 	[ADDON_IDS.aiTools]: Addon<AddonOptions<AiToolsOptions>, typeof ADDON_IDS.aiTools>;
