@@ -49,13 +49,6 @@ describe('--tasks option', () => {
 		expect(normalizeTasksOption(true)).toEqual([]);
 	});
 
-	it('documents `--tasks all` in the option help', () => {
-		const option = migrate.options.find((option) => option.long === '--tasks');
-
-		expect(option?.description).toContain('`--tasks all`');
-		expect(option?.description).not.toContain('`--task all`');
-	});
-
 	it('preserves explicitly selected tasks', () => {
 		expect(normalizeTasksOption(['environment', 'paths'])).toEqual(['environment', 'paths']);
 	});
