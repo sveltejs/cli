@@ -63,7 +63,7 @@ export const migrate = new Command('migrate')
 	.addOption(common.cliOptions.noGitCheck)
 	.option(
 		'--tasks [task...]',
-		'migration tasks to run. Omit list of tasks to show available tasks. Use `--task all` to run all migration tasks.'
+		'migration tasks to run. Omit list of tasks to show available tasks. Use `--tasks all` to run all migration tasks.'
 	)
 	.option('--confirm', 'skip the final confirmation prompt')
 	.option('--no-install', 'skip installing dependencies')
