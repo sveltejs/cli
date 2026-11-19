@@ -19,8 +19,11 @@ import {
 	addAllowBuildsIfPnpm,
 	addEngineStrict,
 	detectPackageManager,
+	exitOnInstallConflict,
 	installDependencies,
 	installOption,
+	normalizeInstallFlags,
+	packageManagerOption,
 	packageManagerPrompt
 } from '../core/package-manager.ts';
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
@@ -70,20 +73,24 @@ const addonNameOption = new Option(
 );
 
 const ProjectPathSchema = v.optional(v.string());
-const OptionsSchema = v.strictObject({
-	types: v.pipe(
-		v.optional(v.union([v.picklist(langs), v.boolean()])),
-		v.transform((lang) => langMap[String(lang)])
-	),
-	addOns: v.boolean(),
-	add: v.array(v.string()),
-	install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
-	template: v.optional(v.picklist(templateChoices)),
-	fromPlayground: v.optional(v.string()),
-	dirCheck: v.boolean(),
-	downloadCheck: v.boolean(),
-	addonName: v.optional(v.string())
-});
+const OptionsSchema = v.pipe(
+	v.strictObject({
+		types: v.pipe(
+			v.optional(v.union([v.picklist(langs), v.boolean()])),
+			v.transform((lang) => langMap[String(lang)])
+		),
+		addOns: v.boolean(),
+		add: v.array(v.string()),
+		install: v.optional(v.union([v.boolean(), v.picklist(AGENT_NAMES)]), true),
+		packageManager: v.optional(v.picklist(AGENT_NAMES)),
+		template: v.optional(v.picklist(templateChoices)),
+		fromPlayground: v.optional(v.string()),
+		dirCheck: v.boolean(),
+		downloadCheck: v.boolean(),
+		addonName: v.optional(v.string())
+	}),
+	v.transform(normalizeInstallFlags)
+);
 type Options = v.InferOutput<typeof OptionsSchema>;
 type ProjectPath = v.InferOutput<typeof ProjectPathSchema>;
 
@@ -101,6 +108,7 @@ export const create = new Command('create')
 	.option('--no-dir-check', 'even if the folder is not empty, no prompt will be shown')
 	.addOption(common.cliOptions.noDownloadCheck)
 	.addOption(installOption)
+	.addOption(packageManagerOption)
 	.configureHelp({
 		...common.helpConfig,
 		formatHelp(cmd, helper) {
@@ -131,6 +139,7 @@ export const create = new Command('create')
 		}
 	})
 	.action((projectPath, opts) => {
+		exitOnInstallConflict(process.argv);
 		const cwd = v.parse(ProjectPathSchema, projectPath);
 		const options = v.parse(OptionsSchema, opts);
 
@@ -155,7 +164,7 @@ export const create = new Command('create')
 					`  ${i++}: ${color.command(`cd ${pathHasSpaces ? `"${relative}"` : relative}`)}`
 				);
 			}
-			if (packageManager && !depsInstalled) {
+			if (packageManager && options.install && !depsInstalled) {
 				steps.push(`  ${i++}: Install ${color.command(pm)}`);
 			}
 			if (!packageManager || !depsInstalled) {
@@ -296,6 +305,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	let loadedAddons: LoadedAddon[] = [];
 	let answers: Record<string, OptionValues<any>> = {};
 	let addonsOptionsMap: Record<string, string[] | undefined> = {};
+	let promptSetupResults: Record<string, SetupResult> | undefined;
 
 	const workspace = await createVirtualWorkspace({
 		cwd: projectPath,
@@ -330,6 +340,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 		loadedAddons = result.loadedAddons;
 		answers = result.answers;
+		promptSetupResults = result.setupResults;
 	}
 
 	if (template === 'demo' && !loadedAddons.some((a) => a.addon.id === 'enhanced-img')) {
@@ -353,11 +364,8 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	// Resolve the package manager early in case it's used in an add-on.
 	const packageManager =
-		options.install === false
-			? null
-			: options.install === true
-				? await packageManagerPrompt(projectPath)
-				: options.install;
+		options.packageManager ??
+		(options.install ? await packageManagerPrompt(projectPath) : undefined);
 
 	if (packageManager) {
 		workspace.packageManager = packageManager;
@@ -388,7 +396,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 				addons: addonsOptionsMap
 			},
 			loadedAddons,
-			setupResults: undefined,
+			setupResults: promptSetupResults,
 			workspace,
 			fromCommand: 'create'
 		});
@@ -409,7 +417,9 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 
 	if (argsFormattedAddons.length > 0) argsFormatted.push('--add', ...argsFormattedAddons);
 
-	const prompt = common.buildAndLogArgs(packageManager, 'create', argsFormatted, [directory]);
+	const prompt = common.buildAndLogArgs(packageManager, options.install, 'create', argsFormatted, [
+		directory
+	]);
 	common.updateReadme(directory, prompt);
 
 	common.updateAgent(directory, language, packageManager ?? 'npm', loadedAddons);
@@ -420,7 +430,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
 
 	let depsInstalled = false;
-	if (packageManager) {
+	if (packageManager && options.install) {
 		depsInstalled = await installDependencies(packageManager, projectPath);
 		if (depsInstalled) {
 			const filesToFormat = addOnSuccessfulAddons.some((addon) => addon.addon.id === 'prettier')

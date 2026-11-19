@@ -77,7 +77,7 @@ const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 		const hooksTypesFrom = resolveHooksTypesFrom(kitRange);
 		const paraglideOutDir = `${directory.lib}/paraglide`;
 
-		sv.devDependency('@inlang/paraglide-js', '^2.18.2');
+		sv.devDependency('@inlang/paraglide-js', '^3.2.2');
 
 		// add the vite plugin
 		sv.file(

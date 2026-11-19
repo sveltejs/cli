@@ -13,7 +13,7 @@ import type { SvApi } from '../core/config.ts';
 // This is in common because the eslint addon installs this version,
 // and the prettier addon uses this to check if the installed major version of
 // eslint is supported by `addEslintConfigPrettier(...)`.
-export const ESLINT_VERSION = /* update-deps: eslint */ '^10.4.1';
+export const ESLINT_VERSION = /* update-deps: eslint */ '^10.15.0';
 
 export const addEslintConfigPrettier = transforms.script(({ ast, js }) => {
 	// if a default import for `eslint-plugin-svelte` already exists, then we'll use their specifier's name instead
@@ -242,11 +242,11 @@ export function addToTypeConfigInclude(opts: {
 	language: 'ts' | 'js';
 	kitVersion: string | undefined;
 	entry: string;
-}): void {
-	if (!isKit3(opts.kitVersion)) return;
+}): boolean {
+	if (!isKit3(opts.kitVersion)) return false;
 
 	const configFile = opts.language === 'ts' ? 'tsconfig.json' : 'jsconfig.json';
-	if (!fileExists(opts.cwd, configFile)) return;
+	if (!fileExists(opts.cwd, configFile)) return false;
 
 	opts.sv.file(
 		configFile,
@@ -255,6 +255,7 @@ export function addToTypeConfigInclude(opts: {
 			if (!include.includes(opts.entry)) include.push(opts.entry);
 		})
 	);
+	return true;
 }
 
 export function addToTypeConfigType(opts: {

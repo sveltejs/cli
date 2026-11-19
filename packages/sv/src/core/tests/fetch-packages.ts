@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { packTar } from 'modern-tar/fs';
 import { afterAll, describe, expect, it, vi } from 'vitest';
-import { downloadPackage, hasSvExport, importAddonCode } from '../fetch-packages.ts';
+import { downloadPackage, hasSvExport, importAddonCode, verifyPackage } from '../fetch-packages.ts';
 
 // add-ons are imported by bare specifier, so fixtures have to live where `sv` resolves from
 const NODE_MODULES = fileURLToPath(new URL('../../../node_modules', import.meta.url));
@@ -194,5 +194,33 @@ describe('downloadPackage', () => {
 			vi.unstubAllGlobals();
 			fs.rmSync(localDir, { recursive: true, force: true });
 		}
+	});
+});
+
+describe('verifyPackage', () => {
+	const addon = (peerDependencies: Record<string, string>) =>
+		({ name: 'x', version: '1.0.0', peerDependencies }) as const;
+
+	it('accepts an unbundled sv-utils on the same major', () => {
+		expect(
+			verifyPackage(addon({ sv: '^1.0.0', '@sveltejs/sv-utils': '^1.0.0' }), 'x', '1.1.1')
+		).toBe(undefined);
+	});
+	it('warns with a rerun command when sv-utils majors differ', () => {
+		const warning = verifyPackage(
+			addon({ sv: '^1.0.0', '@sveltejs/sv-utils': '^1.0.0' }),
+			'x',
+			'2.0.0'
+		);
+		expect(warning).toContain('@sveltejs/sv-utils@2.0.0');
+		expect(warning).toContain('npx sv@1.0.0 add x');
+	});
+	it('skips the sv-utils check when sv runs from the workspace', () => {
+		expect(
+			verifyPackage(addon({ sv: '^1.0.0', '@sveltejs/sv-utils': '^0.1.0' }), 'x', 'workspace:*')
+		).toBe(undefined);
+	});
+	it('ignores sv-utils when the add-on bundles it', () => {
+		expect(verifyPackage(addon({ sv: '^1.0.0' }), 'x', '2.0.0')).toBe(undefined);
 	});
 });

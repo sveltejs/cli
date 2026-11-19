@@ -2,14 +2,14 @@
 title: sv-utils
 ---
 
-`@sveltejs/sv-utils` is an add-on utility for parsing, transforming, and generating code..
+`@sveltejs/sv-utils` is an add-on utility for parsing, transforming, and generating code.
 
 ```sh
 npm install -D @sveltejs/sv-utils
 ```
 
 > [!NOTE]
-> Bundle `@sveltejs/sv-utils` in your add-on to pin its version. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
+> Bundle `@sveltejs/sv-utils` in your add-on to pin its version, or declare it in `peerDependencies` to use the copy `sv` ships. See [the trade-off](faq#Should-my-add-on-bundle-sveltejs-sv-utils).
 
 ## transforms
 
@@ -278,8 +278,9 @@ Returns a transform for `pnpm-workspace.yaml` that adds packages to the pnpm "al
 
 `cwd` is the target project: the pnpm version that would run there (via `pnpm --version`) decides the shape, so the invoker's `packageManager` pin is not used.
 
-- pnpm `>= 11`: writes to the unified `allowBuilds` map (`{ pkg: true }`), migrating any legacy `onlyBuiltDependencies` list into the map.
-- pnpm `< 11`: writes to the legacy `onlyBuiltDependencies` list.
+- pnpm `>= 10.26`: writes to the unified `allowBuilds` map (`{ pkg: true }`), migrating any legacy `onlyBuiltDependencies` list into the map.
+- pnpm `10.5` to `10.25`: writes to the legacy `onlyBuiltDependencies` list.
+- pnpm `< 10.5`: writes nothing.
 
 ```js
 // @noErrors

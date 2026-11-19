@@ -1,6 +1,6 @@
 {
 	"name": "@sveltejs/sv-utils",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Utility functions for sv",
 	"keywords": [
 		"sv",
@@ -39,17 +39,17 @@
 		"check": "tsgo"
 	},
 	"devDependencies": {
-		"@types/estree": "^1.0.9",
+		"@types/estree": "^1.0.10",
 		"decircular": "^1.0.0",
 		"dedent": "^1.7.2",
 		"diff": "^9.0.0",
-		"esrap": "^2.3.6",
-		"package-manager-detector": "^1.8.0",
+		"esrap": "^2.4.2",
+		"package-manager-detector": "^1.9.0",
 		"silver-fleece": "^1.2.1",
-		"smol-toml": "^1.6.1",
-		"svelte": "^5.57.2",
-		"verkit": "^0.2.0",
-		"yaml": "^2.9.0",
-		"zimmerframe": "^1.1.4"
+		"smol-toml": "^1.9.1",
+		"svelte": "^5.57.3",
+		"verkit": "^0.5.0",
+		"yaml": "^2.9.1",
+		"zimmerframe": "^1.1.5"
 	}
 }

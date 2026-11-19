@@ -77,6 +77,10 @@ Installs dependencies with a specified package manager:
 - `bun`
 - `deno`
 
+### `--package-manager <package-manager>`
+
+Uses a specified package manager without prompting. Same values as `--install`. Combine with `--no-install` to set up the project for it without installing.
+
 ### `--no-install`
 
 Prevents installing dependencies.

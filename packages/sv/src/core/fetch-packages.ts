@@ -17,6 +17,10 @@ if (!packageJsonPath) throw new Error('Could not locate the `package.json` of `s
 /** path to the `node_modules` directory of `sv` */
 const NODE_MODULES = path.join(path.dirname(packageJsonPath), 'node_modules');
 
+const SV_UTILS = '@sveltejs/sv-utils';
+// exact once published (pnpm rewrites `workspace:*`), so the mismatch check is skipped in dev
+const SV_UTILS_VERSION: string = pkg.dependencies[SV_UTILS];
+
 type PackageBlocklist = { npm_names: string[] };
 
 function parsePackageJSON(value: unknown, specifier: string): PackageJSON {
@@ -29,7 +33,11 @@ function parsePackageJSON(value: unknown, specifier: string): PackageJSON {
 	return result.output;
 }
 
-function verifyPackage(addonPkg: PackageJSON, specifier: string): string | undefined {
+export function verifyPackage(
+	addonPkg: PackageJSON,
+	specifier: string,
+	svUtilsVersion = SV_UTILS_VERSION
+): string | undefined {
 	const peerDeps = { ...addonPkg.peerDependencies };
 
 	// valid addons should always have `sv` as a peerDependency
@@ -40,14 +48,30 @@ function verifyPackage(addonPkg: PackageJSON, specifier: string): string | undef
 		);
 	}
 
-	// Check version compatibility and warn if there's a major version mismatch
-	const addon = coerceVersion(addonSvVersion);
-	const sv_major = coerceVersion(pkg.version).major;
+	const addonSv = coerceVersion(addonSvVersion);
+	const builtFor = addonSv.version ?? addonSvVersion;
+	const rerun =
+		`This may cause compatibility issues. If it fails, run it with the sv it was built for:\n` +
+		color.optional(`npx sv@${builtFor} add ${specifier}`);
 
-	if (sv_major !== addon.major) {
+	if (coerceVersion(pkg.version).major !== addonSv.major) {
 		return (
-			`${color.addon(specifier)} was built for ${color.warning(`sv@${addon.version ?? addonSvVersion}`)} but you're running ${color.addon(`sv@${pkg.version}`)}.\n` +
-			`This may cause compatibility issues. ${color.optional('Run it with the same sv version to avoid issues.')}`
+			`${color.addon(specifier)} was built for ${color.warning(`sv@${builtFor}`)} but you're running ${color.addon(`sv@${pkg.version}`)}.\n` +
+			rerun
+		);
+	}
+
+	// an unbundled `@sveltejs/sv-utils` resolves to the copy `sv` ships
+	const addonSvUtils = peerDeps[SV_UTILS];
+	const svUtils = coerceVersion(svUtilsVersion);
+	if (
+		addonSvUtils &&
+		svUtils.major !== undefined &&
+		coerceVersion(addonSvUtils).major !== svUtils.major
+	) {
+		return (
+			`${color.addon(specifier)} was built for ${color.warning(`${SV_UTILS}@${addonSvUtils}`)} but ${color.addon(`sv@${pkg.version}`)} ships ${color.addon(`${SV_UTILS}@${svUtils.version}`)}.\n` +
+			rerun
 		);
 	}
 }

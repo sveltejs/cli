@@ -64,6 +64,35 @@ The CLI is split into two packages with a clear boundary:
 
 [Why are there two packages.](faq#Why-are-there-two-packages-sv-and-sveltejs-sv-utils)
 
+### Dependencies
+
+`setup` receives `draftOptions`, the options chosen so far, so dependencies can follow them. `run` gets the final `options`. `dependsOn` also takes preferred options for an official add-on: they answer its questions when the CLI pulls it in, and are ignored when the user selects it themselves.
+
+```js
+import { defineAddon, defineAddonOptions } from 'sv';
+
+export default defineAddon({
+	id: 'my-auth',
+
+	options: defineAddonOptions()
+		.add('database', {
+			question: 'Store users in a database?',
+			type: 'boolean',
+			default: true
+		})
+		.build(),
+
+	setup: ({ draftOptions, dependsOn, dependencyVersion }) => {
+		// don't reconfigure a database the project already has
+		if (draftOptions.database && !dependencyVersion('drizzle-orm')) {
+			dependsOn('drizzle', { database: 'postgresql' });
+		}
+	},
+
+	run: ({ options }) => {}
+});
+```
+
 ## Development
 
 You can run your add-on locally using the `file:` protocol:
@@ -146,7 +175,17 @@ export default setupGlobal({ TEST_DIR });
 
 Community add-ons are bundled with [tsdown](https://tsdown.dev/) into a single file. Everything is bundled except `sv`. (It is a peer dependency provided at runtime.)
 
-[`@sveltejs/sv-utils`](sv-utils) is bundled as well to pin its version. See [why](faq#Why-bundle-sveltejs-sv-utils-in-my-add-on).
+[`@sveltejs/sv-utils`](sv-utils) is bundled as well to pin its version. To keep your add-on small, you can leave it unbundled by moving it to `peerDependencies` (tsdown never bundles peers):
+
+```jsonc
+"peerDependencies": {
+	"sv": "^1.4.0",
+	// resolved from the copy `sv` ships, `sv` warns on a major mismatch
+	"@sveltejs/sv-utils": "^1.1.0"
+}
+```
+
+Keep `sv` at the version you tested with: on mismatch, users are told to run `npx sv@1.4.0 add <your-addon>`. See [the trade-off](faq#Should-my-add-on-bundle-sveltejs-sv-utils).
 
 ### `package.json`
 

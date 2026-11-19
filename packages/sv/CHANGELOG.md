@@ -1,5 +1,27 @@
 # sv
 
+## 1.5.0
+
+### Minor Changes
+
+- feat(cli): add searchable multiselect options ([#1477](https://github.com/sveltejs/cli/pull/1477))
+
+### Patch Changes
+
+- fix(migrate): clear stale `.svelte-kit` files when migrating to SvelteKit 3 ([#1468](https://github.com/sveltejs/cli/pull/1468))
+
+- fix(migrate): flag obsolete `.svelte-kit` includes when migrating to SvelteKit 3 ([#1467](https://github.com/sveltejs/cli/pull/1467))
+
+- fix(better-auth): drop the `.ts` extension from `$lib` imports in SvelteKit 2 projects ([#1478](https://github.com/sveltejs/cli/pull/1478))
+
+- fix(better-auth): read the D1 binding from `cloudflare:workers` on SvelteKit 3 and add the `DB` binding to the wrangler config ([#1476](https://github.com/sveltejs/cli/pull/1476))
+
+- chore(deps): update dependencies ([#1469](https://github.com/sveltejs/cli/pull/1469))
+
+- fix(add): warn when an add-on's `@sveltejs/sv-utils` peer major differs from the one `sv` ships, and print the `npx sv@<version> add` command to rerun ([#1475](https://github.com/sveltejs/cli/pull/1475))
+- Updated dependencies [[`f47c7bd`](https://github.com/sveltejs/cli/commit/f47c7bde9f0446fd408b511a74471faf9e9b7f3c), [`3e57eee`](https://github.com/sveltejs/cli/commit/3e57eeec4ab1b04b0b558eb693b9a1c59bbac9ec)]:
+  - @sveltejs/sv-utils@1.1.2
+
 ## 1.4.0
 
 ### Minor Changes

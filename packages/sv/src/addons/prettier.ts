@@ -18,11 +18,11 @@ export default defineAddon({
 	run: ({ sv, dependencyVersion, file, cwd, language }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
 		const mdsvexInstalled = Boolean(dependencyVersion('mdsvex'));
-		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.0');
+		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.1');
 		if (mdsvexInstalled) sv.devDependency('@mdsvex/prettier-plugin', 'next');
 
-		sv.devDependency('prettier', '^3.8.3');
-		sv.devDependency('prettier-plugin-svelte', '^4.1.0');
+		sv.devDependency('prettier', '^3.10.1');
+		sv.devDependency('prettier-plugin-svelte', '^4.1.1');
 
 		sv.file(
 			'.prettierignore',

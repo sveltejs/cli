@@ -19,6 +19,7 @@ import {
 	createLoadedAddon,
 	getErrorHint,
 	type Addon,
+	type AddonAnswers,
 	type AddonDefinition,
 	type FileEdit,
 	type LoadedAddon,
@@ -104,7 +105,7 @@ export async function add<Addons extends AddonMap>({
 		createLoadedAddon(addon as AddonDefinition)
 	);
 
-	const setupResults = await setupAddons(loadedAddons, workspace);
+	const setupResults = await setupAddons(loadedAddons, workspace, options);
 
 	return await applyAddons({ loadedAddons, workspace, options, setupResults });
 }
@@ -186,10 +187,22 @@ export async function applyAddons({
 	};
 }
 
+export function withOptionDefaults(
+	addon: AddonDefinition,
+	values: OptionValues<any> = {}
+): OptionValues<any> {
+	const options = { ...values };
+	for (const [id, question] of Object.entries(addon.options)) {
+		if (question.condition?.(options) !== false) options[id] ??= question.default;
+	}
+	return options;
+}
+
 /** Setup addons - takes LoadedAddon[] and returns setup results */
 export async function setupAddons(
 	loadedAddons: LoadedAddon[],
-	workspace: Workspace
+	workspace: Workspace,
+	answers: AddonAnswers = {}
 ): Promise<Record<string, SetupResult>> {
 	const setupResults: Record<string, SetupResult> = {};
 
@@ -199,15 +212,23 @@ export async function setupAddons(
 		const setupResult: SetupResult = {
 			unsupported: [],
 			dependsOn: [],
+			preferredOptions: {},
 			runsAfter: [],
 			additionalOptions
 		};
 		try {
 			await addon.setup?.({
 				...workspace,
-				dependsOn: (name) => {
+				draftOptions: withOptionDefaults(addon, answers[addon.id]),
+				dependsOn: (name, preferredOptions) => {
 					setupResult.dependsOn.push(name);
 					setupResult.runsAfter.push(name);
+					if (preferredOptions) {
+						setupResult.preferredOptions[name] = {
+							...setupResult.preferredOptions[name],
+							...(preferredOptions as OptionValues<any>)
+						};
+					}
 				},
 				unsupported: (reason) => setupResult.unsupported.push(reason),
 				runsAfter: (name) => setupResult.runsAfter.push(name),
@@ -334,6 +355,38 @@ function matchesFilesFilter(file: string, options: PrepareSvApiOptions) {
 	return !options.filesFilter || path.matchesGlob(file, options.filesFilter);
 }
 
+/** `execute` may download from the registry, `execute-local` only runs installed bins. */
+export async function executeCommand(
+	workspace: Workspace,
+	kind: 'execute' | 'execute-local',
+	commandArgs: string[],
+	stdio: 'inherit' | 'pipe',
+	outputPrefix = ''
+): Promise<void> {
+	const { command, args } = resolveCommand(workspace.packageManager, kind, commandArgs)!;
+
+	const executedCommand = [command, ...args].join(' ');
+	if (!TESTING) {
+		p.log.step(`${outputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`);
+	}
+
+	// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
+	if (kind === 'execute' && workspace.packageManager === 'npm') args.unshift('--yes');
+
+	try {
+		await exec(command, args, {
+			nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
+			throwOnError: true
+		});
+	} catch (error) {
+		let message = `Failed to execute scripts '${executedCommand}'`;
+		if (error instanceof Error) {
+			message += `: ${error.message}`;
+		}
+		throw new Error(message, { cause: error });
+	}
+}
+
 export function prepareSvApi(
 	workspace: Workspace,
 	options: PrepareSvApiOptions = {
@@ -397,32 +450,8 @@ export function prepareSvApi(
 				);
 			}
 		},
-		execute: async (commandArgs, stdio) => {
-			const { command, args } = resolveCommand(workspace.packageManager, 'execute', commandArgs)!;
-
-			const executedCommand = [command, ...args].join(' ');
-			if (!TESTING) {
-				p.log.step(
-					`${options?.executeOutputPrefix}Running external command ${color.optional(`(${executedCommand})`)}`
-				);
-			}
-
-			// adding --yes as the first parameter helps avoiding the "Need to install the following packages:" message
-			if (workspace.packageManager === 'npm') args.unshift('--yes');
-
-			try {
-				await exec(command, args, {
-					nodeOptions: { cwd: workspace.cwd, stdio: TESTING ? 'pipe' : stdio },
-					throwOnError: true
-				});
-			} catch (error) {
-				let message = `Failed to execute scripts '${executedCommand}'`;
-				if (error instanceof Error) {
-					message += `: ${error.message}`;
-				}
-				throw new Error(message, { cause: error });
-			}
-		},
+		execute: (commandArgs, stdio) =>
+			executeCommand(workspace, 'execute', commandArgs, stdio, options.executeOutputPrefix),
 		dependency: (pkg, version) => {
 			dependencies.push({ pkg, version, dev: false });
 		},

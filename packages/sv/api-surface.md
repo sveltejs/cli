@@ -120,6 +120,126 @@ type OptionValues<Args extends OptionDefinition> = {
 							? unknown
 							: 'ERROR: The value for this type is invalid. Ensure that the `default` value exists in `options`.';
 };
+type AiToolsOptions = {
+	ide: string[];
+	delivery: 'plugin' | 'tools';
+	tools: string[];
+	mcpSetup: 'local' | 'remote';
+	agentsMd: boolean;
+	optInSkills: string[];
+};
+type BetterAuthOptions = {
+	demo: Array<'password' | 'github'>;
+};
+type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
+type DrizzleOptions = {
+	database: Database;
+	postgresql: 'postgres.js' | 'neon';
+	mysql: 'mysql2' | 'planetscale';
+	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
+	docker: boolean;
+};
+type ExperimentalOptions = {
+	features: string[];
+};
+type MdsvexPlugin =
+	| 'callouts'
+	| 'elements'
+	| 'steps'
+	| 'tabs'
+	| 'emoji'
+	| 'code-blocks'
+	| 'diagram'
+	| 'embeds'
+	| 'figures'
+	| 'anchors'
+	| 'toc'
+	| 'external-links'
+	| 'references'
+	| 'citations'
+	| 'numbering'
+	| 'page-data'
+	| 'link-check';
+type MdsvexOptions = {
+	plugins: MdsvexPlugin[];
+};
+type ParaglideOptions = {
+	languageTags: string;
+	demo: boolean;
+};
+type PlaywrightOptions = {
+	demo: boolean;
+};
+declare const adapters: readonly [
+	{
+		readonly id: 'auto';
+		readonly package: '@sveltejs/adapter-auto';
+		readonly version: '^8.0.1';
+	},
+	{
+		readonly id: 'node';
+		readonly package: '@sveltejs/adapter-node';
+		readonly version: '^6.0.2';
+	},
+	{
+		readonly id: 'bun';
+		readonly package: '@sveltejs/adapter-bun';
+		readonly version: '^1.0.1';
+	},
+	{
+		readonly id: 'static';
+		readonly package: '@sveltejs/adapter-static';
+		readonly version: '^4.0.1';
+	},
+	{
+		readonly id: 'vercel';
+		readonly package: '@sveltejs/adapter-vercel';
+		readonly version: '^7.0.3';
+	},
+	{
+		readonly id: 'cloudflare';
+		readonly package: '@sveltejs/adapter-cloudflare';
+		readonly version: '^8.0.2';
+	},
+	{
+		readonly id: 'netlify';
+		readonly package: '@sveltejs/adapter-netlify';
+		readonly version: '^7.0.1';
+	}
+];
+type AdapterId = (typeof adapters)[number]['id'];
+type SveltekitAdapterOptions = {
+	adapter: AdapterId;
+	cfTarget: 'workers' | 'pages';
+};
+type TailwindcssOptions = {
+	plugins: Array<'typography' | 'forms'>;
+};
+type VitestOptions = {
+	usages: Array<'unit' | 'component'>;
+};
+type NoOptions = {};
+type OfficialAddons = {
+	[ADDON_IDS.prettier]: Addon<NoOptions, typeof ADDON_IDS.prettier>;
+	[ADDON_IDS.eslint]: Addon<NoOptions, typeof ADDON_IDS.eslint>;
+	[ADDON_IDS.vitest]: Addon<AddonOptions<VitestOptions>, typeof ADDON_IDS.vitest>;
+	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
+	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
+	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
+	[ADDON_IDS.sveltekitAdapter]: Addon<
+		AddonOptions<SveltekitAdapterOptions>,
+		typeof ADDON_IDS.sveltekitAdapter
+	>;
+	[ADDON_IDS.drizzle]: Addon<AddonOptions<DrizzleOptions>, typeof ADDON_IDS.drizzle>;
+	[ADDON_IDS.betterAuth]: Addon<AddonOptions<BetterAuthOptions>, typeof ADDON_IDS.betterAuth>;
+	[ADDON_IDS.mdsvex]: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex>;
+	[ADDON_IDS.paraglide]: Addon<AddonOptions<ParaglideOptions>, typeof ADDON_IDS.paraglide>;
+	[ADDON_IDS.storybook]: Addon<NoOptions, typeof ADDON_IDS.storybook>;
+	[ADDON_IDS.aiTools]: Addon<AddonOptions<AiToolsOptions>, typeof ADDON_IDS.aiTools>;
+	[ADDON_IDS.experimental]: Addon<AddonOptions<ExperimentalOptions>, typeof ADDON_IDS.experimental>;
+};
+type OfficialAddonOptions = OptionMap<OfficialAddons>;
+export declare const officialAddons: OfficialAddons;
 type WorkspaceOptions<Args extends OptionDefinition> = OptionValues<Args>;
 type Workspace = {
 	cwd: string;
@@ -174,7 +294,13 @@ type Addon<
 	options: Args;
 	setup?: (
 		workspace: Workspace & {
-			dependsOn: (id: AddonId) => void;
+			draftOptions: WorkspaceOptions<Args> & Record<string, unknown>;
+			dependsOn: <DependencyId extends AddonId>(
+				id: DependencyId,
+				preferredOptions?: DependencyId extends OfficialAddonId
+					? Partial<OfficialAddonOptions[DependencyId]>
+					: never
+			) => void;
 			unsupported: (reason: string) => void;
 			runsAfter: (id: AddonId) => void;
 			addOption: <K extends Extract<keyof Setup, string>>(
@@ -265,10 +391,12 @@ type AddonResult = {
 };
 type SetupResult = {
 	dependsOn: string[];
+	preferredOptions: AddonAnswers;
 	unsupported: string[];
 	runsAfter: string[];
 	additionalOptions: Record<string, Question>;
 };
+type AddonAnswers = Record<string, OptionValues<any>>;
 type AddonDefinition<Id extends string = string> = Addon<Record<string, Question<any>>, Id>;
 type MaybePromise<T> = Promise<T> | T;
 type Prettify<T> = { [K in keyof T]: T[K] } & unknown;
@@ -326,126 +454,6 @@ declare function applyAddons({
 	status: Record<string, string[] | 'success'>;
 	installNeeded: boolean;
 }>;
-type AiToolsOptions = {
-	ide: string[];
-	delivery: 'plugin' | 'tools';
-	tools: string[];
-	mcpSetup: 'local' | 'remote';
-	agentsMd: boolean;
-	optInSkills: string[];
-};
-type BetterAuthOptions = {
-	demo: Array<'password' | 'github'>;
-};
-type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
-type DrizzleOptions = {
-	database: Database;
-	postgresql: 'postgres.js' | 'neon';
-	mysql: 'mysql2' | 'planetscale';
-	sqlite: 'node-sqlite' | 'better-sqlite3' | 'libsql' | 'turso';
-	docker: boolean;
-};
-type ExperimentalOptions = {
-	features: string[];
-};
-type MdsvexPlugin =
-	| 'callouts'
-	| 'elements'
-	| 'steps'
-	| 'tabs'
-	| 'emoji'
-	| 'code-blocks'
-	| 'diagram'
-	| 'embeds'
-	| 'figures'
-	| 'anchors'
-	| 'toc'
-	| 'external-links'
-	| 'references'
-	| 'citations'
-	| 'numbering'
-	| 'page-data'
-	| 'link-check';
-type MdsvexOptions = {
-	plugins: MdsvexPlugin[];
-};
-type ParaglideOptions = {
-	languageTags: string;
-	demo: boolean;
-};
-type PlaywrightOptions = {
-	demo: boolean;
-};
-declare const adapters: readonly [
-	{
-		readonly id: 'auto';
-		readonly package: '@sveltejs/adapter-auto';
-		readonly version: '^8.0.0';
-	},
-	{
-		readonly id: 'node';
-		readonly package: '@sveltejs/adapter-node';
-		readonly version: '^6.0.0';
-	},
-	{
-		readonly id: 'bun';
-		readonly package: '@sveltejs/adapter-bun';
-		readonly version: '^1.0.0';
-	},
-	{
-		readonly id: 'static';
-		readonly package: '@sveltejs/adapter-static';
-		readonly version: '^4.0.0';
-	},
-	{
-		readonly id: 'vercel';
-		readonly package: '@sveltejs/adapter-vercel';
-		readonly version: '^7.0.0';
-	},
-	{
-		readonly id: 'cloudflare';
-		readonly package: '@sveltejs/adapter-cloudflare';
-		readonly version: '^8.0.0';
-	},
-	{
-		readonly id: 'netlify';
-		readonly package: '@sveltejs/adapter-netlify';
-		readonly version: '^7.0.0';
-	}
-];
-type AdapterId = (typeof adapters)[number]['id'];
-type SveltekitAdapterOptions = {
-	adapter: AdapterId;
-	cfTarget: 'workers' | 'pages';
-};
-type TailwindcssOptions = {
-	plugins: Array<'typography' | 'forms'>;
-};
-type VitestOptions = {
-	usages: Array<'unit' | 'component'>;
-};
-type NoOptions = {};
-type OfficialAddons = {
-	[ADDON_IDS.prettier]: Addon<NoOptions, typeof ADDON_IDS.prettier>;
-	[ADDON_IDS.eslint]: Addon<NoOptions, typeof ADDON_IDS.eslint>;
-	[ADDON_IDS.vitest]: Addon<AddonOptions<VitestOptions>, typeof ADDON_IDS.vitest>;
-	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
-	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
-	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
-	[ADDON_IDS.sveltekitAdapter]: Addon<
-		AddonOptions<SveltekitAdapterOptions>,
-		typeof ADDON_IDS.sveltekitAdapter
-	>;
-	[ADDON_IDS.drizzle]: Addon<AddonOptions<DrizzleOptions>, typeof ADDON_IDS.drizzle>;
-	[ADDON_IDS.betterAuth]: Addon<AddonOptions<BetterAuthOptions>, typeof ADDON_IDS.betterAuth>;
-	[ADDON_IDS.mdsvex]: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex>;
-	[ADDON_IDS.paraglide]: Addon<AddonOptions<ParaglideOptions>, typeof ADDON_IDS.paraglide>;
-	[ADDON_IDS.storybook]: Addon<NoOptions, typeof ADDON_IDS.storybook>;
-	[ADDON_IDS.aiTools]: Addon<AddonOptions<AiToolsOptions>, typeof ADDON_IDS.aiTools>;
-	[ADDON_IDS.experimental]: Addon<AddonOptions<ExperimentalOptions>, typeof ADDON_IDS.experimental>;
-};
-type OfficialAddonOptions = OptionMap<OfficialAddons>;
-export declare const officialAddons: OfficialAddons;
 type FileEditor = Workspace & {
 	content: string;
 };

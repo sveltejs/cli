@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { log } from '@clack/prompts';
-import { color, transforms } from '@sveltejs/sv-utils';
+import { color, resolveCommand, transforms } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
 import { dist_dir } from '../create/utils.ts';
@@ -280,7 +280,7 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 			optInSkillsQuestion((client, skill) => isSkillInstalled(cwd, client, skill))
 		);
 	},
-	run: ({ sv, options, cwd }) => {
+	run: ({ sv, options, cwd, packageManager }) => {
 		const usePlugin = options.delivery === 'plugin';
 
 		// pure-plugin path skips the tools question; file-only clients then fall back to all
@@ -291,6 +291,9 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 		const selectedOptInSkills = (options.optInSkills ?? []).filter((s) => s in OPT_IN_SKILLS);
 		// unanswered (e.g. CLI args from before the question existed) keeps the previous behavior
 		const wantsAgentFile = options.agentsMd !== false;
+		const localCommand = resolveCommand(packageManager, 'execute', ['@sveltejs/mcp'])!;
+		// Match `sv.execute`: npm should install without prompting.
+		if (packageManager === 'npm') localCommand.args.unshift('--yes');
 
 		const getLocalConfig = (o?: {
 			typeLocal?: 'stdio' | 'local';
@@ -300,9 +303,9 @@ const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 		}) => {
 			const config: any = {
 				...(o?.typeLocal ? { type: o.typeLocal } : {}),
-				command: o?.command ?? 'npx',
+				command: o?.command ?? localCommand.command,
 				...(o?.env ? { env: {} } : {}),
-				...(o?.args === null ? {} : { args: o?.args ?? ['-y', '@sveltejs/mcp'] })
+				...(o?.args === null ? {} : { args: o?.args ?? localCommand.args })
 			};
 			return config;
 		};

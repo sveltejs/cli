@@ -1,7 +1,8 @@
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { coerceVersion, isVersionUnsupportedBelow } from './semver.ts';
-import { transforms, type TransformFn } from './tooling/transforms.ts';
+import type { TransformFn } from './tooling/transforms.ts';
+import * as transforms from './tooling/transforms.ts';
 
 type YamlMap = {
 	get(key: string): unknown;
@@ -49,14 +50,16 @@ export function detectPnpmVersion(cwd: string): string | undefined {
 	return version;
 }
 
-export function detectPnpmMajor(cwd: string): number | undefined {
-	const version = detectPnpmVersion(cwd);
-	return version ? coerceVersion(version).major : undefined;
-}
-
 /** Before 10.5, `pnpm-workspace.yaml` must list `packages`, so a settings-only one breaks `pnpm install`. */
 export function readsWorkspaceSettings(version: string | undefined): boolean {
 	return !version || !isVersionUnsupportedBelow(version, '10.5.0');
+}
+
+/** `allowBuilds` landed in pnpm 10.26, older versions only read `onlyBuiltDependencies`. */
+export function allowBuildsByVersion(version: string | undefined, packages: string[]): TransformFn {
+	if (!readsWorkspaceSettings(version)) return () => false;
+	if (version && isVersionUnsupportedBelow(version, '10.26.0')) return writeLegacy(packages);
+	return writeAllowBuilds(packages);
 }
 
 export function writeAllowBuilds(packages: string[]): TransformFn {
