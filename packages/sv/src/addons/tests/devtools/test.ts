@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import devtools from '../../devtools.ts';
+import devtools, { plugins } from '../../devtools.ts';
 import { setupTest } from '../_setup/suite.ts';
 
 const { test, testCases } = setupTest(
@@ -10,7 +10,9 @@ const { test, testCases } = setupTest(
 			{ type: 'default', options: { devtools: {} } },
 			{
 				type: 'oxc-only',
-				options: { devtools: { plugins: ['oxc'] } }
+				options: {
+					devtools: { plugins: plugins.filter((plugin) => plugin.id === 'oxc') }
+				}
 			}
 		],
 		browser: false
@@ -25,11 +27,11 @@ test.concurrent.for(testCases)('devtools $variant', (testCase, { expect, ...ctx 
 
 	expect(pkg.devDependencies).toHaveProperty('@vitejs/devtools', '^0.8.3');
 	expect(pkg.devDependencies).toHaveProperty('@sveltejs/vite-devtools-svelte', '^0.8.0');
-	for (const plugin of ['vitest', 'oxc', 'rolldown', 'vite']) {
-		const selected = testCase.kind.type === 'default' ? plugin !== 'oxc' : plugin === 'oxc';
+	for (const plugin of plugins) {
+		const selected = testCase.kind.type === 'default' ? plugin.preselected : plugin.id === 'oxc';
 		const assertion = expect(pkg.devDependencies);
-		if (selected) assertion.toHaveProperty(`@vitejs/devtools-${plugin}`, '^0.8.3');
-		else assertion.not.toHaveProperty(`@vitejs/devtools-${plugin}`);
+		if (selected) assertion.toHaveProperty(plugin.package, plugin.version);
+		else assertion.not.toHaveProperty(plugin.package);
 	}
 	expect(source).not.toContain(`import { DevTools } from '@vitejs/devtools'`);
 	expect(source).toContain(`import { svelteDevtools } from '@sveltejs/vite-devtools-svelte'`);

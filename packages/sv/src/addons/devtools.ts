@@ -3,25 +3,25 @@ import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions } from '../core/options.ts';
 import { ADDON_IDS } from './ids.ts';
 
-const plugins = [
-	{ id: 'vitest', preselected: true },
-	{ id: 'rolldown', preselected: true },
-	{ id: 'vite', preselected: true },
-	{ id: 'oxc', preselected: false }
+export const plugins = [
+	{ id: 'vitest', preselected: true, package: '@vitejs/devtools-vitest', version: '^0.8.3' },
+	{ id: 'rolldown', preselected: true, package: '@vitejs/devtools-rolldown', version: '^0.8.3' },
+	{ id: 'vite', preselected: true, package: '@vitejs/devtools-vite', version: '^0.8.3' },
+	{ id: 'oxc', preselected: false, package: '@vitejs/devtools-oxc', version: '^0.8.3' }
 ] as const;
 
-export type DevtoolsOptions = { plugins: Array<'vitest' | 'oxc' | 'rolldown' | 'vite'> };
+export type DevtoolsOptions = { plugins: Array<(typeof plugins)[number]> };
 
 const options = defineAddonOptions<DevtoolsOptions>()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which other DevTools would you like to add?',
 		options: plugins.map((plugin) => ({
-			value: plugin.id,
+			value: plugin,
 			label: plugin.id,
 			hint: `@vitejs/devtools-${plugin.id}`
 		})),
-		default: plugins.filter((plugin) => plugin.preselected).map((plugin) => plugin.id),
+		default: plugins.filter((plugin) => plugin.preselected),
 		required: false
 	})
 	.build();
@@ -38,7 +38,7 @@ const addon: Addon<AddonOptions<DevtoolsOptions>, 'devtools'> = defineAddon({
 		sv.devDependency('@vitejs/devtools', '^0.8.3');
 		sv.devDependency('@sveltejs/vite-devtools-svelte', '^0.8.0');
 		for (const plugin of options.plugins) {
-			sv.devDependency(`@vitejs/devtools-${plugin}`, '^0.8.3');
+			sv.devDependency(plugin.package, plugin.version);
 		}
 
 		sv.file(

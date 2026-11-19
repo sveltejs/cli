@@ -132,8 +132,34 @@ type AiToolsOptions = {
 type BetterAuthOptions = {
 	demo: Array<'password' | 'github'>;
 };
+declare const plugins: readonly [
+	{
+		readonly id: 'vitest';
+		readonly preselected: true;
+		readonly package: '@vitejs/devtools-vitest';
+		readonly version: '^0.8.3';
+	},
+	{
+		readonly id: 'rolldown';
+		readonly preselected: true;
+		readonly package: '@vitejs/devtools-rolldown';
+		readonly version: '^0.8.3';
+	},
+	{
+		readonly id: 'vite';
+		readonly preselected: true;
+		readonly package: '@vitejs/devtools-vite';
+		readonly version: '^0.8.3';
+	},
+	{
+		readonly id: 'oxc';
+		readonly preselected: false;
+		readonly package: '@vitejs/devtools-oxc';
+		readonly version: '^0.8.3';
+	}
+];
 type DevtoolsOptions = {
-	plugins: Array<'vitest' | 'oxc' | 'rolldown' | 'vite'>;
+	plugins: Array<(typeof plugins)[number]>;
 };
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 type DrizzleOptions = {
