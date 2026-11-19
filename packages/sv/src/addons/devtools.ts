@@ -10,18 +10,18 @@ export const plugins = [
 	{ id: 'oxc', preselected: false, package: '@vitejs/devtools-oxc', version: '^0.8.3' }
 ] as const;
 
-export type DevtoolsOptions = { plugins: Array<(typeof plugins)[number]> };
+export type DevtoolsOptions = { plugins: Array<(typeof plugins)[number]['id']> };
 
 const options = defineAddonOptions<DevtoolsOptions>()
 	.add('plugins', {
 		type: 'multiselect',
 		question: 'Which other DevTool plugins would you like to add?',
 		options: plugins.map((plugin) => ({
-			value: plugin,
+			value: plugin.id,
 			label: plugin.id,
 			hint: plugin.package
 		})),
-		default: plugins.filter((plugin) => plugin.preselected),
+		default: plugins.filter((plugin) => plugin.preselected).map((plugin) => plugin.id),
 		required: false
 	})
 	.build();
@@ -37,7 +37,7 @@ const addon: Addon<AddonOptions<DevtoolsOptions>, 'devtools'> = defineAddon({
 	run: ({ sv, file, options }) => {
 		sv.devDependency('@vitejs/devtools', '^0.8.3');
 		sv.devDependency('@sveltejs/vite-devtools-svelte', '^0.8.0');
-		for (const plugin of options.plugins) {
+		for (const plugin of plugins.filter((p) => options.plugins.includes(p.id))) {
 			sv.devDependency(plugin.package, plugin.version);
 		}
 

@@ -11,7 +11,7 @@ const { test, testCases } = setupTest(
 			{
 				type: 'oxc-only',
 				options: {
-					devtools: { plugins: plugins.filter((plugin) => plugin.id === 'oxc') }
+					devtools: { plugins: ['oxc'] }
 				}
 			}
 		],

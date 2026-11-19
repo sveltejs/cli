@@ -159,7 +159,7 @@ declare const plugins: readonly [
 	}
 ];
 type DevtoolsOptions = {
-	plugins: Array<(typeof plugins)[number]>;
+	plugins: Array<(typeof plugins)[number]['id']>;
 };
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 type DrizzleOptions = {
