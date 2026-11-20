@@ -1,5 +1,17 @@
 # sv
 
+## 1.7.0
+
+### Minor Changes
+
+- feat(devtools): add DevTools as official add-on ([#1471](https://github.com/sveltejs/cli/pull/1471))
+
+### Patch Changes
+
+- fix(eslint): use `recommendedTypeChecked` in TypeScript projects ([#1497](https://github.com/sveltejs/cli/pull/1497))
+
+- chore(mdsvex): use stable releases ([#1496](https://github.com/sveltejs/cli/pull/1496))
+
 ## 1.6.0
 
 ### Minor Changes
