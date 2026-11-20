@@ -134,12 +134,6 @@ type BetterAuthOptions = {
 };
 declare const plugins: readonly [
 	{
-		readonly id: 'vitest';
-		readonly preselected: true;
-		readonly package: '@vitejs/devtools-vitest';
-		readonly version: '^0.8.3';
-	},
-	{
 		readonly id: 'rolldown';
 		readonly preselected: true;
 		readonly package: '@vitejs/devtools-rolldown';
@@ -149,6 +143,12 @@ declare const plugins: readonly [
 		readonly id: 'vite';
 		readonly preselected: true;
 		readonly package: '@vitejs/devtools-vite';
+		readonly version: '^0.8.3';
+	},
+	{
+		readonly id: 'vitest';
+		readonly preselected: true;
+		readonly package: '@vitejs/devtools-vitest';
 		readonly version: '^0.8.3';
 	},
 	{
