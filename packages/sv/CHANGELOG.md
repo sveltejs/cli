@@ -1,5 +1,41 @@
 # sv
 
+## 1.7.0
+
+### Minor Changes
+
+- feat(devtools): add DevTools as official add-on ([#1471](https://github.com/sveltejs/cli/pull/1471))
+
+### Patch Changes
+
+- fix(eslint): use `recommendedTypeChecked` in TypeScript projects ([#1497](https://github.com/sveltejs/cli/pull/1497))
+
+- chore(mdsvex): use stable releases ([#1496](https://github.com/sveltejs/cli/pull/1496))
+
+## 1.6.0
+
+### Minor Changes
+
+- feat(create, add): `--package-manager <pm>`, combine with `--no-install` to skip installing ([#1480](https://github.com/sveltejs/cli/pull/1480))
+
+- feat(addons): expose resolved setup options and `dependsOn` preferred options ([#1419](https://github.com/sveltejs/cli/pull/1419))
+
+- feat(mdsvex): use mdsvex next ([#1472](https://github.com/sveltejs/cli/pull/1472))
+
+### Patch Changes
+
+- feat(migrate): `-C` alias for `--cwd` ([#1481](https://github.com/sveltejs/cli/pull/1481))
+
+- fix(migrate): keep `undefined` in generated dynamic env schemas (`input => input`), so `A ?? B` fallbacks keep working ([#1483](https://github.com/sveltejs/cli/pull/1483))
+
+- fix(migrate): run `svelte-kit sync` from the project's installed bin (`pnpm exec`, not `pnpm dlx`) ([#1486](https://github.com/sveltejs/cli/pull/1486))
+
+- feat(migrate): searchable migration list ([#1490](https://github.com/sveltejs/cli/pull/1490))
+
+- fix(ai-tools): use the selected package manager for local MCP configuration ([#1489](https://github.com/sveltejs/cli/pull/1489))
+- Updated dependencies [[`80997e7`](https://github.com/sveltejs/cli/commit/80997e730f263bdde7569872d421c80c5d16b9d3)]:
+  - @sveltejs/sv-utils@1.1.3
+
 ## 1.5.0
 
 ### Minor Changes

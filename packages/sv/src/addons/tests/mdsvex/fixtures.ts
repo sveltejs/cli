@@ -1,9 +1,8 @@
-export const svxFile = `
----
+export const svxFile = `---
 title: Svex up your markdown
 ---
 
-# { title }
+# {metadata.title}
 
 ## Good stuff in your markdown
 
