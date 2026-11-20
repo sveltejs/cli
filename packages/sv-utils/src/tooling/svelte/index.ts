@@ -101,7 +101,7 @@ export function addFragment(
 	if (added.length === 0) return;
 
 	// Separate added nodes with a newline so they aren't printed as `<p>a</p><b>x</b>`.
-	// Only at the top level: inside an element the whitespace would show on the user's page.
+	// Don't do this inside an element. Otherwise, the whitespace would show on the user's page.
 	const separate = ast.type === 'Root' && existing.length > 0;
 	const newline: SvelteAst.Text = { type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 };
 
