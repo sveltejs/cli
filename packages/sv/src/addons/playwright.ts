@@ -17,6 +17,7 @@ const options = defineAddonOptions<PlaywrightOptions>()
 
 const addon: Addon<AddonOptions<PlaywrightOptions>, 'playwright'> = defineAddon({
 	id: ADDON_IDS.playwright,
+	name: 'Playwright',
 	shortDescription: 'browser testing',
 	homepage: 'https://playwright.dev',
 	options,

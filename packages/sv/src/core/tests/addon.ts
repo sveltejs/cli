@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { officialAddons } from '../../addons/index.ts';
 import { classifyAddons } from '../../cli/add.ts';
 import { type AddonInput, getErrorHint } from '../config.ts';
 
@@ -71,5 +72,12 @@ describe('classifyAddons', () => {
 
 		const [npm] = classifyAddons([{ specifier: '@supacool', options: [] }], testCwd);
 		expect(getErrorHint(npm.source)).toContain('npmjs.com');
+	});
+});
+
+describe('officialAddons', () => {
+	it('should all have a display name', () => {
+		const unnamed = Object.values(officialAddons).filter((addon) => !addon.name);
+		expect(unnamed.map((addon) => addon.id)).toEqual([]);
 	});
 });

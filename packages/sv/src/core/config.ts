@@ -69,6 +69,8 @@ export type Addon<
 > = {
 	id: Id;
 	alias?: string;
+	/** display name for other tools (prompts show the id), e.g. `Tailwind CSS` for `tailwindcss` */
+	name?: string;
 	/** one-liner shown in prompts  */
 	shortDescription?: string;
 	/** link to docs/repo */

@@ -60,6 +60,7 @@ const options = defineAddonOptions<ParaglideOptions>()
 
 const addon: Addon<AddonOptions<ParaglideOptions>, 'paraglide'> = defineAddon({
 	id: ADDON_IDS.paraglide,
+	name: 'Paraglide JS',
 	shortDescription: 'i18n',
 	homepage: 'https://inlang.com/m/gerre34r/library-inlang-paraglideJs',
 	options,
