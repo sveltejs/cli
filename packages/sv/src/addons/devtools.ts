@@ -36,7 +36,7 @@ const addon: Addon<AddonOptions<DevtoolsOptions>, 'devtools'> = defineAddon({
 	},
 	run: ({ sv, file, options }) => {
 		sv.devDependency('@vitejs/devtools', '^0.8.3');
-		sv.devDependency('@sveltejs/vite-devtools-svelte', '^0.8.0');
+		sv.devDependency('@sveltejs/vite-devtools-svelte', '^0.11.0');
 		for (const plugin of plugins.filter((p) => options.plugins.includes(p.id))) {
 			sv.devDependency(plugin.package, plugin.version);
 		}
