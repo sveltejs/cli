@@ -32,6 +32,7 @@ const options = defineAddonOptions<TailwindcssOptions>()
 const addon: Addon<AddonOptions<TailwindcssOptions>, 'tailwindcss'> = defineAddon({
 	id: ADDON_IDS.tailwindcss,
 	alias: 'tailwind',
+	name: 'Tailwind CSS',
 	shortDescription: 'css framework',
 	homepage: 'https://tailwindcss.com',
 	options,

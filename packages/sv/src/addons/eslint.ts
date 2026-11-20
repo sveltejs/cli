@@ -12,6 +12,7 @@ import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
 	id: ADDON_IDS.eslint,
+	name: 'ESLint',
 	shortDescription: 'linter',
 	homepage: 'https://eslint.org',
 	options: {},

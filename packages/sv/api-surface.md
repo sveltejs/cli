@@ -288,6 +288,7 @@ type Addon<
 > = {
 	id: Id;
 	alias?: string;
+	name?: string;
 	shortDescription?: string;
 	homepage?: string;
 	hidden?: boolean;
