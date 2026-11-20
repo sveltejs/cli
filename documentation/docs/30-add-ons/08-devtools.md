@@ -2,7 +2,7 @@
 title: devtools
 ---
 
-[Vite DevTools](https://devtools.vite.dev) provides an in-page development dock. The add-on also installs [Svelte DevTools](https://github.com/baseballyama/vite-devtools-svelte), which adds Svelte component, reactivity, routing, and performance inspection to the dock.
+[Vite DevTools](https://devtools.vite.dev) provides an in-page development dock. The add-on also installs [Svelte DevTools](https://github.com/sveltejs/vite-devtools-svelte), which adds Svelte component, reactivity, routing, and performance inspection to the dock.
 
 ## Usage
 
