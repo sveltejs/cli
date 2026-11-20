@@ -12,7 +12,7 @@ npx sv add devtools
 
 ## What you get
 
-- `@vitejs/devtools`, the selected inspection tools, and `@sveltejs/vite-devtools-svelte` installed as development dependencies
+- `@vitejs/devtools`, `@sveltejs/vite-devtools-svelte`, and the selected inspection tools installed as development dependencies
 - both plugins added to your Vite config in the required order
 - Svelte inspection panels in the Vite DevTools dock
 - direct access to the Svelte panels at `/.svelte-devtools/`
