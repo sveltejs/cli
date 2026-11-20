@@ -5,9 +5,7 @@
 	export type ModuleTypes = [Page, RequestEvent];
 </script>
 
-<script
-	lang="ts"
->
+<script lang="ts">
 	import type { Navigation } from '$app/navigation';
 	import type { ActionResult } from '$app/forms';
 	import type { ParamMatcher } from '@sveltejs/kit/params';
