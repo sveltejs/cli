@@ -14,7 +14,6 @@ npx sv add devtools
 
 - `@vitejs/devtools`, the selected inspection tools, and `@sveltejs/vite-devtools-svelte` installed as development dependencies
 - both plugins added to your Vite config in the required order
-- client authentication explicitly enabled in the Vite DevTools config (set `clientAuth` to `false` to disable it)
 - Svelte inspection panels in the Vite DevTools dock
 - direct access to the Svelte panels at `/.svelte-devtools/`
 - an MCP endpoint for development-time Svelte diagnostics

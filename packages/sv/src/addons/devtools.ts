@@ -4,9 +4,9 @@ import type { AddonOptions } from '../core/options.ts';
 import { ADDON_IDS } from './ids.ts';
 
 export const plugins = [
-	{ id: 'vitest', preselected: true, package: '@vitejs/devtools-vitest', version: '^0.8.3' },
 	{ id: 'rolldown', preselected: true, package: '@vitejs/devtools-rolldown', version: '^0.8.3' },
 	{ id: 'vite', preselected: true, package: '@vitejs/devtools-vite', version: '^0.8.3' },
+	{ id: 'vitest', preselected: true, package: '@vitejs/devtools-vitest', version: '^0.8.3' },
 	{ id: 'oxc', preselected: false, package: '@vitejs/devtools-oxc', version: '^0.8.3' }
 ] as const;
 
