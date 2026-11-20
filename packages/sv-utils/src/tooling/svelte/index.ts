@@ -96,28 +96,14 @@ export function addFragment(
 	const source = options?.language === 'ts' ? `<script lang="ts"></script>${content}` : content;
 	const { ast: fragmentAst } = parseSvelte(source);
 
-	const added = fragmentAst.fragment.nodes;
-	const existing = ast.fragment.nodes;
-	if (added.length === 0) return;
-
 	// Separate added nodes with a newline so they aren't printed as `<p>a</p><b>x</b>`.
 	// Don't do this inside an element. Otherwise, the whitespace would show on the user's page.
-	const separate = ast.type === 'Root' && existing.length > 0;
-	const newline: SvelteAst.Text = { type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 };
+	const separator: SvelteAst.Text[] =
+		ast.type === 'Root' ? [{ type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 }] : [];
 
 	if (options?.mode === 'prepend') {
-		if (separate && !isWhitespace(added.at(-1)) && !isWhitespace(existing[0])) {
-			existing.unshift(newline);
-		}
-		existing.unshift(...added);
+		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes, ...separator);
 	} else {
-		if (separate && !isWhitespace(existing.at(-1)) && !isWhitespace(added[0])) {
-			existing.push(newline);
-		}
-		existing.push(...added);
+		ast.fragment.nodes.push(...separator, ...fragmentAst.fragment.nodes);
 	}
-}
-
-function isWhitespace(node: SvelteAst.Fragment['nodes'][number] | undefined): boolean {
-	return node?.type === 'Text' && node.data.trim() === '';
 }
