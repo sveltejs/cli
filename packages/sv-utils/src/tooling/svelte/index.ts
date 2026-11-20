@@ -100,9 +100,10 @@ export function addFragment(
 	const existing = ast.fragment.nodes;
 	if (added.length === 0) return;
 
-	// The printer only breaks a line where the nodes are separated by whitespace.
-	// Whitespace between nodes is rendered, so it's only added at the top level:
-	// inside an element it would put a space into text or a line break into a `<pre>`.
+	// Separate the added nodes from their sibling with a newline, but only at the top level.
+	// Without it the printer keeps them on the same line: `<p>a</p><b>x</b>`.
+	// The newline is also rendered as a space, so inside an element it would change
+	// the content: adding `bar` to `<span>foo</span>` would give `foo bar`.
 	const separate = ast.type === 'Root' && existing.length > 0;
 	const newline: SvelteAst.Text = { type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 };
 
