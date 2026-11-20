@@ -57,6 +57,7 @@ Official add-ons are developed and maintained in the [Svelte CLI repository](htt
 
 - [`ai-tools`](ai-tools)
 - [`better-auth`](better-auth)
+- [`devtools`](devtools)
 - [`drizzle`](drizzle)
 - [`enhanced-img`](enhanced-img)
 - [`eslint`](eslint)
