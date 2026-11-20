@@ -100,16 +100,19 @@ export function addFragment(
 	const existing = ast.fragment.nodes;
 	if (added.length === 0) return;
 
-	// without a separator the printer keeps added nodes on the same line as their sibling
+	// The printer only breaks a line where the nodes are separated by whitespace.
+	// Whitespace between nodes is rendered, so it's only added at the top level:
+	// inside an element it would put a space into text or a line break into a `<pre>`.
+	const separate = ast.type === 'Root' && existing.length > 0;
 	const newline: SvelteAst.Text = { type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 };
 
 	if (options?.mode === 'prepend') {
-		if (existing.length > 0 && !isWhitespace(added.at(-1)) && !isWhitespace(existing[0])) {
+		if (separate && !isWhitespace(added.at(-1)) && !isWhitespace(existing[0])) {
 			existing.unshift(newline);
 		}
 		existing.unshift(...added);
 	} else {
-		if (existing.length > 0 && !isWhitespace(existing.at(-1)) && !isWhitespace(added[0])) {
+		if (separate && !isWhitespace(existing.at(-1)) && !isWhitespace(added[0])) {
 			existing.push(newline);
 		}
 		existing.push(...added);
