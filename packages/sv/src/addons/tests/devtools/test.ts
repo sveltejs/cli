@@ -26,7 +26,7 @@ test.concurrent.for(testCases)('devtools $variant', (testCase, { expect, ...ctx 
 	const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
 
 	expect(pkg.devDependencies).toHaveProperty('@vitejs/devtools', '^0.8.3');
-	expect(pkg.devDependencies).toHaveProperty('@sveltejs/vite-devtools-svelte', '^0.8.0');
+	expect(pkg.devDependencies).toHaveProperty('@sveltejs/vite-devtools-svelte', '^0.11.0');
 	for (const plugin of plugins) {
 		const selected = testCase.kind.type === 'default' ? plugin.preselected : plugin.id === 'oxc';
 		const assertion = expect(pkg.devDependencies);
