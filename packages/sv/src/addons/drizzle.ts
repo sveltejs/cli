@@ -12,7 +12,7 @@ import {
 	svelteConfig,
 	defineEnv,
 	isKit3,
-	pnpm
+	pm
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
 import type { AddonOptions, OptionValues } from '../core/options.ts';
@@ -153,9 +153,7 @@ const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 		if (options.sqlite === 'libsql' || options.sqlite === 'turso')
 			sv.devDependency('@libsql/client', '^0.18.0');
 
-		if (packageManager === 'pnpm') {
-			sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['esbuild'] }));
-		}
+		pm.allowBuilds({ sv, file, cwd, packageManager, packages: ['esbuild'] });
 
 		sv.file('.env', generateEnv(options, false));
 		sv.file('.env.example', generateEnv(options, true));

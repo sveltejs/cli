@@ -1,35 +1,27 @@
-import {
-	allowBuildsByVersion,
-	detectPnpmVersion,
-	readsWorkspaceSettings
-} from './pnpm-internals.ts';
+import { version } from './package-manager.ts';
+import { allowBuildsByVersion, readsWorkspaceSettings } from './pnpm-internals.ts';
 import { type TransformFn } from './tooling/transforms.ts';
 
 /**
  * Returns a TransformFn for `pnpm-workspace.yaml` that adds packages to the
  * pnpm "allow builds" config.
  *
- * The version of pnpm that would run in `cwd` decides the shape:
- * - on pnpm `>= 10.26` writes to the unified `allowBuilds` map (`{ pkg: true }`),
- *   migrating any legacy `onlyBuiltDependencies` list into the map;
- * - on pnpm `10.5` to `10.25` writes to the legacy `onlyBuiltDependencies` list;
- * - on pnpm `< 10.5` writes nothing (see {@link supportsWorkspaceSettings}).
- *
- * ```ts
- * if (packageManager === 'pnpm') {
- *   sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['my-native-dep'] }));
- * }
- * ```
+ * @deprecated Use `pm.allowBuilds`, which also picks the file and skips other package managers.
  */
 export function allowBuilds(options: {
 	/** Target project directory, whose pnpm version decides which config shape is written. */
 	cwd: string;
 	packages: string[];
 }): TransformFn {
-	return allowBuildsByVersion(detectPnpmVersion(options.cwd), options.packages);
+	const detected = version({ cwd: options.cwd, packageManager: 'pnpm' });
+	return allowBuildsByVersion(detected?.version, options.packages);
 }
 
-/** Whether the pnpm that would run in `cwd` reads settings from `pnpm-workspace.yaml`. */
+/**
+ * Whether the pnpm that would run in `cwd` reads settings from `pnpm-workspace.yaml`.
+ *
+ * @deprecated Use `pm.version`.
+ */
 export function supportsWorkspaceSettings(cwd: string): boolean {
-	return readsWorkspaceSettings(detectPnpmVersion(cwd));
+	return readsWorkspaceSettings(version({ cwd, packageManager: 'pnpm' })?.version);
 }

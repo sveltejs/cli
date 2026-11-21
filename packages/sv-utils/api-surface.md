@@ -890,38 +890,6 @@ export declare function resolveCommandArray(
 	command: Command,
 	args: string[]
 ): string[];
-declare namespace pnpm_d_exports {
-	export { allowBuilds, supportsWorkspaceSettings };
-}
-declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
-declare function supportsWorkspaceSettings(cwd: string): boolean;
-export declare function commandExists(command: string): boolean;
-type Package = {
-	name: string;
-	version: string;
-	scripts?: Record<string, string>;
-	dependencies?: Record<string, string>;
-	devDependencies?: Record<string, string>;
-	bugs?: string;
-	repository?: {
-		type: string;
-		url: string;
-	};
-	keywords?: string[];
-	workspaces?: string[];
-};
-export declare function fileExists(cwd: string, filePath: string): boolean;
-export declare function loadFile(cwd: string, filePath: string): string;
-export declare function saveFile(
-	cwd: string,
-	filePath: string,
-	content: string,
-	saveFileInfix?: string
-): string;
-export declare function loadPackageJson(cwd: string): {
-	source: string;
-	data: Package;
-};
 type SvelteConfigKind = 'svelte' | 'vite';
 type SvelteConfigPath = `${'svelte.config' | 'vite.config'}.${'js' | 'ts'}`;
 type SvelteConfigLocation = {
@@ -970,6 +938,71 @@ export declare const svelteConfig: {
 	) => void;
 	find: (source: ConfigSource) => SvelteConfigLocation | null;
 	read: (source: ConfigSource) => SvelteConfigObjects | null;
+};
+declare namespace package_manager_d_exports {
+	export { PackageManagerVersion, allowBuilds$1 as allowBuilds, version };
+}
+type PackageManagerVersion = {
+	major: number;
+	minor: number;
+	patch: number;
+	version: string;
+};
+declare function version(options: {
+	cwd: string;
+	packageManager: AgentName$1;
+}): PackageManagerVersion | undefined;
+declare function allowBuilds$1(options: {
+	sv: SvFileApi;
+	file: {
+		findUp: (filename: string) => string;
+	};
+	cwd: string;
+	packageManager: AgentName$1;
+	packages: string[];
+}): void;
+declare namespace pnpm_d_exports {
+	export { allowBuilds, supportsWorkspaceSettings };
+}
+/**
+ * Returns a TransformFn for `pnpm-workspace.yaml` that adds packages to the
+ * pnpm "allow builds" config.
+ *
+ * @deprecated Use `pm.allowBuilds`, which also picks the file and skips other package managers.
+ */
+declare function allowBuilds(options: { cwd: string; packages: string[] }): TransformFn;
+/**
+ * Whether the pnpm that would run in `cwd` reads settings from `pnpm-workspace.yaml`.
+ *
+ * @deprecated Use `pm.version`.
+ */
+declare function supportsWorkspaceSettings(cwd: string): boolean;
+export declare function commandExists(command: string): boolean;
+type Package = {
+	name: string;
+	version: string;
+	scripts?: Record<string, string>;
+	dependencies?: Record<string, string>;
+	devDependencies?: Record<string, string>;
+	bugs?: string;
+	repository?: {
+		type: string;
+		url: string;
+	};
+	keywords?: string[];
+	workspaces?: string[];
+};
+export declare function fileExists(cwd: string, filePath: string): boolean;
+export declare function loadFile(cwd: string, filePath: string): string;
+export declare function saveFile(
+	cwd: string,
+	filePath: string,
+	content: string,
+	saveFileInfix?: string
+): string;
+export declare function loadPackageJson(cwd: string): {
+	source: string;
+	data: Package;
 };
 type KitRoutes = string & {};
 type AddonName = string & {};
@@ -1032,6 +1065,7 @@ export {
 	type ConfigFileReader,
 	type DemoPage,
 	type Package,
+	type PackageManagerVersion,
 	type SvelteAst,
 	type SvelteConfigKind,
 	type SvelteConfigLocation,
@@ -1046,6 +1080,7 @@ export {
 	index_d_exports$2 as html,
 	index_d_exports$3 as js,
 	json_d_exports as json,
+	package_manager_d_exports as pm,
 	pnpm_d_exports as pnpm,
 	resolveCommand,
 	index_d_exports$4 as svelte,

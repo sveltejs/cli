@@ -16,7 +16,7 @@ import {
 import { formatFiles } from '../core/formatFiles.ts';
 import {
 	AGENT_NAMES,
-	addAllowBuildsIfPnpm,
+	addAllowBuilds,
 	addEngineStrict,
 	detectPackageManager,
 	exitOnInstallConflict,
@@ -427,7 +427,7 @@ export async function createProject(cwd: ProjectPath, options: Options) {
 	const addOnNextSteps = getNextSteps(addOnSuccessfulAddons, workspace, answers, addonSetupResults);
 
 	addEngineStrict({ cwd: projectPath, packageManager });
-	addAllowBuildsIfPnpm({ cwd: projectPath, packageManager, packages: ['esbuild'] });
+	addAllowBuilds({ cwd: projectPath, packageManager, packages: ['esbuild'] });
 
 	let depsInstalled = false;
 	if (packageManager && options.install) {

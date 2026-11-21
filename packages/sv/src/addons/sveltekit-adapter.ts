@@ -5,7 +5,7 @@ import {
 	fileExists,
 	loadPackageJson,
 	sanitizeName,
-	pnpm,
+	pm,
 	svelteConfig
 } from '@sveltejs/sv-utils';
 import { type Addon, defineAddon, defineAddonOptions } from '../core/config.ts';
@@ -133,12 +133,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
 			sv.devDependency('wrangler', '^4.162.0');
 
-			if (packageManager === 'pnpm') {
-				sv.file(
-					file.findUp('pnpm-workspace.yaml'),
-					pnpm.allowBuilds({ cwd, packages: ['workerd'] })
-				);
-			}
+			pm.allowBuilds({ sv, file, cwd, packageManager, packages: ['workerd'] });
 
 			// default to jsonc
 			const ext = fileExists(cwd, 'wrangler.toml') ? 'toml' : 'jsonc';
