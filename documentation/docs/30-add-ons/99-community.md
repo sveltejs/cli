@@ -214,6 +214,10 @@ Your add-on must have `sv` as a peer dependency. Any `dependencies` declared wil
 }
 ```
 
+### Get listed in the CLI
+
+`sv add` and `sv create` let users pick community add-ons from a searchable list, sorted by weekly downloads. Your add-on is listed when it has the `sv-add` keyword and an `sv` peer dependency matching the user's `sv` major. The list is refreshed with each `sv` release.
+
 ### Package names
 
 Naming follows the same [restrictions](https://npmx.dev/package/validate-npm-package-name#user-content-naming-rules) as on npm:

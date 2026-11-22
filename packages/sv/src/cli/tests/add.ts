@@ -16,11 +16,19 @@ import { promptAddonQuestions, resolvePreferredOptions } from '../add.ts';
 // ESM namespace exports can't be spied on
 vi.mock('@clack/prompts', async (importOriginal) => ({
 	...(await importOriginal<typeof import('@clack/prompts')>()),
-	select: vi.fn()
+	select: vi.fn(),
+	multiselect: vi.fn(),
+	autocompleteMultiselect: vi.fn()
 }));
 
 const select = vi.mocked(p.select);
-afterEach(() => select.mockReset());
+const multiselect = vi.mocked(p.multiselect);
+const autocomplete = vi.mocked(p.autocompleteMultiselect);
+afterEach(() => {
+	select.mockReset();
+	multiselect.mockReset();
+	autocomplete.mockReset();
+});
 
 const POSTGRES = { database: 'postgresql', postgresql: 'postgres.js', docker: false } as const;
 
@@ -174,5 +182,26 @@ describe('resolvePreferredOptions', () => {
 				parent('c', { database: 'postgresql' })
 			])
 		).toEqual({});
+	});
+});
+
+describe('add-on picker', () => {
+	it('adds [community] as the last option', async () => {
+		multiselect.mockResolvedValue([]);
+		await prompt([], {});
+		const options = multiselect.mock.calls[0][0].options;
+		expect(options.at(-1)).toEqual({
+			value: 'community',
+			label: '[community]',
+			hint: 'not reviewed by Svelte maintainers'
+		});
+	});
+
+	it('continues with official picks when [community] selects nothing', async () => {
+		multiselect.mockResolvedValue(['prettier', 'community']);
+		autocomplete.mockResolvedValue([]);
+		const { loadedAddons } = await prompt([], {});
+		expect(ids(loadedAddons)).toEqual(['prettier']);
+		expect(autocomplete).toHaveBeenCalledOnce();
 	});
 });

@@ -46,7 +46,8 @@ describe('promptCommunityAddons', () => {
 		expect(await promptCommunityAddons(list.slice(0, 1))).toEqual([
 			{ specifier: 'a', options: [] }
 		]);
-		expect(autocomplete.mock.calls[0][0].options[0]).toMatchObject({
+		const [{ options }] = autocomplete.mock.calls[0];
+		expect(Array.isArray(options) && options[0]).toMatchObject({
 			value: 'a',
 			label: 'a',
 			hint: 'A · 1.2K/wk'
