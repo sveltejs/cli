@@ -25,10 +25,10 @@ const addons = (
 		candidates.map(async ({ package: p, downloads }) => {
 			const res = await fetch(`https://registry.npmjs.org/${p.name}/latest`);
 			if (!res.ok) return;
-			/** @type {{ peerDependencies?: Record<string, string> }} */
+			/** @type {{ peerDependencies?: Record<string, string>, deprecated?: string }} */
 			const latest = await res.json();
 			const sv = latest.peerDependencies?.sv;
-			if (!sv) return;
+			if (!sv || latest.deprecated) return;
 			return {
 				name: p.name,
 				description: (p.description ?? '').replaceAll(REGEX_HTML_TAG, '').trim(),
