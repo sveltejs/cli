@@ -2,6 +2,7 @@ import process from 'node:process';
 import * as p from '@clack/prompts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getAddonDetails } from '../../addons/index.ts';
+import { compatibleCommunityAddons } from '../../core/community-addons.ts';
 import {
 	createLoadedAddon,
 	defineAddon,
@@ -22,6 +23,14 @@ vi.mock('@clack/prompts', async (importOriginal) => ({
 }));
 
 const select = vi.mocked(p.select);
+// a fixture, so a stale baked list (e.g. after an sv major bump) can't break these tests
+vi.mock('../../core/community-addons.ts', async (importOriginal) => ({
+	...(await importOriginal<typeof import('../../core/community-addons.ts')>()),
+	compatibleCommunityAddons: vi.fn(() => [
+		{ name: 'x', description: 'X', sv: '^1.0.0', downloads: 1 }
+	])
+}));
+
 const multiselect = vi.mocked(p.multiselect);
 const autocomplete = vi.mocked(p.autocompleteMultiselect);
 afterEach(() => {
@@ -195,6 +204,14 @@ describe('add-on picker', () => {
 			label: '[community]',
 			hint: 'not reviewed by Svelte maintainers'
 		});
+	});
+
+	it('hides [community] when no community add-on is compatible', async () => {
+		vi.mocked(compatibleCommunityAddons).mockReturnValueOnce([]);
+		multiselect.mockResolvedValue([]);
+		await prompt([], {});
+		const options = multiselect.mock.calls[0][0].options;
+		expect(options.some((o) => o.value === 'community')).toBe(false);
 	});
 
 	it('continues with official picks when [community] selects nothing', async () => {

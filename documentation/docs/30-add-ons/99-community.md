@@ -216,7 +216,7 @@ Your add-on must have `sv` as a peer dependency. Any `dependencies` declared wil
 
 ### Get listed in the CLI
 
-`sv add` and `sv create` let users pick community add-ons from a searchable list, sorted by weekly downloads. Your add-on is listed when it has the `sv-add` keyword and an `sv` peer dependency matching the user's `sv` major. The list is refreshed with each `sv` release.
+`sv add` and `sv create` let users pick community add-ons from a searchable list, sorted by weekly downloads. Your add-on is listed when it has the `sv-add` keyword and an `sv` peer dependency whose lowest version has the same major as the user's `sv` (`^0.13.0 || ^1.0.0` counts as `0`). The list ships with `sv`, so a new add-on shows up in a later release.
 
 ### Package names
 
