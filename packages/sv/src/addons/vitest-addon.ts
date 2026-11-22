@@ -23,7 +23,6 @@ let vitestV3Installed = false;
 
 const addon: Addon<AddonOptions<VitestOptions>, 'vitest'> = defineAddon({
 	id: ADDON_IDS.vitest,
-	name: 'Vitest',
 	shortDescription: 'unit testing',
 	homepage: 'https://vitest.dev',
 	options,

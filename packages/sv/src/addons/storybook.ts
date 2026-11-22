@@ -5,7 +5,6 @@ import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
 	id: ADDON_IDS.storybook,
-	name: 'Storybook',
 	shortDescription: 'frontend workshop',
 	homepage: 'https://storybook.js.org',
 	options: {},

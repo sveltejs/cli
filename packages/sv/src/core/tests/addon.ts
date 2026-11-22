@@ -75,11 +75,11 @@ describe('classifyAddons', () => {
 });
 
 describe('defineAddon', () => {
-	it('should default the name to the id', () => {
+	it('should default the name to the id in title case', () => {
 		const options = defineAddonOptions().build();
 		const run = () => {};
-		expect(defineAddon({ id: 'my-addon', options, run }).name).toBe('my-addon');
-		expect(defineAddon()({ id: 'my-addon', options, run }).name).toBe('my-addon');
+		expect(defineAddon({ id: 'my-addon', options, run }).name).toBe('My Addon');
+		expect(defineAddon()({ id: 'my-addon', options, run }).name).toBe('My Addon');
 		expect(defineAddon({ id: 'my-addon', name: 'My Add-on', options, run }).name).toBe('My Add-on');
 	});
 });

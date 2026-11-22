@@ -28,7 +28,6 @@ const options = defineAddonOptions<ExperimentalOptions>()
 
 const addon: Addon<AddonOptions<ExperimentalOptions>, 'experimental'> = defineAddon({
 	id: ADDON_IDS.experimental,
-	name: 'Experimental features',
 	shortDescription: 'svelte & kit experimental features',
 	homepage: 'https://svelte.dev/docs/kit/configuration#experimental',
 	options,

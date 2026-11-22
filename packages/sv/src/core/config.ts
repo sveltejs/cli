@@ -69,7 +69,7 @@ export type Addon<
 > = {
 	id: Id;
 	alias?: string;
-	/** display name for other tools (prompts show the id), e.g. `Tailwind CSS` for `tailwindcss`. Defaults to the id. */
+	/** display name for other tools (prompts show the id). Defaults to the id in title case, e.g. `Better Auth` for `better-auth`. */
 	name?: string;
 	/** one-liner shown in prompts  */
 	shortDescription?: string;
@@ -182,7 +182,10 @@ export function defineAddon(
 }
 
 function withName(config: AddonDefinition): AddonDefinition {
-	config.name ??= config.id;
+	config.name ??= config.id
+		.split('-')
+		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+		.join(' ');
 	return config;
 }
 

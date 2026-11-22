@@ -12,7 +12,6 @@ import { ADDON_IDS } from './ids.ts';
 
 export default defineAddon({
 	id: ADDON_IDS.prettier,
-	name: 'Prettier',
 	shortDescription: 'formatter',
 	homepage: 'https://prettier.io',
 	options: {},

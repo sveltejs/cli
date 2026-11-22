@@ -39,7 +39,6 @@ const options = defineAddonOptions<BetterAuthOptions>()
 
 const addon: Addon<AddonOptions<BetterAuthOptions>, 'better-auth'> = defineAddon({
 	id: ADDON_IDS.betterAuth,
-	name: 'Better Auth',
 	shortDescription: 'auth library',
 	homepage: 'https://www.better-auth.com',
 	options,

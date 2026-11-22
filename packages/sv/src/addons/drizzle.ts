@@ -94,7 +94,6 @@ const options = defineAddonOptions<DrizzleOptions>()
 
 const addon: Addon<AddonOptions<DrizzleOptions>, 'drizzle'> = defineAddon({
 	id: ADDON_IDS.drizzle,
-	name: 'Drizzle',
 	shortDescription: 'database orm',
 	homepage: 'https://orm.drizzle.team',
 	options,
