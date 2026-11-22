@@ -1,8 +1,7 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { officialAddons } from '../../addons/index.ts';
 import { classifyAddons } from '../../cli/add.ts';
-import { type AddonInput, getErrorHint } from '../config.ts';
+import { type AddonInput, defineAddon, defineAddonOptions, getErrorHint } from '../config.ts';
 
 const testCwd = '/test/project';
 
@@ -75,9 +74,12 @@ describe('classifyAddons', () => {
 	});
 });
 
-describe('officialAddons', () => {
-	it('should all have a display name', () => {
-		const unnamed = Object.values(officialAddons).filter((addon) => !addon.name);
-		expect(unnamed.map((addon) => addon.id)).toEqual([]);
+describe('defineAddon', () => {
+	it('should default the name to the id', () => {
+		const options = defineAddonOptions().build();
+		const run = () => {};
+		expect(defineAddon({ id: 'my-addon', options, run }).name).toBe('my-addon');
+		expect(defineAddon()({ id: 'my-addon', options, run }).name).toBe('my-addon');
+		expect(defineAddon({ id: 'my-addon', name: 'My Add-on', options, run }).name).toBe('My Add-on');
 	});
 });

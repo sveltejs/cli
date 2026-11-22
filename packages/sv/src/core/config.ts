@@ -69,7 +69,7 @@ export type Addon<
 > = {
 	id: Id;
 	alias?: string;
-	/** display name for other tools (prompts show the id), e.g. `Tailwind CSS` for `tailwindcss` */
+	/** display name for other tools (prompts show the id), e.g. `Tailwind CSS` for `tailwindcss`. Defaults to the id. */
 	name?: string;
 	/** one-liner shown in prompts  */
 	shortDescription?: string;
@@ -176,8 +176,13 @@ export function defineAddon(
 	config?: AddonDefinition
 ): AddonDefinition | ((config: AddonDefinition) => AddonDefinition) {
 	if (config === undefined) {
-		return (c) => c;
+		return withName;
 	}
+	return withName(config);
+}
+
+function withName(config: AddonDefinition): AddonDefinition {
+	config.name ??= config.id;
 	return config;
 }
 
