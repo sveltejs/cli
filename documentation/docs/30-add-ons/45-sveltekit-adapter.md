@@ -1,5 +1,5 @@
 ---
-title: sveltekit-adapter
+title: SvelteKit adapter
 ---
 
 [SvelteKit adapters](/docs/kit/adapters) allow you to deploy your site to numerous platforms. This add-on allows you to configure officially provided SvelteKit adapters, but a number of [community-provided adapters](https://www.sveltesociety.dev/packages?category=sveltekit-adapters) are also available.

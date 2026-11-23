@@ -55,20 +55,20 @@ Do not prompt to install dependencies.
 
 Official add-ons are developed and maintained in the [Svelte CLI repository](https://github.com/sveltejs/cli) by the Svelte team, and have been vetted for both quality and safety. The set is intentionally small — it covers widely used, best-in-class integrations, while everything else is published as a [community add-on](#Community-add-ons). Each add-on's page describes what it sets up and the options available for it.
 
-- [`ai-tools`](ai-tools)
-- [`better-auth`](better-auth)
-- [`devtools`](devtools)
-- [`drizzle`](drizzle)
-- [`enhanced-img`](enhanced-img)
-- [`eslint`](eslint)
-- [`mdsvex`](mdsvex)
-- [`paraglide`](paraglide)
-- [`playwright`](playwright)
-- [`prettier`](prettier)
-- [`storybook`](storybook)
-- [`sveltekit-adapter`](sveltekit-adapter)
-- [`tailwindcss`](tailwind)
-- [`vitest`](vitest)
+- [AI tools](ai-tools) (`ai-tools`)
+- [Better Auth](better-auth) (`better-auth`)
+- [DevTools](devtools) (`devtools`)
+- [Drizzle](drizzle) (`drizzle`)
+- [Enhanced images](enhanced-img) (`enhanced-img`)
+- [ESLint](eslint) (`eslint`)
+- [mdsvex](mdsvex) (`mdsvex`)
+- [Paraglide JS](paraglide) (`paraglide`)
+- [Playwright](playwright) (`playwright`)
+- [Prettier](prettier) (`prettier`)
+- [Storybook](storybook) (`storybook`)
+- [SvelteKit adapter](sveltekit-adapter) (`sveltekit-adapter`)
+- [Tailwind CSS](tailwind) (`tailwindcss`)
+- [Vitest](vitest) (`vitest`)
 
 ## Community add-ons
 

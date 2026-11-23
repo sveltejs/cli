@@ -1,5 +1,5 @@
 ---
-title: storybook
+title: Storybook
 ---
 
 [Storybook](https://storybook.js.org/) is a frontend component workshop.

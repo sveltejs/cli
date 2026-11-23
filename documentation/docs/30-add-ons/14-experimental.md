@@ -1,5 +1,5 @@
 ---
-title: experimental
+title: Experimental
 ---
 
 Enables experimental Svelte and [SvelteKit](https://svelte.dev/docs/kit/configuration#experimental) features.

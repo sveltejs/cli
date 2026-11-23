@@ -1,5 +1,5 @@
 ---
-title: vitest
+title: Vitest
 ---
 
 [Vitest](https://vitest.dev/) is a Vite-native testing framework.
