@@ -20,6 +20,7 @@ declare const ADDON_IDS: {
 	readonly playwright: 'playwright';
 	readonly tailwindcss: 'tailwindcss';
 	readonly enhancedImg: 'enhanced-img';
+	readonly devtools: 'devtools';
 	readonly sveltekitAdapter: 'sveltekit-adapter';
 	readonly drizzle: 'drizzle';
 	readonly betterAuth: 'better-auth';
@@ -131,6 +132,35 @@ type AiToolsOptions = {
 type BetterAuthOptions = {
 	demo: Array<'password' | 'github'>;
 };
+declare const plugins: readonly [
+	{
+		readonly id: 'rolldown';
+		readonly preselected: true;
+		readonly package: '@vitejs/devtools-rolldown';
+		readonly version: '^0.8.3';
+	},
+	{
+		readonly id: 'vite';
+		readonly preselected: true;
+		readonly package: '@vitejs/devtools-vite';
+		readonly version: '^0.8.3';
+	},
+	{
+		readonly id: 'vitest';
+		readonly preselected: true;
+		readonly package: '@vitejs/devtools-vitest';
+		readonly version: '^0.8.3';
+	},
+	{
+		readonly id: 'oxc';
+		readonly preselected: false;
+		readonly package: '@vitejs/devtools-oxc';
+		readonly version: '^0.8.3';
+	}
+];
+type DevtoolsOptions = {
+	plugins: Array<(typeof plugins)[number]['id']>;
+};
 type Database = 'mysql' | 'postgresql' | 'sqlite' | 'd1';
 type DrizzleOptions = {
 	database: Database;
@@ -226,6 +256,7 @@ type OfficialAddons = {
 	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
 	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
 	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
+	[ADDON_IDS.devtools]: Addon<AddonOptions<DevtoolsOptions>, typeof ADDON_IDS.devtools>;
 	[ADDON_IDS.sveltekitAdapter]: Addon<
 		AddonOptions<SveltekitAdapterOptions>,
 		typeof ADDON_IDS.sveltekitAdapter
