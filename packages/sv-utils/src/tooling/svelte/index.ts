@@ -96,9 +96,14 @@ export function addFragment(
 	const source = options?.language === 'ts' ? `<script lang="ts"></script>${content}` : content;
 	const { ast: fragmentAst } = parseSvelte(source);
 
+	// Separate added nodes with a newline so they aren't printed as `<p>a</p><b>x</b>`.
+	// Don't do this inside an element. Otherwise, the whitespace would show on the user's page.
+	const separator: SvelteAst.Text[] =
+		ast.type === 'Root' ? [{ type: 'Text', data: '\n', raw: '\n', start: 0, end: 0 }] : [];
+
 	if (options?.mode === 'prepend') {
-		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes);
+		ast.fragment.nodes.unshift(...fragmentAst.fragment.nodes, ...separator);
 	} else {
-		ast.fragment.nodes.push(...fragmentAst.fragment.nodes);
+		ast.fragment.nodes.push(...separator, ...fragmentAst.fragment.nodes);
 	}
 }
