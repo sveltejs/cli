@@ -25,7 +25,7 @@ import { defineAddon, defineAddonOptions } from 'sv';
 export default defineAddon({
 	id: 'addon-name',
 
-	// optional, for tools that list add-ons (defaults to the id in title case)
+	// optional, for tools that list add-ons (defaults to the `id` in title case)
 	name: 'Cool Addon Name',
 
 	shortDescription: 'a better description of what your addon does ;)',
