@@ -42,8 +42,7 @@ export type SvApi = {
 	 * For each matching file, the `edit` callback is called with the file content,
 	 * and should return the new content (or `false` to abort editing that file).
 	 *
-	 * Note: always adds excludes for `node_modules` and dot-prefixed directories, except `.storybook`.
-	 * A `**` pattern does not enter dot-prefixed directories, so include `.storybook` explicitly.
+	 * Note: always adds excludes for `node_modules` and dot-prefixed directories (except `.storybook`).
 	 */
 	files: (
 		options: {
