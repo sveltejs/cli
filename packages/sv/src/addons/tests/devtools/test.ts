@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { isVersionUnsupportedBelow, minVersion } from '@sveltejs/sv-utils';
 import devtools, { plugins } from '../../devtools.ts';
 import { setupTest } from '../_setup/suite.ts';
 
@@ -32,6 +33,26 @@ test.concurrent.for(testCases)('devtools $variant', (testCase, { expect, ...ctx 
 		const assertion = expect(pkg.devDependencies);
 		if (selected) assertion.toHaveProperty(plugin.package, plugin.version);
 		else assertion.not.toHaveProperty(plugin.package);
+	}
+
+	// host projects are bumped to the devtools requirements:
+	// https://github.com/sveltejs/vite-devtools-svelte#requirements
+	const isKit = testCase.variant.startsWith('kit');
+	const requirements: Array<[string, string]> = [
+		['vite', '8.3.5'],
+		['svelte', '5.46.4']
+	];
+	if (isKit) requirements.push(['@sveltejs/kit', '3.3.0']);
+	for (const [name, required] of requirements) {
+		const range = pkg.devDependencies[name];
+		expect(range, `expected '${name}' to be declared`).toBeDefined();
+		expect(
+			isVersionUnsupportedBelow(minVersion(range), required),
+			`'${name}': '${range}' does not satisfy >= ${required}`
+		).toBe(false);
+	}
+	if (!isKit) {
+		expect(pkg.devDependencies).not.toHaveProperty('@sveltejs/kit');
 	}
 	expect(source).not.toContain(`import { DevTools } from '@vitejs/devtools'`);
 	expect(source).toContain(`import { svelteDevtools } from '@sveltejs/vite-devtools-svelte'`);
