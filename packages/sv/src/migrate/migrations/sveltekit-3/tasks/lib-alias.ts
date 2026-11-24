@@ -26,7 +26,10 @@ export default defineMigrationTask({
 
 		sv.files(
 			{
-				include: `**/*.{svelte,svelte.ts,svelte.js,ts,js,svx,md}`,
+				include: [
+					`**/*.{svelte,svelte.ts,svelte.js,ts,js,svx,md}`,
+					`**/.storybook/**/*.{svelte,svelte.ts,svelte.js,ts,js,svx,md}`
+				],
 				where: (content) => content.includes('$lib')
 			},
 			(content, file) => {

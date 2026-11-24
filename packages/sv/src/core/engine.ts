@@ -426,8 +426,9 @@ export function prepareSvApi(
 				exclude: [
 					'node_modules/**',
 					'**/node_modules/**',
-					'.*/**',
-					'**/.*/**',
+					// skip dot folders, except `.storybook`, which imports project code
+					'.!(storybook)/**',
+					'**/.!(storybook)/**',
 					'build/**',
 					'dist/**',
 					...(options.additionalExcludes ?? []),
