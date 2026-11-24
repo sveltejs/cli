@@ -1,5 +1,11 @@
 # @sveltejs/sv-utils
 
+## 1.1.4
+
+### Patch Changes
+
+- fix: bump svelte to 5.58.1 so printed components keep their original whitespace ([#1493](https://github.com/sveltejs/cli/pull/1493))
+
 ## 1.1.3
 
 ### Patch Changes

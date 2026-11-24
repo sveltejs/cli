@@ -1,5 +1,15 @@
 # sv
 
+## 1.7.1
+
+### Patch Changes
+
+- feat(create): add `.cloudflare` to the template `.gitignore` ([#1504](https://github.com/sveltejs/cli/pull/1504))
+
+- fix(migrate): `sveltekit-3` now rewrites `$lib` imports in `.storybook/` ([#1507](https://github.com/sveltejs/cli/pull/1507))
+- Updated dependencies [[`6fac741`](https://github.com/sveltejs/cli/commit/6fac7411c26343a324a8348fbe806ade939c54eb)]:
+  - @sveltejs/sv-utils@1.1.4
+
 ## 1.7.0
 
 ### Minor Changes
