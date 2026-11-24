@@ -25,7 +25,7 @@ for (const migrationDirectory of migrationDirectories) {
 				const cwd = path.join(baseDir, migrationDirectory, testsDirectoryName, testName);
 
 				// cleanup old test run by deleting old actual files
-				const oldActualFiles = fs.globSync('**/*.actual.*', { cwd });
+				const oldActualFiles = fs.globSync(withDotFolders('**/*.actual.*'), { cwd });
 				for (const oldActualFile of oldActualFiles) {
 					fs.rmSync(path.join(cwd, oldActualFile));
 				}
@@ -65,7 +65,7 @@ for (const migrationDirectory of migrationDirectories) {
 					throw new Error('No files were modified by the migration.');
 				}
 
-				const remainingSnapshotFiles = fs.globSync('**/*.snapshot.*', { cwd });
+				const remainingSnapshotFiles = fs.globSync(withDotFolders('**/*.snapshot.*'), { cwd });
 
 				// compare modified files against snapshots
 				for (const file of modifiedFiles) {
@@ -101,7 +101,7 @@ for (const migrationDirectory of migrationDirectories) {
 function copyTemplateFiles(dir: string) {
 	if (!fs.existsSync(dir)) return;
 
-	const templateFiles = fs.globSync('**/*.template.*', {
+	const templateFiles = fs.globSync(withDotFolders('**/*.template.*'), {
 		cwd: dir,
 		exclude: ['node_modules/**', '**/node_modules/**']
 	});
@@ -110,6 +110,11 @@ function copyTemplateFiles(dir: string) {
 		const targetFile = templateFile.replace('.template.', '.');
 		fs.copyFileSync(path.join(dir, templateFile), path.join(dir, targetFile));
 	}
+}
+
+/** `**` does not enter dot folders, but fixtures can live in one, such as `.storybook`. */
+function withDotFolders(pattern: string) {
+	return [pattern, `**/.*/${pattern}`];
 }
 
 function getFileNames(dir: string) {
