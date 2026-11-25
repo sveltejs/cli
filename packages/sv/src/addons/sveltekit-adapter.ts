@@ -19,7 +19,7 @@ const adapters = [
 	{ id: 'bun', package: '@sveltejs/adapter-bun', version: '^1.0.1' },
 	{ id: 'static', package: '@sveltejs/adapter-static', version: '^4.0.1' },
 	{ id: 'vercel', package: '@sveltejs/adapter-vercel', version: '^7.0.3' },
-	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^8.0.2' },
+	{ id: 'cloudflare', package: '@sveltejs/adapter-cloudflare', version: '^9.0.0' },
 	{ id: 'netlify', package: '@sveltejs/adapter-netlify', version: '^7.0.1' }
 ] as const;
 type AdapterId = (typeof adapters)[number]['id'];
@@ -47,7 +47,11 @@ const options = defineAddonOptions<SveltekitAdapterOptions>()
 		default: 'workers',
 		options: [
 			{ value: 'workers', label: 'Workers', hint: 'Recommended way to deploy to Cloudflare' },
-			{ value: 'pages', label: 'Pages' }
+			{
+				value: 'pages',
+				label: color.error('Pages'),
+				hint: 'Legacy — no longer supported by the latest adapter (v9)'
+			}
 		]
 	})
 	.build();
@@ -131,6 +135,8 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 		}
 
 		if (adapter.package === '@sveltejs/adapter-cloudflare') {
+			/** The last adapter-cloudflare major that still supports Cloudflare Pages. v9 dropped it. */
+			if (options.cfTarget === 'pages') sv.devDependency(adapter.package, '^8.0.2');
 			sv.devDependency('wrangler', '^4.162.0');
 
 			if (packageManager === 'pnpm') {
@@ -164,17 +170,23 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 					data.compatibility_flags.push('nodejs_als');
 				}
 
+				const isBuildOutputPath = (value: unknown): boolean =>
+					typeof value === 'string' &&
+					value.replaceAll('\\', '/').includes('.svelte-kit/cloudflare');
+
 				switch (options.cfTarget) {
 					case 'workers':
-						data.main = '.svelte-kit/cloudflare/_worker.js';
-						data.assets ??= {};
-						data.assets.binding = 'ASSETS';
-						data.assets.directory = '.svelte-kit/cloudflare';
-						data.workers_dev = true;
-						data.preview_urls = true;
+						if (isBuildOutputPath(data.assets?.directory)) delete data.assets.directory;
+						if (isBuildOutputPath(data.main)) delete data.main;
+
+						delete data.pages_build_output_dir;
+						data.workers_dev ??= true;
+						data.preview_urls ??= true;
 						break;
 
 					case 'pages':
+						if (isBuildOutputPath(data.assets?.directory)) delete data.assets;
+						if (isBuildOutputPath(data.main)) delete data.main;
 						data.pages_build_output_dir = '.svelte-kit/cloudflare';
 						break;
 				}
@@ -199,7 +211,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 
 					data.scripts.preview =
 						options.cfTarget === 'workers'
-							? 'wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173'
+							? 'vite build && wrangler dev --port 4173'
 							: 'wrangler pages dev .svelte-kit/cloudflare --port 4173';
 				})
 			);
@@ -210,12 +222,21 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 			}
 		}
 	},
-	nextSteps({ options, packageManager }) {
+	nextSteps({ options, packageManager, cwd }) {
 		const steps: string[] = [];
 		if (options.adapter === 'cloudflare') {
 			steps.push(
 				`Run ${color.command(resolveCommandArray(packageManager, 'run', ['gen']))} to update ${color.addon('cloudflare')} types`
 			);
+			if (options.cfTarget === 'pages') {
+				steps.push(
+					`Cloudflare Pages is legacy — consider migrating to Workers: ${color.website('https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/')}`
+				);
+			} else if (fileExists(cwd, '_routes.json')) {
+				steps.push(
+					`A \`_routes.json\` from a Cloudflare Pages setup was found — it is no longer used when deploying to Workers. Delete it and switch your CI to Workers Builds: ${color.website('https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/')}`
+				);
+			}
 		}
 		return steps;
 	}

@@ -38,3 +38,5 @@ Whether to deploy to Cloudflare Workers or Pages. Only available for `cloudflare
 ```sh
 npx sv add sveltekit-adapter="adapter:cloudflare+cfTarget:workers"
 ```
+
+Workers is the recommended way to deploy to Cloudflare. **Pages is legacy**: it no longer receives new features from Cloudflare and [`@sveltejs/adapter-cloudflare`](/docs/kit/adapter-cloudflare) v9 does not support it. Choosing Pages warns and pins the adapter to v8 (the last major that supports Pages) — including rolling back a v9 install. See [Cloudflare's Pages → Workers migration guide](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/).
