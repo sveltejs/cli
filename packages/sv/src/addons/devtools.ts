@@ -34,11 +34,19 @@ const addon: Addon<AddonOptions<DevtoolsOptions>, 'devtools'> = defineAddon({
 	setup: ({ runsAfter }) => {
 		runsAfter(ADDON_IDS.vitest);
 	},
-	run: ({ sv, file, options }) => {
+	run: ({ sv, file, options, dependencyVersion }) => {
 		sv.devDependency('@vitejs/devtools', '^0.8.3');
 		sv.devDependency('@sveltejs/vite-devtools-svelte', '^0.11.0');
 		for (const plugin of plugins.filter((p) => options.plugins.includes(p.id))) {
 			sv.devDependency(plugin.package, plugin.version);
+		}
+
+		// requirements: https://github.com/sveltejs/vite-devtools-svelte#requirements
+		sv.devDependency('vite', '^8.3.5');
+		sv.devDependency('svelte', '^5.46.4');
+		// SvelteKit is optional for the devtools
+		if (dependencyVersion('@sveltejs/kit')) {
+			sv.devDependency('@sveltejs/kit', '^3.3.0');
 		}
 
 		sv.file(
