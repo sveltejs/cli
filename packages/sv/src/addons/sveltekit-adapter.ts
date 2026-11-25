@@ -222,7 +222,7 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 			}
 		}
 	},
-	nextSteps({ options, packageManager }) {
+	nextSteps({ options, packageManager, cwd }) {
 		const steps: string[] = [];
 		if (options.adapter === 'cloudflare') {
 			steps.push(
@@ -231,6 +231,10 @@ const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> =
 			if (options.cfTarget === 'pages') {
 				steps.push(
 					`Cloudflare Pages is legacy — consider migrating to Workers: ${color.website('https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/')}`
+				);
+			} else if (fileExists(cwd, '_routes.json')) {
+				steps.push(
+					`A \`_routes.json\` from a Cloudflare Pages setup was found — it is no longer used when deploying to Workers. Delete it and switch your CI to Workers Builds: ${color.website('https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/')}`
 				);
 			}
 		}

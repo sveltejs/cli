@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect } from 'vitest';
 import sveltekitAdapter from '../../sveltekit-adapter.ts';
@@ -70,6 +71,37 @@ const { test, testCases } = setupTest(
 		}
 	}
 );
+
+test('nextSteps flag a leftover Pages `_routes.json` when deploying to Workers', ({
+	expect: vExpect
+}) => {
+	const withRoutes = mkdtempSync(join(tmpdir(), 'sv-adapter-'));
+	writeFileSync(join(withRoutes, '_routes.json'), '{}');
+	const steps = sveltekitAdapter.nextSteps?.({
+		packageManager: 'pnpm',
+		cwd: withRoutes,
+		options: { adapter: 'cloudflare', cfTarget: 'workers' }
+	} as never);
+	vExpect(steps?.join('\n')).toContain('_routes.json');
+	vExpect(steps?.join('\n')).toContain('migrate-from-pages');
+
+	const withoutRoutes = mkdtempSync(join(tmpdir(), 'sv-adapter-'));
+	const clean = sveltekitAdapter.nextSteps?.({
+		packageManager: 'pnpm',
+		cwd: withoutRoutes,
+		options: { adapter: 'cloudflare', cfTarget: 'workers' }
+	} as never);
+	vExpect(clean?.join('\n')).not.toContain('_routes.json');
+
+	// Pages deployments still use `_routes.json`, so only the legacy nudge applies
+	const pages = sveltekitAdapter.nextSteps?.({
+		packageManager: 'pnpm',
+		cwd: withRoutes,
+		options: { adapter: 'cloudflare', cfTarget: 'pages' }
+	} as never);
+	vExpect(pages?.join('\n')).toContain('Cloudflare Pages is legacy');
+	vExpect(pages?.join('\n')).not.toContain('_routes.json');
+});
 
 test.concurrent.for(testCases)('adapter $kind.type $variant', (testCase, { ...ctx }) => {
 	const cwd = ctx.cwd(testCase);
