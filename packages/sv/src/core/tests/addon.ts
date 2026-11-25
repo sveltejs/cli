@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { classifyAddons } from '../../cli/add.ts';
-import { type AddonInput, getErrorHint } from '../config.ts';
+import { type AddonInput, defineAddon, defineAddonOptions, getErrorHint } from '../config.ts';
 
 const testCwd = '/test/project';
 
@@ -71,5 +71,15 @@ describe('classifyAddons', () => {
 
 		const [npm] = classifyAddons([{ specifier: '@supacool', options: [] }], testCwd);
 		expect(getErrorHint(npm.source)).toContain('npmjs.com');
+	});
+});
+
+describe('defineAddon', () => {
+	it('should default the name to the id in title case', () => {
+		const options = defineAddonOptions().build();
+		const run = () => {};
+		expect(defineAddon({ id: 'my-addon', options, run }).name).toBe('My Addon');
+		expect(defineAddon()({ id: 'my-addon', options, run }).name).toBe('My Addon');
+		expect(defineAddon({ id: 'my-addon', name: 'My Add-on', options, run }).name).toBe('My Add-on');
 	});
 });

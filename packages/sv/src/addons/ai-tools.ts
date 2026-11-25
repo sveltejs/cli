@@ -270,6 +270,7 @@ const options = defineAddonOptions<AiToolsOptions>()
 
 const addon: Addon<AddonOptions<AiToolsOptions>, 'ai-tools'> = defineAddon({
 	id: ADDON_IDS.aiTools,
+	name: 'AI tools',
 	shortDescription: 'Svelte AI tools',
 	homepage: 'https://svelte.dev/docs/ai',
 	options,

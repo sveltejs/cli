@@ -11,6 +11,7 @@ function escapeRegex(value: string) {
 
 export default defineAddon({
 	id: ADDON_IDS.enhancedImg,
+	name: 'Enhanced images',
 	shortDescription: 'image optimization',
 	homepage: 'https://svelte.dev/docs/kit/images',
 	options: {},

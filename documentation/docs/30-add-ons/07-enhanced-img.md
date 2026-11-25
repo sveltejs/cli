@@ -1,5 +1,5 @@
 ---
-title: enhanced-img
+title: Enhanced images
 ---
 
 [`@sveltejs/enhanced-img`](https://svelte.dev/docs/kit/images) serves smaller file formats like `avif` or `webp`, generates the right sizes for different devices, and sets `width` and `height` to avoid layout shift.

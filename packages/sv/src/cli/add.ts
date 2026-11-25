@@ -474,7 +474,7 @@ async function promptQuestionsForAddons(
 	for (const loaded of addons) {
 		const addon = loaded.addon;
 		const addonId = addon.id;
-		const questionPrefix = withPrefix ? `${addonId}: ` : '';
+		const questionPrefix = withPrefix ? `${addon.name ?? addonId}: ` : '';
 
 		answers[addonId] ??= {};
 		const values = answers[addonId];
@@ -684,8 +684,8 @@ export async function promptAddonQuestions({
 		const addonOptions = officialAddons
 			// only display supported addons relative to the current environment
 			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
-			.map(({ id, homepage, shortDescription }) => ({
-				label: id,
+			.map(({ id, name, homepage, shortDescription }) => ({
+				label: name ?? id,
 				value: id,
 				hint: `${shortDescription} - ${homepage}`
 			}));

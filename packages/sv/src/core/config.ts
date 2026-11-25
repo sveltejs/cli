@@ -68,12 +68,15 @@ export type Addon<
 	Setup extends Record<string, unknown> = Record<string, unknown>
 > = {
 	id: Id;
+	/** can be used in place of `id` */
 	alias?: string;
+	/** User friendly name. Defaults to the `id` in title case. (e.g. `better-auth` to `Better Auth`) */
+	name?: string;
 	/** one-liner shown in prompts  */
 	shortDescription?: string;
 	/** link to docs/repo */
 	homepage?: string;
-	/** If true, this addon won't appear in the interactive prompt but can still be used via CLI */
+	/** If true, this addon won't appear in the interactive prompt but can still be used via CLI. */
 	hidden?: boolean;
 	options: Args;
 	/** Setup the addon. Will be called before the addon is run. */
@@ -174,8 +177,16 @@ export function defineAddon(
 	config?: AddonDefinition
 ): AddonDefinition | ((config: AddonDefinition) => AddonDefinition) {
 	if (config === undefined) {
-		return (c) => c;
+		return withName;
 	}
+	return withName(config);
+}
+
+function withName(config: AddonDefinition): AddonDefinition {
+	config.name ??= config.id
+		.split('-')
+		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+		.join(' ');
 	return config;
 }
 

@@ -1,5 +1,5 @@
 ---
-title: prettier
+title: Prettier
 ---
 
 [Prettier](https://prettier.io) is an opinionated code formatter.

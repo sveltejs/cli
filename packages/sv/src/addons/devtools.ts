@@ -28,6 +28,7 @@ const options = defineAddonOptions<DevtoolsOptions>()
 
 const addon: Addon<AddonOptions<DevtoolsOptions>, 'devtools'> = defineAddon({
 	id: ADDON_IDS.devtools,
+	name: 'DevTools',
 	shortDescription: 'Vite and Svelte development tools',
 	homepage: 'https://github.com/sveltejs/vite-devtools-svelte',
 	options,

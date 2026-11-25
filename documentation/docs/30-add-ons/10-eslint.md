@@ -1,5 +1,5 @@
 ---
-title: eslint
+title: ESLint
 ---
 
 [ESLint](https://eslint.org/) finds and fixes problems in your code.

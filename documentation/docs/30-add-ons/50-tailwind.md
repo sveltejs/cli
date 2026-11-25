@@ -1,5 +1,5 @@
 ---
-title: tailwindcss
+title: Tailwind CSS
 ---
 
 [Tailwind CSS](https://tailwindcss.com/) allows you to rapidly build modern websites without ever leaving your HTML.

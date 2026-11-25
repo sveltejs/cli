@@ -1,5 +1,5 @@
 ---
-title: playwright
+title: Playwright
 ---
 
 [Playwright](https://playwright.dev) browser testing.

@@ -1,5 +1,5 @@
 ---
-title: paraglide
+title: Paraglide JS
 ---
 
 [Paraglide from Inlang](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) is a compiler-based i18n library that emits tree-shakable message functions with small bundle sizes, no async waterfalls, full type-safety, and more.

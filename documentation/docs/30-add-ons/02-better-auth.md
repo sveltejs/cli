@@ -1,5 +1,5 @@
 ---
-title: better-auth
+title: Better Auth
 ---
 
 [Better Auth](https://www.better-auth.com/) is a framework-agnostic authentication library for TypeScript.

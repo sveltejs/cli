@@ -55,6 +55,7 @@ const options = defineAddonOptions<SveltekitAdapterOptions>()
 const addon: Addon<AddonOptions<SveltekitAdapterOptions>, 'sveltekit-adapter'> = defineAddon({
 	id: ADDON_IDS.sveltekitAdapter,
 	alias: 'adapter',
+	name: 'SvelteKit adapter',
 	shortDescription: 'deployment',
 	homepage: 'https://svelte.dev/docs/kit/adapters',
 	options,

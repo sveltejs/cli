@@ -1,5 +1,5 @@
 ---
-title: drizzle
+title: Drizzle
 ---
 
 [Drizzle ORM](https://orm.drizzle.team/) is a TypeScript ORM offering both relational and SQL-like query APIs, and which is serverless-ready by design.
