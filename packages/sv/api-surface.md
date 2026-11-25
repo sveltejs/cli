@@ -229,7 +229,7 @@ declare const adapters: readonly [
 	{
 		readonly id: 'cloudflare';
 		readonly package: '@sveltejs/adapter-cloudflare';
-		readonly version: '^8.0.2';
+		readonly version: '^9.0.0';
 	},
 	{
 		readonly id: 'netlify';
