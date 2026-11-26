@@ -1,23 +1,29 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as walk from 'empathic/walk';
 import { isNodeError } from '../core/common.ts';
 
 /**
- * @returns an absolute path to the `dist` directory
- * containing templates and add-on content
- *
- * this function can be called during runtime or devtime
+ * directory containing `package.json` — works whether the code is run from
+ * source, bundled into `dist/`, or consumed from `node_modules` by a template
  */
-const resolve_dist_dir = (): string => {
-	const root = walk
-		.up(import.meta.dirname)
-		.find((dir) => fs.existsSync(path.join(dir, 'package.json')));
-	if (!root) throw new Error('could not locate package.json');
-	return path.join(root, 'dist');
+const find_sv_root = (): string => {
+	const rootDir = walk
+		.up(path.dirname(fileURLToPath(import.meta.url)))
+		.find((currentDir) => fs.existsSync(path.join(currentDir, 'package.json')));
+
+	if (!rootDir) throw new Error('Could not locate package.json');
+	return rootDir;
 };
 
-export const dist_dir = resolve_dist_dir();
+/**
+ * absolute path to the `dist` directory
+ * containing templates, add-ons and shared files
+ *
+ * can be used during runtime or devtime
+ */
+export const dist_dir = path.join(find_sv_root(), 'dist');
 
 export function mkdirp(dir: string): void {
 	try {
