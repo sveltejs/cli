@@ -1,0 +1,356 @@
+[
+	{
+		"name": "vite-plugin-checker",
+		"description": "Vite plugin that runs TypeScript type checker on a separate process.",
+		"sv": "^1.3.0",
+		"downloads": 5940880
+	},
+	{
+		"name": "@master/css-svelte-addon",
+		"description": "Svelte CLI add-on for Master CSS",
+		"sv": "^1.1.1",
+		"downloads": 914
+	},
+	{
+		"name": "vite-plugin-svelte-md",
+		"description": "Vite plugin to convert markdown to svelte template",
+		"sv": "*",
+		"downloads": 776
+	},
+	{
+		"name": "@nerdwerk/sv",
+		"description": "sveet for the Svelte CLI: bunx sv create my-app --add @nerdwerk",
+		"sv": "^1.7.0",
+		"downloads": 752
+	},
+	{
+		"name": "@shadcn-svelte/registry",
+		"description": "sv add-on that scaffolds a shadcn-svelte custom registry template",
+		"sv": "^0.16.6",
+		"downloads": 221
+	},
+	{
+		"name": "@ikarii/eudora",
+		"description": "Installs Eudora, the SvelteKit-native design-system studio, with the Svelte CLI: npx sv add @ikarii/eudora",
+		"sv": "^1.1.1",
+		"downloads": 220
+	},
+	{
+		"name": "@the-vcsi/msgraph",
+		"description": "sv CLI add-on for Microsoft Graph / SharePoint integration",
+		"sv": "^0.13.0 || ^1.0.0",
+		"downloads": 217
+	},
+	{
+		"name": "@sjsf/sv",
+		"description": "sv add-on for svelte-jsonschema-form",
+		"sv": "^1.0.1",
+		"downloads": 216
+	},
+	{
+		"name": "@the-vcsi/scrolly-skills",
+		"description": "sv CLI add-on — Claude Code skills for scrolly-kit and Svelte 5",
+		"sv": "^0.13.0 || ^1.0.0",
+		"downloads": 203
+	},
+	{
+		"name": "@the-vcsi/openalex",
+		"description": "sv CLI add-on for OpenAlex academic data integration",
+		"sv": "^0.13.0 || ^1.0.0",
+		"downloads": 198
+	},
+	{
+		"name": "@urbicon-ui/sv",
+		"description": "Svelte CLI (sv) community add-on for Urbicon UI — installs the blocks library and the urbicon CLI, wires the Tailwind 4 stylesheet, and hands over to the design-loop onboarding.",
+		"sv": "^1.1.1",
+		"downloads": 141
+	},
+	{
+		"name": "@svgrid/sv",
+		"description": "Svelte CLI add-on for SvGrid: npx sv add @svgrid",
+		"sv": "^1.0.0",
+		"downloads": 34
+	},
+	{
+		"name": "@svforge/email",
+		"description": "SVForge Email — transactional emails via Resend",
+		"sv": "^1.1.0",
+		"downloads": 33
+	},
+	{
+		"name": "@svforge/uploads",
+		"description": "SVForge Uploads — file uploads to S3/R2",
+		"sv": "^1.1.0",
+		"downloads": 32
+	},
+	{
+		"name": "svforge",
+		"description": "Production-ready foundations for SvelteKit projects with Skeleton UI, Tailwind CSS, Better Auth, and Drizzle ORM",
+		"sv": "^1.1.0",
+		"downloads": 26
+	},
+	{
+		"name": "@datf/sveltekit-github-pages-config-dockerized",
+		"description": "sv add-on for @datf/sveltekit-github-pages-config-dockerized",
+		"sv": "^0.17.0",
+		"downloads": 22
+	},
+	{
+		"name": "@kitql/sv",
+		"description": "sv add-on for KitQL",
+		"sv": "^0.13.0",
+		"downloads": 19
+	},
+	{
+		"name": "@svforge/oauth",
+		"description": "SVForge OAuth — social auth (Google, GitHub)",
+		"sv": "^1.1.0",
+		"downloads": 19
+	},
+	{
+		"name": "@svforge/blog",
+		"description": "SVForge Blog — MDsveX blog with posts list and article pages",
+		"sv": "^1.1.0",
+		"downloads": 18
+	},
+	{
+		"name": "@sv-addon/animotion",
+		"description": "sv add-on for Animotion presentations",
+		"sv": "^0.17.0",
+		"downloads": 18
+	},
+	{
+		"name": "@svforge/jobs",
+		"description": "SVForge Jobs — background job foundation (encapsulated backend, retry, progress)",
+		"sv": "^1.1.0",
+		"downloads": 17
+	},
+	{
+		"name": "@svforge/realtime",
+		"description": "SVForge Realtime — generic WebSocket transport (publish/subscribe)",
+		"sv": "^1.1.0",
+		"downloads": 17
+	},
+	{
+		"name": "svelte-dialect",
+		"description": "Svelte 5 and SvelteKit i18n on MessageFormat 2 (MF2): runes, typed message keys, locale in the URL, SSR-safe per-request locale detection, lazy-loaded translations, rich text",
+		"sv": "^1.1.1",
+		"downloads": 16
+	},
+	{
+		"name": "@svelte-atproto/sv",
+		"description": "sv add-on that scaffolds @svelte-atproto/oauth into a SvelteKit project. Run `npx sv add @svelte-atproto`.",
+		"sv": "^1.1.1",
+		"downloads": 16
+	},
+	{
+		"name": "@nvl/sv-sveltex",
+		"description": "Community sv add-on for SvelTeX (Svelte + Markdown + LaTeX)",
+		"sv": "^0.15.0",
+		"downloads": 14
+	},
+	{
+		"name": "@svforge/dnd",
+		"description": "SVForge Drag & Drop — sortable lists via @thisux/sveltednd",
+		"sv": "^1.1.0",
+		"downloads": 13
+	},
+	{
+		"name": "@sveltekit-i18n/sv",
+		"description": "Svelte CLI add-on that sets sveltekit-i18n up in a SvelteKit project: npx sv add @sveltekit-i18n",
+		"sv": "^1.1.1",
+		"downloads": 13
+	},
+	{
+		"name": "@leonardotavares20/sv-addon-teste-leodsf",
+		"description": "Add-on do sv que baixa um conjunto de componentes .svelte prontos para o projeto",
+		"sv": "^0.17.0",
+		"downloads": 13
+	},
+	{
+		"name": "@svforge/graph",
+		"description": "SVForge Graph — interactive knowledge graph / node-edge visualization (Obsidian-style)",
+		"sv": "^1.1.0",
+		"downloads": 12
+	},
+	{
+		"name": "svelte-ws",
+		"description": "WebSocket remote functions for SvelteKit: realtime streams and mutations in *.socket.ts over one multiplexed WebSocket. Works in vite dev; Bun and Node adapters, a pub/sub bus with a Redis recipe.",
+		"sv": "^1.0.0",
+		"downloads": 12
+	},
+	{
+		"name": "@natoboram/sv-kysely",
+		"description": "sv add-on for kysely",
+		"sv": "^0.17.1",
+		"downloads": 11
+	},
+	{
+		"name": "@hyzer-labs/sv",
+		"description": "Svelte CLI add-on for @hyzer-labs/ui — install, wire the stylesheets, scaffold hyzer.config.ts",
+		"sv": "^0.17.0",
+		"downloads": 10
+	},
+	{
+		"name": "@sv-addon/svelte-meta-tags",
+		"description": "sv add-on for svelte-meta-tags SEO component",
+		"sv": "^0.17.0",
+		"downloads": 10
+	},
+	{
+		"name": "@svforge/chat",
+		"description": "SVForge Chat — composable app chat (conversations, messages, read-state)",
+		"sv": "^1.1.0",
+		"downloads": 9
+	},
+	{
+		"name": "@svforge/ui_toast",
+		"description": "SVForge Toast — notification toasts via Skeleton UI",
+		"sv": "^1.1.0",
+		"downloads": 9
+	},
+	{
+		"name": "@svforge/tiptap",
+		"description": "SVForge Tiptap — rich text editor with toolbar and preview",
+		"sv": "^1.1.0",
+		"downloads": 9
+	},
+	{
+		"name": "@msw/sveltekit",
+		"description": "SvelteKit add-on for Mock Service Worker",
+		"sv": "^0.13.0",
+		"downloads": 9
+	},
+	{
+		"name": "@houdinigraphql/sv",
+		"description": "sv add-on for @houdinigraphql/sv",
+		"sv": "^0.16.2",
+		"downloads": 9
+	},
+	{
+		"name": "@svforge/audit",
+		"description": "SVForge Audit — business action audit trail (append-only)",
+		"sv": "^1.1.0",
+		"downloads": 8
+	},
+	{
+		"name": "@sepagian/sv-unocss",
+		"description": "sv add-on for @sepagian/sv-unocss",
+		"sv": "latest",
+		"downloads": 8
+	},
+	{
+		"name": "@fernando.mema/sv-prisma",
+		"description": "",
+		"sv": "^0.13.0",
+		"downloads": 7
+	},
+	{
+		"name": "@fernando.mema/sv-wuchale",
+		"description": "",
+		"sv": "^0.13.0",
+		"downloads": 7
+	},
+	{
+		"name": "@fernando.mema/sv-better-auth-prisma",
+		"description": "",
+		"sv": "^0.13.0",
+		"downloads": 7
+	},
+	{
+		"name": "@svforge/notifications",
+		"description": "SVForge Notifications — persistent business notifications (read/unread)",
+		"sv": "^1.1.0",
+		"downloads": 6
+	},
+	{
+		"name": "sveltekit-temporal",
+		"description": "sv add-on that wires the Temporal API polyfill into a SvelteKit project with conditional loading on client and server.",
+		"sv": "^0.15.3",
+		"downloads": 6
+	},
+	{
+		"name": "@svelbase/sv",
+		"description": "@svelbase/sv is an addon for generating SvelteKit projects with PocketBase integrations",
+		"sv": "^0.17.0",
+		"downloads": 6
+	},
+	{
+		"name": "@fernando.mema/sv-iconify-tailwind4",
+		"description": "",
+		"sv": "^0.13.0",
+		"downloads": 6
+	},
+	{
+		"name": "@omysoul/cf-ws-do",
+		"description": "sv add-on for @omysoul/cf-ws-do",
+		"sv": "latest",
+		"downloads": 5
+	},
+	{
+		"name": "@fernando.mema/sv-sentry",
+		"description": "",
+		"sv": "^0.13.0",
+		"downloads": 5
+	},
+	{
+		"name": "@quickpickle/sv",
+		"description": "Svelte CLI community add-on for QuickPickle behavioral testing",
+		"sv": "^0.13.0",
+		"downloads": 5
+	},
+	{
+		"name": "@shadcn-svelte/sv",
+		"description": "sv add-on that initializes shadcn-svelte and adds components",
+		"sv": "^0.16.6",
+		"downloads": 4
+	},
+	{
+		"name": "@fernando.mema/sv-umami",
+		"description": "",
+		"sv": "^0.13.0",
+		"downloads": 4
+	},
+	{
+		"name": "faf-sv",
+		"description": "Svelte CLI add-on: writes project.faf (AI context) for a Svelte or SvelteKit project with faf-cli",
+		"sv": "^1.0.0",
+		"downloads": 3
+	},
+	{
+		"name": "@dittmann/sv-markdoc",
+		"description": "sv add-on that sets up svelte-markdoc-preprocess in a Svelte project",
+		"sv": "^0.17.0",
+		"downloads": 2
+	},
+	{
+		"name": "@svkit/sv",
+		"description": "",
+		"sv": "^0.15.0",
+		"downloads": 2
+	},
+	{
+		"name": "@the-vcsi/tidyduck",
+		"description": "",
+		"sv": "^0.13.0",
+		"downloads": 2
+	},
+	{
+		"name": "@symsmith/sv",
+		"description": "@symsmith's Svelte starter pack",
+		"sv": "0.14.0",
+		"downloads": 1
+	},
+	{
+		"name": "@mockatoo/sv",
+		"description": "Svelte CLI add-on: GitHub sign-in with Better Auth that works in development without a GitHub OAuth app, using the free Mockatoo mock.",
+		"sv": "^1.7.0",
+		"downloads": 0
+	},
+	{
+		"name": "@metricraven/sv",
+		"description": "Svelte CLI add-on for MetricRaven: `npx sv add @metricraven` adds the analytics script to your SvelteKit app.",
+		"sv": "^1.7.0",
+		"downloads": 0
+	}
+]

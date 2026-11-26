@@ -9,6 +9,7 @@ import * as pkg from 'empathic/package';
 import * as v from 'valibot';
 import { officialAddons as _officialAddons, getAddonDetails } from '../addons/index.ts';
 import * as common from '../core/common.ts';
+import { compatibleCommunityAddons, promptCommunityAddons } from '../core/community-addons.ts';
 import {
 	type AddonAnswers,
 	type AddonDefinition,
@@ -39,6 +40,8 @@ import { verifyCleanWorkingDirectory, verifyUnsupportedAddons } from '../core/ve
 import { createWorkspace, type Workspace } from '../core/workspace.ts';
 
 const officialAddons = Object.values(_officialAddons);
+// picker value that opens the community add-ons prompt
+const COMMUNITY = 'community';
 const addonOptions = getAddonOptionFlags();
 
 const OptionsSchema = v.pipe(
@@ -681,7 +684,7 @@ export async function promptAddonQuestions({
 		// For the prompt, we only show official addons
 		const officialLoaded = officialAddons.map((a) => createLoadedAddon(a));
 		const results = await setupAddons(officialLoaded, workspace);
-		const addonOptions = officialAddons
+		const addonOptions: Array<{ value: string; label: string; hint: string }> = officialAddons
 			// only display supported addons relative to the current environment
 			.filter(({ id, hidden }) => results[id].unsupported.length === 0 && !hidden)
 			.map(({ id, homepage, shortDescription }) => ({
@@ -689,6 +692,15 @@ export async function promptAddonQuestions({
 				value: id,
 				hint: `${shortDescription} - ${homepage}`
 			}));
+
+		const community = compatibleCommunityAddons();
+		if (community.length > 0) {
+			addonOptions.push({
+				value: COMMUNITY,
+				label: '[community]',
+				hint: 'not reviewed by Svelte maintainers'
+			});
+		}
 
 		const selected = await p.multiselect({
 			message: `What would you like to add to your project? ${color.dim('(use arrow keys / space bar)')}`,
@@ -701,8 +713,28 @@ export async function promptAddonQuestions({
 		}
 
 		for (const id of selected) {
+			if (id === COMMUNITY) continue;
 			addons.push(createLoadedAddon(getAddonDetails(id)));
 			answers[id] = {};
+		}
+
+		if (selected.includes(COMMUNITY)) {
+			const inputs = await promptCommunityAddons(community);
+			if (inputs.length > 0) {
+				const picked = await resolveAddons(
+					classifyAddons(inputs, options.cwd),
+					options.downloadCheck
+				);
+				for (const { addon } of picked) answers[addon.id] = {};
+				// picked roots skip the dependency-only check further down
+				await common.runAndValidateVerifications(
+					verifyUnsupportedAddons(
+						picked.map((a) => a.addon),
+						await setupAddons(picked, workspace, answers)
+					)
+				);
+				addons.push(...picked);
+			}
 		}
 	}
 
