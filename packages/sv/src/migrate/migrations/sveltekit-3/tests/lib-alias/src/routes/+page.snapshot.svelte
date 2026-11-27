@@ -11,6 +11,7 @@
 
 <style>
 	div {
-		background-image: url("../lib/example.jpg");
+		background-image: url("#lib/example.jpg");
+		background: url("#lib/ts");
 	}
 </style>

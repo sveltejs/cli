@@ -3,7 +3,7 @@ import { defineMigrationTask } from '../../../index.ts';
 
 // Only touched when already installed, never added.
 const KIT3_MIN_VERSIONS = {
-	vite: '^8.0.12',
+	vite: '^8.4.0',
 	'@sveltejs/vite-plugin-svelte': '^7.0.0',
 	svelte: '^5.57.2',
 	'@sveltejs/package': '^3.0.0',
