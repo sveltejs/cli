@@ -128,15 +128,19 @@ export async function installDependencies(
 
 	const exitCode = proc.exitCode ?? 0;
 	if (exitCode === 0) {
+		const report = await auditDependencies(agent, cwd);
 		task.success(`Successfully installed dependencies with ${color.command(agent)}`);
+		if (report) p.log.warn(report);
 		return true;
 	}
 
 	if (agent === 'pnpm' && output.join('\n').includes('ERR_PNPM_IGNORED_BUILDS')) {
+		const report = await auditDependencies(agent, cwd);
 		task.success(`Installed dependencies with ${color.command(agent)}`);
 		p.log.warn(
 			`Some build scripts were skipped. Run ${color.command(`${agent} approve-builds`)} to approve them.`
 		);
+		if (report) p.log.warn(report);
 		return true;
 	}
 
@@ -144,6 +148,46 @@ export async function installDependencies(
 	p.cancel('Operation failed.');
 	process.exit(2);
 }
+
+/** `package-manager-detector` has no audit command, so agents with a supported equivalent are mapped here. */
+const AUDIT_COMMANDS: Partial<Record<AgentName, { command: string; args: string[] }>> = {
+	npm: { command: 'npm', args: ['audit'] },
+	yarn: { command: 'yarn', args: ['audit'] },
+	pnpm: { command: 'pnpm', args: ['audit'] },
+	bun: { command: 'bun', args: ['audit'] },
+	deno: { command: 'deno', args: ['audit'] }
+};
+
+/**
+ * Runs the package manager's audit command and returns its report. Install logs are hidden
+ * once the task log completes, which would otherwise swallow the audit report, so the caller
+ * is responsible for logging it. A clean audit (and any failure, e.g. being offline) yields
+ * `undefined`: the audit is best-effort and never affects the install result.
+ */
+export const auditDependencies = async (
+	agent: AgentName,
+	cwd: string
+): Promise<string | undefined> => {
+	const audit = AUDIT_COMMANDS[agent];
+	if (!audit) return;
+
+	const proc = exec(audit.command, audit.args, { nodeOptions: { cwd }, throwOnError: false });
+
+	const output: string[] = [];
+	try {
+		for await (const line of proc) {
+			output.push(line);
+		}
+	} catch {
+		// fall through to exit-code handling below
+	}
+
+	const { exitCode = 0 } = proc;
+	const report = output.join('\n').trim();
+
+	// a clean audit is silent, anything the audit prints on a non-zero exit is reported as-is
+	if (exitCode !== 0 && report) return report;
+};
 
 export async function detectPackageManager(cwd: string): Promise<AgentName> {
 	const detected = await detect({ cwd });
