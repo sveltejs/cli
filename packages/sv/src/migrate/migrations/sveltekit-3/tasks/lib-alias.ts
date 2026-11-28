@@ -32,18 +32,12 @@ export default defineMigrationTask({
 				],
 				where: (content) => content.includes('$lib')
 			},
-			(content, file) => {
-				let styleLibPath = path.posix.relative(
-					path.posix.dirname(file.replaceAll('\\', '/')),
-					directory.lib.replaceAll('\\', '/')
-				);
-				if (!styleLibPath.startsWith('.')) styleLibPath = `./${styleLibPath}`;
-
+			(content) => {
 				const rewritten = content
 					.replace(
 						STYLE_TAG,
 						(_, open, css: string, close) =>
-							`${open}${css.replace(LIB_ALIAS, (match) => match.replace('$lib', styleLibPath))}${close}`
+							`${open}${css.replace(LIB_ALIAS, (match) => match.replace('$lib', '#lib'))}${close}`
 					)
 					.replace(LIB_ALIAS, (match, _, import_path) => {
 						match = match.replace('$lib', '#lib');
