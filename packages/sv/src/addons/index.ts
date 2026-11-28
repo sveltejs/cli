@@ -3,12 +3,13 @@ import type { OptionMap } from '../core/engine.ts';
 import type { AddonOptions } from '../core/options.ts';
 import aiTools, { type AiToolsOptions } from './ai-tools.ts';
 import betterAuth, { type BetterAuthOptions } from './better-auth.ts';
+import devtools, { type DevtoolsOptions } from './devtools.ts';
 import drizzle, { type DrizzleOptions } from './drizzle.ts';
 import enhancedImg from './enhanced-img.ts';
 import eslint from './eslint.ts';
 import experimental, { type ExperimentalOptions } from './experimental.ts';
 import { ADDON_IDS, type OfficialAddonId } from './ids.ts';
-import mdsvex from './mdsvex.ts';
+import mdsvex, { type MdsvexOptions } from './mdsvex.ts';
 import paraglide, { type ParaglideOptions } from './paraglide.ts';
 import playwright, { type PlaywrightOptions } from './playwright.ts';
 import prettier from './prettier.ts';
@@ -29,13 +30,14 @@ export type OfficialAddons = {
 	[ADDON_IDS.playwright]: Addon<AddonOptions<PlaywrightOptions>, typeof ADDON_IDS.playwright>;
 	[ADDON_IDS.tailwindcss]: Addon<AddonOptions<TailwindcssOptions>, typeof ADDON_IDS.tailwindcss>;
 	[ADDON_IDS.enhancedImg]: Addon<NoOptions, typeof ADDON_IDS.enhancedImg>;
+	[ADDON_IDS.devtools]: Addon<AddonOptions<DevtoolsOptions>, typeof ADDON_IDS.devtools>;
 	[ADDON_IDS.sveltekitAdapter]: Addon<
 		AddonOptions<SveltekitAdapterOptions>,
 		typeof ADDON_IDS.sveltekitAdapter
 	>;
 	[ADDON_IDS.drizzle]: Addon<AddonOptions<DrizzleOptions>, typeof ADDON_IDS.drizzle>;
 	[ADDON_IDS.betterAuth]: Addon<AddonOptions<BetterAuthOptions>, typeof ADDON_IDS.betterAuth>;
-	[ADDON_IDS.mdsvex]: Addon<NoOptions, typeof ADDON_IDS.mdsvex>;
+	[ADDON_IDS.mdsvex]: Addon<AddonOptions<MdsvexOptions>, typeof ADDON_IDS.mdsvex>;
 	[ADDON_IDS.paraglide]: Addon<AddonOptions<ParaglideOptions>, typeof ADDON_IDS.paraglide>;
 	[ADDON_IDS.storybook]: Addon<NoOptions, typeof ADDON_IDS.storybook>;
 	[ADDON_IDS.aiTools]: Addon<AddonOptions<AiToolsOptions>, typeof ADDON_IDS.aiTools>;
@@ -54,6 +56,7 @@ export const officialAddons: OfficialAddons = {
 	[ADDON_IDS.playwright]: playwright,
 	[ADDON_IDS.tailwindcss]: tailwindcss,
 	[ADDON_IDS.enhancedImg]: enhancedImg,
+	[ADDON_IDS.devtools]: devtools,
 	[ADDON_IDS.sveltekitAdapter]: sveltekitAdapter,
 	[ADDON_IDS.drizzle]: drizzle,
 	[ADDON_IDS.betterAuth]: betterAuth,

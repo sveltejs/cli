@@ -275,10 +275,10 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 			      "mcpServers": {
 			        "svelte": {
 			          "args": [
-			            "-y",
+			            "dlx",
 			            "@sveltejs/mcp",
 			          ],
-			          "command": "npx",
+			          "command": "pnpm",
 			          "env": {},
 			          "type": "stdio",
 			        },
@@ -292,10 +292,10 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 			        "anotherMCP": {},
 			        "svelte": {
 			          "args": [
-			            "-y",
+			            "dlx",
 			            "@sveltejs/mcp",
 			          ],
-			          "command": "npx",
+			          "command": "pnpm",
 			        },
 			      },
 			    },
@@ -307,10 +307,10 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 			      "mcpServers": {
 			        "svelte": {
 			          "args": [
-			            "-y",
+			            "dlx",
 			            "@sveltejs/mcp",
 			          ],
-			          "command": "npx",
+			          "command": "pnpm",
 			        },
 			      },
 			    },
@@ -339,10 +339,10 @@ test.concurrent.for(testCases)('ai-tools $kind.type $variant', (testCase, ctx) =
 			      "servers": {
 			        "svelte": {
 			          "args": [
-			            "-y",
+			            "dlx",
 			            "@sveltejs/mcp",
 			          ],
-			          "command": "npx",
+			          "command": "pnpm",
 			        },
 			      },
 			    },

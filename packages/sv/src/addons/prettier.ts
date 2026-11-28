@@ -17,7 +17,9 @@ export default defineAddon({
 	options: {},
 	run: ({ sv, dependencyVersion, file, cwd, language }) => {
 		const tailwindcssInstalled = Boolean(dependencyVersion('tailwindcss'));
+		const mdsvexInstalled = Boolean(dependencyVersion('mdsvex'));
 		if (tailwindcssInstalled) sv.devDependency('prettier-plugin-tailwindcss', '^0.8.1');
+		if (mdsvexInstalled) sv.devDependency('@mdsvex/prettier-plugin', '^0.1.0');
 
 		sv.devDependency('prettier', '^3.10.1');
 		sv.devDependency('prettier-plugin-svelte', '^4.1.1');
@@ -44,6 +46,7 @@ export default defineAddon({
 			prettierConfigPath(),
 			createPrettierConfig({
 				tailwind: tailwindcssInstalled,
+				mdsvex: mdsvexInstalled,
 				stylesheet: tailwindcssInstalled ? file.getRelative({ to: file.stylesheet }) : undefined
 			})
 		);

@@ -110,6 +110,47 @@ describe('setupAddons', () => {
 		expect(results['typed-addon'].additionalOptions).toHaveProperty('extra');
 	});
 
+	describe('draft and preferred options', () => {
+		let seenTemplate: string | undefined;
+		const addon = defineAddon({
+			id: 'template-addon',
+			options: defineAddonOptions<{ template: 'base' | 'dashboard' }>()
+				.add('template', {
+					question: 'Which template?',
+					type: 'select',
+					default: 'base',
+					options: [
+						{ value: 'base', label: 'Base' },
+						{ value: 'dashboard', label: 'Dashboard' }
+					]
+				})
+				.build(),
+			setup: ({ draftOptions, dependsOn }) => {
+				seenTemplate = draftOptions.template;
+				if (draftOptions.template === 'dashboard') dependsOn('drizzle', { database: 'postgresql' });
+			},
+			run: () => {}
+		});
+
+		it('passes answers into setup and collects preferred options', async () => {
+			const results = await setupAddons([toLoaded(addon)], workspace, {
+				'template-addon': { template: 'dashboard' }
+			});
+
+			expect(seenTemplate).toBe('dashboard');
+			expect(results['template-addon'].preferredOptions).toEqual({
+				drizzle: { database: 'postgresql' }
+			});
+		});
+
+		it('falls back to option defaults without answers', async () => {
+			const results = await setupAddons([toLoaded(addon)], workspace);
+
+			expect(seenTemplate).toBe('base');
+			expect(results['template-addon'].preferredOptions).toEqual({});
+		});
+	});
+
 	it('should await async setup', async () => {
 		const addon: AddonDefinition = {
 			id: 'async-addon',

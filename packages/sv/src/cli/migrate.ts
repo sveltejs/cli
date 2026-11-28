@@ -89,7 +89,7 @@ export const migrate = new Command('migrate')
 			}
 
 			if (!verifiedMigrationName) {
-				verifiedMigrationName = await p.select({
+				verifiedMigrationName = await p.autocomplete({
 					message: 'Select a migration to run',
 					options: migrations.map((m) => ({
 						value: m.id,

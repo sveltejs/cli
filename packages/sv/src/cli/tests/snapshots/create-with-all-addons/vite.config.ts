@@ -1,4 +1,5 @@
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
+import { svelteDevtools } from '@sveltejs/vite-devtools-svelte';
 import { mdsvex } from 'mdsvex';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
@@ -8,6 +9,8 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [
+		svelteDevtools(),
+		mdsvex(),
 		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
@@ -15,9 +18,7 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter(),
-			preprocess: [mdsvex({ extensions: ['.svx', '.md'] })],
-			extensions: ['.svelte', '.svx', '.md']
+			adapter: adapter()
 		}),
 
 		paraglideVitePlugin({
@@ -53,5 +54,6 @@ export default defineConfig({
 				}
 			}
 		]
-	}
+	},
+	devtools: { apply: 'serve', clientAuth: true }
 });

@@ -4,9 +4,7 @@
 	export const link = resolve('module');
 </script>
 
-<script
-	lang="ts"
->
+<script lang="ts">
 	import { asset } from '$app/paths';
 </script>
 

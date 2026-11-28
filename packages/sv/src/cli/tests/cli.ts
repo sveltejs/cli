@@ -39,10 +39,11 @@ describe('cli', () => {
 				'vitest=usages:unit,component',
 				'playwright=demo:yes',
 				'tailwindcss=plugins:typography,forms',
+				'devtools=plugins:vitest,rolldown,vite',
 				'sveltekit-adapter=adapter:node',
 				'drizzle=database:sqlite+sqlite:libsql',
 				'better-auth=demo:password,github',
-				'mdsvex',
+				'mdsvex=plugins:none',
 				'paraglide=languageTags:en,es+demo:yes',
 				'ai-tools=ide:claude-code,cursor,gemini,opencode,vscode,other+delivery:tools+tools:mcp,svelte-code-writer,svelte-core-bestpractices,svelte-file-editor+mcpSetup:local+agentsMd:yes+optInSkills:none'
 				// 'storybook' // No storybook addon during tests!
