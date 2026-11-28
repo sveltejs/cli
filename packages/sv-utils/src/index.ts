@@ -13,7 +13,10 @@ export {
 	resolveCommandArray
 } from './pm.ts';
 
-// Package manager helpers
+// Package manager use cases (`allowBuilds`, ...), so add-ons never branch on the package manager
+export * as pm from './package-manager.ts';
+export { type PackageManagerVersion } from './package-manager.ts';
+/** @deprecated Use `pm`. */
 export * as pnpm from './pnpm.ts';
 
 // Shell helpers

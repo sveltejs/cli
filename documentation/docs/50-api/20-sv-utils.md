@@ -272,27 +272,41 @@ Lower-level building blocks, both reading candidate files through an injected `r
 
 ## Package manager helpers
 
-### `pnpm.allowBuilds`
+Add-ons describe what they need; the helpers pick the file and format for the project's package manager and version, and do nothing where it doesn't apply.
 
-Returns a transform for `pnpm-workspace.yaml` that adds packages to the pnpm "allow builds" config. Use with `sv.file` when the project uses pnpm.
+### `pm.allowBuilds`
 
-`cwd` is the target project: the pnpm version that would run there (via `pnpm --version`) decides the shape, so the invoker's `packageManager` pin is not used.
+Allows packages to run their install scripts (native builds like `esbuild`, `sharp`). Pass the add-on's `run` context as-is, no package manager check needed.
+
+```js
+// @noErrors
+import { pm } from '@sveltejs/sv-utils';
+
+// inside an add-on's `run({ sv, file, cwd, packageManager })`:
+pm.allowBuilds({ sv, file, cwd, packageManager, packages: ['my-native-dep'] });
+```
+
+Only pnpm blocks install scripts today, other package managers are a no-op. On pnpm, the version that would run in `cwd` decides the shape:
 
 - pnpm `>= 10.26`: writes to the unified `allowBuilds` map (`{ pkg: true }`), migrating any legacy `onlyBuiltDependencies` list into the map.
 - pnpm `10.5` to `10.25`: writes to the legacy `onlyBuiltDependencies` list.
 - pnpm `< 10.5`: writes nothing.
 
+### `pm.version`
+
+Returns `{ major, minor, patch, version }` for the package manager that would run in `cwd` (so the project's pin wins over the invoker's), or `undefined` when unknown. Results are memoised.
+
+Prefer the use-case helpers above. Reach for `pm.version` only for what they don't cover, and treat `undefined` as "unknown", not "old".
+
 ```js
 // @noErrors
-import { pnpm } from '@sveltejs/sv-utils';
+import { pm } from '@sveltejs/sv-utils';
 
-if (packageManager === 'pnpm') {
-	sv.file(
-		file.findUp('pnpm-workspace.yaml'),
-		pnpm.allowBuilds({ cwd, packages: ['my-native-dep'] })
-	);
-}
+const v = pm.version({ cwd, packageManager });
 ```
+
+> [!NOTE]
+> The `pnpm` namespace (`pnpm.allowBuilds`, `pnpm.supportsWorkspaceSettings`) is deprecated in favor of `pm`.
 
 ## Demo pages
 
