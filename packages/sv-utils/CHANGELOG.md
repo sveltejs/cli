@@ -1,5 +1,18 @@
 # @sveltejs/sv-utils
 
+## 1.2.0
+
+### Minor Changes
+
+- feat(sv-utils): add `pm.allowBuilds` and `pm.version`, deprecate the `pnpm` namespace ([#1488](https://github.com/sveltejs/cli/pull/1488))
+  
+  ```diff
+  -if (packageManager === 'pnpm') {
+  -	sv.file(file.findUp('pnpm-workspace.yaml'), pnpm.allowBuilds({ cwd, packages: ['sharp'] }));
+  -}
+  +pm.allowBuilds({ sv, file, cwd, packageManager, packages: ['sharp'] });
+  ```
+
 ## 1.1.4
 
 ### Patch Changes

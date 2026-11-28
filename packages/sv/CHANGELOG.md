@@ -1,5 +1,13 @@
 # sv
 
+## 1.7.2
+
+### Patch Changes
+
+- fix(devtools): ensure project meets minimum requirements ([#1508](https://github.com/sveltejs/cli/pull/1508))
+- Updated dependencies [[`c1e9f9e`](https://github.com/sveltejs/cli/commit/c1e9f9e3a0751f55e85132490f76fe2453eb6a4e)]:
+  - @sveltejs/sv-utils@1.2.0
+
 ## 1.7.1
 
 ### Patch Changes
