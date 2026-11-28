@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
-import type { AgentName } from 'package-manager-detector';
+import { AGENTS, resolveCommand, type AgentName } from 'package-manager-detector';
 import { allowBuildsByVersion } from './pnpm-internals.ts';
 import { coerceVersion } from './semver.ts';
 import type { SvFileApi } from './svelte-config.ts';
@@ -13,9 +13,6 @@ export type PackageManagerVersion = {
 	/** Clean `major.minor.patch`, prerelease dropped. */
 	version: string;
 };
-
-// guards `execSync` against anything that isn't a known binary
-const BINARIES = new Set<string>(['npm', 'yarn', 'pnpm', 'bun', 'deno']);
 
 const versionByKey = new Map<string, PackageManagerVersion | undefined>();
 
@@ -35,9 +32,11 @@ export function version(options: {
 	if (versionByKey.has(key)) return versionByKey.get(key);
 
 	let result: PackageManagerVersion | undefined;
-	if (BINARIES.has(options.packageManager)) {
+	// guards `execSync` against anything that isn't a known agent
+	if (AGENTS.includes(options.packageManager)) {
 		try {
-			const out = execSync(`${options.packageManager} --version`, {
+			const { command, args } = resolveCommand(options.packageManager, 'agent', ['--version'])!;
+			const out = execSync(`${command} ${args.join(' ')}`, {
 				encoding: 'utf-8',
 				stdio: ['ignore', 'pipe', 'ignore'],
 				cwd,
